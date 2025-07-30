@@ -41,11 +41,16 @@ const Header = () => {
           </nav>
 
           {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Phone className="w-4 h-4 text-primary" />
-              <span>+225 XX XX XX XX</span>
-            </div>
+          <div className="hidden md:flex items-center gap-2">
+            <Button asChild variant="outline" size="sm">
+              <a href="/client">Client</a>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <a href="/chauffeur">Chauffeur</a>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <a href="/admin">Admin</a>
+            </Button>
             <Button variant="hero" size="sm">
               Télécharger l'App
             </Button>
