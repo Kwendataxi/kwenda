@@ -13,7 +13,9 @@ import {
   Navigation,
   Phone,
   MessageCircle,
-  CheckCircle
+  CheckCircle,
+  Home,
+  ArrowLeft
 } from 'lucide-react';
 
 const DriverApp = () => {
@@ -21,183 +23,191 @@ const DriverApp = () => {
   const [isOnline, setIsOnline] = useState(false);
 
   const renderDashboard = () => (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <div className="bg-primary text-primary-foreground p-4">
-        <div className="flex items-center justify-between">
+      <div className="card-floating mx-4 mt-4 p-4 flex items-center justify-between animate-slide-up">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-elegant">
+            <User className="h-5 w-5 text-white" />
+          </div>
           <div>
-            <h1 className="text-xl font-bold">Tableau de bord</h1>
-            <p className="text-sm opacity-90">Bonjour, Kouame Paul</p>
+            <p className="text-heading-sm text-card-foreground">Kouame Paul</p>
+            <p className="text-body-sm text-muted-foreground">Chauffeur NTA</p>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm">{isOnline ? 'En ligne' : 'Hors ligne'}</span>
-            <Switch checked={isOnline} onCheckedChange={setIsOnline} />
-          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={isOnline ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIsOnline(!isOnline)}
+            className={`rounded-xl font-semibold transition-all duration-200 ${
+              isOnline 
+                ? "bg-secondary text-secondary-foreground shadow-md" 
+                : "border-grey-300 hover:border-secondary hover:bg-secondary-light"
+            }`}
+          >
+            {isOnline ? "🟢 En ligne" : "⚪ Hors ligne"}
+          </Button>
         </div>
       </div>
 
-      {/* Status Card */}
-      <div className="p-4">
-        <Card className={isOnline ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300'}>
-          <CardContent className="p-4 text-center">
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 ${
-              isOnline ? 'bg-emerald-500' : 'bg-gray-400'
-            }`}>
-              <Car className="h-8 w-8 text-white" />
-            </div>
-            <h3 className="font-semibold text-lg">
-              {isOnline ? 'Vous êtes en ligne' : 'Vous êtes hors ligne'}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {isOnline ? 'En attente de demandes de course' : 'Passez en ligne pour recevoir des demandes'}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Stats Today */}
-      <div className="px-4 mb-4">
-        <h3 className="font-semibold mb-3">Aujourd'hui</h3>
-        <div className="grid grid-cols-3 gap-3">
-          <Card>
-            <CardContent className="p-3 text-center">
-              <DollarSign className="h-6 w-6 text-emerald-500 mx-auto mb-1" />
-              <p className="font-bold text-lg">45,500</p>
-              <p className="text-xs text-muted-foreground">FCFA</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-3 text-center">
-              <Car className="h-6 w-6 text-primary mx-auto mb-1" />
-              <p className="font-bold text-lg">12</p>
-              <p className="text-xs text-muted-foreground">Courses</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-3 text-center">
-              <Clock className="h-6 w-6 text-amber-500 mx-auto mb-1" />
-              <p className="font-bold text-lg">8h</p>
-              <p className="text-xs text-muted-foreground">En ligne</p>
-            </CardContent>
-          </Card>
+      {/* Stats Cards */}
+      <div className="p-4 grid grid-cols-3 gap-3">
+        <div className="card-floating p-4 text-center animate-scale-in">
+          <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center mx-auto mb-2">
+            <DollarSign className="h-5 w-5 text-white" />
+          </div>
+          <p className="text-caption text-muted-foreground mb-1">Gains aujourd'hui</p>
+          <p className="text-heading-sm text-card-foreground font-bold">45,500 CFA</p>
+        </div>
+        <div className="card-floating p-4 text-center animate-scale-in">
+          <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center mx-auto mb-2">
+            <Car className="h-5 w-5 text-white" />
+          </div>
+          <p className="text-caption text-muted-foreground mb-1">Courses</p>
+          <p className="text-heading-sm text-card-foreground font-bold">12</p>
+        </div>
+        <div className="card-floating p-4 text-center animate-scale-in">
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center mx-auto mb-2">
+            <Clock className="h-5 w-5 text-white" />
+          </div>
+          <p className="text-caption text-muted-foreground mb-1">Temps en ligne</p>
+          <p className="text-heading-sm text-card-foreground font-bold">8h</p>
         </div>
       </div>
 
       {/* Recent Rides */}
-      <div className="px-4">
-        <h3 className="font-semibold mb-3">Courses récentes</h3>
+      <div className="flex-1 p-4">
+        <h3 className="text-heading-md text-card-foreground mb-4">Courses récentes</h3>
         <div className="space-y-3">
-          {[1, 2, 3].map((ride) => (
-            <Card key={ride}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
-                      <User className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Jean Kouassi</p>
-                      <p className="text-sm text-muted-foreground">14:30</p>
-                    </div>
+          {[
+            { from: "Cocody", to: "Plateau", time: "14:30", amount: "2,500", client: "Jean Kouassi" },
+            { from: "Marcory", to: "Yopougon", time: "13:15", amount: "1,800", client: "Marie Diallo" },
+            { from: "Treichville", to: "Plateau", time: "12:45", amount: "3,200", client: "Paul Yao" },
+          ].map((ride, index) => (
+            <div key={index} className="card-floating p-4 hover:shadow-lg transition-all duration-200">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-secondary-light rounded-lg flex items-center justify-center">
+                    <MapPin className="h-4 w-4 text-secondary" />
                   </div>
-                  <Badge variant="secondary">Terminée</Badge>
+                  <span className="text-body-md font-medium text-card-foreground">{ride.from}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm">Cocody → Plateau</p>
-                  <div className="flex items-center space-x-3">
-                    <span className="font-semibold">2,500 FCFA</span>
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                      <span className="text-sm">5.0</span>
-                    </div>
+                <span className="text-caption text-muted-foreground bg-grey-100 px-2 py-1 rounded-md">{ride.time}</span>
+              </div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                    <MapPin className="h-4 w-4 text-red-500" />
                   </div>
+                  <span className="text-body-md text-card-foreground">{ride.to}</span>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="text-right">
+                  <span className="text-body-md font-bold text-secondary">{ride.amount}</span>
+                  <span className="text-caption text-muted-foreground ml-1">CFA</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 pt-2 border-t border-grey-100">
+                <div className="w-6 h-6 bg-primary-light rounded-full flex items-center justify-center">
+                  <User className="h-3 w-3 text-primary" />
+                </div>
+                <span className="text-body-sm text-muted-foreground">{ride.client}</span>
+                <div className="flex items-center gap-1 ml-auto">
+                  <Star className="h-3 w-3 text-yellow-400" />
+                  <span className="text-caption font-medium">5.0</span>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4">
-        <div className="flex justify-around">
-          <Button variant="ghost" size="sm" onClick={() => setCurrentView('dashboard')}>
-            <Car className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => setCurrentView('rides')}>
-            <Navigation className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => setCurrentView('earnings')}>
-            <DollarSign className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => setCurrentView('profile')}>
-            <User className="h-5 w-5" />
-          </Button>
-        </div>
+      <div className="bg-white border-t border-grey-100 px-6 py-3 flex justify-around">
+        {[
+          { icon: Home, label: "Tableau de bord", active: true },
+          { icon: DollarSign, label: "Gains", active: false },
+          { icon: User, label: "Profil", active: false },
+        ].map((item) => (
+          <button
+            key={item.label}
+            onClick={() => {
+              if (item.label === "Gains") setCurrentView("earnings");
+            }}
+            className={`flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-all duration-200 ${
+              item.active 
+                ? 'text-primary bg-primary-light' 
+                : 'text-muted-foreground hover:text-primary hover:bg-grey-50'
+            }`}
+          >
+            <item.icon className="h-5 w-5" />
+            <span className="text-caption font-medium">{item.label}</span>
+          </button>
+        ))}
       </div>
     </div>
   );
 
   const renderRideRequest = () => (
     <div className="min-h-screen bg-background p-4">
-      <Card className="border-primary">
-        <CardHeader className="text-center bg-primary text-primary-foreground rounded-t-lg">
-          <CardTitle>Nouvelle demande de course</CardTitle>
+      <Card className="card-floating border-0 animate-scale-in">
+        <CardHeader className="text-center bg-gradient-primary text-primary-foreground rounded-t-xl">
+          <CardTitle className="text-heading-lg">Nouvelle demande de course</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="text-center mb-6">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 bg-primary-light rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-elegant">
               <User className="h-10 w-10 text-primary" />
             </div>
-            <h3 className="font-bold text-lg">Jean Kouassi</h3>
-            <div className="flex items-center justify-center mt-1">
+            <h3 className="text-heading-md text-card-foreground font-bold">Jean Kouassi</h3>
+            <div className="flex items-center justify-center mt-2">
               <Star className="h-4 w-4 text-yellow-400 mr-1" />
-              <span>4.8</span>
+              <span className="text-body-md font-medium">4.8</span>
             </div>
           </div>
 
           <div className="space-y-4 mb-6">
             <div className="flex items-start space-x-3">
-              <div className="w-3 h-3 bg-emerald-500 rounded-full mt-2"></div>
+              <div className="w-4 h-4 bg-secondary rounded-full mt-1 shadow-sm"></div>
               <div>
-                <p className="font-medium">Point de départ</p>
-                <p className="text-sm text-muted-foreground">Cocody, Riviera Golf</p>
+                <p className="text-body-md font-semibold text-card-foreground">Point de départ</p>
+                <p className="text-body-sm text-muted-foreground">Cocody, Riviera Golf</p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="w-3 h-3 bg-red-500 rounded-full mt-2"></div>
+              <div className="w-4 h-4 bg-red-500 rounded-full mt-1 shadow-sm"></div>
               <div>
-                <p className="font-medium">Destination</p>
-                <p className="text-sm text-muted-foreground">Plateau, Immeuble CCIA</p>
+                <p className="text-body-md font-semibold text-card-foreground">Destination</p>
+                <p className="text-body-sm text-muted-foreground">Plateau, Immeuble CCIA</p>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">Distance</p>
-              <p className="font-bold">12.5 km</p>
+            <div className="text-center p-4 bg-grey-50 rounded-xl">
+              <p className="text-caption text-muted-foreground">Distance</p>
+              <p className="text-heading-sm font-bold text-card-foreground">12.5 km</p>
             </div>
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">Estimation</p>
-              <p className="font-bold">2,500 FCFA</p>
+            <div className="text-center p-4 bg-grey-50 rounded-xl">
+              <p className="text-caption text-muted-foreground">Estimation</p>
+              <p className="text-heading-sm font-bold text-card-foreground">2,500 CFA</p>
             </div>
           </div>
 
-          <div className="flex space-x-3">
-            <Button variant="outline" className="flex-1">
+          <div className="flex space-x-3 mb-4">
+            <Button variant="outline" className="flex-1 h-12 rounded-xl border-grey-300 hover:border-red-400 hover:bg-red-50">
               Refuser
             </Button>
-            <Button className="flex-1">
+            <Button className="flex-1 h-12 rounded-xl bg-gradient-primary shadow-elegant hover:shadow-glow">
               Accepter
             </Button>
           </div>
 
-          <div className="flex justify-center space-x-4 mt-4">
-            <Button variant="ghost" size="sm">
+          <div className="flex justify-center space-x-4">
+            <Button variant="ghost" size="sm" className="w-12 h-12 rounded-xl bg-grey-50 hover:bg-accent-light">
               <Phone className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="w-12 h-12 rounded-xl bg-grey-50 hover:bg-accent-light">
               <MessageCircle className="h-5 w-5" />
             </Button>
           </div>
@@ -207,58 +217,67 @@ const DriverApp = () => {
   );
 
   const renderEarnings = () => (
-    <div className="min-h-screen bg-background p-4">
-      <div className="flex items-center mb-6">
-        <Button variant="ghost" onClick={() => setCurrentView('dashboard')} className="mr-3">
-          ←
-        </Button>
-        <h1 className="text-xl font-bold">Gains</h1>
-      </div>
+    <div className="min-h-screen bg-background">
+      <div className="p-4">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setCurrentView('dashboard')}
+            className="rounded-xl"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-heading-lg text-card-foreground">Gains</h1>
+        </div>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Cette semaine</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center">
-            <p className="text-3xl font-bold text-primary">186,500 FCFA</p>
-            <p className="text-sm text-muted-foreground">+15% par rapport à la semaine dernière</p>
-          </div>
-          <div className="grid grid-cols-3 gap-4 mt-4">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">Courses</p>
-              <p className="font-bold">47</p>
+        <Card className="card-floating border-0 mb-6">
+          <CardHeader>
+            <CardTitle className="text-heading-md">Cette semaine</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center mb-4">
+              <p className="text-display-md font-bold text-primary">186,500</p>
+              <p className="text-body-sm text-muted-foreground">CFA</p>
+              <p className="text-body-sm text-secondary font-medium bg-secondary-light px-2 py-1 rounded-md inline-block mt-2">+15% vs semaine dernière</p>
             </div>
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">Heures</p>
-              <p className="font-bold">32h</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">Note moy.</p>
-              <p className="font-bold">4.9</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="space-y-3">
-        <h3 className="font-semibold">Détail des gains</h3>
-        {[
-          { date: "Aujourd'hui", amount: "45,500", rides: 12 },
-          { date: "Hier", amount: "38,200", rides: 10 },
-          { date: "15 Janv", amount: "52,100", rides: 14 },
-          { date: "14 Janv", amount: "41,800", rides: 11 },
-        ].map((day, index) => (
-          <Card key={index}>
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="font-medium">{day.date}</p>
-                <p className="text-sm text-muted-foreground">{day.rides} courses</p>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <p className="text-caption text-muted-foreground">Courses</p>
+                <p className="text-heading-sm font-bold text-card-foreground">47</p>
               </div>
-              <p className="font-bold">{day.amount} FCFA</p>
-            </CardContent>
-          </Card>
-        ))}
+              <div className="text-center">
+                <p className="text-caption text-muted-foreground">Heures</p>
+                <p className="text-heading-sm font-bold text-card-foreground">32h</p>
+              </div>
+              <div className="text-center">
+                <p className="text-caption text-muted-foreground">Note moy.</p>
+                <p className="text-heading-sm font-bold text-card-foreground">4.9</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-3">
+          <h3 className="text-heading-md text-card-foreground">Détail des gains</h3>
+          {[
+            { date: "Aujourd'hui", amount: "45,500", rides: 12 },
+            { date: "Hier", amount: "38,200", rides: 10 },
+            { date: "15 Janv", amount: "52,100", rides: 14 },
+            { date: "14 Janv", amount: "41,800", rides: 11 },
+          ].map((day, index) => (
+            <div key={index} className="card-floating p-4 flex items-center justify-between hover:shadow-lg transition-all duration-200">
+              <div>
+                <p className="text-body-md font-semibold text-card-foreground">{day.date}</p>
+                <p className="text-body-sm text-muted-foreground">{day.rides} courses</p>
+              </div>
+              <div className="text-right">
+                <p className="text-heading-sm font-bold text-card-foreground">{day.amount}</p>
+                <p className="text-caption text-muted-foreground">CFA</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
