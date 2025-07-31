@@ -8,117 +8,148 @@ const ClientApp = () => {
   const [currentView, setCurrentView] = useState('home');
 
   const renderHome = () => (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <div className="card-floating mx-4 mt-4 p-4 flex items-center justify-between animate-slide-up">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-elegant">
-            <User className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <p className="text-heading-sm text-card-foreground">Bonjour, Jean</p>
-            <p className="text-body-sm text-muted-foreground">Où allez-vous aujourd'hui ?</p>
-          </div>
-        </div>
-        <div className="relative">
-          <Bell className="h-6 w-6 text-muted-foreground" />
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-white"></div>
-        </div>
-      </div>
-
-      {/* Destination Input */}
-      <div className="card-floating mx-4 mt-4 p-4 animate-slide-up">
-        <div className="relative">
-          <MapPin className="absolute left-4 top-4 h-5 w-5 text-primary" />
-          <input
-            type="text"
-            placeholder="Où souhaitez-vous aller ?"
-            className="w-full pl-12 pr-4 py-4 bg-grey-50 border-0 rounded-xl text-body-md focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all duration-200"
-          />
-        </div>
-        <div className="mt-4 flex gap-3">
-          <Button variant="outline" size="sm" className="flex-1 rounded-xl border-grey-200 hover:border-primary hover:bg-primary-light">
-            <Home className="h-4 w-4" />
-            Domicile
-          </Button>
-          <Button variant="outline" size="sm" className="flex-1 rounded-xl border-grey-200 hover:border-primary hover:bg-primary-light">
-            <Building2 className="h-4 w-4" />
-            Bureau
-          </Button>
-        </div>
-      </div>
-
-      {/* Map Area */}
-      <div className="flex-1 mx-4 mt-4 mb-4 bg-grey-100 rounded-xl relative card-floating">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-20 h-20 bg-gradient-primary rounded-2xl flex items-center justify-center mb-4 shadow-elegant">
-              <MapPin className="h-10 w-10 text-white" />
+    <div className="min-h-screen bg-grey-25 flex flex-col">
+      {/* Header - Style Yango/Uber */}
+      <div className="px-6 pt-safe-top pt-12 pb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center shadow-sm">
+              <User className="h-5 w-5 text-white" />
             </div>
-            <p className="text-heading-sm text-grey-600">Carte interactive</p>
-            <p className="text-body-sm text-grey-400 mt-1">Votre position sera affichée ici</p>
+            <div>
+              <p className="text-lg font-semibold text-grey-900 tracking-tight">Bonjour, Jean</p>
+              <p className="text-sm text-grey-600 -mt-0.5">Comment puis-je vous aider ?</p>
+            </div>
+          </div>
+          <div className="relative p-2">
+            <Bell className="h-6 w-6 text-grey-700" />
+            <div className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></div>
           </div>
         </div>
       </div>
 
-      {/* Vehicle Selection */}
-      <div className="card-floating mx-4 mb-4 p-4">
-        <h3 className="text-heading-md text-card-foreground mb-4">Choisir un véhicule</h3>
-        <div className="space-y-3">
-          {[
-            { name: "NTA Eco", time: "5 min", price: "1 500", icon: Car, eco: true, color: "bg-secondary" },
-            { name: "NTA Standard", time: "8 min", price: "2 000", icon: Car, color: "bg-accent" },
-            { name: "NTA Luxe", time: "12 min", price: "3 500", icon: Car, color: "bg-primary" },
-          ].map((vehicle) => (
-            <div
-              key={vehicle.name}
-              className="flex items-center justify-between p-4 bg-grey-50 rounded-xl hover:bg-white hover:shadow-md cursor-pointer transition-all duration-200 border border-transparent hover:border-grey-200"
-            >
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 ${vehicle.color} rounded-xl flex items-center justify-center shadow-sm`}>
-                  <vehicle.icon className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-body-md font-semibold text-card-foreground flex items-center gap-2">
-                    {vehicle.name}
-                    {vehicle.eco && <Leaf className="h-4 w-4 text-secondary" />}
-                  </p>
-                  <p className="text-body-sm text-muted-foreground">{vehicle.time} • Arrivée</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-heading-sm text-card-foreground">{vehicle.price}</p>
-                <p className="text-caption text-muted-foreground">CFA</p>
-              </div>
-            </div>
-          ))}
+      {/* Destination Search - Style moderne */}
+      <div className="px-6 pb-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-grey-100 p-1">
+          <div className="flex items-center gap-3 px-4 py-4">
+            <div className="w-3 h-3 rounded-full bg-primary"></div>
+            <input
+              type="text"
+              placeholder="Où allez-vous ?"
+              className="flex-1 text-base text-grey-900 placeholder-grey-500 bg-transparent border-0 focus:outline-none"
+            />
+            <MapPin className="h-5 w-5 text-grey-400" />
+          </div>
         </div>
-        <Button className="w-full mt-6 h-12 rounded-xl text-body-md font-semibold" size="lg">
-          Commander maintenant
-        </Button>
-      </div>
-
-      {/* Bottom Navigation */}
-      <div className="bg-white border-t border-grey-100 px-6 py-3 flex justify-around">
-        {[
-          { icon: Home, label: "Accueil", active: true },
-          { icon: Clock, label: "Trajets", active: false },
-          { icon: User, label: "Profil", active: false },
-          { icon: CreditCard, label: "Paiement", active: false },
-        ].map((item) => (
-          <button
-            key={item.label}
-            onClick={() => setCurrentView(item.label.toLowerCase() as any)}
-            className={`flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-all duration-200 ${
-              item.active 
-                ? 'text-primary bg-primary-light' 
-                : 'text-muted-foreground hover:text-primary hover:bg-grey-50'
-            }`}
-          >
-            <item.icon className="h-5 w-5" />
-            <span className="text-caption font-medium">{item.label}</span>
+        
+        {/* Quick Actions */}
+        <div className="flex gap-3 mt-4">
+          <button className="flex-1 flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm border border-grey-100 hover:border-grey-200 transition-colors">
+            <div className="w-8 h-8 bg-grey-100 rounded-lg flex items-center justify-center">
+              <Home className="h-4 w-4 text-grey-600" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium text-grey-900">Domicile</p>
+              <p className="text-xs text-grey-500">Cocody</p>
+            </div>
           </button>
-        ))}
+          <button className="flex-1 flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm border border-grey-100 hover:border-grey-200 transition-colors">
+            <div className="w-8 h-8 bg-grey-100 rounded-lg flex items-center justify-center">
+              <Building2 className="h-4 w-4 text-grey-600" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium text-grey-900">Bureau</p>
+              <p className="text-xs text-grey-500">Plateau</p>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* Map Area - Plus réaliste */}
+      <div className="flex-1 mx-6 mb-6 bg-white rounded-2xl shadow-sm border border-grey-100 relative overflow-hidden min-h-[240px]">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-green-50">
+          <div className="absolute inset-0 opacity-10" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000' fill-opacity='0.1'%3E%3Cpath d='M20 20c0-11.046-8.954-20-20-20v20h20z'/%3E%3C/g%3E%3C/svg%3E")`
+          }}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className="w-6 h-6 bg-primary rounded-full shadow-lg border-4 border-white animate-pulse"></div>
+          </div>
+          <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-3 py-2 rounded-lg">
+            <p className="text-xs font-medium text-grey-900">Votre position</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Vehicle Selection - Style Yango */}
+      <div className="pb-safe-bottom">
+        <div className="px-6 pb-6">
+          <h3 className="text-lg font-semibold text-grey-900 mb-4">Choisir un véhicule</h3>
+          <div className="space-y-2">
+            {[
+              { name: "NTA Eco", time: "5", price: "1,500", icon: Car, eco: true, selected: true, description: "Option économique" },
+              { name: "NTA Standard", time: "8", price: "2,000", icon: Car, selected: false, description: "Confort standard" },
+              { name: "NTA Luxe", time: "12", price: "3,500", icon: Car, selected: false, description: "Véhicule premium" },
+            ].map((vehicle) => (
+              <div
+                key={vehicle.name}
+                className={`flex items-center justify-between p-4 bg-white rounded-xl border transition-all duration-200 hover:shadow-sm cursor-pointer ${
+                  vehicle.selected ? 'border-primary bg-primary/5' : 'border-grey-100 hover:border-grey-200'
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                    vehicle.selected ? 'bg-primary' : 'bg-grey-100'
+                  }`}>
+                    <vehicle.icon className={`h-6 w-6 ${vehicle.selected ? 'text-white' : 'text-grey-600'}`} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-grey-900">{vehicle.name}</p>
+                      {vehicle.eco && <Leaf className="h-4 w-4 text-green-500" />}
+                    </div>
+                    <p className="text-sm text-grey-600">{vehicle.description}</p>
+                    <p className="text-xs text-grey-500">{vehicle.time} min • Arrivée</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-grey-900">{vehicle.price}</p>
+                  <p className="text-xs text-grey-500">CFA</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Action Button - Style premium */}
+        <div className="px-6 pb-6">
+          <Button className="w-full h-14 rounded-2xl text-base font-semibold bg-grey-900 hover:bg-grey-800 text-white shadow-lg">
+            Commander NTA Eco
+          </Button>
+        </div>
+
+        {/* Bottom Navigation - Style épuré */}
+        <div className="bg-white border-t border-grey-100">
+          <div className="px-6 py-4 flex justify-around">
+            {[
+              { icon: Home, label: "Accueil", key: "home", active: true },
+              { icon: Clock, label: "Activité", key: "trajets", active: false },
+              { icon: User, label: "Compte", key: "profil", active: false },
+            ].map((item) => (
+              <button
+                key={item.key}
+                onClick={() => setCurrentView(item.key as any)}
+                className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-200 ${
+                  item.active 
+                    ? 'text-grey-900 bg-grey-100' 
+                    : 'text-grey-500 hover:text-grey-700 hover:bg-grey-50'
+                }`}
+              >
+                <item.icon className="h-5 w-5" />
+                <span className="text-xs font-medium">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
