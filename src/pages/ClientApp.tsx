@@ -33,7 +33,7 @@ const ClientApp = () => {
   const [serviceType, setServiceType] = useState('transport');
 
   const renderHome = () => (
-    <div className="min-h-screen bg-grey-25 flex flex-col pb-20">
+    <div className="min-h-screen bg-background flex flex-col pb-20">
       {/* Header - Style Taga */}
       <div className="px-6 pt-safe-top pt-12 pb-4">
         <div className="flex items-center justify-between">
@@ -42,8 +42,8 @@ const ClientApp = () => {
               <User className="h-5 w-5 text-white" />
             </div>
             <div>
-              <p className="text-lg font-semibold text-grey-900 tracking-tight">Bonjour, Jean</p>
-              <p className="text-sm text-grey-600 -mt-0.5">Bienvenue sur Taga</p>
+              <p className="text-lg font-semibold text-foreground tracking-tight">Bonjour à Kinshasa</p>
+              <p className="text-sm text-muted-foreground -mt-0.5">Bienvenue sur Kwenda Taxi</p>
             </div>
           </div>
           <div className="relative p-2">
@@ -144,10 +144,10 @@ const ClientApp = () => {
         <h3 className="text-lg font-semibold text-grey-900 mb-4">Choisir un véhicule</h3>
         <div className="space-y-2">
           {[
-            { name: "Taga Eco", time: "5", price: "1,500", icon: Car, eco: true, selected: true, description: "Option économique" },
-            { name: "Taga Standard", time: "8", price: "2,000", icon: Car, selected: false, description: "Confort standard" },
-            { name: "Taga Premium", time: "12", price: "3,500", icon: Car, selected: false, description: "Véhicule premium" },
-            { name: "Taga Moto", time: "3", price: "800", icon: Bike, selected: false, description: "Rapide et économique" },
+            { name: "Kwenda Eco", time: "5", price: "1,500", icon: Car, eco: true, selected: true, description: "Voiture économique pour trajets quotidiens" },
+            { name: "Kwenda Standard", time: "8", price: "2,200", icon: Car, selected: false, description: "Voiture confortable avec climatisation" },
+            { name: "Kwenda Premium", time: "12", price: "3,500", icon: Car, selected: false, description: "Voiture haut de gamme avec wifi" },
+            { name: "Kwenda Moto", time: "3", price: "800", icon: Bike, selected: false, description: "Moto rapide pour éviter les embouteillages" },
           ].map((vehicle) => (
             <div
               key={vehicle.name}
@@ -170,10 +170,10 @@ const ClientApp = () => {
                   <p className="text-xs text-grey-500">{vehicle.time} min • Arrivée</p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-lg font-bold text-grey-900">{vehicle.price}</p>
-                <p className="text-xs text-grey-500">CFA</p>
-              </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-primary">{vehicle.price}</p>
+                  <p className="text-xs text-muted-foreground">FC</p>
+                </div>
             </div>
           ))}
         </div>
@@ -181,8 +181,9 @@ const ClientApp = () => {
 
       {/* Action Button */}
       <div>
-        <Button className="w-full h-14 rounded-2xl text-base font-semibold bg-grey-900 hover:bg-grey-800 text-white shadow-lg">
-          Commander Taga Eco
+        <Button className="w-full h-14 rounded-2xl text-base font-semibold bg-gradient-primary hover:shadow-glow text-white transition-all duration-300">
+          <Car className="w-5 h-5 mr-2" />
+          Commander Kwenda Eco
         </Button>
       </div>
     </div>

@@ -8,34 +8,34 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* NTA TECH VTC Modern Design System */
-    --background: 0 0% 98%;
-    --foreground: 240 10% 8%;
+    /* Kwenda Taxi Congo Design System */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 8%;
+    --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 8%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary: Orange moderne NTA */
-    --primary: 24 95% 53%;
-    --primary-foreground: 0 0% 98%;
-    --primary-glow: 24 100% 65%;
-    --primary-light: 24 95% 93%;
+    /* Primary: Rouge Kwenda #ec2027 */
+    --primary: 357 79% 54%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 357 79% 64%;
+    --primary-light: 357 79% 74%;
 
-    /* Secondary: Vert élégant */
-    --secondary: 142 76% 36%;
-    --secondary-foreground: 0 0% 98%;
-    --secondary-light: 142 40% 94%;
+    /* Secondary: Or Congo #f2a216 */
+    --secondary: 42 89% 52%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --secondary-light: 42 89% 62%;
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Accent: Bleu premium */
-    --accent: 213 94% 68%;
-    --accent-foreground: 0 0% 98%;
-    --accent-light: 213 94% 95%;
+    /* Accent: Or Congo */
+    --accent: 42 89% 52%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --accent-light: 42 89% 62%;
 
     /* Greys modernes */
     --grey-50: 240 9% 97%;
@@ -52,15 +52,15 @@ All colors MUST be HSL.
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 24 95% 53%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 357 79% 54%;
 
     /* Design system extensions */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(142 76% 45%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100% / 0.9), hsl(0 0% 100% / 0.7));
+    --gradient-primary: linear-gradient(135deg, hsl(357, 79%, 54%), hsl(357, 79%, 64%));
+    --gradient-hero: linear-gradient(135deg, hsl(357, 79%, 54%) 0%, hsl(42, 89%, 52%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(142, 76%, 36%) 0%, hsl(142, 76%, 46%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(210, 40%, 98%) 100%);
     
     /* Shadows modernes */
     --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
@@ -68,9 +68,9 @@ All colors MUST be HSL.
     --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
     --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
     --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1), 0 8px 10px -6px hsl(0 0% 0% / 0.1);
-    --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.15);
-    --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.2);
-    --shadow-float: 0 8px 30px hsl(0 0% 0% / 0.12);
+    --shadow-elegant: 0 10px 30px -10px hsl(357, 79%, 54% / 0.3);
+    --shadow-glow: 0 0 40px hsl(357, 79%, 64% / 0.4);
+    --shadow-float: 0 20px 40px -10px hsl(357, 79%, 54% / 0.2);
     
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -108,24 +108,24 @@ All colors MUST be HSL.
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 357 79% 54%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 42 89% 52%;
+    --secondary-foreground: 222.2 84% 4.9%;
 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 42 89% 52%;
+    --accent-foreground: 222.2 84% 4.9%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 357 79% 54%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
