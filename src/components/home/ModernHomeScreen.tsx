@@ -53,10 +53,9 @@ export const ModernHomeScreen = ({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ModernHeader 
-        hasNotifications={true}
-        userLocation="Kinshasa, RD Congo"
-      />
+        <ModernHeader 
+          hasNotifications={true}
+        />
       
       <div className="space-y-6 pb-20">
         <ServiceGrid onServiceSelect={onServiceSelect} />

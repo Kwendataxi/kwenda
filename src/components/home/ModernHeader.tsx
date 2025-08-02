@@ -1,22 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, MapPin } from 'lucide-react';
 import NotificationCenter from '@/components/advanced/NotificationCenter';
 import { useAuth } from '@/hooks/useAuth';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface ModernHeaderProps {
   hasNotifications?: boolean;
-  userLocation?: string;
 }
 
 export const ModernHeader = ({ 
-  hasNotifications = false,
-  userLocation = "Kinshasa, RD Congo"
+  hasNotifications = false
 }: ModernHeaderProps) => {
   const { user } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
+  const { latitude, longitude, getCurrentPosition, loading: locationLoading } = useGeolocation();
+  const [currentAddress, setCurrentAddress] = useState('Kinshasa, RD Congo');
 
-  // Get user's first name from metadata or default
-  const firstName = user?.user_metadata?.first_name || user?.user_metadata?.name?.split(' ')[0] || 'Utilisateur';
+  // Get user's full name from metadata or default
+  const fullName = user?.user_metadata?.full_name || 
+                  user?.user_metadata?.name || 
+                  (user?.user_metadata?.first_name && user?.user_metadata?.last_name 
+                    ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
+                    : user?.user_metadata?.first_name) || 
+                  'Utilisateur';
   
   // Dynamic greeting based on time
   const getGreeting = () => {
@@ -25,27 +31,39 @@ export const ModernHeader = ({
     if (hour < 18) return 'Bon après-midi';
     return 'Bonsoir';
   };
+
+  // Get current location on component mount
+  useEffect(() => {
+    getCurrentPosition();
+  }, [getCurrentPosition]);
+
+  // Reverse geocoding to get address from coordinates
+  useEffect(() => {
+    if (latitude && longitude) {
+      // Simple reverse geocoding - in a real app, you'd use a proper geocoding service
+      setCurrentAddress('Position actuelle');
+    }
+  }, [latitude, longitude]);
   return (
     <div className="relative overflow-hidden">
-      {/* Gradient simplifié */}
+      {/* Fond blanc */}
       <div 
-        className="px-6 py-4 pt-8 relative z-10"
-        style={{ 
-          background: 'var(--gradient-hero)'
-        }}
+        className="px-6 py-4 pt-8 relative z-10 bg-white"
       >
         {/* Structure simplifiée en 2 colonnes */}
         <div className="flex items-center justify-between">
           {/* Salutation personnalisée et localisation */}
           <div className="flex-1">
             <div className="mb-1">
-              <p className="text-white font-bold text-lg">
-                {getGreeting()}, {firstName}
+              <p className="text-gray-900 font-bold text-lg">
+                {getGreeting()}, {fullName}
               </p>
             </div>
             <div className="flex items-center gap-1">
-              <MapPin className="h-4 w-4 text-white/80" />
-              <p className="text-white/80 text-sm">{userLocation}</p>
+              <MapPin className="h-4 w-4 text-gray-600" />
+              <p className="text-gray-600 text-sm">
+                {locationLoading ? 'Localisation...' : currentAddress}
+              </p>
             </div>
           </div>
           
@@ -53,9 +71,9 @@ export const ModernHeader = ({
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2.5 bg-white/10 rounded-lg backdrop-blur-sm hover:bg-white/20 transition-all duration-200"
+              className="p-2.5 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-200"
             >
-              <Bell className="h-5 w-5 text-white" />
+              <Bell className="h-5 w-5 text-gray-700" />
               {hasNotifications && (
                 <div className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center">
                   <span className="text-xs font-bold text-white">3</span>
