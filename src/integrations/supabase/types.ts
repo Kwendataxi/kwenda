@@ -14,7 +14,315 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      delivery_orders: {
+        Row: {
+          actual_price: number | null
+          created_at: string
+          delivery_coordinates: Json | null
+          delivery_location: string
+          delivery_time: string | null
+          delivery_type: string
+          driver_id: string | null
+          estimated_price: number | null
+          id: string
+          loading_assistance: boolean | null
+          order_time: string
+          package_type: string | null
+          pickup_coordinates: Json | null
+          pickup_location: string
+          pickup_time: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+          vehicle_size: string | null
+        }
+        Insert: {
+          actual_price?: number | null
+          created_at?: string
+          delivery_coordinates?: Json | null
+          delivery_location: string
+          delivery_time?: string | null
+          delivery_type: string
+          driver_id?: string | null
+          estimated_price?: number | null
+          id?: string
+          loading_assistance?: boolean | null
+          order_time?: string
+          package_type?: string | null
+          pickup_coordinates?: Json | null
+          pickup_location: string
+          pickup_time?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+          vehicle_size?: string | null
+        }
+        Update: {
+          actual_price?: number | null
+          created_at?: string
+          delivery_coordinates?: Json | null
+          delivery_location?: string
+          delivery_time?: string | null
+          delivery_type?: string
+          driver_id?: string | null
+          estimated_price?: number | null
+          id?: string
+          loading_assistance?: boolean | null
+          order_time?: string
+          package_type?: string | null
+          pickup_coordinates?: Json | null
+          pickup_location?: string
+          pickup_time?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+          vehicle_size?: string | null
+        }
+        Relationships: []
+      }
+      favorites: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_products: {
+        Row: {
+          category: string
+          condition: string | null
+          coordinates: Json | null
+          created_at: string
+          description: string | null
+          featured: boolean | null
+          id: string
+          images: Json | null
+          location: string | null
+          price: number
+          seller_id: string
+          status: string | null
+          subcategory: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          condition?: string | null
+          coordinates?: Json | null
+          created_at?: string
+          description?: string | null
+          featured?: boolean | null
+          id?: string
+          images?: Json | null
+          location?: string | null
+          price: number
+          seller_id: string
+          status?: string | null
+          subcategory?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          condition?: string | null
+          coordinates?: Json | null
+          created_at?: string
+          description?: string | null
+          featured?: boolean | null
+          id?: string
+          images?: Json | null
+          location?: string | null
+          price?: number
+          seller_id?: string
+          status?: string | null
+          subcategory?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_transactions: {
+        Row: {
+          amount: number
+          booking_id: string | null
+          created_at: string
+          currency: string | null
+          delivery_id: string | null
+          id: string
+          payment_method: string
+          payment_provider: string | null
+          product_id: string | null
+          status: string | null
+          transaction_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          booking_id?: string | null
+          created_at?: string
+          currency?: string | null
+          delivery_id?: string | null
+          id?: string
+          payment_method: string
+          payment_provider?: string | null
+          product_id?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string | null
+          created_at?: string
+          currency?: string | null
+          delivery_id?: string | null
+          id?: string
+          payment_method?: string
+          payment_provider?: string | null
+          product_id?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "transport_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_transactions_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_transactions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          phone_number: string | null
+          updated_at: string
+          user_id: string
+          user_type: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone_number?: string | null
+          updated_at?: string
+          user_id: string
+          user_type?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone_number?: string | null
+          updated_at?: string
+          user_id?: string
+          user_type?: string | null
+        }
+        Relationships: []
+      }
+      transport_bookings: {
+        Row: {
+          actual_price: number | null
+          booking_time: string
+          completion_time: string | null
+          created_at: string
+          destination: string
+          destination_coordinates: Json | null
+          driver_id: string | null
+          estimated_price: number | null
+          id: string
+          pickup_coordinates: Json | null
+          pickup_location: string
+          pickup_time: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+          vehicle_type: string
+        }
+        Insert: {
+          actual_price?: number | null
+          booking_time?: string
+          completion_time?: string | null
+          created_at?: string
+          destination: string
+          destination_coordinates?: Json | null
+          driver_id?: string | null
+          estimated_price?: number | null
+          id?: string
+          pickup_coordinates?: Json | null
+          pickup_location: string
+          pickup_time?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+          vehicle_type: string
+        }
+        Update: {
+          actual_price?: number | null
+          booking_time?: string
+          completion_time?: string | null
+          created_at?: string
+          destination?: string
+          destination_coordinates?: Json | null
+          driver_id?: string | null
+          estimated_price?: number | null
+          id?: string
+          pickup_coordinates?: Json | null
+          pickup_location?: string
+          pickup_time?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+          vehicle_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
