@@ -13,6 +13,7 @@ import NotificationCenter from '@/components/advanced/NotificationCenter';
 import OfflineMode from '@/components/advanced/OfflineMode';
 import SecurityVerification from '@/components/advanced/SecurityVerification';
 import { ResponsiveUserProfile } from '@/components/profile/ResponsiveUserProfile';
+import { ModernHomeScreen } from '@/components/home/ModernHomeScreen';
 import { 
   MapPin, 
   Car, 
@@ -278,66 +279,41 @@ const ClientApp = () => {
     return acc;
   }, {} as Record<string, number>);
 
+  const handleServiceSelect = (service: string) => {
+    setServiceType(service);
+    if (service === 'transport') {
+      setTransportStep('search');
+    } else if (service === 'delivery') {
+      setDeliveryStep('interface');
+    } else if (service === 'marketplace') {
+      setMarketplaceTab('explore');
+    }
+  };
+
+  const handleUniversalSearch = (query: string) => {
+    setSearchQuery(query);
+    // For now, default to marketplace search
+    setServiceType('marketplace');
+    setMarketplaceTab('explore');
+  };
+
+  const handleMarketplaceViewAll = () => {
+    setServiceType('marketplace');
+    setMarketplaceTab('explore');
+  };
+
   const renderHome = () => (
-    <div className="min-h-screen bg-background flex flex-col pb-20">
-      {/* Header - Style Taga */}
-      <div className="px-6 pt-safe-top pt-12 pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center shadow-sm">
-              <User className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-foreground tracking-tight">Bonjour à Kinshasa</p>
-              <p className="text-sm text-muted-foreground -mt-0.5">Bienvenue sur Kwenda Taxi</p>
-            </div>
-          </div>
-          <div className="relative p-2">
-            <Bell className="h-6 w-6 text-grey-700" />
-            <div className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></div>
-          </div>
-        </div>
-      </div>
-
-      {/* Service Tabs */}
-      <div className="px-6 pb-6">
-        <Tabs value={serviceType} onValueChange={setServiceType} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6 bg-white rounded-2xl p-1 shadow-sm border border-grey-100">
-            <TabsTrigger value="transport" className="flex items-center gap-2 data-[state=active]:bg-grey-900 data-[state=active]:text-white rounded-xl">
-              <Car className="w-4 h-4" />
-              Transport
-            </TabsTrigger>
-            <TabsTrigger value="delivery" className="flex items-center gap-2 data-[state=active]:bg-grey-900 data-[state=active]:text-white rounded-xl">
-              <Truck className="w-4 h-4" />
-              Livraison
-            </TabsTrigger>
-            <TabsTrigger value="marketplace" className="flex items-center gap-2 data-[state=active]:bg-grey-900 data-[state=active]:text-white rounded-xl relative">
-              <Store className="w-4 h-4" />
-              Marketplace
-              {cartItems.length > 0 && (
-                <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs">
-                  {cartItems.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="transport">
-            {renderTransportService()}
-          </TabsContent>
-          
-          <TabsContent value="delivery">
-            {renderDeliveryService()}
-          </TabsContent>
-          
-          <TabsContent value="marketplace">
-            <LazyLoadWrapper>
-              {renderMarketplaceService()}
-            </LazyLoadWrapper>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
+    <ModernHomeScreen
+      userBalance={125000}
+      onServiceSelect={handleServiceSelect}
+      onSearch={handleUniversalSearch}
+      featuredProducts={mockProducts.slice(0, 4).map(p => ({ ...p, isPopular: Math.random() > 0.5 }))}
+      onProductSelect={(product) => {
+        setSelectedProduct(product);
+        setIsProductDetailsOpen(true);
+      }}
+      onMarketplaceViewAll={handleMarketplaceViewAll}
+    />
   );
 
   const calculateDistance = (pickup: Location, destination: Location) => {
@@ -931,6 +907,48 @@ const ClientApp = () => {
       )}
       {/* Main Content */}
       {(() => {
+        // Show service content when service is selected from home
+        if (currentView === 'home' && serviceType !== 'transport') {
+          switch (serviceType) {
+            case 'delivery':
+              return renderDeliveryService();
+            case 'marketplace':
+              return renderMarketplaceService();
+            default:
+              return renderHome();
+          }
+        }
+
+        // Show transport service when selected from home
+        if (currentView === 'home' && serviceType === 'transport' && (transportStep !== 'search' || pickupLocation || destinationLocation)) {
+          return (
+            <div className="min-h-screen bg-background pb-20">
+              <div className="p-4">
+                <div className="flex items-center gap-4 mb-6">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setServiceType('transport');
+                      setTransportStep('search');
+                      setPickupLocation(null);
+                      setDestinationLocation(null);
+                      setSelectedVehicle(null);
+                      setPickupInput('');
+                      setDestinationInput('');
+                    }}
+                    className="rounded-xl"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  <h1 className="text-lg font-semibold text-gray-900">Transport</h1>
+                </div>
+                {renderTransportService()}
+              </div>
+            </div>
+          );
+        }
+
         switch (currentView) {
           case 'profil':
           case 'profile':
