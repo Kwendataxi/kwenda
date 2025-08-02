@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Shield, Phone, Mail, User, FileText, Wallet, UserCheck, Edit2, Check, X, ChevronRight, Settings, Car, Users, MapPin, Clock, Gift, Headphones } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Star, Shield, Phone, Mail, User, FileText, Wallet, UserCheck, Edit2, Check, X, ChevronRight, Settings, Car, Users, MapPin, Clock, Gift, Headphones, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
@@ -39,7 +40,7 @@ interface UserRating {
 }
 
 export const UserProfile = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [rating, setRating] = useState<UserRating>({ rating: 0, total_ratings: 0 });
@@ -190,6 +191,23 @@ export const UserProfile = () => {
   const handlePhoneCancel = () => {
     setEditedPhone(profile?.phone_number || '');
     setIsEditingPhone(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Déconnexion réussie",
+        description: "Vous avez été déconnecté avec succès.",
+      });
+      // The redirect to /auth will be handled by the AuthProvider
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de se déconnecter.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleOptionClick = (option: string) => {
@@ -398,6 +416,32 @@ export const UserProfile = () => {
               </div>
             )}
           </div>
+        </div>
+        
+        {/* Logout Button */}
+        <div className="mt-6 pt-4 border-t border-border">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" className="w-full flex items-center gap-2 text-destructive hover:text-destructive">
+                <LogOut className="h-4 w-4" />
+                Se déconnecter
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmer la déconnexion</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Êtes-vous sûr de vouloir vous déconnecter de votre compte Kwenda Taxi ?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
+                  Se déconnecter
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
