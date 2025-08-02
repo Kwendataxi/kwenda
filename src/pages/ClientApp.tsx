@@ -34,7 +34,8 @@ import {
   Camera,
   Upload,
   Activity,
-  Bike
+  Bike,
+  Heart
 } from 'lucide-react';
 
 // Transport components
@@ -49,7 +50,10 @@ import ModernDeliveryForm, { DeliveryFormData } from '@/components/delivery/Mode
 import DeliveryTracking from '@/components/delivery/DeliveryTracking';
 
 // Marketplace components
-import { ResponsiveGrid } from '@/components/marketplace/ResponsiveGrid';
+import { ModernProductCard } from '@/components/marketplace/ModernProductCard';
+import { BottomNavigation } from '@/components/marketplace/BottomNavigation';
+import { SellProductForm } from '@/components/marketplace/SellProductForm';
+import { ModernMarketplaceHeader } from '@/components/marketplace/ModernMarketplaceHeader';
 import { CategoryFilter } from '@/components/marketplace/CategoryFilter';
 import { SearchBar } from '@/components/marketplace/SearchBar';
 import { ShoppingCart as CartComponent } from '@/components/marketplace/ShoppingCart';
@@ -121,6 +125,8 @@ const ClientApp = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
+  const [marketplaceTab, setMarketplaceTab] = useState('explore');
+  const [favorites, setFavorites] = useState<string[]>([]);
 
   // Mock marketplace data
   const mockProducts = [
@@ -683,41 +689,144 @@ const ClientApp = () => {
     );
   };
 
-  const renderMarketplaceService = () => (
-    <div className="flex flex-col h-full">
-      <SearchBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSearch={handleSearch}
-        filters={filters}
-        onFiltersChange={setFilters}
-      />
+  // Marketplace handlers
+  const handleToggleFavorite = (productId: string) => {
+    setFavorites(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const handleSellProduct = (formData: any) => {
+    console.log('New product to sell:', formData);
+    toast({
+      title: "Produit publié",
+      description: "Votre produit est maintenant en vente!",
+    });
+    setMarketplaceTab('explore');
+  };
+
+  const renderMarketplaceService = () => {
+    if (marketplaceTab === 'sell') {
+      return (
+        <SellProductForm
+          onBack={() => setMarketplaceTab('explore')}
+          onSubmit={handleSellProduct}
+        />
+      );
+    }
+
+    if (marketplaceTab === 'favorites') {
+      const favoriteProducts = mockProducts.filter(product => favorites.includes(product.id));
       
-      <CategoryFilter
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        productCounts={productCounts}
-      />
-      
-      <div className="flex-1 overflow-y-auto p-4">
-        {filteredProducts.length === 0 ? (
-          <div className="text-center py-8">
-            <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">Aucun produit trouvé</h3>
-            <p className="text-muted-foreground">
-              Essayez de modifier vos filtres de recherche
-            </p>
-          </div>
-        ) : (
-          <ResponsiveGrid
-            products={filteredProducts}
-            onAddToCart={(prod) => handleAddToCart(prod, 1)}
-            onViewDetails={handleViewProductDetails}
+      return (
+        <div className="min-h-screen bg-background pb-20">
+          <ModernMarketplaceHeader
+            cartItemsCount={cartItems.length}
+            onCartClick={() => setIsCartOpen(true)}
           />
-        )}
+          
+          <div className="p-4">
+            <h2 className="text-lg font-semibold mb-4">Mes Favoris ({favorites.length})</h2>
+            
+            {favoriteProducts.length === 0 ? (
+              <div className="text-center py-16">
+                <Heart className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">Aucun favori</h3>
+                <p className="text-muted-foreground mb-4">
+                  Ajoutez des produits à vos favoris en appuyant sur le cœur
+                </p>
+                <Button onClick={() => setMarketplaceTab('explore')}>
+                  Explorer les produits
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {favoriteProducts.map((product) => (
+                  <ModernProductCard
+                    key={product.id}
+                    product={product}
+                    onAddToCart={handleAddToCart}
+                    onViewDetails={handleViewProductDetails}
+                    onToggleFavorite={handleToggleFavorite}
+                    isFavorite={true}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          <BottomNavigation
+            activeTab={marketplaceTab}
+            onTabChange={setMarketplaceTab}
+            cartItemsCount={cartItems.length}
+            favoritesCount={favorites.length}
+          />
+        </div>
+      );
+    }
+
+    // Default explore view
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <ModernMarketplaceHeader
+          cartItemsCount={cartItems.length}
+          onCartClick={() => setIsCartOpen(true)}
+        />
+        
+        <div className="space-y-4">
+          <div className="px-4">
+            <SearchBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onSearch={handleSearch}
+              filters={filters}
+              onFiltersChange={setFilters}
+            />
+          </div>
+          
+          <CategoryFilter
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            productCounts={productCounts}
+          />
+          
+          <div className="px-4 pb-4">
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-16">
+                <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">Aucun produit trouvé</h3>
+                <p className="text-muted-foreground">
+                  Essayez de modifier vos filtres de recherche
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {filteredProducts.map((product) => (
+                  <ModernProductCard
+                    key={product.id}
+                    product={product}
+                    onAddToCart={handleAddToCart}
+                    onViewDetails={handleViewProductDetails}
+                    onToggleFavorite={handleToggleFavorite}
+                    isFavorite={favorites.includes(product.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <BottomNavigation
+          activeTab={marketplaceTab}
+          onTabChange={setMarketplaceTab}
+          cartItemsCount={cartItems.length}
+          favoritesCount={favorites.length}
+        />
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderProfile = () => (
     <div className="min-h-screen bg-background pb-20">
@@ -947,42 +1056,32 @@ const ClientApp = () => {
         onAddToCart={handleAddToCart}
       />
       
-      {/* Floating Cart Button for Marketplace */}
-      {serviceType === 'marketplace' && cartItems.length > 0 && (
-        <Button
-          className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg z-50"
-          onClick={() => setIsCartOpen(true)}
-        >
-          <ShoppingCart className="w-6 h-6" />
-          <Badge variant="destructive" className="absolute -top-2 -right-2 h-6 w-6 p-0 text-xs">
-            {cartItems.length}
-          </Badge>
-        </Button>
-      )}
 
-      {/* Fixed Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-grey-100 z-50">
-        <div className="px-6 py-4 flex justify-around max-w-md mx-auto">
-          {[
-            { icon: Home, label: "Accueil", key: "home" },
-            { icon: Activity, label: "Activité", key: "activity" },
-            { icon: User, label: "Compte", key: "profil" },
-          ].map((item) => (
-            <button
-              key={item.key}
-              onClick={() => setCurrentView(item.key)}
-              className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-200 ${
-                currentView === item.key 
-                  ? 'text-grey-900 bg-grey-100' 
-                  : 'text-grey-500 hover:text-grey-700 hover:bg-grey-50'
-              }`}
-            >
-              <item.icon className="h-5 w-5" />
-              <span className="text-xs font-medium">{item.label}</span>
-            </button>
-          ))}
+      {/* Fixed Bottom Navigation - Only show for non-marketplace */}
+      {serviceType !== 'marketplace' && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-grey-100 z-50">
+          <div className="px-6 py-4 flex justify-around max-w-md mx-auto">
+            {[
+              { icon: Home, label: "Accueil", key: "home" },
+              { icon: Activity, label: "Activité", key: "activity" },
+              { icon: User, label: "Compte", key: "profil" },
+            ].map((item) => (
+              <button
+                key={item.key}
+                onClick={() => setCurrentView(item.key)}
+                className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-200 ${
+                  currentView === item.key 
+                    ? 'text-grey-900 bg-grey-100' 
+                    : 'text-grey-500 hover:text-grey-700 hover:bg-grey-50'
+                }`}
+              >
+                <item.icon className="h-5 w-5" />
+                <span className="text-xs font-medium">{item.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Toast notifications */}
       <div id="toast-container" />
