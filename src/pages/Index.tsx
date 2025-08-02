@@ -54,10 +54,25 @@ const Index = () => {
                     Commander maintenant
                   </Button>
                 </Link>
-                <Link to="/chauffeur">
+                <Link to="/driver">
                   <Button variant="outline" size="lg" className="border-primary/20 hover:bg-primary/5 w-full sm:w-auto">
                     Devenir chauffeur
                     <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-4">
+                <Link to="/admin">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Users className="w-4 h-4 mr-1" />
+                    Admin
+                  </Button>
+                </Link>
+                <Link to="/partner">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Store className="w-4 h-4 mr-1" />
+                    Partenaire
                   </Button>
                 </Link>
               </div>
@@ -264,7 +279,7 @@ const Index = () => {
                 Commencer comme client
               </Button>
             </Link>
-            <Link to="/chauffeur">
+            <Link to="/driver">
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
                 <Users className="w-5 h-5 mr-2" />
                 Devenir partenaire chauffeur
