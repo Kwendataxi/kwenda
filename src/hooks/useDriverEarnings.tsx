@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 interface DailyEarnings {
   date: string;
@@ -31,6 +32,7 @@ export const useDriverEarnings = () => {
     dailyBreakdown: []
   });
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const loadEarningsData = async () => {
     if (!user) return;
@@ -139,6 +141,55 @@ export const useDriverEarnings = () => {
   useEffect(() => {
     if (user) {
       loadEarningsData();
+
+      // Set up real-time listeners for earnings updates
+      const bookingsChannel = supabase
+        .channel('driver-earnings-bookings')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'transport_bookings',
+            filter: `driver_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Booking updated:', payload);
+            // Refresh earnings when a booking is completed
+            if (payload.new?.status === 'completed') {
+              const earnings = payload.new?.actual_price || 0;
+              toast({
+                title: "💰 Nouveau gain enregistré",
+                description: `Course terminée : +${earnings.toLocaleString()} CDF`,
+              });
+              loadEarningsData();
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'user_ratings',
+            filter: `rated_user_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('New rating received:', payload);
+            const rating = payload.new?.rating || 0;
+            toast({
+              title: "⭐ Nouvelle évaluation",
+              description: `Vous avez reçu ${rating} étoile${rating > 1 ? 's' : ''}`,
+            });
+            // Refresh earnings to update average rating
+            loadEarningsData();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(bookingsChannel);
+      };
     }
   }, [user]);
 

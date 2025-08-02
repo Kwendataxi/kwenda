@@ -7,6 +7,8 @@ import InteractiveMap from '@/components/transport/InteractiveMap';
 import { useDriverData } from '@/hooks/useDriverData';
 import { useDriverBookings } from '@/hooks/useDriverBookings';
 import { useAuth } from '@/hooks/useAuth';
+import { EarningsPage } from '@/components/driver/EarningsPage';
+import { useDriverEarnings } from '@/hooks/useDriverEarnings';
 import { 
   Car, 
   MapPin, 
@@ -40,6 +42,7 @@ const DriverApp = () => {
   // Use real data hooks
   const { user } = useAuth();
   const { loading: statsLoading, stats, recentRides, isOnline, updateOnlineStatus } = useDriverData();
+  const { weeklyStats } = useDriverEarnings();
   const { 
     loading: bookingsLoading, 
     activeBooking, 
@@ -133,14 +136,16 @@ const DriverApp = () => {
             <DollarSign className="h-5 w-5 text-white" />
           </div>
           <p className="text-caption text-muted-foreground mb-1">Gains aujourd'hui</p>
-          <p className="text-heading-sm text-card-foreground font-bold">{stats.today_earnings.toLocaleString()} CFA</p>
+          <p className="text-heading-sm text-card-foreground font-bold">
+            {weeklyStats.dailyBreakdown.length > 0 && weeklyStats.dailyBreakdown[new Date().getDay()]?.earnings.toLocaleString() || stats.today_earnings.toLocaleString()} CDF
+          </p>
         </div>
         <div className="card-floating p-4 text-center animate-scale-in">
           <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center mx-auto mb-2">
             <Car className="h-5 w-5 text-white" />
           </div>
           <p className="text-caption text-muted-foreground mb-1">Courses</p>
-          <p className="text-heading-sm text-card-foreground font-bold">{stats.total_rides}</p>
+          <p className="text-heading-sm text-card-foreground font-bold">{weeklyStats.totalRides || stats.total_rides}</p>
         </div>
         <div className="card-floating p-4 text-center animate-scale-in">
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center mx-auto mb-2">
@@ -302,69 +307,7 @@ const DriverApp = () => {
   );
 
   const renderEarnings = () => (
-    <div className="min-h-screen bg-background">
-      <div className="p-4">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCurrentView('dashboard')}
-            className="rounded-xl"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-heading-lg text-card-foreground">Gains</h1>
-        </div>
-
-        <Card className="card-floating border-0 mb-6">
-          <CardHeader>
-            <CardTitle className="text-heading-md">Cette semaine</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center mb-4">
-              <p className="text-display-md font-bold text-primary">186,500</p>
-              <p className="text-body-sm text-muted-foreground">CFA</p>
-              <p className="text-body-sm text-secondary font-medium bg-secondary-light px-2 py-1 rounded-md inline-block mt-2">+15% vs semaine dernière</p>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <p className="text-caption text-muted-foreground">Courses</p>
-                <p className="text-heading-sm font-bold text-card-foreground">47</p>
-              </div>
-              <div className="text-center">
-                <p className="text-caption text-muted-foreground">Heures</p>
-                <p className="text-heading-sm font-bold text-card-foreground">32h</p>
-              </div>
-              <div className="text-center">
-                <p className="text-caption text-muted-foreground">Note moy.</p>
-                <p className="text-heading-sm font-bold text-card-foreground">4.9</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-3">
-          <h3 className="text-heading-md text-card-foreground">Détail des gains</h3>
-          {[
-            { date: "Aujourd'hui", amount: "45,500", rides: 12 },
-            { date: "Hier", amount: "38,200", rides: 10 },
-            { date: "15 Janv", amount: "52,100", rides: 14 },
-            { date: "14 Janv", amount: "41,800", rides: 11 },
-          ].map((day, index) => (
-            <div key={index} className="card-floating p-4 flex items-center justify-between hover:shadow-lg transition-all duration-200">
-              <div>
-                <p className="text-body-md font-semibold text-card-foreground">{day.date}</p>
-                <p className="text-body-sm text-muted-foreground">{day.rides} courses</p>
-              </div>
-              <div className="text-right">
-                <p className="text-heading-sm font-bold text-card-foreground">{day.amount}</p>
-                <p className="text-caption text-muted-foreground">CFA</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    <EarningsPage onBack={() => setCurrentView('dashboard')} />
   );
 
   const renderActiveRide = () => (
@@ -613,8 +556,8 @@ const DriverApp = () => {
             <p className="text-body-md text-muted-foreground mb-4">Chauffeur Kwenda Premium</p>
             <div className="flex items-center justify-center gap-1">
               <Star className="h-5 w-5 text-yellow-400" />
-              <span className="text-heading-sm font-bold text-card-foreground">{stats.rating || 4.9}</span>
-              <span className="text-body-sm text-muted-foreground">({stats.total_rides} courses)</span>
+              <span className="text-heading-sm font-bold text-card-foreground">{weeklyStats.averageRating || stats.rating || 4.9}</span>
+              <span className="text-body-sm text-muted-foreground">({weeklyStats.totalRides || stats.total_rides} courses)</span>
             </div>
           </CardContent>
         </Card>
