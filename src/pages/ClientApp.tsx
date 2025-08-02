@@ -281,6 +281,8 @@ const ClientApp = () => {
 
   const handleServiceSelect = (service: string) => {
     setServiceType(service);
+    // Change currentView to show the service directly
+    setCurrentView('service');
     if (service === 'transport') {
       setTransportStep('search');
     } else if (service === 'delivery') {
@@ -906,9 +908,36 @@ const ClientApp = () => {
       )}
       {/* Main Content */}
       {(() => {
-        // Show service content when service is selected from home
-        if (currentView === 'home' && serviceType !== 'transport') {
+        // Show service content when service view is active
+        if (currentView === 'service') {
           switch (serviceType) {
+            case 'transport':
+              return (
+                <div className="min-h-screen bg-background pb-20">
+                  <div className="p-4">
+                    <div className="flex items-center gap-4 mb-6">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setCurrentView('home');
+                          setTransportStep('search');
+                          setPickupLocation(null);
+                          setDestinationLocation(null);
+                          setSelectedVehicle(null);
+                          setPickupInput('');
+                          setDestinationInput('');
+                        }}
+                        className="rounded-xl"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </Button>
+                      <h1 className="text-lg font-semibold text-gray-900">Transport</h1>
+                    </div>
+                    {renderTransportService()}
+                  </div>
+                </div>
+              );
             case 'delivery':
               return renderDeliveryService();
             case 'marketplace':
@@ -916,36 +945,6 @@ const ClientApp = () => {
             default:
               return renderHome();
           }
-        }
-
-        // Show transport service when selected from home
-        if (currentView === 'home' && serviceType === 'transport' && (transportStep !== 'search' || pickupLocation || destinationLocation)) {
-          return (
-            <div className="min-h-screen bg-background pb-20">
-              <div className="p-4">
-                <div className="flex items-center gap-4 mb-6">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setServiceType('transport');
-                      setTransportStep('search');
-                      setPickupLocation(null);
-                      setDestinationLocation(null);
-                      setSelectedVehicle(null);
-                      setPickupInput('');
-                      setDestinationInput('');
-                    }}
-                    className="rounded-xl"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
-                  <h1 className="text-lg font-semibold text-gray-900">Transport</h1>
-                </div>
-                {renderTransportService()}
-              </div>
-            </div>
-          );
         }
 
         switch (currentView) {
