@@ -21,7 +21,7 @@ export const MobileOptimizer: React.FC<MobileOptimizerProps> = ({ children }) =>
       document.documentElement.classList.remove('performance-mode');
       setIsOptimized(false);
     }
-  }, [isSlowConnection, isBatteryLow]);
+  }, [isSlowConnection, isLowBattery]);
 
   // Preload critical resources for mobile
   useEffect(() => {
