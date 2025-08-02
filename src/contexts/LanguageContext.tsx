@@ -34,6 +34,11 @@ const translations = {
     'transport.taxi_voiture': 'Taxi voiture',
     'transport.bus_transco': 'Bus Transco',
     
+    // Villes principales
+    'city.kinshasa': 'Kinshasa',
+    'city.lubumbashi': 'Lubumbashi', 
+    'city.kolwezi': 'Kolwezi',
+    
     // Quartiers Kinshasa
     'location.gombe': 'Gombe',
     'location.kinshasa': 'Kinshasa',
@@ -43,6 +48,23 @@ const translations = {
     'location.masina': 'Masina',
     'location.ndjili': 'N\'djili',
     'location.kimbanseke': 'Kimbanseke',
+    'location.kalamu': 'Kalamu',
+    'location.limete': 'Limete',
+    'location.kintambo': 'Kintambo',
+    
+    // Quartiers Lubumbashi
+    'location.kenya': 'Kenya',
+    'location.kampemba': 'Kampemba',
+    'location.kamalondo': 'Kamalondo',
+    'location.katuba': 'Katuba',
+    'location.ruashi': 'Ruashi',
+    'location.annexe': 'Annexe',
+    
+    // Quartiers Kolwezi
+    'location.centre_ville': 'Centre-ville',
+    'location.mutanda': 'Mutanda',
+    'location.dilala': 'Dilala',
+    'location.manika': 'Manika',
     
     // Payment
     'payment.mobile_money': 'Mobile Money',

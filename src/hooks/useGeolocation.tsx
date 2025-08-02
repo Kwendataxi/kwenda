@@ -127,30 +127,31 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
 
       return position;
     } catch (error) {
-      // Fallback to Kinshasa coordinates if geolocation fails
-      const kinshasaCoords = getKinshasaCoordinates();
+      // Fallback intelligent vers la ville la plus proche
+      const nearestCity = detectCurrentCity();
+      const fallbackCoords = getCityCoordinates(nearestCity);
       const errorMessage = error instanceof Error ? error.message : 'Erreur de géolocalisation';
       
       setLocation(prev => ({
         ...prev,
-        latitude: kinshasaCoords.latitude,
-        longitude: kinshasaCoords.longitude,
+        latitude: fallbackCoords.latitude,
+        longitude: fallbackCoords.longitude,
         accuracy: null,
         loading: false,
         error: errorMessage,
-        lastKnownPosition: kinshasaCoords,
+        lastKnownPosition: fallbackCoords,
       }));
       
       toast({
         title: "Position par défaut",
-        description: "Utilisation de Kinshasa comme position par défaut",
+        description: `Utilisation de ${nearestCity.charAt(0).toUpperCase() + nearestCity.slice(1)} comme position par défaut`,
         variant: "default",
       });
       
       return {
         coords: {
-          latitude: kinshasaCoords.latitude,
-          longitude: kinshasaCoords.longitude,
+          latitude: fallbackCoords.latitude,
+          longitude: fallbackCoords.longitude,
           accuracy: null,
         },
         timestamp: Date.now(),
@@ -268,11 +269,34 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
     }
   }, [watchPosition, watchCurrentPosition]);
 
-  // Kinshasa default coordinates
-  const getKinshasaCoordinates = () => ({
-    latitude: -4.4419,
-    longitude: 15.2663,
-  });
+  // Coordonnées des villes principales de RDC
+  const getCityCoordinates = (city: 'kinshasa' | 'lubumbashi' | 'kolwezi' = 'kinshasa') => {
+    const coords = {
+      kinshasa: { latitude: -4.4419, longitude: 15.2663 },
+      lubumbashi: { latitude: -11.6609, longitude: 27.4794 },
+      kolwezi: { latitude: -10.7143, longitude: 25.4731 }
+    };
+    return coords[city];
+  };
+
+  const getKinshasaCoordinates = () => getCityCoordinates('kinshasa');
+
+  const detectCurrentCity = (): 'kinshasa' | 'lubumbashi' | 'kolwezi' => {
+    if (!location.latitude || !location.longitude) return 'kinshasa';
+    
+    const cities = [
+      { name: 'kinshasa' as const, ...getCityCoordinates('kinshasa') },
+      { name: 'lubumbashi' as const, ...getCityCoordinates('lubumbashi') },
+      { name: 'kolwezi' as const, ...getCityCoordinates('kolwezi') }
+    ];
+    
+    const distances = cities.map(city => ({
+      name: city.name,
+      distance: calculateDistance(location.latitude!, location.longitude!, city.latitude, city.longitude)
+    }));
+    
+    return distances.sort((a, b) => a.distance - b.distance)[0].name;
+  };
 
   const calculateDistance = useCallback((
     lat1: number,
@@ -310,6 +334,9 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
     calculateDistance,
     getDistanceToKinshasa,
     getKinshasaCoordinates,
+    getCityCoordinates,
+    detectCurrentCity,
     isInKinshasa: getDistanceToKinshasa() ? getDistanceToKinshasa()! < 50 : null, // Within 50km
+    currentCity: detectCurrentCity()
   };
 };

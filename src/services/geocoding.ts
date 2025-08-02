@@ -36,14 +36,36 @@ export class GeocodingService {
     }
   }
 
+  // Coordonnées des villes de RDC
+  private static readonly CITY_COORDINATES = {
+    kinshasa: { lng: 15.2663, lat: -4.4419 },
+    lubumbashi: { lng: 27.4794, lat: -11.6609 },
+    kolwezi: { lng: 25.4731, lat: -10.7143 }
+  };
+
+  private static detectCity(coordinates?: { lng: number; lat: number }): 'kinshasa' | 'lubumbashi' | 'kolwezi' {
+    if (!coordinates) return 'kinshasa';
+    
+    const distances = Object.entries(this.CITY_COORDINATES).map(([city, coords]) => ({
+      city: city as 'kinshasa' | 'lubumbashi' | 'kolwezi',
+      distance: Math.sqrt(
+        Math.pow(coordinates.lng - coords.lng, 2) + 
+        Math.pow(coordinates.lat - coords.lat, 2)
+      )
+    }));
+    
+    return distances.sort((a, b) => a.distance - b.distance)[0].city;
+  }
+
   static async searchPlaces(query: string, proximity?: { lng: number; lat: number }): Promise<GeocodeResult[]> {
     if (!query || query.length < 2) return [];
 
     try {
       const token = await this.getMapboxToken();
       
-      // Coordonnées par défaut pour Kinshasa avec proximité étendue
-      const defaultProximity = proximity || { lng: 15.2663, lat: -4.4419 };
+      // Détecter la ville actuelle et utiliser ses coordonnées par défaut
+      const currentCity = this.detectCity(proximity);
+      const defaultProximity = proximity || this.CITY_COORDINATES[currentCity];
       
       const url = new URL('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(query) + '.json');
       url.searchParams.set('access_token', token);
@@ -53,8 +75,8 @@ export class GeocodingService {
       url.searchParams.set('language', 'fr');
       // Types étendus pour plus de précision
       url.searchParams.set('types', 'poi,address,place,locality,neighborhood,district');
-      // Bbox pour limiter à la région de Kinshasa et environs
-      url.searchParams.set('bbox', '14.8,-5.0,16.0,-3.8');
+      // Bbox étendue pour couvrir les 3 villes principales
+      url.searchParams.set('bbox', '15.0,-12.0,28.0,-3.0');
       // Forcer la recherche fuzzy pour une meilleure correspondance
       url.searchParams.set('fuzzyMatch', 'true');
       url.searchParams.set('routing', 'true');
@@ -100,21 +122,47 @@ export class GeocodingService {
     } catch (error) {
       console.error('Erreur lors de la recherche de lieux:', error);
       
-      // Fallback enrichi avec des lieux connus de Kinshasa
-      const kinhasaPlaces = [
+      // Fallback enrichi avec des lieux connus des 3 villes
+      const currentCity = this.detectCity(proximity);
+      const fallbackPlaces = this.getFallbackPlaces(currentCity);
+      
+      return fallbackPlaces.filter(place => 
+        place.place_name.toLowerCase().includes(query.toLowerCase())
+      ) as GeocodeResult[];
+    }
+  }
+
+  private static getFallbackPlaces(city: 'kinshasa' | 'lubumbashi' | 'kolwezi') {
+    const places = {
+      kinshasa: [
         { place_name: 'Kinshasa, République Démocratique du Congo', center: [15.2663, -4.4419] },
         { place_name: 'Gombe, Kinshasa', center: [15.2866, -4.4114] },
         { place_name: 'Kalamu, Kinshasa', center: [15.2943, -4.4447] },
         { place_name: 'Lemba, Kinshasa', center: [15.2544, -4.4267] },
         { place_name: 'Limete, Kinshasa', center: [15.2791, -4.4158] },
         { place_name: 'Ngaliema, Kinshasa', center: [15.2411, -4.4019] },
-        { place_name: 'Kintambo, Kinshasa', center: [15.2567, -4.4086] }
-      ];
-      
-      return kinhasaPlaces.filter(place => 
-        place.place_name.toLowerCase().includes(query.toLowerCase())
-      ) as GeocodeResult[];
-    }
+        { place_name: 'Kintambo, Kinshasa', center: [15.2567, -4.4086] },
+        { place_name: 'Matete, Kinshasa', center: [15.2891, -4.4356] }
+      ],
+      lubumbashi: [
+        { place_name: 'Lubumbashi, République Démocratique du Congo', center: [27.4794, -11.6609] },
+        { place_name: 'Kenya, Lubumbashi', center: [27.4653, -11.6402] },
+        { place_name: 'Kampemba, Lubumbashi', center: [27.4891, -11.6756] },
+        { place_name: 'Kamalondo, Lubumbashi', center: [27.4612, -11.6512] },
+        { place_name: 'Katuba, Lubumbashi', center: [27.5234, -11.6891] },
+        { place_name: 'Ruashi, Lubumbashi', center: [27.4234, -11.6123] },
+        { place_name: 'Annexe, Lubumbashi', center: [27.4567, -11.6334] }
+      ],
+      kolwezi: [
+        { place_name: 'Kolwezi, République Démocratique du Congo', center: [25.4731, -10.7143] },
+        { place_name: 'Centre-ville, Kolwezi', center: [25.4689, -10.7101] },
+        { place_name: 'Mutanda, Kolwezi', center: [25.4812, -10.7234] },
+        { place_name: 'Dilala, Kolwezi', center: [25.4567, -10.7089] },
+        { place_name: 'Manika, Kolwezi', center: [25.4891, -10.7312] }
+      ]
+    };
+    
+    return places[city];
   }
 
   static async reverseGeocode(lng: number, lat: number): Promise<string> {

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { 
   Car, 
   Bike, 
@@ -41,57 +42,74 @@ const CongoVehicleSelection: React.FC<CongoVehicleSelectionProps> = ({
   selectedVehicleId
 }) => {
   const { t, formatCurrency } = useLanguage();
+  const { currentCity } = useGeolocation();
 
-  const congoVehicles: CongoVehicle[] = [
+  // Coefficients de prix par ville
+  const CITY_PRICE_MULTIPLIERS = {
+    kinshasa: 1.0,
+    lubumbashi: 1.2, // 20% plus cher
+    kolwezi: 1.1     // 10% plus cher
+  };
+
+  const getVehiclesByCity = (city: 'kinshasa' | 'lubumbashi' | 'kolwezi'): CongoVehicle[] => [
     {
       id: 'moto_taxi',
       name: t('transport.moto_taxi'),
       type: 'moto_taxi',
-      capacity: 2,
-      pricePerKm: 150,
-      estimatedTime: '10-15 min',
+      capacity: city === 'kolwezi' ? 1 : 2,
+      pricePerKm: Math.round(150 * CITY_PRICE_MULTIPLIERS[city]),
+      estimatedTime: city === 'lubumbashi' ? '8-12 min' : '10-15 min',
       features: ['Rapide', 'Économique', 'Flexible'],
-      available: true,
+      available: city !== 'kolwezi', // Moins commun à Kolwezi
       description: 'Idéal pour les courtes distances et éviter les embouteillages',
-      culturalNote: 'Transport populaire à Kinshasa pour sa rapidité'
+      culturalNote: city === 'kinshasa' ? 'Transport populaire à Kinshasa pour sa rapidité' :
+                   city === 'lubumbashi' ? 'Service rapide dans Lubumbashi' :
+                   'Service limité dans la ville minière'
     },
     {
       id: 'taxi_voiture',
       name: t('transport.taxi_voiture'),
       type: 'taxi_voiture',
       capacity: 4,
-      pricePerKm: 300,
-      estimatedTime: '15-25 min',
+      pricePerKm: Math.round(300 * CITY_PRICE_MULTIPLIERS[city]),
+      estimatedTime: city === 'kolwezi' ? '10-20 min' : '15-25 min',
       features: ['Confortable', 'Climatisé', 'Sécurisé'],
       available: true,
       description: 'Transport privé confortable pour 1-4 personnes',
-      culturalNote: 'Service premium pour les trajets en ville'
+      culturalNote: city === 'kinshasa' ? 'Service premium pour les trajets en ville' :
+                   city === 'lubumbashi' ? 'Transport de qualité dans la capitale du Katanga' :
+                   'Service adapté aux déplacements urbains de Kolwezi'
     },
     {
       id: 'taxi_bus',
       name: t('transport.taxi_bus'),
       type: 'taxi_bus',
-      capacity: 12,
-      pricePerKm: 100,
-      estimatedTime: '20-30 min',
+      capacity: city === 'kinshasa' ? 12 : city === 'lubumbashi' ? 10 : 8,
+      pricePerKm: Math.round(100 * CITY_PRICE_MULTIPLIERS[city]),
+      estimatedTime: city === 'kolwezi' ? '15-25 min' : '20-30 min',
       features: ['Économique', 'Route fixe', 'Populaire'],
-      available: true,
+      available: city !== 'kolwezi', // Service limité à Kolwezi
       description: 'Transport collectif sur itinéraires fixes',
-      culturalNote: 'Moyen de transport le plus utilisé par les Kinois'
+      culturalNote: city === 'kinshasa' ? 'Moyen de transport le plus utilisé par les Kinois' :
+                   city === 'lubumbashi' ? 'Transport collectif populaire à Lubumbashi' :
+                   'Service de transport collectif adapté'
     },
     {
       id: 'bus_transco',
       name: t('transport.bus_transco'),
       type: 'bus_transco',
-      capacity: 40,
-      pricePerKm: 80,
-      estimatedTime: '30-45 min',
+      capacity: city === 'kinshasa' ? 40 : city === 'lubumbashi' ? 35 : 25,
+      pricePerKm: Math.round(80 * CITY_PRICE_MULTIPLIERS[city]),
+      estimatedTime: city === 'kolwezi' ? '20-35 min' : '30-45 min',
       features: ['Très économique', 'Grande capacité', 'Service public'],
-      available: true,
+      available: city === 'kinshasa', // Principalement à Kinshasa
       description: 'Bus de transport en commun de la ville',
-      culturalNote: 'Transport officiel de la ville de Kinshasa'
+      culturalNote: city === 'kinshasa' ? 'Transport officiel de la ville de Kinshasa' :
+                   'Service de transport en commun local'
     }
   ];
+
+  const congoVehicles = getVehiclesByCity(currentCity);
 
   const calculatePrice = (vehicle: CongoVehicle): number => {
     const basePrice = vehicle.pricePerKm * distance;
@@ -126,7 +144,7 @@ const CongoVehicleSelection: React.FC<CongoVehicleSelectionProps> = ({
       <div className="text-center mb-6">
         <h3 className="text-lg font-semibold mb-2">Choisissez votre transport</h3>
         <p className="text-sm text-muted-foreground">
-          Distance: {distance.toFixed(1)} km • Options adaptées à Kinshasa
+          Distance: {distance.toFixed(1)} km • Options adaptées à {currentCity.charAt(0).toUpperCase() + currentCity.slice(1)}
         </p>
       </div>
 
@@ -231,7 +249,7 @@ const CongoVehicleSelection: React.FC<CongoVehicleSelectionProps> = ({
           <div className="flex items-start space-x-3">
             <MapPin className="h-5 w-5 text-primary mt-1" />
             <div>
-              <h4 className="font-medium mb-1">Transport à Kinshasa</h4>
+              <h4 className="font-medium mb-1">Transport à {currentCity.charAt(0).toUpperCase() + currentCity.slice(1)}</h4>
               <p className="text-sm text-muted-foreground">
                 Nos tarifs sont adaptés au marché local et incluent tous les frais.
                 Paiement en francs congolais (CDF) ou dollars US.
