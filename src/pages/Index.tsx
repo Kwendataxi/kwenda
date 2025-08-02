@@ -48,15 +48,15 @@ const Index = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/client">
+                <Link to="/auth">
                   <Button size="lg" className="bg-gradient-primary hover:shadow-glow transition-all duration-300 w-full sm:w-auto">
                     <Car className="w-5 h-5 mr-2" />
                     Commander maintenant
                   </Button>
                 </Link>
-                <Link to="/driver">
+                <Link to="/auth">
                   <Button variant="outline" size="lg" className="border-primary/20 hover:bg-primary/5 w-full sm:w-auto">
-                    Devenir chauffeur
+                    Se connecter
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
@@ -273,13 +273,13 @@ const Index = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/client">
+            <Link to="/auth">
               <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
                 <Car className="w-5 h-5 mr-2" />
                 Commencer comme client
               </Button>
             </Link>
-            <Link to="/driver">
+            <Link to="/auth">
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
                 <Users className="w-5 h-5 mr-2" />
                 Devenir partenaire chauffeur
