@@ -13,7 +13,7 @@ export const ModernHeader = ({
 }: ModernHeaderProps) => {
   const { user } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
-  const { latitude, longitude, getCurrentPosition, loading: locationLoading } = useGeolocation();
+  const geolocation = useGeolocation();
   const [currentAddress, setCurrentAddress] = useState('Kinshasa, RD Congo');
 
   // Get user's full name from metadata or default
@@ -34,16 +34,16 @@ export const ModernHeader = ({
 
   // Get current location on component mount
   useEffect(() => {
-    getCurrentPosition();
-  }, [getCurrentPosition]);
+    geolocation.getCurrentPosition();
+  }, [geolocation.getCurrentPosition]);
 
   // Reverse geocoding to get address from coordinates
   useEffect(() => {
-    if (latitude && longitude) {
+    if (geolocation.latitude && geolocation.longitude) {
       // Simple reverse geocoding - in a real app, you'd use a proper geocoding service
       setCurrentAddress('Position actuelle');
     }
-  }, [latitude, longitude]);
+  }, [geolocation.latitude, geolocation.longitude]);
   return (
     <div className="relative overflow-hidden">
       {/* Fond blanc */}
@@ -62,7 +62,7 @@ export const ModernHeader = ({
             <div className="flex items-center gap-1">
               <MapPin className="h-4 w-4 text-gray-600" />
               <p className="text-gray-600 text-sm">
-                {locationLoading ? 'Localisation...' : currentAddress}
+                {geolocation.loading ? 'Localisation...' : currentAddress}
               </p>
             </div>
           </div>
