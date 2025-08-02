@@ -18,6 +18,11 @@ import { UserStatistics } from './UserStatistics';
 import { ActivityHistory } from './ActivityHistory';
 import { KwendaPayWallet } from '../wallet/KwendaPayWallet';
 import ReferralSystem from '../advanced/ReferralSystem';
+import { UserAddressesManager } from './UserAddressesManager';
+import { CustomerSupport } from './CustomerSupport';
+import { DriverUpgrade } from './DriverUpgrade';
+import { TeamAccountManager } from './TeamAccountManager';
+import { UserSettings } from './UserSettings';
 
 interface Profile {
   id: string;
@@ -287,15 +292,18 @@ export const UserProfile = () => {
         return <ReferralSystem />;
       case 'history':
         return <ActivityHistory />;
+      case 'addresses':
+        return <UserAddressesManager />;
+      case 'support':
+        return <CustomerSupport />;
       case 'security':
         return <UserVerification />;
+      case 'driver':
+        return <DriverUpgrade />;
+      case 'team':
+        return <TeamAccountManager />;
       case 'settings':
-        return (
-          <div className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Paramètres</h3>
-            <p className="text-muted-foreground">Fonctionnalité en développement...</p>
-          </div>
-        );
+        return <UserSettings />;
       default:
         return (
           <div className="p-6">
