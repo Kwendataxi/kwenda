@@ -8,15 +8,15 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Shield, Camera, Phone, Mail, User, CreditCard, FileText, Award, Wallet } from 'lucide-react';
+import { Star, Shield, Phone, Mail, User, FileText, Wallet, UserCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
-import { PaymentMethodsManager } from './PaymentMethodsManager';
 import { UserVerification } from './UserVerification';
 import { UserRatings } from './UserRatings';
 import { UserStatistics } from './UserStatistics';
 import { ActivityHistory } from './ActivityHistory';
 import { KwendaPayWallet } from '../wallet/KwendaPayWallet';
+import ReferralSystem from '../advanced/ReferralSystem';
 
 interface Profile {
   id: string;
@@ -224,61 +224,38 @@ export const UserProfile = () => {
         </div>
       </div>
 
-      {/* Modern Tabs */}
+      {/* Simplified Modern Tabs - Only 4 Main Tabs */}
       <Tabs defaultValue="info" className="w-full">
-        <div className="w-full overflow-x-auto pb-2">
-          <TabsList className="inline-flex h-12 items-center justify-start w-max min-w-full rounded-xl bg-muted/50 p-1 text-muted-foreground shadow-sm">
-            <TabsTrigger 
-              value="info" 
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[120px]"
-            >
-              <User className="w-4 h-4 mr-2" />
-              Profil
-            </TabsTrigger>
-            <TabsTrigger 
-              value="wallet" 
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[120px]"
-            >
-              <Wallet className="w-4 h-4 mr-2" />
-              Wallet
-            </TabsTrigger>
-            <TabsTrigger 
-              value="payment" 
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[120px]"
-            >
-              <CreditCard className="w-4 h-4 mr-2" />
-              Paiement
-            </TabsTrigger>
-            <TabsTrigger 
-              value="verification" 
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[120px]"
-            >
-              <Shield className="w-4 h-4 mr-2" />
-              Sécurité
-            </TabsTrigger>
-            <TabsTrigger 
-              value="ratings" 
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[120px]"
-            >
-              <Star className="w-4 h-4 mr-2" />
-              Avis
-            </TabsTrigger>
-            <TabsTrigger 
-              value="stats" 
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[120px]"
-            >
-              <Award className="w-4 h-4 mr-2" />
-              Stats
-            </TabsTrigger>
-            <TabsTrigger 
-              value="activity" 
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[120px]"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Activité
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        <TabsList className="grid w-full grid-cols-4 h-14 rounded-xl bg-muted/50 p-2 shadow-sm">
+          <TabsTrigger 
+            value="info" 
+            className="flex items-center justify-center rounded-lg px-4 py-3 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+          >
+            <User className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Profil</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="wallet" 
+            className="flex items-center justify-center rounded-lg px-4 py-3 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+          >
+            <Wallet className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Wallet</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="security" 
+            className="flex items-center justify-center rounded-lg px-4 py-3 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+          >
+            <Shield className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Sécurité</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="activity" 
+            className="flex items-center justify-center rounded-lg px-4 py-3 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Activité</span>
+          </TabsTrigger>
+        </TabsList>
 
         <TabsContent value="info" className="space-y-4">
           <Card>
@@ -326,28 +303,57 @@ export const UserProfile = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="payment">
-          <PaymentMethodsManager />
+        <TabsContent value="wallet" className="space-y-6">
+          {/* Enhanced Wallet with Referral System */}
+          <div className="grid gap-6">
+            <KwendaPayWallet />
+            <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCheck className="w-5 h-5 text-primary" />
+                  Parrainage & Récompenses
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ReferralSystem />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
-        <TabsContent value="wallet">
-          <KwendaPayWallet />
-        </TabsContent>
-
-        <TabsContent value="verification">
+        <TabsContent value="security">
           <UserVerification />
         </TabsContent>
 
-        <TabsContent value="ratings">
-          <UserRatings />
-        </TabsContent>
-
-        <TabsContent value="stats">
-          <UserStatistics />
-        </TabsContent>
-
-        <TabsContent value="activity">
-          <ActivityHistory />
+        <TabsContent value="activity" className="space-y-6">
+          {/* Combined Activity: Stats + Ratings + History */}
+          <div className="grid gap-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Star className="w-5 h-5 text-yellow-500" />
+                    Mes Avis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <UserRatings />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-primary" />
+                    Statistiques
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <UserStatistics />
+                </CardContent>
+              </Card>
+            </div>
+            <ActivityHistory />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
