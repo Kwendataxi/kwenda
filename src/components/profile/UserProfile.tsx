@@ -15,6 +15,8 @@ import { PaymentMethodsManager } from './PaymentMethodsManager';
 import { UserVerification } from './UserVerification';
 import { UserRatings } from './UserRatings';
 import { UserStatistics } from './UserStatistics';
+import { ActivityHistory } from './ActivityHistory';
+import { KwendaPayWallet } from '../wallet/KwendaPayWallet';
 
 interface Profile {
   id: string;

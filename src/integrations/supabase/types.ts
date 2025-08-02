@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          activity_type: string
+          amount: number | null
+          created_at: string
+          currency: string | null
+          description: string
+          id: string
+          metadata: Json | null
+          reference_id: string | null
+          reference_type: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          description: string
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          description?: string
+          id?: string
+          metadata?: Json | null
+          reference_id?: string | null
+          reference_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      commission_settings: {
+        Row: {
+          admin_rate: number
+          created_at: string
+          created_by: string | null
+          driver_rate: number
+          id: string
+          is_active: boolean
+          platform_rate: number
+          service_type: string
+          updated_at: string
+        }
+        Insert: {
+          admin_rate?: number
+          created_at?: string
+          created_by?: string | null
+          driver_rate?: number
+          id?: string
+          is_active?: boolean
+          platform_rate?: number
+          service_type: string
+          updated_at?: string
+        }
+        Update: {
+          admin_rate?: number
+          created_at?: string
+          created_by?: string | null
+          driver_rate?: number
+          id?: string
+          is_active?: boolean
+          platform_rate?: number
+          service_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       delivery_orders: {
         Row: {
           actual_price: number | null
@@ -425,6 +500,87 @@ export type Database = {
           updated_at?: string
           user_id?: string
           verification_status?: string | null
+        }
+        Relationships: []
+      }
+      user_wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at: string
+          currency: string
+          description: string
+          id: string
+          payment_method: string | null
+          reference_id: string | null
+          reference_type: string | null
+          status: string
+          transaction_type: string
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at?: string
+          currency?: string
+          description: string
+          id?: string
+          payment_method?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          transaction_type: string
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          currency?: string
+          description?: string
+          id?: string
+          payment_method?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          transaction_type?: string
+          user_id?: string
+          wallet_id?: string
         }
         Relationships: []
       }

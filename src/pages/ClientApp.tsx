@@ -12,7 +12,7 @@ import ReferralSystem from '@/components/advanced/ReferralSystem';
 import NotificationCenter from '@/components/advanced/NotificationCenter';
 import OfflineMode from '@/components/advanced/OfflineMode';
 import SecurityVerification from '@/components/advanced/SecurityVerification';
-import { UserProfile } from '@/components/profile/UserProfile';
+import { ResponsiveUserProfile } from '@/components/profile/ResponsiveUserProfile';
 import { 
   MapPin, 
   Car, 
@@ -806,7 +806,7 @@ const ClientApp = () => {
         </Button>
         <h1 className="text-heading-lg text-card-foreground">Mon Profil</h1>
       </div>
-      <UserProfile />
+      <ResponsiveUserProfile userType="client" />
     </div>
   );
 
