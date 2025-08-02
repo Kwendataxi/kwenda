@@ -22,19 +22,19 @@ const Hero = () => {
               </div>
               
               <h1 className="text-5xl lg:text-6xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent leading-tight">
-                NTA TECH
-                <span className="block text-primary">VTC</span>
+                Kwenda
+                <span className="block text-primary">Taxi</span>
               </h1>
               
               <p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
-                Le futur du transport en Côte d'Ivoire. Une flotte de 1000 véhicules écologiques de luxe pour une expérience de transport intelligente et fiable.
+                Transport intelligent pour Kinshasa. Moto-taxi, taxi voiture, livraison et marketplace - tout en une seule application adaptée à la RDC.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-6 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="w-4 h-4 text-primary" />
-                <span>Couverture Abidjan & Bouaké</span>
+                <span>Kinshasa, Congo RDC</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="w-4 h-4 text-secondary" />
@@ -54,8 +54,8 @@ const Hero = () => {
 
             <div className="flex items-center gap-8 pt-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">1000+</div>
-                <div className="text-sm text-muted-foreground">Véhicules Éco</div>
+                <div className="text-2xl font-bold text-primary">4+</div>
+                <div className="text-sm text-muted-foreground">Types Transport</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-secondary">24/7</div>
@@ -63,7 +63,7 @@ const Hero = () => {
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-accent">100%</div>
-                <div className="text-sm text-muted-foreground">Sécurisé</div>
+                <div className="text-sm text-muted-foreground">KwendaPay</div>
               </div>
             </div>
           </div>
@@ -73,13 +73,13 @@ const Hero = () => {
             <div className="relative z-10">
               <img 
                 src={heroImage} 
-                alt="NTA TECH VTC - Véhicules écologiques de luxe"
+                alt="Kwenda Taxi - Transport intelligent à Kinshasa"
                 className="w-full h-auto rounded-2xl shadow-2xl"
               />
               
               {/* Floating Badge */}
               <div className="absolute -top-4 -right-4 bg-gradient-success text-white px-4 py-2 rounded-full shadow-lg text-sm font-semibold">
-                🌱 100% Éco
+                🇨🇩 Made in RDC
               </div>
             </div>
             

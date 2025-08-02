@@ -85,7 +85,7 @@ const Index = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-primary" />
-                  <span className="text-sm font-medium">5k+ utilisateurs</span>
+                  <span className="text-sm font-medium">Flotte en croissance</span>
                 </div>
               </div>
             </div>
@@ -133,19 +133,19 @@ const Index = () => {
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="w-4 h-4 text-primary" />
-                  <span>Kwenda Eco - Économique</span>
+                  <span>Moto-taxi - Rapide et économique</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="w-4 h-4 text-primary" />
-                  <span>Kwenda Standard - Confort</span>
+                  <span>Taxi voiture - Confort 4 places</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="w-4 h-4 text-primary" />
-                  <span>Kwenda Premium - Luxe</span>
+                  <span>Taxi-bus - Transport collectif</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="w-4 h-4 text-primary" />
-                  <span>Kwenda Moto - Rapide</span>
+                  <span>Bus Transco - Service public</span>
                 </div>
               </CardContent>
             </Card>
@@ -163,15 +163,15 @@ const Index = () => {
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="w-4 h-4 text-secondary" />
-                  <span>Petit colis (0-5kg)</span>
+                  <span>Livraison Flash - Moto</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="w-4 h-4 text-secondary" />
-                  <span>Moyen colis (5-15kg)</span>
+                  <span>Livraison Cargo - Camion</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="w-4 h-4 text-secondary" />
-                  <span>Grand colis (15kg+)</span>
+                  <span>Assistant de chargement</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="w-4 h-4 text-secondary" />
@@ -246,8 +246,8 @@ const Index = () => {
               <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mx-auto">
                 <CreditCard className="w-6 h-6 text-accent" />
               </div>
-              <h4 className="font-semibold">Paiement mobile</h4>
-              <p className="text-sm text-muted-foreground">Compatible Mobile Money Congo</p>
+              <h4 className="font-semibold">KwendaPay & Mobile Money</h4>
+              <p className="text-sm text-muted-foreground">Airtel Money, Orange Money, M-Pesa</p>
             </div>
 
             <div className="text-center space-y-3">
@@ -267,10 +267,10 @@ const Index = () => {
           <h3 className="text-3xl font-bold text-white mb-4">
             Prêt à découvrir Kwenda Taxi ?
           </h3>
-          <p className="text-white/90 mb-8 max-w-2xl mx-auto">
-            Rejoignez des milliers d'utilisateurs qui font déjà confiance à Kwenda Taxi 
-            pour leurs déplacements à Kinshasa.
-          </p>
+           <p className="text-white/90 mb-8 max-w-2xl mx-auto">
+             Rejoignez notre communauté grandissante d'utilisateurs qui choisissent Kwenda Taxi 
+             pour leurs déplacements à Kinshasa.
+           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/auth">
