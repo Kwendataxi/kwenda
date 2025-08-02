@@ -45,8 +45,7 @@ import BookingFlow from '@/components/transport/BookingFlow';
 import InteractiveMap from '@/components/transport/InteractiveMap';
 
 // Delivery components
-import PackageTypeSelector from '@/components/delivery/PackageTypeSelector';
-import ModernDeliveryForm, { DeliveryFormData } from '@/components/delivery/ModernDeliveryForm';
+import ModernDeliveryInterface from '@/components/delivery/ModernDeliveryInterface';
 import DeliveryTracking from '@/components/delivery/DeliveryTracking';
 
 // Marketplace components
@@ -108,8 +107,7 @@ const ClientApp = () => {
   const [destinationInput, setDestinationInput] = useState('');
 
   // Delivery states  
-  const [deliveryStep, setDeliveryStep] = useState<'package' | 'form' | 'tracking'>('package');
-  const [selectedPackage, setSelectedPackage] = useState<PackageType | null>(null);
+  const [deliveryStep, setDeliveryStep] = useState<'interface' | 'tracking'>('interface');
   const [deliveryId, setDeliveryId] = useState<string | null>(null);
 
   // Marketplace state
@@ -533,34 +531,24 @@ const ClientApp = () => {
   };
 
   // Delivery handlers
-  const handlePackageSelect = (packageType: PackageType) => {
-    setSelectedPackage(packageType);
-    setDeliveryStep('form');
-  };
-
-  const handleDeliverySubmit = (formData: DeliveryFormData) => {
+  const handleModernDeliverySubmit = (data: any) => {
     // Generate delivery ID and start tracking
     const newDeliveryId = 'KWT' + Math.random().toString(36).substr(2, 6).toUpperCase();
     setDeliveryId(newDeliveryId);
     setDeliveryStep('tracking');
     
-    console.log('Livraison créée:', { id: newDeliveryId, package: selectedPackage, ...formData });
+    toast({
+      title: "Livraison confirmée",
+      description: `Votre colis sera récupéré dans 15 minutes`,
+    });
+    
+    console.log('Livraison créée:', { id: newDeliveryId, ...data });
   };
 
   const handleDeliveryComplete = () => {
     // Reset delivery state
-    setDeliveryStep('package');
-    setSelectedPackage(null);
+    setDeliveryStep('interface');
     setDeliveryId(null);
-  };
-
-  const handleDeliveryCancel = () => {
-    if (deliveryStep === 'form') {
-      setDeliveryStep('package');
-      setSelectedPackage(null);
-    } else {
-      setDeliveryStep('package');
-    }
   };
 
   const calculateDeliveryPrice = (packageType: PackageType, pickup: string, destination: string) => {
@@ -653,38 +641,11 @@ const ClientApp = () => {
       );
     }
 
-    if (deliveryStep === 'form' && selectedPackage) {
-      return (
-        <div className="space-y-4">
-          <div className="flex items-center gap-4 mb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setDeliveryStep('package')}
-              className="rounded-xl"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h2 className="text-lg font-semibold text-grey-900">{selectedPackage.name}</h2>
-              <p className="text-sm text-grey-600">Remplissez les informations de livraison</p>
-            </div>
-          </div>
-
-          <ModernDeliveryForm
-            selectedPackage={selectedPackage}
-            onSubmit={handleDeliverySubmit}
-            onCancel={handleDeliveryCancel}
-          />
-        </div>
-      );
-    }
-
-    // Default package selection view
+    // Default to modern interface
     return (
-      <PackageTypeSelector
-        onPackageSelect={handlePackageSelect}
-        selectedPackageId={selectedPackage?.id}
+      <ModernDeliveryInterface
+        onSubmit={handleModernDeliverySubmit}
+        onCancel={() => setServiceType('transport')}
       />
     );
   };
