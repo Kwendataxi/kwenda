@@ -39,7 +39,7 @@ import {
 
 // Transport components
 import LocationInput from '@/components/transport/LocationInput';
-import VehicleSelection from '@/components/transport/VehicleSelection';
+import YangoStyleVehicleSelection from '@/components/transport/YangoStyleVehicleSelection';
 import BookingFlow from '@/components/transport/BookingFlow';
 import InteractiveMap from '@/components/transport/InteractiveMap';
 
@@ -67,16 +67,14 @@ interface Location {
 interface Vehicle {
   id: string;
   name: string;
-  description: string;
-  price: number;
-  basePrice: number;
+  type: 'moto' | 'eco' | 'standard' | 'premium' | 'bus';
+  icon: React.ComponentType<any>;
   estimatedTime: number;
-  available: boolean;
-  icon: any;
-  features: string[];
-  capacity: number;
-  eco?: boolean;
+  basePrice: number;
   multiplier: number;
+  available: boolean;
+  capacity: number;
+  price?: number;
 }
 
 interface PackageType {
@@ -101,7 +99,7 @@ const ClientApp = () => {
   const [transportStep, setTransportStep] = useState<'search' | 'selection' | 'booking'>('search');
   const [pickupLocation, setPickupLocation] = useState<Location | null>(null);
   const [destinationLocation, setDestinationLocation] = useState<Location | null>(null);
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<(Vehicle & { price: number }) | null>(null);
   const [pickupInput, setPickupInput] = useState('');
   const [destinationInput, setDestinationInput] = useState('');
 
@@ -356,7 +354,7 @@ const ClientApp = () => {
     }
   };
 
-  const handleVehicleSelect = (vehicle: Vehicle) => {
+  const handleVehicleSelect = (vehicle: Vehicle & { price: number }) => {
     setSelectedVehicle(vehicle);
     setTransportStep('booking');
   };
@@ -421,11 +419,11 @@ const ClientApp = () => {
             className="h-[200px]"
           />
 
-          <VehicleSelection
-            distance={distance}
-            onVehicleSelect={handleVehicleSelect}
-            selectedVehicleId={selectedVehicle?.id}
-          />
+              <YangoStyleVehicleSelection
+                distance={distance}
+                onVehicleSelect={handleVehicleSelect}
+                selectedVehicleId={selectedVehicle?.id}
+              />
         </div>
       );
     }

@@ -209,6 +209,16 @@ All colors MUST be HSL.
   .animate-scale-in {
     animation: scaleIn 0.2s ease-out;
   }
+
+  /* Hide scrollbar while keeping functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
   
   @keyframes slideUp {
     from { transform: translateY(20px); opacity: 0; }
