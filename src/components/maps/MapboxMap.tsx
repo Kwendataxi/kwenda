@@ -1,0 +1,260 @@
+import React, { useEffect, useRef, useState } from 'react';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { useGeolocation } from '@/hooks/useGeolocation';
+import { MapPin, Navigation, Plus, Minus, Locate } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface MapboxMapProps {
+  onLocationSelect?: (coordinates: [number, number]) => void;
+  pickupLocation?: [number, number];
+  destination?: [number, number];
+  showRouting?: boolean;
+  center?: [number, number];
+  zoom?: number;
+  height?: string;
+}
+
+const MapboxMap: React.FC<MapboxMapProps> = ({
+  onLocationSelect,
+  pickupLocation,
+  destination,
+  showRouting = false,
+  center = [15.2663, -4.4419], // Kinshasa coordinates
+  zoom = 12,
+  height = "400px"
+}) => {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const [mapReady, setMapReady] = useState(false);
+  const [userMarker, setUserMarker] = useState<mapboxgl.Marker | null>(null);
+  const [pickupMarker, setPickupMarker] = useState<mapboxgl.Marker | null>(null);
+  const [destinationMarker, setDestinationMarker] = useState<mapboxgl.Marker | null>(null);
+  
+  const { toast } = useToast();
+  const { 
+    latitude, 
+    longitude, 
+    getCurrentPosition, 
+    loading: locationLoading 
+  } = useGeolocation();
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainer.current || map.current) return;
+
+    // For demo purposes, we'll use a placeholder token
+    // In production, this should come from Supabase secrets
+    const MAPBOX_TOKEN = 'pk.eyJ1IjoidGVzdCIsImEiOiJjbGZkZmRmZGZkZmZkZmRmZGZkZmRmZGZkZmZkZmZkZmZmZmZmZmZmZmZmZmZmZmZmIn0'; // Placeholder
+    
+    if (!MAPBOX_TOKEN || MAPBOX_TOKEN.includes('placeholder')) {
+      // Fallback to a styled div when no Mapbox token
+      mapContainer.current.innerHTML = `
+        <div class="w-full h-full bg-gradient-to-br from-blue-100 to-green-100 rounded-lg flex items-center justify-center border-2 border-dashed border-blue-300">
+          <div class="text-center p-4">
+            <MapPin class="w-12 h-12 mx-auto text-blue-500 mb-2" />
+            <h3 class="text-lg font-semibold text-blue-700 mb-2">Carte Interactive</h3>
+            <p class="text-sm text-blue-600">Kinshasa, République Démocratique du Congo</p>
+            <p class="text-xs text-muted-foreground mt-2">Token Mapbox requis pour la carte réelle</p>
+          </div>
+        </div>
+      `;
+      setMapReady(true);
+      return;
+    }
+
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+    
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: center,
+      zoom: zoom,
+      attributionControl: false,
+    });
+
+    // Add navigation controls
+    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    map.current.on('load', () => {
+      setMapReady(true);
+    });
+
+    // Handle map clicks for location selection
+    map.current.on('click', (e) => {
+      if (onLocationSelect) {
+        onLocationSelect([e.lngLat.lng, e.lngLat.lat]);
+      }
+    });
+
+    return () => {
+      map.current?.remove();
+    };
+  }, [center, zoom, onLocationSelect]);
+
+  // Add user location marker
+  useEffect(() => {
+    if (!map.current || !mapReady || !latitude || !longitude) return;
+
+    // Remove existing user marker
+    if (userMarker) {
+      userMarker.remove();
+    }
+
+    // Create user location marker
+    const marker = new mapboxgl.Marker({
+      color: '#3B82F6',
+      scale: 1.2,
+    })
+      .setLngLat([longitude, latitude])
+      .setPopup(
+        new mapboxgl.Popup({ offset: 25 }).setHTML(
+          '<div class="text-center"><strong>Votre position</strong></div>'
+        )
+      )
+      .addTo(map.current);
+
+    setUserMarker(marker);
+
+    // Center map on user location
+    map.current.flyTo({
+      center: [longitude, latitude],
+      zoom: 15,
+      duration: 1000,
+    });
+  }, [latitude, longitude, mapReady, userMarker]);
+
+  // Add pickup location marker
+  useEffect(() => {
+    if (!map.current || !mapReady || !pickupLocation) return;
+
+    if (pickupMarker) {
+      pickupMarker.remove();
+    }
+
+    const marker = new mapboxgl.Marker({
+      color: '#10B981',
+      scale: 1.0,
+    })
+      .setLngLat(pickupLocation)
+      .setPopup(
+        new mapboxgl.Popup({ offset: 25 }).setHTML(
+          '<div class="text-center"><strong>Point de départ</strong></div>'
+        )
+      )
+      .addTo(map.current);
+
+    setPickupMarker(marker);
+  }, [pickupLocation, mapReady, pickupMarker]);
+
+  // Add destination marker
+  useEffect(() => {
+    if (!map.current || !mapReady || !destination) return;
+
+    if (destinationMarker) {
+      destinationMarker.remove();
+    }
+
+    const marker = new mapboxgl.Marker({
+      color: '#EF4444',
+      scale: 1.0,
+    })
+      .setLngLat(destination)
+      .setPopup(
+        new mapboxgl.Popup({ offset: 25 }).setHTML(
+          '<div class="text-center"><strong>Destination</strong></div>'
+        )
+      )
+      .addTo(map.current);
+
+    setDestinationMarker(marker);
+  }, [destination, mapReady, destinationMarker]);
+
+  const handleLocateUser = async () => {
+    try {
+      await getCurrentPosition();
+      toast({
+        title: "Position trouvée",
+        description: "Votre position a été mise à jour sur la carte",
+      });
+    } catch (error) {
+      console.error('Error getting location:', error);
+    }
+  };
+
+  const handleZoomIn = () => {
+    if (map.current) {
+      map.current.zoomIn();
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (map.current) {
+      map.current.zoomOut();
+    }
+  };
+
+  return (
+    <Card className="relative overflow-hidden">
+      <CardContent className="p-0">
+        <div 
+          ref={mapContainer} 
+          style={{ height }}
+          className="w-full relative"
+        />
+        
+        {/* Map Controls */}
+        <div className="absolute top-4 right-4 flex flex-col gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-white/90 backdrop-blur-sm shadow-lg"
+            onClick={handleZoomIn}
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-white/90 backdrop-blur-sm shadow-lg"
+            onClick={handleZoomOut}
+          >
+            <Minus className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Locate Button */}
+        <div className="absolute bottom-4 right-4">
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-white/90 backdrop-blur-sm shadow-lg"
+            onClick={handleLocateUser}
+            disabled={locationLoading}
+          >
+            <Locate className={`w-4 h-4 ${locationLoading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+
+        {/* Location Status */}
+        {latitude && longitude && (
+          <div className="absolute bottom-4 left-4">
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg text-sm">
+              <div className="flex items-center gap-2">
+                <Navigation className="w-4 h-4 text-blue-500" />
+                <span className="font-medium">Position: </span>
+                <span className="text-muted-foreground">
+                  {latitude.toFixed(4)}, {longitude.toFixed(4)}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default MapboxMap;
