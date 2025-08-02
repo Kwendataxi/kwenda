@@ -34,6 +34,11 @@ import VehicleSelection from '@/components/transport/VehicleSelection';
 import BookingFlow from '@/components/transport/BookingFlow';
 import InteractiveMap from '@/components/transport/InteractiveMap';
 
+// Delivery components
+import PackageTypeSelector from '@/components/delivery/PackageTypeSelector';
+import DeliveryForm, { DeliveryFormData } from '@/components/delivery/DeliveryForm';
+import DeliveryTracking from '@/components/delivery/DeliveryTracking';
+
 interface Location {
   address: string;
   coordinates: [number, number];
@@ -55,6 +60,19 @@ interface Vehicle {
   multiplier: number;
 }
 
+interface PackageType {
+  id: string;
+  name: string;
+  description: string;
+  maxWeight: string;
+  maxDimensions: string;
+  basePrice: number;
+  estimatedTime: string;
+  icon: string;
+  popular?: boolean;
+  examples: string[];
+}
+
 const ClientApp = () => {
   const [currentView, setCurrentView] = useState('home');
   const [serviceType, setServiceType] = useState('transport');
@@ -66,6 +84,11 @@ const ClientApp = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [pickupInput, setPickupInput] = useState('');
   const [destinationInput, setDestinationInput] = useState('');
+
+  // Delivery states  
+  const [deliveryStep, setDeliveryStep] = useState<'package' | 'form' | 'tracking'>('package');
+  const [selectedPackage, setSelectedPackage] = useState<PackageType | null>(null);
+  const [deliveryId, setDeliveryId] = useState<string | null>(null);
 
   const renderHome = () => (
     <div className="min-h-screen bg-background flex flex-col pb-20">
@@ -321,72 +344,90 @@ const ClientApp = () => {
     );
   };
 
-  const renderDeliveryService = () => (
-    <div className="space-y-6">
-      {/* Delivery Type Selection */}
-      <div>
-        <h3 className="text-lg font-semibold text-grey-900 mb-4">Type de colis</h3>
-        <div className="space-y-3">
-          {[
-            { name: "Petit colis", desc: "Moins de 5kg", price: "1,000", icon: "📦", popular: true },
-            { name: "Moyen colis", desc: "5kg - 15kg", price: "2,500", icon: "📫", popular: false },
-            { name: "Grand colis", desc: "Plus de 15kg", price: "5,000", icon: "🎁", popular: false },
-          ].map((delivery, index) => (
-            <div key={index} className="bg-white rounded-xl border border-grey-100 p-4 hover:border-grey-200 transition-all duration-200 cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-grey-100 rounded-xl flex items-center justify-center">
-                    <span className="text-xl">{delivery.icon}</span>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold text-grey-900">{delivery.name}</h4>
-                      {delivery.popular && (
-                        <span className="text-xs bg-primary text-white px-2 py-1 rounded-md">Populaire</span>
-                      )}
-                    </div>
-                    <p className="text-sm text-grey-600">{delivery.desc}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-grey-900">{delivery.price}</p>
-                  <p className="text-xs text-grey-500">CFA</p>
-                </div>
-              </div>
+  // Delivery handlers
+  const handlePackageSelect = (packageType: PackageType) => {
+    setSelectedPackage(packageType);
+    setDeliveryStep('form');
+  };
+
+  const handleDeliverySubmit = (formData: DeliveryFormData) => {
+    // Generate delivery ID and start tracking
+    const newDeliveryId = 'KWT' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    setDeliveryId(newDeliveryId);
+    setDeliveryStep('tracking');
+    
+    console.log('Livraison créée:', { id: newDeliveryId, package: selectedPackage, ...formData });
+  };
+
+  const handleDeliveryComplete = () => {
+    // Reset delivery state
+    setDeliveryStep('package');
+    setSelectedPackage(null);
+    setDeliveryId(null);
+  };
+
+  const handleDeliveryCancel = () => {
+    if (deliveryStep === 'form') {
+      setDeliveryStep('package');
+      setSelectedPackage(null);
+    } else {
+      setDeliveryStep('package');
+    }
+  };
+
+  const calculateDeliveryPrice = (packageType: PackageType, pickup: string, destination: string) => {
+    // Simple distance calculation simulation
+    const baseDistance = 5; // km
+    const pricePerKm = 300; // FC per km
+    const totalPrice = packageType.basePrice + (baseDistance * pricePerKm);
+    return totalPrice;
+  };
+
+  const renderDeliveryService = () => {
+    if (deliveryStep === 'tracking' && deliveryId) {
+      return (
+        <DeliveryTracking
+          deliveryId={deliveryId}
+          onComplete={handleDeliveryComplete}
+        />
+      );
+    }
+
+    if (deliveryStep === 'form' && selectedPackage) {
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center gap-4 mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDeliveryStep('package')}
+              className="rounded-xl"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h2 className="text-lg font-semibold text-grey-900">{selectedPackage.name}</h2>
+              <p className="text-sm text-grey-600">Remplissez les informations de livraison</p>
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      {/* Delivery Form */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-grey-900">Détails de livraison</h3>
-        <div className="space-y-3">
-          <Input 
-            placeholder="Adresse de retrait" 
-            className="bg-white rounded-xl border-grey-100 h-12"
-          />
-          <Input 
-            placeholder="Adresse de livraison" 
-            className="bg-white rounded-xl border-grey-100 h-12"
-          />
-          <Input 
-            placeholder="Description du colis" 
-            className="bg-white rounded-xl border-grey-100 h-12"
-          />
-          <Input 
-            placeholder="Numéro du destinataire" 
-            className="bg-white rounded-xl border-grey-100 h-12"
+          <DeliveryForm
+            selectedPackage={selectedPackage}
+            onSubmit={handleDeliverySubmit}
+            onCancel={handleDeliveryCancel}
           />
         </div>
-      </div>
+      );
+    }
 
-      <Button className="w-full h-14 rounded-2xl text-base font-semibold bg-grey-900 hover:bg-grey-800 text-white shadow-lg">
-        <Package className="w-5 h-5 mr-2" />
-        Programmer la livraison
-      </Button>
-    </div>
-  );
+    // Default package selection view
+    return (
+      <PackageTypeSelector
+        onPackageSelect={handlePackageSelect}
+        selectedPackageId={selectedPackage?.id}
+      />
+    );
+  };
 
   const renderMarketplaceService = () => (
     <div className="space-y-6">
