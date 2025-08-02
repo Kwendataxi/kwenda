@@ -1,0 +1,140 @@
+/* Performance optimizations styles */
+
+/* Loading shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.loading-shimmer {
+  animation: shimmer 1.5s ease-in-out infinite;
+  background: linear-gradient(
+    to right,
+    hsl(var(--muted)) 8%,
+    hsl(var(--muted) / 0.8) 18%,
+    hsl(var(--muted)) 33%
+  );
+  background-size: 468px 100%;
+}
+
+/* Reduced animations for low performance mode */
+.reduce-animations * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Optimized images */
+.optimized-image {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Low bandwidth mode */
+.low-bandwidth {
+  filter: contrast(1.1) brightness(1.05);
+}
+
+.low-bandwidth img {
+  filter: blur(0.5px);
+}
+
+/* Touch optimizations for mobile */
+.touch-optimized {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Battery saving mode */
+.battery-saving {
+  filter: brightness(0.8) contrast(1.2);
+}
+
+.battery-saving * {
+  will-change: auto !important;
+}
+
+/* Memory efficient layouts */
+.memory-efficient {
+  contain: layout style paint;
+}
+
+/* Progressive enhancement */
+@supports (backdrop-filter: blur(10px)) {
+  .progressive-blur {
+    backdrop-filter: blur(10px);
+  }
+}
+
+@supports not (backdrop-filter: blur(10px)) {
+  .progressive-blur {
+    background-color: hsl(var(--background) / 0.95);
+  }
+}
+
+/* Lazy loading placeholder */
+.lazy-placeholder {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted) / 0.5) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 2s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Optimized scrolling */
+.optimized-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.performance-mode .optimized-scroll {
+  scroll-behavior: auto;
+}
+
+/* Critical resource hints */
+.preload-critical {
+  content-visibility: auto;
+  contain-intrinsic-size: 200px;
+}
+
+/* Compressed layout for slow connections */
+.compressed-layout {
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.compressed-layout img {
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Performance indicators */
+.performance-good {
+  color: hsl(142 76% 36%);
+}
+
+.performance-medium {
+  color: hsl(48 96% 53%);
+}
+
+.performance-poor {
+  color: hsl(0 84% 60%);
+}

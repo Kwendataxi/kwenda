@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ConnectionIndicator, OptimizedImage } from '@/components/optimization/SlowConnectionComponents';
+import { ConnectionIndicator, OptimizedImage, ProgressiveLoader, useDataCompression } from '@/components/optimization/SlowConnectionComponents';
 import CongoVehicleSelection from '@/components/transport/CongoVehicleSelection';
 import SimplifiedInterface from '@/components/ui/SimplifiedInterface';
 import MobileMoneyPayment from '@/components/advanced/MobileMoneyPayment';
@@ -60,6 +60,10 @@ import { ProductDetails } from '@/components/marketplace/ProductDetails';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, ShoppingBag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { LazyLoadWrapper } from '@/components/performance/LazyLoadWrapper';
+import { PerformanceIndicator } from '@/components/performance/PerformanceIndicator';
+import { OptimizedGrid } from '@/components/performance/OptimizedGrid';
+import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 
 interface Location {
   address: string;
@@ -95,8 +99,11 @@ interface PackageType {
 
 const ClientApp = () => {
   const { t, language, setLanguage, formatCurrency } = useLanguage();
+  const { compressData, decompressData } = useDataCompression();
+  const { optimizations, measureLoadTime } = usePerformanceMonitor();
   const [currentView, setCurrentView] = useState('home');
   const [serviceType, setServiceType] = useState('transport');
+  const [isLoading, setIsLoading] = useState(false);
   
   // Transport states
   const [transportStep, setTransportStep] = useState<'search' | 'selection' | 'booking'>('search');
@@ -323,7 +330,9 @@ const ClientApp = () => {
           </TabsContent>
           
           <TabsContent value="marketplace">
-            {renderMarketplaceService()}
+            <LazyLoadWrapper>
+              {renderMarketplaceService()}
+            </LazyLoadWrapper>
           </TabsContent>
         </Tabs>
       </div>
@@ -755,7 +764,11 @@ const ClientApp = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              <OptimizedGrid 
+                className="grid-cols-2"
+                itemsPerPage={20}
+                enableVirtualization={true}
+              >
                 {filteredProducts.map((product) => (
                    <ModernProductCard
                      key={product.id}
@@ -764,7 +777,7 @@ const ClientApp = () => {
                      onViewDetails={handleViewProductDetails}
                    />
                 ))}
-              </div>
+              </OptimizedGrid>
             )}
           </div>
         </div>
@@ -951,7 +964,19 @@ const ClientApp = () => {
   );
 
   return (
-    <div className="relative">
+    <div className={`relative ${optimizations.reducedAnimations ? 'reduce-animations' : ''} ${optimizations.cacheEnabled ? 'memory-efficient' : ''}`}>
+      {/* Connection Indicator */}
+      <ConnectionIndicator />
+      
+      {/* Performance Indicator */}
+      <PerformanceIndicator showDetails={false} />
+      
+      {/* Loading State */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <ProgressiveLoader message="Chargement optimisé..." />
+        </div>
+      )}
       {/* Main Content */}
       {(() => {
         switch (currentView) {

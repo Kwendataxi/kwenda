@@ -5,6 +5,7 @@ import { Badge } from '../ui/badge';
 import { Star, ShoppingCart, Heart, Eye } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 import { useFavorites } from './FavoritesManager';
+import { OptimizedImage } from '../optimization/SlowConnectionComponents';
 
 interface Product {
   id: string;
@@ -56,17 +57,12 @@ export const ModernProductCard: React.FC<ModernProductCardProps> = ({
 
       {/* Image Container */}
       <div className="relative overflow-hidden bg-muted/30 cursor-pointer" onClick={() => onViewDetails(product)}>
-        {!imageLoaded && (
-          <Skeleton className="w-full h-40 sm:h-44" />
-        )}
-        <img 
-          src={product.image} 
+        <OptimizedImage
+          src={product.image}
           alt={product.name}
-          className={`w-full h-40 sm:h-44 object-cover transition-all duration-500 group-hover:scale-105 ${
-            imageLoaded ? 'opacity-100' : 'opacity-0 absolute'
-          }`}
-          onLoad={() => setImageLoaded(true)}
-          loading="lazy"
+          className="w-full h-40 sm:h-44 object-cover transition-all duration-500 group-hover:scale-105"
+          priority={false}
+          fallback="/placeholder.svg"
         />
         
         {/* Discount Badge */}
