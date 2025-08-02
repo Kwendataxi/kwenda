@@ -1,5 +1,7 @@
-import { Bell, MapPin, User } from 'lucide-react';
+import { useState } from 'react';
+import { Bell, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import NotificationCenter from '@/components/advanced/NotificationCenter';
 
 interface ModernHeaderProps {
   userBalance: number;
@@ -12,59 +14,62 @@ export const ModernHeader = ({
   hasNotifications = false,
   userLocation = "Kinshasa, RD Congo"
 }: ModernHeaderProps) => {
+  const [showNotifications, setShowNotifications] = useState(false);
+
   return (
     <div className="relative overflow-hidden">
-      {/* Gradient principal avec effet moderne */}
+      {/* Gradient simplifié */}
       <div 
-        className="px-4 py-6 pt-12 relative z-10"
+        className="px-6 py-4 pt-8 relative z-10"
         style={{ 
-          background: 'var(--gradient-hero)',
-          boxShadow: 'var(--shadow-lg)'
+          background: 'var(--gradient-hero)'
         }}
       >
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div 
-              className="w-12 h-12 bg-white/15 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20"
-              style={{ boxShadow: 'var(--shadow-sm)' }}
-            >
-              <User className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <p className="text-white font-bold text-lg">
+        {/* Structure simplifiée en 2 colonnes */}
+        <div className="flex items-center justify-between">
+          {/* Informations principales */}
+          <div className="flex-1">
+            <div className="mb-1">
+              <p className="text-white font-bold text-2xl">
                 {userBalance.toLocaleString()} FC
               </p>
-              <div className="flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5 text-white/90" />
-                <p className="text-white/90 text-sm font-medium">{userLocation}</p>
-              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <MapPin className="h-3 w-3 text-white/80" />
+              <p className="text-white/80 text-xs">{userLocation}</p>
             </div>
           </div>
           
+          {/* Notifications fonctionnelles */}
           <div className="relative">
-            <div className="p-2 bg-white/15 rounded-xl backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-colors duration-200">
-              <Bell className="h-6 w-6 text-white" />
-            </div>
-            {hasNotifications && (
-              <div className="absolute -top-1 -right-1 h-5 w-5 bg-secondary rounded-full flex items-center justify-center border-2 border-white animate-pulse">
-                <span className="text-xs font-bold text-white">!</span>
-              </div>
-            )}
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="p-2.5 bg-white/10 rounded-lg backdrop-blur-sm hover:bg-white/20 transition-all duration-200"
+            >
+              <Bell className="h-5 w-5 text-white" />
+              {hasNotifications && (
+                <div className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">3</span>
+                </div>
+              )}
+            </button>
           </div>
         </div>
         
-        {/* Logo et branding améliorés */}
-        <div className="text-center mb-2">
-          <h1 className="text-white text-3xl font-bold tracking-tight mb-1">Kwenda</h1>
-          <p className="text-white/90 text-sm font-medium tracking-wide">
-            Transport • Livraison • Shopping
-          </p>
+        {/* Logo discret */}
+        <div className="text-center mt-4">
+          <h1 className="text-white text-xl font-semibold tracking-wide">Kwenda</h1>
         </div>
       </div>
-      
-      {/* Effet de décoration en arrière-plan */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16"></div>
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
+
+      {/* Panel de notifications */}
+      {showNotifications && (
+        <div className="absolute top-full left-0 right-0 z-50 bg-white shadow-xl border-t animate-slide-in-down">
+          <div className="max-h-96 overflow-y-auto">
+            <NotificationCenter />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
