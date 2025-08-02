@@ -122,8 +122,26 @@ serve(async (req) => {
     const isSuccess = Math.random() > 0.1;
 
     if (isSuccess) {
-      // Update wallet balance
-      const newBalance = currentBalance + amount;
+      // Get commission settings for wallet top-up
+      const { data: commissionData, error: commissionError } = await supabaseService
+        .from('commission_settings')
+        .select('*')
+        .eq('service_type', 'wallet_topup')
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (commissionError) {
+        console.error('Error fetching commission settings:', commissionError);
+      }
+
+      const adminRate = commissionData?.admin_rate || 2.5; // Default 2.5% if not found
+      const adminCommission = (amount * adminRate) / 100;
+      const netAmount = amount - adminCommission;
+
+      console.log(`Processing payment: ${amount} CDF, Admin commission: ${adminCommission} CDF, Net amount: ${netAmount} CDF`);
+
+      // Update wallet balance with net amount (after commission)
+      const newBalance = currentBalance + netAmount;
       
       const { error: updateWalletError } = await supabaseService
         .from('user_wallets')
@@ -137,16 +155,16 @@ serve(async (req) => {
         throw new Error(`Erreur mise à jour wallet: ${updateWalletError.message}`);
       }
 
-      // Create wallet transaction record
+      // Create wallet transaction record for net amount credited
       const { error: walletTxError } = await supabaseService
         .from('wallet_transactions')
         .insert({
           wallet_id: wallet.id,
           user_id: user.id,
           transaction_type: 'credit',
-          amount: amount,
+          amount: netAmount,
           currency: currency,
-          description: `Rechargement via ${provider} Money`,
+          description: `Rechargement via ${provider} Money (après frais: ${adminCommission.toFixed(0)} CDF)`,
           reference_type: 'topup',
           status: 'completed',
           payment_method: `${provider}_money`,
@@ -156,6 +174,29 @@ serve(async (req) => {
 
       if (walletTxError) {
         console.error('Wallet transaction error:', walletTxError);
+      }
+
+      // Create separate transaction for admin commission if applicable
+      if (adminCommission > 0) {
+        const { error: commissionTxError } = await supabaseService
+          .from('wallet_transactions')
+          .insert({
+            wallet_id: wallet.id,
+            user_id: user.id,
+            transaction_type: 'debit',
+            amount: adminCommission,
+            currency: currency,
+            description: `Frais de recharge (${adminRate}%)`,
+            reference_type: 'commission',
+            status: 'completed',
+            payment_method: `${provider}_money`,
+            balance_before: currentBalance + amount,
+            balance_after: newBalance
+          });
+
+        if (commissionTxError) {
+          console.error('Commission transaction error:', commissionTxError);
+        }
       }
 
       // Update payment transaction status
@@ -170,14 +211,17 @@ serve(async (req) => {
         .insert({
           user_id: user.id,
           activity_type: 'payment',
-          description: `Rechargement Kwenda Pay: ${amount} ${currency} via ${provider} Money`,
-          amount: amount,
+          description: `Rechargement Kwenda Pay: ${amount} ${currency} via ${provider} Money (net: ${netAmount.toFixed(0)} CDF, frais: ${adminCommission.toFixed(0)} CDF)`,
+          amount: netAmount,
           currency: currency,
           reference_type: 'wallet_topup',
           metadata: {
             provider: provider,
             phone: phone,
-            transaction_id: transactionId
+            transaction_id: transactionId,
+            gross_amount: amount,
+            admin_commission: adminCommission,
+            commission_rate: adminRate
           }
         });
 
@@ -185,8 +229,11 @@ serve(async (req) => {
         JSON.stringify({
           success: true,
           transaction_id: transactionId,
-          message: 'Rechargement réussi',
-          new_balance: newBalance
+          message: `Rechargement réussi. Montant crédité: ${netAmount.toFixed(0)} CDF (frais: ${adminCommission.toFixed(0)} CDF)`,
+          new_balance: newBalance,
+          gross_amount: amount,
+          admin_commission: adminCommission,
+          net_amount: netAmount
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

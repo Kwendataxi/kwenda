@@ -9,6 +9,7 @@ import { useDriverBookings } from '@/hooks/useDriverBookings';
 import { useAuth } from '@/hooks/useAuth';
 import { EarningsPage } from '@/components/driver/EarningsPage';
 import { useDriverEarnings } from '@/hooks/useDriverEarnings';
+import { DriverProfile } from '@/components/driver/DriverProfile';
 import { 
   Car, 
   MapPin, 
@@ -544,55 +545,9 @@ const DriverApp = () => {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-heading-lg text-card-foreground">Profil</h1>
+          <h1 className="text-heading-lg text-card-foreground">Profil Chauffeur</h1>
         </div>
-
-        <Card className="card-floating border-0 mb-6">
-          <CardContent className="p-6 text-center">
-            <div className="w-20 h-20 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <User className="h-10 w-10 text-white" />
-            </div>
-            <h2 className="text-heading-lg font-bold text-card-foreground mb-2">{user?.email?.split('@')[0] || 'Chauffeur'}</h2>
-            <p className="text-body-md text-muted-foreground mb-4">Chauffeur Kwenda Premium</p>
-            <div className="flex items-center justify-center gap-1">
-              <Star className="h-5 w-5 text-yellow-400" />
-              <span className="text-heading-sm font-bold text-card-foreground">{weeklyStats.averageRating || stats.rating || 4.9}</span>
-              <span className="text-body-sm text-muted-foreground">({weeklyStats.totalRides || stats.total_rides} courses)</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-4">
-          <Card className="card-floating border-0 p-4">
-            <div className="flex items-center gap-3">
-              <Award className="h-6 w-6 text-primary" />
-              <div>
-                <p className="text-body-md font-semibold text-card-foreground">Chauffeur du mois</p>
-                <p className="text-body-sm text-muted-foreground">Janvier 2024</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="card-floating border-0 p-4">
-            <div className="flex items-center gap-3">
-              <Calendar className="h-6 w-6 text-secondary" />
-              <div>
-                <p className="text-body-md font-semibold text-card-foreground">Membre depuis</p>
-                <p className="text-body-sm text-muted-foreground">Mars 2023</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="card-floating border-0 p-4">
-            <div className="flex items-center gap-3">
-              <Car className="h-6 w-6 text-accent" />
-              <div>
-                <p className="text-body-md font-semibold text-card-foreground">Véhicule</p>
-                <p className="text-body-sm text-muted-foreground">Toyota Corolla 2020 - ABC 123 CI</p>
-              </div>
-            </div>
-          </Card>
-        </div>
+        <DriverProfile />
       </div>
     </div>
   );
