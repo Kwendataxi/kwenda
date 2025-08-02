@@ -25,16 +25,18 @@ export const MarketplacePreview = ({
   onViewAll 
 }: MarketplacePreviewProps) => {
   return (
-    <div className="px-4 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <ShoppingBag className="h-5 w-5 text-purple-500" />
-          <h3 className="text-lg font-semibold text-gray-900">Tendances</h3>
+    <div className="px-4 mb-8">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-br from-accent/10 to-accent/20 rounded-xl">
+            <ShoppingBag className="h-5 w-5 text-accent" />
+          </div>
+          <h3 className="text-heading-md text-foreground">Tendances</h3>
         </div>
         <Button 
           variant="ghost" 
           size="sm" 
-          className="text-purple-500"
+          className="text-primary hover:text-primary-glow"
           onClick={onViewAll}
         >
           Voir tout
@@ -42,42 +44,57 @@ export const MarketplacePreview = ({
         </Button>
       </div>
       
-      <div className="flex gap-4 overflow-x-auto pb-2">
-        {featuredProducts.slice(0, 4).map((product) => (
+      <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+        {featuredProducts.slice(0, 4).map((product, index) => (
           <Card 
             key={product.id}
-            className="min-w-[140px] cursor-pointer hover:shadow-md transition-shadow border border-gray-100"
+            className="min-w-[180px] group cursor-pointer border-0 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in"
             onClick={() => onProductSelect(product)}
+            style={{ 
+              boxShadow: 'var(--shadow-md)',
+              background: 'var(--gradient-card)',
+              animationDelay: `${index * 100}ms`
+            }}
           >
-            <div className="relative">
-              <img 
-                src={product.image} 
-                alt={product.name}
-                className="w-full h-24 object-cover rounded-t-lg"
-              />
+            <div className="aspect-square rounded-t-2xl relative overflow-hidden bg-gradient-to-br from-grey-50 to-grey-100">
+              {product.image && (
+                <img 
+                  src={product.image} 
+                  alt={product.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+              )}
               {product.isPopular && (
-                <Badge className="absolute top-1 left-1 h-5 px-2 text-xs bg-red-500 text-white">
+                <div className="absolute top-3 left-3 bg-gradient-to-r from-primary to-primary-glow text-white text-xs px-3 py-1.5 rounded-full font-semibold shadow-lg">
                   Populaire
-                </Badge>
+                </div>
               )}
               {product.originalPrice && (
-                <Badge className="absolute top-1 right-1 h-5 px-2 text-xs bg-green-500 text-white">
+                <div className="absolute top-3 right-3 bg-gradient-to-r from-accent to-accent-light text-white text-xs px-3 py-1.5 rounded-full font-semibold shadow-lg">
                   -{Math.round((1 - product.price / product.originalPrice) * 100)}%
-                </Badge>
+                </div>
               )}
+              {/* Overlay au hover */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
             </div>
             
-            <div className="p-3">
-              <p className="font-medium text-sm text-gray-900 line-clamp-2 mb-1">
+            <div className="p-4">
+              <h3 className="font-semibold text-foreground text-sm truncate mb-2 group-hover:text-primary transition-colors duration-200">
                 {product.name}
-              </p>
-              <div className="flex items-center gap-1">
-                <span className="font-bold text-purple-600 text-sm">
-                  {product.price.toLocaleString()} FC
-                </span>
-                {product.originalPrice && (
-                  <span className="text-xs text-gray-400 line-through">
-                    {product.originalPrice.toLocaleString()}
+              </h3>
+              <div className="flex items-center gap-2">
+                {product.originalPrice ? (
+                  <>
+                    <span className="font-bold text-primary text-base">
+                      {product.price.toLocaleString()} FC
+                    </span>
+                    <span className="text-xs text-muted-foreground line-through">
+                      {product.originalPrice.toLocaleString()} FC
+                    </span>
+                  </>
+                ) : (
+                  <span className="font-bold text-foreground text-base">
+                    {product.price.toLocaleString()} FC
                   </span>
                 )}
               </div>
