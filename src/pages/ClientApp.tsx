@@ -39,6 +39,16 @@ import PackageTypeSelector from '@/components/delivery/PackageTypeSelector';
 import DeliveryForm, { DeliveryFormData } from '@/components/delivery/DeliveryForm';
 import DeliveryTracking from '@/components/delivery/DeliveryTracking';
 
+// Marketplace components
+import { ProductCard } from '@/components/marketplace/ProductCard';
+import { CategoryFilter } from '@/components/marketplace/CategoryFilter';
+import { SearchBar } from '@/components/marketplace/SearchBar';
+import { ShoppingCart as CartComponent } from '@/components/marketplace/ShoppingCart';
+import { ProductDetails } from '@/components/marketplace/ProductDetails';
+import { Badge } from '@/components/ui/badge';
+import { ShoppingCart, ShoppingBag } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
 interface Location {
   address: string;
   coordinates: [number, number];
@@ -90,6 +100,165 @@ const ClientApp = () => {
   const [selectedPackage, setSelectedPackage] = useState<PackageType | null>(null);
   const [deliveryId, setDeliveryId] = useState<string | null>(null);
 
+  // Marketplace state
+  const { toast } = useToast();
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    priceRange: [0, 500000] as [number, number],
+    inStockOnly: false,
+    freeShipping: false,
+  });
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
+
+  // Mock marketplace data
+  const mockProducts = [
+    {
+      id: '1',
+      name: 'iPhone 15 Pro Max 256GB',
+      price: 850000,
+      originalPrice: 950000,
+      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
+      images: ['https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=500&h=500&fit=crop'],
+      rating: 4.8,
+      reviews: 124,
+      seller: 'TechStore Kinshasa',
+      category: 'electronics',
+      description: 'Dernier iPhone avec puce A17 Pro, appareil photo professionnel et design en titane. État neuf avec garantie internationale.',
+      specifications: {
+        'Stockage': '256GB',
+        'RAM': '8GB',
+        'Écran': '6.7" Super Retina XDR',
+        'Processeur': 'A17 Pro',
+        'Garantie': '1 an'
+      },
+      inStock: true,
+      stockCount: 5
+    },
+    {
+      id: '2',
+      name: 'Samsung Galaxy S24 Ultra',
+      price: 720000,
+      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
+      images: ['https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=500&h=500&fit=crop'],
+      rating: 4.7,
+      reviews: 89,
+      seller: 'Galaxy Center',
+      category: 'electronics',
+      description: 'Smartphone premium avec S Pen intégré, zoom 100x et intelligence artificielle Galaxy AI.',
+      specifications: {
+        'Stockage': '512GB',
+        'RAM': '12GB',
+        'Écran': '6.8" Dynamic AMOLED',
+        'Processeur': 'Snapdragon 8 Gen 3'
+      },
+      inStock: true,
+      stockCount: 3
+    },
+    {
+      id: '3',
+      name: 'MacBook Pro M3 14"',
+      price: 1200000,
+      originalPrice: 1350000,
+      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
+      images: ['https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=500&h=500&fit=crop'],
+      rating: 4.9,
+      reviews: 67,
+      seller: 'Apple Store Kinshasa',
+      category: 'electronics',
+      description: 'Ordinateur portable professionnel avec puce M3, écran Liquid Retina XDR et autonomie exceptionnelle.',
+      specifications: {
+        'Processeur': 'Apple M3',
+        'RAM': '16GB',
+        'Stockage': '512GB SSD',
+        'Écran': '14.2" Liquid Retina XDR'
+      },
+      inStock: true,
+      stockCount: 2
+    },
+    {
+      id: '4',
+      name: 'Chemise Polo Lacoste',
+      price: 35000,
+      image: 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=300&h=300&fit=crop',
+      images: ['https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=500&h=500&fit=crop'],
+      rating: 4.5,
+      reviews: 156,
+      seller: 'Fashion Plaza',
+      category: 'fashion',
+      description: 'Polo classique Lacoste en coton piqué, coupe régulière. Disponible en plusieurs couleurs.',
+      specifications: {
+        'Matière': '100% Coton',
+        'Taille': 'M, L, XL',
+        'Couleur': 'Blanc, Noir, Marine',
+        'Entretien': 'Lavage machine 30°C'
+      },
+      inStock: true,
+      stockCount: 15
+    },
+    {
+      id: '5',
+      name: 'Canapé 3 places moderne',
+      price: 280000,
+      image: 'https://images.unsplash.com/photo-1459767129954-1b1c1f9b9ace?w=300&h=300&fit=crop',
+      images: ['https://images.unsplash.com/photo-1459767129954-1b1c1f9b9ace?w=500&h=500&fit=crop'],
+      rating: 4.3,
+      reviews: 45,
+      seller: 'Meubles & Déco',
+      category: 'home',
+      description: 'Canapé confortable en tissu gris, structure en bois massif. Parfait pour salon moderne.',
+      specifications: {
+        'Dimensions': '200x90x85 cm',
+        'Matière': 'Tissu polyester',
+        'Structure': 'Bois massif',
+        'Couleur': 'Gris clair'
+      },
+      inStock: false,
+      stockCount: 0
+    },
+    {
+      id: '6',
+      name: 'Mangues fraîches (1kg)',
+      price: 2500,
+      image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=300&h=300&fit=crop',
+      images: ['https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=500&h=500&fit=crop'],
+      rating: 4.6,
+      reviews: 234,
+      seller: 'Fruits Tropicaux',
+      category: 'food',
+      description: 'Mangues fraîches et juteuses, cueillies à maturité. Livraison rapide pour garantir la fraîcheur.',
+      specifications: {
+        'Poids': '1kg (4-5 mangues)',
+        'Origine': 'Bandundu',
+        'Type': 'Mangue douce',
+        'Conservation': '3-5 jours à température ambiante'
+      },
+      inStock: true,
+      stockCount: 50
+    }
+  ];
+
+  // Filter products based on category, search, and filters
+  const filteredProducts = mockProducts.filter(product => {
+    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         product.seller.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesPrice = product.price >= filters.priceRange[0] && product.price <= filters.priceRange[1];
+    const matchesStock = !filters.inStockOnly || product.inStock;
+    
+    return matchesCategory && matchesSearch && matchesPrice && matchesStock;
+  });
+
+  // Get product counts per category
+  const productCounts = mockProducts.reduce((acc, product) => {
+    acc[product.category] = (acc[product.category] || 0) + 1;
+    acc.all = mockProducts.length;
+    return acc;
+  }, {} as Record<string, number>);
+
   const renderHome = () => (
     <div className="min-h-screen bg-background flex flex-col pb-20">
       {/* Header - Style Taga */}
@@ -123,9 +292,14 @@ const ClientApp = () => {
               <Truck className="w-4 h-4" />
               Livraison
             </TabsTrigger>
-            <TabsTrigger value="marketplace" className="flex items-center gap-2 data-[state=active]:bg-grey-900 data-[state=active]:text-white rounded-xl">
+            <TabsTrigger value="marketplace" className="flex items-center gap-2 data-[state=active]:bg-grey-900 data-[state=active]:text-white rounded-xl relative">
               <Store className="w-4 h-4" />
-              Vendre
+              Marketplace
+              {cartItems.length > 0 && (
+                <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs">
+                  {cartItems.length}
+                </Badge>
+              )}
             </TabsTrigger>
           </TabsList>
 
@@ -383,6 +557,78 @@ const ClientApp = () => {
     return totalPrice;
   };
 
+  // Marketplace functions
+  const handleAddToCart = (product: any, quantity: number = 1) => {
+    const existingItem = cartItems.find(item => item.id === product.id);
+    
+    if (existingItem) {
+      setCartItems(items =>
+        items.map(item =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        )
+      );
+    } else {
+      setCartItems(items => [...items, {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image || product.images?.[0],
+        quantity,
+        seller: product.seller
+      }]);
+    }
+
+    toast({
+      title: "Produit ajouté",
+      description: `${product.name} a été ajouté à votre panier`,
+    });
+  };
+
+  const handleUpdateCartQuantity = (id: string, quantity: number) => {
+    if (quantity === 0) {
+      handleRemoveFromCart(id);
+      return;
+    }
+    
+    setCartItems(items =>
+      items.map(item =>
+        item.id === id ? { ...item, quantity } : item
+      )
+    );
+  };
+
+  const handleRemoveFromCart = (id: string) => {
+    setCartItems(items => items.filter(item => item.id !== id));
+    toast({
+      title: "Produit retiré",
+      description: "Le produit a été retiré de votre panier",
+    });
+  };
+
+  const handleViewProductDetails = (product: any) => {
+    setSelectedProduct(product);
+    setIsProductDetailsOpen(true);
+  };
+
+  const handleSearch = () => {
+    // Search is already handled by the filter effect
+    toast({
+      title: "Recherche effectuée",
+      description: `${filteredProducts.length} produit(s) trouvé(s)`,
+    });
+  };
+
+  const handleCheckout = () => {
+    toast({
+      title: "Commande en cours",
+      description: "Redirection vers le paiement...",
+    });
+    // Here you would integrate with a payment system
+    setIsCartOpen(false);
+  };
+
   const renderDeliveryService = () => {
     if (deliveryStep === 'tracking' && deliveryId) {
       return (
@@ -430,75 +676,43 @@ const ClientApp = () => {
   };
 
   const renderMarketplaceService = () => (
-    <div className="space-y-6">
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white rounded-xl border border-grey-100 p-4 text-center hover:border-grey-200 transition-all duration-200 cursor-pointer">
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-3">
-            <Plus className="w-6 h-6 text-white" />
+    <div className="flex flex-col h-full">
+      <SearchBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearch={handleSearch}
+        filters={filters}
+        onFiltersChange={setFilters}
+      />
+      
+      <CategoryFilter
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        productCounts={productCounts}
+      />
+      
+      <div className="flex-1 overflow-y-auto p-4">
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-8">
+            <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">Aucun produit trouvé</h3>
+            <p className="text-muted-foreground">
+              Essayez de modifier vos filtres de recherche
+            </p>
           </div>
-          <h4 className="font-semibold text-grey-900 mb-1">Vendre</h4>
-          <p className="text-sm text-grey-600">Publier une annonce</p>
-        </div>
-        
-        <div className="bg-white rounded-xl border border-grey-100 p-4 text-center hover:border-grey-200 transition-all duration-200 cursor-pointer">
-          <div className="w-12 h-12 bg-grey-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-            <Search className="w-6 h-6 text-grey-600" />
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={(prod) => handleAddToCart(prod, 1)}
+                onViewDetails={handleViewProductDetails}
+              />
+            ))}
           </div>
-          <h4 className="font-semibold text-grey-900 mb-1">Acheter</h4>
-          <p className="text-sm text-grey-600">Rechercher des produits</p>
-        </div>
+        )}
       </div>
-
-      {/* Categories */}
-      <div>
-        <h3 className="text-lg font-semibold text-grey-900 mb-4">Catégories populaires</h3>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { name: "Mode", icon: "👕" },
-            { name: "Tech", icon: "📱" },
-            { name: "Maison", icon: "🏠" },
-            { name: "Auto", icon: "🚗" },
-            { name: "Sport", icon: "⚽" },
-            { name: "Livres", icon: "📚" },
-          ].map((category, index) => (
-            <div key={index} className="bg-white rounded-xl border border-grey-100 p-3 text-center hover:border-grey-200 transition-all duration-200 cursor-pointer">
-              <div className="text-2xl mb-2">{category.icon}</div>
-              <p className="text-sm font-medium text-grey-900">{category.name}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Featured Products */}
-      <div>
-        <h3 className="text-lg font-semibold text-grey-900 mb-4">Annonces récentes</h3>
-        <div className="space-y-3">
-          {[
-            { name: "iPhone 13 Pro", price: "450,000", location: "Cocody", image: "📱" },
-            { name: "Ordinateur portable", price: "320,000", location: "Plateau", image: "💻" },
-            { name: "Vélo VTT", price: "85,000", location: "Marcory", image: "🚴" },
-          ].map((product, index) => (
-            <div key={index} className="bg-white rounded-xl border border-grey-100 p-4 hover:border-grey-200 transition-all duration-200 cursor-pointer">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-grey-50 rounded-xl flex items-center justify-center">
-                  <span className="text-2xl">{product.image}</span>
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-grey-900">{product.name}</h4>
-                  <p className="text-sm text-grey-600">{product.location}</p>
-                  <p className="font-bold text-primary mt-1">{product.price} CFA</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <Button className="w-full h-14 rounded-2xl text-base font-semibold bg-grey-900 hover:bg-grey-800 text-white shadow-lg">
-        <Camera className="w-5 h-5 mr-2" />
-        Publier une annonce
-      </Button>
     </div>
   );
 
@@ -692,6 +906,36 @@ const ClientApp = () => {
         }
       })()}
 
+      {/* Marketplace Components */}
+      <CartComponent
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cartItems}
+        onUpdateQuantity={handleUpdateCartQuantity}
+        onRemoveItem={handleRemoveFromCart}
+        onCheckout={handleCheckout}
+      />
+      
+      <ProductDetails
+        product={selectedProduct}
+        isOpen={isProductDetailsOpen}
+        onClose={() => setIsProductDetailsOpen(false)}
+        onAddToCart={handleAddToCart}
+      />
+      
+      {/* Floating Cart Button for Marketplace */}
+      {serviceType === 'marketplace' && cartItems.length > 0 && (
+        <Button
+          className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg z-50"
+          onClick={() => setIsCartOpen(true)}
+        >
+          <ShoppingCart className="w-6 h-6" />
+          <Badge variant="destructive" className="absolute -top-2 -right-2 h-6 w-6 p-0 text-xs">
+            {cartItems.length}
+          </Badge>
+        </Button>
+      )}
+
       {/* Fixed Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-grey-100 z-50">
         <div className="px-6 py-4 flex justify-around max-w-md mx-auto">
@@ -715,6 +959,9 @@ const ClientApp = () => {
           ))}
         </div>
       </div>
+      
+      {/* Toast notifications */}
+      <div id="toast-container" />
     </div>
   );
 };
