@@ -70,7 +70,7 @@ import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 interface Location {
   address: string;
   coordinates: [number, number];
-  type?: 'home' | 'work' | 'other';
+  type?: 'home' | 'work' | 'other' | 'recent' | 'favorite';
 }
 
 interface Vehicle {
