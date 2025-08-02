@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { MapPin, Navigation, Plus, Minus, Locate } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MapboxMapProps {
   onLocationSelect?: (coordinates: [number, number]) => void;
@@ -45,49 +46,67 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    // For demo purposes, we'll use a placeholder token
-    // In production, this should come from Supabase secrets
-    const MAPBOX_TOKEN = 'pk.eyJ1IjoidGVzdCIsImEiOiJjbGZkZmRmZGZkZmZkZmRmZGZkZmRmZGZkZmZkZmZkZmZmZmZmZmZmZmZmZmZmZmZmIn0'; // Placeholder
-    
-    if (!MAPBOX_TOKEN || MAPBOX_TOKEN.includes('placeholder')) {
-      // Fallback to a styled div when no Mapbox token
-      mapContainer.current.innerHTML = `
-        <div class="w-full h-full bg-gradient-to-br from-blue-100 to-green-100 rounded-lg flex items-center justify-center border-2 border-dashed border-blue-300">
-          <div class="text-center p-4">
-            <MapPin class="w-12 h-12 mx-auto text-blue-500 mb-2" />
-            <h3 class="text-lg font-semibold text-blue-700 mb-2">Carte Interactive</h3>
-            <p class="text-sm text-blue-600">Kinshasa, République Démocratique du Congo</p>
-            <p class="text-xs text-muted-foreground mt-2">Token Mapbox requis pour la carte réelle</p>
+    const initializeMap = async () => {
+      try {
+        const { data: tokenData, error } = await supabase.functions.invoke('get-mapbox-token');
+        
+        if (error || !tokenData?.token) {
+          // Fallback to styled div when no Mapbox token
+          mapContainer.current!.innerHTML = `
+            <div class="w-full h-full bg-gradient-to-br from-blue-100 to-green-100 rounded-lg flex items-center justify-center border-2 border-dashed border-blue-300">
+              <div class="text-center p-4">
+                <div class="w-12 h-12 mx-auto text-blue-500 mb-2">🗺️</div>
+                <h3 class="text-lg font-semibold text-blue-700 mb-2">Carte Interactive</h3>
+                <p class="text-sm text-blue-600">Kinshasa, République Démocratique du Congo</p>
+                <p class="text-xs text-muted-foreground mt-2">Configuration Mapbox en cours...</p>
+              </div>
+            </div>
+          `;
+          setMapReady(true);
+          return;
+        }
+
+        mapboxgl.accessToken = tokenData.token;
+        
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current!,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: center,
+          zoom: zoom,
+          attributionControl: false,
+        });
+
+        // Add navigation controls
+        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+        map.current.on('load', () => {
+          setMapReady(true);
+        });
+
+        // Handle map clicks for location selection
+        map.current.on('click', (e) => {
+          if (onLocationSelect) {
+            onLocationSelect([e.lngLat.lng, e.lngLat.lat]);
+          }
+        });
+
+      } catch (error) {
+        console.error('Error initializing map:', error);
+        // Show fallback UI
+        mapContainer.current!.innerHTML = `
+          <div class="w-full h-full bg-gradient-to-br from-red-100 to-orange-100 rounded-lg flex items-center justify-center border-2 border-dashed border-red-300">
+            <div class="text-center p-4">
+              <div class="w-12 h-12 mx-auto text-red-500 mb-2">⚠️</div>
+              <h3 class="text-lg font-semibold text-red-700 mb-2">Erreur de carte</h3>
+              <p class="text-sm text-red-600">Impossible de charger la carte</p>
+            </div>
           </div>
-        </div>
-      `;
-      setMapReady(true);
-      return;
-    }
-
-    mapboxgl.accessToken = MAPBOX_TOKEN;
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: center,
-      zoom: zoom,
-      attributionControl: false,
-    });
-
-    // Add navigation controls
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    map.current.on('load', () => {
-      setMapReady(true);
-    });
-
-    // Handle map clicks for location selection
-    map.current.on('click', (e) => {
-      if (onLocationSelect) {
-        onLocationSelect([e.lngLat.lng, e.lngLat.lat]);
+        `;
+        setMapReady(true);
       }
-    });
+    };
+
+    initializeMap();
 
     return () => {
       map.current?.remove();
