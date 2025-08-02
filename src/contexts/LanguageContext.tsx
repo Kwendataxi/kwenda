@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Language = 'fr' | 'ln';
+type Language = 'fr' | 'ln' | 'kg' | 'lua' | 'sw';
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
+  formatCurrency: (amount: number, currency?: 'CDF' | 'USD') => string;
 }
 
 const translations = {
@@ -21,13 +22,27 @@ const translations = {
     'nav.notifications': 'Notifications',
     'nav.settings': 'Paramètres',
     
-    // Transport
+    // Transport Congo RDC
     'transport.book': 'Réserver',
     'transport.pickup': 'Point de départ',
     'transport.destination': 'Destination',
     'transport.vehicle': 'Véhicule',
     'transport.price': 'Prix',
     'transport.time': 'Temps estimé',
+    'transport.taxi_bus': 'Taxi-bus',
+    'transport.moto_taxi': 'Moto-taxi',
+    'transport.taxi_voiture': 'Taxi voiture',
+    'transport.bus_transco': 'Bus Transco',
+    
+    // Quartiers Kinshasa
+    'location.gombe': 'Gombe',
+    'location.kinshasa': 'Kinshasa',
+    'location.lemba': 'Lemba',
+    'location.ngaliema': 'Ngaliema',
+    'location.matete': 'Matete',
+    'location.masina': 'Masina',
+    'location.ndjili': 'N\'djili',
+    'location.kimbanseke': 'Kimbanseke',
     
     // Payment
     'payment.mobile_money': 'Mobile Money',
@@ -45,21 +60,6 @@ const translations = {
     'referral.rewards': 'Récompenses',
     'referral.total_earned': 'Total gagné',
     
-    // Notifications
-    'notification.new_ride': 'Nouvelle course disponible',
-    'notification.payment_received': 'Paiement reçu',
-    'notification.ride_completed': 'Course terminée',
-    
-    // Offline
-    'offline.mode': 'Mode hors ligne',
-    'offline.sync': 'Synchronisation en cours...',
-    'offline.cached': 'Données en cache',
-    
-    // Security
-    'security.verify': 'Vérifier l\'identité',
-    'security.phone_verify': 'Vérification téléphone',
-    'security.id_upload': 'Télécharger pièce d\'identité',
-    
     // Common
     'common.save': 'Enregistrer',
     'common.cancel': 'Annuler',
@@ -68,6 +68,9 @@ const translations = {
     'common.loading': 'Chargement...',
     'common.error': 'Erreur',
     'common.success': 'Succès',
+    'common.confirm': 'Confirmer',
+    'common.offline': 'Hors ligne',
+    'common.retry': 'Réessayer',
   },
   ln: {
     // Navigation
@@ -81,13 +84,27 @@ const translations = {
     'nav.notifications': 'Ba notifications',
     'nav.settings': 'Ba paramètres',
     
-    // Transport
+    // Transport Congo RDC
     'transport.book': 'Kokanisa',
     'transport.pickup': 'Esika ya kokende',
     'transport.destination': 'Esika ya kokoma',
     'transport.vehicle': 'Motuka',
     'transport.price': 'Ntalo',
     'transport.time': 'Ntango ya kokende',
+    'transport.taxi_bus': 'Taxi-bus',
+    'transport.moto_taxi': 'Moto-taxi',
+    'transport.taxi_voiture': 'Taxi motuka',
+    'transport.bus_transco': 'Bus Transco',
+    
+    // Quartiers Kinshasa
+    'location.gombe': 'Gombe',
+    'location.kinshasa': 'Kinshasa',
+    'location.lemba': 'Lemba',
+    'location.ngaliema': 'Ngaliema',
+    'location.matete': 'Matete',
+    'location.masina': 'Masina',
+    'location.ndjili': 'N\'djili',
+    'location.kimbanseke': 'Kimbanseke',
     
     // Payment
     'payment.mobile_money': 'Mbongo ya téléphone',
@@ -105,21 +122,6 @@ const translations = {
     'referral.rewards': 'Lifuti',
     'referral.total_earned': 'Mbongo nyonso ozongi',
     
-    // Notifications
-    'notification.new_ride': 'Mobembo ya sika ezali',
-    'notification.payment_received': 'Mbongo ekomi',
-    'notification.ride_completed': 'Mobembo esili',
-    
-    // Offline
-    'offline.mode': 'Mode hors ligne',
-    'offline.sync': 'Kosala synchronisation...',
-    'offline.cached': 'Ba données oyo ezali na cache',
-    
-    // Security
-    'security.verify': 'Koluka soki ozali ye',
-    'security.phone_verify': 'Koluka téléphone',
-    'security.id_upload': 'Kotinda karte ya identité',
-    
     // Common
     'common.save': 'Kobomba',
     'common.cancel': 'Kotika',
@@ -128,6 +130,113 @@ const translations = {
     'common.loading': 'Eza kochargé...',
     'common.error': 'Libunga',
     'common.success': 'Elongi',
+    'common.confirm': 'Kondima',
+    'common.offline': 'Hors ligne',
+    'common.retry': 'Komeka lisusu',
+  },
+  kg: { // Kikongo
+    // Navigation
+    'nav.home': 'Nzo',
+    'nav.transport': 'Transport',
+    'nav.delivery': 'Livraison',
+    'nav.marketplace': 'Zando',
+    'nav.profile': 'Profil',
+    'nav.history': 'Makambu ma kala',
+    'nav.payment': 'Kufuta',
+    'nav.notifications': 'Bisalu',
+    'nav.settings': 'Paramètres',
+    
+    // Transport Congo RDC
+    'transport.book': 'Kukanisa',
+    'transport.pickup': 'Fulu ya kutuka',
+    'transport.destination': 'Fulu ya kukenda',
+    'transport.vehicle': 'Motuka',
+    'transport.price': 'Ntalu',
+    'transport.time': 'Thangu ya kukenda',
+    'transport.taxi_bus': 'Taxi-bus',
+    'transport.moto_taxi': 'Moto-taxi',
+    'transport.taxi_voiture': 'Taxi motuka',
+    'transport.bus_transco': 'Bus Transco',
+    
+    // Common
+    'common.save': 'Kubika',
+    'common.cancel': 'Kutika',
+    'common.continue': 'Kukoba',
+    'common.back': 'Kuvutuka',
+    'common.loading': 'Yina ku charge...',
+    'common.error': 'Nkama',
+    'common.success': 'Malonga',
+    'common.confirm': 'Kundima',
+    'common.offline': 'Hors ligne',
+    'common.retry': 'Kusolula diaka',
+  },
+  lua: { // Tshiluba
+    // Navigation
+    'nav.home': 'Muetu',
+    'nav.transport': 'Transport',
+    'nav.delivery': 'Livraison',
+    'nav.marketplace': 'Mubanda',
+    'nav.profile': 'Profil',
+    'nav.history': 'Bintu bia kala',
+    'nav.payment': 'Kulipa',
+    'nav.notifications': 'Makambu',
+    'nav.settings': 'Paramètres',
+    
+    // Transport Congo RDC
+    'transport.book': 'Kubanda',
+    'transport.pickup': 'Mahali pakutanga',
+    'transport.destination': 'Mahali pakufika',
+    'transport.vehicle': 'Motuka',
+    'transport.price': 'Bei',
+    'transport.time': 'Nako ya kuya',
+    
+    // Common
+    'common.save': 'Kubika',
+    'common.cancel': 'Kuleka',
+    'common.continue': 'Kuendelea',
+    'common.back': 'Kubuya',
+    'common.loading': 'Nkucharge...',
+    'common.error': 'Nshimu',
+    'common.success': 'Malonga',
+    'common.confirm': 'Kukatala',
+    'common.offline': 'Hors ligne',
+    'common.retry': 'Kusolola',
+  },
+  sw: { // Swahili
+    // Navigation
+    'nav.home': 'Nyumbani',
+    'nav.transport': 'Usafiri',
+    'nav.delivery': 'Utoaji',
+    'nav.marketplace': 'Soko',
+    'nav.profile': 'Profili',
+    'nav.history': 'Historia',
+    'nav.payment': 'Malipo',
+    'nav.notifications': 'Arifa',
+    'nav.settings': 'Mipangilio',
+    
+    // Transport Congo RDC
+    'transport.book': 'Kuweka',
+    'transport.pickup': 'Mahali pa kuchukua',
+    'transport.destination': 'Unakoenda',
+    'transport.vehicle': 'Gari',
+    'transport.price': 'Bei',
+    'transport.time': 'Muda wa kufikia',
+    'transport.taxi_bus': 'Basi-taxi',
+    'transport.moto_taxi': 'Piki-piki',
+    'transport.taxi_voiture': 'Taxi gari',
+    'transport.bus_transco': 'Basi Transco',
+    
+    // Common
+    'common.save': 'Hifadhi',
+    'common.cancel': 'Ghairi',
+    'common.continue': 'Endelea',
+    'common.back': 'Rudi',
+    'common.loading': 'Inapakia...',
+    'common.error': 'Kosa',
+    'common.success': 'Mafanikio',
+    'common.confirm': 'Thibitisha',
+    'common.offline': 'Bila mtandao',
+    'common.retry': 'Jaribu tena',
   }
 };
 
@@ -144,11 +253,27 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [language]);
 
   const t = (key: string): string => {
-    return translations[language][key] || key;
+    return translations[language][key] || translations.fr[key] || key;
+  };
+
+  const formatCurrency = (amount: number, currency: 'CDF' | 'USD' = 'CDF'): string => {
+    if (currency === 'CDF') {
+      return new Intl.NumberFormat('fr-CD', {
+        style: 'currency',
+        currency: 'CDF',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(amount);
+    } else {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+      }).format(amount);
+    }
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, formatCurrency }}>
       {children}
     </LanguageContext.Provider>
   );

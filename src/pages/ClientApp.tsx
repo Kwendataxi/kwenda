@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ConnectionIndicator, OptimizedImage } from '@/components/optimization/SlowConnectionComponents';
+import CongoVehicleSelection from '@/components/transport/CongoVehicleSelection';
+import SimplifiedInterface from '@/components/ui/SimplifiedInterface';
 import MobileMoneyPayment from '@/components/advanced/MobileMoneyPayment';
 import ReferralSystem from '@/components/advanced/ReferralSystem';
 import NotificationCenter from '@/components/advanced/NotificationCenter';
@@ -90,7 +93,7 @@ interface PackageType {
 }
 
 const ClientApp = () => {
-  const { t, language, setLanguage } = useLanguage();
+  const { t, language, setLanguage, formatCurrency } = useLanguage();
   const [currentView, setCurrentView] = useState('home');
   const [serviceType, setServiceType] = useState('transport');
   
@@ -916,6 +919,8 @@ const ClientApp = () => {
             return <OfflineMode />;
           case 'security':
             return <SecurityVerification />;
+          case 'simplified':
+            return <SimplifiedInterface />;
           case 'mobile-money':
             return (
               <MobileMoneyPayment
