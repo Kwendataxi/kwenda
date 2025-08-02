@@ -437,6 +437,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_places: {
+        Row: {
+          address: string
+          coordinates: Json | null
+          created_at: string
+          id: string
+          last_used: string
+          name: string
+          place_type: string
+          updated_at: string
+          usage_count: number
+          user_id: string
+        }
+        Insert: {
+          address: string
+          coordinates?: Json | null
+          created_at?: string
+          id?: string
+          last_used?: string
+          name: string
+          place_type?: string
+          updated_at?: string
+          usage_count?: number
+          user_id: string
+        }
+        Update: {
+          address?: string
+          coordinates?: Json | null
+          created_at?: string
+          id?: string
+          last_used?: string
+          name?: string
+          place_type?: string
+          updated_at?: string
+          usage_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_ratings: {
         Row: {
           booking_id: string | null

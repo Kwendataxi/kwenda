@@ -20,36 +20,6 @@ export const ModernHomeScreen = ({
   onProductSelect,
   onMarketplaceViewAll
 }: ModernHomeScreenProps) => {
-  // Mock recent places data
-  const recentPlaces = [
-    {
-      id: '1',
-      name: 'Maison',
-      address: 'Avenue Kasavubu, Kalamu',
-      type: 'home' as const,
-      estimatedTime: '12 min'
-    },
-    {
-      id: '2',
-      name: 'Bureau',
-      address: 'Boulevard du 30 Juin, Gombe',
-      type: 'work' as const,
-      estimatedTime: '25 min'
-    },
-    {
-      id: '3',
-      name: 'Marché Central',
-      address: 'Avenue Kalemie, Kinshasa',
-      type: 'recent' as const,
-      estimatedTime: '18 min',
-      rating: 4.2
-    }
-  ];
-
-  const handlePlaceSelect = (place: any) => {
-    // Navigate to transport with pre-filled destination
-    onServiceSelect('transport');
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -66,8 +36,10 @@ export const ModernHomeScreen = ({
         />
         
         <RecentPlaces 
-          places={recentPlaces}
-          onPlaceSelect={handlePlaceSelect}
+          onPlaceSelect={(placeName, coordinates) => {
+            onSearch(placeName);
+            onServiceSelect('transport');
+          }}
         />
         
         <MarketplacePreview

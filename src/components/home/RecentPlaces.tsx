@@ -1,37 +1,72 @@
 import { MapPin, Clock, Star, Home, Building } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
-interface Place {
-  id: string;
-  name: string;
-  address: string;
-  type: 'home' | 'work' | 'recent' | 'favorite';
-  estimatedTime?: string;
-  rating?: number;
-}
+import { usePlaces } from '@/hooks/usePlaces';
+import { useAuth } from '@/hooks/useAuth';
 
 interface RecentPlacesProps {
-  places: Place[];
-  onPlaceSelect: (place: Place) => void;
+  onPlaceSelect: (placeName: string, coordinates?: { lat: number; lng: number }) => void;
 }
 
-export const RecentPlaces = ({ places, onPlaceSelect }: RecentPlacesProps) => {
+export const RecentPlaces = ({ onPlaceSelect }: RecentPlacesProps) => {
+  const { user } = useAuth();
+  const { recentPlaces, homePlace, workPlace, loading, markAsUsed } = usePlaces();
+
+  if (!user) return null;
+
+  const displayPlaces = [
+    ...(homePlace ? [homePlace] : []),
+    ...(workPlace ? [workPlace] : []),
+    ...recentPlaces.slice(0, 3)
+  ];
+
+  const handlePlaceClick = async (place: any) => {
+    try {
+      await markAsUsed(place.id);
+      onPlaceSelect(place.name, place.coordinates);
+    } catch (error) {
+      console.error('Erreur lors de la sélection du lieu:', error);
+      onPlaceSelect(place.name, place.coordinates);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="px-4 mb-8">
+        <div className="flex items-center justify-center p-8">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (displayPlaces.length === 0) {
+    return (
+      <div className="px-4 mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-heading-md text-foreground">Lieux récents</h3>
+        </div>
+        <div className="text-center p-8 text-muted-foreground">
+          <MapPin className="h-8 w-8 mx-auto mb-3 opacity-50" />
+          <p>Aucun lieu récent trouvé</p>
+          <p className="text-sm mt-1">Commencez à rechercher des lieux pour les voir apparaître ici</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="px-4 mb-8">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-heading-md text-foreground">Lieux récents</h3>
-        <Button variant="ghost" size="sm" className="text-primary hover:text-primary-glow">
-          Voir tout
-        </Button>
       </div>
       
       <div className="space-y-4">
-        {places.map((place, index) => (
+        {displayPlaces.map((place, index) => (
           <Card 
             key={place.id}
             className="group p-5 cursor-pointer border-0 rounded-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] animate-fade-in"
-            onClick={() => onPlaceSelect(place)}
+            onClick={() => handlePlaceClick(place)}
             style={{ 
               boxShadow: 'var(--shadow-md)',
               background: 'var(--gradient-card)',
@@ -42,9 +77,9 @@ export const RecentPlaces = ({ places, onPlaceSelect }: RecentPlacesProps) => {
               <div 
                 className="w-12 h-12 bg-gradient-to-br from-primary/10 to-primary/20 rounded-xl flex items-center justify-center border border-primary/10 group-hover:from-primary/20 group-hover:to-primary/30 transition-all duration-300"
               >
-                {place.type === 'home' && <Home className="h-5 w-5 text-primary" />}
-                {place.type === 'work' && <Building className="h-5 w-5 text-primary" />}
-                {place.type === 'recent' && <MapPin className="h-5 w-5 text-primary" />}
+                {place.place_type === 'home' && <Home className="h-5 w-5 text-primary" />}
+                {place.place_type === 'work' && <Building className="h-5 w-5 text-primary" />}
+                {(place.place_type === 'recent' || place.place_type === 'favorite') && <MapPin className="h-5 w-5 text-primary" />}
               </div>
               
               <div className="flex-1 min-w-0">
@@ -54,14 +89,11 @@ export const RecentPlaces = ({ places, onPlaceSelect }: RecentPlacesProps) => {
               
               <div className="text-right flex flex-col items-end gap-1">
                 <div className="px-3 py-1 bg-primary/10 rounded-full">
-                  <p className="text-sm font-semibold text-primary">{place.estimatedTime}</p>
+                  <Clock className="h-3 w-3 text-primary" />
                 </div>
-                {place.rating && (
-                  <div className="flex items-center gap-1">
-                    <Star className="h-3 w-3 text-secondary fill-current" />
-                    <span className="text-xs font-medium text-muted-foreground">{place.rating}</span>
-                  </div>
-                )}
+                <span className="text-xs font-medium text-muted-foreground">
+                  Utilisé {place.usage_count} fois
+                </span>
               </div>
             </div>
           </Card>
