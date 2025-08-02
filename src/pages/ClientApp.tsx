@@ -3,6 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLanguage } from '@/contexts/LanguageContext';
+import MobileMoneyPayment from '@/components/advanced/MobileMoneyPayment';
+import ReferralSystem from '@/components/advanced/ReferralSystem';
+import NotificationCenter from '@/components/advanced/NotificationCenter';
+import OfflineMode from '@/components/advanced/OfflineMode';
+import SecurityVerification from '@/components/advanced/SecurityVerification';
 import { 
   MapPin, 
   Car, 
@@ -84,6 +90,7 @@ interface PackageType {
 }
 
 const ClientApp = () => {
+  const { t, language, setLanguage } = useLanguage();
   const [currentView, setCurrentView] = useState('home');
   const [serviceType, setServiceType] = useState('transport');
   
@@ -901,6 +908,25 @@ const ClientApp = () => {
           case 'paiement':
           case 'payment':
             return renderPayment();
+          case 'notifications':
+            return <NotificationCenter />;
+          case 'referral':
+            return <ReferralSystem />;
+          case 'offline':
+            return <OfflineMode />;
+          case 'security':
+            return <SecurityVerification />;
+          case 'mobile-money':
+            return (
+              <MobileMoneyPayment
+                amount={3500}
+                onSuccess={(transactionId) => {
+                  console.log('Payment success:', transactionId);
+                  setCurrentView('home');
+                }}
+                onCancel={() => setCurrentView('payment')}
+              />
+            );
           default:
             return renderHome();
         }
