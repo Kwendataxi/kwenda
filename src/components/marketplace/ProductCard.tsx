@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Star, ShoppingCart } from 'lucide-react';
+import { Star, ShoppingCart, Heart, Eye } from 'lucide-react';
+import { Skeleton } from '../ui/skeleton';
 
 interface Product {
   id: string;
@@ -28,73 +29,104 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onAddToCart, 
   onViewDetails 
 }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="relative">
+    <Card className="group overflow-hidden hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm border-0 shadow-sm">
+      <div className="relative overflow-hidden">
+        {!imageLoaded && (
+          <Skeleton className="w-full h-48 md:h-52" />
+        )}
         <img 
           src={product.image} 
           alt={product.name}
-          className="w-full h-48 object-cover"
+          className={`w-full h-48 md:h-52 object-cover transition-all duration-500 group-hover:scale-105 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0 absolute'
+          }`}
+          onLoad={() => setImageLoaded(true)}
+          loading="lazy"
         />
+        
+        {/* Quick Actions Overlay */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
+          <Button 
+            size="sm" 
+            variant="secondary"
+            className="h-10 w-10 p-0 rounded-full bg-white/90 hover:bg-white"
+            onClick={() => onViewDetails(product)}
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
+          <Button 
+            size="sm" 
+            variant="secondary"
+            className={`h-10 w-10 p-0 rounded-full transition-colors ${
+              isWishlisted ? 'bg-congo-red text-white' : 'bg-white/90 hover:bg-white'
+            }`}
+            onClick={() => setIsWishlisted(!isWishlisted)}
+          >
+            <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
+          </Button>
+        </div>
+
+        {/* Discount Badge */}
         {product.originalPrice && product.originalPrice > product.price && (
-          <Badge variant="destructive" className="absolute top-2 left-2">
+          <Badge variant="destructive" className="absolute top-3 left-3 bg-congo-red text-white font-semibold px-2 py-1 text-xs">
             -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
           </Badge>
         )}
+        
+        {/* Stock Status */}
         {!product.inStock && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <Badge variant="secondary">Rupture de stock</Badge>
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
+            <Badge variant="secondary" className="bg-white/90 text-foreground">Rupture de stock</Badge>
           </div>
         )}
       </div>
       
-      <CardContent className="p-4">
-        <h3 className="font-semibold text-sm mb-2 line-clamp-2">{product.name}</h3>
+      <CardContent className="p-4 space-y-3">
+        {/* Product Title */}
+        <h3 className="font-semibold text-sm md:text-base leading-tight line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">
+          {product.name}
+        </h3>
         
-        <div className="flex items-center gap-1 mb-2">
-          <div className="flex items-center">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm text-muted-foreground ml-1">
-              {product.rating} ({product.reviews})
-            </span>
+        {/* Rating */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <Star className="w-4 h-4 fill-congo-yellow text-congo-yellow" />
+            <span className="text-sm font-medium">{product.rating}</span>
           </div>
+          <span className="text-xs text-muted-foreground">({product.reviews})</span>
         </div>
         
-        <p className="text-xs text-muted-foreground mb-2">Par {product.seller}</p>
+        {/* Seller */}
+        <p className="text-xs text-muted-foreground truncate">{product.seller}</p>
         
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex flex-col">
-            <span className="font-bold text-primary">{product.price.toLocaleString()} FC</span>
+        {/* Price Section */}
+        <div className="flex items-end justify-between">
+          <div className="flex flex-col gap-1">
+            <span className="font-bold text-lg text-foreground">{product.price.toLocaleString()} FC</span>
             {product.originalPrice && (
-              <span className="text-xs text-muted-foreground line-through">
+              <span className="text-sm text-muted-foreground line-through">
                 {product.originalPrice.toLocaleString()} FC
               </span>
             )}
           </div>
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className="text-xs bg-muted/50">
             {product.category}
           </Badge>
         </div>
         
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1"
-            onClick={() => onViewDetails(product)}
-          >
-            Voir
-          </Button>
-          <Button 
-            size="sm" 
-            className="flex-1"
-            disabled={!product.inStock}
-            onClick={() => onAddToCart(product)}
-          >
-            <ShoppingCart className="w-4 h-4 mr-1" />
-            Ajouter
-          </Button>
-        </div>
+        {/* Action Button */}
+        <Button 
+          className="w-full h-12 mt-3 bg-primary hover:bg-primary/90 text-white font-medium touch-manipulation"
+          disabled={!product.inStock}
+          onClick={() => onAddToCart(product)}
+        >
+          <ShoppingCart className="w-4 h-4 mr-2" />
+          {product.inStock ? 'Ajouter au panier' : 'Indisponible'}
+        </Button>
       </CardContent>
     </Card>
   );

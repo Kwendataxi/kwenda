@@ -33,6 +33,11 @@ export default {
 					glow: 'hsl(var(--primary-glow))',
 					light: 'hsl(var(--primary-light))'
 				},
+				// Congo Theme Colors
+				'congo-green': "hsl(var(--congo-green))",
+				'congo-yellow': "hsl(var(--congo-yellow))",
+				'congo-red': "hsl(var(--congo-red))",
+				'congo-blue': "hsl(var(--congo-blue))",
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
 					foreground: 'hsl(var(--secondary-foreground))',

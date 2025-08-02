@@ -45,11 +45,11 @@ import InteractiveMap from '@/components/transport/InteractiveMap';
 
 // Delivery components
 import PackageTypeSelector from '@/components/delivery/PackageTypeSelector';
-import DeliveryForm, { DeliveryFormData } from '@/components/delivery/DeliveryForm';
+import ModernDeliveryForm, { DeliveryFormData } from '@/components/delivery/ModernDeliveryForm';
 import DeliveryTracking from '@/components/delivery/DeliveryTracking';
 
 // Marketplace components
-import { ProductCard } from '@/components/marketplace/ProductCard';
+import { ResponsiveGrid } from '@/components/marketplace/ResponsiveGrid';
 import { CategoryFilter } from '@/components/marketplace/CategoryFilter';
 import { SearchBar } from '@/components/marketplace/SearchBar';
 import { ShoppingCart as CartComponent } from '@/components/marketplace/ShoppingCart';
@@ -667,7 +667,7 @@ const ClientApp = () => {
             </div>
           </div>
 
-          <DeliveryForm
+          <ModernDeliveryForm
             selectedPackage={selectedPackage}
             onSubmit={handleDeliverySubmit}
             onCancel={handleDeliveryCancel}
@@ -711,16 +711,11 @@ const ClientApp = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={(prod) => handleAddToCart(prod, 1)}
-                onViewDetails={handleViewProductDetails}
-              />
-            ))}
-          </div>
+          <ResponsiveGrid
+            products={filteredProducts}
+            onAddToCart={(prod) => handleAddToCart(prod, 1)}
+            onViewDetails={handleViewProductDetails}
+          />
         )}
       </div>
     </div>
