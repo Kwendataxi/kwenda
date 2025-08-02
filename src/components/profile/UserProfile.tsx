@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Shield, Phone, Mail, User, FileText, Wallet, UserCheck } from 'lucide-react';
+import { Star, Shield, Phone, Mail, User, FileText, Wallet, UserCheck, Edit2, Check, X, ChevronRight, Settings, Car, Users, MapPin, Clock, Gift, Headphones } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
 import { UserVerification } from './UserVerification';
 import { UserRatings } from './UserRatings';
@@ -43,6 +44,12 @@ export const UserProfile = () => {
     display_name: '',
     phone_number: '',
   });
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const [editedDisplayName, setEditedDisplayName] = useState('');
+  const [editedPhone, setEditedPhone] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [activeOption, setActiveOption] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -122,240 +129,303 @@ export const UserProfile = () => {
     setProfile(prev => prev ? { ...prev, avatar_url: url } : null);
   };
 
+  const handleNameSave = async () => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ display_name: editedDisplayName })
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      setProfile(prev => prev ? { ...prev, display_name: editedDisplayName } : null);
+      setIsEditingName(false);
+      toast({
+        title: "Nom mis à jour",
+        description: "Votre nom a été mis à jour avec succès.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le nom.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePhoneSave = async () => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ phone_number: editedPhone })
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      setProfile(prev => prev ? { ...prev, phone_number: editedPhone } : null);
+      setIsEditingPhone(false);
+      toast({
+        title: "Téléphone mis à jour",
+        description: "Votre numéro de téléphone a été mis à jour avec succès.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le téléphone.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleNameCancel = () => {
+    setEditedDisplayName(profile?.display_name || '');
+    setIsEditingName(false);
+  };
+
+  const handlePhoneCancel = () => {
+    setEditedPhone(profile?.phone_number || '');
+    setIsEditingPhone(false);
+  };
+
+  const handleOptionClick = (option: string) => {
+    setActiveOption(option);
+    setShowModal(true);
+  };
+
   if (loading) {
-    return <div className="flex justify-center p-8">Chargement...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Chargement du profil...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!profile) {
-    return <div className="text-center p-8">Profil non trouvé</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-muted-foreground">Profil non trouvé</p>
+        </div>
+      </div>
+    );
   }
 
+  const profileOptions = [
+    {
+      id: 'wallet',
+      icon: Wallet,
+      title: 'Modes de paiement',
+      subtitle: 'Wallet Kwenda Pay',
+      hasArrow: true
+    },
+    {
+      id: 'referral',
+      icon: Gift,
+      title: 'Réductions et cadeaux',
+      subtitle: 'Code promo et parrainage',
+      hasArrow: true
+    },
+    {
+      id: 'history',
+      icon: Clock,
+      title: 'Historique',
+      subtitle: 'Activités et transactions',
+      hasArrow: true
+    },
+    {
+      id: 'addresses',
+      icon: MapPin,
+      title: 'Mes adresses',
+      subtitle: 'Adresses sauvegardées',
+      hasArrow: true
+    },
+    {
+      id: 'support',
+      icon: Headphones,
+      title: 'Assistance',
+      subtitle: 'Support client',
+      hasArrow: true
+    },
+    {
+      id: 'security',
+      icon: Shield,
+      title: 'Sécurité',
+      subtitle: 'Vérification et confidentialité',
+      hasArrow: true
+    },
+    {
+      id: 'driver',
+      icon: Car,
+      title: 'Travailler comme conducteur',
+      subtitle: 'Upgrade votre compte',
+      hasArrow: true
+    },
+    {
+      id: 'team',
+      icon: Users,
+      title: 'Un compte pour votre équipe',
+      subtitle: 'Compte entreprise',
+      hasArrow: true
+    },
+    {
+      id: 'settings',
+      icon: Settings,
+      title: 'Paramètres',
+      subtitle: 'Notifications, langues, etc.',
+      hasArrow: true
+    }
+  ];
+
+  const renderModalContent = () => {
+    switch (activeOption) {
+      case 'wallet':
+        return <KwendaPayWallet />;
+      case 'referral':
+        return <ReferralSystem />;
+      case 'history':
+        return <ActivityHistory />;
+      case 'security':
+        return <UserVerification />;
+      case 'settings':
+        return (
+          <div className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Paramètres</h3>
+            <p className="text-muted-foreground">Fonctionnalité en développement...</p>
+          </div>
+        );
+      default:
+        return (
+          <div className="p-6">
+            <h3 className="text-lg font-semibold mb-4 capitalize">{activeOption}</h3>
+            <p className="text-muted-foreground">Fonctionnalité en développement...</p>
+          </div>
+        );
+    }
+  };
+
   return (
-    <div className="container mx-auto p-4 lg:p-6 space-y-8">
-      {/* Modern Profile Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 p-8 lg:p-12 border border-border/50 shadow-xl">
-        <div className="absolute inset-0 bg-grid-small opacity-5" />
-        <div className="relative flex flex-col lg:flex-row items-center gap-8">
-          {/* Avatar Section */}
-          <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-full opacity-75 group-hover:opacity-100 transition duration-300 blur-sm" />
-            <Avatar className="relative w-32 h-32 lg:w-40 lg:h-40 border-4 border-background shadow-xl">
+    <div className="max-w-md mx-auto bg-background min-h-screen">
+      {/* Compact Profile Header */}
+      <div className="bg-card border-b px-6 py-8">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Avatar className="w-16 h-16">
               <AvatarImage src={profile.avatar_url || ''} className="object-cover" />
-              <AvatarFallback className="text-3xl lg:text-4xl font-bold bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+              <AvatarFallback className="text-lg font-semibold bg-primary/10 text-primary">
                 {profile.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute -bottom-2 -right-2">
-              <ProfilePictureUpload onUploadComplete={handleAvatarUpdate} />
-            </div>
+            <ProfilePictureUpload
+              onUploadComplete={handleAvatarUpdate}
+            />
           </div>
-
-          {/* Profile Info */}
-          <div className="flex-1 text-center lg:text-left space-y-6 max-w-2xl">
-            <div className="space-y-3">
-              <div className="flex items-center justify-center lg:justify-start gap-3 flex-wrap">
-                <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  {profile.display_name || 'Utilisateur'}
-                </h1>
-                <Badge className="bg-green-100 text-green-800 border-green-200 px-3 py-1.5 text-sm font-medium">
-                  <Shield className="w-4 h-4 mr-1.5" />
-                  Vérifié
-                </Badge>
-              </div>
-              
-              <div className="flex items-center justify-center lg:justify-start gap-2 text-muted-foreground text-lg">
-                <Mail className="w-5 h-5" />
-                <span>{user?.email}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center lg:justify-start gap-6 flex-wrap">
-              <div className="flex items-center gap-2 bg-background/80 rounded-full px-4 py-2 shadow-sm border border-border/30">
-                <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                <span className="font-semibold text-lg">{rating.rating.toFixed(1)}</span>
-                <span className="text-muted-foreground">
-                  ({rating.total_ratings} avis)
-                </span>
-              </div>
-              <Badge variant="outline" className="capitalize text-sm px-3 py-1.5 bg-background/80 border-border/30">
-                {profile.user_type || 'client'}
-              </Badge>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 pt-4">
-              {isEditing ? (
-                <>
-                  <Button
-                    onClick={updateProfile}
-                    size="lg"
-                    className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    <User className="w-5 h-5 mr-2" />
-                    Sauvegarder
+          
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              {isEditingName ? (
+                <div className="flex gap-2 w-full">
+                  <Input
+                    value={editedDisplayName}
+                    onChange={(e) => setEditedDisplayName(e.target.value)}
+                    className="text-lg font-semibold flex-1"
+                    placeholder="Votre nom"
+                  />
+                  <Button size="sm" onClick={handleNameSave}>
+                    <Check className="h-4 w-4" />
                   </Button>
+                  <Button size="sm" variant="outline" onClick={handleNameCancel}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <h1 className="text-xl font-semibold">{profile.display_name || user?.email}</h1>
                   <Button 
-                    variant="outline" 
-                    size="lg" 
-                    onClick={() => setIsEditing(false)}
-                    className="bg-background/80 hover:bg-background border-border/50"
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={() => {
+                      setEditedDisplayName(profile.display_name || '');
+                      setIsEditingName(true);
+                    }}
                   >
-                    Annuler
+                    <Edit2 className="h-4 w-4" />
                   </Button>
                 </>
-              ) : (
-                <Button
-                  onClick={() => setIsEditing(true)}
-                  size="lg"
-                  className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  <User className="w-5 h-5 mr-2" />
-                  Modifier le profil
-                </Button>
-              )}
-              
-              {profile.phone_number && (
-                <Button variant="outline" size="lg" className="bg-background/80 hover:bg-background border-border/50">
-                  <Phone className="w-5 h-5 mr-2" />
-                  {profile.phone_number}
-                </Button>
               )}
             </div>
+            
+            {isEditingPhone ? (
+              <div className="flex gap-2">
+                <Input
+                  value={editedPhone}
+                  onChange={(e) => setEditedPhone(e.target.value)}
+                  placeholder="Numéro de téléphone"
+                  className="text-sm"
+                />
+                <Button size="sm" onClick={handlePhoneSave}>
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="outline" onClick={handlePhoneCancel}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {profile.phone_number || "Ajouter un numéro"}
+                </span>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  onClick={() => {
+                    setEditedPhone(profile.phone_number || '');
+                    setIsEditingPhone(true);
+                  }}
+                >
+                  <Edit2 className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Simplified Modern Tabs - Only 4 Main Tabs */}
-      <Tabs defaultValue="info" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 h-14 rounded-xl bg-muted/50 p-2 shadow-sm">
-          <TabsTrigger 
-            value="info" 
-            className="flex items-center justify-center rounded-lg px-4 py-3 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-          >
-            <User className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Profil</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="wallet" 
-            className="flex items-center justify-center rounded-lg px-4 py-3 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-          >
-            <Wallet className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Wallet</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="security" 
-            className="flex items-center justify-center rounded-lg px-4 py-3 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-          >
-            <Shield className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Sécurité</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="activity" 
-            className="flex items-center justify-center rounded-lg px-4 py-3 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-          >
-            <FileText className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Activité</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="info" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Informations personnelles</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="display_name">Nom complet</Label>
-                  <Input
-                    id="display_name"
-                    value={formData.display_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, display_name: e.target.value }))}
-                    disabled={!isEditing}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone_number">Numéro de téléphone</Label>
-                  <Input
-                    id="phone_number"
-                    value={formData.phone_number}
-                    onChange={(e) => setFormData(prev => ({ ...prev, phone_number: e.target.value }))}
-                    disabled={!isEditing}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    value={user?.email || ''}
-                    disabled
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="user_type">Type de compte</Label>
-                  <Input
-                    id="user_type"
-                    value={profile.user_type}
-                    disabled
-                  />
-                </div>
+      {/* Profile Options List */}
+      <div className="px-4 py-2">
+        {profileOptions.map((option) => {
+          const IconComponent = option.icon;
+          return (
+            <button
+              key={option.id}
+              onClick={() => handleOptionClick(option.id)}
+              className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors rounded-lg"
+            >
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <IconComponent className="h-5 w-5 text-primary" />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              
+              <div className="flex-1 text-left">
+                <h3 className="font-medium text-foreground">{option.title}</h3>
+                <p className="text-sm text-muted-foreground">{option.subtitle}</p>
+              </div>
+              
+              {option.hasArrow && (
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              )}
+            </button>
+          );
+        })}
+      </div>
 
-        <TabsContent value="wallet" className="space-y-6">
-          {/* Enhanced Wallet with Referral System */}
-          <div className="grid gap-6">
-            <KwendaPayWallet />
-            <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <UserCheck className="w-5 h-5 text-primary" />
-                  Parrainage & Récompenses
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ReferralSystem />
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="security">
-          <UserVerification />
-        </TabsContent>
-
-        <TabsContent value="activity" className="space-y-6">
-          {/* Combined Activity: Stats + Ratings + History */}
-          <div className="grid gap-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="w-5 h-5 text-yellow-500" />
-                    Mes Avis
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <UserRatings />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-primary" />
-                    Statistiques
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <UserStatistics />
-                </CardContent>
-              </Card>
-            </div>
-            <ActivityHistory />
-          </div>
-        </TabsContent>
-      </Tabs>
+      {/* Modal for detailed views */}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {renderModalContent()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
