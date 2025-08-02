@@ -124,7 +124,6 @@ const ClientApp = () => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
   const [marketplaceTab, setMarketplaceTab] = useState('explore');
-  const [favorites, setFavorites] = useState<string[]>([]);
 
   // Mock marketplace data
   const mockProducts = [
@@ -650,14 +649,6 @@ const ClientApp = () => {
     );
   };
 
-  // Marketplace handlers
-  const handleToggleFavorite = (productId: string) => {
-    setFavorites(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
-  };
 
   const handleSellProduct = (formData: any) => {
     console.log('New product to sell:', formData);
@@ -679,7 +670,10 @@ const ClientApp = () => {
     }
 
     if (marketplaceTab === 'favorites') {
-      const favoriteProducts = mockProducts.filter(product => favorites.includes(product.id));
+      const favoriteProducts = mockProducts.filter(product => 
+        // This will be replaced by real favorites from FavoritesManager
+        false // Temporary placeholder
+      );
       
       return (
         <div className="min-h-screen bg-background pb-20">
@@ -689,7 +683,7 @@ const ClientApp = () => {
           />
           
           <div className="p-4">
-            <h2 className="text-lg font-semibold mb-4">Mes Favoris ({favorites.length})</h2>
+            <h2 className="text-lg font-semibold mb-4">Mes Favoris</h2>
             
             {favoriteProducts.length === 0 ? (
               <div className="text-center py-16">
@@ -705,14 +699,12 @@ const ClientApp = () => {
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 {favoriteProducts.map((product) => (
-                  <ModernProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={handleAddToCart}
-                    onViewDetails={handleViewProductDetails}
-                    onToggleFavorite={handleToggleFavorite}
-                    isFavorite={true}
-                  />
+                   <ModernProductCard
+                     key={product.id}
+                     product={product}
+                     onAddToCart={handleAddToCart}
+                     onViewDetails={handleViewProductDetails}
+                   />
                 ))}
               </div>
             )}
@@ -722,7 +714,7 @@ const ClientApp = () => {
             activeTab={marketplaceTab}
             onTabChange={setMarketplaceTab}
             cartItemsCount={cartItems.length}
-            favoritesCount={favorites.length}
+            favoritesCount={0} // Will be updated with real favorites count
           />
         </div>
       );
@@ -765,14 +757,12 @@ const ClientApp = () => {
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 {filteredProducts.map((product) => (
-                  <ModernProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={handleAddToCart}
-                    onViewDetails={handleViewProductDetails}
-                    onToggleFavorite={handleToggleFavorite}
-                    isFavorite={favorites.includes(product.id)}
-                  />
+                   <ModernProductCard
+                     key={product.id}
+                     product={product}
+                     onAddToCart={handleAddToCart}
+                     onViewDetails={handleViewProductDetails}
+                   />
                 ))}
               </div>
             )}
@@ -783,7 +773,7 @@ const ClientApp = () => {
           activeTab={marketplaceTab}
           onTabChange={setMarketplaceTab}
           cartItemsCount={cartItems.length}
-          favoritesCount={favorites.length}
+          favoritesCount={0} // Will be updated with real favorites count
         />
       </div>
     );

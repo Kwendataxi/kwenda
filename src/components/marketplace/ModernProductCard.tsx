@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Star, ShoppingCart, Heart, Eye } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
+import { useFavorites } from './FavoritesManager';
 
 interface Product {
   id: string;
@@ -22,18 +23,15 @@ interface ModernProductCardProps {
   product: Product;
   onAddToCart: (product: Product) => void;
   onViewDetails: (product: Product) => void;
-  onToggleFavorite: (productId: string) => void;
-  isFavorite?: boolean;
 }
 
 export const ModernProductCard: React.FC<ModernProductCardProps> = ({ 
   product, 
   onAddToCart, 
-  onViewDetails,
-  onToggleFavorite,
-  isFavorite = false
+  onViewDetails
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const discount = product.originalPrice 
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -46,14 +44,14 @@ export const ModernProductCard: React.FC<ModernProductCardProps> = ({
         variant="ghost"
         size="sm"
         className={`absolute top-2 right-2 z-10 h-8 w-8 p-0 rounded-full shadow-sm transition-all duration-200 ${
-          isFavorite ? 'bg-red-50 text-red-500' : 'bg-white/80 text-muted-foreground hover:bg-white hover:text-red-500'
+          isFavorite(product.id) ? 'bg-red-50 text-red-500' : 'bg-white/80 text-muted-foreground hover:bg-white hover:text-red-500'
         }`}
         onClick={(e) => {
           e.stopPropagation();
-          onToggleFavorite(product.id);
+          toggleFavorite(product.id);
         }}
       >
-        <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
+        <Heart className={`w-4 h-4 ${isFavorite(product.id) ? 'fill-current' : ''}`} />
       </Button>
 
       {/* Image Container */}
