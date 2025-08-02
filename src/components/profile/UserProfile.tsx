@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Shield, Camera, Phone, Mail, User, CreditCard, FileText, Award } from 'lucide-react';
+import { Star, Shield, Camera, Phone, Mail, User, CreditCard, FileText, Award, Wallet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
 import { PaymentMethodsManager } from './PaymentMethodsManager';
@@ -182,30 +182,34 @@ export const UserProfile = () => {
 
       {/* Profile Tabs */}
       <Tabs defaultValue="info" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="info">
-            <User className="w-4 h-4 mr-1" />
-            Infos
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-1">
+          <TabsTrigger value="info" className="text-xs md:text-sm">
+            <User className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+            <span className="hidden sm:inline">Infos</span>
           </TabsTrigger>
-          <TabsTrigger value="payment">
-            <CreditCard className="w-4 h-4 mr-1" />
-            Paiement
+          <TabsTrigger value="payment" className="text-xs md:text-sm">
+            <CreditCard className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+            <span className="hidden sm:inline">Paiement</span>
           </TabsTrigger>
-          <TabsTrigger value="verification">
-            <Shield className="w-4 h-4 mr-1" />
-            Vérification
+          <TabsTrigger value="wallet" className="text-xs md:text-sm">
+            <Wallet className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+            <span className="hidden sm:inline">Wallet</span>
           </TabsTrigger>
-          <TabsTrigger value="ratings">
-            <Star className="w-4 h-4 mr-1" />
-            Avis
+          <TabsTrigger value="verification" className="text-xs md:text-sm">
+            <Shield className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+            <span className="hidden sm:inline">Vérification</span>
           </TabsTrigger>
-          <TabsTrigger value="stats">
-            <Award className="w-4 h-4 mr-1" />
-            Stats
+          <TabsTrigger value="ratings" className="text-xs md:text-sm">
+            <Star className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+            <span className="hidden sm:inline">Avis</span>
           </TabsTrigger>
-          <TabsTrigger value="activity">
-            <FileText className="w-4 h-4 mr-1" />
-            Activité
+          <TabsTrigger value="stats" className="text-xs md:text-sm">
+            <Award className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+            <span className="hidden sm:inline">Stats</span>
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="text-xs md:text-sm">
+            <FileText className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+            <span className="hidden sm:inline">Activité</span>
           </TabsTrigger>
         </TabsList>
 
@@ -259,6 +263,10 @@ export const UserProfile = () => {
           <PaymentMethodsManager />
         </TabsContent>
 
+        <TabsContent value="wallet">
+          <KwendaPayWallet />
+        </TabsContent>
+
         <TabsContent value="verification">
           <UserVerification />
         </TabsContent>
@@ -272,16 +280,7 @@ export const UserProfile = () => {
         </TabsContent>
 
         <TabsContent value="activity">
-          <Card>
-            <CardHeader>
-              <CardTitle>Historique d'activité</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Fonctionnalité en cours de développement...
-              </p>
-            </CardContent>
-          </Card>
+          <ActivityHistory />
         </TabsContent>
       </Tabs>
     </div>
