@@ -131,87 +131,154 @@ export const UserProfile = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      {/* Header Profile Card */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="relative">
-              <Avatar className="w-24 h-24">
-                <AvatarImage src={profile.avatar_url || ''} />
-                <AvatarFallback className="text-lg">
-                  <User className="w-12 h-12" />
-                </AvatarFallback>
-              </Avatar>
+    <div className="container mx-auto p-4 lg:p-6 space-y-8">
+      {/* Modern Profile Header */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 p-8 lg:p-12 border border-border/50 shadow-xl">
+        <div className="absolute inset-0 bg-grid-small opacity-5" />
+        <div className="relative flex flex-col lg:flex-row items-center gap-8">
+          {/* Avatar Section */}
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-full opacity-75 group-hover:opacity-100 transition duration-300 blur-sm" />
+            <Avatar className="relative w-32 h-32 lg:w-40 lg:h-40 border-4 border-background shadow-xl">
+              <AvatarImage src={profile.avatar_url || ''} className="object-cover" />
+              <AvatarFallback className="text-3xl lg:text-4xl font-bold bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+                {profile.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute -bottom-2 -right-2">
               <ProfilePictureUpload onUploadComplete={handleAvatarUpdate} />
             </div>
-            
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="text-2xl font-bold">{profile.display_name || 'Utilisateur'}</h1>
-              <p className="text-muted-foreground">{user?.email}</p>
+          </div>
+
+          {/* Profile Info */}
+          <div className="flex-1 text-center lg:text-left space-y-6 max-w-2xl">
+            <div className="space-y-3">
+              <div className="flex items-center justify-center lg:justify-start gap-3 flex-wrap">
+                <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  {profile.display_name || 'Utilisateur'}
+                </h1>
+                <Badge className="bg-green-100 text-green-800 border-green-200 px-3 py-1.5 text-sm font-medium">
+                  <Shield className="w-4 h-4 mr-1.5" />
+                  Vérifié
+                </Badge>
+              </div>
               
-              <div className="flex flex-wrap gap-2 mt-3 justify-center md:justify-start">
-                <Badge variant="secondary">
-                  <Star className="w-3 h-3 mr-1" />
-                  {rating.rating.toFixed(1)} ({rating.total_ratings} avis)
-                </Badge>
-                <Badge variant="outline">
-                  <Shield className="w-3 h-3 mr-1" />
-                  Compte vérifié
-                </Badge>
+              <div className="flex items-center justify-center lg:justify-start gap-2 text-muted-foreground text-lg">
+                <Mail className="w-5 h-5" />
+                <span>{user?.email}</span>
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex items-center justify-center lg:justify-start gap-6 flex-wrap">
+              <div className="flex items-center gap-2 bg-background/80 rounded-full px-4 py-2 shadow-sm border border-border/30">
+                <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                <span className="font-semibold text-lg">{rating.rating.toFixed(1)}</span>
+                <span className="text-muted-foreground">
+                  ({rating.total_ratings} avis)
+                </span>
+              </div>
+              <Badge variant="outline" className="capitalize text-sm px-3 py-1.5 bg-background/80 border-border/30">
+                {profile.user_type || 'client'}
+              </Badge>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
               {isEditing ? (
                 <>
-                  <Button onClick={updateProfile}>Sauvegarder</Button>
-                  <Button variant="outline" onClick={() => setIsEditing(false)}>
+                  <Button
+                    onClick={updateProfile}
+                    size="lg"
+                    className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <User className="w-5 h-5 mr-2" />
+                    Sauvegarder
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    onClick={() => setIsEditing(false)}
+                    className="bg-background/80 hover:bg-background border-border/50"
+                  >
                     Annuler
                   </Button>
                 </>
               ) : (
-                <Button onClick={() => setIsEditing(true)}>
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  size="lg"
+                  className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <User className="w-5 h-5 mr-2" />
                   Modifier le profil
+                </Button>
+              )}
+              
+              {profile.phone_number && (
+                <Button variant="outline" size="lg" className="bg-background/80 hover:bg-background border-border/50">
+                  <Phone className="w-5 h-5 mr-2" />
+                  {profile.phone_number}
                 </Button>
               )}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Profile Tabs */}
+      {/* Modern Tabs */}
       <Tabs defaultValue="info" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-1">
-          <TabsTrigger value="info" className="text-xs md:text-sm">
-            <User className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-            <span className="hidden sm:inline">Infos</span>
-          </TabsTrigger>
-          <TabsTrigger value="payment" className="text-xs md:text-sm">
-            <CreditCard className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-            <span className="hidden sm:inline">Paiement</span>
-          </TabsTrigger>
-          <TabsTrigger value="wallet" className="text-xs md:text-sm">
-            <Wallet className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-            <span className="hidden sm:inline">Wallet</span>
-          </TabsTrigger>
-          <TabsTrigger value="verification" className="text-xs md:text-sm">
-            <Shield className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-            <span className="hidden sm:inline">Vérification</span>
-          </TabsTrigger>
-          <TabsTrigger value="ratings" className="text-xs md:text-sm">
-            <Star className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-            <span className="hidden sm:inline">Avis</span>
-          </TabsTrigger>
-          <TabsTrigger value="stats" className="text-xs md:text-sm">
-            <Award className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-            <span className="hidden sm:inline">Stats</span>
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="text-xs md:text-sm">
-            <FileText className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-            <span className="hidden sm:inline">Activité</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto pb-2">
+          <TabsList className="inline-flex h-12 items-center justify-start w-max min-w-full rounded-xl bg-muted/50 p-1 text-muted-foreground shadow-sm">
+            <TabsTrigger 
+              value="info" 
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[120px]"
+            >
+              <User className="w-4 h-4 mr-2" />
+              Profil
+            </TabsTrigger>
+            <TabsTrigger 
+              value="wallet" 
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[120px]"
+            >
+              <Wallet className="w-4 h-4 mr-2" />
+              Wallet
+            </TabsTrigger>
+            <TabsTrigger 
+              value="payment" 
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[120px]"
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Paiement
+            </TabsTrigger>
+            <TabsTrigger 
+              value="verification" 
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[120px]"
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              Sécurité
+            </TabsTrigger>
+            <TabsTrigger 
+              value="ratings" 
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[120px]"
+            >
+              <Star className="w-4 h-4 mr-2" />
+              Avis
+            </TabsTrigger>
+            <TabsTrigger 
+              value="stats" 
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[120px]"
+            >
+              <Award className="w-4 h-4 mr-2" />
+              Stats
+            </TabsTrigger>
+            <TabsTrigger 
+              value="activity" 
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[120px]"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Activité
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="info" className="space-y-4">
           <Card>
