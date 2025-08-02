@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import InteractiveMap from '@/components/transport/InteractiveMap';
+import { useDriverData } from '@/hooks/useDriverData';
+import { useDriverBookings } from '@/hooks/useDriverBookings';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   Car, 
   MapPin, 
@@ -30,70 +33,66 @@ import {
 
 const DriverApp = () => {
   const [currentView, setCurrentView] = useState('dashboard');
-  const [isOnline, setIsOnline] = useState(false);
-  const [hasActiveRide, setHasActiveRide] = useState(false);
-  const [rideStatus, setRideStatus] = useState('waiting'); // waiting, accepted, arrived, inProgress, completed
-  const [showNavigation, setShowNavigation] = useState(false);
   const [showRating, setShowRating] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
-  const [earnings, setEarnings] = useState({
-    today: 45500,
-    thisWeek: 186500,
-    rides: 12,
-    hours: 8,
-    rating: 4.9
-  });
+  const [showNavigation, setShowNavigation] = useState(false);
+  
+  // Use real data hooks
+  const { user } = useAuth();
+  const { loading: statsLoading, stats, recentRides, isOnline, updateOnlineStatus } = useDriverData();
+  const { 
+    loading: bookingsLoading, 
+    activeBooking, 
+    pendingRequests, 
+    acceptBooking, 
+    updateBookingStatus,
+    updateCurrentLocation 
+  } = useDriverBookings();
 
-  // Simulate real-time updates
+  // Get current location for tracking
   useEffect(() => {
-    if (isOnline) {
-      const interval = setInterval(() => {
-        setEarnings(prev => ({
-          ...prev,
-          today: prev.today + Math.floor(Math.random() * 500),
-          rides: prev.rides + (Math.random() > 0.8 ? 1 : 0)
-        }));
-      }, 30000);
-      return () => clearInterval(interval);
+    if (isOnline && navigator.geolocation) {
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          updateCurrentLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => console.error('Location error:', error),
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+      );
+      
+      return () => navigator.geolocation.clearWatch(watchId);
     }
   }, [isOnline]);
 
-  const handleAcceptRide = () => {
-    setRideStatus('accepted');
-    setHasActiveRide(true);
-    setShowNavigation(true);
+  const handleAcceptRide = async (bookingId?: string) => {
+    if (bookingId) {
+      await acceptBooking(bookingId);
+    }
   };
 
-  const handleArriveAtPickup = () => {
-    setRideStatus('arrived');
-    setShowNavigation(false);
+  const handleArriveAtPickup = async () => {
+    await updateBookingStatus('driver_arrived');
   };
 
-  const handleStartRide = () => {
-    setRideStatus('inProgress');
-    setShowNavigation(true);
+  const handleStartRide = async () => {
+    await updateBookingStatus('in_progress');
   };
 
-  const handleCompleteRide = () => {
-    setRideStatus('completed');
-    setShowNavigation(false);
+  const handleCompleteRide = async () => {
+    await updateBookingStatus('completed');
     setShowRating(true);
   };
 
   const handleRating = (rating: number) => {
     setCurrentRating(rating);
-    // Update earnings
-    setEarnings(prev => ({
-      ...prev,
-      today: prev.today + 2500,
-      rides: prev.rides + 1
-    }));
     
-    // Reset state
+    // In a real app, we'd save the rating to the database
+    // For now, just close the modal
     setTimeout(() => {
       setShowRating(false);
-      setHasActiveRide(false);
-      setRideStatus('waiting');
       setCurrentRating(0);
     }, 2000);
   };
@@ -107,15 +106,15 @@ const DriverApp = () => {
             <User className="h-5 w-5 text-white" />
           </div>
           <div>
-            <p className="text-heading-sm text-card-foreground">Kouame Paul</p>
-            <p className="text-body-sm text-muted-foreground">Chauffeur NTA</p>
+            <p className="text-heading-sm text-card-foreground">{user?.email?.split('@')[0] || 'Chauffeur'}</p>
+            <p className="text-body-sm text-muted-foreground">Chauffeur Kwenda</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
             variant={isOnline ? "default" : "outline"}
             size="sm"
-            onClick={() => setIsOnline(!isOnline)}
+            onClick={() => updateOnlineStatus(!isOnline)}
             className={`rounded-xl font-semibold transition-all duration-200 ${
               isOnline 
                 ? "bg-secondary text-secondary-foreground shadow-md" 
@@ -134,21 +133,21 @@ const DriverApp = () => {
             <DollarSign className="h-5 w-5 text-white" />
           </div>
           <p className="text-caption text-muted-foreground mb-1">Gains aujourd'hui</p>
-          <p className="text-heading-sm text-card-foreground font-bold">{earnings.today.toLocaleString()} CFA</p>
+          <p className="text-heading-sm text-card-foreground font-bold">{stats.today_earnings.toLocaleString()} CFA</p>
         </div>
         <div className="card-floating p-4 text-center animate-scale-in">
           <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center mx-auto mb-2">
             <Car className="h-5 w-5 text-white" />
           </div>
           <p className="text-caption text-muted-foreground mb-1">Courses</p>
-          <p className="text-heading-sm text-card-foreground font-bold">{earnings.rides}</p>
+          <p className="text-heading-sm text-card-foreground font-bold">{stats.total_rides}</p>
         </div>
         <div className="card-floating p-4 text-center animate-scale-in">
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center mx-auto mb-2">
             <Clock className="h-5 w-5 text-white" />
           </div>
           <p className="text-caption text-muted-foreground mb-1">Temps en ligne</p>
-          <p className="text-heading-sm text-card-foreground font-bold">{earnings.hours}h</p>
+          <p className="text-heading-sm text-card-foreground font-bold">{stats.hours_online}h</p>
         </div>
       </div>
 
@@ -156,30 +155,28 @@ const DriverApp = () => {
       <div className="flex-1 p-4">
         <h3 className="text-heading-md text-card-foreground mb-4">Courses récentes</h3>
         <div className="space-y-3">
-          {[
-            { from: "Cocody", to: "Plateau", time: "14:30", amount: "2,500", client: "Jean Kouassi" },
-            { from: "Marcory", to: "Yopougon", time: "13:15", amount: "1,800", client: "Marie Diallo" },
-            { from: "Treichville", to: "Plateau", time: "12:45", amount: "3,200", client: "Paul Yao" },
-          ].map((ride, index) => (
+          {recentRides.length > 0 ? recentRides.map((ride, index) => (
             <div key={index} className="card-floating p-4 hover:shadow-lg transition-all duration-200">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-secondary-light rounded-lg flex items-center justify-center">
                     <MapPin className="h-4 w-4 text-secondary" />
                   </div>
-                  <span className="text-body-md font-medium text-card-foreground">{ride.from}</span>
+                  <span className="text-body-md font-medium text-card-foreground">{ride.pickup_location}</span>
                 </div>
-                <span className="text-caption text-muted-foreground bg-grey-100 px-2 py-1 rounded-md">{ride.time}</span>
+                <span className="text-caption text-muted-foreground bg-grey-100 px-2 py-1 rounded-md">
+                  {new Date(ride.completion_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                </span>
               </div>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
                     <MapPin className="h-4 w-4 text-red-500" />
                   </div>
-                  <span className="text-body-md text-card-foreground">{ride.to}</span>
+                  <span className="text-body-md text-card-foreground">{ride.destination}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-body-md font-bold text-secondary">{ride.amount}</span>
+                  <span className="text-body-md font-bold text-secondary">{ride.actual_price.toLocaleString()}</span>
                   <span className="text-caption text-muted-foreground ml-1">CFA</span>
                 </div>
               </div>
@@ -187,14 +184,20 @@ const DriverApp = () => {
                 <div className="w-6 h-6 bg-primary-light rounded-full flex items-center justify-center">
                   <User className="h-3 w-3 text-primary" />
                 </div>
-                <span className="text-body-sm text-muted-foreground">{ride.client}</span>
+                <span className="text-body-sm text-muted-foreground">{ride.user_name}</span>
                 <div className="flex items-center gap-1 ml-auto">
                   <Star className="h-3 w-3 text-yellow-400" />
-                  <span className="text-caption font-medium">5.0</span>
+                  <span className="text-caption font-medium">{ride.user_rating}</span>
                 </div>
               </div>
             </div>
-          ))}
+          )) : (
+            <div className="card-floating p-8 text-center">
+              <Car className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-body-md text-muted-foreground">Aucune course récente</p>
+              <p className="text-body-sm text-muted-foreground">Activez-vous pour commencer à recevoir des demandes</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -234,10 +237,10 @@ const DriverApp = () => {
             <div className="w-20 h-20 bg-primary-light rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-elegant">
               <User className="h-10 w-10 text-primary" />
             </div>
-            <h3 className="text-heading-md text-card-foreground font-bold">Jean Kouassi</h3>
+            <h3 className="text-heading-md text-card-foreground font-bold">{pendingRequests[0]?.user_name || 'Client'}</h3>
             <div className="flex items-center justify-center mt-2">
               <Star className="h-4 w-4 text-yellow-400 mr-1" />
-              <span className="text-body-md font-medium">4.8</span>
+              <span className="text-body-md font-medium">{pendingRequests[0]?.user_rating || 4.8}</span>
             </div>
           </div>
 
@@ -246,14 +249,14 @@ const DriverApp = () => {
               <div className="w-4 h-4 bg-secondary rounded-full mt-1 shadow-sm"></div>
               <div>
                 <p className="text-body-md font-semibold text-card-foreground">Point de départ</p>
-                <p className="text-body-sm text-muted-foreground">Cocody, Riviera Golf</p>
+                <p className="text-body-sm text-muted-foreground">{pendingRequests[0]?.pickup_location || 'Non spécifié'}</p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
               <div className="w-4 h-4 bg-red-500 rounded-full mt-1 shadow-sm"></div>
               <div>
                 <p className="text-body-md font-semibold text-card-foreground">Destination</p>
-                <p className="text-body-sm text-muted-foreground">Plateau, Immeuble CCIA</p>
+                <p className="text-body-sm text-muted-foreground">{pendingRequests[0]?.destination || 'Non spécifiée'}</p>
               </div>
             </div>
           </div>
@@ -265,7 +268,7 @@ const DriverApp = () => {
             </div>
             <div className="text-center p-4 bg-grey-50 rounded-xl">
               <p className="text-caption text-muted-foreground">Estimation</p>
-              <p className="text-heading-sm font-bold text-card-foreground">2,500 CFA</p>
+              <p className="text-heading-sm font-bold text-card-foreground">{pendingRequests[0]?.estimated_price?.toLocaleString() || '0'} CFA</p>
             </div>
           </div>
 
@@ -273,13 +276,13 @@ const DriverApp = () => {
             <Button 
               variant="outline" 
               className="flex-1 h-12 rounded-xl border-grey-300 hover:border-red-400 hover:bg-red-50"
-              onClick={() => setIsOnline(false)}
+              onClick={() => updateOnlineStatus(false)}
             >
               Refuser
             </Button>
             <Button 
               className="flex-1 h-12 rounded-xl bg-gradient-primary shadow-elegant hover:shadow-glow"
-              onClick={handleAcceptRide}
+              onClick={() => handleAcceptRide(pendingRequests[0]?.id)}
             >
               Accepter
             </Button>
@@ -372,14 +375,14 @@ const DriverApp = () => {
           <Badge 
             variant="outline" 
             className={`
-              ${rideStatus === 'accepted' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : ''}
-              ${rideStatus === 'arrived' ? 'bg-blue-100 text-blue-800 border-blue-300' : ''}
-              ${rideStatus === 'inProgress' ? 'bg-green-100 text-green-800 border-green-300' : ''}
+              ${activeBooking?.status === 'accepted' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : ''}
+              ${activeBooking?.status === 'driver_arrived' ? 'bg-blue-100 text-blue-800 border-blue-300' : ''}
+              ${activeBooking?.status === 'in_progress' ? 'bg-green-100 text-green-800 border-green-300' : ''}
             `}
           >
-            {rideStatus === 'accepted' && '🚗 En route vers client'}
-            {rideStatus === 'arrived' && '📍 Arrivé au point de départ'}
-            {rideStatus === 'inProgress' && '🏁 Course en cours'}
+            {activeBooking?.status === 'accepted' && '🚗 En route vers client'}
+            {activeBooking?.status === 'driver_arrived' && '📍 Arrivé au point de départ'}
+            {activeBooking?.status === 'in_progress' && '🏁 Course en cours'}
           </Badge>
         </div>
 
@@ -390,10 +393,10 @@ const DriverApp = () => {
                 <User className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="text-heading-sm font-bold text-card-foreground">Jean Kouassi</h3>
+                <h3 className="text-heading-sm font-bold text-card-foreground">{activeBooking?.user_name || 'Client'}</h3>
                 <div className="flex items-center">
                   <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                  <span className="text-body-sm">4.8</span>
+                  <span className="text-body-sm">{activeBooking?.user_rating || 4.8}</span>
                 </div>
               </div>
               <div className="ml-auto flex gap-2">
@@ -409,16 +412,16 @@ const DriverApp = () => {
             <div className="space-y-3 mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 bg-secondary rounded-full"></div>
-                <span className="text-body-md">Cocody, Riviera Golf</span>
+                <span className="text-body-md">{activeBooking?.pickup_location || 'Point de départ'}</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span className="text-body-md">Plateau, Immeuble CCIA</span>
+                <span className="text-body-md">{activeBooking?.destination || 'Destination'}</span>
               </div>
             </div>
 
             <div className="flex gap-3">
-              {rideStatus === 'accepted' && (
+              {activeBooking?.status === 'accepted' && (
                 <Button 
                   onClick={handleArriveAtPickup}
                   className="flex-1 bg-gradient-primary"
@@ -427,7 +430,7 @@ const DriverApp = () => {
                   Je suis arrivé
                 </Button>
               )}
-              {rideStatus === 'arrived' && (
+              {activeBooking?.status === 'driver_arrived' && (
                 <Button 
                   onClick={handleStartRide}
                   className="flex-1 bg-gradient-primary"
@@ -436,7 +439,7 @@ const DriverApp = () => {
                   Commencer la course
                 </Button>
               )}
-              {rideStatus === 'inProgress' && (
+              {activeBooking?.status === 'in_progress' && (
                 <Button 
                   onClick={handleCompleteRide}
                   className="flex-1 bg-secondary"
@@ -522,7 +525,7 @@ const DriverApp = () => {
             <TrendingUp className="h-6 w-6 text-secondary mx-auto mb-2" />
             <p className="text-caption text-muted-foreground">Revenus/h</p>
             <p className="text-body-md font-semibold text-card-foreground">
-              {Math.round(earnings.today / earnings.hours).toLocaleString()} CFA
+              {Math.round(stats.today_earnings / (stats.hours_online || 1)).toLocaleString()} CFA
             </p>
           </Card>
         </div>
@@ -606,12 +609,12 @@ const DriverApp = () => {
             <div className="w-20 h-20 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
               <User className="h-10 w-10 text-white" />
             </div>
-            <h2 className="text-heading-lg font-bold text-card-foreground mb-2">Kouame Paul</h2>
-            <p className="text-body-md text-muted-foreground mb-4">Chauffeur NTA Premium</p>
+            <h2 className="text-heading-lg font-bold text-card-foreground mb-2">{user?.email?.split('@')[0] || 'Chauffeur'}</h2>
+            <p className="text-body-md text-muted-foreground mb-4">Chauffeur Kwenda Premium</p>
             <div className="flex items-center justify-center gap-1">
               <Star className="h-5 w-5 text-yellow-400" />
-              <span className="text-heading-sm font-bold text-card-foreground">{earnings.rating}</span>
-              <span className="text-body-sm text-muted-foreground">(1,247 avis)</span>
+              <span className="text-heading-sm font-bold text-card-foreground">{stats.rating || 4.9}</span>
+              <span className="text-body-sm text-muted-foreground">({stats.total_rides} courses)</span>
             </div>
           </CardContent>
         </Card>
@@ -654,11 +657,11 @@ const DriverApp = () => {
   return (
     <>
       {(() => {
-        if (hasActiveRide) {
+        if (activeBooking) {
           return renderActiveRide();
         }
 
-        if (isOnline && currentView === 'dashboard' && !hasActiveRide) {
+        if (isOnline && currentView === 'dashboard' && !activeBooking && pendingRequests.length > 0) {
           return renderRideRequest();
         }
 
