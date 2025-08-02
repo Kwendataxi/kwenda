@@ -28,9 +28,44 @@ import {
   Bike
 } from 'lucide-react';
 
+// Transport components
+import LocationInput from '@/components/transport/LocationInput';
+import VehicleSelection from '@/components/transport/VehicleSelection';
+import BookingFlow from '@/components/transport/BookingFlow';
+import InteractiveMap from '@/components/transport/InteractiveMap';
+
+interface Location {
+  address: string;
+  coordinates: [number, number];
+  type?: 'home' | 'work' | 'other';
+}
+
+interface Vehicle {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  basePrice: number;
+  estimatedTime: number;
+  available: boolean;
+  icon: any;
+  features: string[];
+  capacity: number;
+  eco?: boolean;
+  multiplier: number;
+}
+
 const ClientApp = () => {
   const [currentView, setCurrentView] = useState('home');
   const [serviceType, setServiceType] = useState('transport');
+  
+  // Transport states
+  const [transportStep, setTransportStep] = useState<'search' | 'selection' | 'booking'>('search');
+  const [pickupLocation, setPickupLocation] = useState<Location | null>(null);
+  const [destinationLocation, setDestinationLocation] = useState<Location | null>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [pickupInput, setPickupInput] = useState('');
+  const [destinationInput, setDestinationInput] = useState('');
 
   const renderHome = () => (
     <div className="min-h-screen bg-background flex flex-col pb-20">
@@ -87,107 +122,204 @@ const ClientApp = () => {
     </div>
   );
 
-  const renderTransportService = () => (
-    <div className="space-y-6">
-      {/* Destination Search */}
-      <div className="bg-white rounded-2xl shadow-sm border border-grey-100 p-1">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <div className="w-3 h-3 rounded-full bg-primary"></div>
-          <input
-            type="text"
-            placeholder="Où allez-vous ?"
-            className="flex-1 text-base text-grey-900 placeholder-grey-500 bg-transparent border-0 focus:outline-none"
-          />
-          <MapPin className="h-5 w-5 text-grey-400" />
-        </div>
-      </div>
-      
-      {/* Quick Actions */}
-      <div className="flex gap-3">
-        <button className="flex-1 flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm border border-grey-100 hover:border-grey-200 transition-colors">
-          <div className="w-8 h-8 bg-grey-100 rounded-lg flex items-center justify-center">
-            <Home className="h-4 w-4 text-grey-600" />
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-medium text-grey-900">Domicile</p>
-            <p className="text-xs text-grey-500">Cocody</p>
-          </div>
-        </button>
-        <button className="flex-1 flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm border border-grey-100 hover:border-grey-200 transition-colors">
-          <div className="w-8 h-8 bg-grey-100 rounded-lg flex items-center justify-center">
-            <Building2 className="h-4 w-4 text-grey-600" />
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-medium text-grey-900">Bureau</p>
-            <p className="text-xs text-grey-500">Plateau</p>
-          </div>
-        </button>
-      </div>
+  const calculateDistance = (pickup: Location, destination: Location) => {
+    const R = 6371; // Radius of Earth in km
+    const dLat = (destination.coordinates[1] - pickup.coordinates[1]) * Math.PI / 180;
+    const dLon = (destination.coordinates[0] - pickup.coordinates[0]) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(pickup.coordinates[1] * Math.PI / 180) * Math.cos(destination.coordinates[1] * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
 
-      {/* Map Area */}
-      <div className="bg-white rounded-2xl shadow-sm border border-grey-100 relative overflow-hidden h-[240px]">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-green-50">
-          <div className="absolute inset-0 opacity-10" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000' fill-opacity='0.1'%3E%3Cpath d='M20 20c0-11.046-8.954-20-20-20v20h20z'/%3E%3C/g%3E%3C/svg%3E")`
-          }}></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="w-6 h-6 bg-primary rounded-full shadow-lg border-4 border-white animate-pulse"></div>
-          </div>
-          <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-3 py-2 rounded-lg">
-            <p className="text-xs font-medium text-grey-900">Votre position</p>
-          </div>
-        </div>
-      </div>
+  const handleLocationSelect = (location: Location, type: 'pickup' | 'destination') => {
+    if (type === 'pickup') {
+      setPickupLocation(location);
+      setPickupInput(location.address);
+    } else {
+      setDestinationLocation(location);
+      setDestinationInput(location.address);
+    }
 
-      {/* Vehicle Selection */}
-      <div>
-        <h3 className="text-lg font-semibold text-grey-900 mb-4">Choisir un véhicule</h3>
-        <div className="space-y-2">
-          {[
-            { name: "Kwenda Eco", time: "5", price: "1,500", icon: Car, eco: true, selected: true, description: "Voiture économique pour trajets quotidiens" },
-            { name: "Kwenda Standard", time: "8", price: "2,200", icon: Car, selected: false, description: "Voiture confortable avec climatisation" },
-            { name: "Kwenda Premium", time: "12", price: "3,500", icon: Car, selected: false, description: "Voiture haut de gamme avec wifi" },
-            { name: "Kwenda Moto", time: "3", price: "800", icon: Bike, selected: false, description: "Moto rapide pour éviter les embouteillages" },
-          ].map((vehicle) => (
-            <div
-              key={vehicle.name}
-              className={`flex items-center justify-between p-4 bg-white rounded-xl border transition-all duration-200 hover:shadow-sm cursor-pointer ${
-                vehicle.selected ? 'border-primary bg-primary/5' : 'border-grey-100 hover:border-grey-200'
-              }`}
+    // Automatically move to vehicle selection if both locations are set
+    if ((type === 'pickup' && destinationLocation) || (type === 'destination' && pickupLocation)) {
+      setTransportStep('selection');
+    }
+  };
+
+  const handleVehicleSelect = (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
+    setTransportStep('booking');
+  };
+
+  const handleBookingComplete = () => {
+    // Reset state and show success
+    setTransportStep('search');
+    setPickupLocation(null);
+    setDestinationLocation(null);
+    setSelectedVehicle(null);
+    setPickupInput('');
+    setDestinationInput('');
+    
+    // Could show a success toast here
+    console.log('Trajet terminé avec succès!');
+  };
+
+  const handleBookingCancel = () => {
+    if (transportStep === 'booking') {
+      setTransportStep('selection');
+    } else {
+      setTransportStep('search');
+      setSelectedVehicle(null);
+    }
+  };
+
+  const renderTransportService = () => {
+    if (transportStep === 'booking' && pickupLocation && destinationLocation && selectedVehicle) {
+      const distance = calculateDistance(pickupLocation, destinationLocation);
+      return (
+        <BookingFlow
+          pickup={pickupLocation}
+          destination={destinationLocation}
+          selectedVehicle={selectedVehicle}
+          distance={distance}
+          onBookingComplete={handleBookingComplete}
+          onCancel={handleBookingCancel}
+        />
+      );
+    }
+
+    if (transportStep === 'selection' && pickupLocation && destinationLocation) {
+      const distance = calculateDistance(pickupLocation, destinationLocation);
+      return (
+        <div className="space-y-6">
+          <div className="flex items-center gap-4 mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setTransportStep('search')}
+              className="rounded-xl"
             >
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                  vehicle.selected ? 'bg-primary' : 'bg-grey-100'
-                }`}>
-                  <vehicle.icon className={`h-6 w-6 ${vehicle.selected ? 'text-white' : 'text-grey-600'}`} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-grey-900">{vehicle.name}</p>
-                    {vehicle.eco && <Leaf className="h-4 w-4 text-green-500" />}
-                  </div>
-                  <p className="text-sm text-grey-600">{vehicle.description}</p>
-                  <p className="text-xs text-grey-500">{vehicle.time} min • Arrivée</p>
-                </div>
-              </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-primary">{vehicle.price}</p>
-                  <p className="text-xs text-muted-foreground">FC</p>
-                </div>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h2 className="text-lg font-semibold text-grey-900">Choisir un véhicule</h2>
+          </div>
+
+          <InteractiveMap
+            pickup={pickupLocation}
+            destination={destinationLocation}
+            showRoute={true}
+            className="h-[200px]"
+          />
+
+          <VehicleSelection
+            distance={distance}
+            onVehicleSelect={handleVehicleSelect}
+            selectedVehicleId={selectedVehicle?.id}
+          />
+        </div>
+      );
+    }
+
+    // Default search view
+    return (
+      <div className="space-y-6">
+        {/* Location inputs */}
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-grey-900 mb-2 block">Lieu de prise en charge</label>
+            <LocationInput
+              placeholder="D'où partez-vous ?"
+              value={pickupInput}
+              onChange={(location) => handleLocationSelect(location, 'pickup')}
+              onInputChange={setPickupInput}
+            />
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium text-grey-900 mb-2 block">Destination</label>
+            <LocationInput
+              placeholder="Où allez-vous ?"
+              value={destinationInput}
+              onChange={(location) => handleLocationSelect(location, 'destination')}
+              onInputChange={setDestinationInput}
+            />
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="flex gap-3">
+          <button 
+            onClick={() => handleLocationSelect({
+              address: "Commune de Kalamu, Kinshasa",
+              coordinates: [-15.3094, 4.3076],
+              type: 'home'
+            }, 'pickup')}
+            className="flex-1 flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm border border-grey-100 hover:border-grey-200 transition-colors"
+          >
+            <div className="w-8 h-8 bg-grey-100 rounded-lg flex items-center justify-center">
+              <Home className="h-4 w-4 text-grey-600" />
             </div>
-          ))}
+            <div className="text-left">
+              <p className="text-sm font-medium text-grey-900">Domicile</p>
+              <p className="text-xs text-grey-500">Kalamu</p>
+            </div>
+          </button>
+          <button 
+            onClick={() => handleLocationSelect({
+              address: "Commune de Gombe, Kinshasa",
+              coordinates: [-15.3094, 4.3276],
+              type: 'work'
+            }, 'pickup')}
+            className="flex-1 flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm border border-grey-100 hover:border-grey-200 transition-colors"
+          >
+            <div className="w-8 h-8 bg-grey-100 rounded-lg flex items-center justify-center">
+              <Building2 className="h-4 w-4 text-grey-600" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium text-grey-900">Bureau</p>
+              <p className="text-xs text-grey-500">Gombe</p>
+            </div>
+          </button>
+        </div>
+
+        {/* Interactive Map */}
+        <InteractiveMap
+          pickup={pickupLocation}
+          destination={destinationLocation}
+          onLocationSelect={(location) => {
+            if (!pickupLocation) {
+              handleLocationSelect(location, 'pickup');
+            } else if (!destinationLocation) {
+              handleLocationSelect(location, 'destination');
+            }
+          }}
+          className="h-[240px]"
+        />
+
+        {/* Continue button - only show if both locations are selected */}
+        {pickupLocation && destinationLocation && (
+          <Button 
+            onClick={() => setTransportStep('selection')}
+            className="w-full h-14 rounded-2xl text-base font-semibold bg-gradient-primary hover:shadow-glow text-white transition-all duration-300"
+          >
+            <Car className="w-5 h-5 mr-2" />
+            Voir les véhicules disponibles
+          </Button>
+        )}
+
+        {/* Info card */}
+        <div className="bg-blue-50 rounded-xl p-4">
+          <h4 className="font-semibold text-blue-900 mb-2">🚖 Kwenda Taxi à Kinshasa</h4>
+          <p className="text-sm text-blue-700">
+            Service de transport fiable et économique. Tarifs transparents, chauffeurs vérifiés.
+          </p>
         </div>
       </div>
-
-      {/* Action Button */}
-      <div>
-        <Button className="w-full h-14 rounded-2xl text-base font-semibold bg-gradient-primary hover:shadow-glow text-white transition-all duration-300">
-          <Car className="w-5 h-5 mr-2" />
-          Commander Kwenda Eco
-        </Button>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderDeliveryService = () => (
     <div className="space-y-6">
