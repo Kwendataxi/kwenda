@@ -1,0 +1,163 @@
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './useAuth';
+import { toast } from 'sonner';
+
+interface DeliveryData {
+  pickupLocation: string;
+  deliveryLocation: string;
+  pickupCoordinates?: { lat: number; lng: number };
+  deliveryCoordinates?: { lat: number; lng: number };
+  deliveryType: 'flash' | 'cargo';
+  packageType?: string;
+  vehicleSize?: string;
+  loadingAssistance?: boolean;
+  estimatedPrice: number;
+  pickupTime?: string;
+}
+
+export const useDeliveryOrders = () => {
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+
+  const createDeliveryOrder = async (data: DeliveryData) => {
+    if (!user) {
+      toast.error('Vous devez être connecté pour commander une livraison');
+      return null;
+    }
+
+    setLoading(true);
+    try {
+      const { data: order, error } = await supabase
+        .from('delivery_orders')
+        .insert({
+          user_id: user.id,
+          pickup_location: data.pickupLocation,
+          delivery_location: data.deliveryLocation,
+          pickup_coordinates: data.pickupCoordinates,
+          delivery_coordinates: data.deliveryCoordinates,
+          delivery_type: data.deliveryType,
+          package_type: data.packageType,
+          vehicle_size: data.vehicleSize,
+          loading_assistance: data.loadingAssistance || false,
+          estimated_price: data.estimatedPrice,
+          pickup_time: data.pickupTime || new Date().toISOString(),
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success('Commande de livraison créée avec succès');
+      return order;
+    } catch (error: any) {
+      console.error('Error creating delivery order:', error);
+      toast.error(error.message || 'Erreur lors de la création de la commande');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getUserDeliveryOrders = async () => {
+    if (!user) return [];
+
+    try {
+      const { data, error } = await supabase
+        .from('delivery_orders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error: any) {
+      console.error('Error fetching delivery orders:', error);
+      toast.error('Erreur lors du chargement des commandes');
+      return [];
+    }
+  };
+
+  const updateOrderStatus = async (orderId: string, status: string) => {
+    try {
+      const { error } = await supabase
+        .from('delivery_orders')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', orderId);
+
+      if (error) throw error;
+      
+      toast.success('Statut mis à jour');
+      return true;
+    } catch (error: any) {
+      console.error('Error updating order status:', error);
+      toast.error('Erreur lors de la mise à jour');
+      return false;
+    }
+  };
+
+  const processDeliveryPayment = async (orderId: string, paymentMethod: 'wallet' | 'mobile_money', paymentData?: any) => {
+    if (!user) return false;
+
+    try {
+      if (paymentMethod === 'mobile_money') {
+        const { data, error } = await supabase.functions.invoke('mobile-money-payment', {
+          body: {
+            amount: paymentData.amount,
+            provider: paymentData.provider,
+            phoneNumber: paymentData.phoneNumber,
+            currency: 'CDF',
+            orderId: orderId,
+            orderType: 'delivery'
+          }
+        });
+
+        if (error) throw error;
+        
+        if (data.success) {
+          await updateOrderStatus(orderId, 'paid');
+          return true;
+        }
+      } else if (paymentMethod === 'wallet') {
+        const order = await supabase
+          .from('delivery_orders')
+          .select('*, driver_id, estimated_price')
+          .eq('id', orderId)
+          .single();
+
+        if (order.data?.driver_id) {
+          const { data, error } = await supabase.functions.invoke('wallet-commission', {
+            body: {
+              delivery_id: orderId,
+              amount: order.data.estimated_price,
+              service_type: 'delivery',
+              driver_id: order.data.driver_id,
+              user_id: user.id
+            }
+          });
+
+          if (error) throw error;
+          
+          if (data.success) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast.error('Erreur lors du paiement');
+      return false;
+    }
+  };
+
+  return {
+    loading,
+    createDeliveryOrder,
+    getUserDeliveryOrders,
+    updateOrderStatus,
+    processDeliveryPayment
+  };
+};

@@ -155,6 +155,60 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_requests: {
+        Row: {
+          approved_at: string | null
+          created_at: string
+          documents: Json | null
+          id: string
+          insurance_number: string
+          license_expiry: string
+          license_number: string
+          rejected_reason: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          vehicle_model: string
+          vehicle_plate: string
+          vehicle_type: string
+          vehicle_year: number
+        }
+        Insert: {
+          approved_at?: string | null
+          created_at?: string
+          documents?: Json | null
+          id?: string
+          insurance_number: string
+          license_expiry: string
+          license_number: string
+          rejected_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          vehicle_model: string
+          vehicle_plate: string
+          vehicle_type: string
+          vehicle_year: number
+        }
+        Update: {
+          approved_at?: string | null
+          created_at?: string
+          documents?: Json | null
+          id?: string
+          insurance_number?: string
+          license_expiry?: string
+          license_number?: string
+          rejected_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_model?: string
+          vehicle_plate?: string
+          vehicle_type?: string
+          vehicle_year?: number
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -380,6 +434,119 @@ export type Database = {
         }
         Relationships: []
       }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          created_at: string
+          description: string
+          id: string
+          priority: string
+          resolved_at: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          description: string
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      team_accounts: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          owner_id: string
+          settings: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          owner_id: string
+          settings?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          owner_id?: string
+          settings?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          id: string
+          invited_at: string
+          joined_at: string | null
+          permissions: Json | null
+          role: string
+          status: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          invited_at?: string
+          joined_at?: string | null
+          permissions?: Json | null
+          role?: string
+          status?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          invited_at?: string
+          joined_at?: string | null
+          permissions?: Json | null
+          role?: string
+          status?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "team_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transport_bookings: {
         Row: {
           actual_price: number | null
@@ -506,6 +673,51 @@ export type Database = {
           rated_user_id?: string
           rater_user_id?: string
           rating?: number
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          created_at: string
+          currency: string
+          dark_mode: boolean
+          email_notifications: boolean
+          id: string
+          language: string
+          location_sharing: boolean
+          notifications_enabled: boolean
+          push_notifications: boolean
+          sms_notifications: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          dark_mode?: boolean
+          email_notifications?: boolean
+          id?: string
+          language?: string
+          location_sharing?: boolean
+          notifications_enabled?: boolean
+          push_notifications?: boolean
+          sms_notifications?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          dark_mode?: boolean
+          email_notifications?: boolean
+          id?: string
+          language?: string
+          location_sharing?: boolean
+          notifications_enabled?: boolean
+          push_notifications?: boolean
+          sms_notifications?: boolean
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

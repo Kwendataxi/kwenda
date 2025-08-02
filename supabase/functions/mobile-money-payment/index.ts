@@ -16,19 +16,16 @@ interface PaymentRequest {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Create Supabase client for auth
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
-    // Get user from auth header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       throw new Error("Authorization header is required");
@@ -43,28 +40,23 @@ serve(async (req) => {
 
     const { amount, provider, phoneNumber, currency = "CDF", orderId, orderType }: PaymentRequest = await req.json();
 
-    // Validate input
     if (!amount || !provider || !phoneNumber) {
       throw new Error("Missing required fields: amount, provider, phoneNumber");
     }
 
-    // Supported providers
     const supportedProviders = ['airtel', 'orange', 'mpesa'];
     if (!supportedProviders.includes(provider.toLowerCase())) {
       throw new Error(`Unsupported provider: ${provider}`);
     }
 
-    // Generate transaction ID
     const transactionId = `KWENDA_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-    // Create Supabase service client for database operations
     const supabaseService = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
 
-    // Insert payment transaction record
     const { data: transaction, error: insertError } = await supabaseService
       .from('payment_transactions')
       .insert({
@@ -87,8 +79,6 @@ serve(async (req) => {
       throw new Error('Failed to create payment record');
     }
 
-    // Simulate mobile money payment processing
-    // In a real implementation, this would integrate with actual mobile money APIs
     console.log(`Processing ${provider} payment for ${amount} ${currency} to ${phoneNumber}`);
     
     // Simulate processing delay
@@ -98,7 +88,6 @@ serve(async (req) => {
     const paymentSuccess = Math.random() > 0.1;
 
     if (paymentSuccess) {
-      // Update transaction status to completed
       const { error: updateError } = await supabaseService
         .from('payment_transactions')
         .update({ 
@@ -124,7 +113,6 @@ serve(async (req) => {
         }
       );
     } else {
-      // Update transaction status to failed
       const { error: updateError } = await supabaseService
         .from('payment_transactions')
         .update({ 
