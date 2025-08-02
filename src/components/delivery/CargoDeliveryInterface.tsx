@@ -101,55 +101,71 @@ const CargoDeliveryInterface = ({ onSubmit, onCancel }: CargoDeliveryInterfacePr
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
       {/* Header Cargo-style */}
-      <div className="bg-gradient-to-r from-red-500 to-red-600 px-4 py-3 text-white">
+      <div className="bg-gradient-to-r from-primary to-primary-glow px-6 py-4 text-white shadow-lg">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Truck className="w-6 h-6" />
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+              <Truck className="w-6 h-6" />
+            </div>
             <div>
-              <h1 className="font-semibold text-lg">Cargo Delivery</h1>
-              <p className="text-red-100 text-sm">Moyens et gros colis • Tous véhicules</p>
+              <h1 className="text-heading-md text-white">Cargo Delivery</h1>
+              <p className="text-white/80 text-body-sm">Moyens et gros colis • Tous véhicules</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-red-100 text-xs">Prix estimé</p>
-            <p className="font-bold text-lg">{calculatePrice().toLocaleString()} FC</p>
+            <p className="text-white/80 text-caption uppercase tracking-wider">Prix estimé</p>
+            <p className="text-heading-lg text-white font-bold">{calculatePrice().toLocaleString()} FC</p>
           </div>
         </div>
       </div>
 
       {/* Interactive Map */}
-      <div className="px-4 py-3">
-        <InteractiveMap
-          pickup={pickup}
-          destination={destination}
-          showRoute={!!(pickup && destination)}
-          className="h-40 rounded-2xl"
-          onLocationSelect={(location) => {
-            if (!pickup) {
-              setPickup(location);
-            } else if (!destination) {
-              setDestination(location);
-            }
-          }}
-        />
+      <div className="px-6 py-4">
+        <div className="relative">
+          <InteractiveMap
+            pickup={pickup}
+            destination={destination}
+            showRoute={!!(pickup && destination)}
+            className="h-44 rounded-2xl border border-border/50 shadow-md"
+            onLocationSelect={(location) => {
+              if (!pickup) {
+                setPickup(location);
+              } else if (!destination) {
+                setDestination(location);
+              }
+            }}
+          />
+          {/* Map Controls */}
+          <div className="absolute top-4 right-4 flex flex-col gap-2">
+            <button className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm flex items-center justify-center text-grey-600 hover:bg-white transition-all">
+              <span className="text-lg font-semibold">+</span>
+            </button>
+            <button className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm flex items-center justify-center text-grey-600 hover:bg-white transition-all">
+              <span className="text-lg font-semibold">−</span>
+            </button>
+            <button className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm flex items-center justify-center text-grey-600 hover:bg-white transition-all">
+              <Target className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Address Inputs */}
-      <div className="px-4 space-y-3 mb-4">
+      <div className="px-6 space-y-4 mb-4">
         <div className="relative">
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+          <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10">
+            <div className="w-4 h-4 bg-primary rounded-full shadow-sm"></div>
           </div>
           <Input
-            placeholder="Prise en charge"
+            placeholder="Adresse de prise en charge"
             value={pickup?.address || ''}
             onChange={(e) => setPickup(e.target.value ? { address: e.target.value, coordinates: [-15.3094, 4.3276] } : null)}
-            className="pl-10 h-12 rounded-xl border-grey-200"
+            className="pl-12 pr-32 h-14 rounded-xl border-2 border-border focus:border-primary text-body-md bg-white shadow-sm transition-all"
           />
           <Button
             variant="ghost"
             size="sm"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-red-500 text-xs"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-primary hover:text-primary-light text-caption font-medium px-2 py-1 h-8"
             onClick={() => {
               if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
@@ -167,14 +183,14 @@ const CargoDeliveryInterface = ({ onSubmit, onCancel }: CargoDeliveryInterfacePr
         </div>
 
         <div className="relative">
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-            <MapPin className="w-4 h-4 text-red-500" />
+          <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10">
+            <MapPin className="w-4 h-4 text-primary" />
           </div>
           <Input
             placeholder="Adresse de livraison"
             value={destination?.address || ''}
             onChange={(e) => setDestination(e.target.value ? { address: e.target.value, coordinates: [-15.2094, 4.4276] } : null)}
-            className="pl-10 h-12 rounded-xl border-grey-200"
+            className="pl-12 h-14 rounded-xl border-2 border-border focus:border-primary text-body-md bg-white shadow-sm transition-all"
           />
         </div>
       </div>
@@ -195,24 +211,25 @@ const CargoDeliveryInterface = ({ onSubmit, onCancel }: CargoDeliveryInterfacePr
       </div>
 
       {/* CTA Button */}
-      <div className="p-4 bg-white border-t border-grey-100">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-grey-600">Prix total</span>
-          <span className="font-bold text-lg text-grey-900">
+      <div className="p-6 bg-white border-t border-border/50">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-muted-foreground text-body-md">Prix total</span>
+          <span className="text-heading-lg font-bold text-primary">
             {calculatePrice().toLocaleString()} FC
           </span>
         </div>
         <Button
           onClick={handleSubmit}
           disabled={!pickup || !destination}
-          className="w-full h-14 bg-red-500 hover:bg-red-600 text-white font-semibold text-lg rounded-xl shadow-lg mb-2"
+          className="w-full h-16 bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary text-white font-semibold text-body-lg rounded-2xl shadow-lg mb-3 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ boxShadow: 'var(--shadow-elegant)' }}
         >
           Confirmer la livraison Cargo
         </Button>
         <Button
           variant="ghost"
           onClick={onCancel}
-          className="w-full text-grey-600"
+          className="w-full text-muted-foreground hover:text-foreground text-body-md"
         >
           Annuler
         </Button>
