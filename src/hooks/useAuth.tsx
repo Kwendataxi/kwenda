@@ -53,6 +53,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (!error) {
       setUser(null);
       setSession(null);
+      // Clear any localStorage data
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('sb-wddlktajnhwhyquwcdgf-auth-token');
+      
+      // Force redirect to auth page
+      window.location.href = '/auth';
     }
   };
 

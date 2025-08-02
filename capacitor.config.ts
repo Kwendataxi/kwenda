@@ -10,10 +10,31 @@ const config: CapacitorConfig = {
   },
   plugins: {
     Geolocation: {
-      permissions: ["location"]
+      permissions: ["location"],
+      accuracy: "high"
+    },
+    Camera: {
+      permissions: ["camera", "photos"]
+    },
+    LocalNotifications: {
+      smallIcon: "ic_stat_icon_config_sample",
+      iconColor: "#488AFF"
+    },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"]
     }
   },
-  bundledWebRuntime: false
+  bundledWebRuntime: false,
+  android: {
+    allowMixedContent: true,
+    captureInput: true,
+    webContentsDebuggingEnabled: false
+  },
+  ios: {
+    contentInset: "automatic",
+    scrollEnabled: true,
+    overrideUserAgent: "Kwenda Taxi Congo Mobile App"
+  }
 };
 
 export default config;
