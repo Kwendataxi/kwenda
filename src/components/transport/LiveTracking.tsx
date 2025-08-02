@@ -46,7 +46,7 @@ const LiveTracking: React.FC<LiveTrackingProps> = ({
   const [estimatedArrival, setEstimatedArrival] = useState<Date | null>(null);
   
   const { toast } = useToast();
-  const { latitude, longitude } = useGeolocation({ watchPosition: true });
+  const geolocation = useGeolocation({ watchPosition: true });
   const { 
     trackingData, 
     connected, 
@@ -60,11 +60,11 @@ const LiveTracking: React.FC<LiveTrackingProps> = ({
 
   // Calculate trip progress
   useEffect(() => {
-    if (!trackingData || !latitude || !longitude) return;
+    if (!trackingData || !geolocation.latitude || !geolocation.longitude) return;
 
     const destinationCoords = {
-      latitude: latitude, // In real app, this would be the actual destination
-      longitude: longitude
+      latitude: geolocation.latitude, // In real app, this would be the actual destination
+      longitude: geolocation.longitude
     };
 
     const distanceToDestination = getDistanceToDestination(destinationCoords);
@@ -91,7 +91,7 @@ const LiveTracking: React.FC<LiveTrackingProps> = ({
         setTripStatus('pickup');
       }
     }
-  }, [trackingData, latitude, longitude, tripInfo.estimatedDistance, getDistanceToDestination, calculateETA, onTripComplete]);
+  }, [trackingData, geolocation.latitude, geolocation.longitude, tripInfo.estimatedDistance, getDistanceToDestination, calculateETA, onTripComplete]);
 
   const getStatusInfo = () => {
     switch (tripStatus) {

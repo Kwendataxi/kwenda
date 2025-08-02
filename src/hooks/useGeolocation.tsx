@@ -8,6 +8,7 @@ interface LocationState {
   accuracy: number | null;
   loading: boolean;
   error: string | null;
+  lastKnownPosition: { latitude: number; longitude: number } | null;
 }
 
 interface UseGeolocationOptions {
@@ -17,6 +18,26 @@ interface UseGeolocationOptions {
   watchPosition?: boolean;
 }
 
+// Check if Capacitor is available
+const isCapacitorAvailable = () => {
+  return typeof window !== 'undefined' && 
+         (window as any).Capacitor && 
+         (window as any).Capacitor.isNativePlatform &&
+         (window as any).Capacitor.isNativePlatform();
+};
+
+// Fallback using browser geolocation API
+const getBrowserLocation = (options: PositionOptions): Promise<GeolocationPosition> => {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Géolocalisation non supportée par le navigateur'));
+      return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(resolve, reject, options);
+  });
+};
+
 export const useGeolocation = (options: UseGeolocationOptions = {}) => {
   const [location, setLocation] = useState<LocationState>({
     latitude: null,
@@ -24,6 +45,7 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
     accuracy: null,
     loading: false,
     error: null,
+    lastKnownPosition: null,
   });
   
   const { toast } = useToast();
@@ -35,63 +57,109 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
     watchPosition = false,
   } = options;
 
-  const requestPermissions = async () => {
+  const requestPermissions = useCallback(async (): Promise<boolean> => {
     try {
-      const permissions = await Geolocation.requestPermissions();
-      if (permissions.location !== 'granted') {
-        throw new Error('Permission de géolocalisation refusée');
+      if (isCapacitorAvailable()) {
+        const permissions = await Geolocation.requestPermissions();
+        if (permissions.location !== 'granted') {
+          throw new Error('Permission de géolocalisation refusée');
+        }
+        return true;
+      } else {
+        // For browser, check if geolocation is supported
+        if (!navigator.geolocation) {
+          throw new Error('Géolocalisation non supportée par le navigateur');
+        }
+        // Browser permission is requested automatically when getting position
+        return true;
       }
-      return true;
     } catch (error) {
       console.error('Error requesting permissions:', error);
       return false;
     }
-  };
+  }, []);
 
   const getCurrentPosition = useCallback(async () => {
     setLocation(prev => ({ ...prev, loading: true, error: null }));
 
     try {
-      const hasPermission = await requestPermissions();
-      if (!hasPermission) {
-        throw new Error('Permissions de géolocalisation requises');
+      let position: Position | GeolocationPosition;
+      
+      if (isCapacitorAvailable()) {
+        // Use Capacitor geolocation for mobile apps
+        const hasPermission = await requestPermissions();
+        if (!hasPermission) {
+          throw new Error('Permissions de géolocalisation requises');
+        }
+
+        position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy,
+          timeout,
+          maximumAge,
+        });
+      } else {
+        // Fallback to browser geolocation API
+        const browserPosition = await getBrowserLocation({
+          enableHighAccuracy,
+          timeout,
+          maximumAge,
+        });
+        position = {
+          coords: browserPosition.coords,
+          timestamp: browserPosition.timestamp,
+        } as Position;
       }
 
-      const position = await Geolocation.getCurrentPosition({
-        enableHighAccuracy,
-        timeout,
-        maximumAge,
-      });
-
-      setLocation({
+      const newPosition = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
+      
+      setLocation(prev => ({
+        ...prev,
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
         accuracy: position.coords.accuracy,
         loading: false,
         error: null,
-      });
+        lastKnownPosition: newPosition,
+      }));
 
       return position;
     } catch (error) {
+      // Fallback to Kinshasa coordinates if geolocation fails
+      const kinshasaCoords = getKinshasaCoordinates();
       const errorMessage = error instanceof Error ? error.message : 'Erreur de géolocalisation';
+      
       setLocation(prev => ({
         ...prev,
+        latitude: kinshasaCoords.latitude,
+        longitude: kinshasaCoords.longitude,
+        accuracy: null,
         loading: false,
         error: errorMessage,
+        lastKnownPosition: kinshasaCoords,
       }));
       
       toast({
-        title: "Erreur de géolocalisation",
-        description: errorMessage,
-        variant: "destructive",
+        title: "Position par défaut",
+        description: "Utilisation de Kinshasa comme position par défaut",
+        variant: "default",
       });
       
-      throw error;
+      return {
+        coords: {
+          latitude: kinshasaCoords.latitude,
+          longitude: kinshasaCoords.longitude,
+          accuracy: null,
+        },
+        timestamp: Date.now(),
+      } as Position;
     }
-  }, [enableHighAccuracy, timeout, maximumAge, toast]);
+  }, [enableHighAccuracy, timeout, maximumAge, toast, requestPermissions]);
 
   const watchCurrentPosition = useCallback(() => {
-    let watchId: string | null = null;
+    let watchId: string | number | null = null;
 
     const startWatching = async () => {
       try {
@@ -100,34 +168,77 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
           throw new Error('Permissions de géolocalisation requises');
         }
 
-        watchId = await Geolocation.watchPosition(
-          {
-            enableHighAccuracy,
-            timeout,
-            maximumAge,
-          },
-          (position: Position | null, err) => {
-            if (err) {
-              const errorMessage = err.message || 'Erreur de géolocalisation';
+        if (isCapacitorAvailable()) {
+          // Use Capacitor watch position
+          watchId = await Geolocation.watchPosition(
+            {
+              enableHighAccuracy,
+              timeout,
+              maximumAge,
+            },
+            (position: Position | null, err) => {
+              if (err) {
+                const errorMessage = err.message || 'Erreur de géolocalisation';
+                setLocation(prev => ({
+                  ...prev,
+                  loading: false,
+                  error: errorMessage,
+                }));
+                return;
+              }
+
+              if (position) {
+                const newPosition = {
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                };
+                
+                setLocation(prev => ({
+                  ...prev,
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                  accuracy: position.coords.accuracy,
+                  loading: false,
+                  error: null,
+                  lastKnownPosition: newPosition,
+                }));
+              }
+            }
+          );
+        } else {
+          // Use browser watch position
+          watchId = navigator.geolocation.watchPosition(
+            (position: GeolocationPosition) => {
+              const newPosition = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              };
+              
               setLocation(prev => ({
                 ...prev,
-                loading: false,
-                error: errorMessage,
-              }));
-              return;
-            }
-
-            if (position) {
-              setLocation({
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
                 accuracy: position.coords.accuracy,
                 loading: false,
                 error: null,
-              });
+                lastKnownPosition: newPosition,
+              }));
+            },
+            (error: GeolocationPositionError) => {
+              const errorMessage = error.message || 'Erreur de géolocalisation';
+              setLocation(prev => ({
+                ...prev,
+                loading: false,
+                error: errorMessage,
+              }));
+            },
+            {
+              enableHighAccuracy,
+              timeout,
+              maximumAge,
             }
-          }
-        );
+          );
+        }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Erreur de géolocalisation';
         setLocation(prev => ({
@@ -142,10 +253,14 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
 
     return () => {
       if (watchId) {
-        Geolocation.clearWatch({ id: watchId });
+        if (isCapacitorAvailable()) {
+          Geolocation.clearWatch({ id: watchId as string });
+        } else {
+          navigator.geolocation.clearWatch(watchId as number);
+        }
       }
     };
-  }, [enableHighAccuracy, timeout, maximumAge]);
+  }, [enableHighAccuracy, timeout, maximumAge, requestPermissions]);
 
   useEffect(() => {
     if (watchPosition) {

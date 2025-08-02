@@ -35,12 +35,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
   const [destinationMarker, setDestinationMarker] = useState<mapboxgl.Marker | null>(null);
   
   const { toast } = useToast();
-  const { 
-    latitude, 
-    longitude, 
-    getCurrentPosition, 
-    loading: locationLoading 
-  } = useGeolocation();
+  const geolocation = useGeolocation();
 
   // Initialize map
   useEffect(() => {
@@ -115,7 +110,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
 
   // Add user location marker
   useEffect(() => {
-    if (!map.current || !mapReady || !latitude || !longitude) return;
+    if (!map.current || !mapReady || !geolocation.latitude || !geolocation.longitude) return;
 
     // Remove existing user marker
     if (userMarker) {
@@ -127,7 +122,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
       color: '#3B82F6',
       scale: 1.2,
     })
-      .setLngLat([longitude, latitude])
+      .setLngLat([geolocation.longitude, geolocation.latitude])
       .setPopup(
         new mapboxgl.Popup({ offset: 25 }).setHTML(
           '<div class="text-center"><strong>Votre position</strong></div>'
@@ -139,11 +134,11 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
 
     // Center map on user location
     map.current.flyTo({
-      center: [longitude, latitude],
+      center: [geolocation.longitude, geolocation.latitude],
       zoom: 15,
       duration: 1000,
     });
-  }, [latitude, longitude, mapReady, userMarker]);
+  }, [geolocation.latitude, geolocation.longitude, mapReady, userMarker]);
 
   // Add pickup location marker
   useEffect(() => {
@@ -193,7 +188,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
 
   const handleLocateUser = async () => {
     try {
-      await getCurrentPosition();
+      await geolocation.getCurrentPosition();
       toast({
         title: "Position trouvée",
         description: "Votre position a été mise à jour sur la carte",
@@ -251,21 +246,21 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
             size="sm"
             className="bg-white/90 backdrop-blur-sm shadow-lg"
             onClick={handleLocateUser}
-            disabled={locationLoading}
+            disabled={geolocation.loading}
           >
-            <Locate className={`w-4 h-4 ${locationLoading ? 'animate-spin' : ''}`} />
+            <Locate className={`w-4 h-4 ${geolocation.loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
 
         {/* Location Status */}
-        {latitude && longitude && (
+        {geolocation.latitude && geolocation.longitude && (
           <div className="absolute bottom-4 left-4">
             <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg text-sm">
               <div className="flex items-center gap-2">
                 <Navigation className="w-4 h-4 text-blue-500" />
                 <span className="font-medium">Position: </span>
                 <span className="text-muted-foreground">
-                  {latitude.toFixed(4)}, {longitude.toFixed(4)}
+                  {geolocation.latitude.toFixed(4)}, {geolocation.longitude.toFixed(4)}
                 </span>
               </div>
             </div>
