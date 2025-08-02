@@ -12,6 +12,7 @@ import ReferralSystem from '@/components/advanced/ReferralSystem';
 import NotificationCenter from '@/components/advanced/NotificationCenter';
 import OfflineMode from '@/components/advanced/OfflineMode';
 import SecurityVerification from '@/components/advanced/SecurityVerification';
+import { UserProfile } from '@/components/profile/UserProfile';
 import { 
   MapPin, 
   Car, 
@@ -794,67 +795,18 @@ const ClientApp = () => {
 
   const renderProfile = () => (
     <div className="min-h-screen bg-background pb-20">
-      <div className="p-4">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCurrentView('home')}
-            className="rounded-xl"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-heading-lg text-card-foreground">Mon Profil</h1>
-        </div>
-
-        <div className="space-y-4">
-          <div className="card-floating p-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-20 h-20 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-elegant">
-                <User className="h-10 w-10 text-white" />
-              </div>
-              <div>
-                <h2 className="text-heading-md text-card-foreground">Jean Kouassi</h2>
-                <p className="text-body-sm text-muted-foreground mt-1">+225 07 12 34 56 78</p>
-                <p className="text-body-sm text-muted-foreground">jean.kouassi@email.com</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {[
-              { icon: Star, label: "Note moyenne", value: "4.8/5", color: "text-yellow-500" },
-              { icon: Clock, label: "Trajets effectués", value: "23", color: "text-primary" },
-              { icon: CreditCard, label: "Moyen de paiement", value: "Orange Money", color: "text-accent" },
-              { icon: Shield, label: "Compte vérifié", value: "Oui", color: "text-secondary" },
-            ].map((item) => (
-              <div key={item.label} className="card-floating p-4 flex items-center justify-between hover:shadow-lg transition-all duration-200">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-grey-50 rounded-xl flex items-center justify-center">
-                    <item.icon className={`h-5 w-5 ${item.color}`} />
-                  </div>
-                  <span className="text-body-md font-medium text-card-foreground">{item.label}</span>
-                </div>
-                <span className="text-body-sm font-semibold text-grey-600">{item.value}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="space-y-3 pt-4">
-            {[
-              { label: "Paramètres", icon: "⚙️" },
-              { label: "Centre d'aide", icon: "❓" },
-              { label: "Conditions d'utilisation", icon: "📄" },
-              { label: "Se déconnecter", icon: "🚪" },
-            ].map((item) => (
-              <button key={item.label} className="w-full card-floating p-4 text-left hover:shadow-lg transition-all duration-200 flex items-center gap-3">
-                <span className="text-lg">{item.icon}</span>
-                <span className="text-body-md font-medium text-card-foreground">{item.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+      <div className="flex items-center gap-4 p-4 mb-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setCurrentView('home')}
+          className="rounded-xl"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h1 className="text-heading-lg text-card-foreground">Mon Profil</h1>
       </div>
+      <UserProfile />
     </div>
   );
 

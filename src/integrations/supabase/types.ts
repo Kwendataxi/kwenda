@@ -163,6 +163,45 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_methods: {
+        Row: {
+          account_name: string | null
+          account_number: string
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          is_verified: boolean | null
+          method_type: string
+          provider: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_number: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          is_verified?: boolean | null
+          method_type: string
+          provider: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_name?: string | null
+          account_number?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          is_verified?: boolean | null
+          method_type?: string
+          provider?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_transactions: {
         Row: {
           amount: number
@@ -320,6 +359,72 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vehicle_type?: string
+        }
+        Relationships: []
+      }
+      user_ratings: {
+        Row: {
+          booking_id: string | null
+          comment: string | null
+          created_at: string
+          delivery_id: string | null
+          id: string
+          rated_user_id: string
+          rater_user_id: string
+          rating: number
+        }
+        Insert: {
+          booking_id?: string | null
+          comment?: string | null
+          created_at?: string
+          delivery_id?: string | null
+          id?: string
+          rated_user_id: string
+          rater_user_id: string
+          rating: number
+        }
+        Update: {
+          booking_id?: string | null
+          comment?: string | null
+          created_at?: string
+          delivery_id?: string | null
+          id?: string
+          rated_user_id?: string
+          rater_user_id?: string
+          rating?: number
+        }
+        Relationships: []
+      }
+      user_verifications: {
+        Row: {
+          created_at: string
+          id: string
+          identity_document_url: string | null
+          identity_verified: boolean | null
+          phone_verified: boolean | null
+          updated_at: string
+          user_id: string
+          verification_status: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          identity_document_url?: string | null
+          identity_verified?: boolean | null
+          phone_verified?: boolean | null
+          updated_at?: string
+          user_id: string
+          verification_status?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          identity_document_url?: string | null
+          identity_verified?: boolean | null
+          phone_verified?: boolean | null
+          updated_at?: string
+          user_id?: string
+          verification_status?: string | null
         }
         Relationships: []
       }
