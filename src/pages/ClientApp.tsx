@@ -304,7 +304,6 @@ const ClientApp = () => {
 
   const renderHome = () => (
     <ModernHomeScreen
-      userBalance={125000}
       onServiceSelect={handleServiceSelect}
       onSearch={handleUniversalSearch}
       featuredProducts={mockProducts.slice(0, 4).map(p => ({ ...p, isPopular: Math.random() > 0.5 }))}

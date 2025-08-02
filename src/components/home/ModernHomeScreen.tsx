@@ -6,7 +6,6 @@ import { RecentPlaces } from './RecentPlaces';
 import { MarketplacePreview } from './MarketplacePreview';
 
 interface ModernHomeScreenProps {
-  userBalance: number;
   onServiceSelect: (service: string) => void;
   onSearch: (query: string) => void;
   featuredProducts: any[];
@@ -15,7 +14,6 @@ interface ModernHomeScreenProps {
 }
 
 export const ModernHomeScreen = ({
-  userBalance,
   onServiceSelect,
   onSearch,
   featuredProducts,
@@ -56,7 +54,6 @@ export const ModernHomeScreen = ({
   return (
     <div className="min-h-screen bg-gray-50">
       <ModernHeader 
-        userBalance={userBalance}
         hasNotifications={true}
         userLocation="Kinshasa, RD Congo"
       />
@@ -64,7 +61,10 @@ export const ModernHomeScreen = ({
       <div className="space-y-6 pb-20">
         <ServiceGrid onServiceSelect={onServiceSelect} />
         
-        <UniversalSearchBar onSearch={onSearch} />
+        <UniversalSearchBar 
+          onSearch={onSearch}
+          onTransportSelect={() => onServiceSelect('transport')}
+        />
         
         <RecentPlaces 
           places={recentPlaces}

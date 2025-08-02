@@ -4,18 +4,27 @@ import { useState } from 'react';
 
 interface UniversalSearchBarProps {
   onSearch: (query: string) => void;
+  onTransportSelect: () => void;
   placeholder?: string;
 }
 
 export const UniversalSearchBar = ({ 
   onSearch, 
-  placeholder = "Que cherchez-vous ?" 
+  onTransportSelect,
+  placeholder = "Où allez-vous ?" 
 }: UniversalSearchBarProps) => {
   const [query, setQuery] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch(query);
+    if (query.trim()) {
+      onTransportSelect(); // Open transport service
+      onSearch(query);
+    }
+  };
+
+  const handleFocus = () => {
+    onTransportSelect(); // Open transport when user focuses on search
   };
 
   return (
@@ -29,6 +38,7 @@ export const UniversalSearchBar = ({
           placeholder={placeholder}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onFocus={handleFocus}
           className="pl-12 pr-4 h-14 bg-white border-0 rounded-2xl text-base placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary/20 transition-all duration-200"
           style={{ 
             boxShadow: 'var(--shadow-md)',
