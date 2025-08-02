@@ -1,9 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   LayoutDashboard,
   Users, 
@@ -11,6 +17,7 @@ import {
   DollarSign, 
   Settings,
   TrendingUp,
+  TrendingDown,
   AlertTriangle,
   CheckCircle,
   Clock,
@@ -23,12 +30,59 @@ import {
   Eye,
   Edit,
   MoreHorizontal,
-  Building2
+  Building2,
+  ShoppingBag,
+  Flag,
+  MessageSquare,
+  Ban,
+  UserCheck,
+  Percent,
+  Star,
+  Calendar as CalendarIcon,
+  Send,
+  Bell,
+  Shield,
+  Activity,
+  PieChart,
+  BarChart3,
+  Archive,
+  Trash2,
+  Plus,
+  ArrowLeft,
+  HeadphonesIcon,
+  HelpCircle,
+  RefreshCw
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 const AdminApp = () => {
   const [currentView, setCurrentView] = useState('dashboard');
   const [activeTab, setActiveTab] = useState('overview');
+  const [dateRange, setDateRange] = useState<Date | undefined>(new Date());
+  const [realTimeStats, setRealTimeStats] = useState({
+    activeUsers: 2847,
+    todayRides: 1293,
+    todayRevenue: 4200000,
+    incidents: 12,
+    onlineDrivers: 247,
+    pendingModeration: 8,
+    supportTickets: 23
+  });
+
+  // Simulate real-time updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRealTimeStats(prev => ({
+        ...prev,
+        activeUsers: prev.activeUsers + (Math.random() > 0.5 ? 1 : -1),
+        todayRides: prev.todayRides + (Math.random() > 0.8 ? 1 : 0),
+        todayRevenue: prev.todayRevenue + Math.floor(Math.random() * 10000),
+        onlineDrivers: Math.max(100, prev.onlineDrivers + (Math.random() > 0.5 ? 1 : -1))
+      }));
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const renderDashboard = () => (
     <div className="min-h-screen bg-background">
@@ -50,11 +104,13 @@ const AdminApp = () => {
       {/* Main Content */}
       <div className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 rounded-xl bg-grey-50">
+          <TabsList className="grid w-full grid-cols-6 rounded-xl bg-grey-50">
             <TabsTrigger value="overview" className="rounded-lg">Vue d'ensemble</TabsTrigger>
             <TabsTrigger value="users" className="rounded-lg">Utilisateurs</TabsTrigger>
-            <TabsTrigger value="rides" className="rounded-lg">Courses</TabsTrigger>
+            <TabsTrigger value="marketplace" className="rounded-lg">Marketplace</TabsTrigger>
             <TabsTrigger value="finance" className="rounded-lg">Finance</TabsTrigger>
+            <TabsTrigger value="support" className="rounded-lg">Support</TabsTrigger>
+            <TabsTrigger value="settings" className="rounded-lg">Paramètres</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -68,7 +124,7 @@ const AdminApp = () => {
                     </div>
                     <div className="ml-4">
                       <p className="text-body-sm font-medium text-muted-foreground">Utilisateurs actifs</p>
-                      <p className="text-display-sm font-bold text-card-foreground">2,847</p>
+                      <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.activeUsers.toLocaleString()}</p>
                     </div>
                   </div>
                   <div className="mt-4 flex items-center">
@@ -87,7 +143,7 @@ const AdminApp = () => {
                     </div>
                     <div className="ml-4">
                       <p className="text-body-sm font-medium text-muted-foreground">Courses aujourd'hui</p>
-                      <p className="text-display-sm font-bold text-card-foreground">1,293</p>
+                      <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.todayRides.toLocaleString()}</p>
                     </div>
                   </div>
                   <div className="mt-4 flex items-center">
@@ -106,7 +162,7 @@ const AdminApp = () => {
                     </div>
                     <div className="ml-4">
                       <p className="text-body-sm font-medium text-muted-foreground">Revenus du jour</p>
-                      <p className="text-heading-lg font-bold text-card-foreground">4.2M CFA</p>
+                      <p className="text-heading-lg font-bold text-card-foreground">{(realTimeStats.todayRevenue / 1000000).toFixed(1)}M CFA</p>
                     </div>
                   </div>
                   <div className="mt-4 flex items-center">
@@ -125,11 +181,66 @@ const AdminApp = () => {
                     </div>
                     <div className="ml-4">
                       <p className="text-body-sm font-medium text-muted-foreground">Incidents</p>
-                      <p className="text-display-sm font-bold text-card-foreground">12</p>
+                      <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.incidents}</p>
                     </div>
                   </div>
                   <div className="mt-4">
                     <span className="text-body-sm text-red-500 font-medium bg-red-50 px-2 py-1 rounded-md">3 non résolus</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Additional KPI Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <Card className="card-floating border-0">
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center shadow-elegant">
+                      <ShoppingBag className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-body-sm font-medium text-muted-foreground">Annonces marketplace</p>
+                      <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.pendingModeration}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <span className="text-body-sm text-yellow-600 font-medium bg-yellow-50 px-2 py-1 rounded-md">En attente de modération</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="card-floating border-0">
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-elegant">
+                      <HeadphonesIcon className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-body-sm font-medium text-muted-foreground">Tickets support</p>
+                      <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.supportTickets}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <span className="text-body-sm text-green-600 font-medium bg-green-50 px-2 py-1 rounded-md">5 résolus aujourd'hui</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="card-floating border-0">
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center shadow-elegant">
+                      <Activity className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-body-sm font-medium text-muted-foreground">Chauffeurs en ligne</p>
+                      <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.onlineDrivers}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex items-center">
+                    <Activity className="h-4 w-4 text-green-500" />
+                    <span className="text-body-sm text-green-600 ml-1 font-medium">Temps réel</span>
                   </div>
                 </CardContent>
               </Card>
@@ -171,7 +282,7 @@ const AdminApp = () => {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-body-sm text-muted-foreground">Total en ligne</span>
-                      <span className="text-heading-sm font-bold text-secondary">247 chauffeurs</span>
+                      <span className="text-heading-sm font-bold text-secondary">{realTimeStats.onlineDrivers} chauffeurs</span>
                     </div>
                     <div className="space-y-3">
                       {[
@@ -305,83 +416,121 @@ const AdminApp = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="rides" className="space-y-6">
+          <TabsContent value="marketplace" className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-heading-lg text-card-foreground">Gestion des courses</h3>
-              <Button variant="outline" className="rounded-xl">
-                <Download className="h-4 w-4 mr-2" />
-                Exporter
-              </Button>
+              <h3 className="text-heading-lg text-card-foreground">Modération Marketplace</h3>
+              <div className="flex gap-2">
+                <Button variant="outline" className="rounded-xl">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filtres
+                </Button>
+                <Button variant="outline" className="rounded-xl">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Actualiser
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <Card className="card-floating border-0 text-center p-4">
+                <ShoppingBag className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+                <p className="text-caption text-muted-foreground">En attente</p>
+                <p className="text-heading-lg font-bold text-card-foreground">8</p>
+              </Card>
+              <Card className="card-floating border-0 text-center p-4">
+                <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                <p className="text-caption text-muted-foreground">Approuvées</p>
+                <p className="text-heading-lg font-bold text-card-foreground">156</p>
+              </Card>
+              <Card className="card-floating border-0 text-center p-4">
+                <Ban className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                <p className="text-caption text-muted-foreground">Rejetées</p>
+                <p className="text-heading-lg font-bold text-card-foreground">23</p>
+              </Card>
             </div>
 
             <div className="space-y-4">
               {[
-                { 
-                  id: "CR-2024-001", 
-                  client: "Jean Kouassi", 
-                  driver: "Kouame Paul", 
-                  from: "Cocody", 
-                  to: "Plateau", 
-                  amount: "2,500 CFA", 
-                  status: "Terminée",
-                  time: "14:30"
+                {
+                  id: "ANN-001",
+                  title: "iPhone 13 Pro Max 256GB",
+                  seller: "Jean Kouassi",
+                  price: "450,000 CFA",
+                  category: "Électronique",
+                  status: "pending",
+                  date: "Il y a 2h",
+                  reports: 0,
+                  image: "📱"
                 },
-                { 
-                  id: "CR-2024-002", 
-                  client: "Marie Diallo", 
-                  driver: "Traore Sekou", 
-                  from: "Marcory", 
-                  to: "Treichville", 
-                  amount: "1,800 CFA", 
-                  status: "En cours",
-                  time: "15:45"
+                {
+                  id: "ANN-002", 
+                  title: "Véhicule Toyota Corolla 2020",
+                  seller: "Marie Diallo",
+                  price: "8,500,000 CFA",
+                  category: "Automobile",
+                  status: "pending",
+                  date: "Il y a 4h",
+                  reports: 2,
+                  image: "🚗"
                 },
-                { 
-                  id: "CR-2024-003", 
-                  client: "Paul Yao", 
-                  driver: "Diallo Mamadou", 
-                  from: "Plateau", 
-                  to: "Cocody", 
-                  amount: "3,200 CFA", 
-                  status: "Annulée",
-                  time: "16:12"
-                },
-              ].map((ride, index) => (
+                {
+                  id: "ANN-003",
+                  title: "Appartement 3 pièces Cocody",
+                  seller: "Paul Yao",
+                  price: "85,000 CFA/mois",
+                  category: "Immobilier",
+                  status: "flagged",
+                  date: "Il y a 1j",
+                  reports: 5,
+                  image: "🏠"
+                }
+              ].map((listing, index) => (
                 <Card key={index} className="card-floating border-0">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <Badge variant="outline" className="rounded-md">{ride.id}</Badge>
-                        <span className="text-body-sm text-muted-foreground">{ride.time}</span>
-                      </div>
-                      <Badge variant={
-                        ride.status === "Terminée" ? "default" : 
-                        ride.status === "En cours" ? "secondary" : "destructive"
-                      } className="rounded-md">
-                        {ride.status}
-                      </Badge>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div>
-                        <p className="text-caption text-muted-foreground">Client</p>
-                        <p className="text-body-md font-medium text-card-foreground">{ride.client}</p>
-                      </div>
-                      <div>
-                        <p className="text-caption text-muted-foreground">Chauffeur</p>
-                        <p className="text-body-md font-medium text-card-foreground">{ride.driver}</p>
-                      </div>
-                      <div>
-                        <p className="text-caption text-muted-foreground">Trajet</p>
-                        <p className="text-body-md font-medium text-card-foreground">{ride.from} → {ride.to}</p>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-caption text-muted-foreground">Montant</p>
-                          <p className="text-body-md font-medium text-card-foreground">{ride.amount}</p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-grey-100 rounded-xl flex items-center justify-center text-2xl">
+                          {listing.image}
                         </div>
-                        <Button variant="ghost" size="sm" className="rounded-lg">
+                        <div>
+                          <p className="text-body-md font-semibold text-card-foreground">{listing.title}</p>
+                          <p className="text-body-sm text-muted-foreground">{listing.seller} • {listing.category}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {listing.reports > 0 && (
+                          <Badge variant="destructive" className="rounded-md">
+                            <Flag className="w-3 h-3 mr-1" />
+                            {listing.reports}
+                          </Badge>
+                        )}
+                        <Badge 
+                          variant={
+                            listing.status === "pending" ? "outline" :
+                            listing.status === "flagged" ? "destructive" : "default"
+                          }
+                          className="rounded-md"
+                        >
+                          {listing.status === "pending" ? "En attente" :
+                           listing.status === "flagged" ? "Signalée" : "Approuvée"}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-heading-sm font-bold text-primary">{listing.price}</p>
+                        <p className="text-caption text-muted-foreground">{listing.date}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="rounded-lg">
                           <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" className="rounded-lg bg-green-500 hover:bg-green-600">
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="destructive" className="rounded-lg">
+                          <Ban className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
@@ -392,8 +541,34 @@ const AdminApp = () => {
           </TabsContent>
 
           <TabsContent value="finance" className="space-y-6">
-            <h3 className="text-heading-lg text-card-foreground">Gestion financière</h3>
-            
+            <div className="flex items-center justify-between">
+              <h3 className="text-heading-lg text-card-foreground">Gestion financière & Tarifs</h3>
+              <div className="flex gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="rounded-xl">
+                      <CalendarIcon className="h-4 w-4 mr-2" />
+                      {dateRange ? format(dateRange, "PPP") : "Période"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dateRange}
+                      onSelect={setDateRange}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Button variant="outline" className="rounded-xl">
+                  <Download className="h-4 w-4 mr-2" />
+                  Exporter
+                </Button>
+              </div>
+            </div>
+
+            {/* Revenue Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card className="card-floating border-0">
                 <CardContent className="p-6 text-center">
@@ -402,16 +577,18 @@ const AdminApp = () => {
                   </div>
                   <p className="text-caption text-muted-foreground">Revenus totaux</p>
                   <p className="text-heading-lg font-bold text-card-foreground">125.2M CFA</p>
+                  <p className="text-caption text-green-600 font-medium">+15.3% ce mois</p>
                 </CardContent>
               </Card>
               
               <Card className="card-floating border-0">
                 <CardContent className="p-6 text-center">
                   <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <TrendingUp className="h-6 w-6 text-white" />
+                    <Percent className="h-6 w-6 text-white" />
                   </div>
                   <p className="text-caption text-muted-foreground">Commission</p>
                   <p className="text-heading-lg font-bold text-card-foreground">12.5M CFA</p>
+                  <p className="text-caption text-muted-foreground">10% de commission</p>
                 </CardContent>
               </Card>
               
@@ -422,6 +599,7 @@ const AdminApp = () => {
                   </div>
                   <p className="text-caption text-muted-foreground">En attente</p>
                   <p className="text-heading-lg font-bold text-card-foreground">2.8M CFA</p>
+                  <p className="text-caption text-yellow-600 font-medium">À verser</p>
                 </CardContent>
               </Card>
               
@@ -432,10 +610,236 @@ const AdminApp = () => {
                   </div>
                   <p className="text-caption text-muted-foreground">Litiges</p>
                   <p className="text-heading-lg font-bold text-card-foreground">145K CFA</p>
+                  <p className="text-caption text-red-600 font-medium">3 en cours</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Pricing Management */}
+            <Card className="card-floating border-0">
+              <CardHeader>
+                <CardTitle className="text-heading-md">Gestion des tarifs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[
+                    { service: "Transport", basePrice: "500", commission: "10", currency: "CFA" },
+                    { service: "Livraison", basePrice: "300", commission: "15", currency: "CFA" },
+                    { service: "Marketplace", basePrice: "0", commission: "5", currency: "%" },
+                  ].map((pricing, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 bg-grey-50 rounded-xl">
+                      <div>
+                        <p className="text-body-md font-semibold text-card-foreground">{pricing.service}</p>
+                        <p className="text-body-sm text-muted-foreground">Prix de base: {pricing.basePrice} {pricing.currency}</p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="text-body-sm text-muted-foreground">Commission</p>
+                          <p className="text-heading-sm font-bold text-primary">{pricing.commission}%</p>
+                        </div>
+                        <Button size="sm" variant="outline" className="rounded-lg">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+          </TabsContent>
+
+          <TabsContent value="support" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-heading-lg text-card-foreground">Support Client</h3>
+              <div className="flex gap-2">
+                <Select defaultValue="all">
+                  <SelectTrigger className="w-40 rounded-xl">
+                    <SelectValue placeholder="Statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous</SelectItem>
+                    <SelectItem value="open">Ouvert</SelectItem>
+                    <SelectItem value="pending">En attente</SelectItem>
+                    <SelectItem value="resolved">Résolu</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button className="rounded-xl">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nouveau ticket
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <Card className="card-floating border-0 text-center p-4">
+                <HelpCircle className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                <p className="text-caption text-muted-foreground">Ouverts</p>
+                <p className="text-heading-lg font-bold text-card-foreground">15</p>
+              </Card>
+              <Card className="card-floating border-0 text-center p-4">
+                <Clock className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+                <p className="text-caption text-muted-foreground">En attente</p>
+                <p className="text-heading-lg font-bold text-card-foreground">8</p>
+              </Card>
+              <Card className="card-floating border-0 text-center p-4">
+                <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                <p className="text-caption text-muted-foreground">Résolus</p>
+                <p className="text-heading-lg font-bold text-card-foreground">142</p>
+              </Card>
+            </div>
+
+            <div className="space-y-4">
+              {[
+                {
+                  id: "SUP-001",
+                  user: "Jean Kouassi",
+                  type: "Client",
+                  subject: "Problème de paiement",
+                  status: "open",
+                  priority: "high",
+                  created: "Il y a 2h",
+                  agent: "Marie Admin"
+                },
+                {
+                  id: "SUP-002",
+                  user: "Paul Chauffeur",
+                  type: "Chauffeur", 
+                  subject: "Course annulée incorrectement",
+                  status: "pending",
+                  priority: "medium",
+                  created: "Il y a 4h",
+                  agent: "Jean Admin"
+                },
+                {
+                  id: "SUP-003",
+                  user: "NTA Solutions",
+                  type: "Partenaire",
+                  subject: "Facturation mensuelle",
+                  status: "resolved",
+                  priority: "low",
+                  created: "Il y a 1j",
+                  agent: "Marie Admin"
+                }
+              ].map((ticket, index) => (
+                <Card key={index} className="card-floating border-0">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <Badge variant="outline" className="rounded-md">{ticket.id}</Badge>
+                        <div>
+                          <p className="text-body-md font-semibold text-card-foreground">{ticket.subject}</p>
+                          <p className="text-body-sm text-muted-foreground">{ticket.user} ({ticket.type})</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant={
+                            ticket.priority === "high" ? "destructive" :
+                            ticket.priority === "medium" ? "secondary" : "outline"
+                          }
+                          className="rounded-md"
+                        >
+                          {ticket.priority === "high" ? "Urgent" :
+                           ticket.priority === "medium" ? "Moyen" : "Faible"}
+                        </Badge>
+                        <Badge 
+                          variant={
+                            ticket.status === "open" ? "destructive" :
+                            ticket.status === "pending" ? "secondary" : "default"
+                          }
+                          className="rounded-md"
+                        >
+                          {ticket.status === "open" ? "Ouvert" :
+                           ticket.status === "pending" ? "En attente" : "Résolu"}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-body-sm text-muted-foreground">Assigné à: {ticket.agent}</p>
+                        <p className="text-caption text-muted-foreground">{ticket.created}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="rounded-lg">
+                          <MessageSquare className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" className="rounded-lg">
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <h3 className="text-heading-lg text-card-foreground">Paramètres système</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="card-floating border-0">
+                <CardHeader>
+                  <CardTitle className="text-heading-md">Paramètres généraux</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-body-md font-medium text-card-foreground">Mode maintenance</p>
+                      <p className="text-body-sm text-muted-foreground">Désactiver temporairement l'application</p>
+                    </div>
+                    <Switch />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-body-md font-medium text-card-foreground">Nouvelles inscriptions</p>
+                      <p className="text-body-sm text-muted-foreground">Autoriser les nouveaux utilisateurs</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-body-md font-medium text-card-foreground">Notifications push</p>
+                      <p className="text-body-sm text-muted-foreground">Envoyer des notifications automatiques</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="card-floating border-0">
+                <CardHeader>
+                  <CardTitle className="text-heading-md">Modération automatique</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-body-md font-medium text-card-foreground">Auto-approbation annonces</p>
+                      <p className="text-body-sm text-muted-foreground">Approuver automatiquement les annonces</p>
+                    </div>
+                    <Switch />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-body-md font-medium text-card-foreground">Filtres de contenu</p>
+                      <p className="text-body-sm text-muted-foreground">Détecter le contenu inapproprié</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-body-md font-medium text-card-foreground">Validation des chauffeurs</p>
+                      <p className="text-body-sm text-muted-foreground">Vérification manuelle obligatoire</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
+
         </Tabs>
       </div>
     </div>
