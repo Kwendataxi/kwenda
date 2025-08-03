@@ -133,6 +133,7 @@ const ClientApp = () => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
   const [marketplaceTab, setMarketplaceTab] = useState('explore');
+  const [showingTrends, setShowingTrends] = useState(false);
 
   // Mock marketplace data
   const mockProducts = [
@@ -156,7 +157,9 @@ const ClientApp = () => {
         'Garantie': '1 an'
       },
       inStock: true,
-      stockCount: 5
+      stockCount: 5,
+      isTrending: true,
+      trendingScore: 95
     },
     {
       id: '2',
@@ -176,7 +179,9 @@ const ClientApp = () => {
         'Processeur': 'Snapdragon 8 Gen 3'
       },
       inStock: true,
-      stockCount: 3
+      stockCount: 3,
+      isTrending: true,
+      trendingScore: 88
     },
     {
       id: '3',
@@ -197,7 +202,9 @@ const ClientApp = () => {
         'Écran': '14.2" Liquid Retina XDR'
       },
       inStock: true,
-      stockCount: 2
+      stockCount: 2,
+      isTrending: true,
+      trendingScore: 92
     },
     {
       id: '4',
@@ -217,7 +224,9 @@ const ClientApp = () => {
         'Entretien': 'Lavage machine 30°C'
       },
       inStock: true,
-      stockCount: 15
+      stockCount: 15,
+      isTrending: false,
+      trendingScore: 65
     },
     {
       id: '5',
@@ -237,7 +246,9 @@ const ClientApp = () => {
         'Couleur': 'Gris clair'
       },
       inStock: false,
-      stockCount: 0
+      stockCount: 0,
+      isTrending: true,
+      trendingScore: 78
     },
     {
       id: '6',
@@ -257,7 +268,9 @@ const ClientApp = () => {
         'Conservation': '3-5 jours à température ambiante'
       },
       inStock: true,
-      stockCount: 50
+      stockCount: 50,
+      isTrending: true,
+      trendingScore: 85
     }
   ];
 
@@ -268,9 +281,15 @@ const ClientApp = () => {
                          product.seller.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesPrice = product.price >= filters.priceRange[0] && product.price <= filters.priceRange[1];
     const matchesStock = !filters.inStockOnly || product.inStock;
+    const matchesTrending = !showingTrends || product.isTrending;
     
-    return matchesCategory && matchesSearch && matchesPrice && matchesStock;
+    return matchesCategory && matchesSearch && matchesPrice && matchesStock && matchesTrending;
   });
+
+  // Get trending products sorted by score
+  const trendingProducts = mockProducts
+    .filter(product => product.isTrending)
+    .sort((a, b) => (b.trendingScore || 0) - (a.trendingScore || 0));
 
   // Get product counts per category
   const productCounts = mockProducts.reduce((acc, product) => {
@@ -302,6 +321,11 @@ const ClientApp = () => {
   const handleMarketplaceViewAll = () => {
     setServiceType('marketplace');
     setMarketplaceTab('explore');
+    setShowingTrends(true);
+  };
+
+  const handleBackFromTrends = () => {
+    setShowingTrends(false);
   };
 
   const renderHome = () => (
@@ -716,48 +740,97 @@ const ClientApp = () => {
         />
         
         <div className="space-y-4">
-          <div className="px-4">
-            <SearchBar
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onSearch={handleSearch}
-              filters={filters}
-              onFiltersChange={setFilters}
-            />
-          </div>
-          
-          <CategoryFilter
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            productCounts={productCounts}
-          />
-          
-          <div className="px-4 pb-4">
-            {filteredProducts.length === 0 ? (
-              <div className="text-center py-16">
-                <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">Aucun produit trouvé</h3>
-                <p className="text-muted-foreground">
-                  Essayez de modifier vos filtres de recherche
-                </p>
+          {showingTrends ? (
+            // Vue "Toutes les tendances"
+            <div className="px-4">
+              <div className="flex items-center gap-4 mb-6">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBackFromTrends}
+                  className="rounded-xl"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <div>
+                  <h1 className="text-lg font-semibold text-foreground">{t('marketplace.trending_products')}</h1>
+                  <p className="text-sm text-muted-foreground">{trendingProducts.length} produits tendances</p>
+                </div>
               </div>
-            ) : (
-              <OptimizedGrid 
-                className="grid-cols-2"
-                itemsPerPage={20}
-                enableVirtualization={true}
-              >
-                {filteredProducts.map((product) => (
-                   <ModernProductCard
-                     key={product.id}
-                     product={product}
-                     onAddToCart={handleAddToCart}
-                     onViewDetails={handleViewProductDetails}
-                   />
-                ))}
-              </OptimizedGrid>
-            )}
-          </div>
+              
+              {trendingProducts.length === 0 ? (
+                <div className="text-center py-16">
+                  <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Aucun produit tendance</h3>
+                  <p className="text-muted-foreground">
+                    Aucun produit n'est actuellement en tendance
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {trendingProducts.map((product) => (
+                     <div key={product.id} className="relative">
+                       <ModernProductCard
+                         product={product}
+                         onAddToCart={handleAddToCart}
+                         onViewDetails={handleViewProductDetails}
+                       />
+                       {/* Badge de score de tendance */}
+                       <div className="absolute top-2 left-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                         🔥 #{trendingProducts.findIndex(p => p.id === product.id) + 1}
+                       </div>
+                     </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            // Vue normale du marketplace
+            <>
+              <div className="px-4">
+                <SearchBar
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  onSearch={handleSearch}
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                />
+              </div>
+              
+              <CategoryFilter
+                selectedCategory={selectedCategory}
+                onCategoryChange={setSelectedCategory}
+                productCounts={productCounts}
+              />
+              
+              <div className="px-4 pb-4">
+                {filteredProducts.length === 0 ? (
+                  <div className="text-center py-16">
+                    <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Aucun produit trouvé</h3>
+                    <p className="text-muted-foreground">
+                      Essayez de modifier vos filtres de recherche
+                    </p>
+                  </div>
+                ) : (
+                  <OptimizedGrid 
+                    className="grid-cols-2"
+                    itemsPerPage={20}
+                    enableVirtualization={true}
+                  >
+                    {filteredProducts.map((product) => (
+                       <ModernProductCard
+                         key={product.id}
+                         product={product}
+                         onAddToCart={handleAddToCart}
+                         onViewDetails={handleViewProductDetails}
+                       />
+                    ))}
+                  </OptimizedGrid>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         <BottomNavigation

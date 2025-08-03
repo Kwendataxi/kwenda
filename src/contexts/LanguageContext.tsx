@@ -191,6 +191,12 @@ const translations = {
     'referral.share': 'Partager',
     'referral.copy_code': 'Copier le code',
 
+    // Marketplace tendances
+    'marketplace.all_trends': 'Toutes les tendances',
+    'marketplace.trending_products': 'Produits tendances',
+    'marketplace.back_to_trends': 'Retour aux tendances',
+    'marketplace.back_to_marketplace': 'Retour au marketplace',
+
     // Validation
     'validation.validation': 'Validation',
     'validation.status': 'Statut de validation',
