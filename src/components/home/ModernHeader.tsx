@@ -5,7 +5,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
-import kwendaLogo from '@/assets/kwenda-logo.png';
 
 interface ModernHeaderProps {
   hasNotifications?: boolean;
@@ -61,25 +60,18 @@ export const ModernHeader = ({
       >
         {/* Structure simplifiée en 2 colonnes */}
         <div className="flex items-center justify-between">
-          {/* Logo et salutation */}
-          <div className="flex items-center gap-3 flex-1">
-            <img 
-              src={kwendaLogo} 
-              alt="Kwenda Taxi" 
-              className="h-8 w-auto"
-            />
-            <div>
-              <div className="mb-1">
-                <p className="text-gray-900 font-bold text-lg">
-                  {getGreeting()}, {fullName}
-                </p>
-              </div>
-              <div className="flex items-center gap-1">
-                <MapPin className="h-4 w-4 text-gray-600" />
-                <p className="text-gray-600 text-sm">
-                  {geolocation.loading ? t('common.loading') : currentAddress}
-                </p>
-              </div>
+          {/* Salutation personnalisée et localisation */}
+          <div className="flex-1">
+            <div className="mb-1">
+              <p className="text-gray-900 font-bold text-lg">
+                {getGreeting()}, {fullName}
+              </p>
+            </div>
+            <div className="flex items-center gap-1">
+              <MapPin className="h-4 w-4 text-gray-600" />
+              <p className="text-gray-600 text-sm">
+                {geolocation.loading ? t('common.loading') : currentAddress}
+              </p>
             </div>
           </div>
           
