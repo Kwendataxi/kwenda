@@ -22,8 +22,12 @@ import {
   CreditCard,
   Plus,
   History,
-  Settings
+  Settings,
+  Users
 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DriverChallenges } from './DriverChallenges';
+import { DriverReferrals } from './DriverReferrals';
 
 interface DriverProfile {
   id: string;
@@ -349,27 +353,55 @@ export const DriverProfile = () => {
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Settings className="h-5 w-5" />
-            <span>Actions rapides</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" className="h-16 flex flex-col space-y-1">
-              <CreditCard className="h-5 w-5" />
-              <span className="text-sm">Historique complet</span>
-            </Button>
-            <Button variant="outline" className="h-16 flex flex-col space-y-1">
-              <User className="h-5 w-5" />
-              <span className="text-sm">Modifier profil</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="wallet" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="wallet" className="flex items-center gap-2">
+            <Wallet className="w-4 h-4" />
+            Portefeuille
+          </TabsTrigger>
+          <TabsTrigger value="challenges" className="flex items-center gap-2">
+            <Trophy className="w-4 h-4" />
+            Challenges
+          </TabsTrigger>
+          <TabsTrigger value="referrals" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Parrainages
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="wallet" className="space-y-4">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Settings className="h-5 w-5" />
+                <span>Actions rapides</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <Button variant="outline" className="h-16 flex flex-col space-y-1">
+                  <CreditCard className="h-5 w-5" />
+                  <span className="text-sm">Historique complet</span>
+                </Button>
+                <Button variant="outline" className="h-16 flex flex-col space-y-1">
+                  <User className="h-5 w-5" />
+                  <span className="text-sm">Modifier profil</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="challenges">
+          <DriverChallenges />
+        </TabsContent>
+
+        <TabsContent value="referrals">
+          <DriverReferrals />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

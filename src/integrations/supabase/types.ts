@@ -53,6 +53,108 @@ export type Database = {
         }
         Relationships: []
       }
+      challenge_rewards: {
+        Row: {
+          challenge_id: string
+          created_at: string
+          driver_challenge_id: string
+          driver_id: string
+          id: string
+          reward_currency: string | null
+          reward_type: string
+          reward_value: number
+          wallet_transaction_id: string | null
+        }
+        Insert: {
+          challenge_id: string
+          created_at?: string
+          driver_challenge_id: string
+          driver_id: string
+          id?: string
+          reward_currency?: string | null
+          reward_type: string
+          reward_value: number
+          wallet_transaction_id?: string | null
+        }
+        Update: {
+          challenge_id?: string
+          created_at?: string
+          driver_challenge_id?: string
+          driver_id?: string
+          id?: string
+          reward_currency?: string | null
+          reward_type?: string
+          reward_value?: number
+          wallet_transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_rewards_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_rewards_driver_challenge_id_fkey"
+            columns: ["driver_challenge_id"]
+            isOneToOne: false
+            referencedRelation: "driver_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      challenges: {
+        Row: {
+          challenge_type: string
+          created_at: string
+          description: string
+          end_date: string
+          id: string
+          is_active: boolean
+          reward_currency: string | null
+          reward_type: string
+          reward_value: number
+          start_date: string
+          target_metric: string
+          target_value: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          challenge_type: string
+          created_at?: string
+          description: string
+          end_date: string
+          id?: string
+          is_active?: boolean
+          reward_currency?: string | null
+          reward_type: string
+          reward_value?: number
+          start_date?: string
+          target_metric: string
+          target_value: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          challenge_type?: string
+          created_at?: string
+          description?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          reward_currency?: string | null
+          reward_type?: string
+          reward_value?: number
+          start_date?: string
+          target_metric?: string
+          target_value?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       commission_settings: {
         Row: {
           admin_rate: number
@@ -154,6 +256,53 @@ export type Database = {
           vehicle_size?: string | null
         }
         Relationships: []
+      }
+      driver_challenges: {
+        Row: {
+          challenge_id: string
+          completed_at: string | null
+          created_at: string
+          current_progress: number
+          driver_id: string
+          id: string
+          is_completed: boolean
+          reward_claimed: boolean
+          reward_claimed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          challenge_id: string
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number
+          driver_id: string
+          id?: string
+          is_completed?: boolean
+          reward_claimed?: boolean
+          reward_claimed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          challenge_id?: string
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number
+          driver_id?: string
+          id?: string
+          is_completed?: boolean
+          reward_claimed?: boolean
+          reward_claimed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_challenges_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       driver_requests: {
         Row: {
@@ -431,6 +580,86 @@ export type Database = {
           updated_at?: string
           user_id?: string
           user_type?: string | null
+        }
+        Relationships: []
+      }
+      referral_rewards: {
+        Row: {
+          created_at: string
+          id: string
+          referral_id: string
+          referrer_id: string
+          reward_amount: number
+          reward_currency: string | null
+          tier_level: string
+          wallet_transaction_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_id: string
+          referrer_id: string
+          reward_amount: number
+          reward_currency?: string | null
+          tier_level: string
+          wallet_transaction_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_id?: string
+          referrer_id?: string
+          reward_amount?: number
+          reward_currency?: string | null
+          tier_level?: string
+          wallet_transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_rewards_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          completion_date: string | null
+          created_at: string
+          id: string
+          referral_code: string
+          referred_id: string | null
+          referred_user_type: string | null
+          referrer_id: string
+          reward_given_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completion_date?: string | null
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_id?: string | null
+          referred_user_type?: string | null
+          referrer_id: string
+          reward_given_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completion_date?: string | null
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_id?: string | null
+          referred_user_type?: string | null
+          referrer_id?: string
+          reward_given_date?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -840,7 +1069,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_referral_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
