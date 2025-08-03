@@ -232,6 +232,48 @@ export type Database = {
           },
         ]
       }
+      credit_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at: string
+          currency: string
+          description: string
+          driver_id: string
+          id: string
+          reference_id: string | null
+          reference_type: string | null
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at?: string
+          currency?: string
+          description: string
+          driver_id: string
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          currency?: string
+          description?: string
+          driver_id?: string
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          transaction_type?: string
+        }
+        Relationships: []
+      }
       delivery_orders: {
         Row: {
           actual_price: number | null
@@ -371,6 +413,48 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      driver_credits: {
+        Row: {
+          balance: number
+          created_at: string
+          currency: string
+          driver_id: string
+          id: string
+          is_active: boolean
+          last_topup_date: string | null
+          low_balance_alert_sent: boolean
+          total_earned: number
+          total_spent: number
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          driver_id: string
+          id?: string
+          is_active?: boolean
+          last_topup_date?: string | null
+          low_balance_alert_sent?: boolean
+          total_earned?: number
+          total_spent?: number
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          driver_id?: string
+          id?: string
+          is_active?: boolean
+          last_topup_date?: string | null
+          low_balance_alert_sent?: boolean
+          total_earned?: number
+          total_spent?: number
           updated_at?: string
         }
         Relationships: []
@@ -611,6 +695,62 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_subscriptions: {
+        Row: {
+          auto_renew: boolean
+          created_at: string
+          driver_id: string
+          end_date: string
+          grace_period_end: string | null
+          id: string
+          last_payment_date: string | null
+          next_payment_date: string | null
+          payment_method: string
+          plan_id: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          auto_renew?: boolean
+          created_at?: string
+          driver_id: string
+          end_date: string
+          grace_period_end?: string | null
+          id?: string
+          last_payment_date?: string | null
+          next_payment_date?: string | null
+          payment_method: string
+          plan_id: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          auto_renew?: boolean
+          created_at?: string
+          driver_id?: string
+          end_date?: string
+          grace_period_end?: string | null
+          id?: string
+          last_payment_date?: string | null
+          next_payment_date?: string | null
+          payment_method?: string
+          plan_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dynamic_pricing: {
         Row: {
           available_drivers: number
@@ -654,6 +794,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      enhanced_support_tickets: {
+        Row: {
+          assigned_to: string | null
+          attachments: Json | null
+          category: string
+          created_at: string
+          description: string
+          id: string
+          metadata: Json | null
+          priority: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          status: string
+          subject: string
+          ticket_number: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          attachments?: Json | null
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          metadata?: Json | null
+          priority?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: string
+          subject: string
+          ticket_number: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          attachments?: Json | null
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          metadata?: Json | null
+          priority?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: string
+          subject?: string
+          ticket_number?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       escrow_payments: {
         Row: {
@@ -1805,6 +1999,92 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          currency: string
+          description: string | null
+          duration_type: string
+          features: Json
+          id: string
+          is_active: boolean
+          max_rides_per_day: number | null
+          name: string
+          price: number
+          priority_level: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          duration_type: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_rides_per_day?: number | null
+          name: string
+          price: number
+          priority_level?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          duration_type?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_rides_per_day?: number | null
+          name?: string
+          price?: number
+          priority_level?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      support_messages: {
+        Row: {
+          attachments: Json | null
+          created_at: string
+          id: string
+          is_internal: boolean
+          message: string
+          sender_id: string
+          sender_type: string
+          ticket_id: string
+        }
+        Insert: {
+          attachments?: Json | null
+          created_at?: string
+          id?: string
+          is_internal?: boolean
+          message: string
+          sender_id: string
+          sender_type: string
+          ticket_id: string
+        }
+        Update: {
+          attachments?: Json | null
+          created_at?: string
+          id?: string
+          is_internal?: boolean
+          message?: string
+          sender_id?: string
+          sender_type?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_tickets: {
         Row: {
           assigned_to: string | null
@@ -1844,6 +2124,48 @@ export type Database = {
           subject?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      system_notifications: {
+        Row: {
+          created_at: string
+          data: Json | null
+          expires_at: string | null
+          id: string
+          is_read: boolean
+          is_system_wide: boolean
+          message: string
+          notification_type: string
+          priority: string
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          is_system_wide?: boolean
+          message: string
+          notification_type: string
+          priority?: string
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          is_system_wide?: boolean
+          message?: string
+          notification_type?: string
+          priority?: string
+          title?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -2293,6 +2615,51 @@ export type Database = {
         }
         Relationships: []
       }
+      zone_analytics: {
+        Row: {
+          active_drivers: number
+          average_wait_time: number
+          city: string
+          country_code: string
+          created_at: string
+          customer_satisfaction: number
+          date: string
+          id: string
+          peak_hours: Json | null
+          total_revenue: number
+          total_rides: number
+          zone_name: string
+        }
+        Insert: {
+          active_drivers?: number
+          average_wait_time?: number
+          city: string
+          country_code: string
+          created_at?: string
+          customer_satisfaction?: number
+          date: string
+          id?: string
+          peak_hours?: Json | null
+          total_revenue?: number
+          total_rides?: number
+          zone_name: string
+        }
+        Update: {
+          active_drivers?: number
+          average_wait_time?: number
+          city?: string
+          country_code?: string
+          created_at?: string
+          customer_satisfaction?: number
+          date?: string
+          id?: string
+          peak_hours?: Json | null
+          total_revenue?: number
+          total_rides?: number
+          zone_name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -2311,6 +2678,10 @@ export type Database = {
         Returns: string
       }
       generate_referral_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_ticket_number: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
