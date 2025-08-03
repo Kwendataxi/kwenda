@@ -75,6 +75,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
         map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
         map.current.on('load', () => {
+          console.log('Map loaded successfully');
           setMapReady(true);
         });
 
@@ -117,28 +118,35 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
       userMarker.remove();
     }
 
-    // Create user location marker
-    const marker = new mapboxgl.Marker({
-      color: '#3B82F6',
-      scale: 1.2,
-    })
-      .setLngLat([geolocation.longitude, geolocation.latitude])
-      .setPopup(
-        new mapboxgl.Popup({ offset: 25 }).setHTML(
-          '<div class="text-center"><strong>Votre position</strong></div>'
-        )
-      )
-      .addTo(map.current);
+    try {
+      // Create user location marker
+      const marker = new mapboxgl.Marker({
+        color: '#3B82F6',
+        scale: 1.2,
+      })
+        .setLngLat([geolocation.longitude, geolocation.latitude])
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 }).setHTML(
+            '<div class="text-center"><strong>Votre position</strong></div>'
+          )
+        );
 
-    setUserMarker(marker);
+      // Ensure map is ready before adding marker
+      if (map.current && map.current.loaded()) {
+        marker.addTo(map.current);
+        setUserMarker(marker);
 
-    // Center map on user location
-    map.current.flyTo({
-      center: [geolocation.longitude, geolocation.latitude],
-      zoom: 15,
-      duration: 1000,
-    });
-  }, [geolocation.latitude, geolocation.longitude, mapReady, userMarker]);
+        // Center map on user location
+        map.current.flyTo({
+          center: [geolocation.longitude, geolocation.latitude],
+          zoom: 15,
+          duration: 1000,
+        });
+      }
+    } catch (error) {
+      console.error('Error adding user marker:', error);
+    }
+  }, [geolocation.latitude, geolocation.longitude, mapReady]);
 
   // Add pickup location marker
   useEffect(() => {
@@ -148,20 +156,27 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
       pickupMarker.remove();
     }
 
-    const marker = new mapboxgl.Marker({
-      color: '#10B981',
-      scale: 1.0,
-    })
-      .setLngLat(pickupLocation)
-      .setPopup(
-        new mapboxgl.Popup({ offset: 25 }).setHTML(
-          '<div class="text-center"><strong>Point de départ</strong></div>'
-        )
-      )
-      .addTo(map.current);
+    try {
+      const marker = new mapboxgl.Marker({
+        color: '#10B981',
+        scale: 1.0,
+      })
+        .setLngLat(pickupLocation)
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 }).setHTML(
+            '<div class="text-center"><strong>Point de départ</strong></div>'
+          )
+        );
 
-    setPickupMarker(marker);
-  }, [pickupLocation, mapReady, pickupMarker]);
+      // Ensure map is ready before adding marker
+      if (map.current && map.current.loaded()) {
+        marker.addTo(map.current);
+        setPickupMarker(marker);
+      }
+    } catch (error) {
+      console.error('Error adding pickup marker:', error);
+    }
+  }, [pickupLocation, mapReady]);
 
   // Add destination marker
   useEffect(() => {
@@ -171,20 +186,27 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
       destinationMarker.remove();
     }
 
-    const marker = new mapboxgl.Marker({
-      color: '#EF4444',
-      scale: 1.0,
-    })
-      .setLngLat(destination)
-      .setPopup(
-        new mapboxgl.Popup({ offset: 25 }).setHTML(
-          '<div class="text-center"><strong>Destination</strong></div>'
-        )
-      )
-      .addTo(map.current);
+    try {
+      const marker = new mapboxgl.Marker({
+        color: '#EF4444',
+        scale: 1.0,
+      })
+        .setLngLat(destination)
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 }).setHTML(
+            '<div class="text-center"><strong>Destination</strong></div>'
+          )
+        );
 
-    setDestinationMarker(marker);
-  }, [destination, mapReady, destinationMarker]);
+      // Ensure map is ready before adding marker
+      if (map.current && map.current.loaded()) {
+        marker.addTo(map.current);
+        setDestinationMarker(marker);
+      }
+    } catch (error) {
+      console.error('Error adding destination marker:', error);
+    }
+  }, [destination, mapReady]);
 
   const handleLocateUser = async () => {
     try {
