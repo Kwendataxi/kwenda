@@ -799,6 +799,7 @@ export type Database = {
           id: string
           images: Json | null
           location: string | null
+          moderation_status: string | null
           price: number
           seller_id: string
           status: string | null
@@ -816,6 +817,7 @@ export type Database = {
           id?: string
           images?: Json | null
           location?: string | null
+          moderation_status?: string | null
           price: number
           seller_id: string
           status?: string | null
@@ -833,6 +835,7 @@ export type Database = {
           id?: string
           images?: Json | null
           location?: string | null
+          moderation_status?: string | null
           price?: number
           seller_id?: string
           status?: string | null
@@ -844,30 +847,42 @@ export type Database = {
       }
       messages: {
         Row: {
+          attachments: Json | null
           content: string
           conversation_id: string
           created_at: string
           id: string
           is_read: boolean
+          message_status: string | null
           message_type: string
+          metadata: Json | null
+          reply_to_id: string | null
           sender_id: string
         }
         Insert: {
+          attachments?: Json | null
           content: string
           conversation_id: string
           created_at?: string
           id?: string
           is_read?: boolean
+          message_status?: string | null
           message_type?: string
+          metadata?: Json | null
+          reply_to_id?: string | null
           sender_id: string
         }
         Update: {
+          attachments?: Json | null
           content?: string
           conversation_id?: string
           created_at?: string
           id?: string
           is_read?: boolean
+          message_status?: string | null
           message_type?: string
+          metadata?: Json | null
+          reply_to_id?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -878,7 +893,47 @@ export type Database = {
             referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      notification_preferences: {
+        Row: {
+          chat_notifications: boolean | null
+          created_at: string
+          id: string
+          marketing_emails: boolean | null
+          order_updates: boolean | null
+          product_updates: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_notifications?: boolean | null
+          created_at?: string
+          id?: string
+          marketing_emails?: boolean | null
+          order_updates?: boolean | null
+          product_updates?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_notifications?: boolean | null
+          created_at?: string
+          id?: string
+          marketing_emails?: boolean | null
+          order_updates?: boolean | null
+          product_updates?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       partner_drivers: {
         Row: {
@@ -1120,6 +1175,50 @@ export type Database = {
           vehicle_class?: string
         }
         Relationships: []
+      }
+      product_moderation_logs: {
+        Row: {
+          action: string
+          admin_notes: string | null
+          changes_made: Json | null
+          created_at: string
+          id: string
+          moderator_id: string
+          new_status: string
+          previous_status: string | null
+          product_id: string
+        }
+        Insert: {
+          action: string
+          admin_notes?: string | null
+          changes_made?: Json | null
+          created_at?: string
+          id?: string
+          moderator_id: string
+          new_status: string
+          previous_status?: string | null
+          product_id: string
+        }
+        Update: {
+          action?: string
+          admin_notes?: string | null
+          changes_made?: Json | null
+          created_at?: string
+          id?: string
+          moderator_id?: string
+          new_status?: string
+          previous_status?: string | null
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_moderation_logs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
