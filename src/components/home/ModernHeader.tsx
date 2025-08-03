@@ -84,32 +84,6 @@ export const ModernHeader = ({
     getBatteryInfo();
   }, []);
 
-  // Status indicators component
-  const StatusIndicators = () => (
-    <div className="flex items-center gap-2">
-      {/* Connection indicator */}
-      <div className="flex items-center gap-1">
-        {isSlowConnection ? (
-          <WifiOff className="h-3 w-3 text-yellow-500" />
-        ) : (
-          <Wifi className="h-3 w-3 text-green-500" />
-        )}
-        <Signal className="h-3 w-3 text-foreground/60" />
-      </div>
-      
-      {/* Battery indicator */}
-      <div className="flex items-center gap-1">
-        <Battery 
-          className={`h-3 w-3 ${
-            batteryLevel > 50 ? 'text-green-500' : 
-            batteryLevel > 20 ? 'text-yellow-500' : 'text-red-500'
-          }`} 
-        />
-        <span className="text-xs text-foreground/60">{batteryLevel}%</span>
-        {isCharging && <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />}
-      </div>
-    </div>
-  );
   return (
     <div className="relative overflow-hidden">
       {/* Fond moderne avec gradient subtil */}
@@ -119,42 +93,19 @@ export const ModernHeader = ({
           background: 'linear-gradient(135deg, hsl(0, 0%, 100%) 0%, hsl(210, 40%, 98%) 100%)'
         }}
       >
-        {/* Status bar - like mobile interface */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-xs font-medium text-foreground">
-            {new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-          </div>
-          <StatusIndicators />
-        </div>
 
         {/* Structure en 2 colonnes améliorée */}
         <div className="flex items-center justify-between">
           {/* Salutation personnalisée et localisation */}
           <div className="flex-1">
-            <div className="mb-2">
-              <p className="text-foreground font-bold text-xl tracking-tight animate-fade-in">
-                {getGreeting()}, {fullName.split(' ')[0]}!
+            <p className="text-foreground font-bold text-lg">
+              {getGreeting()}, {fullName.split(' ')[0]}
+            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <MapPin className="h-4 w-4 text-primary" />
+              <p className="text-muted-foreground text-sm">
+                {geolocation.loading ? t('common.loading') : t('city.kinshasa')}
               </p>
-            </div>
-            <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: '100ms' }}>
-              <div className="p-1 bg-primary/10 rounded-lg">
-                <MapPin className="h-3 w-3 text-primary" />
-              </div>
-              <p className="text-muted-foreground text-sm font-medium">
-                {geolocation.loading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="w-3 h-3 border border-primary border-t-transparent rounded-full animate-spin" />
-                    {t('common.loading')}
-                  </span>
-                ) : (
-                  currentAddress
-                )}
-              </p>
-              {geolocation.isInKinshasa && (
-                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-                  Zone active
-                </span>
-              )}
             </div>
           </div>
           

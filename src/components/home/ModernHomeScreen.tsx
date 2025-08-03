@@ -51,7 +51,7 @@ export const ModernHomeScreen = ({
         hasNotifications={true}
       />
       
-      <div className="space-y-6 pb-24">
+      <div className="space-y-4 pb-24">
         <ServiceGrid onServiceSelect={onServiceSelect} />
         
         <UniversalSearchBar 

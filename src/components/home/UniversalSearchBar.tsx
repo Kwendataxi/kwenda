@@ -108,31 +108,7 @@ export const UniversalSearchBar = ({
   };
 
   return (
-    <div className="px-4 mb-8">
-      {/* Quick access buttons */}
-      <div className="flex items-center gap-3 mb-4">
-        <button 
-          onClick={() => {
-            onTransportSelect();
-            onSearch("Position actuelle");
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl font-medium text-sm hover:bg-primary/15 transition-colors"
-        >
-          <Navigation className="h-4 w-4" />
-          Près de moi
-        </button>
-        <button 
-          onClick={() => {
-            onTransportSelect();
-            onSearch("Gombe");
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-secondary/10 text-secondary-foreground rounded-xl font-medium text-sm hover:bg-secondary/15 transition-colors"
-        >
-          <Zap className="h-4 w-4" />
-          Zone VIP
-        </button>
-      </div>
-
+    <div className="px-4 mb-6">
       <div className="relative">
         <form onSubmit={handleSubmit} className="relative group">
           <div className="absolute left-5 top-1/2 transform -translate-y-1/2 z-10">
@@ -142,21 +118,17 @@ export const UniversalSearchBar = ({
           </div>
           <Input
             type="text"
-            placeholder={dynamicPlaceholders[currentPlaceholder]}
+            placeholder="Où allez-vous ?"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={handleFocus}
             onBlur={handleBlur}
-            className={`pl-14 pr-5 h-16 bg-white border-0 rounded-2xl text-base placeholder:text-muted-foreground 
-              transition-all duration-300 ${
+            className={`pl-12 pr-5 h-12 bg-white border-0 rounded-xl text-base placeholder:text-muted-foreground 
+              transition-all duration-200 ${
                 focused 
-                  ? 'ring-2 ring-primary/30 shadow-lg scale-[1.02]' 
-                  : 'ring-1 ring-grey-200 hover:ring-grey-300'
+                  ? 'ring-2 ring-primary/30 shadow-md' 
+                  : 'ring-1 ring-grey-200'
               }`}
-            style={{ 
-              boxShadow: focused ? 'var(--shadow-elegant)' : 'var(--shadow-md)',
-              background: 'var(--gradient-card)'
-            }}
           />
           {/* Effet de brillance amélioré */}
           <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/20 to-transparent 

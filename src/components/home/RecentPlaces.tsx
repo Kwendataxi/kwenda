@@ -56,81 +56,37 @@ export const RecentPlaces = ({ onPlaceSelect }: RecentPlacesProps) => {
   }
 
   return (
-    <div className="px-4 mb-8">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-primary/10 to-primary/20 rounded-xl">
-            <Navigation className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-foreground">Lieux récents</h3>
-            <p className="text-xs text-muted-foreground">Vos destinations fréquentes</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <TrendingUp className="h-3 w-3" />
-          <span>{displayPlaces.length} lieux</span>
-        </div>
-      </div>
+    <div className="px-4 mb-6">
+      <h3 className="text-lg font-semibold text-foreground mb-4">Lieux récents</h3>
       
-      <div className="space-y-3">
-        {displayPlaces.map((place, index) => (
+      <div className="space-y-2">
+        {displayPlaces.map((place) => (
           <Card 
             key={place.id}
-            className="group p-4 cursor-pointer border-0 rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] animate-fade-in"
+            className="p-3 cursor-pointer border-0 rounded-xl hover:shadow-md transition-all duration-200"
             onClick={() => handlePlaceClick(place)}
-            style={{ 
-              boxShadow: 'var(--shadow-sm)',
-              background: 'var(--gradient-card)',
-              animationDelay: `${index * 50}ms`
-            }}
           >
-            <div className="flex items-center gap-4">
-              <div 
-                className="relative w-12 h-12 bg-gradient-to-br from-primary/10 to-primary/20 rounded-xl flex items-center justify-center border border-primary/10 group-hover:from-primary/20 group-hover:to-primary/30 transition-all duration-300"
-              >
-                {place.place_type === 'home' && <Home className="h-5 w-5 text-primary" />}
-                {place.place_type === 'work' && <Building className="h-5 w-5 text-primary" />}
-                {(place.place_type === 'recent' || place.place_type === 'favorite') && <MapPin className="h-5 w-5 text-primary" />}
-                
-                {/* Badge de popularité */}
-                {place.usage_count > 5 && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-secondary to-secondary-light rounded-full flex items-center justify-center">
-                    <Star className="h-2 w-2 text-white fill-current" />
-                  </div>
-                )}
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                {place.place_type === 'home' && <Home className="h-4 w-4 text-primary" />}
+                {place.place_type === 'work' && <Building className="h-4 w-4 text-primary" />}
+                {(place.place_type === 'recent' || place.place_type === 'favorite') && <MapPin className="h-4 w-4 text-primary" />}
               </div>
               
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-                    {place.name}
-                  </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium text-foreground truncate">{place.name}</h3>
                   {place.place_type === 'home' && (
-                    <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full font-medium">
+                    <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded font-medium">
                       Domicile
                     </span>
                   )}
                   {place.place_type === 'work' && (
-                    <span className="px-2 py-0.5 bg-secondary/10 text-secondary text-xs rounded-full font-medium">
+                    <span className="px-2 py-0.5 bg-secondary/10 text-secondary text-xs rounded font-medium">
                       Bureau
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground truncate">{place.address}</p>
-              </div>
-              
-              <div className="text-right flex flex-col items-end gap-1">
-                <div className="flex items-center gap-1 px-2 py-1 bg-primary/5 rounded-lg">
-                  <Clock className="h-3 w-3 text-primary" />
-                  <span className="text-xs font-medium text-primary">
-                    {place.usage_count}x
-                  </span>
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  {place.usage_count > 10 ? 'Très fréquent' : 
-                   place.usage_count > 5 ? 'Fréquent' : 'Récent'}
-                </span>
               </div>
             </div>
           </Card>
