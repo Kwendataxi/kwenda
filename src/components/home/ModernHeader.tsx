@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
-import kwendaLogo from '@/assets/kwenda-logo.png';
+import kwendaKLogo from '@/assets/kwenda-k-logo.png';
 
 interface ModernHeaderProps {
   hasNotifications?: boolean;
@@ -64,9 +64,9 @@ export const ModernHeader = ({
           {/* Logo et salutation */}
           <div className="flex items-center gap-3 flex-1">
             <img 
-              src={kwendaLogo} 
-              alt="Kwenda Taxi" 
-              className="h-8 w-auto"
+              src={kwendaKLogo} 
+              alt="Kwenda" 
+              className="h-10 w-10"
             />
             <div>
               <div className="mb-1">
