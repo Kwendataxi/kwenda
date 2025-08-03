@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { DriverValidationManager } from '@/components/partner/DriverValidationManager';
 import { PartnerDriverManager } from '@/components/partner/PartnerDriverManager';
+import { usePartnerStats } from '@/hooks/usePartnerStats';
+import { usePartnerFinances } from '@/hooks/usePartnerFinances';
+import { usePartnerActivity } from '@/hooks/usePartnerActivity';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -50,28 +53,11 @@ import { format } from 'date-fns';
 const PartnerApp = () => {
   const [currentView, setCurrentView] = useState('dashboard');
   const [dateRange, setDateRange] = useState<Date | undefined>(new Date());
-  const [companyCredits, setCompanyCredits] = useState(50000);
-  const [realTimeData, setRealTimeData] = useState({
-    activeDrivers: 18,
-    ongoingRides: 7,
-    todayRevenue: 245600,
-    monthlySpent: 485600,
-    totalFleet: 24,
-    availableVehicles: 19
-  });
-
-  // Simulate real-time updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRealTimeData(prev => ({
-        ...prev,
-        activeDrivers: Math.max(1, prev.activeDrivers + (Math.random() > 0.5 ? 1 : -1)),
-        ongoingRides: Math.max(0, prev.ongoingRides + (Math.random() > 0.7 ? 1 : -1)),
-        todayRevenue: prev.todayRevenue + Math.floor(Math.random() * 5000)
-      }));
-    }, 15000);
-    return () => clearInterval(interval);
-  }, []);
+  
+  // Use real data hooks
+  const { stats, loading: statsLoading } = usePartnerStats();
+  const { finances, loading: financesLoading, topUpCredits } = usePartnerFinances();
+  const { activities, loading: activitiesLoading } = usePartnerActivity();
 
   const renderDashboard = () => (
     <div className="min-h-screen bg-background">
@@ -91,7 +77,7 @@ const PartnerApp = () => {
               </div>
               <span className="text-body-md font-semibold text-card-foreground">Chauffeurs actifs</span>
             </div>
-            <p className="text-display-sm text-card-foreground font-bold">{realTimeData.activeDrivers}</p>
+            <p className="text-display-sm text-card-foreground font-bold">{statsLoading ? '...' : stats.activeDrivers}</p>
             <p className="text-caption text-secondary font-medium bg-secondary-light px-2 py-1 rounded-md inline-block mt-1">
               <Activity className="w-3 h-3 inline mr-1" />
               En temps réel
@@ -105,7 +91,7 @@ const PartnerApp = () => {
               </div>
               <span className="text-body-md font-semibold text-card-foreground">Courses en cours</span>
             </div>
-            <p className="text-display-sm text-card-foreground font-bold">{realTimeData.ongoingRides}</p>
+            <p className="text-display-sm text-card-foreground font-bold">{statsLoading ? '...' : stats.ongoingRides}</p>
             <p className="text-caption text-green-600 font-medium bg-green-50 px-2 py-1 rounded-md inline-block mt-1">
               <TrendingUp className="w-3 h-3 inline mr-1" />
               +12%
@@ -119,7 +105,7 @@ const PartnerApp = () => {
               </div>
               <span className="text-body-md font-semibold text-card-foreground">Revenus aujourd'hui</span>
             </div>
-            <p className="text-heading-lg text-card-foreground font-bold">{realTimeData.todayRevenue.toLocaleString()}</p>
+            <p className="text-heading-lg text-card-foreground font-bold">{statsLoading ? '...' : Math.round(stats.todayRevenue).toLocaleString()} CDF</p>
             <p className="text-caption text-green-600 font-medium bg-green-50 px-2 py-1 rounded-md inline-block mt-1">
               <TrendingUp className="w-3 h-3 inline mr-1" />
               +8% vs hier
@@ -133,7 +119,7 @@ const PartnerApp = () => {
               </div>
               <span className="text-body-md font-semibold text-card-foreground">Crédit entreprise</span>
             </div>
-            <p className="text-display-sm text-card-foreground font-bold">{companyCredits.toLocaleString()}</p>
+            <p className="text-display-sm text-card-foreground font-bold">{financesLoading ? '...' : finances.companyCredits.toLocaleString()} CDF</p>
             <p className="text-caption text-yellow-600 font-medium bg-yellow-50 px-2 py-1 rounded-md inline-block mt-1">
               CFA disponible
             </p>
@@ -153,18 +139,18 @@ const PartnerApp = () => {
               <div>
                 <p className="text-body-sm text-muted-foreground">Véhicules disponibles</p>
                 <p className="text-heading-md font-bold text-card-foreground">
-                  {realTimeData.availableVehicles} / {realTimeData.totalFleet}
+                  {statsLoading ? '...' : `${stats.availableVehicles} / ${stats.totalFleet}`}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-body-sm text-muted-foreground">Taux d'utilisation</p>
                 <p className="text-heading-md font-bold text-primary">
-                  {Math.round(((realTimeData.totalFleet - realTimeData.availableVehicles) / realTimeData.totalFleet) * 100)}%
+                  {statsLoading ? '...' : `${stats.totalFleet > 0 ? Math.round(((stats.totalFleet - stats.availableVehicles) / stats.totalFleet) * 100) : 0}%`}
                 </p>
               </div>
             </div>
             <Progress 
-              value={((realTimeData.totalFleet - realTimeData.availableVehicles) / realTimeData.totalFleet) * 100} 
+              value={stats.totalFleet > 0 ? ((stats.totalFleet - stats.availableVehicles) / stats.totalFleet) * 100 : 0} 
               className="h-2"
             />
           </CardContent>
@@ -214,22 +200,58 @@ const PartnerApp = () => {
         <div className="mb-20">
           <h2 className="text-heading-lg text-card-foreground mb-4">Activité récente</h2>
           <div className="space-y-3">
-            {[
-              { action: "Nouveau trajet", user: "Jean Baptiste", time: "Il y a 5 min", icon: Car, color: "bg-primary" },
-              { action: "Employé ajouté", user: "Marie Kouadio", time: "Il y a 2h", icon: UserPlus, color: "bg-accent" },
-              { action: "Facture payée", user: "Facture #FB-001", time: "Hier", icon: CreditCard, color: "bg-secondary" },
-            ].map((activity, index) => (
-              <div key={index} className="card-floating p-4 flex items-center gap-4 hover:shadow-lg transition-all duration-200">
-                <div className={`w-12 h-12 ${activity.color} rounded-xl flex items-center justify-center shadow-sm`}>
-                  <activity.icon className="h-6 w-6 text-white" />
-                </div>
+            {activitiesLoading ? (
+              <div className="card-floating p-4 flex items-center gap-4">
+                <div className="w-12 h-12 bg-grey-200 rounded-xl animate-pulse"></div>
                 <div className="flex-1">
-                  <p className="text-body-md font-semibold text-card-foreground">{activity.action}</p>
-                  <p className="text-body-sm text-muted-foreground">{activity.user}</p>
+                  <div className="h-4 bg-grey-200 rounded mb-2 animate-pulse"></div>
+                  <div className="h-3 bg-grey-200 rounded w-2/3 animate-pulse"></div>
                 </div>
-                <span className="text-caption text-muted-foreground bg-grey-100 px-2 py-1 rounded-md">{activity.time}</span>
               </div>
-            ))}
+            ) : activities.length === 0 ? (
+              <div className="card-floating p-6 text-center">
+                <p className="text-muted-foreground">Aucune activité récente</p>
+              </div>
+            ) : (
+              activities.slice(0, 5).map((activity) => {
+                const getIcon = () => {
+                  switch (activity.icon) {
+                    case 'Car': return Car;
+                    case 'UserPlus': return UserPlus;
+                    case 'CreditCard': return CreditCard;
+                    case 'Package': return Receipt;
+                    default: return Activity;
+                  }
+                };
+                const IconComponent = getIcon();
+                
+                const getTimeAgo = (timestamp: string) => {
+                  const now = new Date().getTime();
+                  const activityTime = new Date(timestamp).getTime();
+                  const diffInMinutes = Math.floor((now - activityTime) / (1000 * 60));
+                  
+                  if (diffInMinutes < 1) return 'À l\'instant';
+                  if (diffInMinutes < 60) return `Il y a ${diffInMinutes} min`;
+                  if (diffInMinutes < 1440) return `Il y a ${Math.floor(diffInMinutes / 60)}h`;
+                  return `Il y a ${Math.floor(diffInMinutes / 1440)} jour(s)`;
+                };
+
+                return (
+                  <div key={activity.id} className="card-floating p-4 flex items-center gap-4 hover:shadow-lg transition-all duration-200">
+                    <div className={`w-12 h-12 ${activity.color} rounded-xl flex items-center justify-center shadow-sm`}>
+                      <IconComponent className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-body-md font-semibold text-card-foreground">{activity.title}</p>
+                      <p className="text-body-sm text-muted-foreground">{activity.description}</p>
+                    </div>
+                    <span className="text-caption text-muted-foreground bg-grey-100 px-2 py-1 rounded-md">
+                      {getTimeAgo(activity.timestamp)}
+                    </span>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>
@@ -278,12 +300,12 @@ const PartnerApp = () => {
           <Card className="card-floating border-0 p-4 text-center">
             <Car className="h-6 w-6 text-primary mx-auto mb-2" />
             <p className="text-caption text-muted-foreground">Total</p>
-            <p className="text-heading-sm font-bold text-card-foreground">{realTimeData.totalFleet}</p>
+            <p className="text-heading-sm font-bold text-card-foreground">{statsLoading ? '...' : stats.totalFleet}</p>
           </Card>
           <Card className="card-floating border-0 p-4 text-center">
             <CheckCircle className="h-6 w-6 text-green-500 mx-auto mb-2" />
             <p className="text-caption text-muted-foreground">Disponibles</p>
-            <p className="text-heading-sm font-bold text-card-foreground">{realTimeData.availableVehicles}</p>
+            <p className="text-heading-sm font-bold text-card-foreground">{statsLoading ? '...' : stats.availableVehicles}</p>
           </Card>
           <Card className="card-floating border-0 p-4 text-center">
             <AlertTriangle className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
@@ -622,13 +644,13 @@ const PartnerApp = () => {
           </CardHeader>
           <CardContent>
             <div className="text-center mb-4">
-              <p className="text-display-xl font-bold text-primary">{companyCredits.toLocaleString()}</p>
+              <p className="text-display-xl font-bold text-primary">{finances.companyCredits.toLocaleString()}</p>
               <p className="text-body-md text-muted-foreground">CFA disponible</p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center">
                 <p className="text-caption text-muted-foreground">Utilisé ce mois</p>
-                <p className="text-heading-sm font-bold text-card-foreground">485,600 CFA</p>
+                <p className="text-heading-sm font-bold text-card-foreground">{finances.monthlySpent.toLocaleString()} CFA</p>
               </div>
               <div className="text-center">
                 <p className="text-caption text-muted-foreground">Économies réalisées</p>
@@ -654,7 +676,7 @@ const PartnerApp = () => {
                   key={index}
                   variant="outline"
                   className="h-20 flex-col gap-2 rounded-xl border-grey-200 hover:border-primary hover:bg-primary-light transition-all duration-300"
-                  onClick={() => setCompanyCredits(prev => prev + option.amount + option.bonus)}
+                  onClick={() => topUpCredits(option.amount + option.bonus)}
                 >
                   <span className="text-heading-sm font-bold text-card-foreground">
                     {option.amount.toLocaleString()} CFA
