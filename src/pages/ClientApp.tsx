@@ -41,10 +41,9 @@ import {
 } from 'lucide-react';
 
 // Transport components
-import LocationInput from '@/components/transport/LocationInput';
-import YangoStyleVehicleSelection from '@/components/transport/YangoStyleVehicleSelection';
-import BookingFlow from '@/components/transport/BookingFlow';
-import InteractiveMap from '@/components/transport/InteractiveMap';
+import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
+import TripChat from '@/components/transport/TripChat';
+import { useEnhancedTransportBooking } from '@/hooks/useEnhancedTransportBooking';
 
 // Delivery components
 import ModernDeliveryInterface from '@/components/delivery/ModernDeliveryInterface';
@@ -117,12 +116,11 @@ const ClientApp = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   // Transport states
-  const [transportStep, setTransportStep] = useState<'search' | 'selection' | 'booking'>('search');
-  const [pickupLocation, setPickupLocation] = useState<Location | null>(null);
-  const [destinationLocation, setDestinationLocation] = useState<Location | null>(null);
-  const [selectedVehicle, setSelectedVehicle] = useState<(Vehicle & { price: number }) | null>(null);
-  const [pickupInput, setPickupInput] = useState('');
-  const [destinationInput, setDestinationInput] = useState('');
+  const [activeBooking, setActiveBooking] = useState<any>(null);
+  const [isTripChatOpen, setIsTripChatOpen] = useState(false);
+  
+  // Enhanced transport booking hook
+  const { createBooking, loading: bookingLoading } = useEnhancedTransportBooking();
 
   // Delivery states  
   const [deliveryStep, setDeliveryStep] = useState<'interface' | 'tracking'>('interface');
@@ -320,11 +318,8 @@ const ClientApp = () => {
 
   const handleServiceSelect = (service: string) => {
     setServiceType(service);
-    // Change currentView to show the service directly
     setCurrentView('service');
-    if (service === 'transport') {
-      setTransportStep('search');
-    } else if (service === 'delivery') {
+    if (service === 'delivery') {
       setDeliveryStep('interface');
     } else if (service === 'marketplace') {
       setMarketplaceTab('explore');
@@ -361,201 +356,43 @@ const ClientApp = () => {
     />
   );
 
-  const calculateDistance = (pickup: Location, destination: Location) => {
-    const R = 6371; // Radius of Earth in km
-    const dLat = (destination.coordinates[1] - pickup.coordinates[1]) * Math.PI / 180;
-    const dLon = (destination.coordinates[0] - pickup.coordinates[0]) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(pickup.coordinates[1] * Math.PI / 180) * Math.cos(destination.coordinates[1] * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  };
-
-  const handleLocationSelect = (location: Location, type: 'pickup' | 'destination') => {
-    if (type === 'pickup') {
-      setPickupLocation(location);
-      setPickupInput(location.address);
-    } else {
-      setDestinationLocation(location);
-      setDestinationInput(location.address);
-    }
-
-    // Automatically move to vehicle selection if both locations are set
-    if ((type === 'pickup' && destinationLocation) || (type === 'destination' && pickupLocation)) {
-      setTransportStep('selection');
-    }
-  };
-
-  const handleVehicleSelect = (vehicle: Vehicle & { price: number }) => {
-    setSelectedVehicle(vehicle);
-    setTransportStep('booking');
-  };
-
-  const handleBookingComplete = () => {
-    // Reset state and show success
-    setTransportStep('search');
-    setPickupLocation(null);
-    setDestinationLocation(null);
-    setSelectedVehicle(null);
-    setPickupInput('');
-    setDestinationInput('');
-    
-    // Could show a success toast here
-    console.log('Trajet terminé avec succès!');
-  };
-
-  const handleBookingCancel = () => {
-    if (transportStep === 'booking') {
-      setTransportStep('selection');
-    } else {
-      setTransportStep('search');
-      setSelectedVehicle(null);
+  const handleBookingRequest = async (bookingData: any) => {
+    try {
+      setIsLoading(true);
+      const booking = await createBooking(bookingData);
+      if (booking) {
+        setActiveBooking(booking);
+        setIsTripChatOpen(true);
+        toast({
+          title: "Réservation créée",
+          description: "Recherche d'un chauffeur en cours...",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer la réservation",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const renderTransportService = () => {
-    if (transportStep === 'booking' && pickupLocation && destinationLocation && selectedVehicle) {
-      const distance = calculateDistance(pickupLocation, destinationLocation);
-      return (
-        <BookingFlow
-          pickup={pickupLocation}
-          destination={destinationLocation}
-          selectedVehicle={selectedVehicle}
-          distance={distance}
-          onBookingComplete={handleBookingComplete}
-          onCancel={handleBookingCancel}
-        />
-      );
-    }
-
-    if (transportStep === 'selection' && pickupLocation && destinationLocation) {
-      const distance = calculateDistance(pickupLocation, destinationLocation);
-      return (
-        <div className="space-y-6">
-          <div className="flex items-center gap-4 mb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setTransportStep('search')}
-              className="rounded-xl"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h2 className="text-lg font-semibold text-grey-900">Choisir un véhicule</h2>
-          </div>
-
-          <InteractiveMap
-            pickup={pickupLocation}
-            destination={destinationLocation}
-            showRoute={true}
-            className="h-[200px]"
-          />
-
-              <YangoStyleVehicleSelection
-                distance={distance}
-                onVehicleSelect={handleVehicleSelect}
-                selectedVehicleId={selectedVehicle?.id}
-              />
-        </div>
-      );
-    }
-
-    // Default search view
     return (
-      <div className="space-y-6">
-        {/* Location inputs */}
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-grey-900 mb-2 block">Lieu de prise en charge</label>
-            <LocationInput
-              placeholder="D'où partez-vous ?"
-              value={pickupInput}
-              onChange={(location) => handleLocationSelect(location, 'pickup')}
-              onInputChange={setPickupInput}
-            />
-          </div>
-          
-          <div>
-            <label className="text-sm font-medium text-grey-900 mb-2 block">Destination</label>
-            <LocationInput
-              placeholder="Où allez-vous ?"
-              value={destinationInput}
-              onChange={(location) => handleLocationSelect(location, 'destination')}
-              onInputChange={setDestinationInput}
-            />
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="flex gap-3">
-          <button 
-            onClick={() => handleLocationSelect({
-              address: "Commune de Kalamu, Kinshasa",
-              coordinates: [-15.3094, 4.3076],
-              type: 'home'
-            }, 'pickup')}
-            className="flex-1 flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm border border-grey-100 hover:border-grey-200 transition-colors"
-          >
-            <div className="w-8 h-8 bg-grey-100 rounded-lg flex items-center justify-center">
-              <Home className="h-4 w-4 text-grey-600" />
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-medium text-grey-900">Domicile</p>
-              <p className="text-xs text-grey-500">Kalamu</p>
-            </div>
-          </button>
-          <button 
-            onClick={() => handleLocationSelect({
-              address: "Commune de Gombe, Kinshasa",
-              coordinates: [-15.3094, 4.3276],
-              type: 'work'
-            }, 'pickup')}
-            className="flex-1 flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm border border-grey-100 hover:border-grey-200 transition-colors"
-          >
-            <div className="w-8 h-8 bg-grey-100 rounded-lg flex items-center justify-center">
-              <Building2 className="h-4 w-4 text-grey-600" />
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-medium text-grey-900">Bureau</p>
-              <p className="text-xs text-grey-500">Gombe</p>
-            </div>
-          </button>
-        </div>
-
-        {/* Interactive Map */}
-        <InteractiveMap
-          pickup={pickupLocation}
-          destination={destinationLocation}
-          onLocationSelect={(location) => {
-            if (!pickupLocation) {
-              handleLocationSelect(location, 'pickup');
-            } else if (!destinationLocation) {
-              handleLocationSelect(location, 'destination');
-            }
-          }}
-          className="h-[240px]"
-        />
-
-        {/* Continue button - only show if both locations are selected */}
-        {pickupLocation && destinationLocation && (
-          <Button 
-            onClick={() => setTransportStep('selection')}
-            className="w-full h-14 rounded-2xl text-base font-semibold bg-gradient-primary hover:shadow-glow text-white transition-all duration-300"
-          >
-            <Car className="w-5 h-5 mr-2" />
-            Voir les véhicules disponibles
-          </Button>
+      <div className="space-y-4">
+        <ModernTaxiInterface onBookingRequest={handleBookingRequest} />
+        
+        {/* Trip Chat Modal */}
+        {isTripChatOpen && activeBooking && (
+          <TripChat
+            bookingId={activeBooking.id}
+            driverInfo={activeBooking.driver}
+            userType="client"
+            onClose={() => setIsTripChatOpen(false)}
+          />
         )}
-
-        {/* Info card */}
-        <div className="bg-blue-50 rounded-xl p-4">
-          <h4 className="font-semibold text-blue-900 mb-2">🚖 Kwenda Taxi à Kinshasa</h4>
-          <p className="text-sm text-blue-700">
-            Service de transport fiable et économique. Tarifs transparents, chauffeurs vérifiés.
-          </p>
-        </div>
       </div>
     );
   };
@@ -1049,15 +886,7 @@ const ClientApp = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
-                          setCurrentView('home');
-                          setTransportStep('search');
-                          setPickupLocation(null);
-                          setDestinationLocation(null);
-                          setSelectedVehicle(null);
-                          setPickupInput('');
-                          setDestinationInput('');
-                        }}
+                        onClick={() => setCurrentView('home')}
                         className="rounded-xl"
                       >
                         <ArrowLeft className="h-4 w-4" />
