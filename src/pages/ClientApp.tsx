@@ -72,6 +72,9 @@ import { ChatInterface } from '@/components/marketplace/ChatInterface';
 import { OrderManagement } from '@/components/marketplace/OrderManagement';
 import { CreateOrderDialog } from '@/components/marketplace/CreateOrderDialog';
 
+// Testing components
+import { TestDataGenerator } from '@/components/testing/TestDataGenerator';
+
 // Hooks
 import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
@@ -284,6 +287,7 @@ const ClientApp = () => {
         setIsProductDetailsOpen(true);
       }}
       onMarketplaceViewAll={handleMarketplaceViewAll}
+      onNavigateToTestData={() => setCurrentView('test-data')}
     />
   );
 
@@ -879,6 +883,20 @@ const ClientApp = () => {
                 }}
                 onCancel={() => setCurrentView('payment')}
               />
+            );
+          case 'test-data':
+            return (
+              <div className="p-4">
+                <Button 
+                  onClick={() => setCurrentView('home')} 
+                  variant="outline" 
+                  className="mb-4"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Retour
+                </Button>
+                <TestDataGenerator />
+              </div>
             );
           default:
             return renderHome();

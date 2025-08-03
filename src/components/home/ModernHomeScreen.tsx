@@ -5,6 +5,8 @@ import { UniversalSearchBar } from './UniversalSearchBar';
 import { RecentPlaces } from './RecentPlaces';
 import { MarketplacePreview } from './MarketplacePreview';
 import { ModernBottomNavigation } from './ModernBottomNavigation';
+import { Button } from '@/components/ui/button';
+import { Database } from 'lucide-react';
 
 interface ModernHomeScreenProps {
   onServiceSelect: (service: string) => void;
@@ -12,6 +14,7 @@ interface ModernHomeScreenProps {
   featuredProducts: any[];
   onProductSelect: (product: any) => void;
   onMarketplaceViewAll: () => void;
+  onNavigateToTestData?: () => void;
 }
 
 export const ModernHomeScreen = ({
@@ -19,7 +22,8 @@ export const ModernHomeScreen = ({
   onSearch,
   featuredProducts,
   onProductSelect,
-  onMarketplaceViewAll
+  onMarketplaceViewAll,
+  onNavigateToTestData
 }: ModernHomeScreenProps) => {
   const [activeTab, setActiveTab] = useState('home');
 
@@ -71,6 +75,20 @@ export const ModernHomeScreen = ({
           onProductSelect={onProductSelect}
           onViewAll={onMarketplaceViewAll}
         />
+        
+        {/* Test Data Generator Button */}
+        {onNavigateToTestData && (
+          <div className="px-4">
+            <Button 
+              onClick={onNavigateToTestData}
+              variant="outline"
+              className="w-full"
+            >
+              <Database className="w-4 h-4 mr-2" />
+              Générer des données de test
+            </Button>
+          </div>
+        )}
       </div>
 
       <ModernBottomNavigation
