@@ -375,6 +375,132 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_locations: {
+        Row: {
+          accuracy: number | null
+          created_at: string
+          driver_id: string
+          heading: number | null
+          id: string
+          is_available: boolean
+          is_online: boolean
+          last_ping: string
+          latitude: number
+          longitude: number
+          speed: number | null
+          updated_at: string
+          vehicle_class: string | null
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string
+          driver_id: string
+          heading?: number | null
+          id?: string
+          is_available?: boolean
+          is_online?: boolean
+          last_ping?: string
+          latitude: number
+          longitude: number
+          speed?: number | null
+          updated_at?: string
+          vehicle_class?: string | null
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string
+          driver_id?: string
+          heading?: number | null
+          id?: string
+          is_available?: boolean
+          is_online?: boolean
+          last_ping?: string
+          latitude?: number
+          longitude?: number
+          speed?: number | null
+          updated_at?: string
+          vehicle_class?: string | null
+        }
+        Relationships: []
+      }
+      driver_profiles: {
+        Row: {
+          created_at: string
+          documents: Json | null
+          id: string
+          insurance_expiry: string
+          insurance_number: string
+          is_active: boolean
+          license_expiry: string
+          license_number: string
+          profile_photo_url: string | null
+          rating_average: number | null
+          rating_count: number | null
+          total_rides: number | null
+          updated_at: string
+          user_id: string
+          vehicle_class: string
+          vehicle_color: string | null
+          vehicle_make: string
+          vehicle_model: string
+          vehicle_photo_url: string | null
+          vehicle_plate: string
+          vehicle_year: number
+          verification_level: string
+          verification_status: string
+        }
+        Insert: {
+          created_at?: string
+          documents?: Json | null
+          id?: string
+          insurance_expiry: string
+          insurance_number: string
+          is_active?: boolean
+          license_expiry: string
+          license_number: string
+          profile_photo_url?: string | null
+          rating_average?: number | null
+          rating_count?: number | null
+          total_rides?: number | null
+          updated_at?: string
+          user_id: string
+          vehicle_class?: string
+          vehicle_color?: string | null
+          vehicle_make: string
+          vehicle_model: string
+          vehicle_photo_url?: string | null
+          vehicle_plate: string
+          vehicle_year: number
+          verification_level?: string
+          verification_status?: string
+        }
+        Update: {
+          created_at?: string
+          documents?: Json | null
+          id?: string
+          insurance_expiry?: string
+          insurance_number?: string
+          is_active?: boolean
+          license_expiry?: string
+          license_number?: string
+          profile_photo_url?: string | null
+          rating_average?: number | null
+          rating_count?: number | null
+          total_rides?: number | null
+          updated_at?: string
+          user_id?: string
+          vehicle_class?: string
+          vehicle_color?: string | null
+          vehicle_make?: string
+          vehicle_model?: string
+          vehicle_photo_url?: string | null
+          vehicle_plate?: string
+          vehicle_year?: number
+          verification_level?: string
+          verification_status?: string
+        }
+        Relationships: []
+      }
       driver_requests: {
         Row: {
           approved_at: string | null
@@ -947,6 +1073,54 @@ export type Database = {
           },
         ]
       }
+      pricing_rules: {
+        Row: {
+          base_price: number
+          city: string
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          minimum_fare: number
+          price_per_km: number
+          price_per_minute: number
+          service_type: string
+          surge_multiplier: number
+          updated_at: string
+          vehicle_class: string
+        }
+        Insert: {
+          base_price?: number
+          city?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          minimum_fare?: number
+          price_per_km?: number
+          price_per_minute?: number
+          service_type?: string
+          surge_multiplier?: number
+          updated_at?: string
+          vehicle_class?: string
+        }
+        Update: {
+          base_price?: number
+          city?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          minimum_fare?: number
+          price_per_km?: number
+          price_per_minute?: number
+          service_type?: string
+          surge_multiplier?: number
+          updated_at?: string
+          vehicle_class?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1181,13 +1355,20 @@ export type Database = {
           created_at: string
           destination: string
           destination_coordinates: Json | null
+          driver_arrived_at: string | null
+          driver_assigned_at: string | null
           driver_id: string | null
           estimated_price: number | null
           id: string
+          intermediate_stops: Json | null
           pickup_coordinates: Json | null
           pickup_location: string
           pickup_time: string | null
           status: string | null
+          surge_multiplier: number | null
+          total_distance: number | null
+          total_duration: number | null
+          trip_started_at: string | null
           updated_at: string
           user_id: string
           vehicle_type: string
@@ -1199,13 +1380,20 @@ export type Database = {
           created_at?: string
           destination: string
           destination_coordinates?: Json | null
+          driver_arrived_at?: string | null
+          driver_assigned_at?: string | null
           driver_id?: string | null
           estimated_price?: number | null
           id?: string
+          intermediate_stops?: Json | null
           pickup_coordinates?: Json | null
           pickup_location: string
           pickup_time?: string | null
           status?: string | null
+          surge_multiplier?: number | null
+          total_distance?: number | null
+          total_duration?: number | null
+          trip_started_at?: string | null
           updated_at?: string
           user_id: string
           vehicle_type: string
@@ -1217,16 +1405,59 @@ export type Database = {
           created_at?: string
           destination?: string
           destination_coordinates?: Json | null
+          driver_arrived_at?: string | null
+          driver_assigned_at?: string | null
           driver_id?: string | null
           estimated_price?: number | null
           id?: string
+          intermediate_stops?: Json | null
           pickup_coordinates?: Json | null
           pickup_location?: string
           pickup_time?: string | null
           status?: string | null
+          surge_multiplier?: number | null
+          total_distance?: number | null
+          total_duration?: number | null
+          trip_started_at?: string | null
           updated_at?: string
           user_id?: string
           vehicle_type?: string
+        }
+        Relationships: []
+      }
+      trip_messages: {
+        Row: {
+          booking_id: string
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          message_type: string
+          metadata: Json | null
+          sender_id: string
+          sender_type: string
+        }
+        Insert: {
+          booking_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message_type?: string
+          metadata?: Json | null
+          sender_id: string
+          sender_type: string
+        }
+        Update: {
+          booking_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message_type?: string
+          metadata?: Json | null
+          sender_id?: string
+          sender_type?: string
         }
         Relationships: []
       }
