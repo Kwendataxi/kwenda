@@ -225,19 +225,6 @@ const ConversationsList: React.FC<{
     );
   }
 
-  if (conversations.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-        <MessageCircle className="h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold text-foreground mb-2">
-          Aucune conversation
-        </h3>
-        <p className="text-muted-foreground text-sm">
-          Vos conversations apparaîtront ici une fois que vous aurez contacté des vendeurs.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-2 p-2">

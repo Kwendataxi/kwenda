@@ -76,19 +76,6 @@ export const ModernHomeScreen = ({
           onViewAll={onMarketplaceViewAll}
         />
         
-        {/* Test Data Generator Button */}
-        {onNavigateToTestData && (
-          <div className="px-4">
-            <Button 
-              onClick={onNavigateToTestData}
-              variant="outline"
-              className="w-full"
-            >
-              <Database className="w-4 h-4 mr-2" />
-              Générer des données de test
-            </Button>
-          </div>
-        )}
       </div>
 
       <ModernBottomNavigation

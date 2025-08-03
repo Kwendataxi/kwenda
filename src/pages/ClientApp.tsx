@@ -1064,20 +1064,6 @@ const ClientApp = () => {
                 </div>
               </div>
             );
-          case 'test-data':
-            return (
-              <div className="p-4">
-                <Button 
-                  onClick={() => setCurrentView('home')} 
-                  variant="outline" 
-                  className="mb-4"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Retour
-                </Button>
-                <TestDataGenerator />
-              </div>
-            );
           default:
             return renderHome();
         }
