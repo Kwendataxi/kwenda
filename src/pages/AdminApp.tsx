@@ -13,6 +13,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { ZoneManagementDashboard } from '@/components/admin/ZoneManagementDashboard';
 import { DriverFinancialManager } from '@/components/admin/DriverFinancialManager';
 import { AdvancedSupportCenter } from '@/components/admin/AdvancedSupportCenter';
+import { ResponsiveAdminLayout } from '@/components/admin/ResponsiveAdminLayout';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   LayoutDashboard,
   Users, 
@@ -66,10 +68,16 @@ const AdminApp = () => {
   const [currentView, setCurrentView] = useState('dashboard');
   const [activeTab, setActiveTab] = useState('overview');
   const [dateRange, setDateRange] = useState<Date | undefined>(new Date());
+  const isMobile = useIsMobile();
+  
   const [realTimeStats, setRealTimeStats] = useState({
+    totalUsers: 15420,
+    activeDrivers: 342,
+    todayRevenue: 2850000,
+    activeRides: 89,
+    marketplaceOrders: 156,
     activeUsers: 2847,
     todayRides: 1293,
-    todayRevenue: 4200000,
     incidents: 12,
     onlineDrivers: 247,
     pendingModeration: 8,
@@ -90,36 +98,8 @@ const AdminApp = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const renderDashboard = () => (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-primary text-primary-foreground p-6 border-b shadow-elegant">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-display-lg text-white mb-2">Administration NTA TECH</h1>
-            <p className="text-body-lg text-primary-foreground/90">Plateforme de gestion centralisée</p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 rounded-xl">
-              <Settings className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="p-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-8 rounded-xl bg-grey-50">
-            <TabsTrigger value="overview" className="rounded-lg">Vue d'ensemble</TabsTrigger>
-            <TabsTrigger value="users" className="rounded-lg">Utilisateurs</TabsTrigger>
-            <TabsTrigger value="zones" className="rounded-lg">Zones</TabsTrigger>
-            <TabsTrigger value="drivers" className="rounded-lg">Chauffeurs</TabsTrigger>
-            <TabsTrigger value="marketplace" className="rounded-lg">Marketplace</TabsTrigger>
-            <TabsTrigger value="finance" className="rounded-lg">Finance</TabsTrigger>
-            <TabsTrigger value="support" className="rounded-lg">Support</TabsTrigger>
-            <TabsTrigger value="settings" className="rounded-lg">Paramètres</TabsTrigger>
-          </TabsList>
+  const renderContent = () => (
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">{/* Content will be here */}
 
           <TabsContent value="overview" className="space-y-6">
             {/* KPI Cards */}
@@ -735,11 +715,17 @@ const AdminApp = () => {
           </TabsContent>
 
         </Tabs>
-      </div>
-    </div>
   );
 
-  return renderDashboard();
+  return (
+    <ResponsiveAdminLayout
+      realTimeStats={realTimeStats}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+    >
+      {renderContent()}
+    </ResponsiveAdminLayout>
+  );
 };
 
 export default AdminApp;
