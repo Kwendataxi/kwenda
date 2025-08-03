@@ -10,6 +10,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { EarningsPage } from '@/components/driver/EarningsPage';
 import { useDriverEarnings } from '@/hooks/useDriverEarnings';
 import { DriverProfile } from '@/components/driver/DriverProfile';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { 
   Car, 
   MapPin, 
@@ -42,6 +44,7 @@ const DriverApp = () => {
   
   // Use real data hooks
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { loading: statsLoading, stats, recentRides, isOnline, updateOnlineStatus } = useDriverData();
   const { weeklyStats } = useDriverEarnings();
   const { 
@@ -115,6 +118,7 @@ const DriverApp = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <LanguageSelector />
           <Button
             variant={isOnline ? "default" : "outline"}
             size="sm"
@@ -125,7 +129,7 @@ const DriverApp = () => {
                 : "border-grey-300 hover:border-secondary hover:bg-secondary-light"
             }`}
           >
-            {isOnline ? "🟢 En ligne" : "⚪ Hors ligne"}
+            {isOnline ? `🟢 ${t('driver.online')}` : `⚪ ${t('driver.offline')}`}
           </Button>
         </div>
       </div>
