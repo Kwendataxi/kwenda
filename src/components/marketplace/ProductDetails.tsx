@@ -27,8 +27,8 @@ interface ProductDetailsProps {
   isOpen: boolean;
   onClose: () => void;
   onAddToCart: (product: Product, quantity: number) => void;
-  onStartChat?: (productId: string, sellerId: string) => void;
-  onCreateOrder?: (product: Product) => void;
+  onContactSeller?: (product: Product) => void;
+  onStartOrder?: () => void;
 }
 
 export const ProductDetails: React.FC<ProductDetailsProps> = ({
@@ -36,6 +36,8 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
   isOpen,
   onClose,
   onAddToCart,
+  onContactSeller,
+  onStartOrder,
 }) => {
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);

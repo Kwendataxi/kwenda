@@ -26,10 +26,16 @@ import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 
 interface OrderManagementProps {
+  isOpen?: boolean;
+  onClose?: () => void;
   onStartChat?: (productId: string, sellerId: string) => void;
 }
 
-export const OrderManagement: React.FC<OrderManagementProps> = ({ onStartChat }) => {
+export const OrderManagement: React.FC<OrderManagementProps> = ({ 
+  isOpen, 
+  onClose, 
+  onStartChat 
+}) => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -326,11 +332,15 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ onStartChat })
     );
   }
 
+  if (!isOpen) return null;
+
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-foreground">
-        {t('marketplace.myOrders')}
-      </h2>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{t('marketplace.myOrders')}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6">
 
       <Tabs defaultValue="purchases" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
@@ -405,8 +415,10 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({ onStartChat })
               </Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+          </DialogContent>
+        </Dialog>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };

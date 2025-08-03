@@ -67,6 +67,15 @@ import { PerformanceIndicator } from '@/components/performance/PerformanceIndica
 import { OptimizedGrid } from '@/components/performance/OptimizedGrid';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 
+// Chat and order components
+import { ChatInterface } from '@/components/marketplace/ChatInterface';
+import { OrderManagement } from '@/components/marketplace/OrderManagement';
+import { CreateOrderDialog } from '@/components/marketplace/CreateOrderDialog';
+
+// Hooks
+import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
+import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
+
 interface Location {
   address: string;
   coordinates: [number, number];
@@ -134,6 +143,17 @@ const ClientApp = () => {
   const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
   const [marketplaceTab, setMarketplaceTab] = useState('explore');
   const [showingTrends, setShowingTrends] = useState(false);
+
+  // Chat and order states
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | undefined>();
+  const [isOrderManagementOpen, setIsOrderManagementOpen] = useState(false);
+  const [isCreateOrderDialogOpen, setIsCreateOrderDialogOpen] = useState(false);
+  const [orderProduct, setOrderProduct] = useState<any>(null);
+
+  // Chat and order hooks
+  const chatHook = useMarketplaceChat();
+  const ordersHook = useMarketplaceOrders();
 
   // Mock marketplace data
   const mockProducts = [
@@ -641,6 +661,43 @@ const ClientApp = () => {
     setIsCartOpen(false);
   };
 
+  // Chat and order handlers
+  const handleContactSeller = async (product: any) => {
+    try {
+      const conversation = await chatHook.startConversation(product.id, 'seller-id');
+      if (conversation) {
+        setSelectedConversationId('conv-' + Math.random().toString(36).substr(2, 9));
+      }
+      setIsChatOpen(true);
+      setIsProductDetailsOpen(false);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de contacter le vendeur",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleStartOrder = (productId: string, sellerId: string) => {
+    const product = mockProducts.find(p => p.id === productId);
+    if (product) {
+      setOrderProduct(product);
+      setIsCreateOrderDialogOpen(true);
+      setIsChatOpen(false);
+    }
+  };
+
+  const handleOrderSuccess = () => {
+    toast({
+      title: "Commande créée",
+      description: "Votre commande a été créée avec succès",
+    });
+    setIsCreateOrderDialogOpen(false);
+    setOrderProduct(null);
+    ordersHook.refetch?.();
+  };
+
   const renderDeliveryService = () => {
     if (deliveryStep === 'tracking' && deliveryId) {
       return (
@@ -1071,6 +1128,38 @@ const ClientApp = () => {
         isOpen={isProductDetailsOpen}
         onClose={() => setIsProductDetailsOpen(false)}
         onAddToCart={handleAddToCart}
+        onContactSeller={handleContactSeller}
+        onStartOrder={() => {
+          if (selectedProduct) {
+            setOrderProduct(selectedProduct);
+            setIsCreateOrderDialogOpen(true);
+            setIsProductDetailsOpen(false);
+          }
+        }}
+      />
+
+      {/* Chat Interface */}
+      <ChatInterface
+        conversationId={selectedConversationId}
+        onBack={() => setIsChatOpen(false)}
+        onStartOrder={handleStartOrder}
+      />
+
+      {/* Order Management */}
+      <OrderManagement
+        isOpen={isOrderManagementOpen}
+        onClose={() => setIsOrderManagementOpen(false)}
+      />
+
+      {/* Create Order Dialog */}
+      <CreateOrderDialog
+        product={orderProduct}
+        isOpen={isCreateOrderDialogOpen}
+        onClose={() => {
+          setIsCreateOrderDialogOpen(false);
+          setOrderProduct(null);
+        }}
+        onSuccess={handleOrderSuccess}
       />
       
 

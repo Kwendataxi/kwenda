@@ -144,8 +144,12 @@ export const usePerformanceMonitor = () => {
   // Auto-optimize when metrics change
   useEffect(() => {
     autoOptimize();
+  }, [metrics.connectionSpeed, metrics.memoryUsage, metrics.batteryLevel]);
+
+  // Calculate performance score when metrics or optimizations change
+  useEffect(() => {
     setPerformanceScore(calculatePerformanceScore());
-  }, [metrics, autoOptimize, calculatePerformanceScore]);
+  }, [calculatePerformanceScore]);
 
   // Listen for connection changes
   useEffect(() => {
