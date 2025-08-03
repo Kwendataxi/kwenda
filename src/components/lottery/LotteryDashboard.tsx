@@ -85,14 +85,40 @@ export const LotteryDashboard = () => {
         </Card>
       </div>
 
-      {/* Contenu principal avec onglets */}
+      {/* Navigation moderne */}
       <Tabs defaultValue="draws" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="draws">Tirages</TabsTrigger>
-          <TabsTrigger value="tickets">Mes Tickets</TabsTrigger>
-          <TabsTrigger value="wins">Mes Gains</TabsTrigger>
-          <TabsTrigger value="how">Comment ça marche</TabsTrigger>
-        </TabsList>
+        <div className="flex justify-center mb-6">
+          <TabsList className="inline-flex h-12 items-center justify-center rounded-xl bg-muted p-1 text-muted-foreground shadow-sm w-auto">
+            <TabsTrigger 
+              value="draws" 
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              <Timer className="h-4 w-4 mr-2" />
+              Tirages
+            </TabsTrigger>
+            <TabsTrigger 
+              value="tickets" 
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              <Ticket className="h-4 w-4 mr-2" />
+              Mes Tickets
+            </TabsTrigger>
+            <TabsTrigger 
+              value="wins" 
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              <Trophy className="h-4 w-4 mr-2" />
+              Mes Gains
+            </TabsTrigger>
+            <TabsTrigger 
+              value="how" 
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              <Gift className="h-4 w-4 mr-2" />
+              Guide
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="draws" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
