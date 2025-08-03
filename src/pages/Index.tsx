@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Link } from 'react-router-dom';
 import { Car, Package, Store, Users, Star, Shield, Zap, Globe, CheckCircle, ArrowRight, MapPin, Clock, CreditCard } from 'lucide-react';
+import kwendaLogo from '@/assets/kwenda-logo.png';
 
 const Index = () => {
   return (
@@ -13,13 +14,11 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
-                <Car className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">Kwenda Taxi</h1>
-                <p className="text-xs text-muted-foreground">Kinshasa</p>
-              </div>
+              <img 
+                src={kwendaLogo} 
+                alt="Kwenda Taxi Logo" 
+                className="h-12 w-auto"
+              />
             </div>
             <Badge variant="secondary" className="bg-secondary/10 text-secondary border-secondary/20">
               Congo RDC
@@ -295,10 +294,11 @@ const Index = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
-                  <Car className="w-4 h-4 text-white" />
-                </div>
-                <span className="font-bold text-lg">Kwenda Taxi</span>
+                <img 
+                  src={kwendaLogo} 
+                  alt="Kwenda Taxi Logo" 
+                  className="h-8 w-auto"
+                />
               </div>
               <p className="text-sm text-muted-foreground">
                 L'application de transport intelligent pour Kinshasa
