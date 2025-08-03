@@ -18,87 +18,77 @@ export const DriverCodeManager = () => {
   } = useDriverCode();
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-md mx-auto space-y-4">
       {/* Driver Code Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <QrCode className="h-5 w-5" />
-            Mon Code Partenaire
-          </CardTitle>
-          <CardDescription>
-            Partagez ce code avec un partenaire pour rejoindre sa flotte
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {driverCode ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Votre code unique</p>
-                  <p className="text-2xl font-mono font-bold text-primary">
-                    {driverCode.code}
-                  </p>
-                </div>
-                <Badge variant="outline" className="text-green-600 border-green-200">
-                  Actif
+      <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4 border border-primary/20">
+        <div className="flex items-center gap-2 mb-3">
+          <QrCode className="h-5 w-5 text-primary" />
+          <h3 className="font-semibold text-foreground">Code Partenaire</h3>
+        </div>
+        
+        {driverCode ? (
+          <div className="space-y-3">
+            <div className="bg-card rounded-lg p-4 border border-border/50">
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-2">Votre code unique</p>
+                <p className="text-xl font-mono font-bold text-primary tracking-wider">
+                  {driverCode.code}
+                </p>
+                <Badge variant="outline" className="mt-2 text-green-600 border-green-200 bg-green-50">
+                  ✓ Actif
                 </Badge>
               </div>
-              
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={copyCode}
-                  className="flex-1"
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copier
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={shareCode}
-                  className="flex-1"
-                >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Partager
-                </Button>
-              </div>
             </div>
-          ) : (
-            <div className="text-center py-6">
-              <QrCode className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-4">
-                Vous n'avez pas encore de code partenaire
-              </p>
+            
+            <div className="grid grid-cols-2 gap-2">
               <Button 
-                onClick={generateCode} 
-                disabled={loading}
-                className="w-full"
+                variant="outline" 
+                size="sm" 
+                onClick={copyCode}
+                className="h-9"
               >
-                {loading ? 'Génération...' : 'Générer mon code'}
+                <Copy className="h-3 w-3 mr-1" />
+                Copier
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={shareCode}
+                className="h-9"
+              >
+                <Share2 className="h-3 w-3 mr-1" />
+                Partager
               </Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        ) : (
+          <div className="text-center py-4">
+            <QrCode className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
+            <p className="text-sm text-muted-foreground mb-3">
+              Générez votre code pour rejoindre une flotte
+            </p>
+            <Button 
+              onClick={generateCode} 
+              disabled={loading}
+              size="sm"
+              className="w-full"
+            >
+              {loading ? 'Génération...' : 'Générer mon code'}
+            </Button>
+          </div>
+        )}
+      </div>
 
-      {/* Partner Assignment Section */}
+      {/* Partner Status */}
       {partnerAssignment ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserCheck className="h-5 w-5" />
-              Partenaire Actuel
-            </CardTitle>
-            <CardDescription>
-              Vous êtes rattaché à un partenaire
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="space-y-1">
+        <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+          <div className="flex items-center gap-2 mb-3">
+            <UserCheck className="h-5 w-5 text-green-600" />
+            <h3 className="font-semibold text-green-800">Partenaire Actuel</h3>
+          </div>
+          <div className="bg-white rounded-lg p-3 border border-green-200">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="font-medium text-green-800">
                   {partnerAssignment.partner_name}
                 </p>
@@ -106,78 +96,62 @@ export const DriverCodeManager = () => {
                   Commission: {partnerAssignment.commission_rate}%
                 </p>
                 <p className="text-xs text-green-600">
-                  Depuis le {new Date(partnerAssignment.added_at).toLocaleDateString('fr-FR')}
+                  Depuis {new Date(partnerAssignment.added_at).toLocaleDateString('fr-FR')}
                 </p>
               </div>
-              <Badge className="bg-green-100 text-green-800 border-green-200">
+              <Badge className="bg-green-100 text-green-700 border-green-300">
                 Actif
               </Badge>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserCheck className="h-5 w-5" />
-              Statut Partenaire
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-6">
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <p className="text-muted-foreground">
-                  Vous n'êtes pas encore rattaché à un partenaire
-                </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Partagez votre code avec un partenaire pour commencer
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-muted/30 rounded-xl p-4 border border-border/50">
+          <div className="flex items-center gap-2 mb-3">
+            <UserCheck className="h-5 w-5 text-muted-foreground" />
+            <h3 className="font-semibold text-foreground">Statut Partenaire</h3>
+          </div>
+          <div className="text-center py-3">
+            <p className="text-sm text-muted-foreground mb-1">
+              Aucun partenaire assigné
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Partagez votre code pour rejoindre une flotte
+            </p>
+          </div>
+        </div>
       )}
 
-      {/* Info Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Comment ça marche ?</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex gap-3">
-            <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium">
+      {/* Quick Guide */}
+      <div className="bg-card rounded-xl p-4 border border-border/50">
+        <h3 className="font-semibold text-foreground mb-3">Guide rapide</h3>
+        <div className="space-y-2">
+          <div className="flex items-start gap-3">
+            <div className="w-5 h-5 bg-primary/20 text-primary rounded-full flex items-center justify-center text-xs font-medium mt-0.5">
               1
             </div>
-            <p className="text-sm text-muted-foreground">
-              Générez votre code unique de 8 caractères
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Générez votre code unique
             </p>
           </div>
-          <div className="flex gap-3">
-            <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium">
+          <div className="flex items-start gap-3">
+            <div className="w-5 h-5 bg-primary/20 text-primary rounded-full flex items-center justify-center text-xs font-medium mt-0.5">
               2
             </div>
-            <p className="text-sm text-muted-foreground">
-              Partagez ce code avec le partenaire de votre choix
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Partagez-le avec un partenaire
             </p>
           </div>
-          <div className="flex gap-3">
-            <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium">
+          <div className="flex items-start gap-3">
+            <div className="w-5 h-5 bg-primary/20 text-primary rounded-full flex items-center justify-center text-xs font-medium mt-0.5">
               3
             </div>
-            <p className="text-sm text-muted-foreground">
-              Le partenaire vous ajoute à sa flotte avec un taux de commission
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Rejoignez sa flotte et commencez à gagner
             </p>
           </div>
-          <div className="flex gap-3">
-            <div className="w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-medium">
-              4
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Vous recevez vos gains automatiquement après chaque course
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

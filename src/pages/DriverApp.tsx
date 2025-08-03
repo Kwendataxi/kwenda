@@ -9,7 +9,7 @@ import { useDriverBookings } from '@/hooks/useDriverBookings';
 import { useAuth } from '@/hooks/useAuth';
 import { EarningsPage } from '@/components/driver/EarningsPage';
 import { useDriverEarnings } from '@/hooks/useDriverEarnings';
-import { DriverProfile } from '@/components/driver/DriverProfile';
+import { CompactDriverProfile } from '@/components/driver/CompactDriverProfile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { 
@@ -105,134 +105,161 @@ const DriverApp = () => {
   };
 
   const renderDashboard = () => (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <div className="card-floating mx-4 mt-4 p-4 flex items-center justify-between animate-slide-up">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-elegant">
-            <User className="h-5 w-5 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+      {/* Compact Header */}
+      <div className="bg-card/80 backdrop-blur-sm border-b border-border/50 p-4">
+        <div className="flex items-center justify-between max-w-md mx-auto">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center">
+              <User className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground">{user?.email?.split('@')[0] || 'Chauffeur'}</p>
+              <p className="text-xs text-muted-foreground">Kwenda Driver</p>
+            </div>
           </div>
-          <div>
-            <p className="text-heading-sm text-card-foreground">{user?.email?.split('@')[0] || 'Chauffeur'}</p>
-            <p className="text-body-sm text-muted-foreground">Chauffeur Kwenda</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <LanguageSelector />
           <Button
             variant={isOnline ? "default" : "outline"}
             size="sm"
             onClick={() => updateOnlineStatus(!isOnline)}
-            className={`rounded-xl font-semibold transition-all duration-200 ${
+            className={`px-4 py-2 font-medium transition-all duration-300 ${
               isOnline 
-                ? "bg-secondary text-secondary-foreground shadow-md" 
-                : "border-grey-300 hover:border-secondary hover:bg-secondary-light"
+                ? "bg-green-600 hover:bg-green-700 text-white shadow-lg" 
+                : "border-2 border-muted-foreground/20 hover:border-green-500 hover:bg-green-50"
             }`}
           >
-            {isOnline ? `🟢 ${t('driver.online')}` : `⚪ ${t('driver.offline')}`}
+            <div className={`w-2 h-2 rounded-full mr-2 ${isOnline ? 'bg-green-200' : 'bg-muted-foreground/50'}`} />
+            {isOnline ? 'En ligne' : 'Hors ligne'}
           </Button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="p-4 grid grid-cols-3 gap-3">
-        <div className="card-floating p-4 text-center animate-scale-in">
-          <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center mx-auto mb-2">
-            <DollarSign className="h-5 w-5 text-white" />
+      {/* Compact Stats */}
+      <div className="p-4 max-w-md mx-auto">
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="bg-card rounded-xl p-3 text-center border border-border/50 shadow-sm">
+            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+              <DollarSign className="h-4 w-4 text-green-600" />
+            </div>
+            <p className="text-xs text-muted-foreground mb-1">Aujourd'hui</p>
+            <p className="text-sm font-bold text-foreground">
+              {(weeklyStats.dailyBreakdown[new Date().getDay()]?.earnings || stats.today_earnings || 0).toLocaleString()} FC
+            </p>
           </div>
-          <p className="text-caption text-muted-foreground mb-1">Gains aujourd'hui</p>
-          <p className="text-heading-sm text-card-foreground font-bold">
-            {weeklyStats.dailyBreakdown.length > 0 && weeklyStats.dailyBreakdown[new Date().getDay()]?.earnings.toLocaleString() || stats.today_earnings.toLocaleString()} CDF
-          </p>
-        </div>
-        <div className="card-floating p-4 text-center animate-scale-in">
-          <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center mx-auto mb-2">
-            <Car className="h-5 w-5 text-white" />
+          <div className="bg-card rounded-xl p-3 text-center border border-border/50 shadow-sm">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+              <Car className="h-4 w-4 text-blue-600" />
+            </div>
+            <p className="text-xs text-muted-foreground mb-1">Courses</p>
+            <p className="text-sm font-bold text-foreground">{weeklyStats.totalRides || stats.total_rides}</p>
           </div>
-          <p className="text-caption text-muted-foreground mb-1">Courses</p>
-          <p className="text-heading-sm text-card-foreground font-bold">{weeklyStats.totalRides || stats.total_rides}</p>
-        </div>
-        <div className="card-floating p-4 text-center animate-scale-in">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center mx-auto mb-2">
-            <Clock className="h-5 w-5 text-white" />
+          <div className="bg-card rounded-xl p-3 text-center border border-border/50 shadow-sm">
+            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+              <Clock className="h-4 w-4 text-purple-600" />
+            </div>
+            <p className="text-xs text-muted-foreground mb-1">Temps</p>
+            <p className="text-sm font-bold text-foreground">{stats.hours_online}h</p>
           </div>
-          <p className="text-caption text-muted-foreground mb-1">Temps en ligne</p>
-          <p className="text-heading-sm text-card-foreground font-bold">{stats.hours_online}h</p>
         </div>
-      </div>
 
-      {/* Recent Rides */}
-      <div className="flex-1 p-4">
-        <h3 className="text-heading-md text-card-foreground mb-4">Courses récentes</h3>
-        <div className="space-y-3">
-          {recentRides.length > 0 ? recentRides.map((ride, index) => (
-            <div key={index} className="card-floating p-4 hover:shadow-lg transition-all duration-200">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-secondary-light rounded-lg flex items-center justify-center">
-                    <MapPin className="h-4 w-4 text-secondary" />
+        {/* Quick Actions */}
+        <div className="bg-card rounded-xl border border-border/50 p-4 mb-6">
+          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Actions rapides
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentView('earnings')}
+              className="flex items-center gap-2 h-10"
+            >
+              <TrendingUp className="h-4 w-4" />
+              Gains
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentView('profile')}
+              className="flex items-center gap-2 h-10"
+            >
+              <Award className="h-4 w-4" />
+              Code Partenaire
+            </Button>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-card rounded-xl border border-border/50 p-4">
+          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Activité récente
+          </h3>
+          <div className="space-y-3">
+            {recentRides.length > 0 ? recentRides.slice(0, 3).map((ride, index) => (
+              <div key={index} className="p-3 bg-muted/30 rounded-lg border border-border/30">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{ride.pickup_location}</p>
+                    <p className="text-xs text-muted-foreground truncate">→ {ride.destination}</p>
                   </div>
-                  <span className="text-body-md font-medium text-card-foreground">{ride.pickup_location}</span>
-                </div>
-                <span className="text-caption text-muted-foreground bg-grey-100 px-2 py-1 rounded-md">
-                  {new Date(ride.completion_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                    <MapPin className="h-4 w-4 text-red-500" />
+                  <div className="text-right ml-2">
+                    <p className="text-sm font-bold text-green-600">{ride.actual_price.toLocaleString()} FC</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(ride.completion_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                    </p>
                   </div>
-                  <span className="text-body-md text-card-foreground">{ride.destination}</span>
                 </div>
-                <div className="text-right">
-                  <span className="text-body-md font-bold text-secondary">{ride.actual_price.toLocaleString()}</span>
-                  <span className="text-caption text-muted-foreground ml-1">CFA</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 pt-2 border-t border-grey-100">
-                <div className="w-6 h-6 bg-primary-light rounded-full flex items-center justify-center">
-                  <User className="h-3 w-3 text-primary" />
-                </div>
-                <span className="text-body-sm text-muted-foreground">{ride.user_name}</span>
-                <div className="flex items-center gap-1 ml-auto">
-                  <Star className="h-3 w-3 text-yellow-400" />
-                  <span className="text-caption font-medium">{ride.user_rating}</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <Star className="h-3 w-3 text-yellow-400" />
+                    <span className="text-xs font-medium">{ride.user_rating}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">•</span>
+                  <span className="text-xs text-muted-foreground">{ride.user_name}</span>
                 </div>
               </div>
-            </div>
-          )) : (
-            <div className="card-floating p-8 text-center">
-              <Car className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-body-md text-muted-foreground">Aucune course récente</p>
-              <p className="text-body-sm text-muted-foreground">Activez-vous pour commencer à recevoir des demandes</p>
-            </div>
-          )}
+            )) : (
+              <div className="text-center py-8">
+                <Car className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground mb-1">Aucune course récente</p>
+                <p className="text-xs text-muted-foreground">Passez en ligne pour recevoir des demandes</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Bottom Navigation */}
-      <div className="bg-white border-t border-grey-100 px-6 py-3 flex justify-around">
-        {[
-          { icon: Home, label: "Tableau de bord", view: "dashboard" },
-          { icon: DollarSign, label: "Gains", view: "earnings" },
-          { icon: Map, label: "Navigation", view: "navigation" },
-          { icon: User, label: "Profil", view: "profile" },
-        ].map((item) => (
-          <button
-            key={item.label}
-            onClick={() => setCurrentView(item.view)}
-            className={`flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-all duration-200 ${
-              currentView === item.view 
-                ? 'text-primary bg-primary-light' 
-                : 'text-muted-foreground hover:text-primary hover:bg-grey-50'
-            }`}
-          >
-            <item.icon className="h-5 w-5" />
-            <span className="text-caption font-medium">{item.label}</span>
-          </button>
-        ))}
+      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border/50">
+        <div className="max-w-md mx-auto px-4 py-2">
+          <div className="flex justify-around">
+            {[
+              { icon: Home, label: "Accueil", view: "dashboard" },
+              { icon: DollarSign, label: "Gains", view: "earnings" },
+              { icon: Map, label: "Navigation", view: "navigation" },
+              { icon: User, label: "Profil", view: "profile" },
+            ].map((item) => (
+              <button
+                key={item.label}
+                onClick={() => setCurrentView(item.view)}
+                className={`flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-all duration-200 ${
+                  currentView === item.view 
+                    ? 'text-primary bg-primary/10' 
+                    : 'text-muted-foreground hover:text-primary hover:bg-muted/50'
+                }`}
+              >
+                <item.icon className="h-5 w-5" />
+                <span className="text-xs font-medium">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
+
+      {/* Add bottom padding for fixed navigation */}
+      <div className="h-20" />
     </div>
   );
 
@@ -538,20 +565,9 @@ const DriverApp = () => {
   };
 
   const renderProfile = () => (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
       <div className="p-4">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCurrentView('dashboard')}
-            className="rounded-xl"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-heading-lg text-card-foreground">Profil Chauffeur</h1>
-        </div>
-        <DriverProfile />
+        <CompactDriverProfile />
       </div>
     </div>
   );

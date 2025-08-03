@@ -178,48 +178,44 @@ export const DriverProfile = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Profile Header */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={profile?.avatar_url || ''} />
-              <AvatarFallback className="text-lg">
-                {profile?.display_name?.split(' ').map(n => n[0]).join('') || 'DR'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold">{profile?.display_name || 'Chauffeur'}</h2>
-              <p className="text-muted-foreground">{profile?.phone_number}</p>
-              <div className="flex items-center space-x-4 mt-2">
-                <div className="flex items-center space-x-1">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="font-medium">{stats?.avgRating.toFixed(1) || '0.0'}</span>
-                </div>
-                <Badge variant="secondary">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  {stats ? getJoinDuration(stats.joinDate) : 'Nouveau'}
-                </Badge>
-                <Badge variant="outline">
-                  {stats?.totalRides || 0} courses
-                </Badge>
+    <div className="max-w-md mx-auto space-y-4 pb-20">
+      {/* Compact Profile Header */}
+      <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl p-4 border border-primary/20">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-12 w-12 border-2 border-primary/20">
+            <AvatarImage src={profile?.avatar_url || ''} />
+            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+              {profile?.display_name?.split(' ').map(n => n[0]).join('') || 'DR'}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <h2 className="font-bold text-foreground truncate">{profile?.display_name || 'Chauffeur'}</h2>
+            <p className="text-sm text-muted-foreground truncate">{profile?.phone_number}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-1">
+                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                <span className="text-xs font-medium">{stats?.avgRating.toFixed(1) || '0.0'}</span>
               </div>
-            </div>
-            <div className="flex flex-col space-y-2">
-              <Badge className="bg-green-100 text-green-800">
-                <Trophy className="h-3 w-3 mr-1" />
-                Chauffeur Actif
+              <span className="text-xs text-muted-foreground">•</span>
+              <Badge variant="secondary" className="text-xs px-2 py-0">
+                {stats?.totalRides || 0} courses
               </Badge>
-              {stats && stats.totalRides > 100 && (
-                <Badge className="bg-purple-100 text-purple-800">
-                  Expert
-                </Badge>
-              )}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        
+        <div className="mt-3 flex items-center justify-between">
+          <Badge className="bg-green-100 text-green-700 border-green-300 text-xs">
+            <Trophy className="h-3 w-3 mr-1" />
+            Chauffeur Actif
+          </Badge>
+          {stats && stats.totalRides > 100 && (
+            <Badge className="bg-purple-100 text-purple-700 border-purple-300 text-xs">
+              Expert
+            </Badge>
+          )}
+        </div>
+      </div>
 
       {/* Vehicle Info */}
       {driverRequest && (
