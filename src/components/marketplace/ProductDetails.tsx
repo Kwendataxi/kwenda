@@ -27,7 +27,7 @@ interface ProductDetailsProps {
   isOpen: boolean;
   onClose: () => void;
   onAddToCart: (product: Product, quantity: number) => void;
-  onContactSeller?: (product: Product) => void;
+  onContactSeller?: (productId: string, sellerId: string) => void;
   onStartOrder?: () => void;
 }
 
@@ -164,25 +164,39 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2">
+            <div className="space-y-2">
               <Button 
-                className="flex-1"
+                className="w-full"
                 disabled={!product.inStock}
                 onClick={() => onAddToCart(product, quantity)}
               >
                 <ShoppingCart className="w-4 h-4 mr-2" />
                 Ajouter au panier
               </Button>
+              
               <Button
+                onClick={() => onContactSeller?.(product.id, product.seller)}
                 variant="outline"
-                size="icon"
-                onClick={() => setIsFavorite(!isFavorite)}
+                className="w-full"
               >
-                <Heart className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Contacter le vendeur
               </Button>
-              <Button variant="outline" size="icon">
-                <Share2 className="w-4 h-4" />
-              </Button>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setIsFavorite(!isFavorite)}
+                >
+                  <Heart className={`w-4 h-4 mr-2 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
+                  Favoris
+                </Button>
+                <Button variant="outline" className="flex-1">
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Partager
+                </Button>
+              </div>
             </div>
 
             <Separator />

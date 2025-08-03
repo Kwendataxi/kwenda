@@ -69,6 +69,7 @@ import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 
 // Chat and order components
 import { ChatInterface } from '@/components/marketplace/ChatInterface';
+import { ModernChatInterface } from '@/components/marketplace/ModernChatInterface';
 import { OrderManagement } from '@/components/marketplace/OrderManagement';
 import { CreateOrderDialog } from '@/components/marketplace/CreateOrderDialog';
 import { ActivityTab } from '@/components/marketplace/ActivityTab';
@@ -166,6 +167,9 @@ const ClientApp = () => {
   // Marketplace data from Supabase
   const [marketplaceProducts, setMarketplaceProducts] = useState<any[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [chatProductId, setChatProductId] = useState<string | undefined>();
+  const [chatSellerId, setChatSellerId] = useState<string | undefined>();
 
   // Fetch products from Supabase
   useEffect(() => {
@@ -452,13 +456,11 @@ const ClientApp = () => {
   };
 
   // Chat and order handlers
-  const handleContactSeller = async (product: any) => {
+  const handleContactSeller = async (productId: string, sellerId: string) => {
     try {
-      const conversation = await chatHook.startConversation(product.id, 'seller-id');
-      if (conversation) {
-        setSelectedConversationId('conv-' + Math.random().toString(36).substr(2, 9));
-      }
-      setIsChatOpen(true);
+      setChatProductId(productId);
+      setChatSellerId(sellerId);
+      setShowChat(true);
       setIsProductDetailsOpen(false);
     } catch (error) {
       toast({
@@ -1119,6 +1121,21 @@ const ClientApp = () => {
         }}
         onSuccess={handleOrderSuccess}
       />
+
+      {/* Modern Chat Interface */}
+      {showChat && (
+        <div className="fixed inset-0 z-50 bg-background">
+          <ModernChatInterface
+            productId={chatProductId}
+            sellerId={chatSellerId}
+            onClose={() => {
+              setShowChat(false);
+              setChatProductId(undefined);
+              setChatSellerId(undefined);
+            }}
+          />
+        </div>
+      )}
 
       {/* Edit Product Form Modal */}
       {isEditFormOpen && editingProduct && (
