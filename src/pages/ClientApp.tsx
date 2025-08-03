@@ -72,6 +72,7 @@ import { ChatInterface } from '@/components/marketplace/ChatInterface';
 import { OrderManagement } from '@/components/marketplace/OrderManagement';
 import { CreateOrderDialog } from '@/components/marketplace/CreateOrderDialog';
 import { ActivityTab } from '@/components/marketplace/ActivityTab';
+import { EditProductForm } from '@/components/marketplace/EditProductForm';
 
 // Testing components
 import { TestDataGenerator } from '@/components/testing/TestDataGenerator';
@@ -153,6 +154,10 @@ const ClientApp = () => {
   const [isOrderManagementOpen, setIsOrderManagementOpen] = useState(false);
   const [isCreateOrderDialogOpen, setIsCreateOrderDialogOpen] = useState(false);
   const [orderProduct, setOrderProduct] = useState<any>(null);
+  
+  // Marketplace management states
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
   // Chat and order hooks
   const chatHook = useMarketplaceChat();
@@ -503,13 +508,153 @@ const ClientApp = () => {
   };
 
 
-  const handleSellProduct = (formData: any) => {
-    console.log('New product to sell:', formData);
-    toast({
-      title: "Produit publié",
-      description: "Votre produit est maintenant en vente!",
-    });
-    setMarketplaceTab('explore');
+  const handleSellProduct = async (formData: any) => {
+    try {
+      // Upload images to Supabase Storage
+      const imageUrls: string[] = [];
+      
+      for (const file of formData.images) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `product-images/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('profile-pictures')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('profile-pictures')
+          .getPublicUrl(filePath);
+
+        imageUrls.push(urlData.publicUrl);
+      }
+
+      // Create product in database
+      const { error } = await supabase
+        .from('marketplace_products')
+        .insert({
+          title: formData.title,
+          description: formData.description,
+          price: parseFloat(formData.price),
+          category: formData.category,
+          condition: formData.condition,
+          images: imageUrls,
+          seller_id: (await supabase.auth.getUser()).data.user?.id,
+          status: 'active'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Produit publié",
+        description: "Votre produit est maintenant en vente!",
+      });
+      
+      // Refresh products and go to activity tab
+      const fetchProducts = async () => {
+        const { data: products, error } = await supabase
+          .from('marketplace_products')
+          .select('*')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false });
+
+        if (!error && products) {
+          const transformedProducts = products.map(product => ({
+            id: product.id,
+            name: product.title,
+            price: product.price,
+            image: Array.isArray(product.images) && product.images.length > 0 
+              ? product.images[0] 
+              : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
+            images: Array.isArray(product.images) ? product.images : [],
+            rating: 4.5,
+            reviews: Math.floor(Math.random() * 200) + 10,
+            seller: 'Vendeur Kwenda',
+            category: product.category?.toLowerCase() || 'other',
+            description: product.description || '',
+            specifications: {},
+            inStock: true,
+            stockCount: Math.floor(Math.random() * 20) + 1,
+            isTrending: product.featured || false,
+            trendingScore: product.featured ? Math.floor(Math.random() * 30) + 70 : 0,
+            condition: product.condition,
+            location: product.location,
+            coordinates: product.coordinates
+          }));
+          
+          setMarketplaceProducts(transformedProducts);
+        }
+      };
+      
+      await fetchProducts();
+      setMarketplaceTab('activity');
+    } catch (error) {
+      console.error('Error creating product:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de publier le produit",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Product management handlers for ActivityTab
+  const handleAddProduct = () => {
+    setMarketplaceTab('sell');
+  };
+
+  const handleEditProduct = (product: any) => {
+    setEditingProduct(product);
+    setIsEditFormOpen(true);
+  };
+
+  const handleViewProduct = (product: any) => {
+    setSelectedProduct(product);
+    setIsProductDetailsOpen(true);
+  };
+
+  const handleUpdateProduct = async () => {
+    // Refresh products after update
+    const fetchProducts = async () => {
+      const { data: products, error } = await supabase
+        .from('marketplace_products')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (!error && products) {
+        const transformedProducts = products.map(product => ({
+          id: product.id,
+          name: product.title,
+          price: product.price,
+          image: Array.isArray(product.images) && product.images.length > 0 
+            ? product.images[0] 
+            : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
+          images: Array.isArray(product.images) ? product.images : [],
+          rating: 4.5,
+          reviews: Math.floor(Math.random() * 200) + 10,
+          seller: 'Vendeur Kwenda',
+          category: product.category?.toLowerCase() || 'other',
+          description: product.description || '',
+          specifications: {},
+          inStock: true,
+          stockCount: Math.floor(Math.random() * 20) + 1,
+          isTrending: product.featured || false,
+          trendingScore: product.featured ? Math.floor(Math.random() * 30) + 70 : 0,
+          condition: product.condition,
+          location: product.location,
+          coordinates: product.coordinates
+        }));
+        
+        setMarketplaceProducts(transformedProducts);
+      }
+    };
+    
+    await fetchProducts();
+    setIsEditFormOpen(false);
+    setEditingProduct(null);
   };
 
   const renderMarketplaceService = () => {
@@ -529,7 +674,11 @@ const ClientApp = () => {
             cartItemsCount={cartItems.length}
             onCartClick={() => setIsCartOpen(true)}
           />
-          <ActivityTab />
+          <ActivityTab 
+            onAddProduct={handleAddProduct}
+            onEditProduct={handleEditProduct}
+            onViewProduct={handleViewProduct}
+          />
           <BottomNavigation
             activeTab={marketplaceTab}
             onTabChange={setMarketplaceTab}
@@ -970,6 +1119,20 @@ const ClientApp = () => {
         }}
         onSuccess={handleOrderSuccess}
       />
+
+      {/* Edit Product Form Modal */}
+      {isEditFormOpen && editingProduct && (
+        <div className="fixed inset-0 z-50 bg-background">
+          <EditProductForm
+            product={editingProduct}
+            onBack={() => {
+              setIsEditFormOpen(false);
+              setEditingProduct(null);
+            }}
+            onUpdate={handleUpdateProduct}
+          />
+        </div>
+      )}
       
 
       {/* Fixed Bottom Navigation - Only show for non-marketplace */}

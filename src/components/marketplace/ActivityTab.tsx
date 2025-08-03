@@ -6,7 +6,17 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ShoppingBag, Store, MessageSquare, TrendingUp } from 'lucide-react';
 
-export const ActivityTab: React.FC = () => {
+interface ActivityTabProps {
+  onAddProduct?: () => void;
+  onEditProduct?: (product: any) => void;
+  onViewProduct?: (product: any) => void;
+}
+
+export const ActivityTab: React.FC<ActivityTabProps> = ({ 
+  onAddProduct, 
+  onEditProduct, 
+  onViewProduct 
+}) => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('purchases');
@@ -43,7 +53,11 @@ export const ActivityTab: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="sales" className="mt-6">
-          <SalesManagement />
+          <SalesManagement 
+            onAddProduct={onAddProduct}
+            onEditProduct={onEditProduct}
+            onViewProduct={onViewProduct}
+          />
         </TabsContent>
       </Tabs>
     </div>

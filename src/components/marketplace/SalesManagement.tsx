@@ -41,7 +41,17 @@ interface SalesStats {
   completedOrders: number;
 }
 
-export const SalesManagement: React.FC = () => {
+interface SalesManagementProps {
+  onAddProduct?: () => void;
+  onEditProduct?: (product: Product) => void;
+  onViewProduct?: (product: Product) => void;
+}
+
+export const SalesManagement: React.FC<SalesManagementProps> = ({ 
+  onAddProduct, 
+  onEditProduct, 
+  onViewProduct 
+}) => {
   const { orders, loading: ordersLoading, confirmOrder, markAsDelivered } = useMarketplaceOrders();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -329,7 +339,10 @@ export const SalesManagement: React.FC = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Mes produits</h3>
-        <Button className="flex items-center gap-2">
+        <Button 
+          className="flex items-center gap-2"
+          onClick={onAddProduct}
+        >
           <Package className="w-4 h-4" />
           Ajouter un produit
         </Button>
@@ -340,11 +353,14 @@ export const SalesManagement: React.FC = () => {
           <Card key={product.id}>
             <CardContent className="p-4">
               <div className="aspect-square bg-muted rounded-lg mb-4 flex items-center justify-center">
-                {product.images?.[0] ? (
+                {Array.isArray(product.images) && product.images.length > 0 ? (
                   <img 
                     src={product.images[0]} 
                     alt={product.title}
                     className="w-full h-full object-cover rounded-lg"
+                    onError={(e) => {
+                      e.currentTarget.src = '/placeholder.svg';
+                    }}
                   />
                 ) : (
                   <Package className="w-12 h-12 text-muted-foreground" />
@@ -359,11 +375,21 @@ export const SalesManagement: React.FC = () => {
               </Badge>
               
               <div className="flex gap-2 mt-4">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => onEditProduct?.(product)}
+                >
                   <Edit3 className="w-4 h-4 mr-1" />
                   Modifier
                 </Button>
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => onViewProduct?.(product)}
+                >
                   <Eye className="w-4 h-4 mr-1" />
                   Voir
                 </Button>
