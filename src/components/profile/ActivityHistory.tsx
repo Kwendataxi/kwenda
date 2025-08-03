@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +31,6 @@ interface EnhancedBooking {
 
 export const ActivityHistory = () => {
   const { user } = useAuth();
-  const { t } = useLanguage();
   const { t } = useLanguage();
   const [bookings, setBookings] = useState<EnhancedBooking[]>([]);
   const [loading, setLoading] = useState(true);

@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { usePlaces } from '@/hooks/usePlaces';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface RecentPlacesProps {
   onPlaceSelect: (placeName: string, coordinates?: { lat: number; lng: number }) => void;
