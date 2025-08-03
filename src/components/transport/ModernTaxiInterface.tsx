@@ -175,23 +175,29 @@ const ModernTaxiInterface: React.FC<ModernTaxiInterfaceProps> = ({
       return;
     }
 
-    const bookingData = {
-      pickupLocation: pickup.address,
-      destination: destination.address,
-      pickupCoordinates: { lat: pickup.coordinates[0], lng: pickup.coordinates[1] },
-      destinationCoordinates: { lat: destination.coordinates[0], lng: destination.coordinates[1] },
-      intermediateStops: intermediateStops.map(stop => ({
-        address: stop.address,
-        coordinates: stop.coordinates ? { lat: stop.coordinates[0], lng: stop.coordinates[1] } : null
-      })),
-      vehicleType: selectedVehicle.type,
-      estimatedPrice,
-      totalDistance: distance,
-      surgeMultiplier: 1.0,
-      pickupTime: new Date().toISOString()
-    };
+    try {
+      const bookingData = {
+        pickupLocation: pickup.address,
+        destination: destination.address,
+        pickupCoordinates: { lat: pickup.coordinates[0], lng: pickup.coordinates[1] },
+        destinationCoordinates: { lat: destination.coordinates[0], lng: destination.coordinates[1] },
+        intermediateStops: intermediateStops.map(stop => ({
+          address: stop.address,
+          coordinates: stop.coordinates ? { lat: stop.coordinates[0], lng: stop.coordinates[1] } : null
+        })),
+        vehicleType: selectedVehicle.type,
+        estimatedPrice,
+        totalDistance: distance,
+        surgeMultiplier: 1.0,
+        pickupTime: new Date().toISOString()
+      };
 
-    onBookingRequest(bookingData);
+      console.log('Tentative de réservation:', bookingData);
+      onBookingRequest(bookingData);
+    } catch (error) {
+      console.error('Erreur lors de la réservation:', error);
+      toast.error('Erreur lors de la réservation. Veuillez réessayer.');
+    }
   };
 
   const canProceedToVehicle = pickup && destination;

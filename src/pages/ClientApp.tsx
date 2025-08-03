@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -153,144 +154,74 @@ const ClientApp = () => {
   const chatHook = useMarketplaceChat();
   const ordersHook = useMarketplaceOrders();
 
-  // Mock marketplace data
-  const mockProducts = [
-    {
-      id: '1',
-      name: 'iPhone 15 Pro Max 256GB',
-      price: 850000,
-      originalPrice: 950000,
-      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
-      images: ['https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=500&h=500&fit=crop'],
-      rating: 4.8,
-      reviews: 124,
-      seller: 'TechStore Kinshasa',
-      category: 'electronics',
-      description: 'Dernier iPhone avec puce A17 Pro, appareil photo professionnel et design en titane. État neuf avec garantie internationale.',
-      specifications: {
-        'Stockage': '256GB',
-        'RAM': '8GB',
-        'Écran': '6.7" Super Retina XDR',
-        'Processeur': 'A17 Pro',
-        'Garantie': '1 an'
-      },
-      inStock: true,
-      stockCount: 5,
-      isTrending: true,
-      trendingScore: 95
-    },
-    {
-      id: '2',
-      name: 'Samsung Galaxy S24 Ultra',
-      price: 720000,
-      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
-      images: ['https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=500&h=500&fit=crop'],
-      rating: 4.7,
-      reviews: 89,
-      seller: 'Galaxy Center',
-      category: 'electronics',
-      description: 'Smartphone premium avec S Pen intégré, zoom 100x et intelligence artificielle Galaxy AI.',
-      specifications: {
-        'Stockage': '512GB',
-        'RAM': '12GB',
-        'Écran': '6.8" Dynamic AMOLED',
-        'Processeur': 'Snapdragon 8 Gen 3'
-      },
-      inStock: true,
-      stockCount: 3,
-      isTrending: true,
-      trendingScore: 88
-    },
-    {
-      id: '3',
-      name: 'MacBook Pro M3 14"',
-      price: 1200000,
-      originalPrice: 1350000,
-      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
-      images: ['https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=500&h=500&fit=crop'],
-      rating: 4.9,
-      reviews: 67,
-      seller: 'Apple Store Kinshasa',
-      category: 'electronics',
-      description: 'Ordinateur portable professionnel avec puce M3, écran Liquid Retina XDR et autonomie exceptionnelle.',
-      specifications: {
-        'Processeur': 'Apple M3',
-        'RAM': '16GB',
-        'Stockage': '512GB SSD',
-        'Écran': '14.2" Liquid Retina XDR'
-      },
-      inStock: true,
-      stockCount: 2,
-      isTrending: true,
-      trendingScore: 92
-    },
-    {
-      id: '4',
-      name: 'Chemise Polo Lacoste',
-      price: 35000,
-      image: 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=300&h=300&fit=crop',
-      images: ['https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=500&h=500&fit=crop'],
-      rating: 4.5,
-      reviews: 156,
-      seller: 'Fashion Plaza',
-      category: 'fashion',
-      description: 'Polo classique Lacoste en coton piqué, coupe régulière. Disponible en plusieurs couleurs.',
-      specifications: {
-        'Matière': '100% Coton',
-        'Taille': 'M, L, XL',
-        'Couleur': 'Blanc, Noir, Marine',
-        'Entretien': 'Lavage machine 30°C'
-      },
-      inStock: true,
-      stockCount: 15,
-      isTrending: false,
-      trendingScore: 65
-    },
-    {
-      id: '5',
-      name: 'Canapé 3 places moderne',
-      price: 280000,
-      image: 'https://images.unsplash.com/photo-1459767129954-1b1c1f9b9ace?w=300&h=300&fit=crop',
-      images: ['https://images.unsplash.com/photo-1459767129954-1b1c1f9b9ace?w=500&h=500&fit=crop'],
-      rating: 4.3,
-      reviews: 45,
-      seller: 'Meubles & Déco',
-      category: 'home',
-      description: 'Canapé confortable en tissu gris, structure en bois massif. Parfait pour salon moderne.',
-      specifications: {
-        'Dimensions': '200x90x85 cm',
-        'Matière': 'Tissu polyester',
-        'Structure': 'Bois massif',
-        'Couleur': 'Gris clair'
-      },
-      inStock: false,
-      stockCount: 0,
-      isTrending: true,
-      trendingScore: 78
-    },
-    {
-      id: '6',
-      name: 'Mangues fraîches (1kg)',
-      price: 2500,
-      image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=300&h=300&fit=crop',
-      images: ['https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=500&h=500&fit=crop'],
-      rating: 4.6,
-      reviews: 234,
-      seller: 'Fruits Tropicaux',
-      category: 'food',
-      description: 'Mangues fraîches et juteuses, cueillies à maturité. Livraison rapide pour garantir la fraîcheur.',
-      specifications: {
-        'Poids': '1kg (4-5 mangues)',
-        'Origine': 'Bandundu',
-        'Type': 'Mangue douce',
-        'Conservation': '3-5 jours à température ambiante'
-      },
-      inStock: true,
-      stockCount: 50,
-      isTrending: true,
-      trendingScore: 85
-    }
-  ];
+  // Marketplace data from Supabase
+  const [marketplaceProducts, setMarketplaceProducts] = useState<any[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+
+  // Fetch products from Supabase
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoadingProducts(true);
+      try {
+        const { data: products, error } = await supabase
+          .from('marketplace_products')
+          .select('*')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Erreur lors du chargement des produits:', error);
+          toast({
+            title: "Erreur",
+            description: "Impossible de charger les produits",
+            variant: "destructive",
+          });
+        } else {
+          console.log('Produits chargés:', products);
+          
+          // Transform products to match our interface
+          const transformedProducts = products?.map(product => ({
+            id: product.id,
+            name: product.title,
+            price: product.price,
+            image: Array.isArray(product.images) && product.images.length > 0 
+              ? product.images[0] 
+              : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
+            images: Array.isArray(product.images) ? product.images : [],
+            rating: 4.5, // Default rating
+            reviews: Math.floor(Math.random() * 200) + 10, // Mock reviews
+            seller: 'Vendeur Kwenda',
+            category: product.category?.toLowerCase() || 'other',
+            description: product.description || '',
+            specifications: {},
+            inStock: true,
+            stockCount: Math.floor(Math.random() * 20) + 1,
+            isTrending: product.featured || false,
+            trendingScore: product.featured ? Math.floor(Math.random() * 30) + 70 : 0,
+            condition: product.condition,
+            location: product.location,
+            coordinates: product.coordinates
+          })) || [];
+          
+          setMarketplaceProducts(transformedProducts);
+        }
+      } catch (error) {
+        console.error('Erreur de connexion:', error);
+        toast({
+          title: "Erreur de connexion",
+          description: "Vérifiez votre connexion internet",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // Use either real products or fallback to empty array
+  const mockProducts = marketplaceProducts;
 
   // Filter products based on category, search, and filters
   const filteredProducts = mockProducts.filter(product => {
@@ -359,7 +290,11 @@ const ClientApp = () => {
   const handleBookingRequest = async (bookingData: any) => {
     try {
       setIsLoading(true);
+      console.log('Données de réservation reçues:', bookingData);
+      
       const booking = await createBooking(bookingData);
+      console.log('Résultat de création:', booking);
+      
       if (booking) {
         setActiveBooking(booking);
         setIsTripChatOpen(true);
@@ -367,11 +302,19 @@ const ClientApp = () => {
           title: "Réservation créée",
           description: "Recherche d'un chauffeur en cours...",
         });
+      } else {
+        toast({
+          title: "Erreur",
+          description: "Impossible de créer la réservation. Vérifiez votre connexion.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
+      console.error('Erreur lors de la réservation:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       toast({
         title: "Erreur",
-        description: "Impossible de créer la réservation",
+        description: `Impossible de créer la réservation: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
