@@ -43,9 +43,8 @@ import {
 } from 'lucide-react';
 
 // Transport components
-import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
+import { AdvancedTaxiInterface } from '@/components/transport/AdvancedTaxiInterface';
 import TripChat from '@/components/transport/TripChat';
-import { useEnhancedTransportBooking } from '@/hooks/useEnhancedTransportBooking';
 
 // Delivery components
 import ModernDeliveryInterface from '@/components/delivery/ModernDeliveryInterface';
@@ -134,8 +133,7 @@ const ClientApp = () => {
   const [activeBooking, setActiveBooking] = useState<any>(null);
   const [isTripChatOpen, setIsTripChatOpen] = useState(false);
   
-  // Enhanced transport booking hook
-  const { createBooking, loading: bookingLoading } = useEnhancedTransportBooking();
+  // Remove old transport booking hook since it's now integrated
 
   // Delivery states  
   const [deliveryStep, setDeliveryStep] = useState<'interface' | 'tracking'>('interface');
@@ -320,49 +318,12 @@ const ClientApp = () => {
     />
   );
 
-  const handleBookingRequest = async (bookingData: any) => {
-    try {
-      setIsLoading(true);
-      console.log('Données de réservation reçues:', bookingData);
-      
-      const booking = await createBooking(bookingData);
-      console.log('Résultat de création:', booking);
-      
-      if (booking) {
-        setActiveBooking(booking);
-        setIsTripChatOpen(true);
-        
-        // Attribuer des tickets pour la course
-        await lotteryTickets.awardTransportTickets(booking.id);
-        
-        toast({
-          title: "Réservation créée",
-          description: "Recherche d'un chauffeur en cours...",
-        });
-      } else {
-        toast({
-          title: "Erreur",
-          description: "Impossible de créer la réservation. Vérifiez votre connexion.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Erreur lors de la réservation:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-      toast({
-        title: "Erreur",
-        description: `Impossible de créer la réservation: ${errorMessage}`,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Remove old booking handler since AdvancedTaxiInterface is self-contained
 
   const renderTransportService = () => {
     return (
       <div className="space-y-4">
-        <ModernTaxiInterface onBookingRequest={handleBookingRequest} />
+        <AdvancedTaxiInterface />
         
         {/* Trip Chat Modal */}
         {isTripChatOpen && activeBooking && (
