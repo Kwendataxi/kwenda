@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Bell, MapPin } from 'lucide-react';
+import { Bell, MapPin, Battery, Wifi, WifiOff, Signal } from 'lucide-react';
 import NotificationCenter from '@/components/advanced/NotificationCenter';
 import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
+import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 
 interface ModernHeaderProps {
   hasNotifications?: boolean;
@@ -18,6 +19,9 @@ export const ModernHeader = ({
   const [showNotifications, setShowNotifications] = useState(false);
   const geolocation = useGeolocation();
   const [currentAddress, setCurrentAddress] = useState(t('city.kinshasa') + ', RD Congo');
+  const { metrics, isSlowConnection } = usePerformanceMonitor();
+  const [batteryLevel, setBatteryLevel] = useState(100);
+  const [isCharging, setIsCharging] = useState(false);
 
   // Get user's full name from metadata or default
   const fullName = user?.user_metadata?.full_name || 
@@ -52,43 +56,124 @@ export const ModernHeader = ({
       setCurrentAddress('Position actuelle');
     }
   }, [geolocation.latitude, geolocation.longitude]);
+
+  // Battery status monitoring
+  useEffect(() => {
+    const getBatteryInfo = async () => {
+      if ('getBattery' in navigator) {
+        try {
+          // @ts-ignore
+          const battery = await navigator.getBattery();
+          setBatteryLevel(Math.round(battery.level * 100));
+          setIsCharging(battery.charging);
+          
+          // Listen for battery changes
+          battery.addEventListener('levelchange', () => {
+            setBatteryLevel(Math.round(battery.level * 100));
+          });
+          battery.addEventListener('chargingchange', () => {
+            setIsCharging(battery.charging);
+          });
+        } catch (error) {
+          // Fallback for unsupported browsers
+          setBatteryLevel(85);
+        }
+      }
+    };
+    
+    getBatteryInfo();
+  }, []);
+
+  // Status indicators component
+  const StatusIndicators = () => (
+    <div className="flex items-center gap-2">
+      {/* Connection indicator */}
+      <div className="flex items-center gap-1">
+        {isSlowConnection ? (
+          <WifiOff className="h-3 w-3 text-yellow-500" />
+        ) : (
+          <Wifi className="h-3 w-3 text-green-500" />
+        )}
+        <Signal className="h-3 w-3 text-foreground/60" />
+      </div>
+      
+      {/* Battery indicator */}
+      <div className="flex items-center gap-1">
+        <Battery 
+          className={`h-3 w-3 ${
+            batteryLevel > 50 ? 'text-green-500' : 
+            batteryLevel > 20 ? 'text-yellow-500' : 'text-red-500'
+          }`} 
+        />
+        <span className="text-xs text-foreground/60">{batteryLevel}%</span>
+        {isCharging && <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />}
+      </div>
+    </div>
+  );
   return (
     <div className="relative overflow-hidden">
-      {/* Fond blanc */}
+      {/* Fond moderne avec gradient subtil */}
       <div 
-        className="px-6 py-4 pt-8 relative z-10 bg-white"
+        className="px-6 py-4 pt-12 relative z-10"
+        style={{
+          background: 'linear-gradient(135deg, hsl(0, 0%, 100%) 0%, hsl(210, 40%, 98%) 100%)'
+        }}
       >
-        {/* Structure simplifiée en 2 colonnes */}
+        {/* Status bar - like mobile interface */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-xs font-medium text-foreground">
+            {new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+          </div>
+          <StatusIndicators />
+        </div>
+
+        {/* Structure en 2 colonnes améliorée */}
         <div className="flex items-center justify-between">
           {/* Salutation personnalisée et localisation */}
           <div className="flex-1">
-            <div className="mb-1">
-              <p className="text-gray-900 font-bold text-lg">
-                {getGreeting()}, {fullName}
+            <div className="mb-2">
+              <p className="text-foreground font-bold text-xl tracking-tight animate-fade-in">
+                {getGreeting()}, {fullName.split(' ')[0]}!
               </p>
             </div>
-            <div className="flex items-center gap-1">
-              <MapPin className="h-4 w-4 text-gray-600" />
-              <p className="text-gray-600 text-sm">
-                {geolocation.loading ? t('common.loading') : currentAddress}
+            <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: '100ms' }}>
+              <div className="p-1 bg-primary/10 rounded-lg">
+                <MapPin className="h-3 w-3 text-primary" />
+              </div>
+              <p className="text-muted-foreground text-sm font-medium">
+                {geolocation.loading ? (
+                  <span className="flex items-center gap-2">
+                    <div className="w-3 h-3 border border-primary border-t-transparent rounded-full animate-spin" />
+                    {t('common.loading')}
+                  </span>
+                ) : (
+                  currentAddress
+                )}
               </p>
+              {geolocation.isInKinshasa && (
+                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                  Zone active
+                </span>
+              )}
             </div>
           </div>
           
-          {/* Language selector and notifications */}
-          <div className="flex items-center gap-2">
+          {/* Actions à droite */}
+          <div className="flex items-center gap-3">
             <LanguageSelector />
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2.5 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-200"
-            >
-              <Bell className="h-5 w-5 text-gray-700" />
-              {hasNotifications && (
-                <div className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center">
-                  <span className="text-xs font-bold text-white">3</span>
-                </div>
-              )}
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-3 bg-white rounded-xl hover:bg-grey-50 transition-all duration-200 shadow-sm border border-grey-100 hover:scale-105 active:scale-95"
+              >
+                <Bell className="h-5 w-5 text-foreground" />
+                {hasNotifications && (
+                  <div className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-r from-primary to-primary-glow rounded-full flex items-center justify-center animate-pulse">
+                    <span className="text-xs font-bold text-white">3</span>
+                  </div>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { ServiceGrid } from './ServiceGrid';
 import { UniversalSearchBar } from './UniversalSearchBar';
 import { RecentPlaces } from './RecentPlaces';
 import { MarketplacePreview } from './MarketplacePreview';
+import { ModernBottomNavigation } from './ModernBottomNavigation';
 
 interface ModernHomeScreenProps {
   onServiceSelect: (service: string) => void;
@@ -20,14 +21,37 @@ export const ModernHomeScreen = ({
   onProductSelect,
   onMarketplaceViewAll
 }: ModernHomeScreenProps) => {
+  const [activeTab, setActiveTab] = useState('home');
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    // Navigation logic based on selected tab
+    switch (tab) {
+      case 'search':
+        onServiceSelect('marketplace');
+        break;
+      case 'favorites':
+        // Navigate to favorites
+        break;
+      case 'activity':
+        // Navigate to activity/history
+        break;
+      case 'profile':
+        // Navigate to profile
+        break;
+      default:
+        // Stay on home
+        break;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-        <ModernHeader 
-          hasNotifications={true}
-        />
+    <div className="min-h-screen bg-gradient-to-br from-grey-50 to-white">
+      <ModernHeader 
+        hasNotifications={true}
+      />
       
-      <div className="space-y-6 pb-20">
+      <div className="space-y-6 pb-24">
         <ServiceGrid onServiceSelect={onServiceSelect} />
         
         <UniversalSearchBar 
@@ -48,6 +72,13 @@ export const ModernHomeScreen = ({
           onViewAll={onMarketplaceViewAll}
         />
       </div>
+
+      <ModernBottomNavigation
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        notificationCount={3}
+        favoritesCount={5}
+      />
     </div>
   );
 };

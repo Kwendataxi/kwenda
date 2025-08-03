@@ -1,4 +1,4 @@
-import { Search, MapPin, Clock } from 'lucide-react';
+import { Search, MapPin, Clock, Navigation, Zap } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useState, useCallback, useEffect } from 'react';
 import { GeocodingService, GeocodeResult } from '@/services/geocoding';
@@ -22,6 +22,24 @@ export const UniversalSearchBar = ({
   const [suggestions, setSuggestions] = useState<GeocodeResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [focused, setFocused] = useState(false);
+
+  // Dynamic placeholder text
+  const dynamicPlaceholders = [
+    "Où allez-vous ?",
+    "Rechercher une destination...",
+    "Gombe, Kalamu, Lemba...",
+    "Entrez votre destination"
+  ];
+  const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
+
+  // Rotate placeholder text
+  useState(() => {
+    const interval = setInterval(() => {
+      setCurrentPlaceholder(prev => (prev + 1) % dynamicPlaceholders.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  });
 
   // Debounced search
   const searchPlaces = useCallback(async (searchQuery: string) => {
@@ -80,35 +98,78 @@ export const UniversalSearchBar = ({
 
   const handleFocus = () => {
     setShowSuggestions(true);
+    setFocused(true);
   };
 
   const handleBlur = () => {
+    setFocused(false);
     // Delay hiding to allow clicks on suggestions
     setTimeout(() => setShowSuggestions(false), 200);
   };
 
   return (
     <div className="px-4 mb-8">
+      {/* Quick access buttons */}
+      <div className="flex items-center gap-3 mb-4">
+        <button 
+          onClick={() => {
+            onTransportSelect();
+            onSearch("Position actuelle");
+          }}
+          className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl font-medium text-sm hover:bg-primary/15 transition-colors"
+        >
+          <Navigation className="h-4 w-4" />
+          Près de moi
+        </button>
+        <button 
+          onClick={() => {
+            onTransportSelect();
+            onSearch("Gombe");
+          }}
+          className="flex items-center gap-2 px-4 py-2 bg-secondary/10 text-secondary-foreground rounded-xl font-medium text-sm hover:bg-secondary/15 transition-colors"
+        >
+          <Zap className="h-4 w-4" />
+          Zone VIP
+        </button>
+      </div>
+
       <div className="relative">
         <form onSubmit={handleSubmit} className="relative group">
-          <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10">
-            <Search className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors duration-200" />
+          <div className="absolute left-5 top-1/2 transform -translate-y-1/2 z-10">
+            <Search className={`h-5 w-5 transition-all duration-200 ${
+              focused ? 'text-primary scale-110' : 'text-muted-foreground'
+            }`} />
           </div>
           <Input
             type="text"
-            placeholder={placeholder}
+            placeholder={dynamicPlaceholders[currentPlaceholder]}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={handleFocus}
             onBlur={handleBlur}
-            className="pl-12 pr-4 h-14 bg-white border-0 rounded-2xl text-base placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary/20 transition-all duration-200"
+            className={`pl-14 pr-5 h-16 bg-white border-0 rounded-2xl text-base placeholder:text-muted-foreground 
+              transition-all duration-300 ${
+                focused 
+                  ? 'ring-2 ring-primary/30 shadow-lg scale-[1.02]' 
+                  : 'ring-1 ring-grey-200 hover:ring-grey-300'
+              }`}
             style={{ 
-              boxShadow: 'var(--shadow-md)',
+              boxShadow: focused ? 'var(--shadow-elegant)' : 'var(--shadow-md)',
               background: 'var(--gradient-card)'
             }}
           />
-          {/* Effet de brillance */}
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+          {/* Effet de brillance amélioré */}
+          <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/20 to-transparent 
+            transition-opacity duration-300 pointer-events-none ${
+              focused ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'
+            }`}></div>
+          
+          {/* Indicateur de statut */}
+          {loading && (
+            <div className="absolute right-5 top-1/2 transform -translate-y-1/2">
+              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
         </form>
 
         {/* Suggestions dropdown */}
