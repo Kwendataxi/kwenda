@@ -88,9 +88,9 @@ export const useAdvancedRideRequest = () => {
           action: 'create_request',
           userId: user.id,
           pickupLocation: data.pickupLocation,
-          pickupCoordinates: { lat: data.pickupCoordinates[1], lng: data.pickupCoordinates[0] },
+          pickupCoordinates: { lat: data.pickupCoordinates[0], lng: data.pickupCoordinates[1] },
           destination: data.destination,
-          destinationCoordinates: { lat: data.destinationCoordinates[1], lng: data.destinationCoordinates[0] },
+          destinationCoordinates: { lat: data.destinationCoordinates[0], lng: data.destinationCoordinates[1] },
           vehicleClass: data.vehicleClass || 'standard'
         }
       });
@@ -126,7 +126,7 @@ export const useAdvancedRideRequest = () => {
         body: {
           action: 'find_drivers',
           rideRequestId,
-          coordinates: { lat: coordinates[1], lng: coordinates[0] }
+          coordinates: { lat: coordinates[0], lng: coordinates[1] }
         }
       });
 
@@ -267,13 +267,14 @@ export const useAdvancedRideRequest = () => {
       const distance = calculateDistance(pickup[1], pickup[0], destination[1], destination[0]);
       
       // Récupérer règles de prix
-      const { data: pricingRule } = await supabase
+      const { data: pricingRules } = await supabase
         .from('pricing_rules')
         .select('*')
         .eq('vehicle_class', vehicleClass)
         .eq('service_type', 'transport')
-        .eq('is_active', true)
-        .single();
+        .eq('is_active', true);
+
+      const pricingRule = pricingRules?.[0];
 
       let price = pricingRule?.base_price || 500;
       if (distance > 0) {

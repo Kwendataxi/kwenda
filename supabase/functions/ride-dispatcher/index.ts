@@ -17,13 +17,14 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { action, rideRequestId, driverId, coordinates } = await req.json();
+    const requestData = await req.json();
+    const { action, rideRequestId, driverId, coordinates } = requestData;
 
     console.log('Ride dispatcher action:', action, { rideRequestId, driverId });
 
     switch (action) {
       case 'create_request':
-        return await createRideRequest(supabase, req.json());
+        return await createRideRequest(supabase, requestData);
       
       case 'find_drivers':
         return await findNearbyDrivers(supabase, rideRequestId, coordinates);
@@ -32,18 +33,27 @@ serve(async (req) => {
         return await assignDriverToRide(supabase, rideRequestId, driverId);
       
       case 'update_status':
-        return await updateRideStatus(supabase, rideRequestId, req.json());
+        return await updateRideStatus(supabase, rideRequestId, requestData);
       
       default:
-        throw new Error('Action non supportée');
+        return new Response(
+          JSON.stringify({ success: false, error: 'Action non supportée' }),
+          { 
+            status: 200, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
     }
 
   } catch (error) {
     console.error('Erreur dispatcher:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        success: false, 
+        error: error.message || 'Erreur interne du serveur' 
+      }),
       { 
-        status: 400, 
+        status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
@@ -51,92 +61,147 @@ serve(async (req) => {
 });
 
 async function createRideRequest(supabase: any, data: any) {
-  const { 
-    userId, 
-    pickupLocation, 
-    pickupCoordinates, 
-    destination, 
-    destinationCoordinates, 
-    vehicleClass = 'standard' 
-  } = data;
+  try {
+    const { 
+      userId, 
+      pickupLocation, 
+      pickupCoordinates, 
+      destination, 
+      destinationCoordinates, 
+      vehicleClass = 'standard' 
+    } = data;
 
-  // Calculer les zones
-  const { data: pickupZone } = await supabase
-    .rpc('get_zone_for_coordinates', {
-      lat: pickupCoordinates.lat,
-      lng: pickupCoordinates.lng
-    });
+    // Validation des données d'entrée
+    if (!userId || !pickupLocation || !destination) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Données manquantes: userId, pickupLocation et destination requis' 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-  const { data: destinationZone } = await supabase
-    .rpc('get_zone_for_coordinates', {
-      lat: destinationCoordinates.lat,
-      lng: destinationCoordinates.lng
-    });
+    if (!pickupCoordinates || !pickupCoordinates.lat || !pickupCoordinates.lng) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Coordonnées de départ invalides' 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-  // Calculer le prix estimé
-  const distance = calculateDistance(
-    pickupCoordinates.lat, pickupCoordinates.lng,
-    destinationCoordinates.lat, destinationCoordinates.lng
-  );
+    if (!destinationCoordinates || !destinationCoordinates.lat || !destinationCoordinates.lng) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Coordonnées de destination invalides' 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-  // Récupérer les règles de tarification
-  const { data: pricingRule } = await supabase
-    .from('pricing_rules')
-    .select('*')
-    .eq('vehicle_class', vehicleClass)
-    .eq('service_type', 'transport')
-    .eq('city', 'kinshasa')
-    .eq('is_active', true)
-    .single();
+    console.log('Coordonnées reçues:', { pickupCoordinates, destinationCoordinates });
 
-  let estimatedPrice = pricingRule?.base_price || 500;
-  if (distance > 0) {
-    estimatedPrice += distance * (pricingRule?.price_per_km || 150);
+    // Calculer les zones
+    const { data: pickupZone } = await supabase
+      .rpc('get_zone_for_coordinates', {
+        lat: pickupCoordinates.lat,
+        lng: pickupCoordinates.lng
+      });
+
+    const { data: destinationZone } = await supabase
+      .rpc('get_zone_for_coordinates', {
+        lat: destinationCoordinates.lat,
+        lng: destinationCoordinates.lng
+      });
+
+    // Calculer le prix estimé
+    const distance = calculateDistance(
+      pickupCoordinates.lat, pickupCoordinates.lng,
+      destinationCoordinates.lat, destinationCoordinates.lng
+    );
+
+    // Récupérer les règles de tarification avec gestion d'erreur
+    const { data: pricingRules } = await supabase
+      .from('pricing_rules')
+      .select('*')
+      .eq('vehicle_class', vehicleClass)
+      .eq('service_type', 'transport')
+      .eq('is_active', true);
+
+    const pricingRule = pricingRules?.[0];
+    let estimatedPrice = pricingRule?.base_price || 500;
+    if (distance > 0) {
+      estimatedPrice += distance * (pricingRule?.price_per_km || 150);
+    }
+
+    // Calculer le surge pricing
+    const { data: surgeMultiplier } = await supabase
+      .rpc('calculate_surge_pricing', {
+        zone_id_param: pickupZone,
+        vehicle_class_param: vehicleClass
+      });
+
+    const surgePrice = estimatedPrice * (surgeMultiplier || 1);
+
+    // Créer la demande de course
+    const { data: rideRequest, error } = await supabase
+      .from('ride_requests')
+      .insert({
+        user_id: userId,
+        pickup_location: pickupLocation,
+        pickup_coordinates: pickupCoordinates,
+        destination: destination,
+        destination_coordinates: destinationCoordinates,
+        pickup_zone_id: pickupZone,
+        destination_zone_id: destinationZone,
+        vehicle_class: vehicleClass,
+        estimated_price: estimatedPrice,
+        surge_price: surgePrice,
+        status: 'pending'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erreur création ride_request:', error);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Erreur lors de la création de la demande: ' + error.message 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Demande de course créée:', rideRequest.id);
+
+    // Déclencher la recherche de chauffeurs
+    setTimeout(() => {
+      findNearbyDrivers(supabase, rideRequest.id, pickupCoordinates);
+    }, 1000);
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        rideRequest,
+        estimatedPrice: surgePrice 
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error: any) {
+    console.error('Erreur createRideRequest:', error);
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        error: error.message || 'Erreur inconnue lors de la création de la demande' 
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
-
-  // Calculer le surge pricing
-  const { data: surgeMultiplier } = await supabase
-    .rpc('calculate_surge_pricing', {
-      zone_id_param: pickupZone,
-      vehicle_class_param: vehicleClass
-    });
-
-  const surgePrice = estimatedPrice * (surgeMultiplier || 1);
-
-  // Créer la demande de course
-  const { data: rideRequest, error } = await supabase
-    .from('ride_requests')
-    .insert({
-      user_id: userId,
-      pickup_location: pickupLocation,
-      pickup_coordinates: pickupCoordinates,
-      destination: destination,
-      destination_coordinates: destinationCoordinates,
-      pickup_zone_id: pickupZone,
-      destination_zone_id: destinationZone,
-      vehicle_class: vehicleClass,
-      estimated_price: estimatedPrice,
-      surge_price: surgePrice,
-      status: 'pending'
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  // Déclencher la recherche de chauffeurs
-  setTimeout(() => {
-    findNearbyDrivers(supabase, rideRequest.id, pickupCoordinates);
-  }, 1000);
-
-  return new Response(
-    JSON.stringify({ 
-      success: true, 
-      rideRequest,
-      estimatedPrice: surgePrice 
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
 }
 
 async function findNearbyDrivers(supabase: any, rideRequestId: string, coordinates: any) {
