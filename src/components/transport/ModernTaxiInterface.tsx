@@ -179,11 +179,11 @@ const ModernTaxiInterface: React.FC<ModernTaxiInterfaceProps> = ({
       const bookingData = {
         pickupLocation: pickup.address,
         destination: destination.address,
-        pickupCoordinates: { lat: pickup.coordinates[0], lng: pickup.coordinates[1] },
-        destinationCoordinates: { lat: destination.coordinates[0], lng: destination.coordinates[1] },
+        pickupCoordinates: { lat: pickup.coordinates[1], lng: pickup.coordinates[0] },
+        destinationCoordinates: { lat: destination.coordinates[1], lng: destination.coordinates[0] },
         intermediateStops: intermediateStops.map(stop => ({
           address: stop.address,
-          coordinates: stop.coordinates ? { lat: stop.coordinates[0], lng: stop.coordinates[1] } : null
+          coordinates: stop.coordinates ? { lat: stop.coordinates[1], lng: stop.coordinates[0] } : null
         })),
         vehicleType: selectedVehicle.type,
         estimatedPrice,
@@ -193,7 +193,14 @@ const ModernTaxiInterface: React.FC<ModernTaxiInterfaceProps> = ({
       };
 
       console.log('Tentative de réservation:', bookingData);
-      onBookingRequest(bookingData);
+      await onBookingRequest(bookingData);
+      
+      // Reset form after successful booking
+      setPickup(null);
+      setDestination(null);
+      setIntermediateStops([]);
+      setSelectedVehicle(null);
+      setCurrentStep('locations');
     } catch (error) {
       console.error('Erreur lors de la réservation:', error);
       toast.error('Erreur lors de la réservation. Veuillez réessayer.');

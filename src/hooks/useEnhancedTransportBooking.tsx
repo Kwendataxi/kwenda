@@ -52,7 +52,7 @@ export const useEnhancedTransportBooking = () => {
         .select('*')
         .eq('vehicle_class', data.vehicleType)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (pricingError) {
         console.warn('Could not fetch pricing rules:', pricingError);
@@ -167,11 +167,15 @@ export const useEnhancedTransportBooking = () => {
         const assignedDriver = driversWithDistance[0];
         
         setTimeout(async () => {
-          await assignDriverToBooking(bookingId, assignedDriver.driver_id);
-          toast.success(`Chauffeur trouvé ! Arrivée dans ${assignedDriver.estimated_arrival} minutes`);
+          const success = await assignDriverToBooking(bookingId, assignedDriver.driver_id);
+          if (success) {
+            toast.success(`Chauffeur trouvé ! Arrivée dans ${assignedDriver.estimated_arrival} minutes`);
+          }
         }, 3000); // 3 second delay to simulate search
       } else {
-        toast.error('Aucun chauffeur disponible dans la zone');
+        setTimeout(() => {
+          toast.error('Aucun chauffeur disponible dans la zone');
+        }, 3000);
       }
 
       return driversWithDistance;
