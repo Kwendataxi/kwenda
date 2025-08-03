@@ -1,19 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Copy, Share2, QrCode, UserCheck } from 'lucide-react';
 import { useDriverCode } from '@/hooks/useDriverCode';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ShareCodeModal } from './ShareCodeModal';
 
 export const DriverCodeManager = () => {
   const { t } = useLanguage();
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const { 
     loading, 
     driverCode, 
     partnerAssignment, 
     generateCode, 
-    shareCode, 
     copyCode 
   } = useDriverCode();
 
@@ -53,7 +54,7 @@ export const DriverCodeManager = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={shareCode}
+                onClick={() => setShareModalOpen(true)}
                 className="h-9"
               >
                 <Share2 className="h-3 w-3 mr-1" />
@@ -152,6 +153,15 @@ export const DriverCodeManager = () => {
           </div>
         </div>
       </div>
+
+      {/* Share Modal */}
+      {driverCode && (
+        <ShareCodeModal
+          open={shareModalOpen}
+          onOpenChange={setShareModalOpen}
+          code={driverCode.code}
+        />
+      )}
     </div>
   );
 };
