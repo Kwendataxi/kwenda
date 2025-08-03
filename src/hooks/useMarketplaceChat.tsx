@@ -53,7 +53,7 @@ export const useMarketplaceChat = () => {
           marketplace_products!inner(title, price, images)
         `)
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .order('last_message_at', { ascending: false });
+        .order('last_message_at', { ascending: false, nullsFirst: false });
 
       if (error) throw error;
 

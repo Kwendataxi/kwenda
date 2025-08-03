@@ -76,6 +76,10 @@ const translations = {
     'delivery.status.cancelled': 'Annulé',
     
     // Marketplace
+    'marketplace.title': 'Marketplace',
+    'marketplace.browse': 'Explorer',
+    'marketplace.chat': 'Chat',
+    'marketplace.admin': 'Admin',
     'marketplace.products': 'Produits',
     'marketplace.categories': 'Catégories',
     'marketplace.cart': 'Panier',
@@ -92,6 +96,8 @@ const translations = {
     'marketplace.reviews': 'Avis',
     'marketplace.stock': 'Stock',
     'marketplace.category': 'Catégorie',
+    'marketplace.noConversations': 'Aucune conversation',
+    'marketplace.startChatting': 'Commencez à discuter avec les vendeurs pour voir vos conversations ici.',
     
     // Driver
     'driver.dashboard': 'Tableau de bord',
