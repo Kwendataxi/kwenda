@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Clock, User, Star, Phone, Navigation, X } from 'lucide-react';
+import { MapPin, Clock, User, Star, Phone, Navigation, X, Zap, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LocationInput from './LocationInput';
 import YangoStyleVehicleSelection from './YangoStyleVehicleSelection';
+import { EnhancedTaxiSearchBar } from './EnhancedTaxiSearchBar';
+import { QuickBookingInterface } from './QuickBookingInterface';
 import { useAdvancedRideRequest } from '@/hooks/useAdvancedRideRequest';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -310,25 +313,80 @@ export const AdvancedTaxiInterface = () => {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-4">
-      {/* Navigation Steps */}
-      <div className="flex justify-center space-x-4 mb-6">
-        {['location', 'vehicle'].map((stepName, index) => (
-          <div 
-            key={stepName}
-            className={`flex items-center space-x-2 ${
-              step === stepName ? 'text-primary' : 'text-muted-foreground'
-            }`}
-          >
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-              step === stepName ? 'border-primary bg-primary text-white' : 'border-muted'
-            }`}>
-              {index + 1}
-            </div>
-            <span className="text-sm font-medium capitalize">{stepName}</span>
+    <div className="w-full max-w-2xl mx-auto space-y-6">
+      {/* Enhanced Taxi Search Interface */}
+      <Tabs defaultValue="search" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="search" className="flex items-center gap-2">
+            <Navigation className="h-4 w-4" />
+            Recherche
+          </TabsTrigger>
+          <TabsTrigger value="quick" className="flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            Express
+          </TabsTrigger>
+          <TabsTrigger value="scheduled" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Programmé
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="search" className="space-y-4 mt-6">
+          {/* Enhanced Search Bar */}
+          <EnhancedTaxiSearchBar
+            onSearch={(query, coordinates) => {
+              if (coordinates) {
+                setDestination({
+                  address: query,
+                  coordinates: [coordinates.lng, coordinates.lat]
+                });
+                setStep('vehicle');
+              }
+            }}
+            onTransportSelect={() => {}}
+            placeholder="Où allez-vous ?"
+          />
+
+          {/* Navigation Steps */}
+          <div className="flex justify-center space-x-4 mb-6">
+            {['location', 'vehicle'].map((stepName, index) => (
+              <div 
+                key={stepName}
+                className={`flex items-center space-x-2 ${
+                  step === stepName ? 'text-primary' : 'text-muted-foreground'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+                  step === stepName ? 'border-primary bg-primary text-white' : 'border-muted'
+                }`}>
+                  {index + 1}
+                </div>
+                <span className="text-sm font-medium capitalize">{stepName}</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </TabsContent>
+
+        <TabsContent value="quick" className="mt-6">
+          <QuickBookingInterface />
+        </TabsContent>
+
+        <TabsContent value="scheduled" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Programmer une course
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-center py-8">
+                Fonctionnalité de programmation bientôt disponible
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {step === 'location' && (
         <Card>
