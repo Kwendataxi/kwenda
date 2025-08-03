@@ -304,6 +304,36 @@ export type Database = {
           },
         ]
       }
+      driver_codes: {
+        Row: {
+          code: string
+          created_at: string
+          driver_id: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          driver_id: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          driver_id?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       driver_requests: {
         Row: {
           approved_at: string | null
@@ -452,6 +482,42 @@ export type Database = {
           status?: string | null
           subcategory?: string | null
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      partner_drivers: {
+        Row: {
+          added_at: string
+          commission_rate: number
+          created_at: string
+          driver_code: string
+          driver_id: string
+          id: string
+          partner_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          added_at?: string
+          commission_rate?: number
+          created_at?: string
+          driver_code: string
+          driver_id: string
+          id?: string
+          partner_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          added_at?: string
+          commission_rate?: number
+          created_at?: string
+          driver_code?: string
+          driver_id?: string
+          id?: string
+          partner_id?: string
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -1162,6 +1228,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_driver_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string
