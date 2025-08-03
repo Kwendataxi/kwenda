@@ -89,7 +89,7 @@ export const ZoneManagementDashboard = () => {
                       <SelectValue placeholder="Sélectionner un pays" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tous les pays</SelectItem>
+                      <SelectItem value="all">Tous les pays</SelectItem>
                       {countries.map(country => (
                         <SelectItem key={country.code} value={country.code}>
                           {country.name}
