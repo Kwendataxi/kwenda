@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
-import kwendaKLogo from '@/assets/kwenda-k-logo.png';
+import kwendaKLogo from '@/assets/kwenda-k-logo-new.png';
 
 interface ModernHeaderProps {
   hasNotifications?: boolean;
@@ -62,12 +62,18 @@ export const ModernHeader = ({
         {/* Structure simplifiée en 2 colonnes */}
         <div className="flex items-center justify-between">
           {/* Logo et salutation */}
-          <div className="flex items-center gap-3 flex-1">
-            <img 
-              src={kwendaKLogo} 
-              alt="Kwenda" 
-              className="h-10 w-10"
-            />
+          <div className="flex items-center gap-4 flex-1">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-white rounded-full shadow-lg opacity-90 group-hover:opacity-100 transition-all duration-300"></div>
+              <div className="relative bg-gradient-to-br from-white to-gray-50 rounded-full p-2 shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110 animate-pulse">
+                <img 
+                  src={kwendaKLogo} 
+                  alt="Kwenda" 
+                  className="h-12 w-12 relative z-10 group-hover:rotate-3 transition-all duration-300 filter drop-shadow-sm"
+                />
+              </div>
+              <div className="absolute inset-0 bg-red-500/20 rounded-full opacity-0 group-hover:opacity-30 transition-all duration-300 blur-md"></div>
+            </div>
             <div>
               <div className="mb-1">
                 <p className="text-gray-900 font-bold text-lg">
