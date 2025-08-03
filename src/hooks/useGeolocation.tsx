@@ -52,10 +52,23 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
 
   const {
     enableHighAccuracy = true,
-    timeout = 10000,
+    timeout = 20000, // Increased timeout for slow connections
     maximumAge = 300000, // 5 minutes
     watchPosition = false,
   } = options;
+
+  // Load cached position on init
+  useEffect(() => {
+    const cached = localStorage.getItem('lastKnownPosition');
+    if (cached) {
+      try {
+        const position = JSON.parse(cached);
+        setLocation(prev => ({ ...prev, lastKnownPosition: position }));
+      } catch (error) {
+        console.error('Error loading cached position:', error);
+      }
+    }
+  }, []);
 
   const requestPermissions = useCallback(async (): Promise<boolean> => {
     try {
@@ -79,7 +92,7 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
     }
   }, []);
 
-  const getCurrentPosition = useCallback(async () => {
+  const getCurrentPosition = useCallback(async (retryCount = 0) => {
     setLocation(prev => ({ ...prev, loading: true, error: null }));
 
     try {
@@ -89,7 +102,7 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
         // Use Capacitor geolocation for mobile apps
         const hasPermission = await requestPermissions();
         if (!hasPermission) {
-          throw new Error('Permissions de géolocalisation requises');
+          throw new Error('PERMISSION_DENIED');
         }
 
         position = await Geolocation.getCurrentPosition({
@@ -98,6 +111,11 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
           maximumAge,
         });
       } else {
+        // Check HTTPS requirement
+        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+          throw new Error('HTTPS_REQUIRED');
+        }
+        
         // Fallback to browser geolocation API
         const browserPosition = await getBrowserLocation({
           enableHighAccuracy,
@@ -115,6 +133,9 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
         longitude: position.coords.longitude,
       };
       
+      // Cache the position
+      localStorage.setItem('lastKnownPosition', JSON.stringify(newPosition));
+      
       setLocation(prev => ({
         ...prev,
         latitude: position.coords.latitude,
@@ -127,10 +148,48 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
 
       return position;
     } catch (error) {
-      // Fallback intelligent vers la ville la plus proche
+      const errorCode = error instanceof Error ? error.message : 'UNKNOWN_ERROR';
+      
+      // Retry logic for network errors
+      if (retryCount < 2 && ['TIMEOUT', 'POSITION_UNAVAILABLE'].includes(errorCode)) {
+        const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
+        setTimeout(() => getCurrentPosition(retryCount + 1), delay);
+        return;
+      }
+      
+      // Use cached position if available
+      const cached = localStorage.getItem('lastKnownPosition');
+      if (cached) {
+        try {
+          const cachedPosition = JSON.parse(cached);
+          setLocation(prev => ({
+            ...prev,
+            latitude: cachedPosition.latitude,
+            longitude: cachedPosition.longitude,
+            accuracy: null,
+            loading: false,
+            error: getErrorMessage(errorCode),
+            lastKnownPosition: cachedPosition,
+          }));
+          
+          toast({
+            title: "Position mise en cache",
+            description: "Utilisation de votre dernière position connue",
+            variant: "default",
+          });
+          
+          return {
+            coords: cachedPosition,
+            timestamp: Date.now(),
+          } as Position;
+        } catch (e) {
+          console.error('Error parsing cached position:', e);
+        }
+      }
+      
+      // Final fallback to default city
       const nearestCity = detectCurrentCity();
       const fallbackCoords = getCityCoordinates(nearestCity);
-      const errorMessage = error instanceof Error ? error.message : 'Erreur de géolocalisation';
       
       setLocation(prev => ({
         ...prev,
@@ -138,14 +197,14 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
         longitude: fallbackCoords.longitude,
         accuracy: null,
         loading: false,
-        error: errorMessage,
+        error: getErrorMessage(errorCode),
         lastKnownPosition: fallbackCoords,
       }));
       
       toast({
-        title: "Position par défaut",
-        description: `Utilisation de ${nearestCity.charAt(0).toUpperCase() + nearestCity.slice(1)} comme position par défaut`,
-        variant: "default",
+        title: getErrorTitle(errorCode),
+        description: getErrorMessage(errorCode),
+        variant: "destructive",
       });
       
       return {
@@ -158,6 +217,36 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
       } as Position;
     }
   }, [enableHighAccuracy, timeout, maximumAge, toast, requestPermissions]);
+
+  const getErrorMessage = (errorCode: string): string => {
+    switch (errorCode) {
+      case 'PERMISSION_DENIED':
+        return 'Veuillez autoriser la géolocalisation dans les paramètres de votre navigateur';
+      case 'POSITION_UNAVAILABLE':
+        return 'Position indisponible. Vérifiez votre connexion GPS';
+      case 'TIMEOUT':
+        return 'Délai d\'attente dépassé. Connexion lente détectée';
+      case 'HTTPS_REQUIRED':
+        return 'HTTPS requis pour la géolocalisation';
+      default:
+        return 'Erreur de géolocalisation. Mode manuel disponible';
+    }
+  };
+
+  const getErrorTitle = (errorCode: string): string => {
+    switch (errorCode) {
+      case 'PERMISSION_DENIED':
+        return 'Permission refusée';
+      case 'POSITION_UNAVAILABLE':
+        return 'Position indisponible';
+      case 'TIMEOUT':
+        return 'Connexion lente';
+      case 'HTTPS_REQUIRED':
+        return 'Connexion sécurisée requise';
+      default:
+        return 'Erreur de localisation';
+    }
+  };
 
   const watchCurrentPosition = useCallback(() => {
     let watchId: string | number | null = null;

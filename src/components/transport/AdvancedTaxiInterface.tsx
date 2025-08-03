@@ -13,7 +13,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Location {
   address: string;
-  coordinates: [number, number];
+  coordinates: { lat: number; lng: number };
   type?: string;
 }
 
@@ -42,12 +42,12 @@ export const AdvancedTaxiInterface = () => {
   useEffect(() => {
     if (pickup && destination) {
       const dist = calculateDistance(
-        pickup.coordinates[1], pickup.coordinates[0],
-        destination.coordinates[1], destination.coordinates[0]
+        pickup.coordinates.lat, pickup.coordinates.lng,
+        destination.coordinates.lat, destination.coordinates.lng
       );
       setDistance(dist);
 
-      calculateEstimatedPrice(pickup.coordinates, destination.coordinates, selectedVehicle)
+      calculateEstimatedPrice([pickup.coordinates.lng, pickup.coordinates.lat], [destination.coordinates.lng, destination.coordinates.lat], selectedVehicle)
         .then(price => setCurrentPrice(price));
     }
   }, [pickup, destination, selectedVehicle, calculateEstimatedPrice]);
@@ -98,9 +98,9 @@ export const AdvancedTaxiInterface = () => {
 
     const request = await createRideRequest({
       pickupLocation: pickup.address,
-      pickupCoordinates: pickup.coordinates,
+      pickupCoordinates: [pickup.coordinates.lng, pickup.coordinates.lat],
       destination: destination.address,
-      destinationCoordinates: destination.coordinates,
+      destinationCoordinates: [destination.coordinates.lng, destination.coordinates.lat],
       vehicleClass: selectedVehicle
     });
 
@@ -338,7 +338,7 @@ export const AdvancedTaxiInterface = () => {
               if (coordinates) {
                 setDestination({
                   address: query,
-                  coordinates: [coordinates.lng, coordinates.lat]
+                  coordinates: { lat: coordinates.lat, lng: coordinates.lng }
                 });
                 setStep('vehicle');
               }
@@ -398,14 +398,12 @@ export const AdvancedTaxiInterface = () => {
               placeholder="Lieu de départ"
               value={pickup?.address || ''}
               onChange={(location) => handleLocationChange('pickup', location)}
-              onInputChange={() => {}}
             />
             
             <LocationInput
               placeholder="Destination"
               value={destination?.address || ''}
               onChange={(location) => handleLocationChange('destination', location)}
-              onInputChange={() => {}}
             />
 
             {pickup && destination && (
