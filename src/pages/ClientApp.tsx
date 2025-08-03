@@ -82,7 +82,12 @@ import { TestDataGenerator } from '@/components/testing/TestDataGenerator';
 // Hooks
 import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
+import { useAuth } from '@/hooks/useAuth';
 import { LotteryDashboard } from '@/components/lottery/LotteryDashboard';
+import { useLotteryTickets } from '@/hooks/useLotteryTickets';
+import { useLotteryNotifications } from '@/hooks/useLotteryNotifications';
+import { LotteryNotification } from '@/components/transport/LotteryNotification';
+import { LotteryTicketFloater } from '@/components/lottery/LotteryTicketFloater';
 
 interface Location {
   address: string;
@@ -117,6 +122,7 @@ interface PackageType {
 }
 
 const ClientApp = () => {
+  const { user } = useAuth();
   const { t, language, setLanguage, formatCurrency } = useLanguage();
   const { compressData, decompressData } = useDataCompression();
   const { optimizations, measureLoadTime } = usePerformanceMonitor();
@@ -165,6 +171,10 @@ const ClientApp = () => {
   // Chat and order hooks
   const chatHook = useMarketplaceChat();
   const ordersHook = useMarketplaceOrders();
+  
+  // Lottery hooks
+  const lotteryTickets = useLotteryTickets();
+  const { notifications, showNotification, hideNotification } = useLotteryNotifications();
 
   // Marketplace data from Supabase
   const [marketplaceProducts, setMarketplaceProducts] = useState<any[]>([]);
@@ -172,6 +182,13 @@ const ClientApp = () => {
   const [showChat, setShowChat] = useState(false);
   const [chatProductId, setChatProductId] = useState<string | undefined>();
   const [chatSellerId, setChatSellerId] = useState<string | undefined>();
+
+  // Auto-attribution des tickets de connexion quotidienne
+  useEffect(() => {
+    if (user) {
+      lotteryTickets.awardDailyLoginTickets();
+    }
+  }, [user]);
 
   // Fetch products from Supabase
   useEffect(() => {
@@ -314,6 +331,10 @@ const ClientApp = () => {
       if (booking) {
         setActiveBooking(booking);
         setIsTripChatOpen(true);
+        
+        // Attribuer des tickets pour la course
+        await lotteryTickets.awardTransportTickets(booking.id);
+        
         toast({
           title: "Réservation créée",
           description: "Recherche d'un chauffeur en cours...",
@@ -357,11 +378,14 @@ const ClientApp = () => {
   };
 
   // Delivery handlers
-  const handleModernDeliverySubmit = (data: any) => {
+  const handleModernDeliverySubmit = async (data: any) => {
     // Generate delivery ID and start tracking
     const newDeliveryId = 'KWT' + Math.random().toString(36).substr(2, 6).toUpperCase();
     setDeliveryId(newDeliveryId);
     setDeliveryStep('tracking');
+    
+    // Attribuer des tickets pour la livraison
+    await lotteryTickets.awardDeliveryTickets(newDeliveryId);
     
     toast({
       title: "Livraison confirmée",
@@ -386,7 +410,7 @@ const ClientApp = () => {
   };
 
   // Marketplace functions
-  const handleAddToCart = (product: any, quantity: number = 1) => {
+  const handleAddToCart = async (product: any, quantity: number = 1) => {
     const existingItem = cartItems.find(item => item.id === product.id);
     
     if (existingItem) {
@@ -407,6 +431,9 @@ const ClientApp = () => {
         seller: product.seller
       }]);
     }
+
+    // Attribuer des tickets pour l'achat marketplace
+    await lotteryTickets.awardMarketplaceBuyTickets(product.id);
 
     toast({
       title: "Produit ajouté",
@@ -1200,6 +1227,29 @@ const ClientApp = () => {
           </div>
         </div>
       )}
+      
+      {/* Lottery Ticket Floater - Only show outside lottery view */}
+      {currentView !== 'lottery' && serviceType !== 'marketplace' && (
+        <LotteryTicketFloater 
+          onOpenLottery={() => setCurrentView('lottery')}
+        />
+      )}
+      
+      {/* Lottery Notifications */}
+      {notifications.map((notification) => (
+        <LotteryNotification
+          key={notification.id}
+          show={notification.show}
+          ticketCount={notification.ticketCount}
+          sourceType={notification.sourceType}
+          multiplier={notification.multiplier}
+          onClose={() => hideNotification(notification.id)}
+          onViewLottery={() => {
+            setCurrentView('lottery');
+            hideNotification(notification.id);
+          }}
+        />
+      ))}
       
       {/* Toast notifications */}
       <div id="toast-container" />

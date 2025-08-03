@@ -31,6 +31,14 @@ serve(async (req) => {
 
     const url = new URL(req.url);
     const action = url.searchParams.get('action');
+    
+    // Si pas d'action en query param, essayer de lire le body
+    if (!action) {
+      const body = await req.json();
+      if (body.userId && body.sourceType) {
+        return await awardTicket(req, supabaseClient);
+      }
+    }
 
     switch (action) {
       case 'award_ticket':
@@ -57,7 +65,8 @@ serve(async (req) => {
 
 // Attribuer des tickets de tombola
 async function awardTicket(req: Request, supabase: any) {
-  const { userId, sourceType, sourceId, multiplier = 1, count = 1 }: LotteryTicketRequest = await req.json();
+  const body = await req.text();
+  const { userId, sourceType, sourceId, multiplier = 1, count = 1 }: LotteryTicketRequest = JSON.parse(body);
 
   console.log(`Attribution de ${count} tickets pour ${userId} (source: ${sourceType})`);
 
