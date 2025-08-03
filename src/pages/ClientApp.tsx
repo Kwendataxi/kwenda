@@ -808,8 +808,8 @@ const ClientApp = () => {
 
   return (
     <div className={`relative ${optimizations.reducedAnimations ? 'reduce-animations' : ''} ${optimizations.cacheEnabled ? 'memory-efficient' : ''}`}>
-      {/* Connection Indicator */}
-      <ConnectionIndicator />
+      {/* Connection Indicator - Hidden */}
+      {/* <ConnectionIndicator /> */}
       
       {/* Performance Indicator */}
       <PerformanceIndicator showDetails={false} />
