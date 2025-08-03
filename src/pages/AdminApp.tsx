@@ -10,6 +10,9 @@ import { Progress } from '@/components/ui/progress';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
+import { ZoneManagementDashboard } from '@/components/admin/ZoneManagementDashboard';
+import { DriverFinancialManager } from '@/components/admin/DriverFinancialManager';
+import { AdvancedSupportCenter } from '@/components/admin/AdvancedSupportCenter';
 import { 
   LayoutDashboard,
   Users, 
@@ -51,7 +54,10 @@ import {
   ArrowLeft,
   HeadphonesIcon,
   HelpCircle,
-  RefreshCw
+  RefreshCw,
+  CreditCard,
+  Globe,
+  Wallet
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -104,9 +110,11 @@ const AdminApp = () => {
       {/* Main Content */}
       <div className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6 rounded-xl bg-grey-50">
+          <TabsList className="grid w-full grid-cols-8 rounded-xl bg-grey-50">
             <TabsTrigger value="overview" className="rounded-lg">Vue d'ensemble</TabsTrigger>
             <TabsTrigger value="users" className="rounded-lg">Utilisateurs</TabsTrigger>
+            <TabsTrigger value="zones" className="rounded-lg">Zones</TabsTrigger>
+            <TabsTrigger value="drivers" className="rounded-lg">Chauffeurs</TabsTrigger>
             <TabsTrigger value="marketplace" className="rounded-lg">Marketplace</TabsTrigger>
             <TabsTrigger value="finance" className="rounded-lg">Finance</TabsTrigger>
             <TabsTrigger value="support" className="rounded-lg">Support</TabsTrigger>
@@ -303,6 +311,15 @@ const AdminApp = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          
+          <TabsContent value="zones" className="space-y-4">
+            <ZoneManagementDashboard />
+          </TabsContent>
+
+          <TabsContent value="drivers" className="space-y-4">
+            <DriverFinancialManager />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
@@ -649,131 +666,8 @@ const AdminApp = () => {
 
           </TabsContent>
 
-          <TabsContent value="support" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-heading-lg text-card-foreground">Support Client</h3>
-              <div className="flex gap-2">
-                <Select defaultValue="all">
-                  <SelectTrigger className="w-40 rounded-xl">
-                    <SelectValue placeholder="Statut" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous</SelectItem>
-                    <SelectItem value="open">Ouvert</SelectItem>
-                    <SelectItem value="pending">En attente</SelectItem>
-                    <SelectItem value="resolved">Résolu</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button className="rounded-xl">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nouveau ticket
-                </Button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <Card className="card-floating border-0 text-center p-4">
-                <HelpCircle className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                <p className="text-caption text-muted-foreground">Ouverts</p>
-                <p className="text-heading-lg font-bold text-card-foreground">15</p>
-              </Card>
-              <Card className="card-floating border-0 text-center p-4">
-                <Clock className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                <p className="text-caption text-muted-foreground">En attente</p>
-                <p className="text-heading-lg font-bold text-card-foreground">8</p>
-              </Card>
-              <Card className="card-floating border-0 text-center p-4">
-                <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                <p className="text-caption text-muted-foreground">Résolus</p>
-                <p className="text-heading-lg font-bold text-card-foreground">142</p>
-              </Card>
-            </div>
-
-            <div className="space-y-4">
-              {[
-                {
-                  id: "SUP-001",
-                  user: "Jean Kouassi",
-                  type: "Client",
-                  subject: "Problème de paiement",
-                  status: "open",
-                  priority: "high",
-                  created: "Il y a 2h",
-                  agent: "Marie Admin"
-                },
-                {
-                  id: "SUP-002",
-                  user: "Paul Chauffeur",
-                  type: "Chauffeur", 
-                  subject: "Course annulée incorrectement",
-                  status: "pending",
-                  priority: "medium",
-                  created: "Il y a 4h",
-                  agent: "Jean Admin"
-                },
-                {
-                  id: "SUP-003",
-                  user: "NTA Solutions",
-                  type: "Partenaire",
-                  subject: "Facturation mensuelle",
-                  status: "resolved",
-                  priority: "low",
-                  created: "Il y a 1j",
-                  agent: "Marie Admin"
-                }
-              ].map((ticket, index) => (
-                <Card key={index} className="card-floating border-0">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="rounded-md">{ticket.id}</Badge>
-                        <div>
-                          <p className="text-body-md font-semibold text-card-foreground">{ticket.subject}</p>
-                          <p className="text-body-sm text-muted-foreground">{ticket.user} ({ticket.type})</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge 
-                          variant={
-                            ticket.priority === "high" ? "destructive" :
-                            ticket.priority === "medium" ? "secondary" : "outline"
-                          }
-                          className="rounded-md"
-                        >
-                          {ticket.priority === "high" ? "Urgent" :
-                           ticket.priority === "medium" ? "Moyen" : "Faible"}
-                        </Badge>
-                        <Badge 
-                          variant={
-                            ticket.status === "open" ? "destructive" :
-                            ticket.status === "pending" ? "secondary" : "default"
-                          }
-                          className="rounded-md"
-                        >
-                          {ticket.status === "open" ? "Ouvert" :
-                           ticket.status === "pending" ? "En attente" : "Résolu"}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-body-sm text-muted-foreground">Assigné à: {ticket.agent}</p>
-                        <p className="text-caption text-muted-foreground">{ticket.created}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="rounded-lg">
-                          <MessageSquare className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" className="rounded-lg">
-                          <Send className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          <TabsContent value="support" className="space-y-4">
+            <AdvancedSupportCenter />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
