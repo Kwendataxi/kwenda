@@ -51,20 +51,21 @@ export const PartnerDriverManager = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Gestion des Chauffeurs</h2>
-          <p className="text-muted-foreground">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="w-full sm:w-auto">
+          <h2 className="text-xl sm:text-2xl font-bold">Gestion des Chauffeurs</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Gérez votre flotte de chauffeurs et leurs commissions
           </p>
         </div>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto">
               <UserPlus className="h-4 w-4 mr-2" />
-              Ajouter un chauffeur
+              <span className="hidden sm:inline">Ajouter un chauffeur</span>
+              <span className="sm:hidden">Ajouter</span>
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -123,33 +124,36 @@ export const PartnerDriverManager = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <Card className="card-modern">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center">
-              <Users className="h-8 w-8 text-primary" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              </div>
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Chauffeurs Actifs
                 </p>
-                <p className="text-2xl font-bold">
+                <p className="text-xl sm:text-2xl font-bold">
                   {drivers.filter(d => d.status === 'active').length}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
+        
+        <Card className="card-modern">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center">
-              <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-sm font-bold text-green-600">%</span>
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-green-100 rounded-xl flex items-center justify-center">
+                <span className="text-sm sm:text-base font-bold text-green-600">%</span>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Commission Moyenne
                 </p>
-                <p className="text-2xl font-bold">
+                <p className="text-xl sm:text-2xl font-bold">
                   {drivers.length > 0 
                     ? (drivers.reduce((acc, d) => acc + d.commission_rate, 0) / drivers.length).toFixed(1)
                     : '0'
@@ -159,17 +163,18 @@ export const PartnerDriverManager = () => {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
+        
+        <Card className="card-modern sm:col-span-2 lg:col-span-1">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center">
-              <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-sm font-bold text-blue-600">FC</span>
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                <span className="text-xs sm:text-sm font-bold text-blue-600">FC</span>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-muted-foreground">
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Revenus du Mois
                 </p>
-                <p className="text-2xl font-bold">0 FC</p>
+                <p className="text-xl sm:text-2xl font-bold">0 FC</p>
               </div>
             </div>
           </CardContent>
@@ -202,26 +207,26 @@ export const PartnerDriverManager = () => {
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {drivers.map((driver) => (
                 <div
                   key={driver.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg bg-card hover:bg-muted/30 transition-colors"
                 >
-                  <div className="flex items-center space-x-4">
-                    <div className="h-10 w-10 bg-primary/20 rounded-full flex items-center justify-center">
-                      <User className="h-5 w-5 text-primary" />
+                  <div className="flex items-center space-x-3 sm:space-x-4 mb-3 sm:mb-0">
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <User className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     </div>
-                    <div>
-                      <p className="font-medium">{driver.driver_name}</p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>Code: {driver.driver_code}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm sm:text-base truncate">{driver.driver_name}</p>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                        <span className="font-mono">Code: {driver.driver_code}</span>
                         {driver.driver_phone && (
                           <>
-                            <span>•</span>
+                            <span className="hidden sm:inline">•</span>
                             <span className="flex items-center gap-1">
                               <Phone className="h-3 w-3" />
-                              {driver.driver_phone}
+                              <span className="truncate">{driver.driver_phone}</span>
                             </span>
                           </>
                         )}
@@ -232,8 +237,8 @@ export const PartnerDriverManager = () => {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                    <div className="flex items-center justify-between sm:justify-end">
                       {editingDriver === driver.id ? (
                         <div className="flex items-center gap-2">
                           <Input
@@ -242,12 +247,13 @@ export const PartnerDriverManager = () => {
                             max="50"
                             value={editCommission}
                             onChange={(e) => setEditCommission(Number(e.target.value))}
-                            className="w-20"
+                            className="w-16 sm:w-20 h-8"
                           />
                           <span className="text-sm">%</span>
                           <Button
                             size="sm"
                             onClick={() => handleUpdateCommission(driver.id)}
+                            className="h-8 px-2"
                           >
                             OK
                           </Button>
@@ -255,42 +261,48 @@ export const PartnerDriverManager = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => setEditingDriver(null)}
+                            className="h-8 px-2"
                           >
                             ✕
                           </Button>
                         </div>
                       ) : (
-                        <div>
-                          <p className="font-medium">{driver.commission_rate}%</p>
+                        <div className="text-right">
+                          <p className="font-medium text-sm sm:text-base">{driver.commission_rate}%</p>
                           <p className="text-xs text-muted-foreground">Commission</p>
                         </div>
                       )}
                     </div>
                     
-                    <Badge 
-                      variant={driver.status === 'active' ? 'default' : 'secondary'}
-                    >
-                      {driver.status === 'active' ? 'Actif' : 'Inactif'}
-                    </Badge>
-                    
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditingDriver(driver.id);
-                          setEditCommission(driver.commission_rate);
-                        }}
+                    <div className="flex items-center justify-between sm:justify-end gap-3">
+                      <Badge 
+                        variant={driver.status === 'active' ? 'default' : 'secondary'}
+                        className="text-xs"
                       >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleRemoveDriver(driver.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        {driver.status === 'active' ? 'Actif' : 'Inactif'}
+                      </Badge>
+                      
+                      <div className="flex gap-1 sm:gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingDriver(driver.id);
+                            setEditCommission(driver.commission_rate);
+                          }}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRemoveDriver(driver.id)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
