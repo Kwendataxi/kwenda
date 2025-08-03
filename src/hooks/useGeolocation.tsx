@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Geolocation, Position } from '@capacitor/geolocation';
 import { useToast } from '@/hooks/use-toast';
+import { CountryService } from '@/services/countryConfig';
 
 interface LocationState {
   latitude: number | null;
@@ -187,18 +188,18 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
         }
       }
       
-      // Final fallback to default city
-      const nearestCity = detectCurrentCity();
-      const fallbackCoords = getCityCoordinates(nearestCity);
+      // Final fallback to current country's main city
+      const currentCountry = CountryService.getCurrentCountry();
+      const fallbackCoords = currentCountry.majorCities[0].coordinates;
       
       setLocation(prev => ({
         ...prev,
-        latitude: fallbackCoords.latitude,
-        longitude: fallbackCoords.longitude,
+        latitude: fallbackCoords.lat,
+        longitude: fallbackCoords.lng,
         accuracy: null,
         loading: false,
         error: getErrorMessage(errorCode),
-        lastKnownPosition: fallbackCoords,
+        lastKnownPosition: { latitude: fallbackCoords.lat, longitude: fallbackCoords.lng },
       }));
       
       toast({
@@ -209,8 +210,8 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
       
       return {
         coords: {
-          latitude: fallbackCoords.latitude,
-          longitude: fallbackCoords.longitude,
+          latitude: fallbackCoords.lat,
+          longitude: fallbackCoords.lng,
           accuracy: null,
         },
         timestamp: Date.now(),
@@ -358,34 +359,34 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
     }
   }, [watchPosition, watchCurrentPosition]);
 
-  // Coordonnées des villes principales de RDC
-  const getCityCoordinates = (city: 'kinshasa' | 'lubumbashi' | 'kolwezi' = 'kinshasa') => {
-    const coords = {
-      kinshasa: { latitude: -4.4419, longitude: 15.2663 },
-      lubumbashi: { latitude: -11.6609, longitude: 27.4794 },
-      kolwezi: { latitude: -10.7143, longitude: 25.4731 }
-    };
-    return coords[city];
+  // Get current country's main city coordinates
+  const getCurrentCountryMainCity = () => {
+    const currentCountry = CountryService.getCurrentCountry();
+    return currentCountry.majorCities[0].coordinates;
   };
 
-  const getKinshasaCoordinates = () => getCityCoordinates('kinshasa');
-
-  const detectCurrentCity = (): 'kinshasa' | 'lubumbashi' | 'kolwezi' => {
-    if (!location.latitude || !location.longitude) return 'kinshasa';
+  const detectCurrentCity = () => {
+    if (!location.latitude || !location.longitude) {
+      return CountryService.getCurrentCountry().majorCities[0].name;
+    }
     
-    const cities = [
-      { name: 'kinshasa' as const, ...getCityCoordinates('kinshasa') },
-      { name: 'lubumbashi' as const, ...getCityCoordinates('lubumbashi') },
-      { name: 'kolwezi' as const, ...getCityCoordinates('kolwezi') }
-    ];
+    const currentCountry = CountryService.getCurrentCountry();
+    const cities = currentCountry.majorCities;
     
     const distances = cities.map(city => ({
       name: city.name,
-      distance: calculateDistance(location.latitude!, location.longitude!, city.latitude, city.longitude)
+      distance: calculateDistance(location.latitude!, location.longitude!, city.coordinates.lat, city.coordinates.lng)
     }));
     
     return distances.sort((a, b) => a.distance - b.distance)[0].name;
   };
+
+  // Auto-detect country when position changes
+  useEffect(() => {
+    if (location.latitude && location.longitude) {
+      CountryService.autoDetectAndSetCountry(location.latitude, location.longitude);
+    }
+  }, [location.latitude, location.longitude]);
 
   const calculateDistance = useCallback((
     lat1: number,
@@ -404,15 +405,15 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
     return R * c;
   }, []);
 
-  const getDistanceToKinshasa = useCallback(() => {
+  const getDistanceToMainCity = useCallback(() => {
     if (!location.latitude || !location.longitude) return null;
     
-    const kinshasa = getKinshasaCoordinates();
+    const mainCityCoords = getCurrentCountryMainCity();
     return calculateDistance(
       location.latitude,
       location.longitude,
-      kinshasa.latitude,
-      kinshasa.longitude
+      mainCityCoords.lat,
+      mainCityCoords.lng
     );
   }, [location.latitude, location.longitude, calculateDistance]);
 
@@ -421,11 +422,11 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
     getCurrentPosition,
     watchCurrentPosition,
     calculateDistance,
-    getDistanceToKinshasa,
-    getKinshasaCoordinates,
-    getCityCoordinates,
+    getDistanceToMainCity,
+    getCurrentCountryMainCity,
     detectCurrentCity,
-    isInKinshasa: getDistanceToKinshasa() ? getDistanceToKinshasa()! < 50 : null, // Within 50km
-    currentCity: detectCurrentCity()
+    isInMainCity: getDistanceToMainCity() ? getDistanceToMainCity()! < 50 : null, // Within 50km
+    currentCity: detectCurrentCity(),
+    currentCountry: CountryService.getCurrentCountry()
   };
 };
