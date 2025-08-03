@@ -137,18 +137,26 @@ export const useDriverCode = () => {
     const shareText = `Mon code chauffeur Kwenda: ${driverCode.code}`;
     
     try {
-      if (navigator.share) {
-        await navigator.share({
-          title: 'Code Chauffeur Kwenda',
-          text: shareText
-        });
-      } else {
-        await navigator.clipboard.writeText(driverCode.code);
-        toast.success('Code copié dans le presse-papiers!');
+      // Try clipboard first as it's more reliable
+      await navigator.clipboard.writeText(shareText);
+      toast.success('Code copié! Vous pouvez maintenant le coller dans vos messages.');
+      
+      // Try native share as bonus if available and in secure context
+      if (navigator.share && window.isSecureContext) {
+        try {
+          await navigator.share({
+            title: 'Code Chauffeur Kwenda',
+            text: shareText
+          });
+        } catch (shareError) {
+          // Ignore share errors since we already copied to clipboard
+          console.log('Native share not available or cancelled');
+        }
       }
     } catch (error) {
+      // Fallback if clipboard also fails
       console.error('Error sharing code:', error);
-      toast.error('Erreur lors du partage');
+      toast.error('Impossible de copier automatiquement. Code: ' + driverCode.code);
     }
   };
 
