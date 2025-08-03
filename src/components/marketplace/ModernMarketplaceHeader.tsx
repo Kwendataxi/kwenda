@@ -1,65 +1,54 @@
 import React from 'react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Bell, ShoppingBag, User, Wallet } from 'lucide-react';
+import { Bell, ShoppingBag, Store } from 'lucide-react';
 
 interface ModernMarketplaceHeaderProps {
   cartItemsCount: number;
   onCartClick: () => void;
-  userBalance?: number;
 }
 
 export const ModernMarketplaceHeader: React.FC<ModernMarketplaceHeaderProps> = ({
   cartItemsCount,
-  onCartClick,
-  userBalance = 125000
+  onCartClick
 }) => {
   return (
-    <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-border/40">
-      <div className="px-4 py-3">
+    <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b">
+      <div className="px-6 py-4">
         <div className="flex items-center justify-between">
-          {/* Left: Welcome */}
+          {/* Left: Clean title */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center">
-              <User className="h-5 w-5 text-white" />
+            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+              <Store className="h-4 w-4 text-primary" />
             </div>
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">Marketplace</h2>
-              <div className="flex items-center gap-2">
-                <Wallet className="w-3 h-3 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  {userBalance.toLocaleString()} FC
-                </p>
-              </div>
-            </div>
+            <h1 className="text-xl font-medium text-foreground">Marketplace</h1>
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {/* Notifications */}
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-10 w-10 p-0 rounded-full relative"
+              className="h-9 w-9 p-0 rounded-lg relative hover:bg-muted/50"
             >
-              <Bell className="h-5 w-5 text-muted-foreground" />
-              <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></div>
+              <Bell className="h-4 w-4 text-muted-foreground" />
+              <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-primary rounded-full"></div>
             </Button>
 
             {/* Shopping Cart */}
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-10 w-10 p-0 rounded-full relative"
+              className="h-9 w-9 p-0 rounded-lg relative hover:bg-muted/50"
               onClick={onCartClick}
             >
-              <ShoppingBag className="h-5 w-5 text-muted-foreground" />
+              <ShoppingBag className="h-4 w-4 text-muted-foreground" />
               {cartItemsCount > 0 && (
                 <Badge 
-                  variant="destructive" 
-                  className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center min-w-5 bg-primary text-white border-2 border-white"
+                  className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center min-w-4 bg-primary text-primary-foreground border border-background"
                 >
-                  {cartItemsCount > 99 ? '99+' : cartItemsCount}
+                  {cartItemsCount > 9 ? '9+' : cartItemsCount}
                 </Badge>
               )}
             </Button>
