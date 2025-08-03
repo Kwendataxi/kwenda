@@ -655,6 +655,225 @@ export type Database = {
           },
         ]
       }
+      lottery_draws: {
+        Row: {
+          created_at: string
+          draw_algorithm: string
+          draw_type: string
+          drawn_at: string | null
+          id: string
+          max_winners: number
+          min_tickets_required: number
+          name: string
+          prize_pool: Json | null
+          scheduled_date: string
+          status: string
+          total_participants: number | null
+          total_tickets_used: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          draw_algorithm?: string
+          draw_type: string
+          drawn_at?: string | null
+          id?: string
+          max_winners?: number
+          min_tickets_required?: number
+          name: string
+          prize_pool?: Json | null
+          scheduled_date: string
+          status?: string
+          total_participants?: number | null
+          total_tickets_used?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          draw_algorithm?: string
+          draw_type?: string
+          drawn_at?: string | null
+          id?: string
+          max_winners?: number
+          min_tickets_required?: number
+          name?: string
+          prize_pool?: Json | null
+          scheduled_date?: string
+          status?: string
+          total_participants?: number | null
+          total_tickets_used?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      lottery_entries: {
+        Row: {
+          claimed_at: string | null
+          created_at: string
+          draw_id: string
+          entry_time: string
+          id: string
+          is_winner: boolean | null
+          prize_won: Json | null
+          ticket_ids: Json
+          tickets_used: number
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          created_at?: string
+          draw_id: string
+          entry_time?: string
+          id?: string
+          is_winner?: boolean | null
+          prize_won?: Json | null
+          ticket_ids?: Json
+          tickets_used?: number
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          created_at?: string
+          draw_id?: string
+          entry_time?: string
+          id?: string
+          is_winner?: boolean | null
+          prize_won?: Json | null
+          ticket_ids?: Json
+          tickets_used?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lottery_prize_types: {
+        Row: {
+          category: string
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      lottery_tickets: {
+        Row: {
+          created_at: string
+          earned_date: string
+          expires_at: string | null
+          id: string
+          multiplier: number | null
+          source_id: string | null
+          source_type: string
+          status: string
+          ticket_number: string
+          used_at: string | null
+          used_in_draw_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          earned_date?: string
+          expires_at?: string | null
+          id?: string
+          multiplier?: number | null
+          source_id?: string | null
+          source_type: string
+          status?: string
+          ticket_number: string
+          used_at?: string | null
+          used_in_draw_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          earned_date?: string
+          expires_at?: string | null
+          id?: string
+          multiplier?: number | null
+          source_id?: string | null
+          source_type?: string
+          status?: string
+          ticket_number?: string
+          used_at?: string | null
+          used_in_draw_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lottery_wins: {
+        Row: {
+          claimed_at: string | null
+          created_at: string
+          currency: string
+          draw_id: string
+          entry_id: string
+          expires_at: string | null
+          id: string
+          prize_details: Json
+          prize_type_id: string | null
+          prize_value: number
+          status: string
+          user_id: string
+          wallet_transaction_id: string | null
+        }
+        Insert: {
+          claimed_at?: string | null
+          created_at?: string
+          currency?: string
+          draw_id: string
+          entry_id: string
+          expires_at?: string | null
+          id?: string
+          prize_details: Json
+          prize_type_id?: string | null
+          prize_value: number
+          status?: string
+          user_id: string
+          wallet_transaction_id?: string | null
+        }
+        Update: {
+          claimed_at?: string | null
+          created_at?: string
+          currency?: string
+          draw_id?: string
+          entry_id?: string
+          expires_at?: string | null
+          id?: string
+          prize_details?: Json
+          prize_type_id?: string | null
+          prize_value?: number
+          status?: string
+          user_id?: string
+          wallet_transaction_id?: string | null
+        }
+        Relationships: []
+      }
       marketplace_delivery_assignments: {
         Row: {
           actual_delivery_time: string | null
@@ -1827,6 +2046,10 @@ export type Database = {
     }
     Functions: {
       generate_driver_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_lottery_ticket_number: {
         Args: Record<PropertyKey, never>
         Returns: string
       }

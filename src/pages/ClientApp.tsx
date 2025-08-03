@@ -38,7 +38,8 @@ import {
   Upload,
   Activity,
   Bike,
-  Heart
+  Heart,
+  Zap
 } from 'lucide-react';
 
 // Transport components
@@ -81,6 +82,7 @@ import { TestDataGenerator } from '@/components/testing/TestDataGenerator';
 // Hooks
 import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
+import { LotteryDashboard } from '@/components/lottery/LotteryDashboard';
 
 interface Location {
   address: string;
@@ -1054,6 +1056,26 @@ const ClientApp = () => {
                 onCancel={() => setCurrentView('payment')}
               />
             );
+          case 'lottery':
+          case 'tombola':
+            return (
+              <div className="min-h-screen bg-background">
+                <div className="p-4">
+                  <div className="flex items-center gap-4 mb-6">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setCurrentView('home')}
+                      className="rounded-xl"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <h1 className="text-lg font-semibold text-gray-900">Tombola Kwenda</h1>
+                  </div>
+                  <LotteryDashboard />
+                </div>
+              </div>
+            );
           case 'test-data':
             return (
               <div className="p-4">
@@ -1158,6 +1180,7 @@ const ClientApp = () => {
           <div className="px-6 py-4 flex justify-around max-w-md mx-auto">
             {[
               { icon: Home, label: "Accueil", key: "home" },
+              { icon: Zap, label: "Tombola", key: "lottery" },
               { icon: Activity, label: "Activité", key: "activity" },
               { icon: User, label: "Compte", key: "profil" },
             ].map((item) => (

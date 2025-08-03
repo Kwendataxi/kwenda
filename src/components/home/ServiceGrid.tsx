@@ -30,6 +30,13 @@ export const ServiceGrid = ({ onServiceSelect }: ServiceGridProps) => {
       icon: ShoppingBag,
       gradient: 'from-accent to-accent-light',
       available: true
+    },
+    {
+      id: 'lottery',
+      name: 'Tombola',
+      icon: Zap,
+      gradient: 'from-purple-500 to-pink-500',
+      available: true
     }
   ];
 
