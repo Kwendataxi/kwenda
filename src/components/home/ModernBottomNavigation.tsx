@@ -1,5 +1,6 @@
 import { Home, Activity, User, Heart, Search } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ModernBottomNavigationProps {
   activeTab: string;
@@ -14,34 +15,35 @@ export const ModernBottomNavigation = ({
   notificationCount = 0,
   favoritesCount = 0
 }: ModernBottomNavigationProps) => {
+  const { t } = useLanguage();
   const tabs = [
     {
       id: 'home',
-      name: 'Accueil',
+      name: t('home.bottom_nav.home'),
       icon: Home,
       badge: 0
     },
     {
       id: 'search',
-      name: 'Explorer',
+      name: t('home.bottom_nav.explore'),
       icon: Search,
       badge: 0
     },
     {
       id: 'favorites',
-      name: 'Favoris',
+      name: t('home.bottom_nav.favorites'),
       icon: Heart,
       badge: favoritesCount
     },
     {
       id: 'activity',
-      name: 'Activité',
+      name: t('home.bottom_nav.activity'),
       icon: Activity,
       badge: notificationCount
     },
     {
       id: 'profile',
-      name: 'Compte',
+      name: t('home.bottom_nav.account'),
       icon: User,
       badge: 0
     }

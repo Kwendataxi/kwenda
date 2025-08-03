@@ -10,6 +10,7 @@ interface RecentPlacesProps {
 
 export const RecentPlaces = ({ onPlaceSelect }: RecentPlacesProps) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { recentPlaces, homePlace, workPlace, loading, markAsUsed } = usePlaces();
 
   if (!user) return null;
@@ -25,7 +26,7 @@ export const RecentPlaces = ({ onPlaceSelect }: RecentPlacesProps) => {
       await markAsUsed(place.id);
       onPlaceSelect(place.name, place.coordinates);
     } catch (error) {
-      console.error('Erreur lors de la sélection du lieu:', error);
+      console.error('Error selecting place:', error);
       onPlaceSelect(place.name, place.coordinates);
     }
   };
@@ -49,7 +50,7 @@ export const RecentPlaces = ({ onPlaceSelect }: RecentPlacesProps) => {
         <div className="text-center p-8 text-muted-foreground">
           <MapPin className="h-8 w-8 mx-auto mb-3 opacity-50" />
           <p>Aucun lieu récent trouvé</p>
-          <p className="text-sm mt-1">Commencez à rechercher des lieux pour les voir apparaître ici</p>
+          <p className="text-sm mt-1">{t('home.recent_places_help')}</p>
         </div>
       </div>
     );
@@ -57,7 +58,7 @@ export const RecentPlaces = ({ onPlaceSelect }: RecentPlacesProps) => {
 
   return (
     <div className="px-4 mb-6">
-      <h3 className="text-lg font-semibold text-foreground mb-4">Lieux récents</h3>
+      <h3 className="text-lg font-semibold text-foreground mb-4">{t('home.recent_places')}</h3>
       
       <div className="space-y-2">
         {displayPlaces.map((place) => (

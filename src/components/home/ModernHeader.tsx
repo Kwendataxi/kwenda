@@ -34,14 +34,9 @@ export const ModernHeader = ({
   // Dynamic greeting based on time and language
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (language === 'en') {
-      if (hour < 12) return 'Good morning';
-      if (hour < 18) return 'Good afternoon';
-      return 'Good evening';
-    }
-    if (hour < 12) return 'Bonjour';
-    if (hour < 18) return 'Bon après-midi';
-    return 'Bonsoir';
+    if (hour < 12) return t('home.greeting.morning');
+    if (hour < 18) return t('home.greeting.afternoon');
+    return t('home.greeting.evening');
   };
 
   // Get current location on component mount
@@ -53,7 +48,7 @@ export const ModernHeader = ({
   useEffect(() => {
     if (geolocation.latitude && geolocation.longitude) {
       // Simple reverse geocoding - in a real app, you'd use a proper geocoding service
-      setCurrentAddress('Position actuelle');
+      setCurrentAddress(t('home.location.current'));
     }
   }, [geolocation.latitude, geolocation.longitude]);
 
@@ -120,7 +115,7 @@ export const ModernHeader = ({
                 <Bell className="h-5 w-5 text-foreground" />
                 {hasNotifications && (
                   <div className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-r from-primary to-primary-glow rounded-full flex items-center justify-center animate-pulse">
-                    <span className="text-xs font-bold text-white">3</span>
+                    <span className="text-xs font-bold text-white">{t('home.notifications.unread')}</span>
                   </div>
                 )}
               </button>

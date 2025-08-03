@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { GeocodingService, GeocodeResult } from '@/services/geocoding';
 import { usePlaces } from '@/hooks/usePlaces';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface UniversalSearchBarProps {
   onSearch: (query: string) => void;
@@ -13,9 +14,10 @@ interface UniversalSearchBarProps {
 
 export const UniversalSearchBar = ({ 
   onSearch, 
-  onTransportSelect,
+  onTransportSelect, 
   placeholder = "Où allez-vous ?" 
 }: UniversalSearchBarProps) => {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const { searchAndSave, recentPlaces } = usePlaces();
   const [query, setQuery] = useState('');
@@ -118,7 +120,7 @@ export const UniversalSearchBar = ({
           </div>
           <Input
             type="text"
-            placeholder="Où allez-vous ?"
+            placeholder={t('home.search.placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={handleFocus}

@@ -1,4 +1,5 @@
 import { Bike, Truck } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export type DeliveryMode = 'flash' | 'cargo';
 
@@ -8,6 +9,7 @@ interface DeliveryModeSelectorProps {
 }
 
 const DeliveryModeSelector = ({ selectedMode, onModeChange }: DeliveryModeSelectorProps) => {
+  const { t } = useLanguage();
   return (
     <div className="px-4 py-3 bg-white border-b border-grey-100">
       <div className="flex bg-grey-100 rounded-xl p-1">
@@ -20,7 +22,7 @@ const DeliveryModeSelector = ({ selectedMode, onModeChange }: DeliveryModeSelect
           }`}
         >
           <Bike className="w-5 h-5" />
-          <span>Flash</span>
+          <span>{t('delivery.mode.flash')}</span>
         </button>
         <button
           onClick={() => onModeChange('cargo')}
@@ -31,7 +33,7 @@ const DeliveryModeSelector = ({ selectedMode, onModeChange }: DeliveryModeSelect
           }`}
         >
           <Truck className="w-5 h-5" />
-          <span>Cargo</span>
+          <span>{t('delivery.mode.cargo')}</span>
         </button>
       </div>
     </div>

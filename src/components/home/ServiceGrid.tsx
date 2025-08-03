@@ -1,29 +1,32 @@
 import { Car, Truck, ShoppingBag, Zap } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ServiceGridProps {
   onServiceSelect: (service: string) => void;
 }
 
 export const ServiceGrid = ({ onServiceSelect }: ServiceGridProps) => {
+  const { t } = useLanguage();
+  
   // Services principaux avec designs améliorés
   const mainServices = [
       {
       id: 'transport',
-      name: 'Taxi',
+      name: t('home.services.taxi'),
       icon: Car,
       gradient: 'from-primary to-primary-glow',
       available: true
     },
     {
       id: 'delivery',
-      name: 'Livraison',
+      name: t('home.services.delivery'),
       icon: Truck,
       gradient: 'from-secondary to-secondary-light',
       available: true
     },
     {
       id: 'marketplace',
-      name: 'Shopping',
+      name: t('home.services.shopping'),
       icon: ShoppingBag,
       gradient: 'from-accent to-accent-light',
       available: true

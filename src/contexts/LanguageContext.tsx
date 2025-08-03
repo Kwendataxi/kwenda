@@ -246,6 +246,49 @@ const translations = {
     'profile.notifications': 'Notifications',
     'profile.privacy': 'Confidentialité',
     
+    // Home Interface
+    'home.greeting.morning': 'Bonjour',
+    'home.greeting.afternoon': 'Bon après-midi', 
+    'home.greeting.evening': 'Bonsoir',
+    'home.location.current': 'Position actuelle',
+    'home.search.placeholder': 'Où allez-vous ?',
+    'home.services.taxi': 'Taxi',
+    'home.services.delivery': 'Livraison',
+    'home.services.shopping': 'Shopping',
+    'home.recent_places': 'Lieux récents',
+    'home.no_recent_places': 'Aucun lieu récent',
+    'home.recent_places_help': 'Commencez à rechercher des lieux pour les voir apparaître ici',
+    'home.marketplace.trending': 'Tendances',
+    'home.marketplace.view_all': 'Voir tout',
+    'home.marketplace.popular': 'Populaire',
+    'home.marketplace.discount': 'Réduction',
+    'home.bottom_nav.home': 'Accueil',
+    'home.bottom_nav.explore': 'Explorer',
+    'home.bottom_nav.favorites': 'Favoris',
+    'home.bottom_nav.activity': 'Activité',
+    'home.bottom_nav.account': 'Compte',
+    'home.place_type.home': 'Domicile',
+    'home.place_type.work': 'Bureau',
+    'home.place_type.recent': 'Récent',
+    'home.notifications.unread': '3',
+
+    // Activity & History
+    'activity.history': 'Activité récente',
+    'activity.no_bookings': 'Aucune course trouvée',
+    'activity.loading': 'Chargement de l\'historique...',
+    'activity.driver': 'Chauffeur',
+    'activity.pickup': 'Prise en charge',
+    'activity.dropoff': 'Destination',
+    'activity.price': 'Prix',
+    'activity.date': 'Date',
+    'activity.status': 'Statut',
+    'activity.rate': 'Noter',
+    'activity.view_details': 'Voir détails',
+
+    // Delivery
+    'delivery.mode.flash': 'Flash',
+    'delivery.mode.cargo': 'Cargo',
+
     // Common
     'common.save': 'Enregistrer',
     'common.cancel': 'Annuler',
@@ -470,6 +513,49 @@ const translations = {
     'referral.share': 'Share',
     'referral.copy_code': 'Copy Code',
     
+    // Home Interface
+    'home.greeting.morning': 'Good morning',
+    'home.greeting.afternoon': 'Good afternoon',
+    'home.greeting.evening': 'Good evening',
+    'home.location.current': 'Current location',
+    'home.search.placeholder': 'Where are you going?',
+    'home.services.taxi': 'Taxi',
+    'home.services.delivery': 'Delivery',
+    'home.services.shopping': 'Shopping',
+    'home.recent_places': 'Recent Places',
+    'home.no_recent_places': 'No recent places',
+    'home.recent_places_help': 'Start searching for places to see them appear here',
+    'home.marketplace.trending': 'Trending',
+    'home.marketplace.view_all': 'View All',
+    'home.marketplace.popular': 'Popular',
+    'home.marketplace.discount': 'Discount',
+    'home.bottom_nav.home': 'Home',
+    'home.bottom_nav.explore': 'Explore',
+    'home.bottom_nav.favorites': 'Favorites',
+    'home.bottom_nav.activity': 'Activity',
+    'home.bottom_nav.account': 'Account',
+    'home.place_type.home': 'Home',
+    'home.place_type.work': 'Work',
+    'home.place_type.recent': 'Recent',
+    'home.notifications.unread': '3',
+
+    // Activity & History
+    'activity.history': 'Recent Activity',
+    'activity.no_bookings': 'No trips found',
+    'activity.loading': 'Loading history...',
+    'activity.driver': 'Driver',
+    'activity.pickup': 'Pickup',
+    'activity.dropoff': 'Dropoff',
+    'activity.price': 'Price',
+    'activity.date': 'Date',
+    'activity.status': 'Status',
+    'activity.rate': 'Rate',
+    'activity.view_details': 'View Details',
+
+    // Delivery
+    'delivery.mode.flash': 'Flash',
+    'delivery.mode.cargo': 'Cargo',
+
     // Profile
     'profile.edit': 'Edit Profile',
     'profile.name': 'Name',
@@ -539,6 +625,49 @@ const translations = {
     'nav.notifications': 'Ba notifications',
     'nav.settings': 'Ba paramètres',
     
+    // Home Interface
+    'home.greeting.morning': 'Mbote ya ntongo',
+    'home.greeting.afternoon': 'Mbote ya midi',
+    'home.greeting.evening': 'Mbote ya mpokwa',
+    'home.location.current': 'Esika ozo wana',
+    'home.search.placeholder': 'Okokende wapi?',
+    'home.services.taxi': 'Taxi',
+    'home.services.delivery': 'Livraison',
+    'home.services.shopping': 'Kosomba',
+    'home.recent_places': 'Bisika ya kala',
+    'home.no_recent_places': 'Bisika ya kala ezali te',
+    'home.recent_places_help': 'Bandela koluka bisika mpo emona awa',
+    'home.marketplace.trending': 'Oyo ezali koleka',
+    'home.marketplace.view_all': 'Kotala nyonso',
+    'home.marketplace.popular': 'Oyo balingi mingi',
+    'home.marketplace.discount': 'Kokitisa ntalo',
+    'home.bottom_nav.home': 'Bandako',
+    'home.bottom_nav.explore': 'Koluka',
+    'home.bottom_nav.favorites': 'Oyo nalingi',
+    'home.bottom_nav.activity': 'Makambo',
+    'home.bottom_nav.account': 'Compte',
+    'home.place_type.home': 'Ndako',
+    'home.place_type.work': 'Mosala',
+    'home.place_type.recent': 'Ya kala',
+    'home.notifications.unread': '3',
+
+    // Activity & History
+    'activity.history': 'Makambo ya kala',
+    'activity.no_bookings': 'Mobembo ya kala ezali te',
+    'activity.loading': 'Eza kocharger makambo ya kala...',
+    'activity.driver': 'Motambolisi',
+    'activity.pickup': 'Esika ya kokende',
+    'activity.dropoff': 'Esika ya kokitisa',
+    'activity.price': 'Ntalo',
+    'activity.date': 'Mokolo',
+    'activity.status': 'Ndenge ezali',
+    'activity.rate': 'Kopesa note',
+    'activity.view_details': 'Kotala malamu',
+
+    // Delivery
+    'delivery.mode.flash': 'Flash',
+    'delivery.mode.cargo': 'Cargo',
+    
     // Transport Congo RDC
     'transport.book': 'Kokanisa',
     'transport.pickup': 'Esika ya kokende',
@@ -551,7 +680,10 @@ const translations = {
     'transport.taxi_voiture': 'Taxi motuka',
     'transport.bus_transco': 'Bus Transco',
     
-    // Quartiers Kinshasa
+    // Cities & Locations
+    'city.kinshasa': 'Kinshasa',
+    'city.lubumbashi': 'Lubumbashi',
+    'city.kolwezi': 'Kolwezi',
     'location.gombe': 'Gombe',
     'location.kinshasa': 'Kinshasa',
     'location.lemba': 'Lemba',
@@ -586,8 +718,10 @@ const translations = {
     'common.error': 'Libunga',
     'common.success': 'Elongi',
     'common.confirm': 'Kondima',
-    'common.offline': 'Hors ligne',
+    'common.offline': 'Internet ezali te',
     'common.retry': 'Komeka lisusu',
+    'common.search': 'Koluka',
+    'common.user': 'Mosaleli',
   },
   kg: { // Kikongo
     // Navigation
@@ -601,6 +735,49 @@ const translations = {
     'nav.notifications': 'Bisalu',
     'nav.settings': 'Paramètres',
     
+    // Home Interface
+    'home.greeting.morning': 'Nsuka ya nsuka',
+    'home.greeting.afternoon': 'Nsuka ya mbazi',
+    'home.greeting.evening': 'Nsuka ya mpimpa',
+    'home.location.current': 'Fulu yina usimbama',
+    'home.search.placeholder': 'Kuna ukenda?',
+    'home.services.taxi': 'Taxi',
+    'home.services.delivery': 'Livraison',
+    'home.services.shopping': 'Kusuma',
+    'home.recent_places': 'Mafulu ma kala',
+    'home.no_recent_places': 'Mafulu ma kala mafulu ko',
+    'home.recent_places_help': 'Bandika kulonga mafulu mpo mona vava',
+    'home.marketplace.trending': 'Oyo yina kuzola',
+    'home.marketplace.view_all': 'Mona moso',
+    'home.marketplace.popular': 'Oyo bantu bazeyi mingi',
+    'home.marketplace.discount': 'Kukenga ntalu',
+    'home.bottom_nav.home': 'Nzo',
+    'home.bottom_nav.explore': 'Kulonga',
+    'home.bottom_nav.favorites': 'Oyo nazoli',
+    'home.bottom_nav.activity': 'Makambu',
+    'home.bottom_nav.account': 'Compte',
+    'home.place_type.home': 'Nzo',
+    'home.place_type.work': 'Kisalu',
+    'home.place_type.recent': 'Ya kala',
+    'home.notifications.unread': '3',
+
+    // Activity & History
+    'activity.history': 'Makambu ma kala',
+    'activity.no_bookings': 'Mayenda ma kala mafulu ko',
+    'activity.loading': 'Yina ku charger makambu ma kala...',
+    'activity.driver': 'Mutambulisi',
+    'activity.pickup': 'Fulu ya kutuka',
+    'activity.dropoff': 'Fulu ya kutula',
+    'activity.price': 'Ntalu',
+    'activity.date': 'Lumbu',
+    'activity.status': 'Ndenge yina vuandi',
+    'activity.rate': 'Kuvana note',
+    'activity.view_details': 'Mona mayela',
+
+    // Delivery
+    'delivery.mode.flash': 'Flash',
+    'delivery.mode.cargo': 'Cargo',
+    
     // Transport Congo RDC
     'transport.book': 'Kukanisa',
     'transport.pickup': 'Fulu ya kutuka',
@@ -613,6 +790,28 @@ const translations = {
     'transport.taxi_voiture': 'Taxi motuka',
     'transport.bus_transco': 'Bus Transco',
     
+    // Cities & Locations
+    'city.kinshasa': 'Kinshasa',
+    'city.lubumbashi': 'Lubumbashi',
+    'city.kolwezi': 'Kolwezi',
+    'location.gombe': 'Gombe',
+    'location.kinshasa': 'Kinshasa',
+    'location.lemba': 'Lemba',
+    'location.ngaliema': 'Ngaliema',
+    'location.matete': 'Matete',
+    'location.masina': 'Masina',
+    'location.ndjili': 'N\'djili',
+    'location.kimbanseke': 'Kimbanseke',
+    
+    // Payment
+    'payment.mobile_money': 'Nkutu za telephone',
+    'payment.airtel': 'Airtel Money',
+    'payment.mpesa': 'M-Pesa',
+    'payment.orange': 'Orange Money',
+    'payment.amount': 'Nkutu',
+    'payment.phone': 'Numero ya telephone',
+    'payment.confirm': 'Kundima kufuta',
+    
     // Common
     'common.save': 'Kubika',
     'common.cancel': 'Kutika',
@@ -622,8 +821,10 @@ const translations = {
     'common.error': 'Nkama',
     'common.success': 'Malonga',
     'common.confirm': 'Kundima',
-    'common.offline': 'Hors ligne',
+    'common.offline': 'Internet yafulu ko',
     'common.retry': 'Kusolula diaka',
+    'common.search': 'Kulonga',
+    'common.user': 'Nkento',
   },
   lua: { // Tshiluba
     // Navigation
@@ -637,6 +838,49 @@ const translations = {
     'nav.notifications': 'Makambu',
     'nav.settings': 'Paramètres',
     
+    // Home Interface
+    'home.greeting.morning': 'Wa muana muyanda',
+    'home.greeting.afternoon': 'Wa diba',
+    'home.greeting.evening': 'Wa manshi',
+    'home.location.current': 'Pahali panu udi',
+    'home.search.placeholder': 'Oya kuya kudi?',
+    'home.services.taxi': 'Taxi',
+    'home.services.delivery': 'Livraison',
+    'home.services.shopping': 'Kusuma',
+    'home.recent_places': 'Mahali ma kala',
+    'home.no_recent_places': 'Mahali ma kala mabileko',
+    'home.recent_places_help': 'Tandisha kulolesha mahali mpo mona apa',
+    'home.marketplace.trending': 'Bintu bilenga',
+    'home.marketplace.view_all': 'Bona byonso',
+    'home.marketplace.popular': 'Bintu bantu bayanda',
+    'home.marketplace.discount': 'Kukenga bei',
+    'home.bottom_nav.home': 'Muetu',
+    'home.bottom_nav.explore': 'Kulolesha',
+    'home.bottom_nav.favorites': 'Bintu ndiyanda',
+    'home.bottom_nav.activity': 'Bintu',
+    'home.bottom_nav.account': 'Compte',
+    'home.place_type.home': 'Muetu',
+    'home.place_type.work': 'Mulimu',
+    'home.place_type.recent': 'Wa kala',
+    'home.notifications.unread': '3',
+
+    // Activity & History
+    'activity.history': 'Bintu bia kala',
+    'activity.no_bookings': 'Mayendo ma kala mabileko',
+    'activity.loading': 'Tukucharge bintu bia kala...',
+    'activity.driver': 'Mutambulisha',
+    'activity.pickup': 'Pahali pakutanga',
+    'activity.dropoff': 'Pahali pakutula',
+    'activity.price': 'Bei',
+    'activity.date': 'Lumingu',
+    'activity.status': 'Cishi',
+    'activity.rate': 'Kuapa note',
+    'activity.view_details': 'Bona makambu',
+
+    // Delivery
+    'delivery.mode.flash': 'Flash',
+    'delivery.mode.cargo': 'Cargo',
+    
     // Transport Congo RDC
     'transport.book': 'Kubanda',
     'transport.pickup': 'Mahali pakutanga',
@@ -644,6 +888,32 @@ const translations = {
     'transport.vehicle': 'Motuka',
     'transport.price': 'Bei',
     'transport.time': 'Nako ya kuya',
+    'transport.taxi_bus': 'Taxi-bus',
+    'transport.moto_taxi': 'Moto-taxi',
+    'transport.taxi_voiture': 'Taxi motuka',
+    'transport.bus_transco': 'Bus Transco',
+    
+    // Cities & Locations
+    'city.kinshasa': 'Kinshasa',
+    'city.lubumbashi': 'Lubumbashi',
+    'city.kolwezi': 'Kolwezi',
+    'location.gombe': 'Gombe',
+    'location.kinshasa': 'Kinshasa',
+    'location.lemba': 'Lemba',
+    'location.ngaliema': 'Ngaliema',
+    'location.matete': 'Matete',
+    'location.masina': 'Masina',
+    'location.ndjili': 'N\'djili',
+    'location.kimbanseke': 'Kimbanseke',
+    
+    // Payment
+    'payment.mobile_money': 'Mbongo ya telephone',
+    'payment.airtel': 'Airtel Money',
+    'payment.mpesa': 'M-Pesa',
+    'payment.orange': 'Orange Money',
+    'payment.amount': 'Mbongo',
+    'payment.phone': 'Numero ya telephone',
+    'payment.confirm': 'Kutambula kulipa',
     
     // Common
     'common.save': 'Kubika',
@@ -653,9 +923,11 @@ const translations = {
     'common.loading': 'Nkucharge...',
     'common.error': 'Nshimu',
     'common.success': 'Malonga',
-    'common.confirm': 'Kukatala',
-    'common.offline': 'Hors ligne',
+    'common.confirm': 'Kutambula',
+    'common.offline': 'Internet ibi',
     'common.retry': 'Kusolola',
+    'common.search': 'Kulolesha',
+    'common.user': 'Muntu',
   },
   sw: { // Swahili
     // Navigation
@@ -669,6 +941,49 @@ const translations = {
     'nav.notifications': 'Arifa',
     'nav.settings': 'Mipangilio',
     
+    // Home Interface
+    'home.greeting.morning': 'Habari za asubuhi',
+    'home.greeting.afternoon': 'Habari za mchana',
+    'home.greeting.evening': 'Habari za jioni',
+    'home.location.current': 'Mahali upo sasa',
+    'home.search.placeholder': 'Unaenda wapi?',
+    'home.services.taxi': 'Taxi',
+    'home.services.delivery': 'Utoaji',
+    'home.services.shopping': 'Ununuzi',
+    'home.recent_places': 'Maeneo ya hivi karibuni',
+    'home.no_recent_places': 'Hakuna maeneo ya hivi karibuni',
+    'home.recent_places_help': 'Anza kutafuta maeneo ili yaonekane hapa',
+    'home.marketplace.trending': 'Kinachojazwa',
+    'home.marketplace.view_all': 'Ona Vyote',
+    'home.marketplace.popular': 'Maarufu',
+    'home.marketplace.discount': 'Punguzo',
+    'home.bottom_nav.home': 'Nyumbani',
+    'home.bottom_nav.explore': 'Gundua',
+    'home.bottom_nav.favorites': 'Vipendwa',
+    'home.bottom_nav.activity': 'Shughuli',
+    'home.bottom_nav.account': 'Akaunti',
+    'home.place_type.home': 'Nyumbani',
+    'home.place_type.work': 'Kazini',
+    'home.place_type.recent': 'Hivi karibuni',
+    'home.notifications.unread': '3',
+
+    // Activity & History
+    'activity.history': 'Shughuli za hivi karibuni',
+    'activity.no_bookings': 'Hakuna safari zilizopatikana',
+    'activity.loading': 'Inapakia historia...',
+    'activity.driver': 'Dereva',
+    'activity.pickup': 'Kuchukua',
+    'activity.dropoff': 'Kuangusha',
+    'activity.price': 'Bei',
+    'activity.date': 'Tarehe',
+    'activity.status': 'Hali',
+    'activity.rate': 'Tathmini',
+    'activity.view_details': 'Ona Maelezo',
+
+    // Delivery
+    'delivery.mode.flash': 'Flash',
+    'delivery.mode.cargo': 'Cargo',
+    
     // Transport Congo RDC
     'transport.book': 'Kuweka',
     'transport.pickup': 'Mahali pa kuchukua',
@@ -681,6 +996,28 @@ const translations = {
     'transport.taxi_voiture': 'Taxi gari',
     'transport.bus_transco': 'Basi Transco',
     
+    // Cities & Locations
+    'city.kinshasa': 'Kinshasa',
+    'city.lubumbashi': 'Lubumbashi',
+    'city.kolwezi': 'Kolwezi',
+    'location.gombe': 'Gombe',
+    'location.kinshasa': 'Kinshasa',
+    'location.lemba': 'Lemba',
+    'location.ngaliema': 'Ngaliema',
+    'location.matete': 'Matete',
+    'location.masina': 'Masina',
+    'location.ndjili': 'N\'djili',
+    'location.kimbanseke': 'Kimbanseke',
+    
+    // Payment
+    'payment.mobile_money': 'Pesa za simu',
+    'payment.airtel': 'Airtel Money',
+    'payment.mpesa': 'M-Pesa',
+    'payment.orange': 'Orange Money',
+    'payment.amount': 'Kiasi',
+    'payment.phone': 'Nambari ya simu',
+    'payment.confirm': 'Thibitisha malipo',
+    
     // Common
     'common.save': 'Hifadhi',
     'common.cancel': 'Ghairi',
@@ -692,6 +1029,8 @@ const translations = {
     'common.confirm': 'Thibitisha',
     'common.offline': 'Bila mtandao',
     'common.retry': 'Jaribu tena',
+    'common.search': 'Tafuta',
+    'common.user': 'Mtumiaji',
 
     // Validation
     'validation.validation': 'Uthibitisho',

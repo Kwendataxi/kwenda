@@ -1,4 +1,5 @@
 import { ShoppingBag, ArrowRight, TrendingUp, Star, Clock, Flame } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,17 +25,18 @@ export const MarketplacePreview = ({
   onProductSelect, 
   onViewAll 
 }: MarketplacePreviewProps) => {
+  const { t } = useLanguage();
   return (
     <div className="px-4 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-foreground">Tendances</h3>
+        <h3 className="text-lg font-semibold text-foreground">{t('home.marketplace.trending')}</h3>
         <Button 
           variant="ghost" 
           size="sm" 
           className="text-primary"
           onClick={onViewAll}
         >
-          Voir tout
+          {t('home.marketplace.view_all')}
           <ArrowRight className="h-4 w-4 ml-1" />
         </Button>
       </div>
@@ -57,7 +59,7 @@ export const MarketplacePreview = ({
               
               {product.isPopular && (
                 <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-full font-medium">
-                  Populaire
+                  {t('home.marketplace.popular')}
                 </div>
               )}
 

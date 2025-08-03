@@ -30,6 +30,8 @@ interface EnhancedBooking {
 
 export const ActivityHistory = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const { t } = useLanguage();
   const [bookings, setBookings] = useState<EnhancedBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
