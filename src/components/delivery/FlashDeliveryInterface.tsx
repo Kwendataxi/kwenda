@@ -210,14 +210,14 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
         </div>
       </div>
 
-      {/* Real Mapbox Map */}
-      <div className="px-6 py-4">
+      {/* Compact Mapbox Map */}
+      <div className="px-4 py-2">
         <div className="relative">
           <MapboxMap
             pickupLocation={pickup ? pickup.coordinates : undefined}
             destination={destination ? destination.coordinates : undefined}
             showRouting={!!(pickup && destination)}
-            height="240px"
+            height="160px"
             onLocationSelect={(coordinates) => {
               // Handle map location selection
               if (!pickup) {
@@ -242,8 +242,8 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
         </div>
       </div>
 
-      {/* Smart Address Inputs */}
-      <div className="px-6 space-y-4">
+      {/* Compact Address Inputs */}
+      <div className="px-4 space-y-3">
         <div className="relative">
           <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10">
             <div className="w-4 h-4 bg-secondary rounded-full shadow-sm"></div>
@@ -253,7 +253,7 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
             value={pickupSearch}
             onChange={(e) => setPickupSearch(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleLocationSearch(pickupSearch, true)}
-            className="pl-12 pr-32 h-14 rounded-xl border-2 border-border focus:border-secondary text-body-md bg-white shadow-sm transition-all"
+            className="pl-12 pr-32 h-12 rounded-xl border border-border focus:border-secondary text-sm bg-white shadow-sm transition-all"
           />
           <Button
             variant="ghost"
@@ -281,7 +281,7 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
             value={destinationSearch}
             onChange={(e) => setDestinationSearch(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleLocationSearch(destinationSearch, false)}
-            className="pl-12 pr-12 h-14 rounded-xl border-2 border-border focus:border-primary text-body-md bg-white shadow-sm transition-all"
+            className="pl-12 pr-12 h-12 rounded-xl border border-border focus:border-primary text-sm bg-white shadow-sm transition-all"
           />
           {isSearchingDestination && (
             <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
@@ -290,15 +290,15 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
           )}
         </div>
 
-        {/* Recent Places */}
+        {/* Horizontal Recent Places */}
         {recentPlaces.length > 0 && (
-          <div className="bg-white rounded-xl border border-border/50 p-4">
-            <div className="flex items-center gap-2 mb-3">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
               <History className="w-4 h-4 text-muted-foreground" />
-              <span className="text-body-sm text-muted-foreground">Lieux récents</span>
+              <span className="text-sm text-muted-foreground">Lieux récents</span>
             </div>
-            <div className="space-y-2">
-              {recentPlaces.slice(0, 3).map((place) => (
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {recentPlaces.slice(0, 4).map((place) => (
                 <button
                   key={place.id}
                   onClick={() => {
@@ -316,13 +316,12 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
                       setDestinationSearch(place.address);
                     }
                   }}
-                  className="w-full text-left p-2 hover:bg-muted/50 rounded-lg transition-colors"
+                  className="flex-shrink-0 bg-white border border-border/50 rounded-lg p-3 hover:shadow-md transition-all min-w-[140px]"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col items-center gap-2">
                     <MapPin className="w-4 h-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-body-sm font-medium">{place.name}</p>
-                      <p className="text-caption text-muted-foreground">{place.address}</p>
+                    <div className="text-center">
+                      <p className="text-xs font-medium text-foreground truncate max-w-[120px]">{place.name}</p>
                     </div>
                   </div>
                 </button>
@@ -332,29 +331,28 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
         )}
       </div>
 
-      {/* Vehicle Info Card */}
-      <div className="px-6 py-4">
-        <div className="bg-white rounded-2xl border border-border/50 p-6 shadow-md">
-          <div className="flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-secondary to-secondary-light text-white flex items-center justify-center shadow-sm">
-              <Bike className="w-7 h-7" />
+      {/* Compact Vehicle Info */}
+      <div className="px-4 py-2">
+        <div className="bg-white rounded-xl border border-border/50 p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-secondary to-secondary-light text-white flex items-center justify-center">
+              <Bike className="w-5 h-5" />
             </div>
             <div className="flex-1">
-              <h3 className="text-heading-sm text-foreground">Moto Flash</h3>
-              <p className="text-body-sm text-muted-foreground mt-1">Documents, téléphones, petits colis</p>
-              <div className="flex items-center gap-6 mt-3">
-                <div className="flex items-center gap-2 text-body-sm text-muted-foreground">
-                  <Clock className="w-4 h-4 text-secondary" />
+              <h3 className="text-sm font-semibold text-foreground">Moto Flash</h3>
+              <div className="flex items-center gap-4 mt-1">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Clock className="w-3 h-3 text-secondary" />
                   <span>15-25 min</span>
                 </div>
-                <div className="flex items-center gap-2 text-body-sm text-muted-foreground">
-                  <Shield className="w-4 h-4 text-secondary" />
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Shield className="w-3 h-3 text-secondary" />
                   <span>Assuré</span>
                 </div>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-heading-lg font-bold text-secondary">
+              <p className="text-lg font-bold text-secondary">
                 {calculatePrice().toLocaleString()} FC
               </p>
             </div>
@@ -365,17 +363,16 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* CTA Button */}
-      <div className="p-6 bg-white border-t border-border/50">
+      {/* Sticky CTA Button */}
+      <div className="sticky bottom-0 p-4 bg-white/95 backdrop-blur-md border-t border-border/50">
         <Button
           onClick={handleSubmit}
           disabled={!pickup || !destination || isSubmitting}
-          className="w-full h-16 bg-gradient-to-r from-secondary to-secondary-light hover:from-secondary-light hover:to-secondary text-white font-semibold text-body-lg rounded-2xl shadow-lg mb-3 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ boxShadow: 'var(--shadow-elegant)' }}
+          className="w-full h-14 bg-gradient-to-r from-secondary to-secondary-light hover:from-secondary-light hover:to-secondary text-white font-semibold text-sm rounded-xl shadow-lg mb-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               Création en cours...
             </div>
           ) : (
@@ -385,7 +382,7 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
         <Button
           variant="ghost"
           onClick={onCancel}
-          className="w-full text-muted-foreground hover:text-foreground text-body-md"
+          className="w-full text-muted-foreground hover:text-foreground text-sm"
         >
           Annuler
         </Button>
