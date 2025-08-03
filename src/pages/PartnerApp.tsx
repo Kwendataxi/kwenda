@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { DriverValidationManager } from '@/components/partner/DriverValidationManager';
+import { PartnerDriverManager } from '@/components/partner/PartnerDriverManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -238,7 +239,7 @@ const PartnerApp = () => {
         {[
           { icon: BarChart3, label: "Dashboard", view: 'dashboard' },
           { icon: Car, label: "Flotte", view: 'fleet' },
-          { icon: Users, label: "Employés", view: 'employees' },
+          { icon: Users, label: "Chauffeurs", view: 'drivers' },
           { icon: PieChart, label: "Analytics", view: 'analytics' },
           { icon: CreditCard, label: "Facturation", view: 'billing' },
         ].map((item) => (
@@ -862,11 +863,13 @@ const PartnerApp = () => {
       return renderEmployees();
     case 'billing':
       return renderBilling();
-    case 'validation':
-      return <DriverValidationManager />;
-    default:
-      return renderDashboard();
-  }
-};
+      case 'validation':
+        return <DriverValidationManager />;
+      case 'drivers':
+        return <PartnerDriverManager />;
+      default:
+        return renderDashboard();
+    }
+  };
 
 export default PartnerApp;

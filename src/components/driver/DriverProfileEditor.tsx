@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { DriverValidationStatus } from './DriverValidationStatus';
+import { DriverCodeManager } from './DriverCodeManager';
 import { User, Car, Bell, Shield, Save, Upload, Phone, Mail } from 'lucide-react';
 
 interface ProfileData {
@@ -253,7 +254,7 @@ export const DriverProfileEditor: React.FC = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profile" className="flex items-center space-x-2">
             <User className="w-4 h-4" />
             <span>{t('profile.profile')}</span>
@@ -265,6 +266,10 @@ export const DriverProfileEditor: React.FC = () => {
           <TabsTrigger value="validation" className="flex items-center space-x-2">
             <Shield className="w-4 h-4" />
             <span>{t('validation.validation')}</span>
+          </TabsTrigger>
+          <TabsTrigger value="partner" className="flex items-center space-x-2">
+            <User className="w-4 h-4" />
+            <span>Partenaire</span>
           </TabsTrigger>
           <TabsTrigger value="settings" className="flex items-center space-x-2">
             <Bell className="w-4 h-4" />
@@ -577,6 +582,11 @@ export const DriverProfileEditor: React.FC = () => {
         {/* Validation Tab */}
         <TabsContent value="validation">
           <DriverValidationStatus />
+        </TabsContent>
+
+        {/* Partner Tab */}
+        <TabsContent value="partner">
+          <DriverCodeManager />
         </TabsContent>
       </Tabs>
     </div>
