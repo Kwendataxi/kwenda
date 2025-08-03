@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { DriverValidationManager } from '@/components/partner/DriverValidationManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -861,6 +862,8 @@ const PartnerApp = () => {
       return renderEmployees();
     case 'billing':
       return renderBilling();
+    case 'validation':
+      return <DriverValidationManager />;
     default:
       return renderDashboard();
   }

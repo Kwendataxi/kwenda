@@ -313,10 +313,15 @@ export type Database = {
           insurance_number: string
           license_expiry: string
           license_number: string
+          partner_id: string | null
           rejected_reason: string | null
           status: string
           updated_at: string
           user_id: string
+          validated_by: string | null
+          validation_comments: string | null
+          validation_date: string | null
+          validation_level: string | null
           vehicle_model: string
           vehicle_plate: string
           vehicle_type: string
@@ -330,10 +335,15 @@ export type Database = {
           insurance_number: string
           license_expiry: string
           license_number: string
+          partner_id?: string | null
           rejected_reason?: string | null
           status?: string
           updated_at?: string
           user_id: string
+          validated_by?: string | null
+          validation_comments?: string | null
+          validation_date?: string | null
+          validation_level?: string | null
           vehicle_model: string
           vehicle_plate: string
           vehicle_type: string
@@ -347,10 +357,15 @@ export type Database = {
           insurance_number?: string
           license_expiry?: string
           license_number?: string
+          partner_id?: string | null
           rejected_reason?: string | null
           status?: string
           updated_at?: string
           user_id?: string
+          validated_by?: string | null
+          validation_comments?: string | null
+          validation_date?: string | null
+          validation_level?: string | null
           vehicle_model?: string
           vehicle_plate?: string
           vehicle_type?: string
@@ -438,6 +453,54 @@ export type Database = {
           subcategory?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      partner_profiles: {
+        Row: {
+          company_address: string | null
+          company_name: string
+          company_phone: string | null
+          created_at: string
+          id: string
+          license_number: string | null
+          rejection_reason: string | null
+          tax_number: string | null
+          updated_at: string
+          user_id: string
+          validated_at: string | null
+          validated_by: string | null
+          validation_status: string
+        }
+        Insert: {
+          company_address?: string | null
+          company_name: string
+          company_phone?: string | null
+          created_at?: string
+          id?: string
+          license_number?: string | null
+          rejection_reason?: string | null
+          tax_number?: string | null
+          updated_at?: string
+          user_id: string
+          validated_at?: string | null
+          validated_by?: string | null
+          validation_status?: string
+        }
+        Update: {
+          company_address?: string | null
+          company_name?: string
+          company_phone?: string | null
+          created_at?: string
+          id?: string
+          license_number?: string | null
+          rejection_reason?: string | null
+          tax_number?: string | null
+          updated_at?: string
+          user_id?: string
+          validated_at?: string | null
+          validated_by?: string | null
+          validation_status?: string
         }
         Relationships: []
       }
@@ -1010,6 +1073,36 @@ export type Database = {
           is_active?: boolean
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      validation_history: {
+        Row: {
+          action: string
+          comments: string | null
+          created_at: string
+          id: string
+          request_id: string
+          validation_type: string
+          validator_id: string
+        }
+        Insert: {
+          action: string
+          comments?: string | null
+          created_at?: string
+          id?: string
+          request_id: string
+          validation_type: string
+          validator_id: string
+        }
+        Update: {
+          action?: string
+          comments?: string | null
+          created_at?: string
+          id?: string
+          request_id?: string
+          validation_type?: string
+          validator_id?: string
         }
         Relationships: []
       }
