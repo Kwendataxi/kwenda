@@ -191,6 +191,47 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          id: string
+          last_message_at: string | null
+          product_id: string
+          seller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          product_id: string
+          seller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          product_id?: string
+          seller_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_orders: {
         Row: {
           actual_price: number | null
@@ -403,6 +444,62 @@ export type Database = {
         }
         Relationships: []
       }
+      escrow_payments: {
+        Row: {
+          amount: number
+          buyer_id: string
+          created_at: string
+          currency: string
+          held_at: string
+          id: string
+          order_id: string
+          payment_method: string
+          refunded_at: string | null
+          released_at: string | null
+          seller_id: string
+          status: string
+          transaction_reference: string | null
+        }
+        Insert: {
+          amount: number
+          buyer_id: string
+          created_at?: string
+          currency?: string
+          held_at?: string
+          id?: string
+          order_id: string
+          payment_method: string
+          refunded_at?: string | null
+          released_at?: string | null
+          seller_id: string
+          status?: string
+          transaction_reference?: string | null
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string
+          created_at?: string
+          currency?: string
+          held_at?: string
+          id?: string
+          order_id?: string
+          payment_method?: string
+          refunded_at?: string | null
+          released_at?: string | null
+          seller_id?: string
+          status?: string
+          transaction_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escrow_payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           created_at: string
@@ -425,6 +522,139 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "favorites_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_delivery_assignments: {
+        Row: {
+          actual_delivery_time: string | null
+          actual_pickup_time: string | null
+          assignment_status: string
+          created_at: string
+          delivery_coordinates: Json | null
+          delivery_fee: number | null
+          delivery_location: string
+          driver_id: string | null
+          driver_notes: string | null
+          estimated_delivery_time: string | null
+          id: string
+          order_id: string
+          pickup_coordinates: Json | null
+          pickup_location: string
+          updated_at: string
+        }
+        Insert: {
+          actual_delivery_time?: string | null
+          actual_pickup_time?: string | null
+          assignment_status?: string
+          created_at?: string
+          delivery_coordinates?: Json | null
+          delivery_fee?: number | null
+          delivery_location: string
+          driver_id?: string | null
+          driver_notes?: string | null
+          estimated_delivery_time?: string | null
+          id?: string
+          order_id: string
+          pickup_coordinates?: Json | null
+          pickup_location: string
+          updated_at?: string
+        }
+        Update: {
+          actual_delivery_time?: string | null
+          actual_pickup_time?: string | null
+          assignment_status?: string
+          created_at?: string
+          delivery_coordinates?: Json | null
+          delivery_fee?: number | null
+          delivery_location?: string
+          driver_id?: string | null
+          driver_notes?: string | null
+          estimated_delivery_time?: string | null
+          id?: string
+          order_id?: string
+          pickup_coordinates?: Json | null
+          pickup_location?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_delivery_assignments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_orders: {
+        Row: {
+          buyer_id: string
+          completed_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery_address: string | null
+          delivery_coordinates: Json | null
+          delivery_method: string
+          id: string
+          notes: string | null
+          payment_status: string
+          product_id: string
+          quantity: number
+          seller_id: string
+          status: string
+          total_amount: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_id: string
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_coordinates?: Json | null
+          delivery_method?: string
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          product_id: string
+          quantity?: number
+          seller_id: string
+          status?: string
+          total_amount: number
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_id?: string
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_coordinates?: Json | null
+          delivery_method?: string
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          product_id?: string
+          quantity?: number
+          seller_id?: string
+          status?: string
+          total_amount?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_orders_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "marketplace_products"
@@ -485,6 +715,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_read: boolean
+          message_type: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message_type?: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message_type?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partner_drivers: {
         Row: {
