@@ -71,6 +71,7 @@ import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { ChatInterface } from '@/components/marketplace/ChatInterface';
 import { OrderManagement } from '@/components/marketplace/OrderManagement';
 import { CreateOrderDialog } from '@/components/marketplace/CreateOrderDialog';
+import { ActivityTab } from '@/components/marketplace/ActivityTab';
 
 // Testing components
 import { TestDataGenerator } from '@/components/testing/TestDataGenerator';
@@ -518,6 +519,24 @@ const ClientApp = () => {
           onBack={() => setMarketplaceTab('explore')}
           onSubmit={handleSellProduct}
         />
+      );
+    }
+
+    if (marketplaceTab === 'activity') {
+      return (
+        <div className="min-h-screen bg-background pb-20">
+          <ModernMarketplaceHeader
+            cartItemsCount={cartItems.length}
+            onCartClick={() => setIsCartOpen(true)}
+          />
+          <ActivityTab />
+          <BottomNavigation
+            activeTab={marketplaceTab}
+            onTabChange={setMarketplaceTab}
+            cartItemsCount={cartItems.length}
+            favoritesCount={0}
+          />
+        </div>
       );
     }
 

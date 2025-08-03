@@ -24,12 +24,6 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
       badge: null
     },
     {
-      id: 'cart',
-      label: 'Panier',
-      icon: ShoppingBag,
-      badge: cartItemsCount > 0 ? cartItemsCount : null
-    },
-    {
       id: 'sell',
       label: 'Vendre',
       icon: Plus,
