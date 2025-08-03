@@ -245,8 +245,10 @@ const ModernTaxiInterface: React.FC<ModernTaxiInterfaceProps> = ({
                   <label className="text-sm font-medium text-foreground">Point de départ</label>
                   <LocationInput
                     placeholder="D'où partez-vous ?"
-                    onChange={setPickup}
-                    onInputChange={() => {}}
+                    onChange={(location) => setPickup({
+                      address: location.address,
+                      coordinates: [location.coordinates.lng, location.coordinates.lat]
+                    })}
                     value={pickup?.address || ''}
                   />
                 </div>
@@ -269,8 +271,10 @@ const ModernTaxiInterface: React.FC<ModernTaxiInterfaceProps> = ({
                     </div>
                     <LocationInput
                       placeholder="Ajouter un arrêt"
-                      onChange={(location) => updateIntermediateStop(stop.id, location)}
-                      onInputChange={() => {}}
+                      onChange={(location) => updateIntermediateStop(stop.id, {
+                        address: location.address,
+                        coordinates: [location.coordinates.lng, location.coordinates.lat]
+                      })}
                       value={stop.address}
                     />
                   </div>
@@ -293,8 +297,10 @@ const ModernTaxiInterface: React.FC<ModernTaxiInterfaceProps> = ({
                   <label className="text-sm font-medium text-foreground">Destination</label>
                   <LocationInput
                     placeholder="Où allez-vous ?"
-                    onChange={setDestination}
-                    onInputChange={() => {}}
+                    onChange={(location) => setDestination({
+                      address: location.address,
+                      coordinates: [location.coordinates.lng, location.coordinates.lat]
+                    })}
                     value={destination?.address || ''}
                   />
                 </div>
