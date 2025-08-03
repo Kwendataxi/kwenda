@@ -196,7 +196,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
             </div>
 
             {/* Specifications */}
-            {Object.keys(product.specifications).length > 0 && (
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
               <div>
                 <h3 className="font-semibold mb-2">Spécifications</h3>
                 <div className="space-y-1">
