@@ -28,6 +28,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DriverChallenges } from './DriverChallenges';
 import { DriverReferrals } from './DriverReferrals';
+import { DriverTransactionHistory } from './DriverTransactionHistory';
+import { DriverProfileEditor } from './DriverProfileEditor';
 
 interface DriverProfile {
   id: string;
@@ -62,6 +64,8 @@ export const DriverProfile = () => {
   const [topUpAmount, setTopUpAmount] = useState('');
   const [topUpProvider, setTopUpProvider] = useState('');
   const [topUpPhone, setTopUpPhone] = useState('');
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [profileEditorOpen, setProfileEditorOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -381,11 +385,19 @@ export const DriverProfile = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" className="h-16 flex flex-col space-y-1">
+                <Button 
+                  variant="outline" 
+                  className="h-16 flex flex-col space-y-1"
+                  onClick={() => setHistoryOpen(true)}
+                >
                   <CreditCard className="h-5 w-5" />
                   <span className="text-sm">Historique complet</span>
                 </Button>
-                <Button variant="outline" className="h-16 flex flex-col space-y-1">
+                <Button 
+                  variant="outline" 
+                  className="h-16 flex flex-col space-y-1"
+                  onClick={() => setProfileEditorOpen(true)}
+                >
                   <User className="h-5 w-5" />
                   <span className="text-sm">Modifier profil</span>
                 </Button>
@@ -402,6 +414,32 @@ export const DriverProfile = () => {
           <DriverReferrals />
         </TabsContent>
       </Tabs>
+
+      {/* Transaction History Dialog */}
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <History className="w-5 h-5" />
+              <span>Historique complet des transactions</span>
+            </DialogTitle>
+          </DialogHeader>
+          <DriverTransactionHistory />
+        </DialogContent>
+      </Dialog>
+
+      {/* Profile Editor Dialog */}
+      <Dialog open={profileEditorOpen} onOpenChange={setProfileEditorOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Settings className="w-5 h-5" />
+              <span>Modifier le profil</span>
+            </DialogTitle>
+          </DialogHeader>
+          <DriverProfileEditor />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
