@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Ticket, Trophy, Gift, Timer, Sparkles } from 'lucide-react';
+import { Ticket, Trophy, Gift, Timer, Sparkles, Car, Package, ShoppingCart, Star, Users, Calendar, ChevronDown } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLottery } from '@/hooks/useLottery';
 import { LotteryDrawCard } from './LotteryDrawCard';
@@ -28,183 +29,206 @@ export const LotteryDashboard = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* En-tête avec statistiques */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold">Tombola Kwenda</h1>
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      {/* En-tête compact */}
+      <div className="p-4 pb-0">
+        <div className="flex items-center gap-2 mb-2">
+          <Sparkles className="h-5 w-5 text-primary" />
+          <h1 className="text-xl font-bold">Tombola Kwenda</h1>
         </div>
-        <p className="text-muted-foreground">
-          Gagnez des tickets en utilisant l'app et remportez des prix !
+        <p className="text-sm text-muted-foreground mb-4">
+          Gagnez des tickets et remportez des prix !
         </p>
       </div>
 
-      {/* Statistiques rapides */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/20 rounded-full">
-                <Ticket className="h-6 w-6 text-primary" />
-              </div>
+      {/* Statistiques en chips horizontales */}
+      <div className="px-4 mb-4">
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+          <div className="flex-shrink-0 bg-gradient-to-r from-primary/20 to-primary/10 backdrop-blur-sm border border-primary/20 rounded-xl px-4 py-3 min-w-[120px]">
+            <div className="flex items-center gap-2">
+              <Ticket className="h-4 w-4 text-primary" />
               <div>
-                <p className="text-2xl font-bold">{availableTickets}</p>
-                <p className="text-sm text-muted-foreground">Tickets disponibles</p>
+                <p className="text-lg font-bold text-primary">{availableTickets}</p>
+                <p className="text-xs text-muted-foreground">Tickets</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-secondary/20 rounded-full">
-                <Timer className="h-6 w-6 text-secondary" />
-              </div>
+          </div>
+          
+          <div className="flex-shrink-0 bg-gradient-to-r from-secondary/20 to-secondary/10 backdrop-blur-sm border border-secondary/20 rounded-xl px-4 py-3 min-w-[120px]">
+            <div className="flex items-center gap-2">
+              <Timer className="h-4 w-4 text-secondary" />
               <div>
-                <p className="text-2xl font-bold">{currentDraws.length}</p>
-                <p className="text-sm text-muted-foreground">Tirages actifs</p>
+                <p className="text-lg font-bold text-secondary">{currentDraws.length}</p>
+                <p className="text-xs text-muted-foreground">Tirages</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/20">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-accent/20 rounded-full">
-                <Trophy className="h-6 w-6 text-accent" />
-              </div>
+          </div>
+          
+          <div className="flex-shrink-0 bg-gradient-to-r from-accent/20 to-accent/10 backdrop-blur-sm border border-accent/20 rounded-xl px-4 py-3 min-w-[120px]">
+            <div className="flex items-center gap-2">
+              <Trophy className="h-4 w-4 text-accent" />
               <div>
-                <p className="text-2xl font-bold">{myWins.length}</p>
-                <p className="text-sm text-muted-foreground">Gains totaux</p>
+                <p className="text-lg font-bold text-accent">{myWins.length}</p>
+                <p className="text-xs text-muted-foreground">Gains</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      {/* Navigation moderne */}
-      <Tabs defaultValue="draws" className="space-y-6">
-        <div className="flex justify-center mb-6">
-          <TabsList className="inline-flex h-12 items-center justify-center rounded-xl bg-muted p-1 text-muted-foreground shadow-sm w-auto">
+      {/* Navigation sticky moderne */}
+      <Tabs defaultValue="draws" className="flex-1">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b px-4 py-3">
+          <TabsList className="w-full h-11 p-1 bg-muted/50 backdrop-blur-sm grid grid-cols-4">
             <TabsTrigger 
               value="draws" 
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
             >
-              <Timer className="h-4 w-4 mr-2" />
-              Tirages
+              <Timer className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Tirages</span>
+              {currentDraws.length > 0 && (
+                <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-xs">{currentDraws.length}</Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger 
               value="tickets" 
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
             >
-              <Ticket className="h-4 w-4 mr-2" />
-              Mes Tickets
+              <Ticket className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Tickets</span>
+              {availableTickets > 0 && (
+                <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-xs">{availableTickets}</Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger 
               value="wins" 
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
             >
-              <Trophy className="h-4 w-4 mr-2" />
-              Mes Gains
+              <Trophy className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Gains</span>
+              {myWins.length > 0 && (
+                <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-xs">{myWins.length}</Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger 
               value="how" 
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
             >
-              <Gift className="h-4 w-4 mr-2" />
-              Guide
+              <Gift className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Guide</span>
             </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="draws" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentDraws.map((draw) => (
-              <LotteryDrawCard key={draw.id} draw={draw} />
-            ))}
-          </div>
-        </TabsContent>
+        <div className="flex-1 overflow-auto">
+          <TabsContent value="draws" className="p-4 space-y-3 m-0">
+            <div className="grid gap-3">
+              {currentDraws.length > 0 ? (
+                currentDraws.map((draw) => (
+                  <LotteryDrawCard key={draw.id} draw={draw} />
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Timer className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>Aucun tirage actif pour le moment</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
 
-        <TabsContent value="tickets">
-          <LotteryTicketsList tickets={tickets} />
-        </TabsContent>
+          <TabsContent value="tickets" className="p-4 m-0">
+            <LotteryTicketsList tickets={tickets} />
+          </TabsContent>
 
-        <TabsContent value="wins">
-          <LotteryWinsList wins={myWins} />
-        </TabsContent>
+          <TabsContent value="wins" className="p-4 m-0">
+            <LotteryWinsList wins={myWins} />
+          </TabsContent>
 
-        <TabsContent value="how" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Gift className="h-5 w-5" />
+          <TabsContent value="how" className="p-4 space-y-4 m-0">
+            {/* Caroussel horizontal pour méthodes */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Gift className="h-5 w-5 text-primary" />
                 Comment gagner des tickets ?
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <h4 className="font-semibold mb-2">🚗 Transport</h4>
-                  <p className="text-sm text-muted-foreground">1 ticket par course terminée</p>
+              </h3>
+              
+              <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+                <div className="flex-shrink-0 bg-primary/10 border border-primary/20 rounded-xl p-3 min-w-[140px]">
+                  <Car className="h-6 w-6 text-primary mb-2" />
+                  <h4 className="font-semibold text-sm">Transport</h4>
+                  <p className="text-xs text-muted-foreground">1 ticket/course</p>
                 </div>
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <h4 className="font-semibold mb-2">📦 Livraison</h4>
-                  <p className="text-sm text-muted-foreground">2 tickets par livraison réussie</p>
+                
+                <div className="flex-shrink-0 bg-secondary/10 border border-secondary/20 rounded-xl p-3 min-w-[140px]">
+                  <Package className="h-6 w-6 text-secondary mb-2" />
+                  <h4 className="font-semibold text-sm">Livraison</h4>
+                  <p className="text-xs text-muted-foreground">2 tickets/livraison</p>
                 </div>
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <h4 className="font-semibold mb-2">🛒 Marketplace</h4>
-                  <p className="text-sm text-muted-foreground">1 ticket par achat, 3 par vente</p>
+                
+                <div className="flex-shrink-0 bg-accent/10 border border-accent/20 rounded-xl p-3 min-w-[140px]">
+                  <ShoppingCart className="h-6 w-6 text-accent mb-2" />
+                  <h4 className="font-semibold text-sm">Marketplace</h4>
+                  <p className="text-xs text-muted-foreground">1-3 tickets</p>
                 </div>
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <h4 className="font-semibold mb-2">⭐ Évaluations</h4>
-                  <p className="text-sm text-muted-foreground">1 ticket par évaluation 5 étoiles</p>
+                
+                <div className="flex-shrink-0 bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 min-w-[140px]">
+                  <Star className="h-6 w-6 text-yellow-600 mb-2" />
+                  <h4 className="font-semibold text-sm">Évaluations</h4>
+                  <p className="text-xs text-muted-foreground">1 ticket/5⭐</p>
                 </div>
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <h4 className="font-semibold mb-2">👥 Parrainage</h4>
-                  <p className="text-sm text-muted-foreground">5 tickets par utilisateur parrainé</p>
+                
+                <div className="flex-shrink-0 bg-green-500/10 border border-green-500/20 rounded-xl p-3 min-w-[140px]">
+                  <Users className="h-6 w-6 text-green-600 mb-2" />
+                  <h4 className="font-semibold text-sm">Parrainage</h4>
+                  <p className="text-xs text-muted-foreground">5 tickets/ami</p>
                 </div>
-                <div className="p-4 bg-muted/50 rounded-lg">
-                  <h4 className="font-semibold mb-2">📱 Connexion</h4>
-                  <p className="text-sm text-muted-foreground">1 ticket bonus quotidien</p>
+                
+                <div className="flex-shrink-0 bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 min-w-[140px]">
+                  <Calendar className="h-6 w-6 text-blue-600 mb-2" />
+                  <h4 className="font-semibold text-sm">Connexion</h4>
+                  <p className="text-xs text-muted-foreground">1 ticket/jour</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Types de tirages</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg">
-                  <div>
-                    <h4 className="font-semibold">Tirage Flash Quotidien</h4>
-                    <p className="text-sm text-muted-foreground">Chaque jour à 20h</p>
+            {/* Accordéon compact pour types de tirages */}
+            <Accordion type="single" collapsible className="space-y-2">
+              <AccordionItem value="draw-types" className="border border-muted rounded-xl">
+                <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                  <div className="flex items-center gap-2">
+                    <Timer className="h-4 w-4 text-primary" />
+                    <span className="font-semibold">Types de tirages</span>
                   </div>
-                  <Badge variant="secondary">1 ticket min</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-secondary/5 rounded-lg">
-                  <div>
-                    <h4 className="font-semibold">Super Kwenda Hebdomadaire</h4>
-                    <p className="text-sm text-muted-foreground">Chaque dimanche</p>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg">
+                      <div>
+                        <h4 className="font-medium text-sm">Flash Quotidien</h4>
+                        <p className="text-xs text-muted-foreground">Chaque jour 20h</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">1 ticket</Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-secondary/5 rounded-lg">
+                      <div>
+                        <h4 className="font-medium text-sm">Super Kwenda</h4>
+                        <p className="text-xs text-muted-foreground">Chaque dimanche</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">5 tickets</Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-accent/5 rounded-lg">
+                      <div>
+                        <h4 className="font-medium text-sm">Méga Jackpot</h4>
+                        <p className="text-xs text-muted-foreground">Mensuel</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">10 tickets</Badge>
+                    </div>
                   </div>
-                  <Badge variant="secondary">5 tickets min</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-accent/5 rounded-lg">
-                  <div>
-                    <h4 className="font-semibold">Méga Jackpot Mensuel</h4>
-                    <p className="text-sm text-muted-foreground">Dernier dimanche du mois</p>
-                  </div>
-                  <Badge variant="secondary">10 tickets min</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </TabsContent>
+        </div>
       </Tabs>
     </div>
   );
