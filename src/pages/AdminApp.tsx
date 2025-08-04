@@ -15,9 +15,12 @@ import { DriverFinancialManager } from '@/components/admin/DriverFinancialManage
 import { AdvancedSupportCenter } from '@/components/admin/AdvancedSupportCenter';
 import { ResponsiveAdminLayout } from '@/components/admin/ResponsiveAdminLayout';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useUserRoles } from '@/hooks/useUserRoles';
+import { PermissionGuard } from '@/components/auth/PermissionGuard';
+import { ADMIN_NAVIGATION, ADMIN_ROLE_LABELS } from '@/types/roles';
 import { 
   LayoutDashboard,
-  Users, 
+  Users,
   Car, 
   DollarSign, 
   Settings,
@@ -69,6 +72,7 @@ const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [dateRange, setDateRange] = useState<Date | undefined>(new Date());
   const isMobile = useIsMobile();
+  const { adminRole, hasPermission, hasAnyPermission, loading: rolesLoading } = useUserRoles();
   
   const [realTimeStats, setRealTimeStats] = useState({
     totalUsers: 15420,
@@ -98,11 +102,42 @@ const AdminApp = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Filtrer la navigation selon les permissions
+  const allowedNavItems = ADMIN_NAVIGATION.filter(item => 
+    hasAnyPermission(item.requiredPermissions)
+  );
+
+  if (rolesLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   const renderContent = () => (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">{/* Content will be here */}
 
           <TabsContent value="overview" className="space-y-6">
-            {/* KPI Cards */}
+            <PermissionGuard requiredPermissions={['analytics_read']}>
+              {/* Header avec rôle utilisateur */}
+              <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold">Dashboard Admin</h2>
+                      <p className="text-muted-foreground">
+                        Connecté en tant que: {adminRole ? ADMIN_ROLE_LABELS[adminRole] : 'Administrateur'}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="text-lg px-3 py-1">
+                      {adminRole ? ADMIN_ROLE_LABELS[adminRole] : 'Admin'}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card className="card-floating border-0 animate-scale-in">
                 <CardContent className="p-6">
@@ -291,16 +326,21 @@ const AdminApp = () => {
                 </CardContent>
               </Card>
             </div>
+            </PermissionGuard>
           </TabsContent>
 
           
-          <TabsContent value="zones" className="space-y-4">
+        <TabsContent value="zones" className="space-y-4">
+          <PermissionGuard requiredPermissions={['transport_admin']} showError>
             <ZoneManagementDashboard />
-          </TabsContent>
+          </PermissionGuard>
+        </TabsContent>
 
-          <TabsContent value="drivers" className="space-y-4">
+        <TabsContent value="drivers" className="space-y-4">
+          <PermissionGuard requiredPermissions={['drivers_read']} showError>
             <DriverFinancialManager />
-          </TabsContent>
+          </PermissionGuard>
+        </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
             <div className="flex items-center justify-between">
@@ -646,9 +686,11 @@ const AdminApp = () => {
 
           </TabsContent>
 
-          <TabsContent value="support" className="space-y-4">
+        <TabsContent value="support" className="space-y-4">
+          <PermissionGuard requiredPermissions={['support_read']} showError>
             <AdvancedSupportCenter />
-          </TabsContent>
+          </PermissionGuard>
+        </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
             <h3 className="text-heading-lg text-card-foreground">Paramètres système</h3>
