@@ -1960,6 +1960,33 @@ export type Database = {
           },
         ]
       }
+      role_permissions: {
+        Row: {
+          admin_role: Database["public"]["Enums"]["admin_role"] | null
+          created_at: string
+          id: string
+          is_active: boolean
+          permission: Database["public"]["Enums"]["permission"]
+          role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          admin_role?: Database["public"]["Enums"]["admin_role"] | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          permission: Database["public"]["Enums"]["permission"]
+          role: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          admin_role?: Database["public"]["Enums"]["admin_role"] | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          permission?: Database["public"]["Enums"]["permission"]
+          role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: []
+      }
       service_zones: {
         Row: {
           base_price_multiplier: number
@@ -2426,6 +2453,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          admin_role: Database["public"]["Enums"]["admin_role"] | null
+          assigned_at: string
+          assigned_by: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_role?: Database["public"]["Enums"]["admin_role"] | null
+          assigned_at?: string
+          assigned_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_role?: Database["public"]["Enums"]["admin_role"] | null
+          assigned_at?: string
+          assigned_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           created_at: string
@@ -2685,13 +2751,60 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: {
+          role: Database["public"]["Enums"]["user_role"]
+          admin_role: Database["public"]["Enums"]["admin_role"]
+          permissions: Database["public"]["Enums"]["permission"][]
+        }[]
+      }
       get_zone_for_coordinates: {
         Args: { lat: number; lng: number }
         Returns: string
       }
+      has_permission: {
+        Args: {
+          _user_id: string
+          _permission: Database["public"]["Enums"]["permission"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      admin_role:
+        | "super_admin"
+        | "admin_financier"
+        | "admin_transport"
+        | "admin_marketplace"
+        | "admin_support"
+        | "moderator"
+      permission:
+        | "users_read"
+        | "users_write"
+        | "users_delete"
+        | "drivers_read"
+        | "drivers_write"
+        | "drivers_validate"
+        | "partners_read"
+        | "partners_write"
+        | "partners_validate"
+        | "finance_read"
+        | "finance_write"
+        | "finance_admin"
+        | "transport_read"
+        | "transport_write"
+        | "transport_admin"
+        | "marketplace_read"
+        | "marketplace_write"
+        | "marketplace_moderate"
+        | "support_read"
+        | "support_write"
+        | "support_admin"
+        | "analytics_read"
+        | "analytics_admin"
+        | "system_admin"
+      user_role: "client" | "driver" | "partner" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2818,6 +2931,42 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      admin_role: [
+        "super_admin",
+        "admin_financier",
+        "admin_transport",
+        "admin_marketplace",
+        "admin_support",
+        "moderator",
+      ],
+      permission: [
+        "users_read",
+        "users_write",
+        "users_delete",
+        "drivers_read",
+        "drivers_write",
+        "drivers_validate",
+        "partners_read",
+        "partners_write",
+        "partners_validate",
+        "finance_read",
+        "finance_write",
+        "finance_admin",
+        "transport_read",
+        "transport_write",
+        "transport_admin",
+        "marketplace_read",
+        "marketplace_write",
+        "marketplace_moderate",
+        "support_read",
+        "support_write",
+        "support_admin",
+        "analytics_read",
+        "analytics_admin",
+        "system_admin",
+      ],
+      user_role: ["client", "driver", "partner", "admin"],
+    },
   },
 } as const
