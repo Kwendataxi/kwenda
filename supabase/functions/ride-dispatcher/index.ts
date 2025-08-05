@@ -318,6 +318,23 @@ async function findNearbyDrivers(supabase: any, rideRequestId: string, coordinat
 async function assignDriverToRide(supabase: any, rideRequestId: string, driverId: string) {
   console.log('Attribution chauffeur:', { rideRequestId, driverId });
 
+  // Check if driver has sufficient credits before accepting
+  const { data: credits, error: creditsError } = await supabase
+    .from('driver_credits')
+    .select('*')
+    .eq('driver_id', driverId)
+    .single();
+
+  if (creditsError || !credits) {
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        error: 'Driver credit account not found' 
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   // Vérifier que la demande est toujours disponible
   const { data: rideRequest } = await supabase
     .from('ride_requests')
@@ -335,6 +352,62 @@ async function assignDriverToRide(supabase: any, rideRequestId: string, driverId
     );
   }
 
+  // Check credit requirements based on service type
+  const serviceType = 'transport';
+  const creditRequirement = 200; // 200 CDF for transport
+
+  if (credits.balance < creditRequirement) {
+    // Update driver status to offline if insufficient credits
+    await supabase
+      .from('driver_locations')
+      .update({ is_online: false, is_available: false })
+      .eq('driver_id', driverId);
+
+    // Send low balance notification
+    await supabase.from('push_notifications').insert({
+      user_id: driverId,
+      title: 'Crédits Insuffisants',
+      message: `Solde insuffisant pour accepter cette course (${credits.balance} CDF disponible, ${creditRequirement} CDF requis). Rechargez vos crédits.`,
+      notification_type: 'low_balance',
+      reference_id: rideRequestId
+    });
+
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        error: 'Insufficient credits',
+        current_balance: credits.balance,
+        required_amount: creditRequirement,
+        message: 'Rechargez vos crédits pour accepter des courses'
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Deduct credits for accepting the ride
+  const newBalance = credits.balance - creditRequirement;
+  
+  await supabase
+    .from('driver_credits')
+    .update({ 
+      balance: newBalance,
+      total_spent: credits.total_spent + creditRequirement
+    })
+    .eq('driver_id', driverId);
+
+  // Record the transaction
+  await supabase.from('credit_transactions').insert({
+    driver_id: driverId,
+    transaction_type: 'deduction',
+    amount: creditRequirement,
+    currency: 'CDF',
+    description: `Frais d'acceptation de course ${serviceType}`,
+    reference_type: serviceType,
+    reference_id: rideRequestId,
+    balance_before: credits.balance,
+    balance_after: newBalance
+  });
+
   // Attribuer le chauffeur
   const { error: updateError } = await supabase
     .from('ride_requests')
@@ -346,6 +419,17 @@ async function assignDriverToRide(supabase: any, rideRequestId: string, driverId
     .eq('id', rideRequestId);
 
   if (updateError) throw updateError;
+
+  // Log activity
+  await supabase.from('activity_logs').insert({
+    user_id: driverId,
+    activity_type: 'ride_accepted',
+    description: `Course acceptée - ${creditRequirement} CDF déduits`,
+    amount: creditRequirement,
+    currency: 'CDF',
+    reference_id: rideRequestId,
+    reference_type: serviceType
+  });
 
   // Marquer le chauffeur comme non disponible
   await supabase
@@ -365,7 +449,12 @@ async function assignDriverToRide(supabase: any, rideRequestId: string, driverId
     });
 
   return new Response(
-    JSON.stringify({ success: true }),
+    JSON.stringify({ 
+      success: true, 
+      message: 'Ride accepted successfully',
+      credits_deducted: creditRequirement,
+      new_balance: newBalance
+    }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
 }

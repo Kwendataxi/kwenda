@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { EarningsPage } from '@/components/driver/EarningsPage';
 import { useDriverEarnings } from '@/hooks/useDriverEarnings';
 import { CompactDriverProfile } from '@/components/driver/CompactDriverProfile';
+import { DriverCreditManager } from '@/components/driver/DriverCreditManager';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { 
@@ -238,6 +239,7 @@ const DriverApp = () => {
             {[
               { icon: Home, label: "Accueil", view: "dashboard" },
               { icon: DollarSign, label: "Gains", view: "earnings" },
+              { icon: Car, label: "Crédits", view: "credits" },
               { icon: Map, label: "Navigation", view: "navigation" },
               { icon: User, label: "Profil", view: "profile" },
             ].map((item) => (
@@ -586,6 +588,25 @@ const DriverApp = () => {
         switch (currentView) {
           case 'earnings':
             return renderEarnings();
+          case 'credits':
+            return (
+              <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+                <div className="p-4">
+                  <div className="flex items-center gap-4 mb-6">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setCurrentView('dashboard')}
+                      className="rounded-xl"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <h1 className="text-heading-lg text-card-foreground">Gestion des Crédits</h1>
+                  </div>
+                  <DriverCreditManager />
+                </div>
+              </div>
+            );
           case 'navigation':
             return renderNavigation();
           case 'profile':

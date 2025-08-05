@@ -17,6 +17,7 @@ import { ResponsiveAdminLayout } from '@/components/admin/ResponsiveAdminLayout'
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { PermissionGuard } from '@/components/auth/PermissionGuard';
+import { DriverCreditsManager } from '@/components/admin/DriverCreditsManager';
 import { ADMIN_NAVIGATION, ADMIN_ROLE_LABELS } from '@/types/roles';
 import { 
   LayoutDashboard,
@@ -116,7 +117,21 @@ const AdminApp = () => {
   }
 
   const renderContent = () => (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">{/* Content will be here */}
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <TabsList className="grid w-full grid-cols-6">
+        <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+        <TabsTrigger value="credits">Crédits Chauffeurs</TabsTrigger>
+        <TabsTrigger value="users">Utilisateurs</TabsTrigger>
+        <TabsTrigger value="financial">Financier</TabsTrigger>
+        <TabsTrigger value="support">Support</TabsTrigger>
+        <TabsTrigger value="settings">Paramètres</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="credits">
+        <PermissionGuard requiredPermissions={['manage_driver_credits']}>
+          <DriverCreditsManager />
+        </PermissionGuard>
+      </TabsContent>
 
           <TabsContent value="overview" className="space-y-6">
             <PermissionGuard requiredPermissions={['analytics_read']}>
