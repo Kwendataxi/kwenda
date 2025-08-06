@@ -128,7 +128,7 @@ const AdminApp = () => {
       </TabsList>
 
       <TabsContent value="credits">
-        <PermissionGuard requiredPermissions={['manage_driver_credits']}>
+        <PermissionGuard requiredPermissions={['finance_write']}>
           <DriverCreditsManager />
         </PermissionGuard>
       </TabsContent>
