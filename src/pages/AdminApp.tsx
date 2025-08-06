@@ -18,6 +18,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { PermissionGuard } from '@/components/auth/PermissionGuard';
 import { DriverCreditsManager } from '@/components/admin/DriverCreditsManager';
+import { CommissionManager } from '@/components/admin/CommissionManager';
+import { FinancialDashboard } from '@/components/admin/FinancialDashboard';
 import { ADMIN_NAVIGATION, ADMIN_ROLE_LABELS } from '@/types/roles';
 import { 
   LayoutDashboard,
@@ -121,8 +123,9 @@ const AdminApp = () => {
       <TabsList className="grid w-full grid-cols-6">
         <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
         <TabsTrigger value="credits">Crédits Chauffeurs</TabsTrigger>
+        <TabsTrigger value="commissions">Commissions</TabsTrigger>
+        <TabsTrigger value="financial">Dashboard Financier</TabsTrigger>
         <TabsTrigger value="users">Utilisateurs</TabsTrigger>
-        <TabsTrigger value="financial">Financier</TabsTrigger>
         <TabsTrigger value="support">Support</TabsTrigger>
         <TabsTrigger value="settings">Paramètres</TabsTrigger>
       </TabsList>
@@ -130,6 +133,26 @@ const AdminApp = () => {
       <TabsContent value="credits">
         <PermissionGuard requiredPermissions={['finance_write']}>
           <DriverCreditsManager />
+        </PermissionGuard>
+
+        <PermissionGuard requiredPermissions={['finance_admin']}>
+          <CommissionManager />
+        </PermissionGuard>
+        
+        <PermissionGuard requiredPermissions={['finance_read']}>
+          <FinancialDashboard />
+        </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="commissions">
+        <PermissionGuard requiredPermissions={['finance_admin']}>
+          <CommissionManager />
+        </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="financial">
+        <PermissionGuard requiredPermissions={['finance_read']}>
+          <FinancialDashboard />
         </PermissionGuard>
       </TabsContent>
 

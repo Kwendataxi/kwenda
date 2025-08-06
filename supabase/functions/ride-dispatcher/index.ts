@@ -460,9 +460,9 @@ async function assignDriverToRide(supabase: any, rideRequestId: string, driverId
 }
 
 async function updateRideStatus(supabase: any, rideRequestId: string, data: any) {
-  const { status, coordinates, notes } = data;
+  const { status, coordinates, notes, actual_price } = data;
 
-  console.log('Mise à jour statut course:', { rideRequestId, status });
+  console.log('Mise à jour statut course:', { rideRequestId, status, actual_price });
 
   const updates: any = { status };
 
@@ -475,6 +475,7 @@ async function updateRideStatus(supabase: any, rideRequestId: string, data: any)
       break;
     case 'completed':
       updates.completion_time = new Date().toISOString();
+      if (actual_price) updates.actual_price = actual_price;
       break;
     case 'cancelled':
       updates.cancellation_time = new Date().toISOString();
@@ -482,31 +483,62 @@ async function updateRideStatus(supabase: any, rideRequestId: string, data: any)
       break;
   }
 
-  const { error } = await supabase
+  const { data: updatedRide, error } = await supabase
     .from('ride_requests')
     .update(updates)
-    .eq('id', rideRequestId);
+    .eq('id', rideRequestId)
+    .select()
+    .single();
 
   if (error) throw error;
 
+  // Process automatic commission payment when ride is completed
+  if (status === 'completed' && actual_price) {
+    console.log('Processing automatic commission for completed ride');
+    
+    try {
+      // Call commission processing edge function
+      const { data: commissionResult, error: commissionError } = await supabase.functions.invoke(
+        'wallet-commission',
+        {
+          body: {
+            booking_id: rideRequestId,
+            amount: parseFloat(actual_price.toString()),
+            service_type: 'transport',
+            driver_id: updatedRide.assigned_driver_id,
+            user_id: updatedRide.user_id
+          }
+        }
+      );
+
+      if (commissionError) {
+        console.error('Commission processing error:', commissionError);
+        // Continue with ride completion even if commission fails
+      } else {
+        console.log('Commission processed successfully:', commissionResult);
+      }
+    } catch (commissionErr) {
+      console.error('Failed to process commission:', commissionErr);
+      // Don't fail the ride completion due to commission issues
+    }
+  }
+
   // Si course terminée ou annulée, remettre le chauffeur disponible
   if (['completed', 'cancelled'].includes(status)) {
-    const { data: ride } = await supabase
-      .from('ride_requests')
-      .select('assigned_driver_id')
-      .eq('id', rideRequestId)
-      .single();
-
-    if (ride?.assigned_driver_id) {
+    if (updatedRide?.assigned_driver_id) {
       await supabase
         .from('driver_locations')
         .update({ is_available: true })
-        .eq('driver_id', ride.assigned_driver_id);
+        .eq('driver_id', updatedRide.assigned_driver_id);
     }
   }
 
   return new Response(
-    JSON.stringify({ success: true }),
+    JSON.stringify({ 
+      success: true, 
+      rideRequest: updatedRide,
+      commissionProcessed: status === 'completed' && actual_price
+    }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
 }
