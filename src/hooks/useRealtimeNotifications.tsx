@@ -130,6 +130,29 @@ export const useRealtimeNotifications = (): UseRealtimeNotificationsReturn => {
             handleNewDriverRequest(payload);
           }
         )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'credit_transactions'
+          },
+          (payload) => {
+            handleCreditTransactionUpdate(payload);
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'wallet_transactions',
+            filter: 'description.ilike.*commission*'
+          },
+          (payload) => {
+            handleCommissionUpdate(payload);
+          }
+        )
         .subscribe();
     }
 
@@ -280,6 +303,39 @@ export const useRealtimeNotifications = (): UseRealtimeNotificationsReturn => {
       message: `Demande de validation pour ${newRecord.license_number}`,
       metadata: { requestId: newRecord.id }
     });
+  };
+
+  const handleCreditTransactionUpdate = (payload: any) => {
+    const { eventType, new: newRecord } = payload;
+    
+    if (eventType === 'INSERT' && hasPermission('finance_read')) {
+      const isTopup = newRecord.transaction_type === 'credit' && newRecord.description?.includes('Recharge');
+      const isDeduction = newRecord.transaction_type === 'debit';
+      
+      addNotification({
+        type: isTopup ? 'success' : 'info',
+        title: 'Transaction de crédit',
+        message: `${isTopup ? 'Recharge' : 'Déduction'} de ${newRecord.amount} CDF par chauffeur`,
+        metadata: { transactionId: newRecord.id, driverId: newRecord.driver_id }
+      });
+    }
+  };
+
+  const handleCommissionUpdate = (payload: any) => {
+    const { eventType, new: newRecord } = payload;
+    
+    if (eventType === 'INSERT' && hasPermission('finance_read')) {
+      addNotification({
+        type: 'success',
+        title: 'Commission générée',
+        message: `Commission de ${newRecord.amount} CDF enregistrée`,
+        metadata: { 
+          transactionId: newRecord.id, 
+          amount: newRecord.amount,
+          service: newRecord.reference_type 
+        }
+      });
+    }
   };
 
   const markAsRead = (notificationId: string) => {

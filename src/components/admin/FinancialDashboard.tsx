@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { RealtimeFinancialWidget } from './RealtimeFinancialWidget';
 
 interface FinancialMetrics {
   totalRevenue: number;
@@ -328,6 +329,9 @@ export const FinancialDashboard = () => {
           </Button>
         </div>
       </div>
+
+      {/* Real-time Financial Widget */}
+      <RealtimeFinancialWidget />
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -186,20 +186,34 @@ export const useDriverCredits = () => {
           table: 'driver_credits',
           filter: `driver_id=eq.${user.id}`
         },
-        () => {
-          fetchCredits()
+        (payload) => {
+          console.log('Credit update received:', payload);
+          fetchCredits();
         }
       )
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'credit_transactions',
           filter: `driver_id=eq.${user.id}`
         },
-        () => {
-          fetchTransactions()
+        (payload) => {
+          console.log('Transaction update received:', payload);
+          fetchTransactions();
+          
+          // Show real-time notification for new transactions
+          if (payload.eventType === 'INSERT' && payload.new) {
+            const { transaction_type, amount, description } = payload.new;
+            const isCredit = transaction_type === 'credit';
+            
+            toast({
+              title: isCredit ? "Crédit Ajouté" : "Crédit Déduit",
+              description: `${isCredit ? '+' : '-'}${amount} CDF - ${description}`,
+              variant: isCredit ? "default" : "destructive"
+            });
+          }
         }
       )
       .subscribe()
@@ -207,7 +221,7 @@ export const useDriverCredits = () => {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [user])
+  }, [user, toast])
 
   return {
     loading,
