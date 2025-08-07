@@ -120,11 +120,13 @@ const AdminApp = () => {
 
   const renderContent = () => (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-      <TabsList className="grid w-full grid-cols-6">
+      <TabsList className="grid w-full grid-cols-9">
         <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
         <TabsTrigger value="credits">Crédits Chauffeurs</TabsTrigger>
         <TabsTrigger value="commissions">Commissions</TabsTrigger>
         <TabsTrigger value="financial">Dashboard Financier</TabsTrigger>
+        <TabsTrigger value="zones">Zones</TabsTrigger>
+        <TabsTrigger value="drivers">Chauffeurs</TabsTrigger>
         <TabsTrigger value="users">Utilisateurs</TabsTrigger>
         <TabsTrigger value="support">Support</TabsTrigger>
         <TabsTrigger value="settings">Paramètres</TabsTrigger>
