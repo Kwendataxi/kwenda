@@ -26,6 +26,7 @@ export const useRealtimeFinancialUpdates = (): UseRealtimeFinancialUpdatesReturn
   const [totalCommissions, setTotalCommissions] = useState(0);
   const [totalCredits, setTotalCredits] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
+  const [commissionRates, setCommissionRates] = useState<Record<string, { admin_rate: number; driver_rate: number; platform_rate: number }>>({});
 
   useEffect(() => {
     if (!user?.id || !hasPermission('finance_read')) return;
@@ -37,11 +38,10 @@ export const useRealtimeFinancialUpdates = (): UseRealtimeFinancialUpdatesReturn
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'wallet_transactions',
-          filter: 'description.ilike.*commission*'
+          table: 'wallet_transactions'
         },
         (payload) => {
-          handleCommissionUpdate(payload.new);
+          handleWalletInsert(payload.new);
         }
       )
       .on(
@@ -76,23 +76,53 @@ export const useRealtimeFinancialUpdates = (): UseRealtimeFinancialUpdatesReturn
     };
   }, [user?.id, hasPermission]);
 
-  const handleCommissionUpdate = (record: any) => {
-    const update: FinancialUpdate = {
-      type: 'commission',
-      amount: parseFloat(record.amount),
-      currency: record.currency || 'CDF',
-      timestamp: record.created_at,
-      metadata: {
-        transactionId: record.id,
-        userId: record.user_id,
-        description: record.description,
-        referenceType: record.reference_type,
-        referenceId: record.reference_id
-      }
-    };
+  // Load active commission rates once
+  useEffect(() => {
+    if (!hasPermission('finance_read')) return;
+    (async () => {
+      const { data } = await supabase
+        .from('commission_settings')
+        .select('service_type, admin_rate, driver_rate, platform_rate')
+        .eq('is_active', true);
+      const map: Record<string, { admin_rate: number; driver_rate: number; platform_rate: number }> = {};
+      (data || []).forEach((row: any) => {
+        map[row.service_type] = {
+          admin_rate: Number(row.admin_rate) || 10,
+          driver_rate: Number(row.driver_rate) || 85,
+          platform_rate: Number(row.platform_rate) || 5,
+        };
+      });
+      setCommissionRates(map);
+    })();
+  }, [hasPermission]);
 
-    setUpdates(prev => [update, ...prev.slice(0, 99)]); // Keep last 100 updates
-    setTotalCommissions(prev => prev + update.amount);
+  const handleWalletInsert = (record: any) => {
+    // Consider only user payments to derive admin commission in realtime
+    const desc: string = record.description || '';
+    if (record.transaction_type === 'debit' && /Paiement/i.test(desc)) {
+      const service = (record.reference_type || '').toString();
+      const rate = commissionRates[service]?.admin_rate ?? 10;
+      const adminAmount = (Number(record.amount) || 0) * (rate / 100);
+
+      const update: FinancialUpdate = {
+        type: 'commission',
+        amount: adminAmount,
+        currency: record.currency || 'CDF',
+        timestamp: record.created_at,
+        metadata: {
+          sourceTransactionId: record.id,
+          payerUserId: record.user_id,
+          description: record.description,
+          referenceType: record.reference_type,
+          referenceId: record.reference_id,
+          baseAmount: Number(record.amount) || 0,
+          adminRate: rate,
+        }
+      };
+
+      setUpdates(prev => [update, ...prev.slice(0, 99)]);
+      setTotalCommissions(prev => prev + update.amount);
+    }
   };
 
   const handleCreditUpdate = (record: any) => {

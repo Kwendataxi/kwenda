@@ -162,9 +162,17 @@ export const FinancialDashboard = () => {
       const deliveryRevenue = (deliveries || [])
         .reduce((sum, d) => sum + (parseFloat(d.actual_price?.toString() || '0')), 0);
 
-      // Calculate admin commission (estimate based on commission rates)
-      const adminCommission = totalRevenue * 0.10; // Assuming 10% admin rate
-      const platformFees = totalRevenue * 0.05; // Assuming 5% platform rate
+      // Calculate commissions from activity metadata if available
+      let adminCommission = (activities || [])
+        .reduce((sum, a: any) => sum + (Number(a.metadata?.commission_breakdown?.adminAmount) || 0), 0);
+      let platformFees = (activities || [])
+        .reduce((sum, a: any) => sum + (Number(a.metadata?.commission_breakdown?.platformAmount) || 0), 0);
+
+      // Fallback to default rates if no metadata present
+      if (adminCommission === 0 && platformFees === 0 && totalRevenue > 0) {
+        adminCommission = totalRevenue * 0.10;
+        platformFees = totalRevenue * 0.05;
+      }
 
       // Get active drivers count
       const { data: activeDriversData } = await supabase
@@ -209,13 +217,14 @@ export const FinancialDashboard = () => {
       });
 
       // Process transaction summary by day
-      const dailySummary = (activities || []).reduce((acc: any, activity) => {
+      const dailySummary = (activities || []).reduce((acc: any, activity: any) => {
         const date = format(new Date(activity.created_at), 'yyyy-MM-dd');
         const serviceType = activity.reference_type || 'other';
+        const adminAmt = Number(activity.metadata?.commission_breakdown?.adminAmount) || 0;
+        const driverAmt = Number(activity.metadata?.commission_breakdown?.driverAmount) || 0;
+        const totalAmt = Number(activity.amount) || 0;
         
-        if (!acc[date]) {
-          acc[date] = {};
-        }
+        if (!acc[date]) acc[date] = {};
         if (!acc[date][serviceType]) {
           acc[date][serviceType] = {
             total_amount: 0,
@@ -225,11 +234,13 @@ export const FinancialDashboard = () => {
           };
         }
 
-        acc[date][serviceType].total_amount += parseFloat(activity.amount?.toString() || '0');
+        acc[date][serviceType].total_amount += totalAmt;
+        acc[date][serviceType].admin_commission += adminAmt;
+        acc[date][serviceType].driver_earnings += driverAmt;
         acc[date][serviceType].transaction_count += 1;
         
         return acc;
-      }, {});
+      }, {} as any);
 
       const summaryArray: TransactionSummary[] = [];
       Object.entries(dailySummary).forEach(([date, services]: [string, any]) => {
@@ -238,8 +249,8 @@ export const FinancialDashboard = () => {
             date,
             service_type: serviceType,
             total_amount: data.total_amount,
-            admin_commission: data.total_amount * 0.10,
-            driver_earnings: data.total_amount * 0.85,
+            admin_commission: data.admin_commission > 0 ? data.admin_commission : data.total_amount * 0.10,
+            driver_earnings: data.driver_earnings > 0 ? data.driver_earnings : data.total_amount * 0.85,
             transaction_count: data.transaction_count
           });
         });
