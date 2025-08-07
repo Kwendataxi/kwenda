@@ -95,6 +95,7 @@ import { useLotteryTickets } from '@/hooks/useLotteryTickets';
 import { useLotteryNotifications } from '@/hooks/useLotteryNotifications';
 import { LotteryNotification } from '@/components/transport/LotteryNotification';
 import { LotteryTicketFloater } from '@/components/lottery/LotteryTicketFloater';
+import { UnifiedActivityScreen } from '@/components/activity/UnifiedActivityScreen';
 
 interface Location {
   address: string;
@@ -290,6 +291,10 @@ const ClientApp = () => {
   }, {} as Record<string, number>);
 
   const handleServiceSelect = (service: string) => {
+    if (service === 'history' || service === 'activity') {
+      setCurrentView('history');
+      return;
+    }
     setServiceType(service);
     setCurrentView('service');
     if (service === 'delivery') {
@@ -950,61 +955,7 @@ const ClientApp = () => {
   );
 
   const renderHistory = () => (
-    <div className="min-h-screen bg-background pb-20">
-      <div className="p-4">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCurrentView('home')}
-            className="rounded-xl"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-heading-lg text-card-foreground">Activité</h1>
-        </div>
-
-        <div className="space-y-4">
-          {[
-            { from: "Cocody", to: "Plateau", date: "15 Janv. 2024", time: "14:30", price: "2,500", driver: "Kouame Paul", rating: 4.9, type: "transport" },
-            { from: "Marcory", to: "Treichville", date: "14 Janv. 2024", time: "16:45", price: "1,800", driver: "Traore Sekou", rating: 4.8, type: "delivery" },
-            { from: "Plateau", to: "Yopougon", date: "13 Janv. 2024", time: "09:20", price: "3,200", driver: "Diallo Mamadou", rating: 5.0, type: "transport" },
-          ].map((trip, index) => (
-            <div key={index} className="card-floating p-4 hover:shadow-lg transition-all duration-200">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    {trip.type === 'delivery' ? (
-                      <Package className="h-4 w-4 text-primary" />
-                    ) : (
-                      <Car className="h-4 w-4 text-primary" />
-                    )}
-                    <p className="text-body-md font-semibold text-card-foreground">{trip.from} → {trip.to}</p>
-                  </div>
-                  <p className="text-body-sm text-muted-foreground">{trip.date}, {trip.time}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-heading-sm font-bold text-card-foreground">{trip.price}</p>
-                  <p className="text-caption text-muted-foreground">CFA</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-primary-light rounded-lg flex items-center justify-center">
-                    <User className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="text-body-sm font-medium text-card-foreground">{trip.driver}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 text-yellow-400" />
-                  <span className="text-body-sm font-medium text-card-foreground">{trip.rating}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    <UnifiedActivityScreen onBack={() => setCurrentView('home')} />
   );
 
   const renderPayment = () => (

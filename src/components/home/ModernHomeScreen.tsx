@@ -38,7 +38,7 @@ export const ModernHomeScreen = ({
         // Navigate to favorites
         break;
       case 'activity':
-        // Navigate to activity/history
+        onServiceSelect('history');
         break;
       case 'profile':
         // Navigate to profile
