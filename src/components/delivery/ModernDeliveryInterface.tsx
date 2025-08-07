@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import GenericDeliveryInterface from './GenericDeliveryInterface';
+import YangoStyleDeliveryInterface from './YangoStyleDeliveryInterface';
 import DeliveryConfirmation from './DeliveryConfirmation';
 import { Bike, Truck, Package } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -93,9 +93,8 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
         </div>
       </div>
 
-      {/* Render generic interface for selected mode */}
-      <GenericDeliveryInterface
-        mode={deliveryMode}
+      {/* Render Yango-style delivery interface */}
+      <YangoStyleDeliveryInterface
         onSubmit={handleDeliverySubmit}
         onCancel={onCancel}
       />

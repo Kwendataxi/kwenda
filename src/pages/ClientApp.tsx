@@ -39,8 +39,11 @@ import {
   Activity,
   Bike,
   Heart,
-  Zap
+  Zap,
+  CheckCircle
 } from 'lucide-react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 // Transport components
 import { AdvancedTaxiInterface } from '@/components/transport/AdvancedTaxiInterface';
@@ -49,6 +52,9 @@ import TripChat from '@/components/transport/TripChat';
 // Delivery components
 import ModernDeliveryInterface from '@/components/delivery/ModernDeliveryInterface';
 import DeliveryTracking from '@/components/delivery/DeliveryTracking';
+
+// Rental components
+import VehicleRentalInterface from '@/components/rental/VehicleRentalInterface';
 
 // Marketplace components
 import { ModernProductCard } from '@/components/marketplace/ModernProductCard';
@@ -138,6 +144,10 @@ const ClientApp = () => {
   // Delivery states  
   const [deliveryStep, setDeliveryStep] = useState<'interface' | 'tracking'>('interface');
   const [deliveryId, setDeliveryId] = useState<string | null>(null);
+
+  // Rental states
+  const [rentalStep, setRentalStep] = useState<'interface' | 'confirmation'>('interface');
+  const [rentalBooking, setRentalBooking] = useState<any>(null);
 
   // Marketplace state
   const { toast } = useToast();
@@ -284,6 +294,8 @@ const ClientApp = () => {
       setDeliveryStep('interface');
     } else if (service === 'marketplace') {
       setMarketplaceTab('explore');
+    } else if (service === 'rental') {
+      // Handle rental service
     }
   };
 
@@ -361,6 +373,80 @@ const ClientApp = () => {
     setDeliveryStep('interface');
     setDeliveryId(null);
   };
+
+  // Rental handlers
+  const handleRentalBookingComplete = (booking: any) => {
+    setRentalBooking(booking);
+    setRentalStep('confirmation');
+    
+    toast({
+      title: "Réservation confirmée",
+      description: `Votre location de ${booking.vehicle.name} a été confirmée`,
+    });
+  };
+
+  const handleRentalComplete = () => {
+    setRentalStep('interface');
+    setRentalBooking(null);
+  };
+
+  const renderRentalService = () => {
+    if (rentalStep === 'confirmation' && rentalBooking) {
+      return (
+        <div className="min-h-screen bg-background p-4">
+          <div className="max-w-md mx-auto">
+            <div className="bg-white rounded-xl p-6 shadow-lg">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-8 h-8 text-green-600" />
+                </div>
+                <h2 className="text-xl font-bold text-foreground">Réservation confirmée</h2>
+                <p className="text-muted-foreground">Votre véhicule est réservé</p>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold text-foreground">{rentalBooking.vehicle.name}</h3>
+                  <p className="text-sm text-muted-foreground">{rentalBooking.vehicle.brand} {rentalBooking.vehicle.model}</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Date de début</p>
+                    <p className="font-medium">{format(rentalBooking.startDate, 'dd/MM/yyyy', { locale: fr })}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Date de fin</p>
+                    <p className="font-medium">{format(rentalBooking.endDate, 'dd/MM/yyyy', { locale: fr })}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <p className="text-muted-foreground text-sm">Prix total</p>
+                  <p className="text-2xl font-bold text-primary">{rentalBooking.totalPrice.toLocaleString()} FC</p>
+                </div>
+              </div>
+              
+              <Button
+                onClick={handleRentalComplete}
+                className="w-full mt-6"
+              >
+                Retour à l'accueil
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <VehicleRentalInterface
+        onCancel={() => setCurrentView('home')}
+        onBookingComplete={handleRentalBookingComplete}
+      />
+    );
+  };
+
 
   const calculateDeliveryPrice = (packageType: PackageType, pickup: string, destination: string) => {
     // Simple distance calculation simulation
@@ -1006,6 +1092,8 @@ const ClientApp = () => {
               );
             case 'delivery':
               return renderDeliveryService();
+            case 'rental':
+              return renderRentalService();
             case 'marketplace':
               return renderMarketplaceService();
             default:

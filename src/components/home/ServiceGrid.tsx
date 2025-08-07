@@ -10,7 +10,7 @@ export const ServiceGrid = ({ onServiceSelect }: ServiceGridProps) => {
   
   // Services principaux avec designs améliorés
   const mainServices = [
-      {
+    {
       id: 'transport',
       name: t('home.services.taxi'),
       icon: Car,
@@ -22,6 +22,13 @@ export const ServiceGrid = ({ onServiceSelect }: ServiceGridProps) => {
       name: t('home.services.delivery'),
       icon: Truck,
       gradient: 'from-secondary to-secondary-light',
+      available: true
+    },
+    {
+      id: 'rental',
+      name: 'Location',
+      icon: Car,
+      gradient: 'from-green-500 to-green-600',
       available: true
     },
     {
