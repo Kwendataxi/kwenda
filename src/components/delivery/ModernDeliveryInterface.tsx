@@ -57,7 +57,10 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
             }`}
           >
             <Bike className="w-4 h-4" />
-            <span className="text-sm">Flash</span>
+            <div className="flex flex-col leading-tight items-center">
+              <span className="text-sm">Flash</span>
+              <span className="text-[10px] text-muted-foreground">Moto</span>
+            </div>
           </button>
           <button
             onClick={() => setDeliveryMode('flex')}
@@ -68,7 +71,10 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
             }`}
           >
             <Truck className="w-4 h-4" />
-            <span className="text-sm">Flex</span>
+            <div className="flex flex-col leading-tight items-center">
+              <span className="text-sm">Flex</span>
+              <span className="text-[10px] text-muted-foreground">≤ 1 000 kg</span>
+            </div>
           </button>
           <button
             onClick={() => setDeliveryMode('maxicharge')}
@@ -79,7 +85,10 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
             }`}
           >
             <Package className="w-4 h-4" />
-            <span className="text-sm">MaxiCharge</span>
+            <div className="flex flex-col leading-tight items-center">
+              <span className="text-sm">MaxiCharge</span>
+              <span className="text-[10px] text-muted-foreground">≤ 3 500 kg</span>
+            </div>
           </button>
         </div>
       </div>

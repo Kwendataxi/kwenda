@@ -34,9 +34,9 @@ interface GenericDeliveryInterfaceProps {
 }
 
 const titles: Record<GenericDeliveryMode, { title: string; subtitle: string; Icon: any; gradient: string; cta: string }> = {
-  flash: { title: 'Flash Delivery', subtitle: 'Petits colis • Livraison rapide', Icon: Bike, gradient: 'from-secondary to-secondary-light', cta: 'Confirmer la livraison Flash' },
-  flex: { title: 'Flex Delivery', subtitle: 'Colis moyens • Service flexible', Icon: Truck, gradient: 'from-primary to-primary-glow', cta: 'Confirmer la livraison Flex' },
-  maxicharge: { title: 'MaxiCharge Delivery', subtitle: 'Gros volumes • Service premium', Icon: Truck, gradient: 'from-primary to-primary-glow', cta: 'Confirmer la livraison MaxiCharge' },
+  flash: { title: 'Flash (Moto)', subtitle: 'Livraison rapide • Moto', Icon: Bike, gradient: 'from-secondary to-secondary-light', cta: 'Confirmer la livraison Flash' },
+  flex: { title: 'Flex (≤ 1 000 kg)', subtitle: 'Cargo léger • Jusqu’à 1 000 kg', Icon: Truck, gradient: 'from-primary to-primary-glow', cta: 'Confirmer la livraison Flex' },
+  maxicharge: { title: 'MaxiCharge (≤ 3 500 kg)', subtitle: 'Cargo lourd • Jusqu’à 3 500 kg', Icon: Truck, gradient: 'from-primary to-primary-glow', cta: 'Confirmer la livraison MaxiCharge' },
 };
 
 const GenericDeliveryInterface = ({ mode, onSubmit, onCancel }: GenericDeliveryInterfaceProps) => {
@@ -51,9 +51,21 @@ const GenericDeliveryInterface = ({ mode, onSubmit, onCancel }: GenericDeliveryI
   const { getCurrentPosition, latitude, longitude } = useGeolocation();
   const { recentPlaces, searchAndSave } = usePlaces();
   const { toast } = useToast();
-  const { estimate } = usePriceEstimator('delivery', mode);
+  const { estimate, rule } = usePriceEstimator('delivery', mode);
 
   const HeaderIcon = titles[mode].Icon;
+
+  const getPricingParts = () => {
+    if (rule) return { base: rule.base_price || 0, perKm: rule.price_per_km || 0 };
+    const defaults: Record<GenericDeliveryMode, { base: number; perKm: number }> = {
+      flash: { base: 5000, perKm: 1000 },
+      flex: { base: 55000, perKm: 2500 },
+      maxicharge: { base: 100000, perKm: 5000 }
+    };
+    return defaults[mode];
+  };
+
+  const pricing = getPricingParts();
 
   const calculatePrice = () => {
     if (!pickup || !destination) return estimate(0);
@@ -168,6 +180,14 @@ const GenericDeliveryInterface = ({ mode, onSubmit, onCancel }: GenericDeliveryI
             <div>
               <h1 className="text-heading-md text-white">{titles[mode].title}</h1>
               <p className="text-white/80 text-body-sm">{titles[mode].subtitle}</p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                <span className="px-2 py-0.5 rounded-full bg-white/10 text-white text-[10px]">
+                  {mode === 'flash' ? 'Moto' : mode === 'flex' ? '≤ 1 000 kg' : '≤ 3 500 kg'}
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-white/10 text-white text-[10px]">
+                  Tarif: Base {pricing.base.toLocaleString()} FC + {pricing.perKm.toLocaleString()} FC/km
+                </span>
+              </div>
             </div>
           </div>
           <div className="text-right">
@@ -312,6 +332,7 @@ const GenericDeliveryInterface = ({ mode, onSubmit, onCancel }: GenericDeliveryI
             </div>
             <div className="text-right">
               <p className="text-lg font-bold text-primary">{calculatePrice().toLocaleString()} FC</p>
+              <p className="text-caption text-muted-foreground">Base {pricing.base.toLocaleString()} + {pricing.perKm.toLocaleString()}/km</p>
             </div>
           </div>
         </div>
