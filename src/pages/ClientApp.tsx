@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { ChatProvider } from '@/components/chat/ChatProvider';
+import { FloatingChatButton } from '@/components/home/FloatingChatButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -1053,12 +1055,16 @@ const ClientApp = () => {
   );
 
   return (
-    <div className={`relative ${optimizations.reducedAnimations ? 'reduce-animations' : ''} ${optimizations.cacheEnabled ? 'memory-efficient' : ''}`}>
-      {/* Connection Indicator - Hidden */}
-      {/* <ConnectionIndicator /> */}
-      
-      {/* Performance Indicator */}
-      <PerformanceIndicator showDetails={false} />
+    <ChatProvider>
+      <div className={`relative ${optimizations.reducedAnimations ? 'reduce-animations' : ''} ${optimizations.cacheEnabled ? 'memory-efficient' : ''}`}>
+        {/* Connection Indicator - Hidden */}
+        {/* <ConnectionIndicator /> */}
+        
+        {/* Performance Indicator */}
+        <PerformanceIndicator showDetails={false} />
+        
+        {/* Floating Chat Button */}
+        <FloatingChatButton />
       
       {/* Loading State */}
       {isLoading && (
@@ -1288,7 +1294,8 @@ const ClientApp = () => {
       
       {/* Toast notifications */}
       <div id="toast-container" />
-    </div>
+      </div>
+    </ChatProvider>
   );
 };
 
