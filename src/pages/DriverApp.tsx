@@ -11,6 +11,8 @@ import { EarningsPage } from '@/components/driver/EarningsPage';
 import { useDriverEarnings } from '@/hooks/useDriverEarnings';
 import { CompactDriverProfile } from '@/components/driver/CompactDriverProfile';
 import { DriverCreditManager } from '@/components/driver/DriverCreditManager';
+import { MobileDriverInterface } from '@/components/mobile/MobileDriverInterface';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { 
@@ -38,6 +40,7 @@ import {
 } from 'lucide-react';
 
 const DriverApp = () => {
+  const isMobile = useIsMobile();
   const [currentView, setCurrentView] = useState('dashboard');
   const [showRating, setShowRating] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
@@ -56,6 +59,87 @@ const DriverApp = () => {
     updateBookingStatus,
     updateCurrentLocation 
   } = useDriverBookings();
+
+  // Use mobile-optimized interface for mobile devices
+  if (isMobile) {
+    if (currentView === 'earnings') {
+      return <EarningsPage onBack={() => setCurrentView('dashboard')} />;
+    }
+    if (currentView === 'credits') {
+      return (
+        <div className="p-4">
+          <Button 
+            variant="ghost" 
+            onClick={() => setCurrentView('dashboard')}
+            className="mb-4"
+          >
+            ← Retour
+          </Button>
+          <DriverCreditManager />
+        </div>
+      );
+    }
+    if (currentView === 'profile') {
+      return (
+        <div className="p-4">
+          <Button 
+            variant="ghost" 
+            onClick={() => setCurrentView('dashboard')}
+            className="mb-4"
+          >
+            ← Retour
+          </Button>
+          <CompactDriverProfile />
+        </div>
+      );
+    }
+    if (currentView === 'navigation') {
+      return (
+        <div className="min-h-screen">
+          <div className="relative h-screen">
+            <InteractiveMap />
+            <div className="absolute top-4 left-4 right-4 z-10">
+              <Button 
+                variant="outline" 
+                onClick={() => setCurrentView('dashboard')}
+                className="mb-4 bg-background/90 backdrop-blur-sm"
+              >
+                ← Retour
+              </Button>
+            </div>
+            <div className="absolute bottom-4 left-4 right-4 z-10">
+              <Card className="bg-background/90 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-semibold">Statut: {isOnline ? 'En ligne' : 'Hors ligne'}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Gains/h: {Math.round((stats.today_earnings || 0) / Math.max(stats.hours_online || 1, 1))} FC
+                      </p>
+                    </div>
+                    <Button
+                      variant={isOnline ? "default" : "outline"}
+                      onClick={() => updateOnlineStatus(!isOnline)}
+                    >
+                      {isOnline ? 'Se déconnecter' : 'Se connecter'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <MobileDriverInterface
+        onNavigateToEarnings={() => setCurrentView('earnings')}
+        onNavigateToCredits={() => setCurrentView('credits')}
+        onNavigateToNavigation={() => setCurrentView('navigation')}
+      />
+    );
+  }
 
   // Get current location for tracking
   useEffect(() => {
