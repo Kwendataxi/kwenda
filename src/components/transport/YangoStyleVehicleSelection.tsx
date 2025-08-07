@@ -1,5 +1,6 @@
 import React from 'react';
 import { Car, Bike, Bus, Truck, Clock } from 'lucide-react';
+import { usePricingRules } from '@/hooks/usePricingRules';
 
 interface YangoVehicle {
   id: string;
@@ -24,6 +25,7 @@ const YangoStyleVehicleSelection: React.FC<YangoStyleVehicleSelectionProps> = ({
   onVehicleSelect,
   selectedVehicleId
 }) => {
+  const { rules } = usePricingRules();
   const vehicles: YangoVehicle[] = [
     {
       id: 'moto',
@@ -83,7 +85,12 @@ const YangoStyleVehicleSelection: React.FC<YangoStyleVehicleSelectionProps> = ({
   ];
 
   const calculatePrice = (vehicle: YangoVehicle): number => {
-    const distanceKm = Math.max(distance, 1);
+    const distanceKm = Math.max(distance, 0);
+    const rule = rules.find(r => r.service_type === 'transport' && r.vehicle_class === vehicle.id);
+    if (rule) {
+      return Math.round((Number(rule.base_price) || 0) + distanceKm * (Number(rule.price_per_km) || 0));
+    }
+    // Fallback legacy
     const pricePerKm = 150;
     return Math.round(vehicle.basePrice + (distanceKm * pricePerKm * vehicle.multiplier));
   };

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Car, Bike, Leaf, Clock, Users, Wifi, Snowflake } from 'lucide-react';
+import { usePricingRules } from '@/hooks/usePricingRules';
 
 interface Vehicle {
   id: string;
@@ -80,10 +81,17 @@ const VehicleSelection = ({ distance, onVehicleSelect, selectedVehicleId }: Vehi
     }
   ]);
 
+  const { rules } = usePricingRules();
+
   // Calcul du prix en fonction de la distance
   const calculatePrice = (vehicle: Vehicle) => {
-    const distanceKm = Math.max(distance, 2); // Minimum 2km pour le prix de base
-    const pricePerKm = 150; // 150 FC par km
+    const distanceKm = Math.max(distance, 0);
+    const rule = rules.find(r => r.service_type === 'transport' && r.vehicle_class === vehicle.id);
+    if (rule) {
+      return Math.round((Number(rule.base_price) || 0) + distanceKm * (Number(rule.price_per_km) || 0));
+    }
+    // Fallback to legacy computation if no rule found
+    const pricePerKm = 150; // legacy default
     return Math.round(vehicle.basePrice + (distanceKm * pricePerKm * vehicle.multiplier));
   };
 

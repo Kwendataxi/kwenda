@@ -1,7 +1,7 @@
 import { Bike, Truck } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-export type DeliveryMode = 'flash' | 'cargo';
+export type DeliveryMode = 'flash' | 'cargo' | 'flex' | 'maxicharge';
 
 interface DeliveryModeSelectorProps {
   selectedMode: DeliveryMode;

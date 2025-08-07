@@ -21,6 +21,7 @@ import { DriverCreditsManager } from '@/components/admin/DriverCreditsManager';
 import { CommissionManager } from '@/components/admin/CommissionManager';
 import { FinancialDashboard } from '@/components/admin/FinancialDashboard';
 import { ADMIN_NAVIGATION, ADMIN_ROLE_LABELS } from '@/types/roles';
+import { AdminPricingManager } from '@/components/admin/AdminPricingManager';
 import { 
   LayoutDashboard,
   Users,
@@ -120,11 +121,12 @@ const AdminApp = () => {
 
   const renderContent = () => (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-      <TabsList className="grid w-full grid-cols-9">
+      <TabsList className="grid w-full grid-cols-10">
         <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
         <TabsTrigger value="credits">Crédits Chauffeurs</TabsTrigger>
         <TabsTrigger value="commissions">Commissions</TabsTrigger>
         <TabsTrigger value="financial">Dashboard Financier</TabsTrigger>
+        <TabsTrigger value="tarifs">Tarifs</TabsTrigger>
         <TabsTrigger value="zones">Zones</TabsTrigger>
         <TabsTrigger value="drivers">Chauffeurs</TabsTrigger>
         <TabsTrigger value="users">Utilisateurs</TabsTrigger>
@@ -155,6 +157,12 @@ const AdminApp = () => {
       <TabsContent value="financial">
         <PermissionGuard requiredPermissions={['finance_read']}>
           <FinancialDashboard />
+        </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="tarifs">
+        <PermissionGuard requiredPermissions={['transport_admin']}>
+          <AdminPricingManager />
         </PermissionGuard>
       </TabsContent>
 

@@ -1,0 +1,118 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+
+export type ServiceCategory = 'transport' | 'delivery';
+
+export interface PricingRule {
+  id: string;
+  service_type: ServiceCategory;
+  vehicle_class: string;
+  base_price: number;
+  price_per_km: number;
+  currency: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const usePricingRules = () => {
+  const queryClient = useQueryClient();
+
+  const query = useQuery<PricingRule[]>({
+    queryKey: ['pricing_rules'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('pricing_rules')
+        .select('*')
+        .eq('is_active', true);
+      if (error) throw error;
+      return (data || []) as PricingRule[];
+    }
+  });
+
+  const upsertRule = useMutation({
+    mutationFn: async (rule: Partial<PricingRule> & { service_type: ServiceCategory; vehicle_class: string }) => {
+      // Update existing active rule for the pair
+      const { data: existing } = await supabase
+        .from('pricing_rules')
+        .select('*')
+        .eq('service_type', rule.service_type)
+        .eq('vehicle_class', rule.vehicle_class)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('pricing_rules')
+          .update({
+            base_price: rule.base_price,
+            price_per_km: rule.price_per_km,
+            currency: rule.currency || existing.currency
+          })
+          .eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('pricing_rules')
+          .insert({
+            service_type: rule.service_type,
+            vehicle_class: rule.vehicle_class,
+            base_price: rule.base_price,
+            price_per_km: rule.price_per_km,
+            currency: rule.currency || 'CDF',
+            is_active: true
+          });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pricing_rules'] })
+  });
+
+  const deactivateRule = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('pricing_rules')
+        .update({ is_active: false })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['pricing_rules'] })
+  });
+
+  return {
+    rules: query.data || [],
+    isLoading: query.isLoading,
+    error: query.error as Error | null,
+    refresh: () => queryClient.invalidateQueries({ queryKey: ['pricing_rules'] }),
+    upsertRule,
+    deactivateRule,
+  };
+};
+
+export const usePriceEstimator = (service_type: ServiceCategory, vehicle_class: string) => {
+  const { rules } = usePricingRules();
+
+  const rule = rules.find(r => r.service_type === service_type && r.vehicle_class === vehicle_class);
+
+  const estimate = (distanceKm: number): number => {
+    const d = Math.max(distanceKm || 0, 0);
+    if (rule) {
+      return Math.round((rule.base_price || 0) + d * (rule.price_per_km || 0));
+    }
+    // Fallbacks if rule missing
+    const defaults: Record<string, { base: number; perKm: number }> = {
+      eco: { base: 2500, perKm: 1500 },
+      standard: { base: 2500, perKm: 1500 },
+      premium: { base: 3200, perKm: 1800 },
+      first_class: { base: 4300, perKm: 2300 },
+      flash: { base: 5000, perKm: 1000 },
+      flex: { base: 55000, perKm: 2500 },
+      maxicharge: { base: 100000, perKm: 5000 }
+    };
+    const key = vehicle_class as keyof typeof defaults;
+    const def = defaults[key] || { base: 2500, perKm: 1500 };
+    return Math.round(def.base + d * def.perKm);
+  };
+
+  return { estimate, rule };
+};

@@ -18,6 +18,7 @@ import {
   Search,
   History
 } from 'lucide-react';
+import { usePriceEstimator } from '@/hooks/usePricingRules';
 
 interface Location {
   address: string;
@@ -41,18 +42,15 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
   const { getCurrentPosition, latitude, longitude } = useGeolocation();
   const { recentPlaces, searchAndSave } = usePlaces();
   const { toast } = useToast();
-
-  const basePrice = 500;
+  const { estimate } = usePriceEstimator('delivery', 'flash');
   
   const calculatePrice = () => {
-    if (!pickup || !destination) return basePrice;
-    
+    if (!pickup || !destination) return estimate(0);
     // Calculate real distance using coordinates
     const lat1 = pickup.coordinates[1];
     const lon1 = pickup.coordinates[0];
     const lat2 = destination.coordinates[1];
     const lon2 = destination.coordinates[0];
-    
     const R = 6371; // Earth's radius in km
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -61,10 +59,7 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
               Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const distance = R * c;
-    
-    // Price calculation: base price + distance-based pricing
-    const distancePrice = Math.round(distance * 200); // 200 FC per km
-    return Math.round(basePrice + distancePrice);
+    return estimate(distance);
   };
 
   const handleSubmit = async () => {
