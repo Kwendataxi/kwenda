@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ProductCard } from './ProductCard';
+import { ModernProductCard } from './ModernProductCard';
 import { Skeleton } from '../ui/skeleton';
 
 interface Product {
@@ -74,7 +74,7 @@ export const ResponsiveGrid: React.FC<ResponsiveGridProps> = ({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 p-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 p-4">
         {Array.from({ length: 8 }).map((_, index) => (
           <ProductSkeleton key={index} />
         ))}
@@ -111,9 +111,9 @@ export const ResponsiveGrid: React.FC<ResponsiveGridProps> = ({
   return (
     <div className="space-y-6">
       {/* Products Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 p-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 p-4">
         {products.slice(0, visibleProducts).map((product) => (
-          <ProductCard
+          <ModernProductCard
             key={product.id}
             product={product}
             onAddToCart={onAddToCart}
@@ -124,7 +124,7 @@ export const ResponsiveGrid: React.FC<ResponsiveGridProps> = ({
 
       {/* Load More Loading State */}
       {isLoadingMore && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 p-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 p-4">
           {Array.from({ length: 4 }).map((_, index) => (
             <ProductSkeleton key={`loading-${index}`} />
           ))}

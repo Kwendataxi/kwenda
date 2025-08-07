@@ -39,7 +39,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
               key={category.id}
               variant={isSelected ? "default" : "outline"}
               size="sm"
-              className={`flex items-center gap-2 whitespace-nowrap min-h-12 px-4 touch-manipulation transition-all ${
+              className={`flex items-center gap-2 whitespace-nowrap rounded-full min-h-12 px-4 touch-manipulation transition-all ${
                 isSelected 
                   ? 'bg-primary text-white shadow-md scale-105' 
                   : 'bg-card hover:bg-muted border-border/50'

@@ -44,12 +44,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               placeholder="Rechercher des produits..."
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
-              className="pl-12 h-12 text-base bg-card border-border/50 focus:border-primary transition-colors"
+              className="pl-12 h-12 text-base bg-card border-border/50 focus:border-primary transition-colors rounded-full"
             />
           </div>
           <Button 
             type="submit" 
-            className="h-12 px-6 bg-primary hover:bg-primary/90 text-white font-medium touch-manipulation"
+            className="h-12 px-6 bg-primary hover:bg-primary/90 text-white font-medium touch-manipulation rounded-full"
           >
             <Search className="w-4 h-4 md:mr-2" />
             <span className="hidden md:inline">Rechercher</span>
@@ -57,7 +57,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" className="h-12 w-12 p-0 border-border/50 hover:bg-muted touch-manipulation">
+              <Button variant="outline" className="h-12 w-12 p-0 border-border/50 hover:bg-muted touch-manipulation rounded-full">
                 <SlidersHorizontal className="w-5 h-5" />
               </Button>
             </SheetTrigger>
