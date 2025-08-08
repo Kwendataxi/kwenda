@@ -1,10 +1,10 @@
 import React from 'react';
-import { Home, Car, Users } from 'lucide-react';
+import { Home, Car, Users, Wallet, DollarSign, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface MobilePartnerTabsProps {
-  currentView: 'dashboard' | 'vehicles' | 'drivers';
+  currentView: 'dashboard' | 'vehicles' | 'drivers' | 'finances' | 'commissions' | 'subscriptions';
   onViewChange: (view: string) => void;
   variant?: 'bottom' | 'horizontal' | 'vertical';
 }
@@ -13,6 +13,9 @@ const tabItems = [
   { id: 'dashboard', label: 'Accueil', icon: Home },
   { id: 'vehicles', label: 'Mes véhicules', icon: Car },
   { id: 'drivers', label: 'Chauffeurs', icon: Users },
+  { id: 'finances', label: 'Finances', icon: Wallet },
+  { id: 'commissions', label: 'Commissions', icon: DollarSign },
+  { id: 'subscriptions', label: "Abonnements", icon: CreditCard },
 ];
 
 export const MobilePartnerTabs: React.FC<MobilePartnerTabsProps> = ({
@@ -23,7 +26,7 @@ export const MobilePartnerTabs: React.FC<MobilePartnerTabsProps> = ({
   if (variant === 'bottom') {
     // Bottom navigation for mobile
     return (
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-grey-100 px-2 py-2 flex justify-around z-40">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-grey-100 px-2 py-2 flex justify-around z-40">
         {tabItems.map((item) => (
           <button
             key={item.id}
@@ -32,7 +35,7 @@ export const MobilePartnerTabs: React.FC<MobilePartnerTabsProps> = ({
               "flex flex-col items-center gap-1 py-2 px-2 rounded-lg transition-all duration-200 min-w-0 flex-1",
               currentView === item.id 
                 ? 'text-primary bg-primary-light' 
-                : 'text-muted-foreground hover:text-primary hover:bg-grey-50'
+                : 'text-muted-foreground hover:text-primary hover:bg-muted'
             )}
           >
             <item.icon className="h-4 w-4 shrink-0" />
@@ -75,7 +78,7 @@ export const MobilePartnerTabs: React.FC<MobilePartnerTabsProps> = ({
           onClick={() => onViewChange(item.id)}
           className={cn(
             "w-full justify-start rounded-xl",
-            currentView === item.id && "bg-primary text-white"
+            currentView === item.id && "bg-primary text-primary-foreground"
           )}
         >
           <item.icon className="h-4 w-4 mr-3" />
