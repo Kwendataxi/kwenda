@@ -2134,43 +2134,121 @@ export type Database = {
           },
         ]
       }
+      rental_city_pricing: {
+        Row: {
+          base_delivery_fee: number | null
+          category_id: string | null
+          city: string
+          created_at: string | null
+          id: string
+          multiplier: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_delivery_fee?: number | null
+          category_id?: string | null
+          city: string
+          created_at?: string | null
+          id?: string
+          multiplier?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_delivery_fee?: number | null
+          category_id?: string | null
+          city?: string
+          created_at?: string | null
+          id?: string
+          multiplier?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_city_pricing_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "rental_vehicle_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rental_equipment_types: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_premium: boolean | null
+          name: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_premium?: boolean | null
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_premium?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
       rental_vehicle_categories: {
         Row: {
+          city: string | null
           created_at: string
           description: string | null
           icon: string
           id: string
           is_active: boolean
           name: string
+          priority: number | null
           updated_at: string
         }
         Insert: {
+          city?: string | null
           created_at?: string
           description?: string | null
           icon?: string
           id?: string
           is_active?: boolean
           name: string
+          priority?: number | null
           updated_at?: string
         }
         Update: {
+          city?: string | null
           created_at?: string
           description?: string | null
           icon?: string
           id?: string
           is_active?: boolean
           name?: string
+          priority?: number | null
           updated_at?: string
         }
         Relationships: []
       }
       rental_vehicles: {
         Row: {
+          available_cities: string[] | null
           brand: string
           category_id: string
+          city: string | null
+          comfort_level: string | null
           created_at: string
           currency: string
           daily_rate: number
+          equipment: Json | null
           features: Json | null
           fuel_type: string
           hourly_rate: number
@@ -2195,11 +2273,15 @@ export type Database = {
           year: number
         }
         Insert: {
+          available_cities?: string[] | null
           brand: string
           category_id: string
+          city?: string | null
+          comfort_level?: string | null
           created_at?: string
           currency?: string
           daily_rate?: number
+          equipment?: Json | null
           features?: Json | null
           fuel_type?: string
           hourly_rate?: number
@@ -2224,11 +2306,15 @@ export type Database = {
           year: number
         }
         Update: {
+          available_cities?: string[] | null
           brand?: string
           category_id?: string
+          city?: string | null
+          comfort_level?: string | null
           created_at?: string
           currency?: string
           daily_rate?: number
+          equipment?: Json | null
           features?: Json | null
           fuel_type?: string
           hourly_rate?: number
@@ -3225,6 +3311,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_rental_price: {
+        Args: {
+          base_price: number
+          city_name: string
+          category_id_param?: string
+        }
+        Returns: number
+      }
       calculate_surge_pricing: {
         Args: { zone_id_param: string; vehicle_class_param: string }
         Returns: number

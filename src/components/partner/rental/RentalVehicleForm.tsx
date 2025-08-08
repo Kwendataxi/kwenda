@@ -3,7 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { usePartnerRentals, VehicleCategory, RentalVehicle } from "@/hooks/usePartnerRentals";
+import { useModernRentals } from "@/hooks/useModernRentals";
 import { useToast } from "@/hooks/use-toast";
 
 interface Props {
@@ -16,6 +19,7 @@ const defaultRates = { hourly_rate: 5000, daily_rate: 50000, weekly_rate: 300000
 
 export default function RentalVehicleForm({ categories, initial, onSaved }: Props) {
   const { createVehicle, updateVehicle } = usePartnerRentals();
+  const { equipment } = useModernRentals();
   const { toast } = useToast();
 
   const [values, setValues] = useState<Partial<RentalVehicle>>({
@@ -28,6 +32,10 @@ export default function RentalVehicleForm({ categories, initial, onSaved }: Prop
     transmission: initial?.transmission || "manuel",
     seats: initial?.seats || 4,
     category_id: initial?.category_id,
+    city: "Kinshasa",
+    available_cities: ["Kinshasa"],
+    comfort_level: "standard",
+    equipment: [],
     ...defaultRates,
     daily_rate: initial?.daily_rate ?? defaultRates.daily_rate,
     hourly_rate: initial?.hourly_rate ?? defaultRates.hourly_rate,
@@ -197,6 +205,84 @@ export default function RentalVehicleForm({ categories, initial, onSaved }: Prop
               onChange={(e) => handleChange("location_address", e.target.value)}
             />
           </div>
+          <div>
+            <label className="text-sm font-medium">Ville principale</label>
+            <Select value={values.city as string} onValueChange={(v) => handleChange("city" as any, v)}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Sélectionner" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Kinshasa">Kinshasa</SelectItem>
+                <SelectItem value="Lubumbashi">Lubumbashi</SelectItem>
+                <SelectItem value="Kolwezi">Kolwezi</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium">Niveau de confort</label>
+            <Select value={values.comfort_level as string} onValueChange={(v) => handleChange("comfort_level" as any, v)}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Sélectionner" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="basic">Basique</SelectItem>
+                <SelectItem value="standard">Standard</SelectItem>
+                <SelectItem value="comfort">Confort</SelectItem>
+                <SelectItem value="luxury">Luxe</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="md:col-span-3">
+            <label className="text-sm font-medium">Villes de disponibilité</label>
+            <div className="mt-2 space-y-2">
+              {["Kinshasa", "Lubumbashi", "Kolwezi"].map((city) => (
+                <div key={city} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={city}
+                    checked={(values.available_cities as string[])?.includes(city) || false}
+                    onCheckedChange={(checked) => {
+                      const current = (values.available_cities as string[]) || [];
+                      if (checked) {
+                        handleChange("available_cities" as any, [...current, city]);
+                      } else {
+                        handleChange("available_cities" as any, current.filter(c => c !== city));
+                      }
+                    }}
+                  />
+                  <label htmlFor={city} className="text-sm">{city}</label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="md:col-span-3">
+            <label className="text-sm font-medium">Équipements modernes</label>
+            <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
+              {equipment.map((eq) => (
+                <div key={eq.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={eq.id}
+                    checked={(values.equipment as string[])?.includes(eq.name) || false}
+                    onCheckedChange={(checked) => {
+                      const current = (values.equipment as string[]) || [];
+                      if (checked) {
+                        handleChange("equipment" as any, [...current, eq.name]);
+                      } else {
+                        handleChange("equipment" as any, current.filter(e => e !== eq.name));
+                      }
+                    }}
+                  />
+                  <label htmlFor={eq.id} className="text-xs flex items-center gap-1">
+                    {eq.name}
+                    {eq.is_premium && <Badge className="text-xs bg-gradient-to-r from-amber-500 to-orange-500">Premium</Badge>}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="md:col-span-3">
             <label className="text-sm font-medium">Caractéristiques (séparées par des virgules)</label>
             <Input

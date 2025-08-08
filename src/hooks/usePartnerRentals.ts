@@ -30,6 +30,10 @@ export interface RentalVehicle {
   images: string[];
   license_plate: string | null;
   location_address: string | null;
+  city?: string;
+  available_cities?: string[];
+  comfort_level?: string;
+  equipment?: string[];
   is_active: boolean;
   is_available: boolean;
   moderation_status: "pending" | "approved" | "rejected";
