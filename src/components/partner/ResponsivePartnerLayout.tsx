@@ -38,15 +38,24 @@ export const ResponsivePartnerLayout: React.FC<ResponsivePartnerLayoutProps> = (
         {/* Mobile Menu Sheet */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetContent side="left" className="p-0 w-80">
-            <div className="p-4">
-              <h2 className="text-lg font-semibold mb-4">Navigation</h2>
-              <MobilePartnerTabs 
-                currentView={currentView} 
-                onViewChange={(view) => {
-                  onViewChange(view);
-                  setMobileMenuOpen(false);
-                }} 
-              />
+            <div className="h-full flex flex-col">
+              {/* Header */}
+              <div className="p-6 border-b border-border">
+                <h2 className="text-lg font-semibold text-foreground">Menu</h2>
+                <p className="text-sm text-muted-foreground mt-1">Navigation partenaire</p>
+              </div>
+              
+              {/* Navigation */}
+              <div className="flex-1 p-4">
+                <MobilePartnerTabs 
+                  currentView={currentView} 
+                  onViewChange={(view) => {
+                    onViewChange(view);
+                    setMobileMenuOpen(false);
+                  }}
+                  variant="vertical"
+                />
+              </div>
             </div>
           </SheetContent>
         </Sheet>
