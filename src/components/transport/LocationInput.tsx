@@ -35,7 +35,7 @@ const LocationInput = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
 
-  const { getCurrentPosition, loading: geoLoading, error: geoError } = useGeolocation();
+  const { getCurrentPosition, loading: geoLoading, error: geoError, lastKnownPosition } = useGeolocation();
   const { places, addPlace, loading: placesLoading } = usePlaces();
 
   // Debounced search
@@ -48,7 +48,12 @@ const LocationInput = ({
       setIsSearching(true);
       debounceRef.current = setTimeout(async () => {
         try {
-          const results = await GeocodingService.searchPlaces(searchQuery);
+          const results = await GeocodingService.searchPlaces(
+            searchQuery,
+            lastKnownPosition
+              ? { lng: lastKnownPosition.longitude, lat: lastKnownPosition.latitude }
+              : undefined
+          );
           setSuggestions(results);
         } catch (error) {
           console.error('Search error:', error);

@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-
+import { CountryService } from '@/services/countryConfig';
 export interface GeocodeResult {
   place_name: string;
   center: [number, number];
@@ -36,25 +36,26 @@ export class GeocodingService {
     }
   }
 
-  // Coordonnées des villes de RDC
-  private static readonly CITY_COORDINATES = {
-    kinshasa: { lng: 15.2663, lat: -4.4419 },
-    lubumbashi: { lng: 27.4794, lat: -11.6609 },
-    kolwezi: { lng: 25.4731, lat: -10.7143 }
-  };
-
-  private static detectCity(coordinates?: { lng: number; lat: number }): 'kinshasa' | 'lubumbashi' | 'kolwezi' {
-    if (!coordinates) return 'kinshasa';
-    
-    const distances = Object.entries(this.CITY_COORDINATES).map(([city, coords]) => ({
-      city: city as 'kinshasa' | 'lubumbashi' | 'kolwezi',
-      distance: Math.sqrt(
-        Math.pow(coordinates.lng - coords.lng, 2) + 
-        Math.pow(coordinates.lat - coords.lat, 2)
-      )
-    }));
-    
-    return distances.sort((a, b) => a.distance - b.distance)[0].city;
+  // Helpers dynamiques basés sur le pays courant
+  private static getDefaultProximity(proximity?: { lng: number; lat: number }): { lng: number; lat: number } {
+    if (proximity) return proximity;
+    try {
+      const country = CountryService.getCurrentCountry();
+      // Essayer de trouver la ville majeure la plus proche du centre de la bbox
+      const candidateCity = country.defaultProximity
+        ? null
+        : CountryService.findNearestCity(
+            (country.bbox[1] + country.bbox[3]) / 2,
+            (country.bbox[0] + country.bbox[2]) / 2
+          );
+      if (country.defaultProximity) return { lng: country.defaultProximity.lng, lat: country.defaultProximity.lat };
+      if (candidateCity) return { lng: candidateCity.coordinates.lng, lat: candidateCity.coordinates.lat };
+      // Fallback: centre de la bbox
+      return { lng: (country.bbox[0] + country.bbox[2]) / 2, lat: (country.bbox[1] + country.bbox[3]) / 2 };
+    } catch {
+      // Fallback Kinshasa
+      return { lng: 15.2663, lat: -4.4419 };
+    }
   }
 
   static async searchPlaces(query: string, proximity?: { lng: number; lat: number }): Promise<GeocodeResult[]> {
@@ -63,20 +64,19 @@ export class GeocodingService {
     try {
       const token = await this.getMapboxToken();
       
-      // Détecter la ville actuelle et utiliser ses coordonnées par défaut
-      const currentCity = this.detectCity(proximity);
-      const defaultProximity = proximity || this.CITY_COORDINATES[currentCity];
+      const country = CountryService.getCurrentCountry();
+      const defaultProximity = this.getDefaultProximity(proximity);
       
       const url = new URL('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(query) + '.json');
       url.searchParams.set('access_token', token);
       url.searchParams.set('proximity', `${defaultProximity.lng},${defaultProximity.lat}`);
-      url.searchParams.set('country', 'CD'); // Code pays pour RDC
-      url.searchParams.set('limit', '8'); // Augmenté pour plus de résultats
-      url.searchParams.set('language', 'fr');
+      url.searchParams.set('country', country.mapboxCountryCode);
+      url.searchParams.set('limit', '8');
+      url.searchParams.set('language', country.language || 'fr');
       // Types étendus pour plus de précision
       url.searchParams.set('types', 'poi,address,place,locality,neighborhood,district');
-      // Bbox étendue pour couvrir les 3 villes principales
-      url.searchParams.set('bbox', '15.0,-12.0,28.0,-3.0');
+      // Bbox du pays courant pour de meilleurs résultats
+      url.searchParams.set('bbox', `${country.bbox[0]},${country.bbox[1]},${country.bbox[2]},${country.bbox[3]}`);
       // Forcer la recherche fuzzy pour une meilleure correspondance
       url.searchParams.set('fuzzyMatch', 'true');
       url.searchParams.set('routing', 'true');
@@ -122,9 +122,8 @@ export class GeocodingService {
     } catch (error) {
       console.error('Erreur lors de la recherche de lieux:', error);
       
-      // Fallback enrichi avec des lieux connus des 3 villes
-      const currentCity = this.detectCity(proximity);
-      const fallbackPlaces = this.getFallbackPlaces(currentCity);
+      // Fallback dynamique basé sur le pays courant
+      const fallbackPlaces = this.getFallbackPlaces();
       
       return fallbackPlaces.filter(place => 
         place.place_name.toLowerCase().includes(query.toLowerCase())
@@ -132,37 +131,22 @@ export class GeocodingService {
     }
   }
 
-  private static getFallbackPlaces(city: 'kinshasa' | 'lubumbashi' | 'kolwezi') {
-    const places = {
-      kinshasa: [
+  private static getFallbackPlaces() {
+    try {
+      const country = CountryService.getCurrentCountry();
+      const places = country.majorCities.map(city => ({
+        place_name: `${city.name}, ${country.name}`,
+        center: [city.coordinates.lng, city.coordinates.lat]
+      }));
+      return places;
+    } catch {
+      // Fallback minimal si CountryService indisponible
+      return [
         { place_name: 'Kinshasa, République Démocratique du Congo', center: [15.2663, -4.4419] },
-        { place_name: 'Gombe, Kinshasa', center: [15.2866, -4.4114] },
-        { place_name: 'Kalamu, Kinshasa', center: [15.2943, -4.4447] },
-        { place_name: 'Lemba, Kinshasa', center: [15.2544, -4.4267] },
-        { place_name: 'Limete, Kinshasa', center: [15.2791, -4.4158] },
-        { place_name: 'Ngaliema, Kinshasa', center: [15.2411, -4.4019] },
-        { place_name: 'Kintambo, Kinshasa', center: [15.2567, -4.4086] },
-        { place_name: 'Matete, Kinshasa', center: [15.2891, -4.4356] }
-      ],
-      lubumbashi: [
         { place_name: 'Lubumbashi, République Démocratique du Congo', center: [27.4794, -11.6609] },
-        { place_name: 'Kenya, Lubumbashi', center: [27.4653, -11.6402] },
-        { place_name: 'Kampemba, Lubumbashi', center: [27.4891, -11.6756] },
-        { place_name: 'Kamalondo, Lubumbashi', center: [27.4612, -11.6512] },
-        { place_name: 'Katuba, Lubumbashi', center: [27.5234, -11.6891] },
-        { place_name: 'Ruashi, Lubumbashi', center: [27.4234, -11.6123] },
-        { place_name: 'Annexe, Lubumbashi', center: [27.4567, -11.6334] }
-      ],
-      kolwezi: [
-        { place_name: 'Kolwezi, République Démocratique du Congo', center: [25.4731, -10.7143] },
-        { place_name: 'Centre-ville, Kolwezi', center: [25.4689, -10.7101] },
-        { place_name: 'Mutanda, Kolwezi', center: [25.4812, -10.7234] },
-        { place_name: 'Dilala, Kolwezi', center: [25.4567, -10.7089] },
-        { place_name: 'Manika, Kolwezi', center: [25.4891, -10.7312] }
-      ]
-    };
-    
-    return places[city];
+        { place_name: 'Kolwezi, République Démocratique du Congo', center: [25.4731, -10.7143] }
+      ];
+    }
   }
 
   static async reverseGeocode(lng: number, lat: number): Promise<string> {
@@ -171,7 +155,7 @@ export class GeocodingService {
       
       const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json`);
       url.searchParams.set('access_token', token);
-      url.searchParams.set('language', 'fr');
+      url.searchParams.set('language', CountryService.getCurrentCountry().language || 'fr');
       url.searchParams.set('limit', '1');
 
       const response = await fetch(url);

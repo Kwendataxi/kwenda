@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { CountryService } from '@/services/countryConfig';
 import { Search, MapPin, Clock, Navigation, Zap, Mic, QrCode, Home, Building2, Plane } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -101,15 +102,19 @@ export const EnhancedTaxiSearchBar = ({
       }
     }
 
-    // Common destinations
-    baseShortcuts.push({
-      id: 'airport',
-      label: 'Aéroport N\'Djili',
-      icon: Plane,
-      address: 'Aéroport International de N\'Djili, Kinshasa',
-      coordinates: { lat: -4.3856, lng: 15.4446 },
-      action: () => handleShortcutSelect('Aéroport International de N\'Djili, Kinshasa', { lat: -4.3856, lng: 15.4446 })
-    });
+    // Common destinations dynamiques par pays
+    const country = CountryService.getCurrentCountry();
+    const mainCity = country.majorCities?.[0];
+    if (mainCity) {
+      baseShortcuts.push({
+        id: 'city-center',
+        label: `Centre-ville de ${mainCity.name}`,
+        icon: MapPin,
+        address: `${mainCity.name}, ${country.name}`,
+        coordinates: { lat: mainCity.coordinates.lat, lng: mainCity.coordinates.lng },
+        action: () => handleShortcutSelect(`${mainCity.name}, ${country.name}`, { lat: mainCity.coordinates.lat, lng: mainCity.coordinates.lng })
+      });
+    }
 
     return baseShortcuts.slice(0, 4); // Limit to 4 shortcuts
   };
@@ -174,19 +179,14 @@ export const EnhancedTaxiSearchBar = ({
   const calculateRelevanceScore = (result: GeocodeResult, query: string): number => {
     let score = 0;
     
-    // Boost Kinshasa results
-    if (result.place_name.toLowerCase().includes('kinshasa')) score += 10;
+    // Boost résultats dans les grandes villes du pays courant
+    const country = CountryService.getCurrentCountry();
+    const majorCityNames = (country.majorCities || []).map(c => c.name.toLowerCase());
+    if (majorCityNames.some(name => result.place_name.toLowerCase().includes(name))) score += 10;
     
-    // Boost exact matches
+    // Boost exact/partial matches
     if (result.place_name.toLowerCase().includes(query.toLowerCase())) score += 5;
     
-    // Boost known districts
-    const kinshasaDistricts = ['gombe', 'kalamu', 'lemba', 'matete', 'ngaliema', 'masina'];
-    const hasDistrict = kinshasaDistricts.some(district => 
-      result.place_name.toLowerCase().includes(district)
-    );
-    if (hasDistrict) score += 3;
-
     return score;
   };
 
