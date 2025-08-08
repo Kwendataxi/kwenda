@@ -29,8 +29,71 @@ export interface PopularPlace {
 
 export class ZoneService {
   private static zones: ServiceZone[] = [
+    // ABIDJAN - Côte d'Ivoire
     {
-      id: 'gombe',
+      id: 'plateau_abidjan',
+      name: 'Plateau',
+      nameEn: 'Plateau',
+      nameFr: 'Plateau',
+      type: 'commune',
+      center: [-4.0228, 5.3364],
+      polygon: {
+        type: 'Polygon',
+        coordinates: [[
+          [-4.0400, 5.3200], [-4.0000, 5.3200],
+          [-4.0000, 5.3500], [-4.0400, 5.3500],
+          [-4.0400, 5.3200]
+        ]]
+      },
+      isActive: true,
+      surgeMultiplier: 1.3,
+      popularPlaces: [
+        {
+          id: 'hotel_ivoire',
+          name: 'Hôtel Ivoire',
+          nameEn: 'Hotel Ivoire',
+          nameFr: 'Hôtel Ivoire',
+          category: 'hotel',
+          coordinates: [-4.0200, 5.3300],
+          address: 'Boulevard de la République, Plateau',
+          zone: 'plateau_abidjan'
+        }
+      ]
+    },
+    {
+      id: 'cocody_abidjan',
+      name: 'Cocody',
+      nameEn: 'Cocody',
+      nameFr: 'Cocody',
+      type: 'commune',
+      center: [-3.9800, 5.3600],
+      polygon: {
+        type: 'Polygon',
+        coordinates: [[
+          [-4.0000, 5.3400], [-3.9500, 5.3400],
+          [-3.9500, 5.3800], [-4.0000, 5.3800],
+          [-4.0000, 5.3400]
+        ]]
+      },
+      isActive: true,
+      surgeMultiplier: 1.2,
+      popularPlaces: [
+        {
+          id: 'universite_cocody',
+          name: 'Université Félix Houphouët-Boigny',
+          nameEn: 'Felix Houphouet-Boigny University',
+          nameFr: 'Université Félix Houphouët-Boigny',
+          category: 'school',
+          coordinates: [-3.9700, 5.3700],
+          address: 'Cocody',
+          zone: 'cocody_abidjan'
+        }
+      ]
+    },
+    
+    // KINSHASA - RDC
+    {
+      id: 'gombe_kinshasa',
       name: 'Gombe',
       nameEn: 'Gombe',
       nameFr: 'Gombe',
@@ -45,32 +108,22 @@ export class ZoneService {
         ]]
       },
       isActive: true,
-      surgeMultiplier: 1.2,
+      surgeMultiplier: 1.4,
       popularPlaces: [
         {
-          id: 'hopital_general',
+          id: 'hopital_general_kinshasa',
           name: 'Hôpital Général de Kinshasa',
           nameEn: 'Kinshasa General Hospital',
           nameFr: 'Hôpital Général de Kinshasa',
           category: 'hospital',
           coordinates: [15.2750, -4.3250],
           address: 'Avenue de la Justice, Gombe',
-          zone: 'gombe'
-        },
-        {
-          id: 'ccic',
-          name: 'Centre de Commerce International',
-          nameEn: 'International Trade Center',
-          nameFr: 'Centre de Commerce International',
-          category: 'office',
-          coordinates: [15.2680, -4.3180],
-          address: 'Boulevard du 30 Juin, Gombe',
-          zone: 'gombe'
+          zone: 'gombe_kinshasa'
         }
       ]
     },
     {
-      id: 'lemba',
+      id: 'lemba_kinshasa',
       name: 'Lemba',
       nameEn: 'Lemba',
       nameFr: 'Lemba',
@@ -95,67 +148,101 @@ export class ZoneService {
           category: 'school',
           coordinates: [15.2350, -4.4350],
           address: 'Campus Universitaire, Lemba',
-          zone: 'lemba'
+          zone: 'lemba_kinshasa'
         }
       ]
     },
+    
+    // LUBUMBASHI - RDC
     {
-      id: 'matete',
-      name: 'Matete',
-      nameEn: 'Matete',
-      nameFr: 'Matete',
+      id: 'kenya_lubumbashi',
+      name: 'Kenya',
+      nameEn: 'Kenya',
+      nameFr: 'Kenya',
       type: 'commune',
-      center: [15.3147, -4.4286],
+      center: [27.4790, -11.6550],
       polygon: {
         type: 'Polygon',
         coordinates: [[
-          [15.2900, -4.4000], [15.3400, -4.4000],
-          [15.3400, -4.4600], [15.2900, -4.4600],
-          [15.2900, -4.4000]
+          [27.4600, -11.6700], [27.4980, -11.6700],
+          [27.4980, -11.6400], [27.4600, -11.6400],
+          [27.4600, -11.6700]
         ]]
       },
       isActive: true,
-      surgeMultiplier: 1.1,
+      surgeMultiplier: 1.2,
       popularPlaces: [
         {
-          id: 'marche_matete',
-          name: 'Marché de Matete',
-          nameEn: 'Matete Market',
-          nameFr: 'Marché de Matete',
-          category: 'market',
-          coordinates: [15.3100, -4.4200],
-          address: 'Avenue Matete, Matete',
-          zone: 'matete'
+          id: 'universite_lubumbashi',
+          name: 'Université de Lubumbashi',
+          nameEn: 'University of Lubumbashi',
+          nameFr: 'Université de Lubumbashi',
+          category: 'school',
+          coordinates: [27.4800, -11.6600],
+          address: 'Campus Universitaire, Kenya',
+          zone: 'kenya_lubumbashi'
         }
       ]
     },
     {
-      id: 'masina',
-      name: 'Masina',
-      nameEn: 'Masina',
-      nameFr: 'Masina',
+      id: 'kampemba_lubumbashi',
+      name: 'Kampemba',
+      nameEn: 'Kampemba',
+      nameFr: 'Kampemba',
       type: 'commune',
-      center: [15.3441, -4.3848],
+      center: [27.4300, -11.6800],
       polygon: {
         type: 'Polygon',
         coordinates: [[
-          [15.3200, -4.3600], [15.3700, -4.3600],
-          [15.3700, -4.4100], [15.3200, -4.4100],
-          [15.3200, -4.3600]
+          [27.4100, -11.7000], [27.4500, -11.7000],
+          [27.4500, -11.6600], [27.4100, -11.6600],
+          [27.4100, -11.7000]
         ]]
       },
       isActive: true,
       surgeMultiplier: 1.0,
       popularPlaces: [
         {
-          id: 'aeroport_ndjili',
-          name: 'Aéroport International de N\'djili',
-          nameEn: 'N\'djili International Airport',
-          nameFr: 'Aéroport International de N\'djili',
-          category: 'transport',
-          coordinates: [15.4450, -4.3850],
-          address: 'Route de l\'Aéroport, Masina',
-          zone: 'masina'
+          id: 'marche_kampemba',
+          name: 'Marché de Kampemba',
+          nameEn: 'Kampemba Market',
+          nameFr: 'Marché de Kampemba',
+          category: 'market',
+          coordinates: [27.4400, -11.6900],
+          address: 'Avenue Kampemba',
+          zone: 'kampemba_lubumbashi'
+        }
+      ]
+    },
+    
+    // KOLWEZI - RDC
+    {
+      id: 'centre_kolwezi',
+      name: 'Centre-ville',
+      nameEn: 'Downtown',
+      nameFr: 'Centre-ville',
+      type: 'commune',
+      center: [25.4667, -10.7167],
+      polygon: {
+        type: 'Polygon',
+        coordinates: [[
+          [25.4500, -10.7300], [25.4800, -10.7300],
+          [25.4800, -10.7000], [25.4500, -10.7000],
+          [25.4500, -10.7300]
+        ]]
+      },
+      isActive: true,
+      surgeMultiplier: 1.1,
+      popularPlaces: [
+        {
+          id: 'hotel_kolwezi',
+          name: 'Hôtel de Kolwezi',
+          nameEn: 'Kolwezi Hotel',
+          nameFr: 'Hôtel de Kolwezi',
+          category: 'hotel',
+          coordinates: [25.4700, -10.7200],
+          address: 'Centre-ville, Kolwezi',
+          zone: 'centre_kolwezi'
         }
       ]
     }
