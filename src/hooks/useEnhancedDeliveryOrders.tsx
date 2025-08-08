@@ -3,11 +3,12 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { GoogleMapsService } from '@/services/googleMapsService';
 
+// Harmoniser avec LocationResult de UnifiedLocationService
 export interface DeliveryLocation {
   address: string;
   lat: number;
   lng: number;
-  details?: string;
+  type?: 'geocoded' | 'popular' | 'fallback';
 }
 
 export interface DeliveryOrderData {
@@ -77,29 +78,55 @@ export const useEnhancedDeliveryOrders = () => {
     setSubmitting(true);
     
     try {
+      console.log('Création commande livraison - Données:', orderData);
+      
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         throw new Error('Utilisateur non connecté');
       }
 
-      // Créer la commande dans la base de données
+      console.log('Utilisateur authentifié:', user.id);
+
+      // Préparer les coordonnées JSON
+      const pickupCoords = {
+        lat: orderData.pickup.lat,
+        lng: orderData.pickup.lng,
+        type: orderData.pickup.type
+      };
+      
+      const deliveryCoords = {
+        lat: orderData.destination.lat,
+        lng: orderData.destination.lng,
+        type: orderData.destination.type
+      };
+
+      // Créer la commande avec toutes les données
+      const orderPayload = {
+        user_id: user.id,
+        pickup_location: orderData.pickup.address,
+        delivery_location: orderData.destination.address,
+        pickup_coordinates: pickupCoords,
+        delivery_coordinates: deliveryCoords,
+        delivery_type: orderData.mode,
+        estimated_price: orderData.estimatedPrice,
+        status: 'pending'
+      };
+
+      console.log('Données à insérer:', orderPayload);
+
       const { data: order, error } = await supabase
         .from('delivery_orders')
-        .insert({
-          user_id: user.id,
-          pickup_location: orderData.pickup.address,
-          delivery_location: orderData.destination.address,
-          delivery_type: orderData.mode,
-          estimated_price: orderData.estimatedPrice,
-          status: 'pending'
-        })
+        .insert(orderPayload)
         .select()
         .single();
 
       if (error) {
+        console.error('Erreur base de données:', error);
         throw error;
       }
+
+      console.log('Commande créée avec succès:', order.id);
 
       toast({
         title: "Commande créée",

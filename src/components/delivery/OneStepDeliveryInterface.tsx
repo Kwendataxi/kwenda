@@ -109,26 +109,33 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
   const handleConfirm = async () => {
     if (!canProceed || !selectedRoute) return;
 
+    console.log('Confirmation commande - État:', { pickup, destination, selectedMode, selectedRoute });
+
     try {
       const orderData = {
         city: 'Kinshasa',
-        pickup,
-        destination,
-        mode: selectedMode,
+        pickup: pickup!,
+        destination: destination!,
+        mode: selectedMode!,
         estimatedPrice: selectedRoute.price,
         distance: selectedRoute.distance,
         duration: selectedRoute.duration
       };
 
+      console.log('Données commande préparées:', orderData);
+
       const newOrderId = await createDeliveryOrder(orderData);
       setOrderId(newOrderId);
       setStep('created');
+      
+      console.log('Commande créée avec ID:', newOrderId);
       
       // Auto-transition vers le tracking après 2 secondes
       setTimeout(() => {
         onSubmit({ ...orderData, orderId: newOrderId });
       }, 2000);
     } catch (error) {
+      console.error('Erreur dans handleConfirm:', error);
       // Error géré par le hook
     }
   };
