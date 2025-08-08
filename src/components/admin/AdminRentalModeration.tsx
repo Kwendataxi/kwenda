@@ -13,7 +13,7 @@ export default function AdminRentalModeration() {
   const pendingQuery = useQuery<any[]>({
     queryKey: ["admin-rental-pending"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("rental_vehicles")
         .select("*")
         .eq("moderation_status", "pending")

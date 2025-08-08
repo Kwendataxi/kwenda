@@ -87,7 +87,7 @@ export function usePartnerRentals() {
     queryKey: ["partner-rental-vehicles", userId],
     queryFn: async () => {
       if (!userId) return [] as RentalVehicle[];
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("rental_vehicles")
         .select("*")
         .eq("partner_id", userId)
@@ -107,7 +107,7 @@ export function usePartnerRentals() {
     queryFn: async () => {
       if (!userId) return [] as RentalBooking[];
 
-      const { data: vehicleIdsData, error: idsErr } = await supabase
+      const { data: vehicleIdsData, error: idsErr } = await (supabase as any)
         .from("rental_vehicles")
         .select("id")
         .eq("partner_id", userId);
@@ -117,7 +117,7 @@ export function usePartnerRentals() {
       const vehicleIds = (vehicleIdsData || []).map((r: any) => r.id);
       if (vehicleIds.length === 0) return [] as RentalBooking[];
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("rental_bookings")
         .select("*")
         .in("vehicle_id", vehicleIds)
