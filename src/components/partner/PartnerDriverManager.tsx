@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { UserPlus, Users, Edit, Trash2, Phone, User } from 'lucide-react';
 import { usePartnerDrivers } from '@/hooks/usePartnerDrivers';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from '@/hooks/use-toast';
 
 export const PartnerDriverManager = () => {
   const { t } = useLanguage();
@@ -31,16 +32,26 @@ export const PartnerDriverManager = () => {
       return;
     }
 
-    const success = await addDriverByCode(newDriverCode, newCommissionRate);
+    const clamped = Math.min(Math.max(newCommissionRate, 0), 2.5);
+    if (clamped !== newCommissionRate) {
+      setNewCommissionRate(clamped);
+      toast({ title: 'Taux ajusté', description: 'Le taux a été limité à 2,5%.' });
+    }
+
+    const success = await addDriverByCode(newDriverCode, clamped);
     if (success) {
       setNewDriverCode('');
-      setNewCommissionRate(15);
+      setNewCommissionRate(2.0);
       setShowAddDialog(false);
     }
   };
 
   const handleUpdateCommission = async (driverId: string) => {
-    const success = await updateDriverCommission(driverId, editCommission);
+    const clamped = Math.min(Math.max(editCommission, 0), 2.5);
+    if (clamped !== editCommission) {
+      toast({ title: 'Taux ajusté', description: 'Le taux a été limité à 2,5%.' });
+    }
+    const success = await updateDriverCommission(driverId, clamped);
     if (success) {
       setEditingDriver(null);
     }
@@ -91,17 +102,18 @@ export const PartnerDriverManager = () => {
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="commission-rate">Taux de commission (%)</Label>
+                <Label htmlFor="commission-rate">Taux de commission (%) <span className="text-muted-foreground">(max 2,5%)</span></Label>
                 <Input
                   id="commission-rate"
                   type="number"
-                  min="5"
-                  max="50"
+                  min="0"
+                  max="2.5"
+                  step="0.1"
                   value={newCommissionRate}
                   onChange={(e) => setNewCommissionRate(Number(e.target.value))}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Pourcentage que vous recevrez sur chaque course
+                  Taux partenaire (max 2,5%)
                 </p>
               </div>
             </div>
@@ -243,8 +255,9 @@ export const PartnerDriverManager = () => {
                         <div className="flex items-center gap-2">
                           <Input
                             type="number"
-                            min="5"
-                            max="50"
+                            min="0"
+                            max="2.5"
+                            step="0.1"
                             value={editCommission}
                             onChange={(e) => setEditCommission(Number(e.target.value))}
                             className="w-16 sm:w-20 h-8"

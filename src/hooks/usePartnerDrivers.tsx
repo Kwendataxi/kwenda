@@ -163,9 +163,11 @@ export const usePartnerDrivers = () => {
     if (!user) return;
 
     try {
+      const clamped = Math.min(Math.max(newRate, 0), 2.5);
+
       const { error } = await supabase
         .from('partner_drivers')
-        .update({ commission_rate: newRate })
+        .update({ commission_rate: clamped })
         .eq('partner_id', user.id)
         .eq('id', driverId);
 
