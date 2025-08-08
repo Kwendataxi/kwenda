@@ -85,12 +85,13 @@ export default function TaxiVehicleForm({ initial, onSaved }: Props) {
               <SelectTrigger className="mt-1">
                 <SelectValue placeholder="Classe" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="moto">Moto</SelectItem>
-                <SelectItem value="standard">Standard</SelectItem>
-                <SelectItem value="premium">Premium</SelectItem>
-                <SelectItem value="bus">Bus</SelectItem>
-              </SelectContent>
+                  <SelectContent>
+                    <SelectItem value="moto">Moto</SelectItem>
+                    <SelectItem value="eco">Éco</SelectItem>
+                    <SelectItem value="premium">Premium</SelectItem>
+                    <SelectItem value="first_class">Première Classe</SelectItem>
+                    <SelectItem value="bus">Bus</SelectItem>
+                  </SelectContent>
             </Select>
           </div>
           <div>

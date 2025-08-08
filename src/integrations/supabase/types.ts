@@ -536,6 +536,7 @@ export type Database = {
           profile_photo_url: string | null
           rating_average: number | null
           rating_count: number | null
+          service_type: string | null
           total_rides: number | null
           updated_at: string
           user_id: string
@@ -561,6 +562,7 @@ export type Database = {
           profile_photo_url?: string | null
           rating_average?: number | null
           rating_count?: number | null
+          service_type?: string | null
           total_rides?: number | null
           updated_at?: string
           user_id: string
@@ -586,6 +588,7 @@ export type Database = {
           profile_photo_url?: string | null
           rating_average?: number | null
           rating_count?: number | null
+          service_type?: string | null
           total_rides?: number | null
           updated_at?: string
           user_id?: string
@@ -653,6 +656,7 @@ export type Database = {
           license_number: string
           partner_id: string | null
           rejected_reason: string | null
+          service_type: string | null
           status: string
           updated_at: string
           user_id: string
@@ -675,6 +679,7 @@ export type Database = {
           license_number: string
           partner_id?: string | null
           rejected_reason?: string | null
+          service_type?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -697,6 +702,7 @@ export type Database = {
           license_number?: string
           partner_id?: string | null
           rejected_reason?: string | null
+          service_type?: string | null
           status?: string
           updated_at?: string
           user_id?: string

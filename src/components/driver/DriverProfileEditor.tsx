@@ -14,6 +14,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { DriverValidationStatus } from './DriverValidationStatus';
 import { DriverCodeManager } from './DriverCodeManager';
+import { ServiceTypeSelector, ServiceType } from './ServiceTypeSelector';
 import { User, Car, Bell, Shield, Save, Upload, Phone, Mail } from 'lucide-react';
 
 interface ProfileData {
@@ -30,6 +31,7 @@ interface VehicleData {
   vehicle_year: number;
   license_number: string;
   insurance_number: string;
+  service_type?: ServiceType;
 }
 
 interface SettingsData {

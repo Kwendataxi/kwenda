@@ -7,7 +7,7 @@ const corsHeaders = {
 }
 
 interface AdminOperationRequest {
-  operation: 'assign_role' | 'remove_role' | 'validate_driver' | 'bulk_update' | 'get_analytics';
+  operation: 'assign_role' | 'remove_role' | 'validate_driver' | 'bulk_update' | 'get_analytics' | 'moderate_driver';
   data: any;
 }
 
@@ -58,8 +58,19 @@ serve(async (req) => {
       );
     }
 
-    const { operation, data }: AdminOperationRequest = await req.json();
-    console.log('Processing admin operation:', operation, data);
+    const body = await req.json();
+    console.log('Processing admin operation request:', body);
+    
+    // Handle different request formats
+    let operation, data;
+    if (body.operation) {
+      operation = body.operation;
+      data = body.data || body;
+    } else {
+      // Direct operation format for new endpoints
+      operation = body.operation || 'moderate_driver';
+      data = body;
+    }
 
     let result;
 
@@ -82,6 +93,10 @@ serve(async (req) => {
       
       case 'get_analytics':
         result = await getAnalytics(supabaseClient, data, user.id);
+        break;
+        
+      case 'moderate_driver':
+        result = await moderateDriver(supabaseClient, data, user.id);
         break;
       
       default:
@@ -408,4 +423,79 @@ async function getOperationalAnalytics(supabaseClient: any, startDate: string, e
     deliveries: deliveries?.length || 0,
     marketplaceOrders: marketplaceOrders?.length || 0
   };
+}
+
+async function moderateDriver(supabaseClient: any, data: any, adminId: string) {
+  const { driver_id, action } = data;
+  
+  if (!driver_id || !action) {
+    throw new Error('Driver ID and action are required');
+  }
+
+  console.log('Moderating driver:', driver_id, 'action:', action);
+
+  // Update driver request status
+  const { data: driverRequest, error: updateError } = await supabaseClient
+    .from('driver_requests')
+    .update({ 
+      status: action === 'approve' ? 'approved' : 'rejected',
+      validation_date: new Date().toISOString(),
+      validated_by: adminId
+    })
+    .eq('id', driver_id)
+    .select('*')
+    .single();
+
+  if (updateError) {
+    console.error('Error updating driver request:', updateError);
+    throw new Error('Failed to update driver status');
+  }
+
+  // If approved, create driver profile
+  if (action === 'approve' && driverRequest) {
+    console.log('Creating driver profile for approved request:', driverRequest);
+    
+    const { error: profileError } = await supabaseClient
+      .from('driver_profiles')
+      .upsert({
+        user_id: driverRequest.user_id,
+        vehicle_class: driverRequest.vehicle_type === 'moto' ? 'moto' : 'eco',
+        vehicle_make: driverRequest.vehicle_model?.split(' ')[0] || '',
+        vehicle_model: driverRequest.vehicle_model || '',
+        vehicle_plate: driverRequest.vehicle_plate,
+        vehicle_year: driverRequest.vehicle_year,
+        license_number: driverRequest.license_number,
+        insurance_number: driverRequest.insurance_number,
+        service_type: driverRequest.service_type || 'taxi',
+        verification_status: 'verified',
+        is_active: true
+      });
+
+    if (profileError) {
+      console.error('Error creating driver profile:', profileError);
+    }
+
+    // Assign driver role
+    await supabaseClient
+      .from('user_roles')
+      .upsert({
+        user_id: driverRequest.user_id,
+        role: 'driver',
+        assigned_by: adminId,
+        is_active: true
+      });
+  }
+
+  // Log activity
+  await supabaseClient
+    .from('activity_logs')
+    .insert({
+      user_id: adminId,
+      activity_type: 'driver_moderation',
+      description: `Driver request ${action} for user ${driverRequest?.user_id}`,
+      reference_type: 'driver_request',
+      reference_id: driver_id
+    });
+
+  return { success: true, driver_request: driverRequest };
 }

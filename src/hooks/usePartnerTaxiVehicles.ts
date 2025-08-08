@@ -10,7 +10,7 @@ export interface TaxiVehicle {
   brand: string;
   model: string;
   year: number;
-  vehicle_class: "moto" | "standard" | "premium" | "bus";
+  vehicle_class: "moto" | "eco" | "premium" | "first_class" | "bus";
   color: string | null;
   seats: number;
   images: string[];
@@ -61,7 +61,7 @@ export function usePartnerTaxiVehicles() {
       const insert = {
         ...payload,
         partner_id: userId,
-        vehicle_class: payload.vehicle_class || "standard",
+        vehicle_class: payload.vehicle_class || "eco",
         seats: payload.seats ?? 4,
         images: payload.images || [],
         is_active: true,

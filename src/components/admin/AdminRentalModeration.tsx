@@ -1,138 +1,224 @@
+import React from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { AdminDriverModeration } from './AdminDriverModeration';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-
-export default function AdminRentalModeration() {
+export const AdminRentalModeration = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Pending Location (rental) vehicles
-  const pendingQuery = useQuery<any[]>({
-    queryKey: ["admin-rental-pending"],
+  const { data: pending } = useQuery<any[]>({
+    queryKey: ['admin-rental-pending'],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("rental_vehicles")
-        .select("*")
-        .eq("moderation_status", "pending")
-        .order("created_at", { ascending: true });
+      const { data, error } = await supabase
+        .from('rental_vehicles')
+        .select('*')
+        .eq('moderation_status', 'pending')
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];
-    },
+    }
   });
 
-  // Pending Taxi vehicles
-  const pendingTaxiQuery = useQuery<any[]>({
-    queryKey: ["admin-taxi-pending"],
+  const { data: pendingTaxi } = useQuery<any[]>({
+    queryKey: ['admin-taxi-pending'],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("partner_taxi_vehicles")
-        .select("*")
-        .eq("moderation_status", "pending")
-        .order("created_at", { ascending: true });
+      const { data, error } = await supabase
+        .from('partner_taxi_vehicles')
+        .select('*')
+        .eq('moderation_status', 'pending')
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];
-    },
+    }
   });
 
-  const moderateRental = async (vehicleId: string, action: "approve" | "reject") => {
-    const rejection_reason = action === "reject" ? "Informations insuffisantes" : undefined;
-    const { data, error } = await supabase.functions.invoke("rental-moderation", {
-      body: { action, vehicle_id: vehicleId, rejection_reason },
-    });
-    if (error) {
-      console.error("Moderation error", error);
-      toast({ title: "Erreur de modération (Location)", variant: "destructive" });
-      return;
+  const moderateRental = useMutation({
+    mutationFn: async ({ vehicleId, action }: { vehicleId: string; action: 'approve' | 'reject' }) => {
+      const { data, error } = await supabase.functions.invoke('rental-moderation', {
+        body: { action, vehicle_id: vehicleId, rejection_reason: action === 'reject' ? 'Informations insuffisantes' : null }
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, { action }) => {
+      toast({
+        title: action === 'approve' ? 'Véhicule approuvé' : 'Véhicule rejeté',
+        description: `Le véhicule a été ${action === 'approve' ? 'approuvé' : 'rejeté'} avec succès.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['admin-rental-pending'] });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la modération.',
+        variant: 'destructive',
+      });
+      console.error('Moderation error:', error);
     }
-    if (data?.success) {
-      toast({ title: action === "approve" ? "Annonce approuvée (Location)" : "Annonce rejetée (Location)" });
-      pendingQuery.refetch();
-    }
-  };
+  });
 
-  const moderateTaxi = async (vehicleId: string, action: "approve" | "reject") => {
-    const rejection_reason = action === "reject" ? "Informations insuffisantes" : undefined;
-    const { data, error } = await supabase.functions.invoke("taxi-moderation", {
-      body: { action, vehicle_id: vehicleId, rejection_reason },
-    });
-    if (error) {
-      console.error("Taxi Moderation error", error);
-      toast({ title: "Erreur de modération (Taxi)", variant: "destructive" });
-      return;
+  const moderateTaxi = useMutation({
+    mutationFn: async ({ vehicleId, action }: { vehicleId: string; action: 'approve' | 'reject' }) => {
+      const { data, error } = await supabase.functions.invoke('taxi-moderation', {
+        body: { action, vehicle_id: vehicleId, rejection_reason: action === 'reject' ? 'Informations insuffisantes' : null }
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, { action }) => {
+      toast({
+        title: action === 'approve' ? 'Taxi approuvé' : 'Taxi rejeté',
+        description: `Le taxi a été ${action === 'approve' ? 'approuvé' : 'rejeté'} avec succès.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['admin-taxi-pending'] });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la modération.',
+        variant: 'destructive',
+      });
+      console.error('Moderation error:', error);
     }
-    if (data?.success) {
-      toast({ title: action === "approve" ? "Taxi approuvé" : "Taxi rejeté" });
-      pendingTaxiQuery.refetch();
-    }
-  };
-
-  const pending = pendingQuery.data || [];
-  const pendingTaxi = pendingTaxiQuery.data || [];
+  });
 
   return (
-    <div className="p-4 space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold">Modération des véhicules de location</h2>
-        <div className="grid grid-cols-1 gap-3 mt-3">
-          {pending.map((v: any) => (
-            <Card key={v.id}>
-              <CardContent className="p-4 flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">{v.name}</h3>
-                    <Badge variant="secondary">{v.brand} {v.model} • {v.year}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {v.daily_rate?.toLocaleString?.() || v.daily_rate} FC / jour • Caution {v.security_deposit?.toLocaleString?.() || v.security_deposit} FC
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => moderateRental(v.id, "reject")}>Rejeter</Button>
-                  <Button className="bg-gradient-to-r from-primary to-primary-glow text-white" onClick={() => moderateRental(v.id, "approve")}>Approuver</Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          {pending.length === 0 && (
-            <div className="text-sm text-muted-foreground text-center py-6">
-              Aucune annonce de location en attente.
-            </div>
-          )}
-        </div>
-      </div>
+    <Tabs defaultValue="drivers" className="w-full">
+      <TabsList className="grid w-full grid-cols-3">
+        <TabsTrigger value="drivers">Chauffeurs</TabsTrigger>
+        <TabsTrigger value="rental">Véhicules Location</TabsTrigger>
+        <TabsTrigger value="taxi">Taxis Partenaires</TabsTrigger>
+      </TabsList>
 
-      <div>
-        <h2 className="text-lg font-semibold">Modération des taxis partenaires</h2>
-        <div className="grid grid-cols-1 gap-3 mt-3">
-          {pendingTaxi.map((v: any) => (
-            <Card key={v.id}>
-              <CardContent className="p-4 flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">{v.name}</h3>
-                    <Badge variant="secondary">{v.brand} {v.model} • {v.year}</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Classe {v.vehicle_class?.toUpperCase?.()} • {v.seats} places • Immatriculation {v.license_plate}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => moderateTaxi(v.id, "reject")}>Rejeter</Button>
-                  <Button className="bg-gradient-to-r from-primary to-primary-glow text-white" onClick={() => moderateTaxi(v.id, "approve")}>Approuver</Button>
-                </div>
+      <TabsContent value="drivers" className="space-y-6">
+        <AdminDriverModeration />
+      </TabsContent>
+
+      <TabsContent value="rental" className="space-y-6">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Modération des véhicules de location</h2>
+            <Badge variant="secondary">{pending?.length || 0} en attente</Badge>
+          </div>
+          
+          {!pending?.length ? (
+            <Card>
+              <CardContent className="flex items-center justify-center py-8">
+                <p className="text-muted-foreground">Aucun véhicule en attente de modération</p>
               </CardContent>
             </Card>
-          ))}
-          {pendingTaxi.length === 0 && (
-            <div className="text-sm text-muted-foreground text-center py-6">
-              Aucun taxi en attente.
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {pending.map((vehicle) => (
+                <Card key={vehicle.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>{vehicle.name}</span>
+                      <Badge variant="outline">En attente</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2 text-sm">
+                      <p><strong>Marque:</strong> {vehicle.brand}</p>
+                      <p><strong>Modèle:</strong> {vehicle.model}</p>
+                      <p><strong>Année:</strong> {vehicle.year}</p>
+                      <p><strong>Classe:</strong> {vehicle.vehicle_class}</p>
+                      <p><strong>Places:</strong> {vehicle.seats}</p>
+                      <p><strong>Plaque:</strong> {vehicle.license_plate}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => moderateRental.mutate({ vehicleId: vehicle.id, action: 'reject' })}
+                        disabled={moderateRental.isPending}
+                      >
+                        Rejeter
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => moderateRental.mutate({ vehicleId: vehicle.id, action: 'approve' })}
+                        disabled={moderateRental.isPending}
+                      >
+                        Approuver
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </TabsContent>
+
+      <TabsContent value="taxi" className="space-y-6">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Modération des taxis partenaires</h2>
+            <Badge variant="secondary">{pendingTaxi?.length || 0} en attente</Badge>
+          </div>
+          
+          {!pendingTaxi?.length ? (
+            <Card>
+              <CardContent className="flex items-center justify-center py-8">
+                <p className="text-muted-foreground">Aucun taxi en attente de modération</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {pendingTaxi.map((vehicle) => (
+                <Card key={vehicle.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>{vehicle.name}</span>
+                      <Badge variant="outline">En attente</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2 text-sm">
+                      <p><strong>Marque:</strong> {vehicle.brand}</p>
+                      <p><strong>Modèle:</strong> {vehicle.model}</p>
+                      <p><strong>Année:</strong> {vehicle.year}</p>
+                      <p><strong>Classe:</strong> {vehicle.vehicle_class}</p>
+                      <p><strong>Places:</strong> {vehicle.seats}</p>
+                      <p><strong>Plaque:</strong> {vehicle.license_plate}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => moderateTaxi.mutate({ vehicleId: vehicle.id, action: 'reject' })}
+                        disabled={moderateTaxi.isPending}
+                      >
+                        Rejeter
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => moderateTaxi.mutate({ vehicleId: vehicle.id, action: 'approve' })}
+                        disabled={moderateTaxi.isPending}
+                      >
+                        Approuver
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </TabsContent>
+    </Tabs>
   );
-}
+};
