@@ -132,7 +132,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
             <p className="text-foreground font-bold text-lg">
               {getGreeting()}, {profileLoading ? '...' : displayName.split(' ')[0]}
             </p>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="hidden">
               <div className="flex items-center gap-1">
                 {geolocation.isRealGPS ? (
                   <Navigation className="h-4 w-4 text-green-500" />
@@ -150,15 +150,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
                   </Button>
                 )}
               </div>
-              <p className="text-muted-foreground text-sm">
-                {geolocation.loading || geocodingLoading ? (
-                  t('common.loading')
-                ) : geolocation.error ? (
-                  <span className="text-destructive">{t('location.gps_unavailable')}</span>
-                ) : (
-                  currentAddress
-                )}
-              </p>
+              <span className="hidden" />
             </div>
           </div>
           
