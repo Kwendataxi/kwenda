@@ -46,14 +46,16 @@ serve(async (req) => {
       })
     }
 
-    // Check if user is admin (you might want to implement proper role checking)
-    const { data: profile } = await supabaseClient
-      .from('profiles')
-      .select('user_type')
-      .eq('user_id', user.id)
-      .single()
+    // Check permissions using role/permission system
+    const [permRead, permAdmin, permSystem] = await Promise.all([
+      supabaseClient.rpc('has_permission', { _user_id: user.id, _permission: 'analytics_read' }),
+      supabaseClient.rpc('has_permission', { _user_id: user.id, _permission: 'analytics_admin' }),
+      supabaseClient.rpc('has_permission', { _user_id: user.id, _permission: 'system_admin' })
+    ])
 
-    if (!profile || profile.user_type !== 'admin') {
+    const hasAccess = [permRead, permAdmin, permSystem].some((res) => res.data === true)
+
+    if (!hasAccess) {
       return new Response(JSON.stringify({ error: 'Admin access required' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
