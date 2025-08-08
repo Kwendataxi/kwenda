@@ -23,6 +23,7 @@ import { FinancialDashboard } from '@/components/admin/FinancialDashboard';
 import { ADMIN_NAVIGATION, ADMIN_ROLE_LABELS } from '@/types/roles';
 import { AdminPricingManager } from '@/components/admin/AdminPricingManager';
 import { AdminFiltersBar } from '@/components/admin/AdminFiltersBar';
+import { AdvancedUserManagement } from '@/components/admin/users/AdvancedUserManagement';
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
 import { 
   LayoutDashboard,
@@ -444,118 +445,10 @@ const AdminApp = () => {
         </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">Gestion des Utilisateurs</h1>
-                <p className="text-muted-foreground">Administrez les clients, chauffeurs et partenaires</p>
-              </div>
-              <div className="flex space-x-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Rechercher..." className="pl-10 w-64 rounded-xl" />
-                </div>
-                <Button variant="outline" className="rounded-xl">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filtres
-                </Button>
-              </div>
-            </div>
+            <PermissionGuard requiredPermissions={['users_read', 'users_write']}>
+              <AdvancedUserManagement />
+            </PermissionGuard>
 
-            <h2 className="text-xl font-semibold">Vue d'ensemble des utilisateurs</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="card-floating border-0">
-                <CardHeader>
-                  <CardTitle className="text-heading-md">Clients</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {[
-                      { name: "Jean Kouassi", email: "jean@email.com", rides: 23, status: "Actif" },
-                      { name: "Marie Diallo", email: "marie@email.com", rides: 18, status: "Actif" },
-                      { name: "Paul Yao", email: "paul@email.com", rides: 0, status: "Nouveau" },
-                    ].map((user, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-grey-50 rounded-xl">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-primary-light rounded-lg flex items-center justify-center">
-                            <Users className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-body-sm font-medium text-card-foreground">{user.name}</p>
-                            <p className="text-caption text-muted-foreground">{user.rides} courses</p>
-                          </div>
-                        </div>
-                        <Badge variant={user.status === "Actif" ? "default" : "secondary"} className="rounded-md">
-                          {user.status}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="card-floating border-0">
-                <CardHeader>
-                  <CardTitle className="text-heading-md">Chauffeurs</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {[
-                      { name: "Kouame Paul", rides: 156, rating: 4.9, status: "En ligne" },
-                      { name: "Traore Sekou", rides: 203, rating: 4.8, status: "En course" },
-                      { name: "Diallo Mamadou", rides: 89, rating: 5.0, status: "Hors ligne" },
-                    ].map((driver, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-grey-50 rounded-xl">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-secondary-light rounded-lg flex items-center justify-center">
-                            <Car className="h-4 w-4 text-secondary" />
-                          </div>
-                          <div>
-                            <p className="text-body-sm font-medium text-card-foreground">{driver.name}</p>
-                            <p className="text-caption text-muted-foreground">{driver.rides} courses • {driver.rating}★</p>
-                          </div>
-                        </div>
-                        <Badge variant={
-                          driver.status === "En ligne" ? "default" : 
-                          driver.status === "En course" ? "secondary" : "outline"
-                        } className="rounded-md">
-                          {driver.status}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="card-floating border-0">
-                <CardHeader>
-                  <CardTitle className="text-heading-md">Partenaires</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {[
-                      { name: "NTA Tech", employees: 24, rides: 156, status: "Actif" },
-                      { name: "Orange CI", employees: 45, rides: 298, status: "Actif" },
-                      { name: "MTN CI", employees: 12, rides: 67, status: "Inactif" },
-                    ].map((partner, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-grey-50 rounded-xl">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-primary-light rounded-lg flex items-center justify-center">
-                            <Building2 className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-body-sm font-medium text-card-foreground">{partner.name}</p>
-                            <p className="text-caption text-muted-foreground">{partner.employees} employés • {partner.rides} courses</p>
-                          </div>
-                        </div>
-                        <Badge variant={partner.status === "Actif" ? "default" : "secondary"} className="rounded-md">
-                          {partner.status}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
 
           <TabsContent value="marketplace" className="space-y-6">
