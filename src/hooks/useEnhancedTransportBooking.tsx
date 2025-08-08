@@ -195,7 +195,6 @@ export const useEnhancedTransportBooking = () => {
         .update({
           driver_id: driverId,
           status: 'accepted',
-          driver_assigned_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .eq('id', bookingId);
