@@ -4,19 +4,17 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface MobilePartnerTabsProps {
-  currentView: 'dashboard' | 'vehicles' | 'drivers' | 'rentals' | 'analytics' | 'finances' | 'commissions' | 'withdrawals';
+  currentView: 'dashboard' | 'vehicles' | 'drivers' | 'finances' | 'commissions';
   onViewChange: (view: string) => void;
   variant?: 'bottom' | 'horizontal' | 'vertical';
 }
 
 const tabItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: Home },
+  { id: 'dashboard', label: 'Accueil', icon: Home },
   { id: 'vehicles', label: 'Véhicules', icon: Car },
   { id: 'drivers', label: 'Chauffeurs', icon: Users },
   { id: 'finances', label: 'Finances', icon: Wallet },
   { id: 'commissions', label: 'Commissions', icon: DollarSign },
-  { id: 'withdrawals', label: 'Retraits', icon: ArrowUpRight },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
 ];
 
 export const MobilePartnerTabs: React.FC<MobilePartnerTabsProps> = ({
@@ -28,7 +26,7 @@ export const MobilePartnerTabs: React.FC<MobilePartnerTabsProps> = ({
     // Bottom navigation for mobile
     return (
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-grey-100 px-2 py-2 flex justify-around z-40">
-        {tabItems.slice(0, 5).map((item) => (
+        {tabItems.map((item) => (
           <button
             key={item.id}
             onClick={() => onViewChange(item.id)}

@@ -60,7 +60,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
 const PartnerApp = () => {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'rentals' | 'analytics' | 'finances' | 'commissions' | 'withdrawals'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'finances' | 'commissions'>('dashboard');
   const [dateRange, setDateRange] = useState<Date | undefined>(new Date());
   const isMobile = useIsMobile();
   
@@ -70,30 +70,8 @@ const PartnerApp = () => {
   const { activities, loading: activitiesLoading } = usePartnerActivity();
 
   const renderDashboard = () => (
-    <div>
-      {/* Header */}
-      <div className="card-floating p-6 mb-6 animate-slide-up">
-        <h1 className={`text-card-foreground mb-2 ${isMobile ? 'text-lg' : 'text-display-sm'}`}>
-          Tableau de bord
-        </h1>
-        <p className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-body-lg'}`}>
-          Kwenda Taxi Partner
-        </p>
-      </div>
-
-      {/* Quick Actions */}
-      <ResponsiveQuickActions onViewChange={(view: string) => setCurrentView(view as any)} />
-
-      {/* Recent Activity */}
-      <div className={`${isMobile ? 'mb-4' : 'mb-20'}`}>
-        <h2 className={`text-card-foreground mb-4 ${isMobile ? 'text-lg' : 'text-heading-lg'}`}>
-          Activité récente
-        </h2>
-        <ResponsiveActivityFeed 
-          activities={activities} 
-          loading={activitiesLoading}
-        />
-      </div>
+    <div className="space-y-6">
+      {/* Simplified dashboard with only essential content */}
     </div>
   );
 
@@ -641,18 +619,12 @@ const PartnerApp = () => {
     switch (currentView) {
       case 'vehicles':
         return renderFleetManagement();
-      case 'analytics':
-        return renderAnalytics();
       case 'finances':
         return <DriverWalletManager />;
       case 'commissions':
         return <PartnerCommissionDashboard />;
-      case 'withdrawals':
-        return <CommissionWithdrawal />;
       case 'drivers':
         return <PartnerDriverManager />;
-      case 'rentals':
-        return <PartnerRentalManager />;
       default:
         return renderDashboard();
     }
@@ -660,13 +632,10 @@ const PartnerApp = () => {
 
   const getViewTitle = () => {
     switch (currentView) {
-      case 'vehicles': return 'Gestion de véhicules';
-      case 'analytics': return 'Analytics & Rapports';
-      case 'finances': return 'Gestion Financière';
-      case 'commissions': return 'Dashboard Commissions';
-      case 'withdrawals': return 'Retraits';
+      case 'vehicles': return 'Gestion Véhicules';
+      case 'finances': return 'Finances';
+      case 'commissions': return 'Commissions';
       case 'drivers': return 'Gestion Chauffeurs';
-      case 'rentals': return 'Location Véhicules';
       default: return 'Tableau de bord';
     }
   };
