@@ -377,32 +377,16 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
 
         {/* ÉTAPE 2: Point de départ */}
         {currentStep === 'pickup' && cityConfig && (
-          <div className="h-full flex flex-col">
-            <div className="p-4 text-center flex-shrink-0">
+          <div className="h-full flex flex-col bg-background">
+            {/* En-tête fixe avec gradient */}
+            <div className="p-4 text-center bg-gradient-to-r from-primary/10 to-primary/5 border-b flex-shrink-0">
               <Target className="w-12 h-12 mx-auto text-primary mb-3" />
               <h2 className="text-xl font-bold mb-1">Point de départ</h2>
               <p className="text-sm text-muted-foreground">Où récupérer votre colis à {cityConfig.name} ?</p>
             </div>
             
-            {/* Interface de recherche optimisée */}
-            <div className="flex-1 p-4">
-              <div className="h-2/5 mb-4">
-                <KwendaDynamicMap
-                  onLocationSelect={(coords) => {
-                    GeocodingService.reverseGeocode(coords[0], coords[1]).then(address => {
-                      setPickup({
-                        address: address || 'Position sélectionnée',
-                        coordinates: coords
-                      });
-                    });
-                  }}
-                  pickupLocation={pickup?.coordinates}
-                  center={[cityConfig.coordinates[1], cityConfig.coordinates[0]]}
-                  zoom={13}
-                  height="100%"
-                />
-              </div>
-              
+            {/* Zone de recherche proéminente - 60% de l'écran */}
+            <div className="flex-1 p-4 bg-white overflow-auto">
               <EnhancedLocationSearch
                 placeholder={`Rechercher l'adresse de départ à ${cityConfig.name}...`}
                 value={pickup ? {
@@ -424,38 +408,41 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
                 icon={<Target className="w-5 h-5 text-primary" />}
               />
             </div>
-          </div>
-        )}
 
-        {/* ÉTAPE 3: Destination */}
-        {currentStep === 'destination' && cityConfig && (
-          <div className="h-full flex flex-col">
-            <div className="p-4 text-center flex-shrink-0">
-              <MapPin className="w-12 h-12 mx-auto text-secondary mb-3" />
-              <h2 className="text-xl font-bold mb-1">Destination</h2>
-              <p className="text-sm text-muted-foreground">Où livrer à {cityConfig.name} ?</p>
-            </div>
-            
-            <div className="flex-1 p-4">
-              <div className="h-2/5 mb-4">
+            {/* Carte réduite - 30% de l'écran */}
+            <div className="h-1/3 p-4 bg-gray-50">
+              <Card className="h-full overflow-hidden">
                 <KwendaDynamicMap
                   onLocationSelect={(coords) => {
                     GeocodingService.reverseGeocode(coords[0], coords[1]).then(address => {
-                      setDestination({
+                      setPickup({
                         address: address || 'Position sélectionnée',
                         coordinates: coords
                       });
                     });
                   }}
                   pickupLocation={pickup?.coordinates}
-                  destination={destination?.coordinates}
-                  showRouting={!!(pickup && destination)}
                   center={[cityConfig.coordinates[1], cityConfig.coordinates[0]]}
                   zoom={13}
                   height="100%"
                 />
-              </div>
-              
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* ÉTAPE 3: Destination */}
+        {currentStep === 'destination' && cityConfig && (
+          <div className="h-full flex flex-col bg-background">
+            {/* En-tête fixe avec gradient */}
+            <div className="p-4 text-center bg-gradient-to-r from-secondary/10 to-secondary/5 border-b flex-shrink-0">
+              <MapPin className="w-12 h-12 mx-auto text-secondary mb-3" />
+              <h2 className="text-xl font-bold mb-1">Destination</h2>
+              <p className="text-sm text-muted-foreground">Où livrer à {cityConfig.name} ?</p>
+            </div>
+            
+            {/* Zone de recherche proéminente - 60% de l'écran */}
+            <div className="flex-1 p-4 bg-white overflow-auto">
               <EnhancedLocationSearch
                 placeholder={`Rechercher l'adresse de destination à ${cityConfig.name}...`}
                 value={destination ? {
@@ -476,6 +463,28 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
                 label="Point de destination"
                 icon={<MapPin className="w-5 h-5 text-secondary" />}
               />
+            </div>
+
+            {/* Carte réduite - 30% de l'écran */}
+            <div className="h-1/3 p-4 bg-gray-50">
+              <Card className="h-full overflow-hidden">
+                <KwendaDynamicMap
+                  onLocationSelect={(coords) => {
+                    GeocodingService.reverseGeocode(coords[0], coords[1]).then(address => {
+                      setDestination({
+                        address: address || 'Position sélectionnée',
+                        coordinates: coords
+                      });
+                    });
+                  }}
+                  pickupLocation={pickup?.coordinates}
+                  destination={destination?.coordinates}
+                  showRouting={!!(pickup && destination)}
+                  center={[cityConfig.coordinates[1], cityConfig.coordinates[0]]}
+                  zoom={13}
+                  height="100%"
+                />
+              </Card>
             </div>
           </div>
         )}

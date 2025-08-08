@@ -173,18 +173,38 @@ export const EnhancedLocationSearch = ({
   };
 
   return (
-    <div className="w-full space-y-4">
-      {/* Section principale de recherche */}
-      <Card className="p-4 border-2 border-dashed border-primary/30 bg-primary/5">
-        <div className="flex items-center gap-3 mb-3">
-          {icon}
-          <h3 className="font-semibold text-lg">{label}</h3>
+    <div className="w-full space-y-6">
+      {/* Titre avec icône proéminent */}
+      <div className="flex items-center gap-3 mb-4">
+        {icon}
+        <h3 className="text-2xl font-bold text-foreground">{label}</h3>
+      </div>
+
+      {/* Bouton Ma Position - Visible et accessible directement */}
+      <Button
+        onClick={handleCurrentLocation}
+        disabled={isGettingLocation}
+        className="w-full h-16 bg-primary hover:bg-primary/90 text-white text-lg font-medium shadow-lg"
+        size="lg"
+      >
+        <div className="flex items-center gap-4">
+          {isGettingLocation ? (
+            <Loader2 className="w-6 h-6 animate-spin" />
+          ) : (
+            <Navigation2 className="w-6 h-6" />
+          )}
+          <div className="text-left">
+            <div className="font-bold text-lg">📍 Utiliser ma position actuelle</div>
+            <div className="text-sm opacity-90">Géolocalisation automatique</div>
+          </div>
         </div>
-        
-        {/* Input de recherche amélioré */}
+      </Button>
+
+      {/* Champ de recherche ultra-proéminent */}
+      <Card className="p-6 border-2 border-primary/30 shadow-xl bg-white">
         <div className="relative">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-muted-foreground" />
             <Input
               ref={inputRef}
               type="text"
@@ -195,10 +215,10 @@ export const EnhancedLocationSearch = ({
                 setShowDropdown(true);
               }}
               onFocus={() => setShowDropdown(true)}
-              className="pl-10 pr-4 h-14 text-lg bg-white border-2 border-border focus:border-primary transition-colors"
+              className="pl-14 pr-4 h-20 text-xl font-medium border-0 bg-transparent focus:ring-0 focus:outline-none placeholder:text-lg"
             />
             {isSearching && (
-              <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 animate-spin text-primary" />
+              <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 animate-spin text-primary" />
             )}
           </div>
           
