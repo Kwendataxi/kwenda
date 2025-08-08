@@ -149,23 +149,6 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
                     <RefreshCw className="h-3 w-3" />
                   </Button>
                 )}
-                {!geolocation.error && !geolocation.loading && !geolocation.isRealGPS && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      geolocation.forceRefreshPosition();
-                      const stop = geolocation.watchCurrentPosition?.();
-                      setTimeout(() => {
-                        stop && stop();
-                      }, 25000);
-                    }}
-                    title={t('home.location.current')}
-                    className="h-6 px-2 ml-1"
-                  >
-                    <Navigation className="h-3 w-3" />
-                  </Button>
-                )}
               </div>
               <p className="text-muted-foreground text-sm">
                 {geolocation.loading || geocodingLoading ? (
@@ -173,12 +156,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
                 ) : geolocation.error ? (
                   <span className="text-destructive">{t('location.gps_unavailable')}</span>
                 ) : (
-                  <>
-                    {currentAddress}
-                    {!geolocation.isRealGPS && (
-                      <span className="ml-1 text-muted-foreground/70">• {t('location.approximate')}</span>
-                    )}
-                  </>
+                  currentAddress
                 )}
               </p>
             </div>
