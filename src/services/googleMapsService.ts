@@ -29,9 +29,14 @@ export class GoogleMapsService {
     if (this.apiKey) return this.apiKey;
     
     try {
-      // En production, récupérer depuis Supabase Secrets
-      // Pour l'instant, utiliser une clé temporaire
-      return 'YOUR_GOOGLE_MAPS_API_KEY';
+      const { data, error } = await fetch('/supabase/functions/v1/get-google-maps-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      }).then(res => res.json());
+      
+      if (error) throw new Error(error);
+      this.apiKey = data.apiKey;
+      return this.apiKey;
     } catch (error) {
       console.error('Erreur lors de la récupération de la clé API Google Maps:', error);
       throw new Error('Clé API Google Maps non disponible');

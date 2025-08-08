@@ -294,10 +294,11 @@ const GoogleMapsKwenda: React.FC<GoogleMapsKwendaProps> = (props) => {
   useEffect(() => {
     const fetchApiKey = async () => {
       try {
-        // Pour l'instant, on utilise une clé temporaire
-        // En production, récupérer depuis Supabase Secrets
-        const tempKey = 'YOUR_GOOGLE_MAPS_API_KEY';
-        setApiKey(tempKey);
+        const response = await fetch('/supabase/functions/v1/get-google-maps-key', {
+          method: 'POST'
+        });
+        const data = await response.json();
+        setApiKey(data.apiKey);
       } catch (error) {
         toast({
           title: "Erreur",
