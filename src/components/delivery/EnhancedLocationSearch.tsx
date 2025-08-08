@@ -202,9 +202,15 @@ export const EnhancedLocationSearch = ({
             )}
           </div>
           
-          {/* Dropdown amélioré avec fond solide */}
+          {/* Dropdown amélioré avec fond solide et z-index élevé */}
           {showDropdown && (
-            <Card className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-border shadow-2xl rounded-lg z-50 max-h-80 overflow-auto">
+            <>
+              {/* Backdrop pour isoler visuellement */}
+              <div 
+                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[9990]"
+                onClick={() => setShowDropdown(false)}
+              />
+              <Card className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-border shadow-2xl rounded-lg z-[9999] max-h-[60vh] overflow-auto">
               <div className="p-2">
                 
                 {/* Bouton Ma Position - toujours visible */}
@@ -323,7 +329,8 @@ export const EnhancedLocationSearch = ({
                   </div>
                 )}
               </div>
-            </Card>
+              </Card>
+            </>
           )}
         </div>
       </Card>

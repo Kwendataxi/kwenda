@@ -384,9 +384,9 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
               <p className="text-sm text-muted-foreground">Où récupérer votre colis à {cityConfig.name} ?</p>
             </div>
             
-            {/* Carte plein écran optimisée */}
+            {/* Interface de recherche optimisée */}
             <div className="flex-1 p-4">
-              <div className="h-1/2 mb-4">
+              <div className="h-2/5 mb-4">
                 <KwendaDynamicMap
                   onLocationSelect={(coords) => {
                     GeocodingService.reverseGeocode(coords[0], coords[1]).then(address => {
@@ -437,7 +437,7 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
             </div>
             
             <div className="flex-1 p-4">
-              <div className="h-1/2 mb-4">
+              <div className="h-2/5 mb-4">
                 <KwendaDynamicMap
                   onLocationSelect={(coords) => {
                     GeocodingService.reverseGeocode(coords[0], coords[1]).then(address => {
