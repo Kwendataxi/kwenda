@@ -1,10 +1,10 @@
 import React from 'react';
-import { Home, Car, Users, BarChart3, Settings, Wallet, DollarSign, ArrowUpRight } from 'lucide-react';
+import { Home, Car, Users, BarChart3, Settings, Wallet, DollarSign, ArrowUpRight, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface MobilePartnerTabsProps {
-  currentView: 'dashboard' | 'vehicles' | 'drivers' | 'finances' | 'commissions';
+  currentView: 'dashboard' | 'vehicles' | 'drivers' | 'finances' | 'commissions' | 'subscriptions';
   onViewChange: (view: string) => void;
   variant?: 'bottom' | 'horizontal' | 'vertical';
 }
@@ -15,6 +15,7 @@ const tabItems = [
   { id: 'drivers', label: 'Chauffeurs', icon: Users },
   { id: 'finances', label: 'Finances', icon: Wallet },
   { id: 'commissions', label: 'Commissions', icon: DollarSign },
+  { id: 'subscriptions', label: 'Abonnements', icon: CreditCard },
 ];
 
 export const MobilePartnerTabs: React.FC<MobilePartnerTabsProps> = ({

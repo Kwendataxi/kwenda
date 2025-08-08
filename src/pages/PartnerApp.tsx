@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { DriverValidationManager } from '@/components/partner/DriverValidationManager';
 import { PartnerDriverManager } from '@/components/partner/PartnerDriverManager';
 import PartnerRentalManager from '@/components/partner/rental/PartnerRentalManager';
+import { RentalSubscriptionManager } from '@/components/partner/rental/RentalSubscriptionManager';
 import { ResponsivePartnerLayout } from '@/components/partner/ResponsivePartnerLayout';
 import { ResponsiveQuickActions } from '@/components/partner/ResponsiveQuickActions';
 import { ResponsiveActivityFeed } from '@/components/partner/ResponsiveActivityFeed';
@@ -60,7 +61,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
 const PartnerApp = () => {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'finances' | 'commissions'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'finances' | 'commissions' | 'subscriptions'>('dashboard');
   const [dateRange, setDateRange] = useState<Date | undefined>(new Date());
   const isMobile = useIsMobile();
   

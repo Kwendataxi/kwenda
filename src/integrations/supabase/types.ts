@@ -1581,6 +1581,72 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_rental_subscriptions: {
+        Row: {
+          auto_renew: boolean
+          created_at: string
+          end_date: string
+          grace_period_end: string | null
+          id: string
+          last_payment_date: string | null
+          next_payment_date: string | null
+          partner_id: string
+          payment_method: string | null
+          plan_id: string
+          start_date: string
+          status: string
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          auto_renew?: boolean
+          created_at?: string
+          end_date: string
+          grace_period_end?: string | null
+          id?: string
+          last_payment_date?: string | null
+          next_payment_date?: string | null
+          partner_id: string
+          payment_method?: string | null
+          plan_id: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          auto_renew?: boolean
+          created_at?: string
+          end_date?: string
+          grace_period_end?: string | null
+          id?: string
+          last_payment_date?: string | null
+          next_payment_date?: string | null
+          partner_id?: string
+          payment_method?: string | null
+          plan_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_rental_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "rental_subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_rental_subscriptions_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "rental_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_taxi_vehicles: {
         Row: {
           assigned_driver_id: string | null
@@ -2201,6 +2267,109 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      rental_subscription_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          metadata: Json | null
+          partner_id: string
+          payment_date: string | null
+          payment_method: string
+          phone_number: string | null
+          provider: string | null
+          status: string
+          subscription_id: string
+          transaction_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          partner_id: string
+          payment_date?: string | null
+          payment_method?: string
+          phone_number?: string | null
+          provider?: string | null
+          status?: string
+          subscription_id: string
+          transaction_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          partner_id?: string
+          payment_date?: string | null
+          payment_method?: string
+          phone_number?: string | null
+          provider?: string | null
+          status?: string
+          subscription_id?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_subscription_payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rental_subscription_plans: {
+        Row: {
+          category_id: string
+          created_at: string
+          currency: string
+          description: string | null
+          features: Json | null
+          id: string
+          is_active: boolean
+          monthly_price: number
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          monthly_price?: number
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          monthly_price?: number
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_subscription_plans_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "rental_vehicle_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rental_vehicle_categories: {
         Row: {
@@ -3360,6 +3529,10 @@ export type Database = {
           _user_id: string
           _permission: Database["public"]["Enums"]["permission"]
         }
+        Returns: boolean
+      }
+      is_vehicle_subscription_active: {
+        Args: { vehicle_id_param: string }
         Returns: boolean
       }
     }
