@@ -58,14 +58,36 @@ serve(async (req) => {
     const driverAmount = (amount * commissionSettings.driver_rate) / 100;
     const platformAmount = (amount * commissionSettings.platform_rate) / 100;
 
+    // Optional partner commission (capped at 2.5% of total, taken from driver's portion)
+    const { data: partnerLink } = await supabaseService
+      .from('partner_drivers')
+      .select('partner_id, commission_rate, status')
+      .eq('driver_id', driver_id)
+      .eq('status', 'active')
+      .single();
+
+    let partnerId: string | null = null;
+    let partnerRate = 0;
+    if (partnerLink?.partner_id) {
+      partnerId = partnerLink.partner_id as string;
+      const rawRate = Number(partnerLink.commission_rate ?? 0);
+      partnerRate = Math.min(rawRate, 2.5);
+    }
+
+    const partnerAmount = partnerId ? (amount * partnerRate) / 100 : 0;
+    const driverNetAmount = driverAmount - partnerAmount;
+
     console.log(`Commission calculation for ${service_type}:`, {
       totalAmount: amount,
       adminAmount,
       driverAmount,
+      partnerAmount,
+      driverNetAmount,
       platformAmount,
       rates: {
         admin: commissionSettings.admin_rate,
         driver: commissionSettings.driver_rate,
+        partner: partnerRate,
         platform: commissionSettings.platform_rate
       }
     });
@@ -86,6 +108,17 @@ serve(async (req) => {
       .eq('user_id', driver_id)
       .single();
 
+    // Optional partner wallet
+    let partnerWallet: any = null;
+    if (partnerId) {
+      const { data: pw } = await supabaseService
+        .from('user_wallets')
+        .select('*')
+        .eq('user_id', partnerId)
+        .single();
+      partnerWallet = pw;
+    }
+
     if (!userWallet) {
       throw new Error('Portefeuille utilisateur non trouvé');
     }
@@ -101,8 +134,10 @@ serve(async (req) => {
 
     // Process payments atomically
     const userNewBalance = userWallet.balance - amount;
-    const driverNewBalance = driverWallet.balance + driverAmount;
-
+    const driverNewBalance = driverWallet.balance + (typeof driverNetAmount === 'number' ? driverNetAmount : driverAmount);
+    const partnerNewBalance = (typeof partnerAmount === 'number' && partnerAmount > 0 && typeof (partnerWallet?.balance) === 'number')
+      ? partnerWallet.balance + partnerAmount
+      : undefined;
     // Update user wallet (debit total amount)
     const { error: userWalletError } = await supabaseService
       .from('user_wallets')
@@ -116,7 +151,7 @@ serve(async (req) => {
       throw new Error(`Erreur wallet utilisateur: ${userWalletError.message}`);
     }
 
-    // Update driver wallet (credit driver portion)
+    // Update driver wallet (credit driver portion, net after partner commission)
     const { error: driverWalletError } = await supabaseService
       .from('user_wallets')
       .update({ 
@@ -129,8 +164,22 @@ serve(async (req) => {
       throw new Error(`Erreur wallet chauffeur: ${driverWalletError.message}`);
     }
 
+    // Update partner wallet (credit partner commission) if applicable
+    if (partnerWallet && partnerAmount > 0 && typeof partnerNewBalance === 'number') {
+      const { error: partnerWalletError } = await supabaseService
+        .from('user_wallets')
+        .update({
+          balance: partnerNewBalance,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', partnerWallet.id);
+
+      if (partnerWalletError) {
+        console.warn('Erreur wallet partenaire:', partnerWalletError.message);
+      }
+    }
     // Record wallet transactions
-    const walletTransactions = [
+    const walletTransactions: any[] = [
       // User payment debit
       {
         wallet_id: userWallet.id,
@@ -145,14 +194,14 @@ serve(async (req) => {
         balance_before: userWallet.balance,
         balance_after: userNewBalance
       },
-      // Driver earnings credit
+      // Driver earnings credit (net)
       {
         wallet_id: driverWallet.id,
         user_id: driver_id,
         transaction_type: 'credit',
-        amount: driverAmount,
+        amount: typeof driverNetAmount === 'number' ? driverNetAmount : driverAmount,
         currency: 'CDF',
-        description: `Gains ${service_type === 'transport' ? 'course' : 'livraison'} (commission)`,
+        description: `Gains ${service_type === 'transport' ? 'course' : 'livraison'} (net après commission partenaire)`,
         reference_id: booking_id || delivery_id,
         reference_type: service_type,
         status: 'completed',
@@ -161,6 +210,22 @@ serve(async (req) => {
       }
     ];
 
+    if (partnerWallet && partnerAmount > 0) {
+      walletTransactions.push({
+        wallet_id: partnerWallet.id,
+        user_id: partnerId,
+        transaction_type: 'credit',
+        amount: partnerAmount,
+        currency: 'CDF',
+        description: `Commission partenaire ${service_type === 'transport' ? 'course' : 'livraison'}`,
+        reference_id: booking_id || delivery_id,
+        reference_type: service_type,
+        status: 'completed',
+        balance_before: partnerWallet.balance,
+        balance_after: partnerNewBalance
+      });
+    }
+
     for (const transaction of walletTransactions) {
       await supabaseService
         .from('wallet_transactions')
@@ -168,7 +233,7 @@ serve(async (req) => {
     }
 
     // Log activities
-    const activities = [
+    const activities: any[] = [
       // User payment
       {
         user_id: user_id,
@@ -180,24 +245,40 @@ serve(async (req) => {
         reference_type: service_type,
         metadata: {
           transaction_id: transactionId,
-          commission_breakdown: { adminAmount, driverAmount, platformAmount }
+          commission_breakdown: { adminAmount, driverAmount, partnerAmount, driverNetAmount, platformAmount }
         }
       },
-      // Driver earnings
+      // Driver earnings (net)
       {
         user_id: driver_id,
         activity_type: 'payment',
-        description: `Gains ${service_type === 'transport' ? 'course' : 'livraison'}: ${driverAmount} CDF`,
-        amount: driverAmount,
+        description: `Gains ${service_type === 'transport' ? 'course' : 'livraison'} (net): ${typeof driverNetAmount === 'number' ? driverNetAmount : driverAmount} CDF`,
+        amount: typeof driverNetAmount === 'number' ? driverNetAmount : driverAmount,
         currency: 'CDF',
         reference_id: booking_id || delivery_id,
         reference_type: service_type,
         metadata: {
           transaction_id: transactionId,
-          commission_rate: commissionSettings.driver_rate
+          commission_rates: { driver: commissionSettings.driver_rate, partner: partnerRate }
         }
       }
     ];
+
+    if (partnerWallet && partnerAmount > 0) {
+      activities.push({
+        user_id: partnerId,
+        activity_type: 'payment',
+        description: `Commission partenaire ${service_type === 'transport' ? 'course' : 'livraison'}: ${partnerAmount} CDF`,
+        amount: partnerAmount,
+        currency: 'CDF',
+        reference_id: booking_id || delivery_id,
+        reference_type: service_type,
+        metadata: {
+          transaction_id: transactionId,
+          commission_rate: partnerRate
+        }
+      });
+    }
 
     for (const activity of activities) {
       await supabaseService
@@ -232,13 +313,16 @@ serve(async (req) => {
         transaction_id: transactionId,
         commission_breakdown: {
           total_amount: amount,
-          driver_amount: driverAmount,
+          driver_amount_gross: driverAmount,
+          partner_amount: partnerAmount,
+          driver_amount_net: typeof driverNetAmount === 'number' ? driverNetAmount : driverAmount,
           admin_amount: adminAmount,
           platform_amount: platformAmount
         },
         new_balances: {
           user_balance: userNewBalance,
-          driver_balance: driverNewBalance
+          driver_balance: driverNewBalance,
+          ...(partnerNewBalance !== undefined ? { partner_balance: partnerNewBalance } : {})
         }
       }),
       {
