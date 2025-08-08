@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -59,7 +58,8 @@ export interface RentalBooking {
 export function usePartnerRentals() {
   const qc = useQueryClient();
 
-  const userQuery = useQuery({
+  // Keep the typing simple to avoid deep instantiation
+  const userQuery = useQuery<any>({
     queryKey: ["auth-user"],
     queryFn: async () => {
       const { data } = await supabase.auth.getUser();
@@ -67,9 +67,9 @@ export function usePartnerRentals() {
     },
   });
 
-  const userId = userQuery.data?.id;
+  const userId = userQuery.data?.id as string | undefined;
 
-  const categoriesQuery = useQuery({
+  const categoriesQuery = useQuery<VehicleCategory[]>({
     queryKey: ["rental-categories"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -83,7 +83,7 @@ export function usePartnerRentals() {
     enabled: true,
   });
 
-  const vehiclesQuery = useQuery({
+  const vehiclesQuery = useQuery<RentalVehicle[]>({
     queryKey: ["partner-rental-vehicles", userId],
     queryFn: async () => {
       if (!userId) return [] as RentalVehicle[];
@@ -102,23 +102,27 @@ export function usePartnerRentals() {
     enabled: !!userId,
   });
 
-  const bookingsQuery = useQuery({
+  const bookingsQuery = useQuery<RentalBooking[]>({
     queryKey: ["partner-rental-bookings", userId],
     queryFn: async () => {
       if (!userId) return [] as RentalBooking[];
+
+      const { data: vehicleIdsData, error: idsErr } = await supabase
+        .from("rental_vehicles")
+        .select("id")
+        .eq("partner_id", userId);
+
+      if (idsErr) throw idsErr;
+
+      const vehicleIds = (vehicleIdsData || []).map((r: any) => r.id);
+      if (vehicleIds.length === 0) return [] as RentalBooking[];
+
       const { data, error } = await supabase
         .from("rental_bookings")
         .select("*")
-        .in(
-          "vehicle_id",
-          (
-            (await supabase
-              .from("rental_vehicles")
-              .select("id")
-              .eq("partner_id", userId)).data || []
-          ).map((r: any) => r.id)
-        )
+        .in("vehicle_id", vehicleIds)
         .order("created_at", { ascending: false });
+
       if (error) throw error;
       return (data || []) as RentalBooking[];
     },
@@ -135,9 +139,14 @@ export function usePartnerRentals() {
         features: payload.features || [],
         images: payload.images || [],
       };
-      const { data, error } = await supabase.from("rental_vehicles").insert(insert).select().single();
+      // Cast to any to avoid friction with generated Insert typing requiring all mandatory fields at compile-time
+      const { data, error } = await supabase
+        .from("rental_vehicles")
+        .insert(insert as any)
+        .select()
+        .single();
       if (error) throw error;
-      return data as RentalVehicle;
+      return data as unknown as RentalVehicle;
     },
     meta: { onError: (e: any) => console.error("createVehicle error", e) },
     onSuccess: () => {
@@ -147,9 +156,14 @@ export function usePartnerRentals() {
 
   const updateVehicle = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<RentalVehicle> }) => {
-      const { data, error } = await supabase.from("rental_vehicles").update(updates).eq("id", id).select().single();
+      const { data, error } = await supabase
+        .from("rental_vehicles")
+        .update(updates as any)
+        .eq("id", id)
+        .select()
+        .single();
       if (error) throw error;
-      return data as RentalVehicle;
+      return data as unknown as RentalVehicle;
     },
     meta: { onError: (e: any) => console.error("updateVehicle error", e) },
     onSuccess: () => {
@@ -171,9 +185,14 @@ export function usePartnerRentals() {
 
   const updateBookingStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: RentalBooking["status"] }) => {
-      const { data, error } = await supabase.from("rental_bookings").update({ status }).eq("id", id).select().single();
+      const { data, error } = await supabase
+        .from("rental_bookings")
+        .update({ status } as any)
+        .eq("id", id)
+        .select()
+        .single();
       if (error) throw error;
-      return data as RentalBooking;
+      return data as unknown as RentalBooking;
     },
     meta: { onError: (e: any) => console.error("updateBookingStatus error", e) },
     onSuccess: () => {

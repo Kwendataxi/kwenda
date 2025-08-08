@@ -9,7 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 export default function AdminRentalModeration() {
   const { toast } = useToast();
 
-  const { data: pending = [], refetch } = useQuery({
+  // Explicitly type the query to avoid deep type instantiation
+  const pendingQuery = useQuery<any[]>({
     queryKey: ["admin-rental-pending"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -34,9 +35,11 @@ export default function AdminRentalModeration() {
     }
     if (data?.success) {
       toast({ title: action === "approve" ? "Annonce approuvée" : "Annonce rejetée" });
-      refetch();
+      pendingQuery.refetch();
     }
   };
+
+  const pending = pendingQuery.data || [];
 
   return (
     <div className="p-4 space-y-4">
