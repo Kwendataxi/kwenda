@@ -60,6 +60,23 @@ const DriverApp = () => {
     updateCurrentLocation 
   } = useDriverBookings();
 
+  // Get current location for tracking (moved before any early return to keep hooks order stable)
+  useEffect(() => {
+    if (isOnline && navigator.geolocation) {
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          updateCurrentLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => console.error('Location error:', error),
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+      );
+      return () => navigator.geolocation.clearWatch(watchId);
+    }
+  }, [isOnline]);
+
   // Use mobile-optimized interface for mobile devices
   if (isMobile) {
     if (currentView === 'earnings') {
@@ -141,23 +158,8 @@ const DriverApp = () => {
     );
   }
 
-  // Get current location for tracking
-  useEffect(() => {
-    if (isOnline && navigator.geolocation) {
-      const watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          updateCurrentLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-        },
-        (error) => console.error('Location error:', error),
-        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
-      );
-      
-      return () => navigator.geolocation.clearWatch(watchId);
-    }
-  }, [isOnline]);
+
+
 
   const handleAcceptRide = async (bookingId?: string) => {
     if (bookingId) {
