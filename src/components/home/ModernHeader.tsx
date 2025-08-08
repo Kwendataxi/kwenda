@@ -6,6 +6,8 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
+import { useProfile } from '@/hooks/useProfile';
+import { GeocodingService } from '@/services/geocoding';
 
 interface ModernHeaderProps {
   hasNotifications?: boolean;
@@ -19,17 +21,11 @@ export const ModernHeader = ({
   const [showNotifications, setShowNotifications] = useState(false);
   const geolocation = useGeolocation();
   const [currentAddress, setCurrentAddress] = useState(t('city.kinshasa') + ', RD Congo');
+  const [geocodingLoading, setGeocodingLoading] = useState(false);
   const { metrics, isSlowConnection } = usePerformanceMonitor();
   const [batteryLevel, setBatteryLevel] = useState(100);
   const [isCharging, setIsCharging] = useState(false);
-
-  // Get user's full name from metadata or default
-  const fullName = user?.user_metadata?.full_name || 
-                  user?.user_metadata?.name || 
-                  (user?.user_metadata?.first_name && user?.user_metadata?.last_name 
-                    ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
-                    : user?.user_metadata?.first_name) || 
-                  t('common.user') || 'Utilisateur';
+  const { displayName, loading: profileLoading } = useProfile();
   
   // Dynamic greeting based on time and language
   const getGreeting = () => {
@@ -46,9 +42,25 @@ export const ModernHeader = ({
 
   // Reverse geocoding to get address from coordinates
   useEffect(() => {
-    if (geolocation.latitude && geolocation.longitude) {
-      // Simple reverse geocoding - in a real app, you'd use a proper geocoding service
-      setCurrentAddress(t('home.location.current'));
+    if (geolocation.latitude && geolocation.longitude && !geocodingLoading) {
+      const reverseGeocode = async () => {
+        try {
+          setGeocodingLoading(true);
+          const address = await GeocodingService.reverseGeocode(
+            geolocation.longitude,
+            geolocation.latitude
+          );
+          setCurrentAddress(address);
+        } catch (error) {
+          console.error('Geocoding error:', error);
+          // Fallback to coordinates
+          setCurrentAddress(`${geolocation.latitude.toFixed(4)}, ${geolocation.longitude.toFixed(4)}`);
+        } finally {
+          setGeocodingLoading(false);
+        }
+      };
+
+      reverseGeocode();
     }
   }, [geolocation.latitude, geolocation.longitude]);
 
@@ -94,12 +106,12 @@ export const ModernHeader = ({
           {/* Salutation personnalisée et localisation */}
           <div className="flex-1">
             <p className="text-foreground font-bold text-lg">
-              {getGreeting()}, {fullName.split(' ')[0]}
+              {getGreeting()}, {profileLoading ? '...' : displayName.split(' ')[0]}
             </p>
             <div className="flex items-center gap-2 mt-1">
               <MapPin className="h-4 w-4 text-primary" />
               <p className="text-muted-foreground text-sm">
-                {geolocation.loading ? t('common.loading') : t('city.kinshasa')}
+                {geolocation.loading || geocodingLoading ? t('common.loading') : currentAddress}
               </p>
             </div>
           </div>
