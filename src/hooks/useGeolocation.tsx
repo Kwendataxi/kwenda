@@ -99,6 +99,20 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
     try {
       let position: Position | GeolocationPosition;
       
+      // Coordonnées par défaut pour Kinshasa
+      const defaultKinshasaLocation = {
+        coords: {
+          latitude: -4.4419,
+          longitude: 15.2663,
+          accuracy: 1000,
+          altitude: null,
+          altitudeAccuracy: null,
+          heading: null,
+          speed: null
+        },
+        timestamp: Date.now()
+      };
+      
       if (isCapacitorAvailable()) {
         // Use Capacitor geolocation for mobile apps
         const hasPermission = await requestPermissions();

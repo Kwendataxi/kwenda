@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import OneClickDeliveryInterface from './OneClickDeliveryInterface';
+import StreamlinedDeliveryInterface from './StreamlinedDeliveryInterface';
 import DeliveryTracking from './DeliveryTracking';
 import DeliveryQuickActions from './DeliveryQuickActions';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -41,7 +41,7 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
   }
 
   return (
-    <OneClickDeliveryInterface
+    <StreamlinedDeliveryInterface
       onSubmit={handleDeliverySubmit}
       onCancel={onCancel}
     />
