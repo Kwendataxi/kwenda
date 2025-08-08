@@ -1517,6 +1517,69 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_taxi_vehicles: {
+        Row: {
+          assigned_driver_id: string | null
+          brand: string
+          color: string | null
+          created_at: string
+          id: string
+          images: Json | null
+          is_active: boolean
+          is_available: boolean
+          license_plate: string
+          model: string
+          moderation_status: string
+          name: string
+          partner_id: string
+          rejection_reason: string | null
+          seats: number
+          updated_at: string
+          vehicle_class: string
+          year: number
+        }
+        Insert: {
+          assigned_driver_id?: string | null
+          brand: string
+          color?: string | null
+          created_at?: string
+          id?: string
+          images?: Json | null
+          is_active?: boolean
+          is_available?: boolean
+          license_plate: string
+          model: string
+          moderation_status?: string
+          name: string
+          partner_id: string
+          rejection_reason?: string | null
+          seats?: number
+          updated_at?: string
+          vehicle_class?: string
+          year: number
+        }
+        Update: {
+          assigned_driver_id?: string | null
+          brand?: string
+          color?: string | null
+          created_at?: string
+          id?: string
+          images?: Json | null
+          is_active?: boolean
+          is_available?: boolean
+          license_plate?: string
+          model?: string
+          moderation_status?: string
+          name?: string
+          partner_id?: string
+          rejection_reason?: string | null
+          seats?: number
+          updated_at?: string
+          vehicle_class?: string
+          year?: number
+        }
+        Relationships: []
+      }
       payment_methods: {
         Row: {
           account_name: string | null
@@ -2007,7 +2070,10 @@ export type Database = {
           location_address: string | null
           location_coordinates: Json | null
           model: string
+          moderation_status: string | null
           name: string
+          partner_id: string | null
+          rejection_reason: string | null
           seats: number
           security_deposit: number
           transmission: string
@@ -2033,7 +2099,10 @@ export type Database = {
           location_address?: string | null
           location_coordinates?: Json | null
           model: string
+          moderation_status?: string | null
           name: string
+          partner_id?: string | null
+          rejection_reason?: string | null
           seats?: number
           security_deposit?: number
           transmission?: string
@@ -2059,7 +2128,10 @@ export type Database = {
           location_address?: string | null
           location_coordinates?: Json | null
           model?: string
+          moderation_status?: string | null
           name?: string
+          partner_id?: string | null
+          rejection_reason?: string | null
           seats?: number
           security_deposit?: number
           transmission?: string
