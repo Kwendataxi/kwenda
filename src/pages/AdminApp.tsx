@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
@@ -128,18 +128,7 @@ const AdminApp = () => {
 
   const renderContent = () => (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-      <TabsList className="grid w-full grid-cols-10">
-        <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-        <TabsTrigger value="credits">Crédits Chauffeurs</TabsTrigger>
-        <TabsTrigger value="commissions">Commissions</TabsTrigger>
-        <TabsTrigger value="financial">Dashboard Financier</TabsTrigger>
-        <TabsTrigger value="tarifs">Tarifs</TabsTrigger>
-        <TabsTrigger value="zones">Zones</TabsTrigger>
-        <TabsTrigger value="drivers">Chauffeurs</TabsTrigger>
-        <TabsTrigger value="users">Utilisateurs</TabsTrigger>
-        <TabsTrigger value="support">Support</TabsTrigger>
-        <TabsTrigger value="settings">Paramètres</TabsTrigger>
-      </TabsList>
+{/* Navigation déplacée dans AdminVerticalNav (ResponsiveAdminLayout) */}
 
       <TabsContent value="credits">
         <PermissionGuard requiredPermissions={['finance_write']}>

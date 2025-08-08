@@ -1,0 +1,66 @@
+import React from 'react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import {
+  BarChart3,
+  CreditCard,
+  Percent,
+  PieChart,
+  Tag,
+  MapPin,
+  Car,
+  Users,
+  ShoppingBag,
+  Headphones,
+  Settings,
+} from 'lucide-react';
+
+interface AdminVerticalNavProps {
+  activeTab: string;
+  onTabChange: (value: string) => void;
+  className?: string;
+}
+
+const NAV_ITEMS: Array<{
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}> = [
+  { id: 'overview', label: "Vue d'ensemble", icon: BarChart3 },
+  { id: 'credits', label: 'Crédits Chauffeurs', icon: CreditCard },
+  { id: 'commissions', label: 'Commissions', icon: Percent },
+  { id: 'financial', label: 'Dashboard Financier', icon: PieChart },
+  { id: 'tarifs', label: 'Tarifs', icon: Tag },
+  { id: 'zones', label: 'Zones', icon: MapPin },
+  { id: 'drivers', label: 'Chauffeurs', icon: Car },
+  { id: 'users', label: 'Utilisateurs', icon: Users },
+  { id: 'support', label: 'Support', icon: Headphones },
+  { id: 'settings', label: 'Paramètres', icon: Settings },
+];
+
+export const AdminVerticalNav: React.FC<AdminVerticalNavProps> = ({ activeTab, onTabChange, className }) => {
+  return (
+    <nav role="navigation" aria-label="Navigation admin" className={cn('space-y-1', className)}>
+      {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+        const active = activeTab === id;
+        return (
+          <Button
+            key={id}
+            variant="ghost"
+            className={cn(
+              'w-full justify-start gap-2 rounded-lg px-3 py-2 transition-colors',
+              active ? 'bg-muted text-primary font-medium' : 'hover:bg-muted/50'
+            )}
+            aria-current={active ? 'page' : undefined}
+            onClick={() => onTabChange(id)}
+          >
+            <Icon className={cn('h-4 w-4', active ? 'text-primary' : 'text-muted-foreground')} />
+            <span className="truncate">{label}</span>
+          </Button>
+        );
+      })}
+    </nav>
+  );
+};
+
+export default AdminVerticalNav;
