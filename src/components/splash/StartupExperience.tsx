@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { SplashScreen } from "@capacitor/splash-screen";
 import { DynamicSplash } from "./DynamicSplash";
 import { getStartupContext } from "@/services/startupContext";
 
@@ -15,9 +14,6 @@ export const StartupExperience: React.FC = () => {
     } catch {}
 
     const timer = setTimeout(() => setVisible(false), 1200);
-
-    // Ensure native splash is hidden (safe even if already autohidden)
-    SplashScreen.hide().catch(() => {});
 
     return () => clearTimeout(timer);
   }, [location.pathname]);
