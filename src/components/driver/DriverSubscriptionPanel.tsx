@@ -95,7 +95,7 @@ export const DriverSubscriptionPanel = () => {
                   <p className="text-3xl font-bold">{credits?.balance.toLocaleString() || 0} CDF</p>
                   <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                     <TrendingUp className="w-4 h-4" />
-                    <span>Total gagné: {credits?.total_earned.toLocaleString() || 0} CDF</span>
+                    <span>Total rechargé: {credits?.total_earned.toLocaleString() || 0} CDF</span>
                   </div>
                   <div className="mt-4">
                     <Progress 

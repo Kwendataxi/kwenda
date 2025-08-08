@@ -215,10 +215,10 @@ export const DriverWalletManager = () => {
                         <span className="text-sm text-muted-foreground">Solde:</span>
                         <span className="font-semibold">{formatCurrency(driver.balance)}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Total gagné:</span>
-                        <span className="text-sm">{formatCurrency(driver.total_earned)}</span>
-                      </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Total rechargé:</span>
+                          <span className="text-sm">{formatCurrency(driver.total_earned)}</span>
+                        </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-muted-foreground">Commission:</span>
                         <span className="text-sm">{driver.commission_rate}%</span>

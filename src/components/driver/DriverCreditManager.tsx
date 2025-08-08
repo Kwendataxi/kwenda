@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { useDriverCredits } from '@/hooks/useDriverCredits'
+import { useDriverFinancialSummary } from '@/hooks/useDriverFinancialSummary'
 import { 
   Wallet, 
   Plus, 
@@ -149,7 +150,77 @@ export const DriverCreditManager = () => {
         </p>
       </div>
 
-      {/* Quick Actions */}
+{/* Résumé financier */}
+<Card>
+  <CardHeader className="pb-3">
+    <div className="flex items-center justify-between">
+      <CardTitle>Résumé financier</CardTitle>
+      <div className="flex items-center gap-2">
+        <Label htmlFor="period" className="text-sm text-muted-foreground">Période</Label>
+        <Select value={useDriverFinancialSummary().range} onValueChange={() => {}}>
+          <SelectTrigger className="w-28">
+            <SelectValue placeholder="30j" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="7d">7 jours</SelectItem>
+            <SelectItem value="30d">30 jours</SelectItem>
+            <SelectItem value="all">Tout</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  </CardHeader>
+  <CardContent>
+    {/* Hook usage moved here to keep component reactive */}
+    {(() => {
+      const { loading: sumLoading, summary, range, setRange } = useDriverFinancialSummary('30d');
+      return (
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <Select value={range} onValueChange={(v) => setRange(v as any)}>
+              <SelectTrigger className="w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7d">7 jours</SelectItem>
+                <SelectItem value="30d">30 jours</SelectItem>
+                <SelectItem value="all">Tout</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {sumLoading ? (
+            <div className="text-sm text-muted-foreground">Calcul en cours…</div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="p-3 border rounded-lg">
+                <p className="text-xs text-muted-foreground">Total rechargé</p>
+                <p className="text-lg font-semibold">{formatCurrency(summary.totalTopup)}</p>
+              </div>
+              <div className="p-3 border rounded-lg">
+                <p className="text-xs text-muted-foreground">Crédits dépensés</p>
+                <p className="text-lg font-semibold">{formatCurrency(summary.totalSpent)}</p>
+              </div>
+              <div className="p-3 border rounded-lg">
+                <p className="text-xs text-muted-foreground">Gains bruts</p>
+                <p className="text-lg font-semibold">{formatCurrency(summary.totalEarningsGross)}</p>
+              </div>
+              <div className="p-3 border rounded-lg">
+                <p className="text-xs text-muted-foreground">Gains nets</p>
+                <p className="text-lg font-semibold">{formatCurrency(summary.totalEarningsNet)}</p>
+              </div>
+              <div className="p-3 border rounded-lg">
+                <p className="text-xs text-muted-foreground">ROI crédits</p>
+                <p className="text-lg font-semibold">{summary.roi ? `${summary.roi.toFixed(2)}x` : '-'}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    })()}
+  </CardContent>
+</Card>
+
+{/* Quick Actions */}
       <Card>
         <CardHeader>
           <CardTitle>Actions Rapides</CardTitle>
