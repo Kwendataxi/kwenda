@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useRealtimeTracking } from './useRealtimeTracking';
 import { toast } from 'sonner';
+// Ensure Mapbox safety patch is applied early for driver route
+import '@/patches/mapboxSafety';
 
 interface ActiveBooking {
   id: string;
@@ -41,8 +43,7 @@ export const useDriverBookings = () => {
           table: 'transport_bookings',
           filter: `status=eq.pending`
         },
-        (payload) => {
-          const newBooking = payload.new as any;
+        () => {
           // In a real app, we'd have driver matching logic
           // For now, show all pending requests
           loadPendingRequests();
@@ -134,7 +135,6 @@ export const useDriverBookings = () => {
 
       if (error) throw error;
 
-      // Get the accepted booking details
       const { data: booking, error: fetchError } = await supabase
         .from('transport_bookings')
         .select('*')
@@ -158,17 +158,15 @@ export const useDriverBookings = () => {
 
       setActiveBooking(activeBookingData);
       
-        // Start real-time tracking
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition((position) => {
-            startTracking({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude
-            });
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          startTracking({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
           });
-        }
+        });
+      }
 
-      // Remove from pending requests
       setPendingRequests(prev => prev.filter(req => req.id !== bookingId));
       
       toast.success('Course acceptée');
@@ -194,7 +192,6 @@ export const useDriverBookings = () => {
         updated_at: new Date().toISOString() 
       };
 
-      // If completing the ride, set completion time and calculate actual price
       if (status === 'completed') {
         updates.completion_time = new Date().toISOString();
         updates.actual_price = activeBooking.estimated_price;

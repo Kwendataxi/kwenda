@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+import '@/patches/mapboxSafety';
 
 interface BookingData {
   pickupLocation: string;
@@ -46,7 +47,6 @@ export const useEnhancedTransportBooking = () => {
 
     setLoading(true);
     try {
-      // Get pricing rules for accurate pricing
       const { data: pricingRules, error: pricingError } = await supabase
         .from('pricing_rules')
         .select('*')
@@ -58,12 +58,11 @@ export const useEnhancedTransportBooking = () => {
         console.warn('Could not fetch pricing rules:', pricingError);
       }
 
-      // Calculate final price with surge and rules
       let finalPrice = data.estimatedPrice;
       if (pricingRules && data.totalDistance) {
         finalPrice = pricingRules.base_price + 
           (data.totalDistance * pricingRules.price_per_km) +
-          (data.totalDistance * 5 * pricingRules.price_per_minute); // Estimate 5 min per km
+          (data.totalDistance * 5 * pricingRules.price_per_minute);
         finalPrice *= (data.surgeMultiplier || 1.0);
       }
 
@@ -90,7 +89,6 @@ export const useEnhancedTransportBooking = () => {
 
       toast.success('Réservation créée avec succès');
       
-      // Start driver matching process
       findNearbyDrivers(booking.id, data.pickupCoordinates);
       
       return booking;
@@ -111,7 +109,6 @@ export const useEnhancedTransportBooking = () => {
 
     setMatching(true);
     try {
-      // Get online and available drivers
       const { data: nearbyDrivers, error } = await supabase
         .from('driver_locations')
         .select(`
@@ -125,14 +122,12 @@ export const useEnhancedTransportBooking = () => {
 
       if (error) throw error;
 
-      // Get driver profiles separately
       const driverIds = (nearbyDrivers || []).map(d => d.driver_id);
       const { data: driverProfiles } = await supabase
         .from('driver_profiles')
         .select('user_id, vehicle_make, vehicle_model, vehicle_plate, rating_average, rating_count')
         .in('user_id', driverIds);
 
-      // Calculate distances and sort by proximity
       const driversWithDistance: DriverMatch[] = (nearbyDrivers || [])
         .map(driver => {
           const distance = calculateDistance(
@@ -147,7 +142,7 @@ export const useEnhancedTransportBooking = () => {
           return {
             driver_id: driver.driver_id,
             distance,
-            estimated_arrival: Math.ceil(distance * 2), // 2 minutes per km
+            estimated_arrival: Math.ceil(distance * 2),
             driver_profile: profile || {
               user_id: driver.driver_id,
               vehicle_make: 'Toyota',
@@ -158,11 +153,10 @@ export const useEnhancedTransportBooking = () => {
             }
           };
         })
-        .filter(driver => driver.distance <= 10) // Within 10km
+        .filter(driver => driver.distance <= 10)
         .sort((a, b) => a.distance - b.distance)
-        .slice(0, 5); // Top 5 closest drivers
+        .slice(0, 5);
 
-      // Simulate automatic assignment to closest driver
       if (driversWithDistance.length > 0) {
         const assignedDriver = driversWithDistance[0];
         
@@ -171,7 +165,7 @@ export const useEnhancedTransportBooking = () => {
           if (success) {
             toast.success(`Chauffeur trouvé ! Arrivée dans ${assignedDriver.estimated_arrival} minutes`);
           }
-        }, 3000); // 3 second delay to simulate search
+        }, 3000);
       } else {
         setTimeout(() => {
           toast.error('Aucun chauffeur disponible dans la zone');
@@ -201,7 +195,6 @@ export const useEnhancedTransportBooking = () => {
 
       if (error) throw error;
 
-      // Update driver availability
       await supabase
         .from('driver_locations')
         .update({
@@ -218,7 +211,7 @@ export const useEnhancedTransportBooking = () => {
   };
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Earth's radius in kilometers
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = 
@@ -241,7 +234,6 @@ export const useEnhancedTransportBooking = () => {
 
       if (error) throw error;
 
-      // Get driver profiles for bookings that have drivers
       const bookingsWithDrivers = bookings?.filter(b => b.driver_id) || [];
       const driverIds = bookingsWithDrivers.map(b => b.driver_id);
       
@@ -254,7 +246,6 @@ export const useEnhancedTransportBooking = () => {
         driverProfiles = data || [];
       }
 
-      // Merge booking and driver data
       const enrichedBookings = (bookings || []).map(booking => ({
         ...booking,
         driver_profile: booking.driver_id 
