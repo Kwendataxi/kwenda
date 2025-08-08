@@ -9,7 +9,7 @@ import { GeocodingService } from '@/services/geocoding';
 import { usePriceEstimator } from '@/hooks/usePricingRules';
 import { useDeliveryOrders } from '@/hooks/useDeliveryOrders';
 import { useToast } from '@/hooks/use-toast';
-import { UniversalLocationSearch } from '@/components/location/UniversalLocationSearch';
+import { EnhancedLocationSearch } from '@/components/delivery/EnhancedLocationSearch';
 import KwendaDynamicMap from '@/components/maps/KwendaDynamicMap';
 import { 
   ArrowLeft,
@@ -403,55 +403,26 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
                 />
               </div>
               
-              <Card className="p-4">
-                <UniversalLocationSearch
-                  placeholder={`Adresse de départ à ${cityConfig.name}...`}
-                  value={pickup ? {
-                    address: pickup.address,
-                    coordinates: { lat: pickup.coordinates[0], lng: pickup.coordinates[1] },
-                    type: 'search'
-                  } : undefined}
-                  onChange={(location) => {
-                    setPickup({
-                      address: location.address,
-                      coordinates: [location.coordinates.lat, location.coordinates.lng]
-                    });
-                  }}
-                  showCurrentLocation={true}
-                  showSavedPlaces={true}
-                  showRecentPlaces={true}
-                />
-                
-                {/* Suggestions populaires */}
-                <div className="mt-3">
-                  <p className="text-xs text-muted-foreground mb-2">Lieux populaires:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {cityConfig.popular.map(place => (
-                      <Button
-                        key={place}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs h-8"
-                        onClick={() => {
-                          GeocodingService.searchPlaces(place, {
-                            lng: cityConfig.coordinates[1], 
-                            lat: cityConfig.coordinates[0]
-                          }).then(results => {
-                            if (results.length > 0) {
-                              setPickup({
-                                address: results[0].place_name,
-                                coordinates: results[0].center as [number, number]
-                              });
-                            }
-                          });
-                        }}
-                      >
-                        {place}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </Card>
+              <EnhancedLocationSearch
+                placeholder={`Rechercher l'adresse de départ à ${cityConfig.name}...`}
+                value={pickup ? {
+                  address: pickup.address,
+                  coordinates: { lat: pickup.coordinates[0], lng: pickup.coordinates[1] }
+                } : undefined}
+                onChange={(location) => {
+                  setPickup({
+                    address: location.address,
+                    coordinates: [location.coordinates.lat, location.coordinates.lng]
+                  });
+                }}
+                cityContext={{
+                  name: cityConfig.name,
+                  coordinates: cityConfig.coordinates,
+                  popular: cityConfig.popular
+                }}
+                label="Point de départ"
+                icon={<Target className="w-5 h-5 text-primary" />}
+              />
             </div>
           </div>
         )}
@@ -485,54 +456,26 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
                 />
               </div>
               
-              <Card className="p-4">
-                <UniversalLocationSearch
-                  placeholder={`Adresse de livraison à ${cityConfig.name}...`}
-                  value={destination ? {
-                    address: destination.address,
-                    coordinates: { lat: destination.coordinates[0], lng: destination.coordinates[1] },
-                    type: 'search'
-                  } : undefined}
-                  onChange={(location) => {
-                    setDestination({
-                      address: location.address,
-                      coordinates: [location.coordinates.lat, location.coordinates.lng]
-                    });
-                  }}
-                  showCurrentLocation={false}
-                  showSavedPlaces={true}
-                  showRecentPlaces={true}
-                />
-                
-                <div className="mt-3">
-                  <p className="text-xs text-muted-foreground mb-2">Lieux populaires:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {cityConfig.popular.map(place => (
-                      <Button
-                        key={place}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs h-8"
-                        onClick={() => {
-                          GeocodingService.searchPlaces(place, {
-                            lng: cityConfig.coordinates[1], 
-                            lat: cityConfig.coordinates[0]
-                          }).then(results => {
-                            if (results.length > 0) {
-                              setDestination({
-                                address: results[0].place_name,
-                                coordinates: results[0].center as [number, number]
-                              });
-                            }
-                          });
-                        }}
-                      >
-                        {place}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </Card>
+              <EnhancedLocationSearch
+                placeholder={`Rechercher l'adresse de destination à ${cityConfig.name}...`}
+                value={destination ? {
+                  address: destination.address,
+                  coordinates: { lat: destination.coordinates[0], lng: destination.coordinates[1] }
+                } : undefined}
+                onChange={(location) => {
+                  setDestination({
+                    address: location.address,
+                    coordinates: [location.coordinates.lat, location.coordinates.lng]
+                  });
+                }}
+                cityContext={{
+                  name: cityConfig.name,
+                  coordinates: cityConfig.coordinates,
+                  popular: cityConfig.popular
+                }}
+                label="Point de destination"
+                icon={<MapPin className="w-5 h-5 text-secondary" />}
+              />
             </div>
           </div>
         )}
