@@ -8,6 +8,7 @@ import { OptimizedGrid } from '@/components/performance/OptimizedGrid';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { useDriverData } from '@/hooks/useDriverData';
 import { useDriverBookings } from '@/hooks/useDriverBookings';
+import { useBackgroundTracking } from '@/hooks/useBackgroundTracking';
 import { 
   Car, 
   MapPin, 
@@ -38,6 +39,7 @@ export const MobileDriverInterface: React.FC<MobileDriverInterfaceProps> = ({
   const { metrics, isSlowConnection, isLowBattery } = usePerformanceMonitor();
   const { stats, isOnline, updateOnlineStatus } = useDriverData();
   const { activeBooking, pendingRequests, acceptBooking, updateBookingStatus } = useDriverBookings();
+  const { isTracking, start, stop, supported } = useBackgroundTracking({ distanceFilterMeters: 25, minIntervalMs: 10000 });
   
   const [currentView, setCurrentView] = useState<'dashboard' | 'ride' | 'request'>('dashboard');
 
@@ -121,7 +123,7 @@ export const MobileDriverInterface: React.FC<MobileDriverInterfaceProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <TouchOptimizedButton
               variant="outline"
               size="md"
@@ -141,6 +143,16 @@ export const MobileDriverInterface: React.FC<MobileDriverInterfaceProps> = ({
             >
               <DollarSign className="h-4 w-4" />
               Crédits
+            </TouchOptimizedButton>
+            <TouchOptimizedButton
+              variant={isTracking ? "default" : "outline"}
+              size="md"
+              onClick={() => (isTracking ? stop() : start())}
+              className="flex items-center justify-center gap-2 h-12"
+              hapticFeedback="medium"
+            >
+              <Navigation className="h-4 w-4" />
+              {isTracking ? 'Suivi actif' : 'Activer suivi'}
             </TouchOptimizedButton>
           </div>
         </CardContent>
