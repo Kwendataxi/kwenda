@@ -18,7 +18,7 @@ import {
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { usePlaces } from '@/hooks/usePlaces';
 import { useToast } from '@/hooks/use-toast';
-import { GeocodingService } from '@/services/geocoding';
+import { GoogleMapsService } from '@/services/googleMapsService';
 
 interface Location {
   address: string;
@@ -75,7 +75,7 @@ export const EnhancedLocationSearch = ({
             lat: cityContext.coordinates[0]
           } : undefined;
           
-          const results = await GeocodingService.searchPlaces(query, proximity);
+          const results = await GoogleMapsService.searchPlaces(query, proximity);
           setSuggestions(results);
         } catch (error) {
           console.error('Erreur de recherche:', error);
@@ -112,7 +112,7 @@ export const EnhancedLocationSearch = ({
     setIsGettingLocation(true);
     try {
       const position = await getCurrentPosition();
-      const address = await GeocodingService.reverseGeocode(
+      const address = await GoogleMapsService.reverseGeocode(
         position.coords.longitude, 
         position.coords.latitude
       );
@@ -145,7 +145,7 @@ export const EnhancedLocationSearch = ({
         lat: cityContext.coordinates[0]
       } : undefined;
       
-      const results = await GeocodingService.searchPlaces(place, proximity);
+      const results = await GoogleMapsService.searchPlaces(place, proximity);
       if (results.length > 0) {
         const location: Location = {
           address: results[0].place_name,

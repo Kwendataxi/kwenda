@@ -10,7 +10,9 @@ import { usePriceEstimator } from '@/hooks/usePricingRules';
 import { useDeliveryOrders } from '@/hooks/useDeliveryOrders';
 import { useToast } from '@/hooks/use-toast';
 import { EnhancedLocationSearch } from '@/components/delivery/EnhancedLocationSearch';
-import KwendaDynamicMap from '@/components/maps/KwendaDynamicMap';
+import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
+import { useEnhancedDeliveryOrders, DeliveryLocation, DeliveryOrderData } from '@/hooks/useEnhancedDeliveryOrders';
+import { GoogleMapsService } from '@/services/googleMapsService';
 import { 
   ArrowLeft,
   ArrowRight,
@@ -29,11 +31,6 @@ import {
   Plane,
   ChevronRight
 } from 'lucide-react';
-
-interface Location {
-  address: string;
-  coordinates: [number, number];
-}
 
 interface DeliveryOption {
   id: 'flash' | 'flex' | 'maxicharge';
@@ -56,8 +53,8 @@ type DeliveryStep = 'city' | 'pickup' | 'destination' | 'mode' | 'confirmation';
 const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryInterfaceProps) => {
   const [currentStep, setCurrentStep] = useState<DeliveryStep>('city');
   const [selectedCity, setSelectedCity] = useState<string>('');
-  const [pickup, setPickup] = useState<Location | null>(null);
-  const [destination, setDestination] = useState<Location | null>(null);
+  const [pickup, setPickup] = useState<DeliveryLocation | null>(null);
+  const [destination, setDestination] = useState<DeliveryLocation | null>(null);
   const [selectedMode, setSelectedMode] = useState<'flash' | 'flex' | 'maxicharge'>('flash');
   const [distance, setDistance] = useState(0);
   const [estimatedPrice, setEstimatedPrice] = useState(0);
@@ -65,7 +62,7 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
 
   const { getCurrentPosition, detectCurrentCity } = useGeolocation();
   const { toast } = useToast();
-  const { createDeliveryOrder, loading: orderLoading } = useDeliveryOrders();
+  const { calculateDeliveryPrice, createDeliveryOrder, submitting: orderLoading } = useEnhancedDeliveryOrders();
   
   const { estimate: flashEstimate } = usePriceEstimator('delivery', 'flash');
   const { estimate: flexEstimate } = usePriceEstimator('delivery', 'flex');
@@ -186,18 +183,25 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
     autoDetectCity();
   }, []);
 
-  // Calcul du prix en temps réel
+  // Calcul du prix en temps réel avec Google Maps
   useEffect(() => {
-    if (pickup && destination) {
-      const dist = calculateDistance(pickup.coordinates, destination.coordinates);
-      setDistance(dist);
-      
-      const option = deliveryOptions.find(opt => opt.id === selectedMode);
-      if (option) {
-        setEstimatedPrice(option.priceEstimator(dist));
+    const calculatePriceAndDistance = async () => {
+      if (pickup && destination && selectedMode) {
+        try {
+          const result = await calculateDeliveryPrice(pickup, destination, selectedMode);
+          setDistance(result.distance);
+          setEstimatedPrice(result.price);
+        } catch (error) {
+          console.error('Erreur calcul prix:', error);
+          // Prix par défaut en cas d'erreur
+          setEstimatedPrice(selectedMode === 'flash' ? 8000 : selectedMode === 'flex' ? 5000 : 12000);
+          setDistance(5000); // 5km par défaut
+        }
       }
-    }
-  }, [pickup, destination, selectedMode]);
+    };
+
+    calculatePriceAndDistance();
+  }, [pickup, destination, selectedMode, calculateDeliveryPrice]);
 
   const calculateDistance = (coord1: [number, number], coord2: [number, number]) => {
     const [lat1, lon1] = coord1;
@@ -236,28 +240,27 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
     if (!pickup || !destination) return;
 
     try {
-      const orderData = {
-        pickupLocation: pickup.address,
-        deliveryLocation: destination.address,
-        pickupCoordinates: { lat: pickup.coordinates[0], lng: pickup.coordinates[1] },
-        deliveryCoordinates: { lat: destination.coordinates[0], lng: destination.coordinates[1] },
-        deliveryType: selectedMode as 'flash' | 'cargo',
-        estimatedPrice: estimatedPrice,
+      const orderData: DeliveryOrderData = {
         city: selectedCity,
+        pickup: pickup,
+        destination: destination,
+        mode: selectedMode,
+        estimatedPrice,
+        distance,
+        duration: Math.round(distance / 50000 * 3600) // Estimation durée basée sur 50km/h
       };
 
-      const result = await createDeliveryOrder(orderData);
-      if (result) {
-        onSubmit({
-          orderId: result.id,
-          mode: selectedMode,
-          pickup,
-          destination,
-          price: estimatedPrice,
-          distance,
-          city: selectedCity
-        });
-      }
+      const orderId = await createDeliveryOrder(orderData);
+      
+      onSubmit({
+        orderId,
+        mode: selectedMode,
+        pickup,
+        destination,
+        price: estimatedPrice,
+        distance,
+        city: selectedCity
+      });
     } catch (error) {
       toast({
         title: 'Erreur',
@@ -440,12 +443,13 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
                 placeholder={`🔍 Rechercher l'adresse de départ à ${cityConfig.name}...`}
                 value={pickup ? {
                   address: pickup.address,
-                  coordinates: { lat: pickup.coordinates[0], lng: pickup.coordinates[1] }
+                  coordinates: { lat: pickup.lat, lng: pickup.lng }
                 } : undefined}
                 onChange={(location) => {
                   setPickup({
                     address: location.address,
-                    coordinates: [location.coordinates.lat, location.coordinates.lng]
+                    lat: location.coordinates.lat,
+                    lng: location.coordinates.lng
                   });
                 }}
                 cityContext={{
@@ -460,18 +464,17 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
 
             {/* Carte avec effet glassmorphism - 30% de l'écran */}
             <div className="h-1/3 p-4 bg-gradient-to-t from-gray-100/80 to-transparent">
-              <Card className="h-full overflow-hidden shadow-2xl border-2 border-white/50 bg-white/10 backdrop-blur-sm hover:shadow-3xl transition-all duration-500">
-                <KwendaDynamicMap
-                  onLocationSelect={(coords) => {
-                    GeocodingService.reverseGeocode(coords[0], coords[1]).then(address => {
-                      setPickup({
-                        address: address || 'Position sélectionnée',
-                        coordinates: coords
-                      });
+                <Card className="h-full overflow-hidden shadow-2xl border-2 border-white/50 bg-white/10 backdrop-blur-sm hover:shadow-3xl transition-all duration-500">
+                <GoogleMapsKwenda
+                  onLocationSelect={(location) => {
+                    setPickup({
+                      address: location.address,
+                      lat: location.lat,
+                      lng: location.lng
                     });
                   }}
-                  pickupLocation={pickup?.coordinates}
-                  center={[cityConfig.coordinates[1], cityConfig.coordinates[0]]}
+                  pickup={pickup ? { lat: pickup.lat, lng: pickup.lng } : undefined}
+                  center={{ lat: cityConfig.coordinates[0], lng: cityConfig.coordinates[1] }}
                   zoom={13}
                   height="100%"
                 />
@@ -501,12 +504,13 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
                 placeholder={`🔍 Rechercher l'adresse de destination à ${cityConfig.name}...`}
                 value={destination ? {
                   address: destination.address,
-                  coordinates: { lat: destination.coordinates[0], lng: destination.coordinates[1] }
+                  coordinates: { lat: destination.lat, lng: destination.lng }
                 } : undefined}
                 onChange={(location) => {
                   setDestination({
                     address: location.address,
-                    coordinates: [location.coordinates.lat, location.coordinates.lng]
+                    lat: location.coordinates.lat,
+                    lng: location.coordinates.lng
                   });
                 }}
                 cityContext={{
@@ -522,19 +526,18 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
             {/* Carte avec effet glassmorphism - 30% de l'écran */}
             <div className="h-1/3 p-4 bg-gradient-to-t from-gray-100/80 to-transparent">
               <Card className="h-full overflow-hidden shadow-2xl border-2 border-white/50 bg-white/10 backdrop-blur-sm hover:shadow-3xl transition-all duration-500">
-                <KwendaDynamicMap
-                  onLocationSelect={(coords) => {
-                    GeocodingService.reverseGeocode(coords[0], coords[1]).then(address => {
-                      setDestination({
-                        address: address || 'Position sélectionnée',
-                        coordinates: coords
-                      });
+                <GoogleMapsKwenda
+                  onLocationSelect={(location) => {
+                    setDestination({
+                      address: location.address,
+                      lat: location.lat,
+                      lng: location.lng
                     });
                   }}
-                  pickupLocation={pickup?.coordinates}
-                  destination={destination?.coordinates}
-                  showRouting={!!(pickup && destination)}
-                  center={[cityConfig.coordinates[1], cityConfig.coordinates[0]]}
+                  pickup={pickup ? { lat: pickup.lat, lng: pickup.lng } : undefined}
+                  destination={destination ? { lat: destination.lat, lng: destination.lng } : undefined}
+                  showRoute={!!(pickup && destination)}
+                  center={{ lat: cityConfig.coordinates[0], lng: cityConfig.coordinates[1] }}
                   zoom={13}
                   height="100%"
                 />
@@ -662,11 +665,11 @@ const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryI
                   Itinéraire de livraison
                 </h3>
                 <div className="h-40 mb-4 rounded-xl overflow-hidden shadow-lg">
-                  <KwendaDynamicMap
-                    pickupLocation={pickup.coordinates}
-                    destination={destination.coordinates}
-                    showRouting={true}
-                    center={[cityConfig!.coordinates[1], cityConfig!.coordinates[0]]}
+                  <GoogleMapsKwenda
+                    pickup={{ lat: pickup.lat, lng: pickup.lng }}
+                    destination={{ lat: destination.lat, lng: destination.lng }}
+                    showRoute={true}
+                    center={{ lat: cityConfig!.coordinates[0], lng: cityConfig!.coordinates[1] }}
                     zoom={12}
                     height="100%"
                     deliveryMode={selectedMode}
