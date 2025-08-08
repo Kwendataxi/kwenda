@@ -414,7 +414,7 @@ const COUNTRIES: Record<string, CountryConfig> = {
 };
 
 export class CountryService {
-  private static currentCountry: CountryConfig = COUNTRIES.cd; // Default to RDC
+  private static currentCountry: CountryConfig = COUNTRIES.CD; // Default to RDC
   private static listeners: Array<(country: CountryConfig) => void> = [];
 
   static getCurrentCountry(): CountryConfig {
@@ -422,9 +422,10 @@ export class CountryService {
   }
 
   static setCurrentCountry(countryCode: string): void {
-    // Only allow CI and RDC for Kwenda
-    if (countryCode === 'ci' || countryCode === 'cd') {
-      const country = COUNTRIES[countryCode as keyof typeof COUNTRIES];
+    // Only allow CI and RDC for Kwenda (convert to uppercase)
+    const upperCode = countryCode.toUpperCase();
+    if (upperCode === 'CI' || upperCode === 'CD') {
+      const country = COUNTRIES[upperCode];
       if (country) {
         this.currentCountry = country;
         this.listeners.forEach(callback => callback(country));
@@ -445,16 +446,16 @@ export class CountryService {
       this.setCurrentCountry(detectedCountry.code);
     } else {
       // Fallback to RDC for Kwenda
-      this.setCurrentCountry('cd');
+      this.setCurrentCountry('CD');
     }
   }
 
   private static detectCountryFromCoordinates(latitude: number, longitude: number): CountryConfig | null {
     // Only check CI and RDC for Kwenda
-    const allowedCountries = ['ci', 'cd'];
+    const allowedCountries = ['CI', 'CD'];
     
     for (const countryCode of allowedCountries) {
-      const country = COUNTRIES[countryCode as keyof typeof COUNTRIES];
+      const country = COUNTRIES[countryCode];
       if (!country) continue;
       
       const [minLng, minLat, maxLng, maxLat] = country.bbox;
@@ -468,13 +469,14 @@ export class CountryService {
 
   static getAllCountries(): CountryConfig[] {
     // Only return CI and RDC for Kwenda
-    return [COUNTRIES.ci, COUNTRIES.cd];
+    return [COUNTRIES.CI, COUNTRIES.CD];
   }
 
   static getCountryByCode(code: string): CountryConfig | null {
-    // Only allow CI and RDC
-    if (code === 'ci' || code === 'cd') {
-      return COUNTRIES[code as keyof typeof COUNTRIES] || null;
+    // Only allow CI and RDC (convert to uppercase)
+    const upperCode = code.toUpperCase();
+    if (upperCode === 'CI' || upperCode === 'CD') {
+      return COUNTRIES[upperCode] || null;
     }
     return null;
   }
@@ -487,7 +489,7 @@ export class CountryService {
     
     // If not found, search in the other CI-RDC country
     if (!nearestCity) {
-      const otherCountryCode = currentCountry.code === 'ci' ? 'cd' : 'ci';
+      const otherCountryCode = currentCountry.code === 'CI' ? 'CD' : 'CI';
       const otherCountry = this.getCountryByCode(otherCountryCode);
       if (otherCountry) {
         nearestCity = this.findNearestCityInCountry(latitude, longitude, otherCountry);
@@ -525,13 +527,13 @@ export class CountryService {
 
   // Helper methods for Kwenda CI-RDC
   static isInCoteDIvoire(latitude: number, longitude: number): boolean {
-    const ci = COUNTRIES.ci;
+    const ci = COUNTRIES.CI;
     const [minLng, minLat, maxLng, maxLat] = ci.bbox;
     return latitude >= minLat && latitude <= maxLat && longitude >= minLng && longitude <= maxLng;
   }
 
   static isInRDC(latitude: number, longitude: number): boolean {
-    const cd = COUNTRIES.cd;
+    const cd = COUNTRIES.CD;
     const [minLng, minLat, maxLng, maxLat] = cd.bbox;
     return latitude >= minLat && latitude <= maxLat && longitude >= minLng && longitude <= maxLng;
   }
