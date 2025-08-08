@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,7 @@ import { FinancialDashboard } from '@/components/admin/FinancialDashboard';
 import { ADMIN_NAVIGATION, ADMIN_ROLE_LABELS } from '@/types/roles';
 import { AdminPricingManager } from '@/components/admin/AdminPricingManager';
 import { AdminFiltersBar } from '@/components/admin/AdminFiltersBar';
+import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
 import { 
   LayoutDashboard,
   Users,
@@ -89,34 +90,28 @@ const AdminApp = () => {
   }, [analyticsDateRange])
   const isMobile = useIsMobile();
   const { adminRole, hasPermission, hasAnyPermission, loading: rolesLoading } = useUserRoles();
+  const { loading: analyticsLoading, dashboardData, fetchDashboardAnalytics } = useAdminAnalytics();
   
-  const [realTimeStats, setRealTimeStats] = useState({
-    totalUsers: 15420,
-    activeDrivers: 342,
-    todayRevenue: 2850000,
-    activeRides: 89,
-    marketplaceOrders: 156,
-    activeUsers: 2847,
-    todayRides: 1293,
-    incidents: 12,
-    onlineDrivers: 247,
-    pendingModeration: 8,
-    supportTickets: 23
-  });
-
-  // Simulate real-time updates
   useEffect(() => {
-    const interval = setInterval(() => {
-      setRealTimeStats(prev => ({
-        ...prev,
-        activeUsers: prev.activeUsers + (Math.random() > 0.5 ? 1 : -1),
-        todayRides: prev.todayRides + (Math.random() > 0.8 ? 1 : 0),
-        todayRevenue: prev.todayRevenue + Math.floor(Math.random() * 10000),
-        onlineDrivers: Math.max(100, prev.onlineDrivers + (Math.random() > 0.5 ? 1 : -1))
-      }));
-    }, 10000);
-    return () => clearInterval(interval);
-  }, []);
+    fetchDashboardAnalytics(analyticsDateRange)
+  }, [analyticsDateRange])
+  
+  const realTimeStats = useMemo(() => {
+    const overview = (dashboardData as any)?.overview || {}
+    return {
+      totalUsers: overview.total_users ?? 0,
+      activeDrivers: overview.total_drivers ?? 0,
+      todayRevenue: overview.total_revenue ?? 0,
+      activeRides: 0,
+      marketplaceOrders: 0,
+      activeUsers: overview.total_users ?? 0,
+      todayRides: 0,
+      incidents: 0,
+      onlineDrivers: 0,
+      pendingModeration: 0,
+      supportTickets: overview.pending_support_tickets ?? 0
+    }
+  }, [dashboardData])
 
   // Filtrer la navigation selon les permissions
   const allowedNavItems = ADMIN_NAVIGATION.filter(item => 
@@ -211,8 +206,8 @@ const AdminApp = () => {
                       <Users className="h-6 w-6 text-white" />
                     </div>
                     <div className="ml-4">
-                      <p className="text-body-sm font-medium text-muted-foreground">Utilisateurs actifs</p>
-                      <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.activeUsers.toLocaleString()}</p>
+                      <p className="text-body-sm font-medium text-muted-foreground">Utilisateurs</p>
+                      <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.totalUsers.toLocaleString()}</p>
                     </div>
                   </div>
                   <div className="mt-4 flex items-center">
@@ -230,8 +225,8 @@ const AdminApp = () => {
                       <Car className="h-6 w-6 text-white" />
                     </div>
                     <div className="ml-4">
-                      <p className="text-body-sm font-medium text-muted-foreground">Courses aujourd'hui</p>
-                      <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.todayRides.toLocaleString()}</p>
+                      <p className="text-body-sm font-medium text-muted-foreground">Chauffeurs</p>
+                      <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.activeDrivers.toLocaleString()}</p>
                     </div>
                   </div>
                   <div className="mt-4 flex items-center">
@@ -249,8 +244,8 @@ const AdminApp = () => {
                       <DollarSign className="h-6 w-6 text-white" />
                     </div>
                     <div className="ml-4">
-                      <p className="text-body-sm font-medium text-muted-foreground">Revenus du jour</p>
-                      <p className="text-heading-lg font-bold text-card-foreground">{(realTimeStats.todayRevenue / 1000000).toFixed(1)}M CFA</p>
+                      <p className="text-body-sm font-medium text-muted-foreground">Revenus (période)</p>
+                      <p className="text-heading-lg font-bold text-card-foreground">{realTimeStats.todayRevenue.toLocaleString()} CDF</p>
                     </div>
                   </div>
                   <div className="mt-4 flex items-center">
@@ -268,12 +263,12 @@ const AdminApp = () => {
                       <AlertTriangle className="h-6 w-6 text-white" />
                     </div>
                     <div className="ml-4">
-                      <p className="text-body-sm font-medium text-muted-foreground">Incidents</p>
-                      <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.incidents}</p>
+                      <p className="text-body-sm font-medium text-muted-foreground">Tickets support</p>
+                      <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.supportTickets}</p>
                     </div>
                   </div>
                   <div className="mt-4">
-                    <span className="text-body-sm text-red-500 font-medium bg-red-50 px-2 py-1 rounded-md">3 non résolus</span>
+                    <span className="text-body-sm text-red-500 font-medium bg-red-50 px-2 py-1 rounded-md">En attente</span>
                   </div>
                 </CardContent>
               </Card>
