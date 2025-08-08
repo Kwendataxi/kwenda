@@ -22,8 +22,8 @@ export default function TaxiVehicleCard({
   };
 
   return (
-    <Card>
-      <CardContent className="p-4 flex items-start justify-between">
+    <Card className="rounded-2xl shadow-sm hover:shadow-md transition-all">
+      <CardContent className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold">{vehicle.name}</h3>
@@ -43,8 +43,8 @@ export default function TaxiVehicleCard({
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => onEdit(vehicle)}>Modifier</Button>
-          <Button variant="destructive" onClick={handleDelete}>Supprimer</Button>
+          <Button variant="outline" size="sm" onClick={() => onEdit(vehicle)}>Modifier</Button>
+          <Button variant="destructive" size="sm" onClick={handleDelete}>Supprimer</Button>
         </div>
       </CardContent>
     </Card>

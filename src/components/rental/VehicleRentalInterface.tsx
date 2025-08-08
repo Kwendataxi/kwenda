@@ -6,6 +6,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -231,7 +232,7 @@ const VehicleRentalInterface = ({ onCancel, onBookingComplete }: VehicleRentalIn
 
   const renderCategorySelection = () => (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {categories.map((category) => {
           const IconComponent = getIconComponent(category.icon);
           const categoryVehicles = vehicles.filter(v => v.category_id === category.id);
@@ -244,11 +245,11 @@ const VehicleRentalInterface = ({ onCancel, onBookingComplete }: VehicleRentalIn
                 setSelectedCategory(category.id);
                 setStep('vehicle');
               }}
-              className="w-full p-4 rounded-xl border-2 border-border hover:border-primary text-left transition-all hover:shadow-md"
+              className="w-full p-5 rounded-2xl border bg-card shadow-sm hover:shadow-md hover:border-primary/60 text-left transition-all"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-glow rounded-xl flex items-center justify-center text-white">
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-glow rounded-xl flex items-center justify-center text-background">
                     <IconComponent className="w-6 h-6" />
                   </div>
                   <div>
@@ -284,88 +285,105 @@ const VehicleRentalInterface = ({ onCancel, onBookingComplete }: VehicleRentalIn
       </div>
 
       <Tabs value={rentalDurationType} onValueChange={(value: any) => setRentalDurationType(value)}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="hourly">Heure</TabsTrigger>
-          <TabsTrigger value="half_day">Demi-journée</TabsTrigger>
-          <TabsTrigger value="daily">Jour</TabsTrigger>
-          <TabsTrigger value="weekly">Semaine</TabsTrigger>
+        <TabsList className="w-full bg-muted/50 p-1 rounded-full grid grid-cols-4">
+          <TabsTrigger value="hourly" className="rounded-full data-[state=active]:bg-background data-[state=active]:text-foreground">Heure</TabsTrigger>
+          <TabsTrigger value="half_day" className="rounded-full data-[state=active]:bg-background data-[state=active]:text-foreground">Demi-journée</TabsTrigger>
+          <TabsTrigger value="daily" className="rounded-full data-[state=active]:bg-background data-[state=active]:text-foreground">Jour</TabsTrigger>
+          <TabsTrigger value="weekly" className="rounded-full data-[state=active]:bg-background data-[state=active]:text-foreground">Semaine</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      <div className="grid grid-cols-1 gap-4 mt-4">
-        {filteredVehicles.map((vehicle) => {
-          const IconComponent = getIconComponent(vehicle.vehicle_type === 'moto' ? 'Bike' : vehicle.vehicle_type === 'utility' ? 'Truck' : 'Car');
-          const dailyRate = rentalDurationType === 'hourly' ? vehicle.hourly_rate : 
-                          rentalDurationType === 'half_day' ? vehicle.daily_rate * 0.6 :
-                          rentalDurationType === 'weekly' ? vehicle.weekly_rate / 7 :
-                          vehicle.daily_rate;
-          
-          return (
-            <Card key={vehicle.id} className="cursor-pointer hover:shadow-lg transition-all"
-                  onClick={() => {
-                    setSelectedVehicle(vehicle);
-                    setStep('details');
-                  }}>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4 flex-1">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-glow rounded-xl flex items-center justify-center text-white">
-                      <IconComponent className="w-8 h-8" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-foreground">{vehicle.name}</h3>
-                      <p className="text-sm text-muted-foreground">{vehicle.brand} {vehicle.model} ({vehicle.year})</p>
-                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          <span>{vehicle.seats} places</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Fuel className="w-3 h-3" />
-                          <span>{vehicle.fuel_type}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Settings className="w-3 h-3" />
-                          <span>{vehicle.transmission}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 mt-2">
-                        <MapPinIcon className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">{vehicle.location_address}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {vehicle.features.slice(0, 3).map((feature, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {feature}
-                          </Badge>
-                        ))}
-                        {vehicle.features.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{vehicle.features.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xl font-bold text-primary">{dailyRate.toLocaleString()} FC</p>
-                    <p className="text-xs text-muted-foreground">
-                      par {rentalDurationType === 'hourly' ? 'heure' : 
-                           rentalDurationType === 'half_day' ? 'demi-journée' :
-                           rentalDurationType === 'weekly' ? 'jour' : 'jour'}
-                    </p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Shield className="w-3 h-3 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">
-                        Caution: {vehicle.security_deposit.toLocaleString()} FC
-                      </span>
-                    </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+        {isLoading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="rounded-2xl shadow-sm">
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-start gap-4">
+                  <Skeleton className="h-16 w-16 rounded-xl" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                    <Skeleton className="h-3 w-2/3" />
                   </div>
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
+          ))
+        ) : (
+          filteredVehicles.map((vehicle) => {
+            const IconComponent = getIconComponent(vehicle.vehicle_type === 'moto' ? 'Bike' : vehicle.vehicle_type === 'utility' ? 'Truck' : 'Car');
+            const dailyRate = rentalDurationType === 'hourly' ? vehicle.hourly_rate : 
+                            rentalDurationType === 'half_day' ? vehicle.daily_rate * 0.6 :
+                            rentalDurationType === 'weekly' ? vehicle.weekly_rate / 7 :
+                            vehicle.daily_rate;
+            
+            return (
+              <Card key={vehicle.id} className="cursor-pointer rounded-2xl border shadow-sm hover:shadow-lg transition-all hover:-translate-y-0.5"
+                    onClick={() => {
+                      setSelectedVehicle(vehicle);
+                      setStep('details');
+                    }}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4 flex-1">
+                      <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-glow rounded-xl flex items-center justify-center text-background">
+                        <IconComponent className="w-8 h-8" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground">{vehicle.name}</h3>
+                        <p className="text-sm text-muted-foreground">{vehicle.brand} {vehicle.model} ({vehicle.year})</p>
+                        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            <span>{vehicle.seats} places</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Fuel className="w-3 h-3" />
+                            <span>{vehicle.fuel_type}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Settings className="w-3 h-3" />
+                            <span>{vehicle.transmission}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 mt-2">
+                          <MapPinIcon className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">{vehicle.location_address}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {vehicle.features.slice(0, 3).map((feature, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {feature}
+                            </Badge>
+                          ))}
+                          {vehicle.features.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{vehicle.features.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xl font-bold text-primary">{dailyRate.toLocaleString()} FC</p>
+                      <p className="text-xs text-muted-foreground">
+                        par {rentalDurationType === 'hourly' ? 'heure' : 
+                             rentalDurationType === 'half_day' ? 'demi-journée' :
+                             rentalDurationType === 'weekly' ? 'jour' : 'jour'}
+                      </p>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Shield className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
+                          Caution: {vehicle.security_deposit.toLocaleString()} FC
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
       </div>
     </div>
   );
@@ -388,7 +406,7 @@ const VehicleRentalInterface = ({ onCancel, onBookingComplete }: VehicleRentalIn
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-glow rounded-xl flex items-center justify-center text-white">
+              <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary-glow rounded-xl flex items-center justify-center text-background">
                 <Car className="w-8 h-8" />
               </div>
               <div>
@@ -402,7 +420,7 @@ const VehicleRentalInterface = ({ onCancel, onBookingComplete }: VehicleRentalIn
       )}
 
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium text-foreground">Date de début</label>
             <Popover>
@@ -501,11 +519,11 @@ const VehicleRentalInterface = ({ onCancel, onBookingComplete }: VehicleRentalIn
       <Button
         onClick={handleBooking}
         disabled={!selectedVehicle || !startDate || !endDate || !pickupLocation || isSubmitting}
-        className="w-full h-12 bg-gradient-to-r from-primary to-primary-glow text-white font-semibold"
+        className="w-full h-12 btn-modern bg-gradient-to-r from-primary to-primary-glow text-background"
       >
         {isSubmitting ? (
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
             Création en cours...
           </div>
         ) : (
@@ -517,8 +535,9 @@ const VehicleRentalInterface = ({ onCancel, onBookingComplete }: VehicleRentalIn
 
   return (
     <div className="min-h-screen bg-background">
+      <header role="banner">
       {/* Header */}
-      <div className="bg-white border-b border-border sticky top-0 z-10">
+      <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="flex items-center gap-3 p-4">
           <Button
             variant="ghost"
@@ -534,13 +553,14 @@ const VehicleRentalInterface = ({ onCancel, onBookingComplete }: VehicleRentalIn
           </div>
         </div>
       </div>
+      </header>
 
       {/* Content */}
-      <div className="p-4">
+      <main className="container mx-auto max-w-screen-lg p-4 pb-24">
         {step === 'category' && renderCategorySelection()}
         {step === 'vehicle' && renderVehicleSelection()}
         {step === 'details' && renderBookingDetails()}
-      </div>
+      </main>
     </div>
   );
 };

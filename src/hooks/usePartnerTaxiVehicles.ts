@@ -68,7 +68,7 @@ export function usePartnerTaxiVehicles() {
         is_available: true,
         moderation_status: "pending",
       };
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("partner_taxi_vehicles")
         .insert(insert as any)
         .select()
@@ -84,7 +84,7 @@ export function usePartnerTaxiVehicles() {
 
   const updateVehicle = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<TaxiVehicle> }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("partner_taxi_vehicles")
         .update(updates as any)
         .eq("id", id)
@@ -101,7 +101,7 @@ export function usePartnerTaxiVehicles() {
 
   const deleteVehicle = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("partner_taxi_vehicles").delete().eq("id", id);
+      const { error } = await (supabase as any).from("partner_taxi_vehicles").delete().eq("id", id);
       if (error) throw error;
       return true;
     },

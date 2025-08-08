@@ -60,9 +60,9 @@ export default function TaxiVehicleForm({ initial, onSaved }: Props) {
   };
 
   return (
-    <Card>
-      <CardContent className="p-4 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <Card className="rounded-2xl shadow-sm">
+      <CardContent className="p-6 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="text-sm font-medium">Nom</label>
             <Input className="mt-1" value={values.name as string} onChange={(e) => handleChange("name", e.target.value)} />
@@ -124,7 +124,7 @@ export default function TaxiVehicleForm({ initial, onSaved }: Props) {
         </div>
 
         <div className="flex justify-end">
-          <Button onClick={handleSubmit} className="bg-gradient-to-r from-primary to-primary-glow text-white">
+          <Button onClick={handleSubmit} className="btn-modern bg-gradient-to-r from-primary to-primary-glow text-background">
             {isEditing ? "Mettre à jour" : "Ajouter le taxi"}
           </Button>
         </div>
