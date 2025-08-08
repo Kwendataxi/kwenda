@@ -133,35 +133,37 @@ const AdvancedFeatures = () => {
         </div>
 
         {/* Main Features Interactive Section */}
-        <div className="grid lg:grid-cols-2 gap-12 mb-20">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mb-16 lg:mb-20">
           {/* Feature Tabs */}
-          <div className="space-y-4">
+          <div className="space-y-3 lg:space-y-4">
             {mainFeatures.map((feature) => (
               <Card
                 key={feature.id}
-                className={`cursor-pointer transition-all duration-300 ${
+                className={`cursor-pointer transition-all duration-300 touch-manipulation ${
                   activeFeature === feature.id
                     ? 'border-primary/50 shadow-lg scale-105'
-                    : 'border-border/30 hover:border-primary/30'
+                    : 'border-border/30 hover:border-primary/30 active:border-primary/50'
                 }`}
                 onClick={() => setActiveFeature(feature.id)}
               >
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl bg-gradient-to-br ${feature.gradient} text-white`}>
-                      {feature.icon}
+                <CardContent className="p-4 lg:p-6">
+                  <div className="flex items-start gap-3 lg:gap-4">
+                    <div className={`p-2 lg:p-3 rounded-lg lg:rounded-xl bg-gradient-to-br ${feature.gradient} text-white flex-shrink-0`}>
+                      <div className="w-5 h-5 lg:w-8 lg:h-8">
+                        {feature.icon}
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-heading-sm mb-1">{feature.title}</h3>
-                      <p className="text-sm text-muted-foreground">{feature.subtitle}</p>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base lg:text-heading-sm mb-1 truncate">{feature.title}</h3>
+                      <p className="text-xs lg:text-sm text-muted-foreground">{feature.subtitle}</p>
                       {activeFeature === feature.id && (
-                        <div className="mt-3 text-sm text-foreground/80">
+                        <div className="mt-2 lg:mt-3 text-xs lg:text-sm text-foreground/80 leading-relaxed">
                           {feature.description}
                         </div>
                       )}
                     </div>
                     {activeFeature === feature.id && (
-                      <ArrowRight className="w-5 h-5 text-primary" />
+                      <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5 text-primary flex-shrink-0" />
                     )}
                   </div>
                 </CardContent>
@@ -171,32 +173,34 @@ const AdvancedFeatures = () => {
 
           {/* Feature Detail */}
           <Card className="border-primary/20 shadow-xl">
-            <CardContent className="p-8">
-              <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${activeFeatureData.gradient} text-white mb-6`}>
-                {activeFeatureData.icon}
+            <CardContent className="p-6 lg:p-8">
+              <div className={`inline-flex p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gradient-to-br ${activeFeatureData.gradient} text-white mb-4 lg:mb-6`}>
+                <div className="w-6 h-6 lg:w-8 lg:h-8">
+                  {activeFeatureData.icon}
+                </div>
               </div>
               
-              <h3 className="text-heading-lg mb-4">{activeFeatureData.title}</h3>
-              <p className="text-body-md text-muted-foreground mb-6">
+              <h3 className="text-xl lg:text-heading-lg mb-3 lg:mb-4">{activeFeatureData.title}</h3>
+              <p className="text-sm lg:text-body-md text-muted-foreground mb-4 lg:mb-6 leading-relaxed">
                 {activeFeatureData.description}
               </p>
 
               {/* Benefits */}
-              <div className="space-y-3 mb-6">
+              <div className="space-y-2 lg:space-y-3 mb-4 lg:mb-6">
                 {activeFeatureData.benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                    <span className="text-sm">{benefit}</span>
+                  <div key={index} className="flex items-start gap-2 lg:gap-3">
+                    <CheckCircle className="w-4 h-4 lg:w-5 lg:h-5 text-primary flex-shrink-0 mt-0.5" />
+                    <span className="text-xs lg:text-sm leading-relaxed">{benefit}</span>
                   </div>
                 ))}
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-xl">
+              <div className="grid grid-cols-3 gap-2 lg:gap-4 p-3 lg:p-4 bg-muted/50 rounded-lg lg:rounded-xl">
                 {Object.entries(activeFeatureData.stats).map(([key, value]) => (
                   <div key={key} className="text-center">
-                    <div className="text-lg font-bold text-primary">{value}</div>
-                    <div className="text-xs text-muted-foreground capitalize">{key}</div>
+                    <div className="text-sm lg:text-lg font-bold text-primary">{value}</div>
+                    <div className="text-xs text-muted-foreground capitalize truncate">{key}</div>
                   </div>
                 ))}
               </div>
@@ -205,17 +209,19 @@ const AdvancedFeatures = () => {
         </div>
 
         {/* Unique Features Grid */}
-        <div className="mb-16">
-          <h3 className="text-heading-lg text-center mb-8">Ce qui nous rend uniques</h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mb-12 lg:mb-16">
+          <h3 className="text-xl lg:text-heading-lg text-center mb-6 lg:mb-8">Ce qui nous rend uniques</h3>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
             {uniqueFeatures.map((feature, index) => (
-              <Card key={index} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <CardContent className="p-6 text-center">
-                  <div className={`inline-flex p-3 rounded-xl bg-muted/50 ${feature.color} mb-4 group-hover:scale-110 transition-transform`}>
-                    {feature.icon}
+              <Card key={index} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 touch-manipulation">
+                <CardContent className="p-4 lg:p-6 text-center">
+                  <div className={`inline-flex p-2 lg:p-3 rounded-lg lg:rounded-xl bg-muted/50 ${feature.color} mb-3 lg:mb-4 group-hover:scale-110 transition-transform`}>
+                    <div className="w-4 h-4 lg:w-6 lg:h-6">
+                      {feature.icon}
+                    </div>
                   </div>
-                  <h4 className="text-heading-sm mb-2">{feature.title}</h4>
-                  <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  <h4 className="text-sm lg:text-heading-sm mb-1 lg:mb-2">{feature.title}</h4>
+                  <p className="text-xs lg:text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -224,32 +230,32 @@ const AdvancedFeatures = () => {
 
         {/* Stats Section */}
         <Card className="bg-gradient-to-r from-primary via-secondary to-accent text-white">
-          <CardContent className="p-8">
-            <div className="text-center mb-8">
-              <h3 className="text-heading-lg mb-2">Kwenda Taxi en chiffres</h3>
-              <p className="text-white/90">Des résultats qui parlent d'eux-mêmes</p>
+          <CardContent className="p-6 lg:p-8">
+            <div className="text-center mb-6 lg:mb-8">
+              <h3 className="text-xl lg:text-heading-lg mb-2">Kwenda Taxi en chiffres</h3>
+              <p className="text-white/90 text-sm lg:text-base">Des résultats qui parlent d'eux-mêmes</p>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-center">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-8 text-center">
               <div>
-                <div className="text-display-sm font-bold mb-2">5+</div>
-                <div className="text-white/80 text-sm">Services Intégrés</div>
+                <div className="text-2xl lg:text-display-sm font-bold mb-1 lg:mb-2">5+</div>
+                <div className="text-white/80 text-xs lg:text-sm">Services Intégrés</div>
               </div>
               <div>
-                <div className="text-display-sm font-bold mb-2">24/7</div>
-                <div className="text-white/80 text-sm">Support Client</div>
+                <div className="text-2xl lg:text-display-sm font-bold mb-1 lg:mb-2">24/7</div>
+                <div className="text-white/80 text-xs lg:text-sm">Support Client</div>
               </div>
               <div>
-                <div className="text-display-sm font-bold mb-2">100%</div>
-                <div className="text-white/80 text-sm">Chauffeurs Vérifiés</div>
+                <div className="text-2xl lg:text-display-sm font-bold mb-1 lg:mb-2">100%</div>
+                <div className="text-white/80 text-xs lg:text-sm">Chauffeurs Vérifiés</div>
               </div>
-              <div>
-                <div className="text-display-sm font-bold mb-2">🇨🇩</div>
-                <div className="text-white/80 text-sm">Made in Congo</div>
+              <div className="col-span-2 sm:col-span-1">
+                <div className="text-2xl lg:text-display-sm font-bold mb-1 lg:mb-2">🇨🇩</div>
+                <div className="text-white/80 text-xs lg:text-sm">Made in Congo</div>
               </div>
-              <div>
-                <div className="text-display-sm font-bold mb-2">∞</div>
-                <div className="text-white/80 text-sm">Possibilités</div>
+              <div className="col-span-2 sm:col-span-3 lg:col-span-1">
+                <div className="text-2xl lg:text-display-sm font-bold mb-1 lg:mb-2">∞</div>
+                <div className="text-white/80 text-xs lg:text-sm">Possibilités</div>
               </div>
             </div>
           </CardContent>

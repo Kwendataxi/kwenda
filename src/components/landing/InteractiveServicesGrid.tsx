@@ -108,17 +108,18 @@ const InteractiveServicesGrid = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {services.map((service, index) => (
             <Card 
               key={service.id}
-              className={`relative group hover:shadow-xl transition-all duration-500 cursor-pointer transform hover:-translate-y-2 ${
-                index === 2 ? 'lg:col-span-3 lg:max-w-md lg:mx-auto' : ''
+              className={`relative group hover:shadow-xl transition-all duration-500 cursor-pointer transform hover:-translate-y-2 touch-manipulation ${
+                index >= 3 ? 'sm:col-span-2 lg:col-span-1 sm:max-w-md sm:mx-auto lg:max-w-none lg:mx-0' : ''
               } ${
                 hoveredService === service.id ? 'scale-105 shadow-glow' : ''
               }`}
               onMouseEnter={() => setHoveredService(service.id)}
               onMouseLeave={() => setHoveredService(null)}
+              onClick={() => setHoveredService(hoveredService === service.id ? null : service.id)}
             >
               {/* Service Badge */}
               {service.popular && (
@@ -137,37 +138,39 @@ const InteractiveServicesGrid = () => {
                 </div>
               )}
 
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`p-4 bg-gradient-to-br ${service.gradient} rounded-2xl text-white group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                    {service.icon}
+              <CardHeader className="pb-3 lg:pb-4">
+                <div className="flex items-start justify-between mb-3 lg:mb-4">
+                  <div className={`p-3 lg:p-4 bg-gradient-to-br ${service.gradient} rounded-xl lg:rounded-2xl text-white group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                    <div className="w-6 h-6 lg:w-10 lg:h-10">
+                      {service.icon}
+                    </div>
                   </div>
                   {hoveredService === service.id && (
-                    <ArrowRight className="w-6 h-6 text-primary animate-bounce" />
+                    <ArrowRight className="w-5 h-5 lg:w-6 lg:h-6 text-primary animate-bounce" />
                   )}
                 </div>
                 
-                <CardTitle className="text-heading-lg group-hover:text-primary transition-colors">
+                <CardTitle className="text-lg lg:text-heading-lg group-hover:text-primary transition-colors">
                   {service.title}
                 </CardTitle>
-                <CardDescription className="text-body-md">
+                <CardDescription className="text-sm lg:text-body-md leading-relaxed">
                   {service.description}
                 </CardDescription>
               </CardHeader>
 
-              <CardContent className="space-y-6">
-                <div className="text-heading-md font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <CardContent className="space-y-4 lg:space-y-6 p-4 lg:p-6">
+                <div className="text-lg lg:text-heading-md font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   {service.price}
                 </div>
 
                 {/* Features List */}
-                <div className="space-y-3">
-                  {service.features.map((feature, featureIndex) => (
+                <div className="space-y-2 lg:space-y-3">
+                  {service.features.slice(0, hoveredService === service.id ? 4 : 2).map((feature, featureIndex) => (
                     <div 
                       key={featureIndex} 
-                      className="flex items-center gap-3 text-sm group-hover:text-foreground transition-colors"
+                      className="flex items-center gap-2 lg:gap-3 text-xs lg:text-sm group-hover:text-foreground transition-colors"
                     >
-                      <div className="text-primary group-hover:scale-110 transition-transform">
+                      <div className="text-primary group-hover:scale-110 transition-transform flex-shrink-0">
                         {feature.icon}
                       </div>
                       <span className="text-muted-foreground group-hover:text-foreground transition-colors">
@@ -175,23 +178,29 @@ const InteractiveServicesGrid = () => {
                       </span>
                     </div>
                   ))}
+                  {service.features.length > 2 && hoveredService !== service.id && (
+                    <div className="text-xs text-muted-foreground/70 lg:hidden">
+                      Appuyez pour voir plus...
+                    </div>
+                  )}
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-3 gap-2 pt-4 border-t border-border/50">
+                <div className="grid grid-cols-3 gap-1 lg:gap-2 pt-3 lg:pt-4 border-t border-border/50">
                   {Object.entries(service.stats).map(([key, value]) => (
                     <div key={key} className="text-center">
-                      <div className="text-sm font-bold text-primary">{value}</div>
-                      <div className="text-xs text-muted-foreground capitalize">{key}</div>
+                      <div className="text-xs lg:text-sm font-bold text-primary">{value}</div>
+                      <div className="text-xs text-muted-foreground capitalize truncate">{key}</div>
                     </div>
                   ))}
                 </div>
 
                 <Button 
-                  className={`w-full group-hover:scale-105 transition-all duration-300 bg-gradient-to-r ${service.gradient} hover:shadow-glow`}
+                  className={`w-full group-hover:scale-105 transition-all duration-300 bg-gradient-to-r ${service.gradient} hover:shadow-glow min-h-[44px] text-sm lg:text-base`}
+                  size="lg"
                 >
-                  {service.id === 'lottery' ? 'Découvrir' : 'Réserver maintenant'}
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  {service.id === 'lottery' ? 'Découvrir' : 'Réserver'}
+                  <ArrowRight className="w-3 h-3 lg:w-4 lg:h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </CardContent>
             </Card>
@@ -199,21 +208,21 @@ const InteractiveServicesGrid = () => {
         </div>
 
         {/* Quick Access CTA */}
-        <div className="mt-16 text-center">
-          <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border border-primary/20 rounded-3xl p-8 backdrop-blur-sm">
-            <h3 className="text-heading-lg mb-4">
+        <div className="mt-12 lg:mt-16 text-center">
+          <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border border-primary/20 rounded-2xl lg:rounded-3xl p-6 lg:p-8 backdrop-blur-sm">
+            <h3 className="text-xl lg:text-heading-lg mb-3 lg:mb-4">
               Prêt à découvrir l'expérience Kwenda ?
             </h3>
-            <p className="text-body-md text-muted-foreground mb-6 max-w-2xl mx-auto">
+            <p className="text-sm lg:text-body-md text-muted-foreground mb-4 lg:mb-6 max-w-2xl mx-auto">
               Téléchargez l'app et profitez de tous nos services en quelques clics !
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow">
-                <Car className="w-5 h-5 mr-2" />
+            <div className="flex flex-col gap-3 lg:gap-4 justify-center">
+              <Button size="lg" className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow min-h-[48px] text-sm lg:text-base">
+                <Car className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
                 Commander maintenant
               </Button>
-              <Button variant="outline" size="lg" className="border-primary/30 hover:bg-primary/5">
-                <Users className="w-5 h-5 mr-2" />
+              <Button variant="outline" size="lg" className="border-primary/30 hover:bg-primary/5 min-h-[48px] text-sm lg:text-base">
+                <Users className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
                 Devenir partenaire
               </Button>
             </div>

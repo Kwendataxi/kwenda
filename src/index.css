@@ -119,6 +119,25 @@ All colors MUST be HSL.
     touch-action: manipulation;
   }
 
+  /* Safe area support for mobile devices */
+  .safe-area-padding {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Enhanced touch targets for mobile */
+  @media (max-width: 768px) {
+    .min-touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    .touch-friendly {
+      padding: 12px;
+      margin: 4px;
+    }
+  }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
