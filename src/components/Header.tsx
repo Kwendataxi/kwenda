@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Car, Phone, MapPin } from "lucide-react";
+import { Menu, X, Phone } from "lucide-react";
+import BrandLogo from "@/components/brand/BrandLogo";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,15 +17,9 @@ const Header = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-primary rounded-lg">
-              <Car className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <div className="font-bold text-lg">NTA TECH</div>
-              <div className="text-xs text-primary font-semibold">VTC</div>
-            </div>
+            <BrandLogo size={32} className="rounded-lg" alt="Kwenda Taxi Congo — logo" />
+            <span className="sr-only">Kwenda Taxi</span>
           </div>
 
           {/* Desktop Navigation */}

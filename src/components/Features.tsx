@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Smartphone, Car, Users, CreditCard, Star } from "lucide-react";
 import ecoCarIcon from "@/assets/eco-car-icon.png";
-import appIcon from "@/assets/app-icon.png";
+const appIcon = "/lovable-uploads/e5018ec7-a9e4-44b2-ad57-174b4cb5891b.png";
 import driverIcon from "@/assets/driver-icon.png";
 
 const Features = () => {
