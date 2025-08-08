@@ -272,7 +272,15 @@ export type Database = {
           reference_type?: string | null
           transaction_type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       delivery_orders: {
         Row: {
@@ -457,7 +465,15 @@ export type Database = {
           total_spent?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "driver_credits_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       driver_locations: {
         Row: {
