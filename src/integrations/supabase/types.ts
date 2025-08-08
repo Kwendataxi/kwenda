@@ -1992,6 +1992,65 @@ export type Database = {
         }
         Relationships: []
       }
+      push_messages: {
+        Row: {
+          audience_role: string | null
+          audience_type: string
+          body: string
+          created_at: string
+          data: Json | null
+          error: string | null
+          failure_count: number
+          id: string
+          sent_at: string | null
+          sent_by: string
+          status: string
+          success_count: number
+          target_user_ids: string[] | null
+          title: string
+        }
+        Insert: {
+          audience_role?: string | null
+          audience_type: string
+          body: string
+          created_at?: string
+          data?: Json | null
+          error?: string | null
+          failure_count?: number
+          id?: string
+          sent_at?: string | null
+          sent_by: string
+          status?: string
+          success_count?: number
+          target_user_ids?: string[] | null
+          title: string
+        }
+        Update: {
+          audience_role?: string | null
+          audience_type?: string
+          body?: string
+          created_at?: string
+          data?: Json | null
+          error?: string | null
+          failure_count?: number
+          id?: string
+          sent_at?: string | null
+          sent_by?: string
+          status?: string
+          success_count?: number
+          target_user_ids?: string[] | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_messages_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       push_notifications: {
         Row: {
           created_at: string
@@ -2027,6 +2086,65 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          app_type: string
+          created_at: string
+          device_id: string | null
+          device_model: string | null
+          id: string
+          language: string | null
+          last_seen_at: string | null
+          notifications_enabled: boolean
+          os_version: string | null
+          platform: string
+          timezone: string | null
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_type: string
+          created_at?: string
+          device_id?: string | null
+          device_model?: string | null
+          id?: string
+          language?: string | null
+          last_seen_at?: string | null
+          notifications_enabled?: boolean
+          os_version?: string | null
+          platform: string
+          timezone?: string | null
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_type?: string
+          created_at?: string
+          device_id?: string | null
+          device_model?: string | null
+          id?: string
+          language?: string | null
+          last_seen_at?: string | null
+          notifications_enabled?: boolean
+          os_version?: string | null
+          platform?: string
+          timezone?: string | null
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       referral_rewards: {
         Row: {
