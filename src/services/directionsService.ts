@@ -1,0 +1,312 @@
+import { supabase } from '@/integrations/supabase/client';
+
+export interface RouteStep {
+  instruction: string;
+  distance: number;
+  duration: number;
+  coordinates: [number, number][];
+}
+
+export interface DirectionsResult {
+  distance: number; // meters
+  duration: number; // seconds
+  distanceText: string;
+  durationText: string;
+  geometry: [number, number][]; // [lng, lat] pairs
+  steps: RouteStep[];
+  trafficAware: boolean;
+  provider: 'mapbox' | 'google';
+}
+
+export interface DirectionsOptions {
+  profile?: 'driving' | 'walking' | 'cycling' | 'driving-traffic';
+  alternatives?: boolean;
+  steps?: boolean;
+  geometries?: 'geojson' | 'polyline';
+  overview?: 'full' | 'simplified' | 'false';
+  exclude?: string[];
+}
+
+export class DirectionsService {
+  private static mapboxToken: string = '';
+  private static googleApiKey: string = '';
+
+  static async getMapboxToken(): Promise<string> {
+    if (this.mapboxToken) return this.mapboxToken;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+      if (error) throw error;
+      this.mapboxToken = data.token;
+      return this.mapboxToken;
+    } catch (error) {
+      console.error('Error fetching Mapbox token:', error);
+      throw new Error('Mapbox token not available');
+    }
+  }
+
+  static async getGoogleApiKey(): Promise<string> {
+    if (this.googleApiKey) return this.googleApiKey;
+    
+    try {
+      const response = await fetch('https://wddlktajnhwhyquwcdgf.supabase.co/functions/v1/get-google-maps-key', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZGxrdGFqbmh3aHlxdXdjZGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxNDA1NjUsImV4cCI6MjA2OTcxNjU2NX0.rViBegpawtg1sFwafH_fczlB0oeA8E6V3MtDELcSIiU`
+        }
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch Google API key');
+      const data = await response.json();
+      
+      if (data.error) throw new Error(data.error);
+      this.googleApiKey = data.apiKey;
+      return this.googleApiKey;
+    } catch (error) {
+      console.error('Error fetching Google API key:', error);
+      throw new Error('Google API key not available');
+    }
+  }
+
+  static async getDirections(
+    origin: { lat: number; lng: number },
+    destination: { lat: number; lng: number },
+    options: DirectionsOptions = {}
+  ): Promise<DirectionsResult> {
+    // Try Mapbox first (generally better for RDC)
+    try {
+      return await this.getMapboxDirections(origin, destination, options);
+    } catch (mapboxError) {
+      console.warn('Mapbox directions failed, trying Google:', mapboxError);
+      
+      // Fallback to Google Directions
+      try {
+        return await this.getGoogleDirections(origin, destination, options);
+      } catch (googleError) {
+        console.error('Both Mapbox and Google directions failed:', googleError);
+        
+        // Ultimate fallback: straight line calculation
+        return this.getFallbackDirections(origin, destination);
+      }
+    }
+  }
+
+  private static async getMapboxDirections(
+    origin: { lat: number; lng: number },
+    destination: { lat: number; lng: number },
+    options: DirectionsOptions
+  ): Promise<DirectionsResult> {
+    const token = await this.getMapboxToken();
+    const profile = options.profile === 'driving-traffic' ? 'driving-traffic' : (options.profile || 'driving');
+    
+    const coordinates = `${origin.lng},${origin.lat};${destination.lng},${destination.lat}`;
+    
+    let url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coordinates}`;
+    url += `?access_token=${token}`;
+    url += '&geometries=geojson';
+    url += '&steps=true';
+    url += '&overview=full';
+    
+    if (options.alternatives) url += '&alternatives=true';
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!response.ok || !data.routes || data.routes.length === 0) {
+      throw new Error(`Mapbox API error: ${data.message || 'No routes found'}`);
+    }
+
+    const route = data.routes[0];
+    
+    return {
+      distance: route.distance,
+      duration: route.duration,
+      distanceText: `${(route.distance / 1000).toFixed(1)} km`,
+      durationText: this.formatDuration(route.duration),
+      geometry: route.geometry.coordinates,
+      steps: route.legs[0]?.steps?.map((step: any) => ({
+        instruction: step.maneuver.instruction,
+        distance: step.distance,
+        duration: step.duration,
+        coordinates: step.geometry.coordinates
+      })) || [],
+      trafficAware: profile === 'driving-traffic',
+      provider: 'mapbox'
+    };
+  }
+
+  private static async getGoogleDirections(
+    origin: { lat: number; lng: number },
+    destination: { lat: number; lng: number },
+    options: DirectionsOptions
+  ): Promise<DirectionsResult> {
+    const apiKey = await this.getGoogleApiKey();
+    
+    let url = `https://maps.googleapis.com/maps/api/directions/json`;
+    url += `?origin=${origin.lat},${origin.lng}`;
+    url += `&destination=${destination.lat},${destination.lng}`;
+    url += `&key=${apiKey}`;
+    
+    // Map profile to Google travel mode
+    const travelMode = options.profile === 'walking' ? 'walking' : 
+                      options.profile === 'cycling' ? 'bicycling' : 'driving';
+    url += `&mode=${travelMode}`;
+    
+    if (options.profile === 'driving-traffic') {
+      url += '&departure_time=now';
+    }
+    
+    if (options.alternatives) url += '&alternatives=true';
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!response.ok || data.status !== 'OK' || !data.routes || data.routes.length === 0) {
+      throw new Error(`Google Directions API error: ${data.status || 'No routes found'}`);
+    }
+
+    const route = data.routes[0];
+    const leg = route.legs[0];
+    
+    // Decode Google polyline to coordinates
+    const geometry = this.decodePolyline(route.overview_polyline.points);
+    
+    return {
+      distance: leg.distance.value,
+      duration: leg.duration.value,
+      distanceText: leg.distance.text,
+      durationText: leg.duration.text,
+      geometry,
+      steps: leg.steps?.map((step: any) => ({
+        instruction: step.html_instructions.replace(/<[^>]*>/g, ''),
+        distance: step.distance.value,
+        duration: step.duration.value,
+        coordinates: this.decodePolyline(step.polyline.points)
+      })) || [],
+      trafficAware: options.profile === 'driving-traffic',
+      provider: 'google'
+    };
+  }
+
+  private static getFallbackDirections(
+    origin: { lat: number; lng: number },
+    destination: { lat: number; lng: number }
+  ): DirectionsResult {
+    // Calculate straight-line distance
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = origin.lat * Math.PI/180;
+    const φ2 = destination.lat * Math.PI/180;
+    const Δφ = (destination.lat - origin.lat) * Math.PI/180;
+    const Δλ = (destination.lng - origin.lng) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    const distance = R * c;
+    
+    // Estimate duration (assume 30 km/h average speed in Kinshasa)
+    const duration = (distance / 1000) / 30 * 3600;
+
+    return {
+      distance: Math.round(distance),
+      duration: Math.round(duration),
+      distanceText: `${(distance / 1000).toFixed(1)} km`,
+      durationText: this.formatDuration(duration),
+      geometry: [[origin.lng, origin.lat], [destination.lng, destination.lat]],
+      steps: [{
+        instruction: `Se diriger vers ${destination.lat.toFixed(4)}, ${destination.lng.toFixed(4)}`,
+        distance: Math.round(distance),
+        duration: Math.round(duration),
+        coordinates: [[origin.lng, origin.lat], [destination.lng, destination.lat]]
+      }],
+      trafficAware: false,
+      provider: 'mapbox'
+    };
+  }
+
+  private static formatDuration(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}min`;
+    }
+    return `${minutes}min`;
+  }
+
+  // Decode Google polyline algorithm
+  private static decodePolyline(str: string): [number, number][] {
+    let index = 0;
+    const lat = 0;
+    const lng = 0;
+    const coordinates: [number, number][] = [];
+    let lat_change: number, lng_change: number;
+
+    let latitude = 0;
+    let longitude = 0;
+
+    while (index < str.length) {
+      // Decode latitude
+      let shift = 0;
+      let result = 0;
+      let byte: number;
+      
+      do {
+        byte = str.charCodeAt(index++) - 63;
+        result |= (byte & 0x1f) << shift;
+        shift += 5;
+      } while (byte >= 0x20);
+      
+      lat_change = ((result & 1) ? ~(result >> 1) : (result >> 1));
+      latitude += lat_change;
+
+      // Decode longitude
+      shift = 0;
+      result = 0;
+      
+      do {
+        byte = str.charCodeAt(index++) - 63;
+        result |= (byte & 0x1f) << shift;
+        shift += 5;
+      } while (byte >= 0x20);
+      
+      lng_change = ((result & 1) ? ~(result >> 1) : (result >> 1));
+      longitude += lng_change;
+
+      coordinates.push([longitude * 1e-5, latitude * 1e-5]);
+    }
+
+    return coordinates;
+  }
+
+  static async getMultipleRoutes(
+    waypoints: { lat: number; lng: number }[],
+    options: DirectionsOptions = {}
+  ): Promise<DirectionsResult[]> {
+    if (waypoints.length < 2) {
+      throw new Error('At least 2 waypoints required');
+    }
+
+    const routes: DirectionsResult[] = [];
+    
+    for (let i = 0; i < waypoints.length - 1; i++) {
+      const route = await this.getDirections(waypoints[i], waypoints[i + 1], options);
+      routes.push(route);
+    }
+
+    return routes;
+  }
+
+  static estimateETAWithTraffic(
+    origin: { lat: number; lng: number },
+    destination: { lat: number; lng: number }
+  ): Promise<DirectionsResult> {
+    return this.getDirections(origin, destination, { 
+      profile: 'driving-traffic',
+      steps: false 
+    });
+  }
+}
