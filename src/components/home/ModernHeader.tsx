@@ -8,7 +8,7 @@ import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { useProfile } from '@/hooks/useProfile';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
-import { GeocodingService } from '@/services/geocoding';
+import { GooglePlacesService } from '@/services/googlePlacesService';
 import { Button } from '@/components/ui/button';
 
 interface ModernHeaderProps {}
@@ -67,7 +67,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
       const reverseGeocode = async () => {
         try {
           setGeocodingLoading(true);
-          const address = await GeocodingService.reverseGeocode(
+          const address = await GooglePlacesService.reverseGeocode(
             geolocation.longitude,
             geolocation.latitude
           );

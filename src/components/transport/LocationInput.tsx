@@ -3,7 +3,7 @@ import { MapPin, Search, Clock, Home, Building2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { GeocodingService } from '@/services/geocoding';
+import { GooglePlacesService } from '@/services/googlePlacesService';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { usePlaces } from '@/hooks/usePlaces';
 import { LocationErrorHandler } from './LocationErrorHandler';
@@ -48,7 +48,7 @@ const LocationInput = ({
       setIsSearching(true);
       debounceRef.current = setTimeout(async () => {
         try {
-          const results = await GeocodingService.searchPlaces(
+          const results = await GooglePlacesService.searchPlaces(
             searchQuery,
             lastKnownPosition
               ? { lng: lastKnownPosition.longitude, lat: lastKnownPosition.latitude }
@@ -97,7 +97,7 @@ const LocationInput = ({
       const position = await getCurrentPosition();
       if (position) {
         // Reverse geocode to get address
-        const address = await GeocodingService.reverseGeocode(
+        const address = await GooglePlacesService.reverseGeocode(
           position.coords.longitude,
           position.coords.latitude
         );
