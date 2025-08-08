@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Users, Car, DollarSign, Wallet, Activity, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -61,7 +62,7 @@ export const PartnerKPIGrid: React.FC<PartnerKPIGridProps> = ({ stats }) => {
                 </span>
               </div>
               
-              <p className={`text-card-foreground font-bold mb-2 ${isMobile ? 'text-lg' : 'text-display-sm'}`}>
+              <p className={`text-white font-bold mb-2 ${isMobile ? 'text-lg' : 'text-display-sm'}`}>
                 {item.value}{item.suffix}
               </p>
               
