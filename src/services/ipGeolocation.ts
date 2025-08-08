@@ -50,8 +50,8 @@ export class IPGeolocationService {
       }
     } catch (error) {
       console.warn('Failed to detect country from IP:', error);
-      // Default fallback - could be made smarter by detecting browser language
-      return 'CI'; // Default to Côte d'Ivoire
+      // No forced fallback - let the system handle it properly
+      return 'UNKNOWN';
     }
   }
 

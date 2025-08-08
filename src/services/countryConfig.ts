@@ -422,14 +422,20 @@ export class CountryService {
   }
 
   static setCurrentCountry(countryCode: string): void {
-    // Only allow CI and RDC for Kwenda (convert to uppercase)
     const upperCode = countryCode.toUpperCase();
-    if (upperCode === 'CI' || upperCode === 'CD') {
-      const country = COUNTRIES[upperCode];
-      if (country) {
-        this.currentCountry = country;
-        this.listeners.forEach(callback => callback(country));
-      }
+    
+    // Prioritize CI and CD, but allow any country for global reach
+    let country = COUNTRIES[upperCode];
+    
+    // If not CI/CD, use global fallback but keep CI/CD features
+    if (!country && upperCode !== 'UNKNOWN') {
+      console.log(`Using global config for country: ${upperCode}`);
+      country = { ...COUNTRIES["*"], code: upperCode };
+    }
+    
+    if (country) {
+      this.currentCountry = country;
+      this.listeners.forEach(callback => callback(country));
     }
   }
 
@@ -445,16 +451,18 @@ export class CountryService {
     if (detectedCountry) {
       this.setCurrentCountry(detectedCountry.code);
     } else {
-      // Fallback to RDC for Kwenda
-      this.setCurrentCountry('CD');
+      // Don't force CD, let the IP geolocation or user choice handle it
+      console.log('Could not detect country from coordinates, using current location data');
     }
   }
 
   private static detectCountryFromCoordinates(latitude: number, longitude: number): CountryConfig | null {
-    // Only check CI and RDC for Kwenda
-    const allowedCountries = ['CI', 'CD'];
+    // Check all available countries, prioritizing CI and CD
+    const priorityCountries = ['CI', 'CD'];
+    const allCountries = Object.keys(COUNTRIES).filter(code => code !== '*');
     
-    for (const countryCode of allowedCountries) {
+    // Check priority countries first
+    for (const countryCode of priorityCountries) {
       const country = COUNTRIES[countryCode];
       if (!country) continue;
       
@@ -464,6 +472,21 @@ export class CountryService {
         return country;
       }
     }
+    
+    // Then check other countries
+    for (const countryCode of allCountries) {
+      if (priorityCountries.includes(countryCode)) continue;
+      
+      const country = COUNTRIES[countryCode];
+      if (!country) continue;
+      
+      const [minLng, minLat, maxLng, maxLat] = country.bbox;
+      if (latitude >= minLat && latitude <= maxLat && 
+          longitude >= minLng && longitude <= maxLng) {
+        return country;
+      }
+    }
+    
     return null;
   }
 

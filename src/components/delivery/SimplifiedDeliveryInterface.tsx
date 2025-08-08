@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { GoogleMapsService } from '@/services/googleMapsService';
 import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
+import { IntelligentLocationSearch } from '@/components/maps/IntelligentLocationSearch';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 
 interface Location {
@@ -222,16 +223,14 @@ const SimplifiedDeliveryInterface: React.FC<SimplifiedDeliveryInterfaceProps> = 
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
               <span className="text-sm font-medium text-muted-foreground">Point de récupération</span>
             </div>
-            <div className="relative">
-              <Input
-                value={pickupSearch}
-                onChange={(e) => setPickupSearch(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && searchLocation(pickupSearch, true)}
-                placeholder="Adresse de récupération"
-                className="pl-10"
-              />
-              <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            </div>
+            <IntelligentLocationSearch
+              placeholder="Adresse de récupération"
+              onLocationSelect={(loc) => {
+                setPickup(loc);
+                setPickupSearch(loc.address);
+              }}
+              className="w-full"
+            />
           </div>
 
           {/* Destination */}
@@ -240,16 +239,14 @@ const SimplifiedDeliveryInterface: React.FC<SimplifiedDeliveryInterfaceProps> = 
               <div className="w-3 h-3 rounded-full bg-red-500"></div>
               <span className="text-sm font-medium text-muted-foreground">Destination</span>
             </div>
-            <div className="relative">
-              <Input
-                value={destinationSearch}
-                onChange={(e) => setDestinationSearch(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && searchLocation(destinationSearch, false)}
-                placeholder="Adresse de livraison"
-                className="pl-10"
-              />
-              <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            </div>
+            <IntelligentLocationSearch
+              placeholder="Adresse de livraison"
+              onLocationSelect={(loc) => {
+                setDestination(loc);
+                setDestinationSearch(loc.address);
+              }}
+              className="w-full"
+            />
           </div>
 
           {/* Popular Places */}
