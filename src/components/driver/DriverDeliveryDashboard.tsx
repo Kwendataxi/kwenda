@@ -17,8 +17,10 @@ export const DriverDeliveryDashboard = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-warning text-warning-foreground';
-      case 'assigned': return 'bg-primary text-primary-foreground';
-      case 'picked_up': return 'bg-accent text-accent-foreground';
+      case 'assigned':
+      case 'confirmed': return 'bg-primary text-primary-foreground';
+      case 'picked_up':
+      case 'in_transit': return 'bg-accent text-accent-foreground';
       case 'delivered': return 'bg-success text-success-foreground';
       default: return 'bg-muted text-muted-foreground';
     }
@@ -119,7 +121,7 @@ export const DriverDeliveryDashboard = () => {
 
             {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-2">
-              {activeDelivery.status === 'assigned' && (
+              {['assigned','confirmed'].includes(activeDelivery.status) && (
                 <>
                   <Button 
                     onClick={() => updateDeliveryStatus('picked_up')}

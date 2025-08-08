@@ -135,17 +135,18 @@ export const useUnifiedDeliveryQueue = () => {
           .from('delivery_orders')
           .update({
             driver_id: user.id,
-            status: 'accepted'
+            status: 'confirmed'
           })
           .eq('id', deliveryId);
 
         if (error) throw error;
       }
 
-      // Set as active delivery
+      // Set as active delivery and update local status for UI flow
       const accepted = deliveries.find(d => d.id === deliveryId);
       if (accepted) {
-        setActiveDelivery(accepted);
+        const normalizedStatus = type === 'marketplace' ? 'assigned' : 'confirmed';
+        setActiveDelivery({ ...accepted, status: normalizedStatus });
         setDeliveries(prev => prev.filter(d => d.id !== deliveryId));
       }
 
@@ -154,7 +155,7 @@ export const useUnifiedDeliveryQueue = () => {
 
     } catch (error: any) {
       console.error('Error accepting delivery:', error);
-      toast.error('Erreur lors de l\'acceptation');
+      toast.error(error?.message || 'Erreur lors de l\'acceptation');
       return false;
     } finally {
       setLoading(false);
@@ -200,7 +201,7 @@ export const useUnifiedDeliveryQueue = () => {
 
     } catch (error: any) {
       console.error('Error updating delivery status:', error);
-      toast.error('Erreur lors de la mise à jour');
+      toast.error(error?.message || 'Erreur lors de la mise à jour');
       return false;
     } finally {
       setLoading(false);
