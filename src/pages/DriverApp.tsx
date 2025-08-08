@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { DriverDeliveryDashboard } from '@/components/driver/DriverDeliveryDashboard';
 import MobileDriverInterface from '@/components/mobile/MobileDriverInterface';
@@ -8,8 +7,8 @@ import { useDriverServiceType } from '@/hooks/useDriverServiceType';
 import { toast } from 'sonner';
 import { DriverChallenges } from '@/components/driver/DriverChallenges';
 import { DriverCodeManager } from '@/components/driver/DriverCodeManager';
-import DriverReferrals from '@/components/driver/DriverReferrals';
-import DriverCreditManager from '@/components/driver/DriverCreditManager';
+import { DriverReferrals } from '@/components/driver/DriverReferrals';
+import { DriverCreditManager } from '@/components/driver/DriverCreditManager';
 import { DriverWalletPanel } from '@/components/driver/DriverWalletPanel';
 
 const DriverApp = () => {
