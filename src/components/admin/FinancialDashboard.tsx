@@ -104,165 +104,41 @@ export const FinancialDashboard = () => {
     try {
       setLoading(true);
 
-      // Fetch wallet transactions for the period
-      const { data: transactions, error: transactionsError } = await supabase
-        .from('wallet_transactions')
-        .select(`
-          *,
-          wallet:wallet_id(user_id)
-        `)
-        .gte('created_at', dateRange.start.toISOString())
-        .lte('created_at', dateRange.end.toISOString())
-        .eq('status', 'completed');
+      const { data, error } = await supabase.functions.invoke('admin-analytics', {
+        body: {
+          type: 'financial_dashboard',
+          date_range: {
+            start: dateRange.start.toISOString(),
+            end: dateRange.end.toISOString(),
+          },
+        },
+      });
 
-      if (transactionsError) throw transactionsError;
-
-      // Fetch activity logs for commission breakdown
-      const { data: activities, error: activitiesError } = await supabase
-        .from('activity_logs')
-        .select('*')
-        .eq('activity_type', 'payment')
-        .gte('created_at', dateRange.start.toISOString())
-        .lte('created_at', dateRange.end.toISOString());
-
-      if (activitiesError) throw activitiesError;
-
-      // Fetch transport bookings
-      const { data: bookings, error: bookingsError } = await supabase
-        .from('transport_bookings')
-        .select('*')
-        .eq('status', 'completed')
-        .gte('created_at', dateRange.start.toISOString())
-        .lte('created_at', dateRange.end.toISOString());
-
-      if (bookingsError) throw bookingsError;
-
-      // Fetch delivery orders
-      const { data: deliveries, error: deliveriesError } = await supabase
-        .from('delivery_orders')
-        .select('*')
-        .eq('status', 'completed')
-        .gte('created_at', dateRange.start.toISOString())
-        .lte('created_at', dateRange.end.toISOString());
-
-      if (deliveriesError) throw deliveriesError;
-
-      // Calculate metrics
-      const totalRevenue = (transactions || [])
-        .filter(t => t.transaction_type === 'debit' && t.description?.includes('Paiement'))
-        .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
-
-      const driverEarnings = (transactions || [])
-        .filter(t => t.transaction_type === 'credit' && t.description?.includes('Gains'))
-        .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
-
-      const transportRevenue = (bookings || [])
-        .reduce((sum, b) => sum + (parseFloat(b.actual_price?.toString() || '0')), 0);
-
-      const deliveryRevenue = (deliveries || [])
-        .reduce((sum, d) => sum + (parseFloat(d.actual_price?.toString() || '0')), 0);
-
-      // Calculate commissions from activity metadata if available
-      let adminCommission = (activities || [])
-        .reduce((sum, a: any) => sum + (Number(a.metadata?.commission_breakdown?.adminAmount) || 0), 0);
-      let platformFees = (activities || [])
-        .reduce((sum, a: any) => sum + (Number(a.metadata?.commission_breakdown?.platformAmount) || 0), 0);
-
-      // Fallback to default rates if no metadata present
-      if (adminCommission === 0 && platformFees === 0 && totalRevenue > 0) {
-        adminCommission = totalRevenue * 0.10;
-        platformFees = totalRevenue * 0.05;
+      if (error || !data?.success) {
+        throw error || new Error(data?.error || 'Erreur inconnue');
       }
 
-      // Get active drivers count
-      const { data: activeDriversData } = await supabase
-        .from('driver_locations')
-        .select('driver_id')
-        .eq('is_online', true)
-        .eq('is_available', true);
-
-      const activeDrivers = activeDriversData?.length || 0;
-
-      // Calculate growth (compare with previous period)
-      const previousStart = new Date(dateRange.start);
-      previousStart.setMonth(previousStart.getMonth() - 1);
-      const previousEnd = new Date(dateRange.end);
-      previousEnd.setMonth(previousEnd.getMonth() - 1);
-
-      const { data: previousTransactions } = await supabase
-        .from('wallet_transactions')
-        .select('amount')
-        .eq('transaction_type', 'debit')
-        .eq('status', 'completed')
-        .gte('created_at', previousStart.toISOString())
-        .lte('created_at', previousEnd.toISOString());
-
-      const previousRevenue = (previousTransactions || [])
-        .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
-
-      const revenueGrowth = previousRevenue > 0 
-        ? ((totalRevenue - previousRevenue) / previousRevenue) * 100 
-        : 0;
-
+      const payload = data.data || {};
       setMetrics({
-        totalRevenue,
-        adminCommission,
-        driverEarnings,
-        platformFees,
-        transportRevenue,
-        deliveryRevenue,
-        activeDrivers,
-        completedRides: (bookings?.length || 0) + (deliveries?.length || 0),
-        revenueGrowth
+        totalRevenue: Number(payload.metrics?.totalRevenue || 0),
+        adminCommission: Number(payload.metrics?.adminCommission || 0),
+        driverEarnings: Number(payload.metrics?.driverEarnings || 0),
+        platformFees: Number(payload.metrics?.platformFees || 0),
+        transportRevenue: Number(payload.metrics?.transportRevenue || 0),
+        deliveryRevenue: Number(payload.metrics?.deliveryRevenue || 0),
+        activeDrivers: Number(payload.metrics?.activeDrivers || 0),
+        completedRides: Number(payload.metrics?.completedRides || 0),
+        revenueGrowth: Number(payload.metrics?.revenueGrowth || 0),
       });
 
-      // Process transaction summary by day
-      const dailySummary = (activities || []).reduce((acc: any, activity: any) => {
-        const date = format(new Date(activity.created_at), 'yyyy-MM-dd');
-        const serviceType = activity.reference_type || 'other';
-        const adminAmt = Number(activity.metadata?.commission_breakdown?.adminAmount) || 0;
-        const driverAmt = Number(activity.metadata?.commission_breakdown?.driverAmount) || 0;
-        const totalAmt = Number(activity.amount) || 0;
-        
-        if (!acc[date]) acc[date] = {};
-        if (!acc[date][serviceType]) {
-          acc[date][serviceType] = {
-            total_amount: 0,
-            admin_commission: 0,
-            driver_earnings: 0,
-            transaction_count: 0
-          };
-        }
-
-        acc[date][serviceType].total_amount += totalAmt;
-        acc[date][serviceType].admin_commission += adminAmt;
-        acc[date][serviceType].driver_earnings += driverAmt;
-        acc[date][serviceType].transaction_count += 1;
-        
-        return acc;
-      }, {} as any);
-
-      const summaryArray: TransactionSummary[] = [];
-      Object.entries(dailySummary).forEach(([date, services]: [string, any]) => {
-        Object.entries(services).forEach(([serviceType, data]: [string, any]) => {
-          summaryArray.push({
-            date,
-            service_type: serviceType,
-            total_amount: data.total_amount,
-            admin_commission: data.admin_commission > 0 ? data.admin_commission : data.total_amount * 0.10,
-            driver_earnings: data.driver_earnings > 0 ? data.driver_earnings : data.total_amount * 0.85,
-            transaction_count: data.transaction_count
-          });
-        });
-      });
-
-      setTransactionSummary(summaryArray);
+      setTransactionSummary((payload.summary || []) as TransactionSummary[]);
 
     } catch (error: any) {
       console.error('Error fetching financial data:', error);
+      const message = error?.message?.includes('403') ? "Accès refusé: permissions insuffisantes" : "Impossible de charger les données financières";
       toast({
         title: "Erreur",
-        description: "Impossible de charger les données financières",
+        description: message,
         variant: "destructive"
       });
     } finally {
@@ -372,7 +248,7 @@ export const FinancialDashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold">{metrics.adminCommission.toLocaleString()} CDF</div>
             <div className="text-xs text-muted-foreground">
-              {((metrics.adminCommission / metrics.totalRevenue) * 100).toFixed(1)}% du total
+              {(metrics.totalRevenue > 0 ? ((metrics.adminCommission / metrics.totalRevenue) * 100) : 0).toFixed(1)}% du total
             </div>
           </CardContent>
         </Card>
@@ -385,7 +261,7 @@ export const FinancialDashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold">{metrics.driverEarnings.toLocaleString()} CDF</div>
             <div className="text-xs text-muted-foreground">
-              {((metrics.driverEarnings / metrics.totalRevenue) * 100).toFixed(1)}% du total
+              {(metrics.totalRevenue > 0 ? ((metrics.driverEarnings / metrics.totalRevenue) * 100) : 0).toFixed(1)}% du total
             </div>
           </CardContent>
         </Card>
@@ -420,7 +296,7 @@ export const FinancialDashboard = () => {
                 <div className="text-right">
                   <div className="font-semibold">{metrics.transportRevenue.toLocaleString()} CDF</div>
                   <div className="text-xs text-muted-foreground">
-                    {((metrics.transportRevenue / metrics.totalRevenue) * 100).toFixed(1)}%
+                    {(metrics.totalRevenue > 0 ? ((metrics.transportRevenue / metrics.totalRevenue) * 100) : 0).toFixed(1)}%
                   </div>
                 </div>
               </div>
@@ -432,7 +308,7 @@ export const FinancialDashboard = () => {
                 <div className="text-right">
                   <div className="font-semibold">{metrics.deliveryRevenue.toLocaleString()} CDF</div>
                   <div className="text-xs text-muted-foreground">
-                    {((metrics.deliveryRevenue / metrics.totalRevenue) * 100).toFixed(1)}%
+                    {(metrics.totalRevenue > 0 ? ((metrics.deliveryRevenue / metrics.totalRevenue) * 100) : 0).toFixed(1)}%
                   </div>
                 </div>
               </div>

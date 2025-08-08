@@ -7,7 +7,7 @@ const corsHeaders = {
 }
 
 interface AnalyticsRequest {
-  type: 'dashboard' | 'zones' | 'drivers' | 'revenue' | 'subscriptions'
+  type: 'dashboard' | 'zones' | 'drivers' | 'revenue' | 'subscriptions' | 'financial_dashboard'
   date_range?: {
     start: string
     end: string
@@ -47,13 +47,15 @@ serve(async (req) => {
     }
 
     // Check permissions using role/permission system
-    const [permRead, permAdmin, permSystem] = await Promise.all([
+    const [permRead, permAdmin, permSystem, permFinanceRead, permFinanceAdmin] = await Promise.all([
       supabaseClient.rpc('has_permission', { _user_id: user.id, _permission: 'analytics_read' }),
       supabaseClient.rpc('has_permission', { _user_id: user.id, _permission: 'analytics_admin' }),
-      supabaseClient.rpc('has_permission', { _user_id: user.id, _permission: 'system_admin' })
+      supabaseClient.rpc('has_permission', { _user_id: user.id, _permission: 'system_admin' }),
+      supabaseClient.rpc('has_permission', { _user_id: user.id, _permission: 'finance_read' }),
+      supabaseClient.rpc('has_permission', { _user_id: user.id, _permission: 'finance_admin' }),
     ])
 
-    const hasAccess = [permRead, permAdmin, permSystem].some((res) => res.data === true)
+    const hasAccess = [permRead, permAdmin, permSystem, permFinanceRead, permFinanceAdmin].some((res) => res.data === true)
 
     if (!hasAccess) {
       return new Response(JSON.stringify({ error: 'Admin access required' }), {
@@ -260,11 +262,148 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
 
+      case 'financial_dashboard': {
+        // Financial dashboard metrics and summary
+        const sDate = new Date(startDate)
+        const eDate = new Date(endDate)
+        const prevStart = new Date(sDate)
+        prevStart.setMonth(prevStart.getMonth() - 1)
+        const prevEnd = new Date(eDate)
+        prevEnd.setMonth(prevEnd.getMonth() - 1)
+
+        const [walletTxRes, activitiesRes, bookingsRes, deliveriesRes, activeDriversCountRes, prevWalletTxRes] = await Promise.all([
+          supabaseService
+            .from('wallet_transactions')
+            .select('amount, transaction_type, description, created_at, status')
+            .eq('status', 'completed')
+            .gte('created_at', startDate)
+            .lte('created_at', endDate),
+          supabaseService
+            .from('activity_logs')
+            .select('amount, metadata, reference_type, created_at')
+            .eq('activity_type', 'payment')
+            .gte('created_at', startDate)
+            .lte('created_at', endDate),
+          supabaseService
+            .from('transport_bookings')
+            .select('actual_price, created_at, status')
+            .eq('status', 'completed')
+            .gte('created_at', startDate)
+            .lte('created_at', endDate),
+          supabaseService
+            .from('delivery_orders')
+            .select('actual_price, created_at, status')
+            .eq('status', 'completed')
+            .gte('created_at', startDate)
+            .lte('created_at', endDate),
+          supabaseService
+            .from('driver_locations')
+            .select('driver_id', { count: 'exact', head: true })
+            .eq('is_online', true)
+            .eq('is_available', true),
+          supabaseService
+            .from('wallet_transactions')
+            .select('amount')
+            .eq('transaction_type', 'debit')
+            .eq('status', 'completed')
+            .gte('created_at', prevStart.toISOString())
+            .lte('created_at', prevEnd.toISOString()),
+        ])
+
+        if (walletTxRes.error) throw walletTxRes.error
+        if (activitiesRes.error) throw activitiesRes.error
+        if (bookingsRes.error) throw bookingsRes.error
+        if (deliveriesRes.error) throw deliveriesRes.error
+        if (prevWalletTxRes.error) throw prevWalletTxRes.error
+
+        const walletTx = walletTxRes.data || []
+        const activities = activitiesRes.data || []
+        const bookings = bookingsRes.data || []
+        const deliveries = deliveriesRes.data || []
+
+        const totalRevenue = walletTx
+          .filter((t: any) => t.transaction_type === 'debit' && (t.description || '').includes('Paiement'))
+          .reduce((sum: number, t: any) => sum + Number(t.amount || 0), 0)
+
+        const driverEarnings = walletTx
+          .filter((t: any) => t.transaction_type === 'credit' && (t.description || '').includes('Gains'))
+          .reduce((sum: number, t: any) => sum + Number(t.amount || 0), 0)
+
+        const transportRevenue = bookings.reduce((sum: number, b: any) => sum + Number(b.actual_price || 0), 0)
+        const deliveryRevenue = deliveries.reduce((sum: number, d: any) => sum + Number(d.actual_price || 0), 0)
+
+        let adminCommission = activities.reduce((sum: number, a: any) => sum + (Number(a.metadata?.commission_breakdown?.adminAmount) || 0), 0)
+        let platformFees = activities.reduce((sum: number, a: any) => sum + (Number(a.metadata?.commission_breakdown?.platformAmount) || 0), 0)
+
+        if (adminCommission === 0 && platformFees === 0 && totalRevenue > 0) {
+          adminCommission = totalRevenue * 0.10
+          platformFees = totalRevenue * 0.05
+        }
+
+        const activeDrivers = activeDriversCountRes.count || 0
+
+        const previousRevenue = (prevWalletTxRes.data || []).reduce((sum: number, t: any) => sum + Number(t.amount || 0), 0)
+        const revenueGrowth = previousRevenue > 0 ? ((totalRevenue - previousRevenue) / previousRevenue) * 100 : 0
+
+        const dailySummaryMap = activities.reduce((acc: any, activity: any) => {
+          const date = new Date(activity.created_at).toISOString().split('T')[0]
+          const serviceType = activity.reference_type || 'other'
+          const adminAmt = Number(activity.metadata?.commission_breakdown?.adminAmount) || 0
+          const driverAmt = Number(activity.metadata?.commission_breakdown?.driverAmount) || 0
+          const totalAmt = Number(activity.amount) || 0
+
+          acc[date] = acc[date] || {}
+          acc[date][serviceType] = acc[date][serviceType] || { total_amount: 0, admin_commission: 0, driver_earnings: 0, transaction_count: 0 }
+          acc[date][serviceType].total_amount += totalAmt
+          acc[date][serviceType].admin_commission += adminAmt
+          acc[date][serviceType].driver_earnings += driverAmt
+          acc[date][serviceType].transaction_count += 1
+          return acc
+        }, {} as Record<string, any>)
+
+        const summary: any[] = []
+        for (const [date, services] of Object.entries(dailySummaryMap)) {
+          for (const [service_type, data] of Object.entries(services as any)) {
+            const s: any = data as any
+            summary.push({
+              date,
+              service_type,
+              total_amount: s.total_amount,
+              admin_commission: s.admin_commission > 0 ? s.admin_commission : s.total_amount * 0.10,
+              driver_earnings: s.driver_earnings > 0 ? s.driver_earnings : s.total_amount * 0.85,
+              transaction_count: s.transaction_count,
+            })
+          }
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              metrics: {
+                totalRevenue,
+                adminCommission,
+                driverEarnings,
+                platformFees,
+                transportRevenue,
+                deliveryRevenue,
+                activeDrivers,
+                completedRides: (bookings.length || 0) + (deliveries.length || 0),
+                revenueGrowth,
+              },
+              summary,
+            },
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
       default:
         return new Response(JSON.stringify({ error: 'Invalid analytics type' }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
+        
     }
 
   } catch (error) {
