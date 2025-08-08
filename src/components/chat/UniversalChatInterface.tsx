@@ -136,13 +136,13 @@ export const UniversalChatInterface = ({
   }
 
   const containerClass = isFloating
-    ? "fixed bottom-4 right-4 w-96 h-[500px] z-50 shadow-2xl rounded-2xl border border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+    ? "fixed inset-0 md:inset-auto md:bottom-4 md:right-4 w-full h-[100dvh] md:w-96 md:h-[520px] z-50 shadow-2xl rounded-none md:rounded-2xl border border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
     : "w-full h-full";
 
   return (
     <Card className={cn("flex flex-col", containerClass)}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-background/50">
+      <div className="flex items-center justify-between p-4 border-b bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-background/50 sticky top-0 z-10">
         <div className="flex items-center gap-3">
           {selectedConversation && (
             <Button
@@ -335,7 +335,7 @@ const ChatView = ({
       )}
 
       {/* Input */}
-      <div className="p-4 border-t space-y-2">
+      <div className="p-4 border-t space-y-2 pb-[env(safe-area-inset-bottom)]">
         <div className="flex gap-2">
           <Input
             value={newMessage}

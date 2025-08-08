@@ -15,6 +15,7 @@ import PartnerApp from "./pages/PartnerApp";
 import AdminApp from "./pages/AdminApp";
 import MarketplaceApp from "./pages/MarketplaceApp";
 import NotFound from "./pages/NotFound";
+import { ChatProvider } from "@/components/chat/ChatProvider";
 
 const queryClient = new QueryClient();
 
@@ -24,9 +25,10 @@ const App = () => (
       <FavoritesProvider>
         <LanguageProvider>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+          <ChatProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
@@ -59,9 +61,10 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
+          </ChatProvider>
         </TooltipProvider>
-      </LanguageProvider>
-    </FavoritesProvider>
+        </LanguageProvider>
+      </FavoritesProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

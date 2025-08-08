@@ -56,7 +56,7 @@ export const useUniversalChat = () => {
         .from('unified_conversations')
         .select(`
           *,
-          unified_messages!inner(id, is_read, created_at)
+          unified_messages!inner(id, is_read, created_at, sender_id)
         `)
         .or(`participant_1.eq.${user.id},participant_2.eq.${user.id}`)
         .order('last_message_at', { ascending: false });
@@ -229,13 +229,13 @@ export const useUniversalChat = () => {
 
     try {
       // First try to find existing conversation
-      const { data: existing } = await supabase
+      let query = supabase
         .from('unified_conversations')
         .select('*')
         .eq('context_type', contextType)
-        .eq('context_id', contextId || '')
-        .or(`and(participant_1.eq.${user.id},participant_2.eq.${participantId}),and(participant_1.eq.${participantId},participant_2.eq.${user.id})`)
-        .maybeSingle();
+        .or(`and(participant_1.eq.${user.id},participant_2.eq.${participantId}),and(participant_1.eq.${participantId},participant_2.eq.${user.id})`);
+      query = contextId ? query.eq('context_id', contextId) : query.is('context_id', null);
+      const { data: existing } = await query.maybeSingle();
 
       if (existing) {
         return existing;
@@ -306,12 +306,7 @@ export const useUniversalChat = () => {
       .channel('unified_conversations_changes')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'unified_conversations',
-          filter: `participant_1=eq.${user.id},participant_2=eq.${user.id}`,
-        },
+        { event: '*', schema: 'public', table: 'unified_conversations' },
         () => {
           fetchConversations();
         }
@@ -322,11 +317,7 @@ export const useUniversalChat = () => {
       .channel('unified_messages_changes')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'unified_messages',
-        },
+        { event: '*', schema: 'public', table: 'unified_messages' },
         (payload) => {
           if (payload.eventType === 'INSERT') {
             const newMessage = payload.new as any;
@@ -334,9 +325,11 @@ export const useUniversalChat = () => {
               ...prev,
               [newMessage.conversation_id]: [
                 ...(prev[newMessage.conversation_id] || []),
-                newMessage,
+                { ...newMessage },
               ],
             }));
+            // Refresh conversations to update unread counts and ordering
+            fetchConversations();
           }
         }
       )
