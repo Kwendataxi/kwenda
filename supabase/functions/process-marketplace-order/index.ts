@@ -59,27 +59,44 @@ serve(async (req) => {
       } else {
         console.log('Created delivery assignment:', assignment.id)
 
-        // Find available drivers in the area
+        // Notify available drivers via real-time channel
+        await notifyAvailableDrivers(supabaseClient, assignment)
+
+        // Find available drivers in the area using driver_locations
         const { data: availableDrivers, error: driversError } = await supabaseClient
-          .from('profiles')
-          .select('user_id, display_name')
-          .eq('user_type', 'chauffeur')
+          .from('driver_locations')
+          .select(`
+            driver_id,
+            latitude,
+            longitude,
+            profiles!driver_locations_driver_id_fkey(display_name, user_id)
+          `)
+          .eq('is_online', true)
+          .eq('is_available', true)
           .limit(10)
 
         if (!driversError && availableDrivers?.length > 0) {
-          // For now, assign to the first available driver
-          // In a real implementation, you'd use location-based matching
-          const selectedDriver = availableDrivers[0]
+          // Calculate distances and sort by proximity
+          const driversWithDistance = availableDrivers
+            .map(driver => ({
+              ...driver,
+              distance: calculateDistance(
+                driver.latitude,
+                driver.longitude,
+                order.pickup_coordinates?.lat || 0,
+                order.pickup_coordinates?.lng || 0
+              )
+            }))
+            .sort((a, b) => a.distance - b.distance)
 
-          await supabaseClient
-            .from('marketplace_delivery_assignments')
-            .update({ 
-              driver_id: selectedDriver.user_id,
-              assignment_status: 'assigned' 
-            })
-            .eq('id', assignment.id)
+          // Notify top 3 closest drivers
+          const topDrivers = driversWithDistance.slice(0, 3)
+          console.log(`Notifying ${topDrivers.length} nearby drivers`)
 
-          console.log(`Assigned delivery to driver: ${selectedDriver.display_name}`)
+          // Send notifications to drivers (would implement push notifications here)
+          for (const driver of topDrivers) {
+            console.log(`Notified driver ${driver.profiles?.display_name} (${driver.distance.toFixed(2)}km away)`)
+          }
         }
       }
     }
@@ -158,14 +175,13 @@ function calculateDeliveryFee(coordinates: any): number {
 async function calculateCommissions(totalAmount: number, order: any): Promise<any[]> {
   // Get commission settings
   const platformRate = 0.05; // 5%
-  const adminRate = 0.10; // 10%
-  const sellerRate = 0.85; // 85%
+  const deliveryRate = 0.15; // 15% for delivery driver (if applicable)
+  const sellerRate = order.delivery_method !== 'pickup' ? 0.80 : 0.95; // 80% or 95%
 
   const platformCommission = totalAmount * platformRate;
-  const adminCommission = totalAmount * adminRate;
   const sellerAmount = totalAmount * sellerRate;
 
-  return [
+  const commissions = [
     {
       user_id: 'system',
       wallet_id: 'platform',
@@ -176,11 +192,57 @@ async function calculateCommissions(totalAmount: number, order: any): Promise<an
     },
     {
       user_id: order.seller_id,
-      wallet_id: order.seller_id, // Simplified
+      wallet_id: order.seller_id,
       amount: sellerAmount,
-      balance_before: 0, // Would fetch actual balance
+      balance_before: 0,
       balance_after: sellerAmount,
       type: 'seller_payment'
     }
   ];
+
+  // Add delivery driver commission if delivery order
+  if (order.delivery_method !== 'pickup') {
+    const deliveryCommission = totalAmount * deliveryRate;
+    commissions.push({
+      user_id: 'delivery_pool', // Will be assigned to actual driver later
+      wallet_id: 'delivery_pool',
+      amount: deliveryCommission,
+      balance_before: 0,
+      balance_after: deliveryCommission,
+      type: 'delivery_commission'
+    });
+  }
+
+  return commissions;
+}
+
+async function notifyAvailableDrivers(supabaseClient: any, assignment: any) {
+  // Send real-time notification to drivers channel
+  const channel = supabaseClient.channel('driver-notifications');
+  
+  await channel.send({
+    type: 'broadcast',
+    event: 'new_delivery',
+    payload: {
+      assignment_id: assignment.id,
+      pickup_location: assignment.pickup_location,
+      delivery_location: assignment.delivery_location,
+      delivery_fee: assignment.delivery_fee,
+      created_at: assignment.created_at
+    }
+  });
+
+  console.log('Sent real-time notification to drivers');
+}
+
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
 }
