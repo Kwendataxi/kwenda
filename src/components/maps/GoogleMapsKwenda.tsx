@@ -294,10 +294,18 @@ const GoogleMapsKwenda: React.FC<GoogleMapsKwendaProps> = (props) => {
   useEffect(() => {
     const fetchApiKey = async () => {
       try {
-        const response = await fetch('/supabase/functions/v1/get-google-maps-key', {
-          method: 'POST'
+        const response = await fetch('https://wddlktajnhwhyquwcdgf.supabase.co/functions/v1/get-google-maps-key', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(window as any).supabase?.supabaseKey || ''}`
+          }
         });
+        
+        if (!response.ok) throw new Error('Failed to fetch API key');
         const data = await response.json();
+        
+        if (data.error) throw new Error(data.error);
         setApiKey(data.apiKey);
       } catch (error) {
         toast({

@@ -29,12 +29,18 @@ export class GoogleMapsService {
     if (this.apiKey) return this.apiKey;
     
     try {
-      const { data, error } = await fetch('/supabase/functions/v1/get-google-maps-key', {
+      const response = await fetch('https://wddlktajnhwhyquwcdgf.supabase.co/functions/v1/get-google-maps-key', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      }).then(res => res.json());
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${window.supabase?.supabaseKey || ''}`
+        }
+      });
       
-      if (error) throw new Error(error);
+      if (!response.ok) throw new Error('Failed to fetch API key');
+      const data = await response.json();
+      
+      if (data.error) throw new Error(data.error);
       this.apiKey = data.apiKey;
       return this.apiKey;
     } catch (error) {
