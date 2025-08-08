@@ -3245,6 +3245,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      geocode_location: {
+        Args: { query_text: string }
+        Returns: Json
+      }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: {

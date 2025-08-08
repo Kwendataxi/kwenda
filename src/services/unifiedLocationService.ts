@@ -92,19 +92,31 @@ export class UnifiedLocationService {
   }
 
   private static async searchGooglePlaces(query: string, apiKey: string): Promise<LocationResult[]> {
-    const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + ' Kinshasa')}&key=${apiKey}`;
-    
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('Google Places API error');
-    
-    const data = await response.json();
-    
-    return (data.results || []).slice(0, 3).map((place: any) => ({
-      address: place.name,
-      lat: place.geometry.location.lat,
-      lng: place.geometry.location.lng,
-      type: 'geocoded' as const
-    }));
+    try {
+      // Utiliser l'edge function proxy pour éviter CORS
+      const { data, error } = await supabase.functions.invoke('geocode-proxy', {
+        body: { query }
+      });
+      
+      if (error) {
+        console.warn('Geocode proxy error:', error);
+        return [];
+      }
+      
+      if (data?.status === 'OK' && data?.results) {
+        return data.results.slice(0, 3).map((place: any) => ({
+          address: place.formatted_address || place.name,
+          lat: place.geometry.location.lat,
+          lng: place.geometry.location.lng,
+          type: 'geocoded' as const
+        }));
+      }
+      
+      return [];
+    } catch (error) {
+      console.warn('Geocode search failed:', error);
+      return [];
+    }
   }
 
   // Calcul unifié distance + prix
@@ -174,26 +186,47 @@ export class UnifiedLocationService {
     return R * c;
   }
 
-  // Position utilisateur avec fallback
+  // Position utilisateur avec fallback robuste
   static async getCurrentLocation(): Promise<LocationResult> {
     try {
+      // Vérifier si la géolocalisation est disponible
+      if (!navigator.geolocation) {
+        throw new Error('Géolocalisation non supportée');
+      }
+
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          timeout: 5000,
-          enableHighAccuracy: false
-        });
+        navigator.geolocation.getCurrentPosition(
+          resolve,
+          (error) => {
+            console.warn('Geolocation error:', error.message);
+            reject(error);
+          },
+          {
+            timeout: 8000,
+            enableHighAccuracy: true,
+            maximumAge: 300000 // 5 minutes
+          }
+        );
       });
+
+      // Vérifier si les coordonnées sont dans une zone raisonnable pour Kinshasa/Abidjan
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      
+      console.log('Position détectée:', { lat, lng });
 
       return {
         address: 'Ma position actuelle',
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
+        lat,
+        lng,
         type: 'geocoded'
       };
     } catch (error) {
-      // Fallback: centre de Kinshasa
+      console.warn('Géolocalisation échouée, utilisation du fallback:', error);
+      
+      // Fallback intelligent : centre de Kinshasa
       return {
-        address: 'Kinshasa Centre',
+        address: 'Kinshasa Centre (position approximative)',
         lat: -4.3217,
         lng: 15.3069,
         type: 'fallback'
