@@ -7,6 +7,9 @@ import { ResponsivePartnerLayout } from '@/components/partner/ResponsivePartnerL
 import { ResponsiveQuickActions } from '@/components/partner/ResponsiveQuickActions';
 import { ResponsiveActivityFeed } from '@/components/partner/ResponsiveActivityFeed';
 import { ResponsiveVehicleGrid } from '@/components/partner/ResponsiveVehicleGrid';
+import { DriverWalletManager } from '@/components/partner/DriverWalletManager';
+import { PartnerCommissionDashboard } from '@/components/partner/PartnerCommissionDashboard';
+import { CommissionWithdrawal } from '@/components/partner/CommissionWithdrawal';
 import { usePartnerStats } from '@/hooks/usePartnerStats';
 import { usePartnerFinances } from '@/hooks/usePartnerFinances';
 import { usePartnerActivity } from '@/hooks/usePartnerActivity';
@@ -57,7 +60,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
 const PartnerApp = () => {
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'rentals' | 'analytics' | 'finances' | 'commissions' | 'withdrawals'>('dashboard');
   const [dateRange, setDateRange] = useState<Date | undefined>(new Date());
   const isMobile = useIsMobile();
   
@@ -79,7 +82,7 @@ const PartnerApp = () => {
       </div>
 
       {/* Quick Actions */}
-      <ResponsiveQuickActions onViewChange={setCurrentView} />
+      <ResponsiveQuickActions onViewChange={(view: string) => setCurrentView(view as any)} />
 
       {/* Recent Activity */}
       <div className={`${isMobile ? 'mb-4' : 'mb-20'}`}>
@@ -636,20 +639,20 @@ const PartnerApp = () => {
 
   const renderContent = () => {
     switch (currentView) {
-      case 'fleet':
+      case 'vehicles':
         return renderFleetManagement();
       case 'analytics':
         return renderAnalytics();
-      case 'credits':
-        return renderCreditsManagement();
-      case 'employees':
-        return renderEmployees();
-      case 'billing':
-        return renderBilling();
-      case 'validation':
-        return <DriverValidationManager />;
+      case 'finances':
+        return <DriverWalletManager />;
+      case 'commissions':
+        return <PartnerCommissionDashboard />;
+      case 'withdrawals':
+        return <CommissionWithdrawal />;
       case 'drivers':
         return <PartnerDriverManager />;
+      case 'rentals':
+        return <PartnerRentalManager />;
       default:
         return renderDashboard();
     }
@@ -657,13 +660,13 @@ const PartnerApp = () => {
 
   const getViewTitle = () => {
     switch (currentView) {
-      case 'fleet': return 'Gestion de flotte';
+      case 'vehicles': return 'Gestion de véhicules';
       case 'analytics': return 'Analytics & Rapports';
-      case 'credits': return 'Crédit Entreprise';
-      case 'employees': return 'Employés';
-      case 'billing': return 'Facturation';
-      case 'validation': return 'Validation Chauffeurs';
+      case 'finances': return 'Gestion Financière';
+      case 'commissions': return 'Dashboard Commissions';
+      case 'withdrawals': return 'Retraits';
       case 'drivers': return 'Gestion Chauffeurs';
+      case 'rentals': return 'Location Véhicules';
       default: return 'Tableau de bord';
     }
   };
@@ -672,7 +675,7 @@ const PartnerApp = () => {
     <ResponsivePartnerLayout
       stats={{ ...stats, companyCredits: finances.companyCredits }}
       currentView={currentView}
-      onViewChange={setCurrentView}
+      onViewChange={(view: string) => setCurrentView(view as any)}
       title={getViewTitle()}
       subtitle="Kwenda Taxi Partner"
     >

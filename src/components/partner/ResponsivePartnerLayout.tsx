@@ -9,7 +9,7 @@ import PartnerHeader from './PartnerHeader';
 interface ResponsivePartnerLayoutProps {
   children: React.ReactNode;
   stats: any;
-  currentView: string;
+  currentView: 'dashboard' | 'vehicles' | 'drivers' | 'rentals' | 'analytics' | 'finances' | 'commissions' | 'withdrawals';
   onViewChange: (view: string) => void;
   title?: string;
   subtitle?: string;
@@ -63,8 +63,8 @@ export const ResponsivePartnerLayout: React.FC<ResponsivePartnerLayoutProps> = (
 
         {/* Mobile Bottom Navigation */}
         <MobilePartnerTabs 
-          currentView={currentView} 
-          onViewChange={onViewChange}
+            currentView={currentView}
+            onViewChange={(view: string) => onViewChange(view)}
           variant="bottom"
         />
       </div>
@@ -86,8 +86,8 @@ export const ResponsivePartnerLayout: React.FC<ResponsivePartnerLayoutProps> = (
       <div className="border-b">
         <div className="container">
           <MobilePartnerTabs 
-            currentView={currentView} 
-            onViewChange={onViewChange}
+          currentView={currentView}
+          onViewChange={(view: string) => onViewChange(view)}
             variant="horizontal"
           />
         </div>

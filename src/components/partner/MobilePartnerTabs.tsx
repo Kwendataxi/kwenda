@@ -1,31 +1,22 @@
 import React from 'react';
-import { 
-  BarChart3, 
-  Car, 
-  Users, 
-  PieChart, 
-  CreditCard,
-  Wallet,
-  UserCheck,
-  Settings
-} from 'lucide-react';
+import { Home, Car, Users, BarChart3, Settings, Wallet, DollarSign, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface MobilePartnerTabsProps {
-  currentView: string;
+  currentView: 'dashboard' | 'vehicles' | 'drivers' | 'rentals' | 'analytics' | 'finances' | 'commissions' | 'withdrawals';
   onViewChange: (view: string) => void;
   variant?: 'bottom' | 'horizontal' | 'vertical';
 }
 
 const tabItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-  { id: 'fleet', label: 'Flotte', icon: Car },
+  { id: 'dashboard', label: 'Dashboard', icon: Home },
+  { id: 'vehicles', label: 'Véhicules', icon: Car },
   { id: 'drivers', label: 'Chauffeurs', icon: Users },
-  { id: 'analytics', label: 'Analytics', icon: PieChart },
-  { id: 'credits', label: 'Crédits', icon: Wallet },
-  { id: 'employees', label: 'Employés', icon: UserCheck },
-  { id: 'billing', label: 'Facturation', icon: CreditCard },
+  { id: 'finances', label: 'Finances', icon: Wallet },
+  { id: 'commissions', label: 'Commissions', icon: DollarSign },
+  { id: 'withdrawals', label: 'Retraits', icon: ArrowUpRight },
+  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
 ];
 
 export const MobilePartnerTabs: React.FC<MobilePartnerTabsProps> = ({
