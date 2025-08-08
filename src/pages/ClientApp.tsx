@@ -585,16 +585,7 @@ const ClientApp = () => {
   };
 
   const renderDeliveryService = () => {
-    if (deliveryStep === 'tracking' && deliveryId) {
-      return (
-        <DeliveryTracking
-          deliveryId={deliveryId}
-          onComplete={handleDeliveryComplete}
-        />
-      );
-    }
-
-    // Default to modern interface
+    // La nouvelle interface intégrée gère le tracking directement
     return (
       <ModernDeliveryInterface
         onSubmit={handleModernDeliverySubmit}

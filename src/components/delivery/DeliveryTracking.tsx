@@ -26,21 +26,22 @@ interface DeliveryStatus {
 }
 
 interface DeliveryTrackingProps {
-  deliveryId: string;
-  onComplete: () => void;
+  orderId: string;
+  orderData: any;
+  onBack: () => void;
 }
 
-const DeliveryTracking = ({ deliveryId, onComplete }: DeliveryTrackingProps) => {
+const DeliveryTracking = ({ orderId, orderData, onBack }: DeliveryTrackingProps) => {
   const [currentStatusIndex, setCurrentStatusIndex] = useState(1);
   const [deliveryInfo] = useState({
-    id: deliveryId,
+    id: orderId,
     estimatedDelivery: '14:30',
     driverName: 'Kasongo Mbaya',
     driverPhone: '+243 812 345 678',
     driverRating: 4.9,
     vehicleInfo: 'Moto Honda - KIN 123',
-    packageType: 'Petit colis',
-    cost: '2,500 FC'
+    packageType: orderData?.mode || 'Flash',
+    cost: orderData?.price ? `${orderData.price.toLocaleString()} FC` : '2,500 FC'
   });
 
   const [statusHistory, setStatusHistory] = useState<DeliveryStatus[]>([
@@ -153,7 +154,7 @@ const DeliveryTracking = ({ deliveryId, onComplete }: DeliveryTrackingProps) => 
           {isDelivered ? 'Livraison terminée !' : 'Suivi de votre livraison'}
         </h2>
         <p className="text-grey-600">
-          Livraison #{deliveryId}
+          Livraison #{orderId.slice(-8)}
         </p>
       </div>
 
@@ -314,7 +315,7 @@ const DeliveryTracking = ({ deliveryId, onComplete }: DeliveryTrackingProps) => 
         
         {isDelivered && (
           <Button 
-            onClick={onComplete}
+            onClick={onBack}
             className="w-full bg-gradient-primary text-white"
           >
             Nouvelle livraison
@@ -323,7 +324,7 @@ const DeliveryTracking = ({ deliveryId, onComplete }: DeliveryTrackingProps) => 
         
         <Button 
           variant="outline" 
-          onClick={onComplete}
+          onClick={onBack}
           className="w-full"
         >
           Retour à l'accueil

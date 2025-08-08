@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import YangoStyleDeliveryInterface from './YangoStyleDeliveryInterface';
-import DeliveryConfirmation from './DeliveryConfirmation';
-import { Bike, Truck, Package } from 'lucide-react';
+import OneClickDeliveryInterface from './OneClickDeliveryInterface';
+import DeliveryTracking from './DeliveryTracking';
+import DeliveryQuickActions from './DeliveryQuickActions';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ModernDeliveryInterfaceProps {
@@ -12,93 +12,39 @@ interface ModernDeliveryInterfaceProps {
 type DeliveryModeLocal = 'flash' | 'flex' | 'maxicharge';
 
 const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterfaceProps) => {
-  const [deliveryMode, setDeliveryMode] = useState<DeliveryModeLocal>('flash');
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [currentView, setCurrentView] = useState<'main' | 'tracking'>('main');
   const [orderData, setOrderData] = useState<any>(null);
   const { t } = useLanguage();
 
   const handleDeliverySubmit = (data: any) => {
     setOrderData(data);
-    setShowConfirmation(true);
+    setCurrentView('tracking');
   };
 
-  const handleTrackOrder = () => {
-    // Navigate to order tracking
+  const handleBackToMain = () => {
+    setCurrentView('main');
+    setOrderData(null);
+  };
+
+  const handleComplete = () => {
     onSubmit(orderData);
   };
 
-  const handleBackToHome = () => {
-    setShowConfirmation(false);
-    setOrderData(null);
-    onCancel();
-  };
-
-  if (showConfirmation && orderData) {
+  if (currentView === 'tracking' && orderData) {
     return (
-      <DeliveryConfirmation
+      <DeliveryTracking
+        orderId={orderData.orderId}
         orderData={orderData}
-        onClose={handleBackToHome}
-        onTrackOrder={handleTrackOrder}
+        onBack={handleBackToMain}
       />
     );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background overflow-hidden">
-      {/* Floating Mode Selector */}
-      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-border/50 px-4 py-2">
-        <div className="flex bg-muted/50 rounded-2xl p-1 max-w-xl mx-auto gap-1">
-          <button
-            onClick={() => setDeliveryMode('flash')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all duration-300 ${
-              deliveryMode === 'flash'
-                ? 'bg-white shadow-md text-secondary font-semibold scale-105'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Bike className="w-4 h-4" />
-            <div className="flex flex-col leading-tight items-center">
-              <span className="text-sm">Flash</span>
-              <span className="text-[10px] text-muted-foreground">Moto</span>
-            </div>
-          </button>
-          <button
-            onClick={() => setDeliveryMode('flex')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all duration-300 ${
-              deliveryMode === 'flex'
-                ? 'bg-white shadow-md text-primary font-semibold scale-105'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Truck className="w-4 h-4" />
-            <div className="flex flex-col leading-tight items-center">
-              <span className="text-sm">Flex</span>
-              <span className="text-[10px] text-muted-foreground">≤ 1 000 kg</span>
-            </div>
-          </button>
-          <button
-            onClick={() => setDeliveryMode('maxicharge')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all duration-300 ${
-              deliveryMode === 'maxicharge'
-                ? 'bg-white shadow-md text-primary font-semibold scale-105'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Package className="w-4 h-4" />
-            <div className="flex flex-col leading-tight items-center">
-              <span className="text-sm">MaxiCharge</span>
-              <span className="text-[10px] text-muted-foreground">≤ 3 500 kg</span>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* Render Yango-style delivery interface */}
-      <YangoStyleDeliveryInterface
-        onSubmit={handleDeliverySubmit}
-        onCancel={onCancel}
-      />
-    </div>
+    <OneClickDeliveryInterface
+      onSubmit={handleDeliverySubmit}
+      onCancel={onCancel}
+    />
   );
 };
 
