@@ -7,6 +7,7 @@ import { GeocodingService } from '@/services/geocoding';
 import { usePriceEstimator } from '@/hooks/usePricingRules';
 import { useDeliveryOrders } from '@/hooks/useDeliveryOrders';
 import { useToast } from '@/hooks/use-toast';
+import { UniversalLocationSearch } from '@/components/location/UniversalLocationSearch';
 import MapboxMap from '@/components/maps/MapboxMap';
 import { 
   ArrowLeft,
@@ -388,41 +389,25 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
             <div className="w-3 h-3 bg-primary rounded-full flex-shrink-0" />
             <div className="flex-1">
               <label className="text-sm font-medium text-foreground">Départ</label>
-              <div className="flex gap-2 mt-2">
-                <Input
+              <div className="mt-2">
+                <UniversalLocationSearch
                   placeholder="Adresse de départ..."
-                  value={pickupSearch}
-                  onChange={(e) => setPickupSearch(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleLocationSearch(pickupSearch, true)}
-                  className="flex-1"
-                  disabled={isLoading}
+                  value={pickup ? {
+                    address: pickup.address,
+                    coordinates: { lat: pickup.coordinates[1], lng: pickup.coordinates[0] },
+                    type: 'search'
+                  } : undefined}
+                  onChange={(location) => {
+                    setPickup({
+                      address: location.address,
+                      coordinates: [location.coordinates.lng, location.coordinates.lat]
+                    });
+                  }}
+                  showCurrentLocation={true}
+                  showSavedPlaces={true}
+                  showRecentPlaces={true}
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCurrentLocation}
-                  disabled={isLocationLoading}
-                  className="px-2"
-                >
-                  {isLocationLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Target className="w-4 h-4" />
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectingLocation('pickup')}
-                  disabled={selectingLocation === 'pickup'}
-                  className="px-2"
-                >
-                  <MapPin className="w-4 h-4" />
-                </Button>
               </div>
-              {pickup && (
-                <p className="text-xs text-muted-foreground mt-1 truncate">{pickup.address}</p>
-              )}
             </div>
             {pickup && <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />}
           </div>
@@ -434,28 +419,25 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
             <MapPin className="w-3 h-3 text-secondary flex-shrink-0" />
             <div className="flex-1">
               <label className="text-sm font-medium text-foreground">Destination</label>
-              <div className="flex gap-2 mt-2">
-                <Input
+              <div className="mt-2">
+                <UniversalLocationSearch
                   placeholder="Où livrer ?"
-                  value={destinationSearch}
-                  onChange={(e) => setDestinationSearch(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleLocationSearch(destinationSearch, false)}
-                  className="flex-1"
-                  disabled={isLoading}
+                  value={destination ? {
+                    address: destination.address,
+                    coordinates: { lat: destination.coordinates[1], lng: destination.coordinates[0] },
+                    type: 'search'
+                  } : undefined}
+                  onChange={(location) => {
+                    setDestination({
+                      address: location.address,
+                      coordinates: [location.coordinates.lng, location.coordinates.lat]
+                    });
+                  }}
+                  showCurrentLocation={false}
+                  showSavedPlaces={true}
+                  showRecentPlaces={true}
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectingLocation('destination')}
-                  disabled={selectingLocation === 'destination'}
-                  className="px-2"
-                >
-                  <MapPin className="w-4 h-4" />
-                </Button>
               </div>
-              {destination && (
-                <p className="text-xs text-muted-foreground mt-1 truncate">{destination.address}</p>
-              )}
             </div>
             {destination && <CheckCircle2 className="w-5 h-5 text-secondary flex-shrink-0" />}
           </div>

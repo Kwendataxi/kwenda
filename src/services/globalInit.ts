@@ -18,8 +18,8 @@ export class GlobalInitService {
       this.initialized = true;
     } catch (error) {
       console.warn('Failed to initialize global services:', error);
-      // Use default country (Côte d'Ivoire)
-      CountryService.setCurrentCountry('CI');
+      // Use default country (RDC/Kinshasa)
+      CountryService.setCurrentCountry('CD');
       this.initialized = true;
     }
   }
