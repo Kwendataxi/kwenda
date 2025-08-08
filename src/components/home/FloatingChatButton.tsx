@@ -5,7 +5,7 @@ import { MessageCircle } from 'lucide-react';
 import { useUniversalChat } from '@/hooks/useUniversalChat';
 import { UniversalChatInterface } from '@/components/chat/UniversalChatInterface';
 
-export const FloatingChatButton = ({ offsetBottomClass = '' }: { offsetBottomClass?: string }) => {
+export const FloatingChatButton = ({ offsetBottomClass = '', position = 'right' }: { offsetBottomClass?: string; position?: 'left' | 'right' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { conversations } = useUniversalChat();
 
@@ -21,7 +21,7 @@ export const FloatingChatButton = ({ offsetBottomClass = '' }: { offsetBottomCla
   }
 
   return (
-    <div className={`fixed bottom-4 right-4 z-50 ${offsetBottomClass}`}>
+    <div className={`fixed bottom-4 ${position === 'left' ? 'left-4' : 'right-4'} z-50 ${offsetBottomClass}`}>
       <Button
         onClick={() => setIsOpen(true)}
         aria-label="Ouvrir la messagerie"

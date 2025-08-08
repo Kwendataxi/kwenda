@@ -1014,7 +1014,7 @@ const ClientApp = () => {
         {/* Performance Indicator hidden on client for a cleaner UI */}
         
         {/* Floating Chat Button */}
-        <FloatingChatButton offsetBottomClass="mb-20" />
+        <FloatingChatButton offsetBottomClass="mb-20" position={currentView !== 'lottery' && serviceType !== 'marketplace' ? 'left' : 'right'} />
       
       {/* Loading State */}
       {isLoading && (
