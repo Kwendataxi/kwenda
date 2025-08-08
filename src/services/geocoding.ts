@@ -40,11 +40,11 @@ export class GeocodingService {
   private static getDefaultProximity(proximity?: { lng: number; lat: number }): { lng: number; lat: number } {
     if (proximity) return proximity;
     try {
-      const country = CountryService.getCurrentCountry();
+      const country = CountryService.getInstance().getCurrentCountry();
       // Essayer de trouver la ville majeure la plus proche du centre de la bbox
       const candidateCity = country.defaultProximity
         ? null
-        : CountryService.findNearestCity(
+        : CountryService.getInstance().findNearestCity(
             (country.bbox[1] + country.bbox[3]) / 2,
             (country.bbox[0] + country.bbox[2]) / 2
           );
@@ -63,7 +63,7 @@ export class GeocodingService {
 
     try {
       const token = await this.getMapboxToken();
-      const country = CountryService.getCurrentCountry();
+      const country = CountryService.getInstance().getCurrentCountry();
       
       // Enhanced multi-language support
       const browserLang = typeof navigator !== 'undefined' ? navigator.language.substring(0, 2) : 'en';
@@ -234,7 +234,7 @@ export class GeocodingService {
 
   private static getFallbackPlaces() {
     try {
-      const country = CountryService.getCurrentCountry();
+      const country = CountryService.getInstance().getCurrentCountry();
       const places = country.majorCities.map(city => ({
         place_name: `${city.name}, ${country.name}`,
         center: [city.coordinates.lng, city.coordinates.lat]
@@ -252,7 +252,7 @@ export class GeocodingService {
 
   private static getEnhancedFallbackPlaces(query: string): GeocodeResult[] {
     try {
-      const country = CountryService.getCurrentCountry();
+      const country = CountryService.getInstance().getCurrentCountry();
       const queryLower = query.toLowerCase();
       
       // Get current country cities
@@ -265,7 +265,7 @@ export class GeocodingService {
 
       // If using global fallback or no matches, search all countries
       if (country.code === "*" || !allPlaces.some(p => p.place_name.toLowerCase().includes(queryLower))) {
-        const allCountries = CountryService.getAllCountries();
+        const allCountries = CountryService.getInstance().getAllCountries();
         allPlaces = [];
         
         for (const countryConfig of allCountries) {
@@ -305,7 +305,7 @@ export class GeocodingService {
 
       const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json`);
       url.searchParams.set('access_token', token);
-      const userLang = (typeof navigator !== 'undefined' && navigator.language) ? navigator.language : (CountryService.getCurrentCountry().language || 'fr');
+      const userLang = (typeof navigator !== 'undefined' && navigator.language) ? navigator.language : (CountryService.getInstance().getCurrentCountry().language || 'fr');
       url.searchParams.set('language', userLang);
       url.searchParams.set('limit', '1');
 

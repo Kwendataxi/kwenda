@@ -8,7 +8,7 @@ import { usePriceEstimator } from '@/hooks/usePricingRules';
 import { useDeliveryOrders } from '@/hooks/useDeliveryOrders';
 import { useToast } from '@/hooks/use-toast';
 import { UniversalLocationSearch } from '@/components/location/UniversalLocationSearch';
-import MapboxMap from '@/components/maps/MapboxMap';
+import KwendaDynamicMap from '@/components/maps/KwendaDynamicMap';
 import { 
   ArrowLeft,
   MapPin, 
@@ -362,7 +362,7 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
           </div>
           
           <div className="relative">
-            <MapboxMap
+            <KwendaDynamicMap
               onLocationSelect={handleMapLocationSelect}
               pickupLocation={pickup?.coordinates}
               destination={destination?.coordinates}
@@ -370,6 +370,7 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
               center={[15.2663, -4.4419]} // Kinshasa
               zoom={12}
               height="30vh"
+              deliveryMode={selectedMode as 'flash' | 'flex' | 'maxicharge'}
             />
             
             {selectingLocation && (

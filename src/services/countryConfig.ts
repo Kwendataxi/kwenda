@@ -414,118 +414,118 @@ const COUNTRIES: Record<string, CountryConfig> = {
 };
 
 export class CountryService {
-  private static currentCountry: CountryConfig = COUNTRIES.CD; // Default to RDC/Kinshasa
-  private static detectionCallbacks: ((country: CountryConfig) => void)[] = [];
-  private static globalFallback = COUNTRIES["*"];
+  private static instance: CountryService;
+  private currentCountry: CountryConfig;
+  private listeners: Array<(country: CountryConfig) => void> = [];
 
-  static getCurrentCountry(): CountryConfig {
+  private constructor() {
+    // Default to RDC (Kinshasa) for Kwenda
+    this.currentCountry = COUNTRIES.cd;
+  }
+
+  static getInstance(): CountryService {
+    if (!CountryService.instance) {
+      CountryService.instance = new CountryService();
+    }
+    return CountryService.instance;
+  }
+
+  getCurrentCountry(): CountryConfig {
     return this.currentCountry;
   }
 
-  static setCurrentCountry(countryCode: string): void {
-    const country = COUNTRIES[countryCode.toUpperCase()];
-    if (country && country.code !== "*") {
-      this.currentCountry = country;
-      console.log('Country set to:', country.name);
-      
-      // Notify all listeners
-      this.detectionCallbacks.forEach(callback => callback(country));
-    } else if (countryCode === "*") {
-      this.currentCountry = this.globalFallback;
-      console.log('Using global fallback configuration');
-      this.detectionCallbacks.forEach(callback => callback(this.globalFallback));
-    } else {
-      console.warn('Unknown country code:', countryCode, '- using global fallback');
-      this.currentCountry = this.globalFallback;
-      this.detectionCallbacks.forEach(callback => callback(this.globalFallback));
+  setCurrentCountry(countryCode: string): void {
+    // Only allow CI and RDC
+    if (countryCode === 'ci' || countryCode === 'cd') {
+      const country = COUNTRIES[countryCode as keyof typeof COUNTRIES];
+      if (country) {
+        this.currentCountry = country;
+        this.listeners.forEach(callback => callback(country));
+      }
     }
   }
 
-  static onCountryChange(callback: (country: CountryConfig) => void): () => void {
-    this.detectionCallbacks.push(callback);
-    
-    // Return unsubscribe function
+  onCountryChange(callback: (country: CountryConfig) => void): () => void {
+    this.listeners.push(callback);
     return () => {
-      const index = this.detectionCallbacks.indexOf(callback);
-      if (index > -1) {
-        this.detectionCallbacks.splice(index, 1);
-      }
+      this.listeners = this.listeners.filter(cb => cb !== callback);
     };
   }
 
-  static async autoDetectAndSetCountry(latitude: number, longitude: number): Promise<void> {
-    try {
-      // Find the country that contains these coordinates (skip global fallback)
-      for (const [code, config] of Object.entries(COUNTRIES)) {
-        if (code === "*") continue; // Skip global fallback
-        
-        const [minLng, minLat, maxLng, maxLat] = config.bbox;
-        if (longitude >= minLng && longitude <= maxLng && 
-            latitude >= minLat && latitude <= maxLat) {
-          this.setCurrentCountry(code);
-          return;
-        }
-      }
-      
-      // If no specific country found, use global fallback for universal coverage
-      console.log('Coordinates not in any configured country, using global coverage');
-      this.setCurrentCountry("*");
-    } catch (error) {
-      console.warn('Failed to auto-detect country from coordinates:', error);
-      // Fallback to global coverage
-      this.setCurrentCountry("*");
+  autoDetectAndSetCountry(latitude: number, longitude: number): void {
+    const detectedCountry = this.detectCountryFromCoordinates(latitude, longitude);
+    if (detectedCountry) {
+      this.setCurrentCountry(detectedCountry.code);
+    } else {
+      // Fallback logic pour CI-RDC uniquement
+      this.setCurrentCountry('cd'); // Default to RDC
     }
   }
 
-  static getAllCountries(): CountryConfig[] {
-    return Object.values(COUNTRIES);
+  private detectCountryFromCoordinates(latitude: number, longitude: number): CountryConfig | null {
+    // Only check CI and RDC for Kwenda
+    const allowedCountries = ['ci', 'cd'];
+    
+    for (const countryCode of allowedCountries) {
+      const country = COUNTRIES[countryCode as keyof typeof COUNTRIES];
+      if (!country) continue;
+      
+      const [minLng, minLat, maxLng, maxLat] = country.bbox;
+      if (latitude >= minLat && latitude <= maxLat && 
+          longitude >= minLng && longitude <= maxLng) {
+        return country;
+      }
+    }
+    return null;
   }
 
-  static getCountryByCode(code: string): CountryConfig | undefined {
-    return COUNTRIES[code.toUpperCase()];
+  getAllCountries(): CountryConfig[] {
+    // Only return CI and RDC for Kwenda
+    return [COUNTRIES.ci, COUNTRIES.cd];
   }
 
-  static findNearestCity(latitude: number, longitude: number): City | null {
-    const country = this.getCurrentCountry();
+  getCountryByCode(code: string): CountryConfig | null {
+    // Only allow CI and RDC
+    if (code === 'ci' || code === 'cd') {
+      return COUNTRIES[code as keyof typeof COUNTRIES] || null;
+    }
+    return null;
+  }
+
+  findNearestCity(latitude: number, longitude: number): City | null {
+    const currentCountry = this.getCurrentCountry();
+    
+    // Search within current country first
+    let nearestCity = this.findNearestCityInCountry(latitude, longitude, currentCountry);
+    
+    // If not found, search in the other CI-RDC country
+    if (!nearestCity) {
+      const otherCountryCode = currentCountry.code === 'ci' ? 'cd' : 'ci';
+      const otherCountry = this.getCountryByCode(otherCountryCode);
+      if (otherCountry) {
+        nearestCity = this.findNearestCityInCountry(latitude, longitude, otherCountry);
+      }
+    }
+    
+    return nearestCity;
+  }
+
+  private findNearestCityInCountry(latitude: number, longitude: number, country: CountryConfig): City | null {
     let nearestCity: City | null = null;
     let minDistance = Infinity;
 
-    // First search in current country
     for (const city of country.majorCities) {
-      const distance = this.calculateDistance(
-        latitude, longitude,
-        city.coordinates.lat, city.coordinates.lng
-      );
-      
+      const distance = this.calculateDistance(latitude, longitude, city.coordinates.lat, city.coordinates.lng);
       if (distance < minDistance) {
         minDistance = distance;
         nearestCity = city;
       }
     }
 
-    // If using global fallback or no nearby city found, search globally
-    if (country.code === "*" || minDistance > 100) { // 100km threshold
-      for (const [code, config] of Object.entries(COUNTRIES)) {
-        if (code === "*") continue;
-        
-        for (const city of config.majorCities) {
-          const distance = this.calculateDistance(
-            latitude, longitude,
-            city.coordinates.lat, city.coordinates.lng
-          );
-          
-          if (distance < minDistance) {
-            minDistance = distance;
-            nearestCity = city;
-          }
-        }
-      }
-    }
-
     return nearestCity;
   }
 
-  private static calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371; // Earth's radius in kilometers
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
