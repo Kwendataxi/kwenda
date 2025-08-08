@@ -1433,6 +1433,48 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_commission_tracking: {
+        Row: {
+          booking_amount: number
+          booking_id: string
+          commission_amount: number
+          commission_rate: number
+          created_at: string | null
+          currency: string
+          driver_id: string
+          id: string
+          partner_id: string
+          service_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          booking_amount: number
+          booking_id: string
+          commission_amount: number
+          commission_rate: number
+          created_at?: string | null
+          currency?: string
+          driver_id: string
+          id?: string
+          partner_id: string
+          service_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          booking_amount?: number
+          booking_id?: string
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string | null
+          currency?: string
+          driver_id?: string
+          id?: string
+          partner_id?: string
+          service_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       partner_drivers: {
         Row: {
           added_at: string
@@ -1577,6 +1619,54 @@ export type Database = {
           updated_at?: string
           vehicle_class?: string
           year?: number
+        }
+        Relationships: []
+      }
+      partner_withdrawals: {
+        Row: {
+          account_details: Json
+          amount: number
+          created_at: string | null
+          currency: string
+          id: string
+          notes: string | null
+          partner_id: string
+          payment_method: string
+          processed_at: string | null
+          processed_by: string | null
+          requested_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          account_details?: Json
+          amount: number
+          created_at?: string | null
+          currency?: string
+          id?: string
+          notes?: string | null
+          partner_id: string
+          payment_method: string
+          processed_at?: string | null
+          processed_by?: string | null
+          requested_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          account_details?: Json
+          amount?: number
+          created_at?: string | null
+          currency?: string
+          id?: string
+          notes?: string | null
+          partner_id?: string
+          payment_method?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          requested_at?: string | null
+          status?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
