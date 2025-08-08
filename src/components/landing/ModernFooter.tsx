@@ -1,0 +1,211 @@
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { 
+  Car, MapPin, Phone, Mail, Clock, 
+  Facebook, Twitter, Instagram, Youtube,
+  Users, Store, Package, Heart, ExternalLink
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { BrandLogo } from "@/components/brand/BrandLogo";
+
+const ModernFooter = () => {
+  const footerSections = [
+    {
+      title: "Services",
+      links: [
+        { name: "Transport VTC", href: "/auth", icon: <Car className="w-4 h-4" /> },
+        { name: "Livraison Express", href: "/auth", icon: <Package className="w-4 h-4" /> },
+        { name: "Location Véhicules", href: "/auth", icon: <Car className="w-4 h-4" /> },
+        { name: "Marketplace", href: "/marketplace", icon: <Store className="w-4 h-4" /> },
+        { name: "Kwenda Tombola", href: "/auth", icon: <Heart className="w-4 h-4" /> }
+      ]
+    },
+    {
+      title: "Partenaires",
+      links: [
+        { name: "Devenir Chauffeur", href: "/auth", icon: <Users className="w-4 h-4" /> },
+        { name: "Louer mon Véhicule", href: "/auth", icon: <Car className="w-4 h-4" /> },
+        { name: "Devenir Livreur", href: "/auth", icon: <Package className="w-4 h-4" /> },
+        { name: "Vendre en ligne", href: "/marketplace", icon: <Store className="w-4 h-4" /> },
+        { name: "Programme Partenaire", href: "/partner", icon: <Users className="w-4 h-4" /> }
+      ]
+    },
+    {
+      title: "Support",
+      links: [
+        { name: "Centre d'aide", href: "#", icon: <Phone className="w-4 h-4" /> },
+        { name: "Nous contacter", href: "#", icon: <Mail className="w-4 h-4" /> },
+        { name: "FAQ", href: "#", icon: <Heart className="w-4 h-4" /> },
+        { name: "Signaler un problème", href: "#", icon: <Phone className="w-4 h-4" /> },
+        { name: "Sécurité", href: "#", icon: <Phone className="w-4 h-4" /> }
+      ]
+    },
+    {
+      title: "Congo RDC",
+      links: [
+        { name: "Kinshasa", href: "#", icon: <MapPin className="w-4 h-4" /> },
+        { name: "Lubumbashi", href: "#", icon: <MapPin className="w-4 h-4" /> },
+        { name: "Kolwezi", href: "#", icon: <MapPin className="w-4 h-4" /> },
+        { name: "Expansion", href: "#", icon: <MapPin className="w-4 h-4" /> },
+        { name: "Carte de couverture", href: "#", icon: <ExternalLink className="w-4 h-4" /> }
+      ]
+    }
+  ];
+
+  const socialLinks = [
+    { name: "Facebook", icon: <Facebook className="w-5 h-5" />, href: "#", color: "hover:text-blue-600" },
+    { name: "Twitter", icon: <Twitter className="w-5 h-5" />, href: "#", color: "hover:text-blue-400" },
+    { name: "Instagram", icon: <Instagram className="w-5 h-5" />, href: "#", color: "hover:text-pink-600" },
+    { name: "YouTube", icon: <Youtube className="w-5 h-5" />, href: "#", color: "hover:text-red-600" }
+  ];
+
+  const legalLinks = [
+    { name: "Conditions d'utilisation", href: "#" },
+    { name: "Politique de confidentialité", href: "#" },
+    { name: "Cookies", href: "#" },
+    { name: "Mentions légales", href: "#" }
+  ];
+
+  return (
+    <footer className="bg-gradient-to-b from-muted/30 to-background border-t border-border/50">
+      {/* Newsletter Section */}
+      <div className="border-b border-border/30">
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-4xl mx-auto text-center space-y-6">
+            <h3 className="text-heading-lg">Restez informé des nouveautés Kwenda</h3>
+            <p className="text-body-md text-muted-foreground">
+              Recevez nos actualités, offres spéciales et conseils pour optimiser vos déplacements à Kinshasa
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="Votre adresse email"
+                className="flex-1 px-4 py-3 rounded-lg border border-border/50 bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+              <Button className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow">
+                S'abonner
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              En vous abonnant, vous acceptez de recevoir nos communications. Vous pouvez vous désabonner à tout moment.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Footer Content */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="grid lg:grid-cols-5 gap-12">
+          {/* Brand Section */}
+          <div className="lg:col-span-1 space-y-6">
+            <div className="flex items-center gap-4">
+              <BrandLogo size={48} />
+              <div>
+                <h3 className="text-heading-sm">Kwenda Taxi</h3>
+                <p className="text-sm text-muted-foreground">🇨🇩 Made in Congo</p>
+              </div>
+            </div>
+            
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              L'application de transport intelligent qui révolutionne la mobilité à Kinshasa. 
+              Transport, livraison, marketplace et tombola en une seule plateforme.
+            </p>
+
+            {/* Contact Info */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-sm">
+                <MapPin className="w-4 h-4 text-primary" />
+                <span>Kinshasa, République Démocratique du Congo</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <Clock className="w-4 h-4 text-secondary" />
+                <span>Support 24h/24, 7j/7</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <Phone className="w-4 h-4 text-accent" />
+                <span>+243 XXX XXX XXX</span>
+              </div>
+            </div>
+
+            {/* Social Links */}
+            <div className="flex items-center gap-4">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.name}
+                  href={social.href}
+                  className={`p-2 rounded-lg bg-muted/50 transition-all duration-300 ${social.color} hover:scale-110`}
+                  aria-label={social.name}
+                >
+                  {social.icon}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer Links */}
+          <div className="lg:col-span-4 grid md:grid-cols-4 gap-8">
+            {footerSections.map((section) => (
+              <div key={section.title} className="space-y-4">
+                <h4 className="text-heading-sm">{section.title}</h4>
+                <ul className="space-y-3">
+                  {section.links.map((link) => (
+                    <li key={link.name}>
+                      <Link
+                        to={link.href}
+                        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
+                      >
+                        <span className="group-hover:scale-110 transition-transform">
+                          {link.icon}
+                        </span>
+                        {link.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <Separator className="bg-border/30" />
+
+      {/* Bottom Footer */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="text-center md:text-left">
+            <p className="text-sm text-muted-foreground">
+              © 2024 Kwenda Taxi. Tous droits réservés.
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Conçu avec ❤️ pour la République Démocratique du Congo
+            </p>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-6">
+            {legalLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
+                className="text-xs text-muted-foreground hover:text-primary transition-colors"
+              >
+                {link.name}
+              </a>
+            ))}
+          </div>
+
+          <div className="text-center md:text-right">
+            <p className="text-xs text-muted-foreground">
+              Version 1.0.0 • Développé avec{" "}
+              <a href="https://lovable.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                Lovable
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default ModernFooter;
