@@ -3,8 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Eye, EyeOff } from "lucide-react";
 import { RentalVehicle, usePartnerRentals } from "@/hooks/usePartnerRentals";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Props {
   vehicle: RentalVehicle;
@@ -13,76 +14,108 @@ interface Props {
 
 export default function RentalVehicleCard({ vehicle, onEdit }: Props) {
   const { updateVehicle, deleteVehicle } = usePartnerRentals();
+  const isMobile = useIsMobile();
 
-  const statusColor =
-    vehicle.moderation_status === "approved"
-      ? "bg-green-100 text-green-700"
-      : vehicle.moderation_status === "rejected"
-      ? "bg-red-100 text-red-700"
-      : "bg-yellow-100 text-yellow-700";
+  const statusConfig = {
+    approved: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200", icon: "✓" },
+    rejected: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", icon: "✗" },
+    pending: { bg: "bg-yellow-50", text: "text-yellow-700", border: "border-yellow-200", icon: "⏳" }
+  };
+
+  const status = vehicle.moderation_status === "approved" ? "approved" : 
+                 vehicle.moderation_status === "rejected" ? "rejected" : "pending";
 
   return (
-    <Card className="rounded-2xl border-0 shadow-sm hover:shadow-elegant transition-all duration-300 bg-card">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-heading-sm font-bold text-foreground">{vehicle.name}</h3>
-              <Badge className={`${statusColor} rounded-lg font-medium`}>
-                {vehicle.moderation_status === 'approved' ? '✓ Approuvé' : 
-                 vehicle.moderation_status === 'rejected' ? '✗ Rejeté' : 
-                 '⏳ En attente'}
+    <Card className="group rounded-3xl border border-grey-100 bg-background shadow-sm hover:shadow-elegant hover:border-primary/20 transition-all duration-300">
+      <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
+        {/* Header with title and status */}
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="flex-1 min-w-0">
+            <h3 className={`font-bold text-card-foreground truncate ${isMobile ? 'text-base' : 'text-lg'} mb-2`}>
+              {vehicle.name}
+            </h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className={`${statusConfig[status].bg} ${statusConfig[status].text} ${statusConfig[status].border} border rounded-full px-3 py-1 text-xs font-medium`}>
+                {statusConfig[status].icon} {status === 'approved' ? 'Approuvé' : status === 'rejected' ? 'Rejeté' : 'En attente'}
               </Badge>
-              {!vehicle.is_active && <Badge variant="secondary" className="rounded-lg">Inactif</Badge>}
+              {!vehicle.is_active && (
+                <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs bg-grey-100 text-grey-600 border border-grey-200">
+                  Inactif
+                </Badge>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground">
-              {vehicle.brand} {vehicle.model} • {vehicle.year} • {vehicle.seats} places
-            </p>
-            <p className="text-sm text-primary mt-1">
-              {vehicle.daily_rate.toLocaleString()} FC / jour • Caution {vehicle.security_deposit.toLocaleString()} FC
-            </p>
-            {vehicle.moderation_status === "rejected" && vehicle.rejection_reason && (
-              <p className="text-xs text-red-600 mt-1">Motif: {vehicle.rejection_reason}</p>
-            )}
+          </div>
+        </div>
+
+        {/* Vehicle details */}
+        <div className="space-y-3 mb-4">
+          <div className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-base'}`}>
+            <span className="font-medium">{vehicle.brand} {vehicle.model}</span> • {vehicle.year} • {vehicle.seats} places
+          </div>
+          <div className={`text-primary font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
+            {vehicle.daily_rate.toLocaleString()} FC/jour
+          </div>
+          <div className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
+            Caution: {vehicle.security_deposit.toLocaleString()} FC
+          </div>
+          {vehicle.moderation_status === "rejected" && vehicle.rejection_reason && (
+            <div className={`text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+              <strong>Motif:</strong> {vehicle.rejection_reason}
+            </div>
+          )}
+        </div>
+
+        {/* Controls */}
+        <div className="space-y-3">
+          {/* Availability toggle */}
+          <div className="flex items-center justify-between p-3 bg-grey-50 rounded-2xl border border-grey-100">
+            <div className="flex items-center gap-2">
+              {vehicle.is_available ? <Eye className="w-4 h-4 text-green-600" /> : <EyeOff className="w-4 h-4 text-grey-400" />}
+              <span className={`font-medium text-card-foreground ${isMobile ? 'text-sm' : 'text-base'}`}>
+                Disponible
+              </span>
+            </div>
+            <Switch
+              checked={vehicle.is_available}
+              onCheckedChange={(val) => updateVehicle.mutate({ id: vehicle.id, updates: { is_available: val } })}
+              className="data-[state=checked]:bg-green-500"
+            />
           </div>
 
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Disponible</span>
-              <Switch
-                checked={vehicle.is_available}
-                onCheckedChange={(val) => updateVehicle.mutate({ id: vehicle.id, updates: { is_available: val } })}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => onEdit(vehicle)}
-                className="rounded-xl hover:bg-primary hover:text-primary-foreground transition-colors"
-              >
-                <Pencil className="w-4 h-4 mr-1" /> Éditer
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => {
-                  if (confirm('Êtes-vous sûr de vouloir supprimer ce véhicule ?')) {
-                    deleteVehicle.mutate(vehicle.id);
-                  }
-                }}
-                className="rounded-xl"
-              >
-                <Trash2 className="w-4 h-4 mr-1" /> Supprimer
-              </Button>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Actif</span>
-              <Switch
-                checked={vehicle.is_active}
-                onCheckedChange={(val) => updateVehicle.mutate({ id: vehicle.id, updates: { is_active: val } })}
-              />
-            </div>
+          {/* Active toggle */}
+          <div className="flex items-center justify-between p-3 bg-grey-50 rounded-2xl border border-grey-100">
+            <span className={`font-medium text-card-foreground ${isMobile ? 'text-sm' : 'text-base'}`}>
+              Véhicule actif
+            </span>
+            <Switch
+              checked={vehicle.is_active}
+              onCheckedChange={(val) => updateVehicle.mutate({ id: vehicle.id, updates: { is_active: val } })}
+              className="data-[state=checked]:bg-primary"
+            />
+          </div>
+
+          {/* Action buttons */}
+          <div className={`flex gap-2 ${isMobile ? 'flex-col' : 'flex-row'}`}>
+            <Button 
+              variant="outline" 
+              size={isMobile ? "default" : "sm"}
+              onClick={() => onEdit(vehicle)}
+              className={`rounded-2xl border-grey-200 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 ${isMobile ? 'flex-1' : ''}`}
+            >
+              <Pencil className="w-4 h-4 mr-2" /> Modifier
+            </Button>
+            <Button
+              variant="outline"
+              size={isMobile ? "default" : "sm"}
+              onClick={() => {
+                if (confirm('Êtes-vous sûr de vouloir supprimer ce véhicule ?')) {
+                  deleteVehicle.mutate(vehicle.id);
+                }
+              }}
+              className={`rounded-2xl border-red-200 text-red-600 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-200 ${isMobile ? 'flex-1' : ''}`}
+            >
+              <Trash2 className="w-4 h-4 mr-2" /> Supprimer
+            </Button>
           </div>
         </div>
       </CardContent>

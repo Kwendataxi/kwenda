@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TaxiVehicle, usePartnerTaxiVehicles } from "@/hooks/usePartnerTaxiVehicles";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function TaxiVehicleCard({
   vehicle,
@@ -15,6 +16,7 @@ export default function TaxiVehicleCard({
 }) {
   const { deleteVehicle } = usePartnerTaxiVehicles();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const handleDelete = async () => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer ce taxi ?")) return;
@@ -22,60 +24,84 @@ export default function TaxiVehicleCard({
     toast({ title: "Taxi supprimé avec succès" });
   };
 
-  const statusColor =
-    vehicle.moderation_status === "approved"
-      ? "bg-green-100 text-green-700"
-      : vehicle.moderation_status === "rejected"
-      ? "bg-red-100 text-red-700"
-      : "bg-yellow-100 text-yellow-700";
+  const statusConfig = {
+    approved: { bg: "bg-green-50", text: "text-green-700", border: "border-green-200", icon: "✓" },
+    rejected: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200", icon: "✗" },
+    pending: { bg: "bg-yellow-50", text: "text-yellow-700", border: "border-yellow-200", icon: "⏳" }
+  };
+
+  const status = vehicle.moderation_status === "approved" ? "approved" : 
+                 vehicle.moderation_status === "rejected" ? "rejected" : "pending";
 
   return (
-    <Card className="rounded-2xl border-0 shadow-sm hover:shadow-elegant transition-all duration-300 bg-card">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-heading-sm font-bold text-foreground">{vehicle.name}</h3>
-              <Badge className={`${statusColor} rounded-lg font-medium`}>
-                {vehicle.moderation_status === 'approved' ? '✓ Approuvé' : 
-                 vehicle.moderation_status === 'rejected' ? '✗ Rejeté' : 
-                 '⏳ En attente'}
+    <Card className="group rounded-3xl border border-grey-100 bg-background shadow-sm hover:shadow-elegant hover:border-primary/20 transition-all duration-300">
+      <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
+        {/* Header with title and status */}
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="flex-1 min-w-0">
+            <h3 className={`font-bold text-card-foreground truncate ${isMobile ? 'text-base' : 'text-lg'} mb-2`}>
+              {vehicle.name}
+            </h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className={`${statusConfig[status].bg} ${statusConfig[status].text} ${statusConfig[status].border} border rounded-full px-3 py-1 text-xs font-medium`}>
+                {statusConfig[status].icon} {status === 'approved' ? 'Approuvé' : status === 'rejected' ? 'Rejeté' : 'En attente'}
               </Badge>
-              {!vehicle.is_active && <Badge variant="secondary" className="rounded-lg">Inactif</Badge>}
+              {!vehicle.is_active && (
+                <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs bg-grey-100 text-grey-600 border border-grey-200">
+                  Inactif
+                </Badge>
+              )}
             </div>
-            
-            <p className="text-body-sm text-muted-foreground mb-1">
-              {vehicle.brand} {vehicle.model} • {vehicle.year} • {vehicle.seats} places
-            </p>
-            
-            <div className="flex items-center gap-4 text-body-sm text-muted-foreground">
-              <span>Classe: {vehicle.vehicle_class?.toUpperCase?.()}</span>
-              <span>Couleur: {vehicle.color || "—"}</span>
-            </div>
-            
-            <p className="text-body-sm text-muted-foreground mt-1">
-              📋 {vehicle.license_plate}
-            </p>
           </div>
+        </div>
 
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => onEdit(vehicle)}
-              className="rounded-xl hover:bg-primary hover:text-primary-foreground transition-colors"
-            >
-              <Edit className="w-4 h-4 mr-1" /> Modifier
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDelete}
-              className="rounded-xl"
-            >
-              <Trash2 className="w-4 h-4 mr-1" /> Supprimer
-            </Button>
+        {/* Vehicle details */}
+        <div className="space-y-3 mb-4">
+          <div className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-base'}`}>
+            <span className="font-medium">{vehicle.brand} {vehicle.model}</span> • {vehicle.year} • {vehicle.seats} places
           </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div className={`bg-grey-50 rounded-2xl p-3 border border-grey-100`}>
+              <div className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'} mb-1`}>Classe</div>
+              <div className={`font-medium text-card-foreground ${isMobile ? 'text-sm' : 'text-base'}`}>
+                {vehicle.vehicle_class?.toUpperCase?.() || "—"}
+              </div>
+            </div>
+            <div className={`bg-grey-50 rounded-2xl p-3 border border-grey-100`}>
+              <div className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'} mb-1`}>Couleur</div>
+              <div className={`font-medium text-card-foreground ${isMobile ? 'text-sm' : 'text-base'}`}>
+                {vehicle.color || "—"}
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-primary/5 border border-primary/20 rounded-2xl p-3">
+            <div className={`text-primary ${isMobile ? 'text-xs' : 'text-sm'} mb-1`}>Plaque d'immatriculation</div>
+            <div className={`font-mono font-medium text-primary ${isMobile ? 'text-sm' : 'text-base'}`}>
+              {vehicle.license_plate}
+            </div>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className={`flex gap-2 ${isMobile ? 'flex-col' : 'flex-row'}`}>
+          <Button 
+            variant="outline" 
+            size={isMobile ? "default" : "sm"}
+            onClick={() => onEdit(vehicle)}
+            className={`rounded-2xl border-grey-200 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 ${isMobile ? 'flex-1' : ''}`}
+          >
+            <Edit className="w-4 h-4 mr-2" /> Modifier
+          </Button>
+          <Button
+            variant="outline"
+            size={isMobile ? "default" : "sm"}
+            onClick={handleDelete}
+            className={`rounded-2xl border-red-200 text-red-600 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-200 ${isMobile ? 'flex-1' : ''}`}
+          >
+            <Trash2 className="w-4 h-4 mr-2" /> Supprimer
+          </Button>
         </div>
       </CardContent>
     </Card>

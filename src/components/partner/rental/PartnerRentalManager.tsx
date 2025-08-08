@@ -10,10 +10,12 @@ import { Plus, Car } from "lucide-react";
 import { usePartnerTaxiVehicles, TaxiVehicle } from "@/hooks/usePartnerTaxiVehicles";
 import TaxiVehicleForm from "@/components/partner/taxi/TaxiVehicleForm";
 import TaxiVehicleCard from "@/components/partner/taxi/TaxiVehicleCard";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function PartnerRentalManager() {
   const { categories, vehicles, bookings, updateBookingStatus } = usePartnerRentals();
   const { vehicles: taxiVehicles } = usePartnerTaxiVehicles();
+  const isMobile = useIsMobile();
 
   const [editing, setEditing] = useState<RentalVehicle | null>(null);
   const [creating, setCreating] = useState(false);
@@ -22,45 +24,37 @@ export default function PartnerRentalManager() {
   const [creatingTaxi, setCreatingTaxi] = useState(false);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-heading-lg font-bold text-foreground">Gestion de flotte</h2>
-          <p className="text-body-md text-muted-foreground">Gérez vos véhicules de location et taxis</p>
-        </div>
-      </div>
-
+    <div className="space-y-4">
       <Tabs defaultValue="vehicles" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-muted p-1 h-auto">
-          {/* Mobile: Stack tabs on small screens */}
+        <TabsList className={`grid w-full grid-cols-3 rounded-2xl bg-grey-50 border border-grey-100 p-1 ${isMobile ? 'h-12' : 'h-14'} shadow-sm`}>
           <TabsTrigger 
             value="vehicles" 
-            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all text-sm md:text-base px-2 md:px-4 py-2"
+            className={`rounded-xl data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 font-medium ${isMobile ? 'text-xs px-2 py-1.5' : 'text-sm px-4 py-2'} hover:bg-background/50`}
           >
-            Location
+            🏠 Location
           </TabsTrigger>
           <TabsTrigger 
             value="taxi"
-            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all text-sm md:text-base px-2 md:px-4 py-2"
+            className={`rounded-xl data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 font-medium ${isMobile ? 'text-xs px-2 py-1.5' : 'text-sm px-4 py-2'} hover:bg-background/50`}
           >
-            Taxis
+            🚗 Taxis
           </TabsTrigger>
           <TabsTrigger 
             value="bookings"
-            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all text-sm md:text-base px-2 md:px-4 py-2"
+            className={`rounded-xl data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 font-medium ${isMobile ? 'text-xs px-2 py-1.5' : 'text-sm px-4 py-2'} hover:bg-background/50`}
           >
-            Réservations
+            📋 Réservations
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="vehicles" className="space-y-6 mt-6">
-          <div className="flex justify-end">
+        <TabsContent value="vehicles" className="space-y-4 mt-4">
+          <div className={`flex ${isMobile ? 'justify-center' : 'justify-end'}`}>
             <Button 
               onClick={() => { setEditing(null); setCreating(true); }}
-              className="rounded-xl bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all"
+              className={`rounded-2xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary-glow hover:to-primary hover:shadow-elegant transition-all duration-300 font-medium ${isMobile ? 'w-full max-w-sm px-6 py-3' : 'px-6 py-2.5'} shadow-md`}
             >
-              <Plus className="w-4 h-4 mr-2" /> 
-              Nouvelle annonce location
+              <Plus className={`${isMobile ? 'w-5 h-5 mr-3' : 'w-4 h-4 mr-2'}`} /> 
+              {isMobile ? '+ Nouvelle annonce' : 'Nouvelle annonce location'}
             </Button>
           </div>
 
@@ -79,30 +73,32 @@ export default function PartnerRentalManager() {
             />
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'}`}>
             {vehicles.map((v) => (
               <RentalVehicleCard key={v.id} vehicle={v} onEdit={setEditing} />
             ))}
             {vehicles.length === 0 && (
               <div className="col-span-full">
-                <div className="text-center py-12 bg-muted/30 rounded-2xl border border-dashed">
-                  <Car className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-body-md text-muted-foreground">Aucune annonce de location</p>
-                  <p className="text-body-sm text-muted-foreground/70">Créez votre première annonce pour commencer</p>
+                <div className={`text-center bg-gradient-to-br from-grey-50 to-background rounded-3xl border-2 border-dashed border-grey-200 transition-all duration-300 hover:border-primary/30 ${isMobile ? 'py-8 px-4' : 'py-12 px-6'}`}>
+                  <div className="w-16 h-16 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Car className="w-8 h-8 text-primary" />
+                  </div>
+                  <p className={`text-card-foreground font-medium mb-2 ${isMobile ? 'text-base' : 'text-lg'}`}>Aucune annonce de location</p>
+                  <p className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-base'}`}>Créez votre première annonce pour commencer</p>
                 </div>
               </div>
             )}
           </div>
         </TabsContent>
 
-        <TabsContent value="taxi" className="space-y-6 mt-6">
-          <div className="flex justify-end">
+        <TabsContent value="taxi" className="space-y-4 mt-4">
+          <div className={`flex ${isMobile ? 'justify-center' : 'justify-end'}`}>
             <Button 
               onClick={() => { setEditingTaxi(null); setCreatingTaxi(true); }}
-              className="rounded-xl bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all"
+              className={`rounded-2xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary-glow hover:to-primary hover:shadow-elegant transition-all duration-300 font-medium ${isMobile ? 'w-full max-w-sm px-6 py-3' : 'px-6 py-2.5'} shadow-md`}
             >
-              <Plus className="w-4 h-4 mr-2" /> 
-              Nouveau taxi
+              <Plus className={`${isMobile ? 'w-5 h-5 mr-3' : 'w-4 h-4 mr-2'}`} /> 
+              {isMobile ? '+ Nouveau taxi' : 'Nouveau taxi'}
             </Button>
           </div>
 
@@ -114,23 +110,25 @@ export default function PartnerRentalManager() {
             <TaxiVehicleForm initial={editingTaxi} onSaved={() => setEditingTaxi(null)} />
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'}`}>
             {taxiVehicles.map((v) => (
               <TaxiVehicleCard key={v.id} vehicle={v} onEdit={setEditingTaxi} />
             ))}
             {taxiVehicles.length === 0 && (
               <div className="col-span-full">
-                <div className="text-center py-12 bg-muted/30 rounded-2xl border border-dashed">
-                  <Car className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-body-md text-muted-foreground">Aucun taxi enregistré</p>
-                  <p className="text-body-sm text-muted-foreground/70">Ajoutez votre premier véhicule taxi</p>
+                <div className={`text-center bg-gradient-to-br from-grey-50 to-background rounded-3xl border-2 border-dashed border-grey-200 transition-all duration-300 hover:border-primary/30 ${isMobile ? 'py-8 px-4' : 'py-12 px-6'}`}>
+                  <div className="w-16 h-16 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Car className="w-8 h-8 text-primary" />
+                  </div>
+                  <p className={`text-card-foreground font-medium mb-2 ${isMobile ? 'text-base' : 'text-lg'}`}>Aucun taxi enregistré</p>
+                  <p className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-base'}`}>Ajoutez votre premier véhicule taxi</p>
                 </div>
               </div>
             )}
           </div>
         </TabsContent>
 
-        <TabsContent value="bookings" className="mt-6">
+        <TabsContent value="bookings" className="mt-4">
           <PartnerBookingsList
             bookings={bookings}
             onUpdateStatus={(id, status) => updateBookingStatus.mutate({ id, status })}
