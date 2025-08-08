@@ -277,7 +277,7 @@ const GenericDeliveryInterface = ({ mode, onSubmit, onCancel }: GenericDeliveryI
               <span className="text-sm text-muted-foreground">Lieux récents</span>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2">
-              {recentPlaces.slice(0, 4).map((place) => (
+              {recentPlaces.slice(0, 2).map((place) => (
                 <button
                   key={place.id}
                   onClick={() => {

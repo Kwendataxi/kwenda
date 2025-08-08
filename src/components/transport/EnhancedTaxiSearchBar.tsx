@@ -395,7 +395,7 @@ export const EnhancedTaxiSearchBar = ({
                     Trajets récents
                   </h3>
                   <div className="space-y-1">
-                    {recentPlaces.slice(0, 4).map((place) => (
+                    {recentPlaces.slice(0, 2).map((place) => (
                       <button
                         key={place.id}
                         onClick={() => handlePlaceSelect(place.name, place.coordinates)}

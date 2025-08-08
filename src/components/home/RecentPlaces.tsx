@@ -20,7 +20,7 @@ export const RecentPlaces = ({ onPlaceSelect, onViewAll }: RecentPlacesProps) =>
   const displayPlaces = [
     ...(homePlace ? [homePlace] : []),
     ...(workPlace ? [workPlace] : []),
-    ...recentPlaces.slice(0, 3)
+    ...recentPlaces.slice(0, 2)
   ];
 
   const handlePlaceClick = async (place: any) => {

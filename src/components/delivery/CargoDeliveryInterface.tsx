@@ -350,7 +350,7 @@ const CargoDeliveryInterface = ({ onSubmit, onCancel }: CargoDeliveryInterfacePr
               <span className="text-body-sm text-muted-foreground">Lieux récents</span>
             </div>
             <div className="space-y-2">
-              {recentPlaces.slice(0, 3).map((place) => (
+              {recentPlaces.slice(0, 2).map((place) => (
                 <button
                   key={place.id}
                   onClick={() => {
