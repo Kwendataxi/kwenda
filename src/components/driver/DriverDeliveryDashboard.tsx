@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Package, Clock, User, Phone, Star, Truck } from 'lucide-react';
 import { useUnifiedDeliveryQueue } from '@/hooks/useUnifiedDeliveryQueue';
+import DeliveryNavigationSheet from '@/components/delivery/DeliveryNavigationSheet';
 
 export const DriverDeliveryDashboard = () => {
   const {
@@ -13,6 +14,8 @@ export const DriverDeliveryDashboard = () => {
     acceptDelivery,
     updateDeliveryStatus
   } = useUnifiedDeliveryQueue();
+
+  const [navOpen, setNavOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -129,7 +132,7 @@ export const DriverDeliveryDashboard = () => {
                   >
                     Colis récupéré
                   </Button>
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={() => setNavOpen(true)}>
                     Navigation
                   </Button>
                 </>
@@ -144,7 +147,7 @@ export const DriverDeliveryDashboard = () => {
                   >
                     Livré
                   </Button>
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={() => setNavOpen(true)}>
                     Navigation
                   </Button>
                 </>
@@ -159,6 +162,13 @@ export const DriverDeliveryDashboard = () => {
             )}
           </CardContent>
         </Card>
+        <DeliveryNavigationSheet
+          open={navOpen}
+          onOpenChange={setNavOpen}
+          delivery={activeDelivery}
+          onPickedUp={() => updateDeliveryStatus('picked_up')}
+          onDelivered={() => updateDeliveryStatus('delivered')}
+        />
       </div>
     );
   }
