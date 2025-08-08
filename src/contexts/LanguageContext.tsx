@@ -343,6 +343,9 @@ const translations = {
     'common.terms': 'Conditions',
     'common.privacy': 'Confidentialité',
     'common.user': 'Utilisateur',
+    'location.approximate': 'Position approximative',
+    'location.unavailable': 'Localisation indisponible',
+    'location.gps_unavailable': 'GPS indisponible',
   },
   en: {
     // Navigation
@@ -624,6 +627,9 @@ const translations = {
     'common.terms': 'Terms',
     'common.privacy': 'Privacy',
     'common.user': 'User',
+    'location.approximate': 'Approximate location',
+    'location.unavailable': 'Location unavailable',
+    'location.gps_unavailable': 'GPS unavailable',
   },
   ln: {
     // Navigation

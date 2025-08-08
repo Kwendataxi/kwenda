@@ -35,14 +35,35 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
     return 'Salut'; // 6h-18h = Salut
   };
 
-  // Get current location on component mount
+  // Get current location on component mount and start a short watch to refine accuracy
   useEffect(() => {
     geolocation.getCurrentPosition();
-  }, [geolocation.getCurrentPosition]);
+
+    const stopWatch = geolocation.watchCurrentPosition?.();
+
+    // Auto-stop the watch after 30s or when accuracy is good enough
+    const timer = setTimeout(() => {
+      stopWatch && stopWatch();
+    }, 30000);
+
+    const interval = setInterval(() => {
+      if (geolocation.isRealGPS && geolocation.accuracy !== null && geolocation.accuracy <= 60) {
+        stopWatch && stopWatch();
+        clearTimeout(timer);
+        clearInterval(interval);
+      }
+    }, 2000);
+
+    return () => {
+      stopWatch && stopWatch();
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Reverse geocoding to get address from coordinates - only for real GPS
   useEffect(() => {
-    if (geolocation.latitude && geolocation.longitude && geolocation.isRealGPS && !geocodingLoading) {
+    if (geolocation.latitude && geolocation.longitude && !geocodingLoading) {
       const reverseGeocode = async () => {
         try {
           setGeocodingLoading(true);
@@ -53,7 +74,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
           setCurrentAddress(address);
         } catch (error) {
           console.error('Geocoding error:', error);
-          // Fallback to coordinates for real GPS
+          // Fallback to coordinates if reverse geocode fails
           setCurrentAddress(`${geolocation.latitude.toFixed(4)}, ${geolocation.longitude.toFixed(4)}`);
         } finally {
           setGeocodingLoading(false);
@@ -65,7 +86,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
       // No GPS available - show error state
       setCurrentAddress(t('location.unavailable'));
     }
-  }, [geolocation.latitude, geolocation.longitude, geolocation.isRealGPS, geolocation.error]);
+  }, [geolocation.latitude, geolocation.longitude, geolocation.error]);
 
   // Battery status monitoring
   useEffect(() => {
@@ -128,16 +149,36 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
                     <RefreshCw className="h-3 w-3" />
                   </Button>
                 )}
+                {!geolocation.error && !geolocation.loading && !geolocation.isRealGPS && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      geolocation.forceRefreshPosition();
+                      const stop = geolocation.watchCurrentPosition?.();
+                      setTimeout(() => {
+                        stop && stop();
+                      }, 25000);
+                    }}
+                    title={t('home.location.current')}
+                    className="h-6 px-2 ml-1"
+                  >
+                    <Navigation className="h-3 w-3" />
+                  </Button>
+                )}
               </div>
               <p className="text-muted-foreground text-sm">
                 {geolocation.loading || geocodingLoading ? (
                   t('common.loading')
                 ) : geolocation.error ? (
-                  <span className="text-orange-600">{t('location.gps_unavailable')}</span>
-                ) : geolocation.isRealGPS ? (
-                  currentAddress
+                  <span className="text-destructive">{t('location.gps_unavailable')}</span>
                 ) : (
-                  <span className="text-orange-600">{t('location.approximate')}</span>
+                  <>
+                    {currentAddress}
+                    {!geolocation.isRealGPS && (
+                      <span className="ml-1 text-muted-foreground/70">• {t('location.approximate')}</span>
+                    )}
+                  </>
                 )}
               </p>
             </div>
