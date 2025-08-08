@@ -8,140 +8,157 @@ import { BrandLogo } from "@/components/brand/BrandLogo";
 const ModernHero = () => {
   return (
     <section className="relative min-h-screen bg-gradient-to-br from-background via-background to-primary/5 overflow-hidden">
-      {/* Animated Background Elements */}
+      {/* Enhanced Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-secondary/10 rounded-full blur-lg animate-pulse delay-300"></div>
-        <div className="absolute bottom-40 left-1/4 w-40 h-40 bg-accent/10 rounded-full blur-2xl animate-pulse delay-700"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-float"></div>
+        <div className="absolute top-40 right-20 w-24 h-24 bg-secondary/10 rounded-full blur-lg animate-float" style={{animationDelay: '1s'}}></div>
+        <div className="absolute bottom-40 left-1/4 w-40 h-40 bg-accent/10 rounded-full blur-2xl animate-float" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 right-1/3 w-20 h-20 bg-primary-glow/5 rounded-full blur-lg animate-pulse" style={{animationDelay: '0.5s'}}></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_80%,hsl(var(--primary))_0%,transparent_50%)] opacity-5"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,hsl(var(--secondary))_0%,transparent_40%)] opacity-5"></div>
       </div>
       
-      <div className="container mx-auto px-4 py-8 sm:py-12 lg:py-16 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[85vh]">
+      <div className="container-section py-8 sm:py-12 lg:py-20 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[85vh]">
           {/* Content */}
-          <div className="space-y-6 lg:space-y-8 animate-fade-in order-2 lg:order-1">
+          <div className="space-y-fluid animate-fade-up order-2 lg:order-1">
             {/* Brand Header */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 mb-4 lg:mb-6 text-center sm:text-left">
-              <BrandLogo size={48} className="sm:w-14 sm:h-14" />
-              <div>
-                <h1 className="text-2xl sm:text-3xl lg:text-display-md bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 text-center sm:text-left stagger-1">
+              <div className="interactive-scale">
+                <BrandLogo size={56} className="sm:w-16 sm:h-16 lg:w-20 lg:h-20" />
+              </div>
+              <div className="space-y-2">
+                <h1 className="text-display-md bg-gradient-to-r from-foreground via-primary to-secondary bg-clip-text text-transparent animate-gradient">
                   Kwenda Taxi
                 </h1>
-                <p className="text-muted-foreground text-sm sm:text-base lg:text-lg">🇨🇩 Made in Congo RDC</p>
+                <p className="text-muted-foreground text-body-md">🇨🇩 Made in Congo RDC</p>
               </div>
             </div>
 
-            <div className="space-y-4 lg:space-y-6">
-              <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-3 text-primary">
-                <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
-                <Badge variant="outline" className="border-primary/30 text-primary text-xs sm:text-sm px-2 sm:px-3">
+            <div className="space-y-fluid">
+              <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-3 sm:gap-4 text-primary stagger-2">
+                <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current animate-pulse" />
+                <Badge variant="outline" className="border-primary/30 text-primary text-sm px-4 py-2 bg-primary/5 animate-glow-pulse">
                   #1 Transport App Kinshasa
                 </Badge>
-                <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
+                <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current animate-pulse" style={{animationDelay: '0.5s'}} />
               </div>
               
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-display-lg leading-tight text-center lg:text-left">
-                L'Application <span className="text-primary">Tout-en-Un</span>
+              <h2 className="text-display-lg leading-tight text-center lg:text-left stagger-3">
+                L'Application <span className="text-primary animate-gradient bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent">Tout-en-Un</span>
                 <br />
-                <span className="bg-gradient-to-r from-secondary via-accent to-primary bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-secondary via-accent to-primary bg-clip-text text-transparent animate-gradient">
                   pour Kinshasa
                 </span>
               </h2>
               
-              <p className="text-sm sm:text-base lg:text-body-lg text-muted-foreground leading-relaxed max-w-lg mx-auto lg:mx-0 text-center lg:text-left">
+              <p className="text-body-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto lg:mx-0 text-center lg:text-left stagger-4">
                 Transport VTC, Livraison Express, Location de Véhicules, Marketplace et Tombola - 
                 Tout ce dont vous avez besoin dans une seule application conçue pour la RDC.
               </p>
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-3 lg:gap-4 text-xs sm:text-sm">
-              <div className="flex items-center gap-2 text-muted-foreground justify-center lg:justify-start">
-                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
-                <span className="truncate">Tout Kinshasa</span>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 stagger-5">
+              <div className="glass rounded-xl p-4 text-center group hover:bg-primary/5 transition-all duration-300 interactive-scale">
+                <MapPin className="w-6 h-6 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <div className="text-heading-sm">Tout Kinshasa</div>
+                <div className="text-caption text-muted-foreground">Zone couverte</div>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground justify-center lg:justify-start">
-                <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-secondary flex-shrink-0" />
-                <span className="truncate">Service 24h/24</span>
+              <div className="glass rounded-xl p-4 text-center group hover:bg-secondary/5 transition-all duration-300 interactive-scale">
+                <Clock className="w-6 h-6 text-secondary mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <div className="text-heading-sm">24h/24</div>
+                <div className="text-caption text-muted-foreground">Service continu</div>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground justify-center lg:justify-start">
-                <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-accent flex-shrink-0" />
-                <span className="truncate">KwendaPay</span>
+              <div className="glass rounded-xl p-4 text-center group hover:bg-accent/5 transition-all duration-300 interactive-scale">
+                <Zap className="w-6 h-6 text-accent mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <div className="text-heading-sm">KwendaPay</div>
+                <div className="text-caption text-muted-foreground">Paiements</div>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground justify-center lg:justify-start">
-                <Users className="w-3 h-3 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
-                <span className="truncate">Communauté</span>
+              <div className="glass rounded-xl p-4 text-center group hover:bg-primary/5 transition-all duration-300 interactive-scale">
+                <Users className="w-6 h-6 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                <div className="text-heading-sm">Communauté</div>
+                <div className="text-caption text-muted-foreground">Active</div>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col gap-3 sm:gap-4">
-              <Link to="/auth" className="w-full">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 pt-4">
+              <Link to="/auth" className="flex-1">
                 <Button 
                   size="lg" 
-                  className="w-full text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow transition-all duration-300 group min-h-[48px]"
+                  className="w-full text-body-lg px-8 py-6 bg-gradient-to-r from-primary via-primary-glow to-primary hover:shadow-glow transition-all duration-500 group min-h-[56px] rounded-xl interactive-scale animate-glow-pulse"
                 >
-                  <Car className="w-4 h-4 sm:w-5 sm:h-5 mr-2 group-hover:scale-110 transition-transform" />
+                  <Car className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
                   Commencer maintenant
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 border-primary/30 hover:bg-primary/5 group min-h-[48px]"
+                className="flex-1 sm:flex-initial text-body-lg px-8 py-6 border-primary/30 hover:bg-primary/5 group min-h-[56px] rounded-xl glass interactive-scale"
               >
-                <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2 group-hover:scale-110 transition-transform" />
+                <Play className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
                 Voir la démo
-                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
 
             {/* Social Proof */}
-            <div className="grid grid-cols-4 gap-4 pt-4 lg:pt-6 border-t border-border/50">
-              <div className="text-center">
-                <div className="text-lg sm:text-xl lg:text-heading-md text-primary font-bold">5+</div>
-                <div className="text-xs sm:text-caption text-muted-foreground">Services</div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8 border-t border-border/30">
+              <div className="text-center group">
+                <div className="text-heading-lg text-primary font-bold group-hover:scale-110 transition-transform">5+</div>
+                <div className="text-caption text-muted-foreground">Services Intégrés</div>
               </div>
-              <div className="text-center">
-                <div className="text-lg sm:text-xl lg:text-heading-md text-secondary font-bold">24/7</div>
-                <div className="text-xs sm:text-caption text-muted-foreground">Support</div>
+              <div className="text-center group">
+                <div className="text-heading-lg text-secondary font-bold group-hover:scale-110 transition-transform">24/7</div>
+                <div className="text-caption text-muted-foreground">Support Client</div>
               </div>
-              <div className="text-center">
-                <div className="text-lg sm:text-xl lg:text-heading-md text-accent font-bold">100%</div>
-                <div className="text-xs sm:text-caption text-muted-foreground">Sécurisé</div>
+              <div className="text-center group">
+                <div className="text-heading-lg text-accent font-bold group-hover:scale-110 transition-transform">100%</div>
+                <div className="text-caption text-muted-foreground">Sécurisé</div>
               </div>
-              <div className="text-center">
-                <div className="text-lg sm:text-xl lg:text-heading-md text-primary font-bold">🇨🇩</div>
-                <div className="text-xs sm:text-caption text-muted-foreground">Local</div>
+              <div className="text-center group">
+                <div className="text-heading-lg text-primary font-bold group-hover:scale-110 transition-transform animate-float">🇨🇩</div>
+                <div className="text-caption text-muted-foreground">Made in Congo</div>
               </div>
             </div>
           </div>
 
           {/* Hero Image */}
-          <div className="relative animate-scale-in order-1 lg:order-2 max-w-md mx-auto lg:max-w-none">
-            <div className="relative z-10">
-              <div className="relative overflow-hidden rounded-2xl lg:rounded-3xl shadow-xl lg:shadow-2xl transform hover:rotate-0 lg:rotate-2 transition-transform duration-500">
+          <div className="relative animate-scale-fade order-1 lg:order-2 max-w-lg mx-auto lg:max-w-none">
+            <div className="relative z-10 group">
+              <div className="relative overflow-hidden rounded-3xl shadow-elegant transform hover:rotate-0 lg:rotate-1 transition-all duration-700 hover:shadow-glow interactive-scale">
                 <img 
                   src={heroImage} 
                   alt="Kwenda Taxi - Interface moderne de transport intelligent à Kinshasa"
-                  className="w-full h-auto object-cover aspect-[4/3] lg:aspect-auto"
+                  className="w-full h-auto object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-primary/20"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-primary/20 group-hover:from-black/20 transition-all duration-500"></div>
+                
+                {/* Interactive overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-transparent to-accent/0 group-hover:from-primary/10 group-hover:to-accent/10 transition-all duration-500"></div>
               </div>
               
-              {/* Floating Elements - Hidden on mobile */}
-              <div className="hidden sm:block absolute -top-4 lg:-top-6 -right-4 lg:-right-6 bg-gradient-to-r from-secondary to-accent text-white px-3 py-2 lg:px-6 lg:py-3 rounded-full shadow-lg text-xs lg:text-sm font-semibold animate-bounce">
+              {/* Enhanced Floating Elements */}
+              <div className="hidden sm:block absolute -top-6 -right-6 bg-gradient-to-r from-secondary to-accent text-white px-6 py-3 rounded-full shadow-glow text-sm font-semibold animate-float glass border border-white/20">
                 🚀 Nouveau !
               </div>
               
-              <div className="hidden sm:block absolute -bottom-4 lg:-bottom-6 -left-4 lg:-left-6 bg-gradient-to-r from-primary to-primary-glow text-white px-3 py-2 lg:px-6 lg:py-3 rounded-full shadow-lg text-xs lg:text-sm font-semibold">
+              <div className="hidden sm:block absolute -bottom-6 -left-6 bg-gradient-to-r from-primary to-primary-glow text-white px-6 py-3 rounded-full shadow-glow text-sm font-semibold animate-float glass border border-white/20" style={{animationDelay: '1s'}}>
                 🎲 + Tombola gratuite
+              </div>
+              
+              {/* Side floating element */}
+              <div className="hidden lg:block absolute top-1/2 -left-12 transform -translate-y-1/2 bg-gradient-to-r from-accent to-secondary text-white px-4 py-2 rounded-full shadow-lg text-xs font-semibold animate-pulse">
+                💫 5 Services
               </div>
             </div>
             
-            {/* Decorative Background Elements - Smaller on mobile */}
-            <div className="absolute -top-8 lg:-top-12 -left-8 lg:-left-12 w-24 h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full blur-xl lg:blur-2xl"></div>
-            <div className="absolute -bottom-8 lg:-bottom-12 -right-8 lg:-right-12 w-32 h-32 lg:w-40 lg:h-40 bg-gradient-to-br from-accent/20 to-primary/20 rounded-full blur-2xl lg:blur-3xl"></div>
+            {/* Enhanced Decorative Background Elements */}
+            <div className="absolute -top-12 -left-12 w-32 h-32 lg:w-40 lg:h-40 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full blur-2xl animate-float"></div>
+            <div className="absolute -bottom-12 -right-12 w-40 h-40 lg:w-48 lg:h-48 bg-gradient-to-br from-accent/20 to-primary/20 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+            <div className="absolute top-1/2 -right-8 w-24 h-24 bg-gradient-to-br from-secondary/15 to-accent/15 rounded-full blur-xl animate-pulse"></div>
           </div>
         </div>
       </div>

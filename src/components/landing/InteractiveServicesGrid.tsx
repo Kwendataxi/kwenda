@@ -93,73 +93,73 @@ const InteractiveServicesGrid = () => {
   ];
 
   return (
-    <section className="py-20 px-4 bg-gradient-to-b from-background to-muted/30">
-      <div className="container mx-auto max-w-7xl">
-        <div className="text-center mb-16 space-y-4">
-          <Badge variant="outline" className="border-primary/30 text-primary mb-4">
+    <section className="py-20 lg:py-32 bg-gradient-to-b from-background via-muted/20 to-background">
+      <div className="container-section">
+        <div className="text-center mb-20 space-y-fluid animate-fade-up">
+          <Badge variant="outline" className="border-primary/30 text-primary mb-6 px-6 py-3 text-base bg-primary/5 animate-glow-pulse">
             🚀 Cinq Services Révolutionnaires
           </Badge>
-          <h2 className="text-display-md bg-gradient-to-r from-foreground via-primary to-accent bg-clip-text text-transparent">
+          <h2 className="text-display-lg bg-gradient-to-r from-foreground via-primary to-accent bg-clip-text text-transparent animate-gradient">
             Tout ce dont vous avez besoin
           </h2>
-          <p className="text-body-lg text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-body-lg text-muted-foreground max-w-4xl mx-auto leading-relaxed">
             Kwenda Taxi combine transport, livraison, location, marketplace et divertissement 
             dans une seule application intelligente adaptée aux réalités de Kinshasa.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
           {services.map((service, index) => (
             <Card 
               key={service.id}
-              className={`relative group hover:shadow-xl transition-all duration-500 cursor-pointer transform hover:-translate-y-2 touch-manipulation ${
-                index >= 3 ? 'sm:col-span-2 lg:col-span-1 sm:max-w-md sm:mx-auto lg:max-w-none lg:mx-0' : ''
+              className={`relative group hover:shadow-glow transition-all duration-700 cursor-pointer transform hover:-translate-y-3 touch-scale glass border-2 border-transparent hover:border-primary/20 ${
+                index >= 3 ? 'sm:col-span-2 lg:col-span-1 sm:max-w-lg sm:mx-auto lg:max-w-none lg:mx-0' : ''
               } ${
-                hoveredService === service.id ? 'scale-105 shadow-glow' : ''
-              }`}
+                hoveredService === service.id ? 'scale-105 shadow-glow border-primary/30 bg-primary/5' : ''
+              } ${`stagger-${(index % 5) + 1}`}`}
               onMouseEnter={() => setHoveredService(service.id)}
               onMouseLeave={() => setHoveredService(null)}
               onClick={() => setHoveredService(hoveredService === service.id ? null : service.id)}
             >
-              {/* Service Badge */}
+              {/* Enhanced Service Badge */}
               {service.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                  <Badge className="bg-gradient-to-r from-primary to-primary-glow text-white shadow-lg">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                  <Badge className="bg-gradient-to-r from-primary to-primary-glow text-white shadow-glow px-4 py-2 animate-glow-pulse">
                     ⭐ Plus Populaire
                   </Badge>
                 </div>
               )}
               
               {service.hot && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                  <Badge className="bg-gradient-to-r from-accent to-secondary text-white shadow-lg animate-pulse">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                  <Badge className="bg-gradient-to-r from-accent to-secondary text-white shadow-glow px-4 py-2 animate-float">
                     🔥 Nouveau !
                   </Badge>
                 </div>
               )}
 
-              <CardHeader className="pb-3 lg:pb-4">
-                <div className="flex items-start justify-between mb-3 lg:mb-4">
-                  <div className={`p-3 lg:p-4 bg-gradient-to-br ${service.gradient} rounded-xl lg:rounded-2xl text-white group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                    <div className="w-6 h-6 lg:w-10 lg:h-10">
+              <CardHeader className="pb-4 lg:pb-6">
+                <div className="flex items-start justify-between mb-4 lg:mb-6">
+                  <div className={`p-4 lg:p-5 bg-gradient-to-br ${service.gradient} rounded-2xl text-white group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-glow`}>
+                    <div className="w-8 h-8 lg:w-12 lg:h-12">
                       {service.icon}
                     </div>
                   </div>
                   {hoveredService === service.id && (
-                    <ArrowRight className="w-5 h-5 lg:w-6 lg:h-6 text-primary animate-bounce" />
+                    <ArrowRight className="w-6 h-6 lg:w-7 lg:h-7 text-primary animate-float" />
                   )}
                 </div>
                 
-                <CardTitle className="text-lg lg:text-heading-lg group-hover:text-primary transition-colors">
+                <CardTitle className="text-heading-md lg:text-heading-lg group-hover:text-primary transition-colors duration-300 mb-3">
                   {service.title}
                 </CardTitle>
-                <CardDescription className="text-sm lg:text-body-md leading-relaxed">
+                <CardDescription className="text-body-sm lg:text-body-md leading-relaxed text-muted-foreground/80">
                   {service.description}
                 </CardDescription>
               </CardHeader>
 
-              <CardContent className="space-y-4 lg:space-y-6 p-4 lg:p-6">
-                <div className="text-lg lg:text-heading-md font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <CardContent className="space-y-fluid p-6 lg:p-8">
+                <div className="text-heading-md lg:text-heading-lg font-bold bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent animate-gradient">
                   {service.price}
                 </div>
 
@@ -196,35 +196,42 @@ const InteractiveServicesGrid = () => {
                 </div>
 
                 <Button 
-                  className={`w-full group-hover:scale-105 transition-all duration-300 bg-gradient-to-r ${service.gradient} hover:shadow-glow min-h-[44px] text-sm lg:text-base`}
+                  className={`w-full group-hover:scale-105 transition-all duration-500 bg-gradient-to-r ${service.gradient} hover:shadow-glow min-h-[52px] text-body-md rounded-xl touch-scale`}
                   size="lg"
                 >
                   {service.id === 'lottery' ? 'Découvrir' : 'Réserver'}
-                  <ArrowRight className="w-3 h-3 lg:w-4 lg:h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5 ml-3 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Quick Access CTA */}
-        <div className="mt-12 lg:mt-16 text-center">
-          <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border border-primary/20 rounded-2xl lg:rounded-3xl p-6 lg:p-8 backdrop-blur-sm">
-            <h3 className="text-xl lg:text-heading-lg mb-3 lg:mb-4">
-              Prêt à découvrir l'expérience Kwenda ?
-            </h3>
-            <p className="text-sm lg:text-body-md text-muted-foreground mb-4 lg:mb-6 max-w-2xl mx-auto">
-              Téléchargez l'app et profitez de tous nos services en quelques clics !
-            </p>
-            <div className="flex flex-col gap-3 lg:gap-4 justify-center">
-              <Button size="lg" className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow min-h-[48px] text-sm lg:text-base">
-                <Car className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
-                Commander maintenant
-              </Button>
-              <Button variant="outline" size="lg" className="border-primary/30 hover:bg-primary/5 min-h-[48px] text-sm lg:text-base">
-                <Users className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
-                Devenir partenaire
-              </Button>
+        {/* Enhanced Quick Access CTA */}
+        <div className="mt-20 lg:mt-32 text-center animate-fade-up">
+          <div className="glass border-2 border-primary/20 rounded-3xl p-8 lg:p-12 relative overflow-hidden">
+            {/* Background gradient animation */}
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 animate-gradient opacity-50"></div>
+            
+            <div className="relative z-10 space-y-fluid">
+              <h3 className="text-heading-lg lg:text-display-sm bg-gradient-to-r from-foreground via-primary to-accent bg-clip-text text-transparent">
+                Prêt à découvrir l'expérience Kwenda ?
+              </h3>
+              <p className="text-body-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                Téléchargez l'app et profitez de tous nos services en quelques clics ! 
+                Rejoignez des milliers d'utilisateurs qui font déjà confiance à Kwenda Taxi.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center pt-4">
+                <Button size="lg" className="bg-gradient-to-r from-primary via-primary-glow to-primary hover:shadow-glow min-h-[56px] text-body-lg rounded-xl interactive-scale px-8">
+                  <Car className="w-5 h-5 mr-3" />
+                  Commander maintenant
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+                <Button variant="outline" size="lg" className="border-2 border-primary/30 hover:bg-primary/5 hover:border-primary/50 min-h-[56px] text-body-lg rounded-xl glass interactive-scale px-8">
+                  <Users className="w-5 h-5 mr-3" />
+                  Devenir partenaire
+                </Button>
+              </div>
             </div>
           </div>
         </div>

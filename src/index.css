@@ -262,10 +262,109 @@ All colors MUST be HSL.
   }
 }
 
-/* Line clamp utility */
+/* Advanced Utility Classes */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Responsive containers with better spacing */
+.container-fluid {
+  width: 100%;
+  max-width: 100%;
+  padding-left: clamp(1rem, 4vw, 2rem);
+  padding-right: clamp(1rem, 4vw, 2rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container-section {
+  width: 100%;
+  max-width: 1400px;
+  padding-left: clamp(1rem, 4vw, 2rem);
+  padding-right: clamp(1rem, 4vw, 2rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Interactive Elements */
+.interactive-scale {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.interactive-scale:hover {
+  transform: scale(1.02);
+}
+
+.interactive-scale:active {
+  transform: scale(0.98);
+}
+
+/* Touch-friendly interactions */
+.touch-scale {
+  transition: transform 0.15s ease-out;
+}
+
+.touch-scale:active {
+  transform: scale(0.95);
+}
+
+/* Glass morphism effects */
+.glass {
+  background: hsl(var(--background) / 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid hsl(var(--border) / 0.2);
+}
+
+/* Advanced grid systems */
+.grid-auto-fit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: clamp(1rem, 3vw, 2rem);
+}
+
+.grid-auto-fill {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: clamp(1rem, 3vw, 2rem);
+}
+
+/* Smart responsive spacing */
+.space-y-fluid > * + * {
+  margin-top: clamp(0.5rem, 2vw, 1.5rem);
+}
+
+.space-x-fluid > * + * {
+  margin-left: clamp(0.5rem, 2vw, 1.5rem);
+}
+
+/* Motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-up,
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-float,
+  .animate-glow-pulse,
+  .animate-gradient,
+  .stagger-1,
+  .stagger-2,
+  .stagger-3,
+  .stagger-4,
+  .stagger-5 {
+    animation: none;
+  }
+  
+  .interactive-scale,
+  .touch-scale {
+    transition: none;
+  }
 }
