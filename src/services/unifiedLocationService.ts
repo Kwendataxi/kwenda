@@ -36,25 +36,15 @@ export class UnifiedLocationService {
     if (this.googleApiKey) return this.googleApiKey;
     
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token || '';
-
-      const response = await fetch('/api/functions/v1/get-google-maps-key', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const { data, error } = await supabase.functions.invoke('get-google-maps-key');
       
-      if (!response.ok) throw new Error('API key fetch failed');
-      const data = await response.json();
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
       
-      if (data.error) throw new Error(data.error);
       this.googleApiKey = data.apiKey;
       return this.googleApiKey;
     } catch (error) {
-      console.warn('Google API non disponible, mode fallback activé');
+      console.warn('Google API non disponible, mode fallback activé:', error);
       return '';
     }
   }
