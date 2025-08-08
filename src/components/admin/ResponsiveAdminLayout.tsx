@@ -39,8 +39,8 @@ export const ResponsiveAdminLayout: React.FC<ResponsiveAdminLayoutProps> = ({
           </SheetContent>
         </Sheet>
 
-        {/* KPI Grid */}
-        <MobileKPIGrid realTimeStats={realTimeStats} />
+        {/* KPI Grid - only on overview */}
+        {activeTab === 'overview' && <MobileKPIGrid realTimeStats={realTimeStats} />}
         
         {/* Content */}
         <main className="p-4">
@@ -59,7 +59,8 @@ export const ResponsiveAdminLayout: React.FC<ResponsiveAdminLayoutProps> = ({
             <AdminVerticalNav activeTab={activeTab} onTabChange={onTabChange} />
           </aside>
           <section className="flex-1">
-            <MobileKPIGrid realTimeStats={realTimeStats} />
+            {/* KPI Grid - only on overview */}
+            {activeTab === 'overview' && <MobileKPIGrid realTimeStats={realTimeStats} />}
             <main className="py-6">
               {children}
             </main>

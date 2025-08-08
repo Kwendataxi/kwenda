@@ -130,35 +130,67 @@ const AdminApp = () => {
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
 {/* Navigation déplacée dans AdminVerticalNav (ResponsiveAdminLayout) */}
 
-      <TabsContent value="credits">
+      <TabsContent value="credits" className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Gestion des Crédits Chauffeurs</h1>
+            <p className="text-muted-foreground">Gérez les crédits, recharges et transactions des chauffeurs</p>
+          </div>
+        </div>
+        
         <PermissionGuard requiredPermissions={['finance_write']}>
-          <DriverCreditsManager />
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Crédits et Transactions</h2>
+            <DriverCreditsManager />
+          </div>
         </PermissionGuard>
+      </TabsContent>
 
+      <TabsContent value="commissions" className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Gestion des Commissions</h1>
+            <p className="text-muted-foreground">Configurez les taux de commission et suivez les revenus</p>
+          </div>
+        </div>
+        
         <PermissionGuard requiredPermissions={['finance_admin']}>
-          <CommissionManager />
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Configuration des Commissions</h2>
+            <CommissionManager />
+          </div>
         </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="financial" className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard Financier</h1>
+            <p className="text-muted-foreground">Analysez les performances financières et les métriques</p>
+          </div>
+        </div>
         
         <PermissionGuard requiredPermissions={['finance_read']}>
-          <FinancialDashboard />
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Analyse Financière</h2>
+            <FinancialDashboard />
+          </div>
         </PermissionGuard>
       </TabsContent>
 
-      <TabsContent value="commissions">
-        <PermissionGuard requiredPermissions={['finance_admin']}>
-          <CommissionManager />
-        </PermissionGuard>
-      </TabsContent>
-
-      <TabsContent value="financial">
-        <PermissionGuard requiredPermissions={['finance_read']}>
-          <FinancialDashboard />
-        </PermissionGuard>
-      </TabsContent>
-
-      <TabsContent value="tarifs">
+      <TabsContent value="tarifs" className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Gestion des Tarifs</h1>
+            <p className="text-muted-foreground">Configurez les tarifs par zone et type de service</p>
+          </div>
+        </div>
+        
         <PermissionGuard requiredPermissions={['transport_admin']}>
-          <AdminPricingManager />
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Configuration Tarifaire</h2>
+            <AdminPricingManager />
+          </div>
         </PermissionGuard>
       </TabsContent>
 
@@ -379,21 +411,44 @@ const AdminApp = () => {
           </TabsContent>
 
           
-        <TabsContent value="zones" className="space-y-4">
+        <TabsContent value="zones" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Gestion des Zones</h1>
+              <p className="text-muted-foreground">Configurez les zones de service et leurs paramètres</p>
+            </div>
+          </div>
+          
           <PermissionGuard requiredPermissions={['transport_admin']} showError>
-            <ZoneManagementDashboard />
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Configuration des Zones</h2>
+              <ZoneManagementDashboard />
+            </div>
           </PermissionGuard>
         </TabsContent>
 
-        <TabsContent value="drivers" className="space-y-4">
+        <TabsContent value="drivers" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Gestion des Chauffeurs</h1>
+              <p className="text-muted-foreground">Gérez les chauffeurs, leurs finances et performances</p>
+            </div>
+          </div>
+          
           <PermissionGuard requiredPermissions={['drivers_read']} showError>
-            <DriverFinancialManager />
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Finances des Chauffeurs</h2>
+              <DriverFinancialManager />
+            </div>
           </PermissionGuard>
         </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-heading-lg text-card-foreground">Gestion des utilisateurs</h3>
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">Gestion des Utilisateurs</h1>
+                <p className="text-muted-foreground">Administrez les clients, chauffeurs et partenaires</p>
+              </div>
               <div className="flex space-x-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -406,6 +461,7 @@ const AdminApp = () => {
               </div>
             </div>
 
+            <h2 className="text-xl font-semibold">Vue d'ensemble des utilisateurs</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="card-floating border-0">
                 <CardHeader>
@@ -735,14 +791,31 @@ const AdminApp = () => {
 
           </TabsContent>
 
-        <TabsContent value="support" className="space-y-4">
+        <TabsContent value="support" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Centre de Support</h1>
+              <p className="text-muted-foreground">Gérez les tickets de support et l'assistance utilisateurs</p>
+            </div>
+          </div>
+          
           <PermissionGuard requiredPermissions={['support_read']} showError>
-            <AdvancedSupportCenter />
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Tickets et Assistance</h2>
+              <AdvancedSupportCenter />
+            </div>
           </PermissionGuard>
         </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
-            <h3 className="text-heading-lg text-card-foreground">Paramètres système</h3>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">Paramètres Système</h1>
+                <p className="text-muted-foreground">Configurez les paramètres généraux et la modération</p>
+              </div>
+            </div>
+            
+            <h2 className="text-xl font-semibold">Configuration</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="card-floating border-0">
