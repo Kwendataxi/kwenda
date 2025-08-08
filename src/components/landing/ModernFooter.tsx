@@ -33,21 +33,21 @@ const ModernFooter = () => {
     {
       title: "Support",
       links: [
-        { name: "Centre d'aide", href: "#", icon: <Phone className="w-4 h-4" /> },
-        { name: "Nous contacter", href: "#", icon: <Mail className="w-4 h-4" /> },
-        { name: "FAQ", href: "#", icon: <Heart className="w-4 h-4" /> },
-        { name: "Signaler un problème", href: "#", icon: <Phone className="w-4 h-4" /> },
-        { name: "Sécurité", href: "#", icon: <Phone className="w-4 h-4" /> }
+        { name: "Centre d'aide", href: "/support/help-center", icon: <Phone className="w-4 h-4" /> },
+        { name: "Nous contacter", href: "/support/contact", icon: <Mail className="w-4 h-4" /> },
+        { name: "FAQ", href: "/support/help-center", icon: <Heart className="w-4 h-4" /> },
+        { name: "Signaler un problème", href: "/support/contact", icon: <Phone className="w-4 h-4" /> },
+        { name: "Sécurité", href: "/support/help-center", icon: <Phone className="w-4 h-4" /> }
       ]
     },
     {
       title: "Congo RDC",
       links: [
-        { name: "Kinshasa", href: "#", icon: <MapPin className="w-4 h-4" /> },
-        { name: "Lubumbashi", href: "#", icon: <MapPin className="w-4 h-4" /> },
-        { name: "Kolwezi", href: "#", icon: <MapPin className="w-4 h-4" /> },
-        { name: "Expansion", href: "#", icon: <MapPin className="w-4 h-4" /> },
-        { name: "Carte de couverture", href: "#", icon: <ExternalLink className="w-4 h-4" /> }
+        { name: "Kinshasa", href: "/locations/kinshasa", icon: <MapPin className="w-4 h-4" /> },
+        { name: "Lubumbashi", href: "/locations/lubumbashi", icon: <MapPin className="w-4 h-4" /> },
+        { name: "Kolwezi", href: "/locations/kolwezi", icon: <MapPin className="w-4 h-4" /> },
+        { name: "Expansion", href: "/locations/expansion", icon: <MapPin className="w-4 h-4" /> },
+        { name: "Carte de couverture", href: "/locations/coverage-map", icon: <ExternalLink className="w-4 h-4" /> }
       ]
     }
   ];
@@ -60,10 +60,10 @@ const ModernFooter = () => {
   ];
 
   const legalLinks = [
-    { name: "Conditions d'utilisation", href: "#" },
-    { name: "Politique de confidentialité", href: "#" },
-    { name: "Cookies", href: "#" },
-    { name: "Mentions légales", href: "#" }
+    { name: "Conditions d'utilisation", href: "/legal/terms" },
+    { name: "Politique de confidentialité", href: "/legal/privacy" },
+    { name: "Cookies", href: "/legal/cookies" },
+    { name: "Mentions légales", href: "/legal/legal-notice" }
   ];
 
   return (
@@ -196,9 +196,9 @@ const ModernFooter = () => {
 
           <div className="text-center md:text-right">
             <p className="text-xs text-muted-foreground">
-              Version 1.0.0 • Développé avec{" "}
-              <a href="https://lovable.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                Lovable
+              Version 1.0.0 • Développé par{" "}
+              <a href="https://icon-sarl.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                ICON SARL
               </a>
             </p>
           </div>

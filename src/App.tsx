@@ -15,6 +15,13 @@ import PartnerApp from "./pages/PartnerApp";
 import AdminApp from "./pages/AdminApp";
 import MarketplaceApp from "./pages/MarketplaceApp";
 import NotFound from "./pages/NotFound";
+// Footer Pages
+import HelpCenter from "./pages/support/HelpCenter";
+import Contact from "./pages/support/Contact";
+import Terms from "./pages/legal/Terms";
+import Privacy from "./pages/legal/Privacy";
+import Kinshasa from "./pages/locations/Kinshasa";
+import About from "./pages/about/About";
 import { ChatProvider } from "@/components/chat/ChatProvider";
 import Onboarding from "./pages/Onboarding";
 import { OnboardingRedirect } from "@/components/onboarding/OnboardingRedirect";
@@ -66,6 +73,15 @@ const App = () => (
                   <MarketplaceApp />
                 </ProtectedRoute>
               } />
+              
+              {/* Footer Pages */}
+              <Route path="/support/help-center" element={<HelpCenter />} />
+              <Route path="/support/contact" element={<Contact />} />
+              <Route path="/legal/terms" element={<Terms />} />
+              <Route path="/legal/privacy" element={<Privacy />} />
+              <Route path="/locations/kinshasa" element={<Kinshasa />} />
+              <Route path="/about" element={<About />} />
+              
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
