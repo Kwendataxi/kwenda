@@ -26,6 +26,8 @@ import { ChatProvider } from "@/components/chat/ChatProvider";
 import Onboarding from "./pages/Onboarding";
 import { OnboardingRedirect } from "@/components/onboarding/OnboardingRedirect";
 import { StartupExperience } from "@/components/splash/StartupExperience";
+import { ScrollToTop } from "@/components/navigation/ScrollToTop";
+import { BackToTopButton } from "@/components/navigation/BackToTopButton";
 
 const queryClient = new QueryClient();
 
@@ -39,7 +41,9 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <ScrollToTop />
               <StartupExperience />
+              <BackToTopButton />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/onboarding" element={<Onboarding />} />
