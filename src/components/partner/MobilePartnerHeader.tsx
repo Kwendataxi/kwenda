@@ -9,8 +9,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { useAuth } from "@/hooks/useAuth";
+import NotificationCenter from "@/components/advanced/NotificationCenter";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
 interface MobilePartnerHeaderProps {
   title?: string;
@@ -24,6 +27,7 @@ export const MobilePartnerHeader: React.FC<MobilePartnerHeaderProps> = ({
   onMenuToggle 
 }) => {
   const { signOut, user } = useAuth();
+  const { unreadCount } = useRealtimeNotifications();
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
@@ -50,15 +54,29 @@ export const MobilePartnerHeader: React.FC<MobilePartnerHeaderProps> = ({
         {/* Actions */}
         <div className="flex items-center gap-2">
           {/* Notifications */}
-          <Button variant="ghost" size="sm" className="relative rounded-xl p-2 h-auto">
-            <Bell className="h-4 w-4" />
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-xs"
-            >
-              3
-            </Badge>
-          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="sm" className="relative rounded-xl p-2 h-auto">
+                <Bell className="h-4 w-4" />
+                {unreadCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px]"
+                  >
+                    {unreadCount}
+                  </Badge>
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full sm:w-[420px]">
+              <SheetHeader>
+                <SheetTitle>Centre de notifications</SheetTitle>
+              </SheetHeader>
+              <div className="mt-2">
+                <NotificationCenter />
+              </div>
+            </SheetContent>
+          </Sheet>
 
           {/* User Menu */}
           <DropdownMenu>
