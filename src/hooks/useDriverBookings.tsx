@@ -3,8 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useRealtimeTracking } from './useRealtimeTracking';
 import { toast } from 'sonner';
-// Ensure Mapbox safety patch is applied early for driver route
-import '@/patches/mapboxSafety';
 
 interface ActiveBooking {
   id: string;
