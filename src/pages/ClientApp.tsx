@@ -76,7 +76,7 @@ import { OptimizedGrid } from '@/components/performance/OptimizedGrid';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 
 // Chat and order components
-import { ChatInterface } from '@/components/marketplace/ChatInterface';
+
 import { ModernChatInterface } from '@/components/marketplace/ModernChatInterface';
 import { OrderManagement } from '@/components/marketplace/OrderManagement';
 import { CreateOrderDialog } from '@/components/marketplace/CreateOrderDialog';
@@ -87,7 +87,7 @@ import { EditProductForm } from '@/components/marketplace/EditProductForm';
 import { TestDataGenerator } from '@/components/testing/TestDataGenerator';
 
 // Hooks
-import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
+
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useAuth } from '@/hooks/useAuth';
 import { LotteryDashboard } from '@/components/lottery/LotteryDashboard';
@@ -169,8 +169,6 @@ const ClientApp = () => {
   const [showingTrends, setShowingTrends] = useState(false);
 
   // Chat and order states
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [selectedConversationId, setSelectedConversationId] = useState<string | undefined>();
   const [isOrderManagementOpen, setIsOrderManagementOpen] = useState(false);
   const [isCreateOrderDialogOpen, setIsCreateOrderDialogOpen] = useState(false);
   const [orderProduct, setOrderProduct] = useState<any>(null);
@@ -180,7 +178,7 @@ const ClientApp = () => {
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
   // Chat and order hooks
-  const chatHook = useMarketplaceChat();
+  
   const ordersHook = useMarketplaceOrders();
   
   // Lottery hooks
@@ -559,7 +557,7 @@ const ClientApp = () => {
     if (product) {
       setOrderProduct(product);
       setIsCreateOrderDialogOpen(true);
-      setIsChatOpen(false);
+      
     }
   };
 
@@ -1138,12 +1136,6 @@ const ClientApp = () => {
         }}
       />
 
-      {/* Chat Interface */}
-      <ChatInterface
-        conversationId={selectedConversationId}
-        onBack={() => setIsChatOpen(false)}
-        onStartOrder={handleStartOrder}
-      />
 
       {/* Order Management */}
       <OrderManagement
