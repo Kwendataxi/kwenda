@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { DriverDeliveryDashboard } from '@/components/driver/DriverDeliveryDashboard';
 import MobileDriverInterface from '@/components/mobile/MobileDriverInterface';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { useDriverServiceType } from '@/hooks/useDriverServiceType';
 import { toast } from 'sonner';
@@ -41,10 +41,9 @@ const DriverApp = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-4 pb-28">
-        <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
           <DriverHeader serviceType={serviceType} />
 
-          <TabsContent value="rides" className="mt-0">
+          {tab === 'rides' && (
             <MobileDriverInterface
               onNavigateToEarnings={() => {
                 toast.info('Ouverture des gains du chauffeur');
@@ -59,32 +58,31 @@ const DriverApp = () => {
                 console.log('[Driver] Open navigation');
               }}
             />
-          </TabsContent>
+          )}
 
-          <TabsContent value="deliveries" className="mt-0">
+          {tab === 'deliveries' && (
             <DriverDeliveryDashboard />
-          </TabsContent>
+          )}
 
-          <TabsContent value="wallet" className="mt-0">
+          {tab === 'wallet' && (
             <DriverWalletPanel />
-          </TabsContent>
+          )}
 
-          <TabsContent value="credits" className="mt-0">
+          {tab === 'credits' && (
             <DriverCreditManager />
-          </TabsContent>
+          )}
 
-          <TabsContent value="challenges" className="mt-0">
+          {tab === 'challenges' && (
             <DriverChallenges />
-          </TabsContent>
+          )}
 
-          <TabsContent value="partner" className="mt-0">
+          {tab === 'partner' && (
             <DriverCodeManager />
-          </TabsContent>
+          )}
 
-          <TabsContent value="referrals" className="mt-0">
+          {tab === 'referrals' && (
             <DriverReferrals />
-          </TabsContent>
-        </Tabs>
+          )}
         <DriverBottomNavigation
           activeTab={tab === 'deliveries' ? 'deliveries' : 'rides'}
           onTabChange={(t) => setTab(t)}
