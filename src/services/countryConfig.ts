@@ -33,8 +33,34 @@ export interface CountryConfig {
   defaultProximity?: { lat: number; lng: number };
 }
 
-// Country configurations
+// Country configurations - Extended worldwide coverage
 const COUNTRIES: Record<string, CountryConfig> = {
+  // Global fallback
+  "*": {
+    code: "*",
+    name: "Monde",
+    currency: "USD",
+    currencySymbol: "$",
+    language: "en",
+    timezone: "UTC",
+    bbox: [-180, -90, 180, 90],
+    mapboxCountryCode: "",
+    majorCities: [
+      { name: 'London', coordinates: { lat: 51.5074, lng: -0.1278 } },
+      { name: 'New York', coordinates: { lat: 40.7128, lng: -74.0060 } },
+      { name: 'Tokyo', coordinates: { lat: 35.6762, lng: 139.6503 } },
+      { name: 'Paris', coordinates: { lat: 48.8566, lng: 2.3522 } },
+      { name: 'Sydney', coordinates: { lat: -33.8688, lng: 151.2093 } }
+    ],
+    defaultProximity: { lat: 48.8566, lng: 2.3522 },
+    transportTypes: [],
+    addressFormat: {
+      format: '{street}, {city}, {country}',
+      components: ['street', 'city', 'country']
+    }
+  },
+
+  // Africa
   CI: {
     code: 'CI',
     name: 'Côte d\'Ivoire',
@@ -51,7 +77,7 @@ const COUNTRIES: Record<string, CountryConfig> = {
       { name: 'San Pedro', coordinates: { lat: 4.7369, lng: -6.6361 } },
       { name: 'Korhogo', coordinates: { lat: 9.4580, lng: -5.6297 } }
     ],
-    defaultProximity: { lat: 5.3364, lng: -4.0267 }, // Abidjan
+    defaultProximity: { lat: 5.3364, lng: -4.0267 },
     transportTypes: [
       {
         id: 'woro-woro',
@@ -85,69 +111,11 @@ const COUNTRIES: Record<string, CountryConfig> = {
         availability: true,
         features: ['Rapide', 'Économique', 'Trafic'],
         description: 'Transport rapide en moto'
-      },
-      {
-        id: 'gbaka',
-        name: 'Gbaka',
-        type: 'bus',
-        baseFare: 150,
-        perKmRate: 75,
-        capacity: 25,
-        availability: true,
-        features: ['Très économique', 'Partagé', 'Populaire'],
-        description: 'Minibus de transport populaire'
       }
     ],
     addressFormat: {
       format: '{street}, {district}, {city}',
       components: ['street', 'district', 'city', 'country']
-    }
-  },
-  
-  FR: {
-    code: 'FR',
-    name: 'France',
-    currency: 'EUR',
-    currencySymbol: '€',
-    language: 'fr',
-    timezone: 'Europe/Paris',
-    bbox: [-5.0, 42.0, 9.0, 51.0],
-    mapboxCountryCode: 'fr',
-    majorCities: [
-      { name: 'Paris', coordinates: { lat: 48.8566, lng: 2.3522 } },
-      { name: 'Lyon', coordinates: { lat: 45.7640, lng: 4.8357 } },
-      { name: 'Marseille', coordinates: { lat: 43.2965, lng: 5.3698 } },
-      { name: 'Toulouse', coordinates: { lat: 43.6047, lng: 1.4442 } },
-      { name: 'Nice', coordinates: { lat: 43.7102, lng: 7.2620 } }
-    ],
-    defaultProximity: { lat: 48.8566, lng: 2.3522 }, // Paris
-    transportTypes: [
-      {
-        id: 'taxi',
-        name: 'Taxi',
-        type: 'taxi',
-        baseFare: 700,
-        perKmRate: 150,
-        capacity: 4,
-        availability: true,
-        features: ['Confort', 'Rapide', 'Disponible 24h/7'],
-        description: 'Taxi traditionnel français'
-      },
-      {
-        id: 'vtc',
-        name: 'VTC',
-        type: 'car',
-        baseFare: 500,
-        perKmRate: 120,
-        capacity: 4,
-        availability: true,
-        features: ['Réservation', 'Confort', 'Prix fixe'],
-        description: 'Véhicule de transport avec chauffeur'
-      }
-    ],
-    addressFormat: {
-      format: '{number} {street}, {postalCode} {city}',
-      components: ['number', 'street', 'postalCode', 'city', 'country']
     }
   },
 
@@ -165,9 +133,11 @@ const COUNTRIES: Record<string, CountryConfig> = {
       { name: 'Lubumbashi', coordinates: { lat: -11.6609, lng: 27.4794 } },
       { name: 'Mbuji-Mayi', coordinates: { lat: -6.1364, lng: 23.5886 } },
       { name: 'Kisangani', coordinates: { lat: 0.5167, lng: 25.2167 } },
-      { name: 'Kolwezi', coordinates: { lat: -10.7143, lng: 25.4731 } }
+      { name: 'Kolwezi', coordinates: { lat: -10.7143, lng: 25.4731 } },
+      { name: 'Bukavu', coordinates: { lat: -2.5081, lng: 28.8473 } },
+      { name: 'Goma', coordinates: { lat: -1.6792, lng: 29.2228 } }
     ],
-    defaultProximity: { lat: -4.4419, lng: 15.2663 }, // Kinshasa
+    defaultProximity: { lat: -4.4419, lng: 15.2663 },
     transportTypes: [
       {
         id: 'taxi-bus',
@@ -198,6 +168,104 @@ const COUNTRIES: Record<string, CountryConfig> = {
     }
   },
 
+  // Europe
+  FR: {
+    code: 'FR',
+    name: 'France',
+    currency: 'EUR',
+    currencySymbol: '€',
+    language: 'fr',
+    timezone: 'Europe/Paris',
+    bbox: [-5.0, 42.0, 9.0, 51.0],
+    mapboxCountryCode: 'fr',
+    majorCities: [
+      { name: 'Paris', coordinates: { lat: 48.8566, lng: 2.3522 } },
+      { name: 'Lyon', coordinates: { lat: 45.7640, lng: 4.8357 } },
+      { name: 'Marseille', coordinates: { lat: 43.2965, lng: 5.3698 } },
+      { name: 'Toulouse', coordinates: { lat: 43.6047, lng: 1.4442 } },
+      { name: 'Nice', coordinates: { lat: 43.7102, lng: 7.2620 } },
+      { name: 'Bordeaux', coordinates: { lat: 44.8378, lng: -0.5792 } }
+    ],
+    defaultProximity: { lat: 48.8566, lng: 2.3522 },
+    transportTypes: [
+      {
+        id: 'taxi',
+        name: 'Taxi',
+        type: 'taxi',
+        baseFare: 700,
+        perKmRate: 150,
+        capacity: 4,
+        availability: true,
+        features: ['Confort', 'Rapide', 'Disponible 24h/7'],
+        description: 'Taxi traditionnel français'
+      },
+      {
+        id: 'vtc',
+        name: 'VTC',
+        type: 'car',
+        baseFare: 500,
+        perKmRate: 120,
+        capacity: 4,
+        availability: true,
+        features: ['Réservation', 'Confort', 'Prix fixe'],
+        description: 'Véhicule de transport avec chauffeur'
+      }
+    ],
+    addressFormat: {
+      format: '{number} {street}, {postalCode} {city}',
+      components: ['number', 'street', 'postalCode', 'city', 'country']
+    }
+  },
+
+  GB: {
+    code: 'GB',
+    name: 'United Kingdom',
+    currency: 'GBP',
+    currencySymbol: '£',
+    language: 'en',
+    timezone: 'Europe/London',
+    bbox: [-8.5, 49.8, 2.0, 60.9],
+    mapboxCountryCode: 'gb',
+    majorCities: [
+      { name: 'London', coordinates: { lat: 51.5074, lng: -0.1278 } },
+      { name: 'Manchester', coordinates: { lat: 53.4808, lng: -2.2426 } },
+      { name: 'Birmingham', coordinates: { lat: 52.4862, lng: -1.8904 } },
+      { name: 'Liverpool', coordinates: { lat: 53.4084, lng: -2.9916 } },
+      { name: 'Edinburgh', coordinates: { lat: 55.9533, lng: -3.1883 } }
+    ],
+    defaultProximity: { lat: 51.5074, lng: -0.1278 },
+    transportTypes: [],
+    addressFormat: {
+      format: '{number} {street}, {city}, {postcode}',
+      components: ['number', 'street', 'city', 'postcode', 'country']
+    }
+  },
+
+  DE: {
+    code: 'DE',
+    name: 'Germany',
+    currency: 'EUR',
+    currencySymbol: '€',
+    language: 'de',
+    timezone: 'Europe/Berlin',
+    bbox: [5.9, 47.3, 15.0, 55.1],
+    mapboxCountryCode: 'de',
+    majorCities: [
+      { name: 'Berlin', coordinates: { lat: 52.5200, lng: 13.4050 } },
+      { name: 'Munich', coordinates: { lat: 48.1351, lng: 11.5820 } },
+      { name: 'Hamburg', coordinates: { lat: 53.5511, lng: 9.9937 } },
+      { name: 'Frankfurt', coordinates: { lat: 50.1109, lng: 8.6821 } },
+      { name: 'Cologne', coordinates: { lat: 50.9375, lng: 6.9603 } }
+    ],
+    defaultProximity: { lat: 52.5200, lng: 13.4050 },
+    transportTypes: [],
+    addressFormat: {
+      format: '{street} {number}, {postalCode} {city}',
+      components: ['street', 'number', 'postalCode', 'city', 'country']
+    }
+  },
+
+  // Americas
   US: {
     code: 'US',
     name: 'United States',
@@ -212,9 +280,10 @@ const COUNTRIES: Record<string, CountryConfig> = {
       { name: 'Los Angeles', coordinates: { lat: 34.0522, lng: -118.2437 } },
       { name: 'Chicago', coordinates: { lat: 41.8781, lng: -87.6298 } },
       { name: 'Houston', coordinates: { lat: 29.7604, lng: -95.3698 } },
-      { name: 'Miami', coordinates: { lat: 25.7617, lng: -80.1918 } }
+      { name: 'Miami', coordinates: { lat: 25.7617, lng: -80.1918 } },
+      { name: 'San Francisco', coordinates: { lat: 37.7749, lng: -122.4194 } }
     ],
-    defaultProximity: { lat: 40.7128, lng: -74.0060 }, // New York
+    defaultProximity: { lat: 40.7128, lng: -74.0060 },
     transportTypes: [
       {
         id: 'taxi',
@@ -243,12 +312,111 @@ const COUNTRIES: Record<string, CountryConfig> = {
       format: '{number} {street}, {city}, {state} {zip}',
       components: ['number', 'street', 'city', 'state', 'zip', 'country']
     }
+  },
+
+  CA: {
+    code: 'CA',
+    name: 'Canada',
+    currency: 'CAD',
+    currencySymbol: 'C$',
+    language: 'en',
+    timezone: 'America/Toronto',
+    bbox: [-141.0, 41.7, -52.6, 83.1],
+    mapboxCountryCode: 'ca',
+    majorCities: [
+      { name: 'Toronto', coordinates: { lat: 43.6532, lng: -79.3832 } },
+      { name: 'Vancouver', coordinates: { lat: 49.2827, lng: -123.1207 } },
+      { name: 'Montreal', coordinates: { lat: 45.5017, lng: -73.5673 } },
+      { name: 'Calgary', coordinates: { lat: 51.0447, lng: -114.0719 } },
+      { name: 'Ottawa', coordinates: { lat: 45.4215, lng: -75.6972 } }
+    ],
+    defaultProximity: { lat: 43.6532, lng: -79.3832 },
+    transportTypes: [],
+    addressFormat: {
+      format: '{number} {street}, {city}, {province} {postalCode}',
+      components: ['number', 'street', 'city', 'province', 'postalCode', 'country']
+    }
+  },
+
+  // Asia
+  JP: {
+    code: 'JP',
+    name: 'Japan',
+    currency: 'JPY',
+    currencySymbol: '¥',
+    language: 'ja',
+    timezone: 'Asia/Tokyo',
+    bbox: [129.0, 31.0, 146.0, 46.0],
+    mapboxCountryCode: 'jp',
+    majorCities: [
+      { name: 'Tokyo', coordinates: { lat: 35.6762, lng: 139.6503 } },
+      { name: 'Osaka', coordinates: { lat: 34.6937, lng: 135.5023 } },
+      { name: 'Kyoto', coordinates: { lat: 35.0116, lng: 135.7681 } },
+      { name: 'Yokohama', coordinates: { lat: 35.4437, lng: 139.6380 } },
+      { name: 'Nagoya', coordinates: { lat: 35.1815, lng: 136.9066 } }
+    ],
+    defaultProximity: { lat: 35.6762, lng: 139.6503 },
+    transportTypes: [],
+    addressFormat: {
+      format: '{prefecture} {city} {district} {number}',
+      components: ['prefecture', 'city', 'district', 'number', 'country']
+    }
+  },
+
+  CN: {
+    code: 'CN',
+    name: 'China',
+    currency: 'CNY',
+    currencySymbol: '¥',
+    language: 'zh',
+    timezone: 'Asia/Shanghai',
+    bbox: [73.6, 18.2, 135.0, 53.6],
+    mapboxCountryCode: 'cn',
+    majorCities: [
+      { name: 'Beijing', coordinates: { lat: 39.9042, lng: 116.4074 } },
+      { name: 'Shanghai', coordinates: { lat: 31.2304, lng: 121.4737 } },
+      { name: 'Guangzhou', coordinates: { lat: 23.1291, lng: 113.2644 } },
+      { name: 'Shenzhen', coordinates: { lat: 22.5431, lng: 114.0579 } },
+      { name: 'Chengdu', coordinates: { lat: 30.5728, lng: 104.0668 } }
+    ],
+    defaultProximity: { lat: 39.9042, lng: 116.4074 },
+    transportTypes: [],
+    addressFormat: {
+      format: '{province} {city} {district} {street} {number}',
+      components: ['province', 'city', 'district', 'street', 'number', 'country']
+    }
+  },
+
+  // Oceania
+  AU: {
+    code: 'AU',
+    name: 'Australia',
+    currency: 'AUD',
+    currencySymbol: 'A$',
+    language: 'en',
+    timezone: 'Australia/Sydney',
+    bbox: [113.3, -43.6, 153.6, -10.7],
+    mapboxCountryCode: 'au',
+    majorCities: [
+      { name: 'Sydney', coordinates: { lat: -33.8688, lng: 151.2093 } },
+      { name: 'Melbourne', coordinates: { lat: -37.8136, lng: 144.9631 } },
+      { name: 'Brisbane', coordinates: { lat: -27.4698, lng: 153.0251 } },
+      { name: 'Perth', coordinates: { lat: -31.9505, lng: 115.8605 } },
+      { name: 'Adelaide', coordinates: { lat: -34.9285, lng: 138.6007 } }
+    ],
+    defaultProximity: { lat: -33.8688, lng: 151.2093 },
+    transportTypes: [],
+    addressFormat: {
+      format: '{number} {street}, {suburb} {state} {postcode}',
+      components: ['number', 'street', 'suburb', 'state', 'postcode', 'country']
+    }
   }
 };
 
 export class CountryService {
-  private static currentCountry: CountryConfig = COUNTRIES.CI; // Default to Côte d'Ivoire
+  private static currentCountry: CountryConfig = COUNTRIES.CD; // Default to RDC/Kinshasa
   private static detectionCallbacks: ((country: CountryConfig) => void)[] = [];
+  private static globalFallback = COUNTRIES["*"];
 
   static getCurrentCountry(): CountryConfig {
     return this.currentCountry;
@@ -256,14 +424,20 @@ export class CountryService {
 
   static setCurrentCountry(countryCode: string): void {
     const country = COUNTRIES[countryCode.toUpperCase()];
-    if (country) {
+    if (country && country.code !== "*") {
       this.currentCountry = country;
       console.log('Country set to:', country.name);
       
       // Notify all listeners
       this.detectionCallbacks.forEach(callback => callback(country));
+    } else if (countryCode === "*") {
+      this.currentCountry = this.globalFallback;
+      console.log('Using global fallback configuration');
+      this.detectionCallbacks.forEach(callback => callback(this.globalFallback));
     } else {
-      console.warn('Unknown country code:', countryCode);
+      console.warn('Unknown country code:', countryCode, '- using global fallback');
+      this.currentCountry = this.globalFallback;
+      this.detectionCallbacks.forEach(callback => callback(this.globalFallback));
     }
   }
 
@@ -281,8 +455,10 @@ export class CountryService {
 
   static async autoDetectAndSetCountry(latitude: number, longitude: number): Promise<void> {
     try {
-      // Find the country that contains these coordinates
+      // Find the country that contains these coordinates (skip global fallback)
       for (const [code, config] of Object.entries(COUNTRIES)) {
+        if (code === "*") continue; // Skip global fallback
+        
         const [minLng, minLat, maxLng, maxLat] = config.bbox;
         if (longitude >= minLng && longitude <= maxLng && 
             latitude >= minLat && latitude <= maxLat) {
@@ -291,9 +467,13 @@ export class CountryService {
         }
       }
       
-      console.log('Coordinates not in any configured country, keeping current:', this.currentCountry.name);
+      // If no specific country found, use global fallback for universal coverage
+      console.log('Coordinates not in any configured country, using global coverage');
+      this.setCurrentCountry("*");
     } catch (error) {
       console.warn('Failed to auto-detect country from coordinates:', error);
+      // Fallback to global coverage
+      this.setCurrentCountry("*");
     }
   }
 
@@ -310,6 +490,7 @@ export class CountryService {
     let nearestCity: City | null = null;
     let minDistance = Infinity;
 
+    // First search in current country
     for (const city of country.majorCities) {
       const distance = this.calculateDistance(
         latitude, longitude,
@@ -319,6 +500,25 @@ export class CountryService {
       if (distance < minDistance) {
         minDistance = distance;
         nearestCity = city;
+      }
+    }
+
+    // If using global fallback or no nearby city found, search globally
+    if (country.code === "*" || minDistance > 100) { // 100km threshold
+      for (const [code, config] of Object.entries(COUNTRIES)) {
+        if (code === "*") continue;
+        
+        for (const city of config.majorCities) {
+          const distance = this.calculateDistance(
+            latitude, longitude,
+            city.coordinates.lat, city.coordinates.lng
+          );
+          
+          if (distance < minDistance) {
+            minDistance = distance;
+            nearestCity = city;
+          }
+        }
       }
     }
 

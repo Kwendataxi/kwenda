@@ -59,110 +59,177 @@ export class GeocodingService {
   }
 
   static async searchPlaces(query: string, proximity?: { lng: number; lat: number }): Promise<GeocodeResult[]> {
-    if (!query || query.length < 2) return [];
+    if (!query || query.length < 1) return [];
 
     try {
       const token = await this.getMapboxToken();
-
       const country = CountryService.getCurrentCountry();
-      const userLang = (typeof navigator !== 'undefined' && navigator.language) ? navigator.language : (country.language || 'fr');
+      
+      // Enhanced multi-language support
+      const browserLang = typeof navigator !== 'undefined' ? navigator.language.substring(0, 2) : 'en';
+      const countryLang = country.language || 'en';
+      const userLang = browserLang || countryLang || 'en';
 
-      // Determine effective proximity
+      // Determine effective proximity with enhanced global fallback
       const defaultProximity = this.getDefaultProximity(proximity);
 
-      // Helper to check if a point is inside a bbox [minLng, minLat, maxLng, maxLat]
-      const isInBbox = (lng: number, lat: number, bbox: [number, number, number, number]) => (
-        lng >= bbox[0] && lng <= bbox[2] && lat >= bbox[1] && lat <= bbox[3]
-      );
-
-      // Create a small local bbox (~0.5°) around proximity when available
-      const localBbox: [number, number, number, number] = [
-        defaultProximity.lng - 0.5,
-        defaultProximity.lat - 0.5,
-        defaultProximity.lng + 0.5,
-        defaultProximity.lat + 0.5,
-      ];
-
-      // Pass 1: proximity + local bbox, include country filter only if proximity is inside current country bbox
-      const pass1 = new URL('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(query) + '.json');
-      pass1.searchParams.set('access_token', token);
-      pass1.searchParams.set('proximity', `${defaultProximity.lng},${defaultProximity.lat}`);
-      pass1.searchParams.set('bbox', `${localBbox[0]},${localBbox[1]},${localBbox[2]},${localBbox[3]}`);
-      if (isInBbox(defaultProximity.lng, defaultProximity.lat, country.bbox)) {
-        pass1.searchParams.set('country', country.mapboxCountryCode);
-      }
-      pass1.searchParams.set('limit', '8');
-      pass1.searchParams.set('language', userLang);
-      pass1.searchParams.set('types', 'poi,address,place,locality,neighborhood,district');
-      pass1.searchParams.set('fuzzyMatch', 'true');
-      pass1.searchParams.set('routing', 'true');
-
       const responses: GeocodeResult[] = [];
+      const seenResults = new Set<string>(); // Prevent exact duplicates
 
-      const fetchAndPush = async (url: URL) => {
-        const res = await fetch(url);
-        if (!res.ok) return;
-        const data: MapboxResponse = await res.json();
-        const items = data.features.map(f => ({
-          place_name: f.place_name,
-          center: f.center,
-          place_type: f.place_type,
-          properties: f.properties,
-        }));
-        // Merge unique by place_name
-        const byName = new Map<string, GeocodeResult>();
-        [...responses, ...items].forEach(r => byName.set(r.place_name, r as GeocodeResult));
-        const merged = Array.from(byName.values());
-        responses.splice(0, responses.length, ...merged);
+      const fetchAndPush = async (url: URL, passName: string) => {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000);
+          
+          const res = await fetch(url, { signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (!res.ok) return;
+          
+          const data: MapboxResponse = await res.json();
+          const items = data.features.map(f => ({
+            place_name: f.place_name,
+            center: f.center,
+            place_type: f.place_type,
+            properties: f.properties,
+          })).filter(item => {
+            const key = `${item.center[0]},${item.center[1]}`;
+            if (seenResults.has(key)) return false;
+            seenResults.add(key);
+            return true;
+          });
+          
+          responses.push(...items);
+          console.log(`Geocoding ${passName}: ${items.length} results`);
+        } catch (error) {
+          console.warn(`Geocoding ${passName} failed:`, error);
+        }
       };
 
-      await fetchAndPush(pass1);
+      // Enhanced fuzzy search with wider tolerance
+      const enhancedQuery = query.trim().toLowerCase();
+      const encodedQuery = encodeURIComponent(query);
+      
+      // Pass 1: Ultra-precise local search (if not global fallback)
+      if (country.code !== "*" && country.mapboxCountryCode) {
+        const localBbox: [number, number, number, number] = [
+          defaultProximity.lng - 0.2,
+          defaultProximity.lat - 0.2,
+          defaultProximity.lng + 0.2,
+          defaultProximity.lat + 0.2,
+        ];
 
-      // Pass 2: broaden by removing country and bbox but keep proximity
-      if (responses.length < 3) {
-        const pass2 = new URL('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(query) + '.json');
+        const pass1 = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json`);
+        pass1.searchParams.set('access_token', token);
+        pass1.searchParams.set('proximity', `${defaultProximity.lng},${defaultProximity.lat}`);
+        pass1.searchParams.set('bbox', `${localBbox[0]},${localBbox[1]},${localBbox[2]},${localBbox[3]}`);
+        pass1.searchParams.set('country', country.mapboxCountryCode);
+        pass1.searchParams.set('limit', '10');
+        pass1.searchParams.set('language', userLang);
+        pass1.searchParams.set('types', 'poi,address,place,locality,neighborhood,district,region');
+        pass1.searchParams.set('autocomplete', 'true');
+        
+        await fetchAndPush(pass1, 'local-precise');
+      }
+
+      // Pass 2: National search with proximity
+      if (responses.length < 5 && country.code !== "*" && country.mapboxCountryCode) {
+        const pass2 = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json`);
         pass2.searchParams.set('access_token', token);
         pass2.searchParams.set('proximity', `${defaultProximity.lng},${defaultProximity.lat}`);
-        pass2.searchParams.set('limit', '8');
+        pass2.searchParams.set('country', country.mapboxCountryCode);
+        pass2.searchParams.set('limit', '10');
         pass2.searchParams.set('language', userLang);
-        pass2.searchParams.set('types', 'poi,address,place,locality,neighborhood,district');
-        pass2.searchParams.set('fuzzyMatch', 'true');
-        await fetchAndPush(pass2);
+        pass2.searchParams.set('types', 'poi,address,place,locality,neighborhood,district,region');
+        pass2.searchParams.set('autocomplete', 'true');
+        
+        await fetchAndPush(pass2, 'national');
       }
 
-      // Pass 3: global search without proximity if still few results
-      if (responses.length < 3) {
-        const pass3 = new URL('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(query) + '.json');
+      // Pass 3: Global search with proximity (always executed for global coverage)
+      if (responses.length < 8) {
+        const pass3 = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json`);
         pass3.searchParams.set('access_token', token);
-        pass3.searchParams.set('limit', '8');
+        pass3.searchParams.set('proximity', `${defaultProximity.lng},${defaultProximity.lat}`);
+        pass3.searchParams.set('limit', '12');
         pass3.searchParams.set('language', userLang);
-        pass3.searchParams.set('types', 'poi,address,place,locality,neighborhood,district');
-        pass3.searchParams.set('fuzzyMatch', 'true');
-        await fetchAndPush(pass3);
+        pass3.searchParams.set('types', 'poi,address,place,locality,neighborhood,district,region,country');
+        pass3.searchParams.set('autocomplete', 'true');
+        
+        await fetchAndPush(pass3, 'global-proximity');
       }
 
-      // Sort by text match and proximity
+      // Pass 4: Pure global search (no restrictions) for maximum coverage
+      if (responses.length < 8) {
+        const pass4 = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json`);
+        pass4.searchParams.set('access_token', token);
+        pass4.searchParams.set('limit', '15');
+        pass4.searchParams.set('language', userLang);
+        pass4.searchParams.set('types', 'poi,address,place,locality,neighborhood,district,region,country');
+        pass4.searchParams.set('autocomplete', 'true');
+        
+        await fetchAndPush(pass4, 'global');
+      }
+
+      // Enhanced intelligent sorting algorithm
       let results = responses.sort((a, b) => {
-        const aExact = a.place_name.toLowerCase().includes(query.toLowerCase());
-        const bExact = b.place_name.toLowerCase().includes(query.toLowerCase());
-        if (aExact && !bExact) return -1;
-        if (!aExact && bExact) return 1;
+        const queryLower = enhancedQuery;
+        const aName = a.place_name.toLowerCase();
+        const bName = b.place_name.toLowerCase();
+
+        // 1. Exact prefix match gets highest priority
+        const aStartsWith = aName.startsWith(queryLower);
+        const bStartsWith = bName.startsWith(queryLower);
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+
+        // 2. Contains match (word boundary preferred)
+        const aContains = aName.includes(queryLower);
+        const bContains = bName.includes(queryLower);
+        if (aContains && !bContains) return -1;
+        if (!aContains && bContains) return 1;
+
+        // 3. Place type priority (poi, address > place > locality > region)
+        const getTypeScore = (types: string[] = []) => {
+          if (types.includes('poi') || types.includes('address')) return 4;
+          if (types.includes('place')) return 3;
+          if (types.includes('locality') || types.includes('neighborhood')) return 2;
+          return 1;
+        };
+        
+        const aTypeScore = getTypeScore(a.place_type);
+        const bTypeScore = getTypeScore(b.place_type);
+        if (aTypeScore !== bTypeScore) return bTypeScore - aTypeScore;
+
+        // 4. Proximity to user location/country
         const distanceA = Math.hypot(a.center[0] - defaultProximity.lng, a.center[1] - defaultProximity.lat);
         const distanceB = Math.hypot(b.center[0] - defaultProximity.lng, b.center[1] - defaultProximity.lat);
+        
+        // Boost results within the current country if not using global fallback
+        if (country.code !== "*") {
+          const isAInCountry = this.isPointInBbox(a.center[0], a.center[1], country.bbox);
+          const isBInCountry = this.isPointInBbox(b.center[0], b.center[1], country.bbox);
+          if (isAInCountry && !isBInCountry) return -1;
+          if (!isAInCountry && isBInCountry) return 1;
+        }
+
         return distanceA - distanceB;
       });
+
+      // Limit final results but ensure diversity
+      results = results.slice(0, 15);
 
       return results;
     } catch (error) {
       console.error('Erreur lors de la recherche de lieux:', error);
 
-      // Fallback dynamique basé sur le pays courant
-      const fallbackPlaces = this.getFallbackPlaces();
-
-      return fallbackPlaces.filter(place =>
-        place.place_name.toLowerCase().includes(query.toLowerCase())
-      ) as GeocodeResult[];
+      // Enhanced fallback with fuzzy matching
+      const fallbackPlaces = this.getEnhancedFallbackPlaces(query);
+      return fallbackPlaces;
     }
+  }
+
+  private static isPointInBbox(lng: number, lat: number, bbox: [number, number, number, number]): boolean {
+    return lng >= bbox[0] && lng <= bbox[2] && lat >= bbox[1] && lat <= bbox[3];
   }
 
   private static getFallbackPlaces() {
@@ -180,6 +247,55 @@ export class GeocodingService {
         { place_name: 'Lubumbashi, République Démocratique du Congo', center: [27.4794, -11.6609] },
         { place_name: 'Kolwezi, République Démocratique du Congo', center: [25.4731, -10.7143] }
       ];
+    }
+  }
+
+  private static getEnhancedFallbackPlaces(query: string): GeocodeResult[] {
+    try {
+      const country = CountryService.getCurrentCountry();
+      const queryLower = query.toLowerCase();
+      
+      // Get current country cities
+      let allPlaces = country.majorCities.map(city => ({
+        place_name: `${city.name}, ${country.name}`,
+        center: [city.coordinates.lng, city.coordinates.lat] as [number, number],
+        place_type: ['place'],
+        properties: { country: country.name }
+      }));
+
+      // If using global fallback or no matches, search all countries
+      if (country.code === "*" || !allPlaces.some(p => p.place_name.toLowerCase().includes(queryLower))) {
+        const allCountries = CountryService.getAllCountries();
+        allPlaces = [];
+        
+        for (const countryConfig of allCountries) {
+          if (countryConfig.code === "*") continue;
+          
+          for (const city of countryConfig.majorCities) {
+            allPlaces.push({
+              place_name: `${city.name}, ${countryConfig.name}`,
+              center: [city.coordinates.lng, city.coordinates.lat] as [number, number],
+              place_type: ['place'],
+              properties: { country: countryConfig.name }
+            });
+          }
+        }
+      }
+
+      // Filter and sort by relevance
+      return allPlaces
+        .filter(place => place.place_name.toLowerCase().includes(queryLower))
+        .sort((a, b) => {
+          const aStartsWith = a.place_name.toLowerCase().startsWith(queryLower);
+          const bStartsWith = b.place_name.toLowerCase().startsWith(queryLower);
+          if (aStartsWith && !bStartsWith) return -1;
+          if (!aStartsWith && bStartsWith) return 1;
+          return a.place_name.localeCompare(b.place_name);
+        })
+        .slice(0, 10);
+    } catch (error) {
+      console.error('Fallback places error:', error);
+      return [];
     }
   }
 
