@@ -292,8 +292,20 @@ async function findNearbyDrivers(supabase: any, rideRequestId: string, coordinat
     })
     .eq('id', rideRequestId);
 
-  // Envoyer les notifications aux chauffeurs
+  // Envoyer les notifications aux chauffeurs et créer des offres
+  const expiresAt = new Date(Date.now() + 2 * 60 * 1000).toISOString(); // expire in 2 minutes
   for (const driver of driversWithDistance) {
+    // Créer une offre ciblée pour le chauffeur
+    await supabase
+      .from('ride_offers')
+      .insert({
+        ride_request_id: rideRequestId,
+        driver_id: driver.driver_id,
+        status: 'pending',
+        expires_at: expiresAt
+      });
+
+    // Notification push (existant)
     await supabase
       .from('push_notifications')
       .insert({
@@ -419,6 +431,20 @@ async function assignDriverToRide(supabase: any, rideRequestId: string, driverId
     .eq('id', rideRequestId);
 
   if (updateError) throw updateError;
+
+  // Mettre à jour les offres: accepter celle du chauffeur et expirer les autres
+  await supabase
+    .from('ride_offers')
+    .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+    .eq('ride_request_id', rideRequestId)
+    .eq('driver_id', driverId);
+
+  await supabase
+    .from('ride_offers')
+    .update({ status: 'expired' })
+    .eq('ride_request_id', rideRequestId)
+    .neq('driver_id', driverId)
+    .eq('status', 'pending');
 
   // Log activity
   await supabase.from('activity_logs').insert({

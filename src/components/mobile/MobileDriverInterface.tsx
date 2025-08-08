@@ -7,7 +7,7 @@ import { LazyLoadWrapper } from '@/components/performance/LazyLoadWrapper';
 import { OptimizedGrid } from '@/components/performance/OptimizedGrid';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { useDriverData } from '@/hooks/useDriverData';
-import { useDriverBookings } from '@/hooks/useDriverBookings';
+import { useDriverRideOffers } from '@/hooks/useDriverRideOffers';
 import { useBackgroundTracking } from '@/hooks/useBackgroundTracking';
 import { 
   Car, 
@@ -38,7 +38,7 @@ export const MobileDriverInterface: React.FC<MobileDriverInterfaceProps> = ({
 }) => {
   const { metrics, isSlowConnection, isLowBattery } = usePerformanceMonitor();
   const { stats, isOnline, updateOnlineStatus } = useDriverData();
-  const { activeBooking, pendingRequests, acceptBooking, updateBookingStatus } = useDriverBookings();
+  const { activeBooking, pendingRequests, acceptBooking, updateBookingStatus } = useDriverRideOffers();
   const { isTracking, start, stop, supported } = useBackgroundTracking({ distanceFilterMeters: 25, minIntervalMs: 10000 });
   
   const [currentView, setCurrentView] = useState<'dashboard' | 'ride' | 'request'>('dashboard');
