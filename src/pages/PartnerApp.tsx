@@ -37,7 +37,7 @@ import { Progress } from "@/components/ui/progress"
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const PartnerApp = () => {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'finances' | 'commissions' | 'subscriptions'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'commissions' | 'subscriptions'>('dashboard');
   
   // Use real data hooks
   const { stats, loading: statsLoading } = usePartnerStats();
@@ -46,15 +46,6 @@ const PartnerApp = () => {
   const [dateRange, setDateRange] = useState<Date | undefined>(new Date());
   const isMobile = useIsMobile();
 
-  // Mock data for demonstration
-  const finances = {
-    companyCredits: 1250000,
-    monthlySpent: 320000,
-  };
-
-  const topUpCredits = (amount: number) => {
-    alert(`Recharge de crédit de ${amount} CFA effectuée!`);
-  };
 
   const renderDashboard = () => (
     <div className="space-y-6">
@@ -289,118 +280,6 @@ const PartnerApp = () => {
     </div>
   );
 
-  const renderCreditsManagement = () => (
-    <div className="min-h-screen bg-background pb-20">
-      <div className="flex items-center p-4 border-b border-grey-100">
-        <Button variant="ghost" onClick={() => setCurrentView('dashboard')} className="mr-3 rounded-xl">
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-heading-lg text-card-foreground flex-1">Crédit Entreprise</h1>
-        <Button size="sm" className="rounded-xl">
-          <Plus className="h-4 w-4 mr-1" />
-          Recharger
-        </Button>
-      </div>
-
-      <div className="p-4">
-        <Card className="card-floating border-0 mb-6">
-          <CardHeader>
-            <CardTitle className="text-heading-md">Solde actuel</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center mb-4">
-              <p className="text-display-xl font-bold text-primary">{finances.companyCredits.toLocaleString()}</p>
-              <p className="text-body-md text-muted-foreground">CFA disponible</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <p className="text-caption text-muted-foreground">Utilisé ce mois</p>
-                <p className="text-heading-sm font-bold text-card-foreground">{finances.monthlySpent.toLocaleString()} CFA</p>
-              </div>
-              <div className="text-center">
-                <p className="text-caption text-muted-foreground">Économies réalisées</p>
-                <p className="text-heading-sm font-bold text-secondary">156,400 CFA</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-floating border-0 mb-6">
-          <CardHeader>
-            <CardTitle className="text-heading-md">Options de recharge</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { amount: 50000, bonus: 0 },
-                { amount: 100000, bonus: 5000 },
-                { amount: 250000, bonus: 15000 },
-                { amount: 500000, bonus: 35000 },
-              ].map((option, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="h-20 flex-col gap-2 rounded-xl border-grey-200 hover:border-primary hover:bg-primary-light transition-all duration-300"
-                  onClick={() => topUpCredits(option.amount + option.bonus)}
-                >
-                  <span className="text-heading-sm font-bold text-card-foreground">
-                    {option.amount.toLocaleString()} CFA
-                  </span>
-                  {option.bonus > 0 && (
-                    <span className="text-caption text-secondary font-medium">
-                      +{option.bonus.toLocaleString()} bonus
-                    </span>
-                  )}
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-floating border-0">
-          <CardHeader>
-            <CardTitle className="text-heading-md">Historique des transactions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {[
-                { type: "Recharge", amount: 100000, date: "15 Jan 2024", id: "TXN-001" },
-                { type: "Course", amount: -2500, date: "15 Jan 2024", id: "RIDE-234" },
-                { type: "Course", amount: -1800, date: "14 Jan 2024", id: "RIDE-233" },
-                { type: "Bonus", amount: 5000, date: "10 Jan 2024", id: "BONUS-01" },
-              ].map((transaction, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-grey-50 rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      transaction.amount > 0 ? 'bg-green-100' : 'bg-red-100'
-                    }`}>
-                      {transaction.amount > 0 ? (
-                        <TrendingUp className="h-5 w-5 text-green-600" />
-                      ) : (
-                        <TrendingDown className="h-5 w-5 text-red-600" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-body-md font-semibold text-card-foreground">{transaction.type}</p>
-                      <p className="text-body-sm text-muted-foreground">{transaction.id}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-body-md font-bold ${
-                      transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {transaction.amount > 0 ? '+' : ''}{transaction.amount.toLocaleString()} CFA
-                    </p>
-                    <p className="text-caption text-muted-foreground">{transaction.date}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
 
   const renderEmployees = () => (
     <div className="min-h-screen bg-background pb-20">
@@ -599,8 +478,6 @@ const PartnerApp = () => {
         return renderFleetManagement();
       case 'drivers':
         return <PartnerDriverManager />;
-      case 'finances':
-        return renderCreditsManagement();
       case 'commissions':
         return renderCommissions();
       case 'subscriptions':
@@ -615,8 +492,6 @@ const PartnerApp = () => {
         return 'Mes véhicules';
       case 'drivers': 
         return 'Chauffeurs';
-      case 'finances':
-        return 'Finances';
       case 'commissions':
         return 'Commissions';
       case 'subscriptions':
