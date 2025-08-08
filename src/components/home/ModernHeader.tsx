@@ -28,12 +28,11 @@ export const ModernHeader = ({
   const [isCharging, setIsCharging] = useState(false);
   const { displayName, loading: profileLoading } = useProfile();
   
-  // Dynamic greeting based on time and language
+  // Dynamic greeting based on time
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return t('home.greeting.morning');
-    if (hour < 18) return t('home.greeting.afternoon');
-    return t('home.greeting.evening');
+    if (hour >= 18 || hour < 6) return 'Bonsoir'; // 18h-6h = Bonsoir
+    return 'Salut'; // 6h-18h = Salut
   };
 
   // Get current location on component mount
