@@ -414,28 +414,15 @@ const COUNTRIES: Record<string, CountryConfig> = {
 };
 
 export class CountryService {
-  private static instance: CountryService;
-  private currentCountry: CountryConfig;
-  private listeners: Array<(country: CountryConfig) => void> = [];
+  private static currentCountry: CountryConfig = COUNTRIES.cd; // Default to RDC
+  private static listeners: Array<(country: CountryConfig) => void> = [];
 
-  private constructor() {
-    // Default to RDC (Kinshasa) for Kwenda
-    this.currentCountry = COUNTRIES.cd;
-  }
-
-  static getInstance(): CountryService {
-    if (!CountryService.instance) {
-      CountryService.instance = new CountryService();
-    }
-    return CountryService.instance;
-  }
-
-  getCurrentCountry(): CountryConfig {
+  static getCurrentCountry(): CountryConfig {
     return this.currentCountry;
   }
 
-  setCurrentCountry(countryCode: string): void {
-    // Only allow CI and RDC
+  static setCurrentCountry(countryCode: string): void {
+    // Only allow CI and RDC for Kwenda
     if (countryCode === 'ci' || countryCode === 'cd') {
       const country = COUNTRIES[countryCode as keyof typeof COUNTRIES];
       if (country) {
@@ -445,24 +432,24 @@ export class CountryService {
     }
   }
 
-  onCountryChange(callback: (country: CountryConfig) => void): () => void {
+  static onCountryChange(callback: (country: CountryConfig) => void): () => void {
     this.listeners.push(callback);
     return () => {
       this.listeners = this.listeners.filter(cb => cb !== callback);
     };
   }
 
-  autoDetectAndSetCountry(latitude: number, longitude: number): void {
+  static autoDetectAndSetCountry(latitude: number, longitude: number): void {
     const detectedCountry = this.detectCountryFromCoordinates(latitude, longitude);
     if (detectedCountry) {
       this.setCurrentCountry(detectedCountry.code);
     } else {
-      // Fallback logic pour CI-RDC uniquement
-      this.setCurrentCountry('cd'); // Default to RDC
+      // Fallback to RDC for Kwenda
+      this.setCurrentCountry('cd');
     }
   }
 
-  private detectCountryFromCoordinates(latitude: number, longitude: number): CountryConfig | null {
+  private static detectCountryFromCoordinates(latitude: number, longitude: number): CountryConfig | null {
     // Only check CI and RDC for Kwenda
     const allowedCountries = ['ci', 'cd'];
     
@@ -479,12 +466,12 @@ export class CountryService {
     return null;
   }
 
-  getAllCountries(): CountryConfig[] {
+  static getAllCountries(): CountryConfig[] {
     // Only return CI and RDC for Kwenda
     return [COUNTRIES.ci, COUNTRIES.cd];
   }
 
-  getCountryByCode(code: string): CountryConfig | null {
+  static getCountryByCode(code: string): CountryConfig | null {
     // Only allow CI and RDC
     if (code === 'ci' || code === 'cd') {
       return COUNTRIES[code as keyof typeof COUNTRIES] || null;
@@ -492,7 +479,7 @@ export class CountryService {
     return null;
   }
 
-  findNearestCity(latitude: number, longitude: number): City | null {
+  static findNearestCity(latitude: number, longitude: number): City | null {
     const currentCountry = this.getCurrentCountry();
     
     // Search within current country first
@@ -510,7 +497,7 @@ export class CountryService {
     return nearestCity;
   }
 
-  private findNearestCityInCountry(latitude: number, longitude: number, country: CountryConfig): City | null {
+  private static findNearestCityInCountry(latitude: number, longitude: number, country: CountryConfig): City | null {
     let nearestCity: City | null = null;
     let minDistance = Infinity;
 
@@ -525,15 +512,32 @@ export class CountryService {
     return nearestCity;
   }
 
-  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371; // Earth's radius in kilometers
+  private static calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
       Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
+  }
+
+  // Helper methods for Kwenda CI-RDC
+  static isInCoteDIvoire(latitude: number, longitude: number): boolean {
+    const ci = COUNTRIES.ci;
+    const [minLng, minLat, maxLng, maxLat] = ci.bbox;
+    return latitude >= minLat && latitude <= maxLat && longitude >= minLng && longitude <= maxLng;
+  }
+
+  static isInRDC(latitude: number, longitude: number): boolean {
+    const cd = COUNTRIES.cd;
+    const [minLng, minLat, maxLng, maxLat] = cd.bbox;
+    return latitude >= minLat && latitude <= maxLat && longitude >= minLng && longitude <= maxLng;
+  }
+
+  static getDefaultCenter(): [number, number] {
+    // Return Kinshasa coordinates as default
+    return [15.2663, -4.4419];
   }
 }
