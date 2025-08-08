@@ -1011,11 +1011,10 @@ const ClientApp = () => {
         {/* Connection Indicator - Hidden */}
         {/* <ConnectionIndicator /> */}
         
-        {/* Performance Indicator */}
-        <PerformanceIndicator showDetails={false} />
+        {/* Performance Indicator hidden on client for a cleaner UI */}
         
         {/* Floating Chat Button */}
-        <FloatingChatButton />
+        <FloatingChatButton offsetBottomClass="mb-20" />
       
       {/* Loading State */}
       {isLoading && (

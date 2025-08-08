@@ -121,7 +121,8 @@ export const UniversalChatInterface = ({
       <div className="fixed bottom-4 right-4 z-50">
         <Button
           onClick={() => setIsMinimized(false)}
-          className="h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:scale-105 transition-transform"
+          aria-label="Ouvrir la messagerie"
+          className="h-12 w-12 rounded-full bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl ring-1 ring-border/50 backdrop-blur transition-all hover:scale-105"
         >
           <MessageCircle className="h-6 w-6" />
           {conversations.reduce((total, conv) => total + (conv.unread_count || 0), 0) > 0 && (
@@ -135,13 +136,13 @@ export const UniversalChatInterface = ({
   }
 
   const containerClass = isFloating
-    ? "fixed bottom-4 right-4 w-96 h-[500px] z-50 shadow-xl"
+    ? "fixed bottom-4 right-4 w-96 h-[500px] z-50 shadow-2xl rounded-2xl border border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
     : "w-full h-full";
 
   return (
     <Card className={cn("flex flex-col", containerClass)}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-primary/5 to-primary/10">
+      <div className="flex items-center justify-between p-4 border-b bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-background/50">
         <div className="flex items-center gap-3">
           {selectedConversation && (
             <Button
@@ -235,14 +236,7 @@ const ConversationsList = ({ conversations, onSelectConversation, loading }: Con
   }
 
   if (conversations.length === 0) {
-    return (
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="text-center text-muted-foreground">
-          <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p>Aucune conversation</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
