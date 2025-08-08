@@ -22,6 +22,7 @@ import { CommissionManager } from '@/components/admin/CommissionManager';
 import { FinancialDashboard } from '@/components/admin/FinancialDashboard';
 import { ADMIN_NAVIGATION, ADMIN_ROLE_LABELS } from '@/types/roles';
 import { AdminPricingManager } from '@/components/admin/AdminPricingManager';
+import { AdminFiltersBar } from '@/components/admin/AdminFiltersBar';
 import { 
   LayoutDashboard,
   Users,
@@ -75,6 +76,17 @@ const AdminApp = () => {
   const [currentView, setCurrentView] = useState('dashboard');
   const [activeTab, setActiveTab] = useState('overview');
   const [dateRange, setDateRange] = useState<Date | undefined>(new Date());
+  const [analyticsDateRange, setAnalyticsDateRange] = useState<{ start: string; end: string }>(() => {
+    try {
+      const saved = localStorage.getItem('admin.analytics.dateRange')
+      if (saved) return JSON.parse(saved)
+    } catch {}
+    const now = new Date()
+    return { start: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(), end: now.toISOString() }
+  })
+  useEffect(() => {
+    try { localStorage.setItem('admin.analytics.dateRange', JSON.stringify(analyticsDateRange)) } catch {}
+  }, [analyticsDateRange])
   const isMobile = useIsMobile();
   const { adminRole, hasPermission, hasAnyPermission, loading: rolesLoading } = useUserRoles();
   
@@ -184,6 +196,11 @@ const AdminApp = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              <AdminFiltersBar
+                dateRange={analyticsDateRange}
+                onChange={setAnalyticsDateRange}
+              />
 
               {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

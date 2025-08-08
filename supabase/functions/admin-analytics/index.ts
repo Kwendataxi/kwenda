@@ -150,22 +150,52 @@ serve(async (req) => {
         })
 
       case 'drivers':
-        // Get driver statistics
-        const { data: driverStats, error: driverError } = await supabaseService
+        // Get driver statistics without relying on implicit FK relationships
+        const { data: profiles, error: profilesError } = await supabaseService
           .from('driver_profiles')
-          .select(`
-            *,
-            driver_subscriptions!inner(status, plan_id),
-            driver_credits(balance, total_earned, total_spent)
-          `)
+          .select('*')
 
-        if (driverError) {
-          throw driverError
+        if (profilesError) {
+          throw profilesError
         }
+
+        const driverIds = (profiles || [])
+          .map((p: any) => p.user_id)
+          .filter((id: string | null) => !!id)
+
+        // Fetch subscriptions and credits separately and merge on driver_id/user_id
+        const [subsRes, creditsRes] = await Promise.all([
+          driverIds.length
+            ? supabaseService
+                .from('driver_subscriptions')
+                .select('driver_id, status, plan_id')
+                .in('driver_id', driverIds)
+            : Promise.resolve({ data: [], error: null } as any),
+          driverIds.length
+            ? supabaseService
+                .from('driver_credits')
+                .select('driver_id, balance, total_earned, total_spent')
+                .in('driver_id', driverIds)
+            : Promise.resolve({ data: [], error: null } as any)
+        ])
+
+        if (subsRes.error) throw subsRes.error
+        if (creditsRes.error) throw creditsRes.error
+
+        const subsByDriver: Record<string, any> = {}
+        for (const s of subsRes.data || []) subsByDriver[s.driver_id] = s
+        const creditsByDriver: Record<string, any> = {}
+        for (const c of creditsRes.data || []) creditsByDriver[c.driver_id] = c
+
+        const merged = (profiles || []).map((p: any) => ({
+          ...p,
+          driver_subscription: subsByDriver[p.user_id] || null,
+          driver_credits: creditsByDriver[p.user_id] || null,
+        }))
 
         return new Response(JSON.stringify({
           success: true,
-          data: driverStats
+          data: merged
         }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
