@@ -174,37 +174,44 @@ export const EnhancedLocationSearch = ({
 
   return (
     <div className="w-full space-y-6">
-      {/* Titre avec icône proéminent */}
-      <div className="flex items-center gap-3 mb-4">
-        {icon}
-        <h3 className="text-2xl font-bold text-foreground">{label}</h3>
+      {/* Titre avec icône proéminent et gradients */}
+      <div className="flex items-center gap-4 mb-6 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl backdrop-blur-sm">
+        <div className="relative">
+          <div className="absolute inset-0 bg-primary/20 rounded-full blur-lg animate-pulse" />
+          <div className="relative z-10">{icon}</div>
+        </div>
+        <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          {label}
+        </h3>
       </div>
 
-      {/* Bouton Ma Position - Visible et accessible directement */}
+      {/* Bouton Ma Position - Design ultra-moderne */}
       <Button
         onClick={handleCurrentLocation}
         disabled={isGettingLocation}
-        className="w-full h-16 bg-primary hover:bg-primary/90 text-white text-lg font-medium shadow-lg"
+        className="w-full h-18 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-2xl border-2 border-white/20 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] relative overflow-hidden"
         size="lg"
       >
-        <div className="flex items-center gap-4">
+        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent animate-pulse" />
+        <div className="relative z-10 flex items-center gap-4">
           {isGettingLocation ? (
-            <Loader2 className="w-6 h-6 animate-spin" />
+            <Loader2 className="w-7 h-7 animate-spin drop-shadow-lg" />
           ) : (
-            <Navigation2 className="w-6 h-6" />
+            <Navigation2 className="w-7 h-7 drop-shadow-lg" />
           )}
           <div className="text-left">
-            <div className="font-bold text-lg">📍 Utiliser ma position actuelle</div>
-            <div className="text-sm opacity-90">Géolocalisation automatique</div>
+            <div className="font-bold text-lg drop-shadow-sm">📍 Utiliser ma position actuelle</div>
+            <div className="text-sm opacity-90">Géolocalisation automatique premium</div>
           </div>
         </div>
       </Button>
 
-      {/* Champ de recherche ultra-proéminent */}
-      <Card className="p-6 border-2 border-primary/30 shadow-xl bg-white">
-        <div className="relative">
+      {/* Champ de recherche ultra-moderne avec glassmorphism */}
+      <Card className="p-6 border-2 border-primary/30 shadow-2xl bg-gradient-to-r from-white/90 to-white/70 backdrop-blur-xl relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 animate-pulse" />
+        <div className="relative z-10">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-muted-foreground" />
+            <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 w-7 h-7 text-primary drop-shadow-sm" />
             <Input
               ref={inputRef}
               type="text"
@@ -215,64 +222,70 @@ export const EnhancedLocationSearch = ({
                 setShowDropdown(true);
               }}
               onFocus={() => setShowDropdown(true)}
-              className="pl-14 pr-4 h-20 text-xl font-medium border-0 bg-transparent focus:ring-0 focus:outline-none placeholder:text-lg"
+              className="pl-16 pr-5 h-24 text-xl font-medium border-2 border-primary/20 bg-white/50 backdrop-blur-sm rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary/50 placeholder:text-lg placeholder:text-muted-foreground/70 shadow-inner transition-all duration-300 hover:shadow-lg"
             />
             {isSearching && (
-              <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 animate-spin text-primary" />
+              <Loader2 className="absolute right-5 top-1/2 transform -translate-y-1/2 w-7 h-7 animate-spin text-primary drop-shadow-sm" />
             )}
           </div>
           
-          {/* Dropdown amélioré avec fond solide et z-index élevé */}
+          {/* Dropdown ultra-moderne avec glassmorphism */}
           {showDropdown && (
             <>
-              {/* Backdrop pour isoler visuellement */}
+              {/* Backdrop premium pour isoler visuellement */}
               <div 
-                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[9990]"
+                className="fixed inset-0 bg-black/30 backdrop-blur-md z-[9990]"
                 onClick={() => setShowDropdown(false)}
               />
-              <Card className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-border shadow-2xl rounded-lg z-[9999] max-h-[60vh] overflow-auto">
-              <div className="p-2">
+              <Card className="absolute top-full left-0 right-0 mt-3 bg-white/95 backdrop-blur-xl border-2 border-primary/20 shadow-2xl rounded-2xl z-[9999] max-h-[65vh] overflow-auto">
+              <div className="p-4">
                 
-                {/* Bouton Ma Position - toujours visible */}
+                {/* Bouton Ma Position premium - toujours visible */}
                 <Button
                   onClick={handleCurrentLocation}
                   disabled={isGettingLocation}
-                  className="w-full h-14 mb-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg"
+                  className="w-full h-16 mb-4 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-xl border border-white/20 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] relative overflow-hidden"
                   size="lg"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent animate-pulse" />
+                  <div className="relative z-10 flex items-center gap-4">
                     {isGettingLocation ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-6 h-6 animate-spin drop-shadow-lg" />
                     ) : (
-                      <Navigation2 className="w-5 h-5" />
+                      <Navigation2 className="w-6 h-6 drop-shadow-lg" />
                     )}
-                    <div className="text-left">
-                      <div className="font-semibold">Ma position actuelle</div>
-                      <div className="text-xs opacity-90">Géolocalisation automatique</div>
+                    <div className="text-left flex-1">
+                      <div className="font-bold text-base drop-shadow-sm">Ma position actuelle</div>
+                      <div className="text-xs opacity-90">Géolocalisation automatique premium</div>
                     </div>
+                    <ChevronRight className="w-5 h-5 drop-shadow-sm" />
                   </div>
-                  <ChevronRight className="w-4 h-4 ml-auto" />
                 </Button>
 
-                {/* Lieux populaires */}
+                {/* Lieux populaires avec design premium */}
                 {cityContext && cityContext.popular.length > 0 && query.length < 2 && (
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2 px-2">
-                      Lieux populaires à {cityContext.name}
-                    </h4>
-                    <div className="space-y-1">
+                  <div className="mb-5">
+                    <div className="flex items-center gap-2 mb-3 px-2">
+                      <Building className="w-4 h-4 text-purple-500" />
+                      <h4 className="text-sm font-bold text-muted-foreground">
+                        🏆 Lieux populaires à {cityContext.name}
+                      </h4>
+                    </div>
+                    <div className="space-y-2">
                       {cityContext.popular.map((place, index) => (
                         <button
                           key={index}
                           onClick={() => handlePopularPlace(place)}
-                          className="w-full p-3 text-left hover:bg-primary/10 rounded-lg transition-colors flex items-center gap-3"
+                          className="w-full p-4 text-left hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 rounded-xl transition-all duration-300 flex items-center gap-3 border border-border/30 hover:border-primary/30 hover:shadow-lg group bg-white/50 backdrop-blur-sm"
                         >
-                          <Building className="w-4 h-4 text-purple-500" />
-                          <div>
-                            <div className="font-medium">{place}</div>
-                            <div className="text-xs text-muted-foreground">Lieu populaire</div>
+                          <div className="w-10 h-10 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Building className="w-5 h-5 text-purple-500" />
                           </div>
-                          <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                          <div className="flex-1">
+                            <div className="font-semibold text-foreground">{place}</div>
+                            <div className="text-xs text-muted-foreground">🌟 Lieu populaire premium</div>
+                          </div>
+                          <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                         </button>
                       ))}
                     </div>
@@ -355,19 +368,20 @@ export const EnhancedLocationSearch = ({
         </div>
       </Card>
 
-      {/* Adresse sélectionnée */}
+      {/* Adresse sélectionnée avec design premium */}
       {value && (
-        <Card className="p-4 bg-green-50 border-green-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-green-600" />
+        <Card className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 shadow-xl backdrop-blur-sm relative overflow-hidden animate-scale-in">
+          <div className="absolute inset-0 bg-gradient-to-r from-green-100/20 to-emerald-100/20 animate-pulse" />
+          <div className="relative z-10 flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+              <MapPin className="w-6 h-6 text-white drop-shadow-sm" />
             </div>
             <div className="flex-1">
-              <h4 className="font-semibold text-green-800">Adresse confirmée</h4>
-              <p className="text-sm text-green-600">{value.address}</p>
+              <h4 className="font-bold text-lg text-green-800 mb-1">✅ Adresse confirmée</h4>
+              <p className="text-sm text-green-700 font-medium">{value.address}</p>
             </div>
-            <Badge variant="secondary" className="bg-green-100 text-green-700">
-              Confirmé
+            <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 shadow-lg animate-pulse">
+              ✓ Confirmé
             </Badge>
           </div>
         </Card>
