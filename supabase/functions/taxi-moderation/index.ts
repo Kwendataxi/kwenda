@@ -32,6 +32,7 @@ serve(async (req) => {
       });
     }
 
+    // Client avec anon key pour vérifier l'utilisateur et ses rôles
     const supabase = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: `Bearer ${token}` } },
     });
@@ -70,23 +71,24 @@ serve(async (req) => {
       });
     }
 
+    // Service role pour bypass RLS lors de la mise à jour
     const service = createClient(supabaseUrl, serviceKey);
 
     const updates: any = {
-      moderator_id: adminId, // corrigé: utiliser moderator_id
+      moderator_id: adminId,
       moderated_at: new Date().toISOString(),
       rejection_reason: null,
     };
 
     if (body.action === "approve") {
       updates.moderation_status = "approved";
-    } else if (body.action === "reject") {
+    } else {
       updates.moderation_status = "rejected";
       updates.rejection_reason = body.rejection_reason || "Non spécifié";
     }
 
     const { data: updated, error: upErr } = await service
-      .from("rental_vehicles")
+      .from("partner_taxi_vehicles")
       .update(updates)
       .eq("id", body.vehicle_id)
       .select()
