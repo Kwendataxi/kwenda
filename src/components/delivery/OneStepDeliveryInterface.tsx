@@ -8,10 +8,13 @@ import { useToast } from '@/hooks/use-toast';
 import { UnifiedLocationService, LocationResult, RouteResult } from '@/services/unifiedLocationService';
 import UnifiedLocationSearch from './UnifiedLocationSearch';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
+import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
 
 interface OneStepDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
 interface DeliveryMode {
@@ -48,7 +51,9 @@ const deliveryModes: DeliveryMode[] = [
 
 const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
   onSubmit,
-  onCancel
+  onCancel,
+  activeTab = 'home',
+  onTabChange = () => {}
 }) => {
   const [step, setStep] = useState<'input' | 'confirm' | 'created'>('input');
   const [pickup, setPickup] = useState<LocationResult | null>(null);
@@ -131,36 +136,44 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
   // Étape 3: Commande créée avec succès
   if (step === 'created') {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-background p-8">
-        <div className="text-center space-y-6 max-w-sm">
-          <div className="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center">
-            <CheckCircle className="w-12 h-12 text-green-600" />
-          </div>
-          
-          <div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">
-              Commande créée !
-            </h2>
-            <p className="text-muted-foreground">
-              Votre livraison {selectedMode} a été confirmée
-            </p>
-          </div>
-
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Commande #</span>
-              <span className="font-mono">{orderId.slice(-8)}</span>
+      <div className="min-h-screen flex flex-col bg-background">
+        <div className="flex-1 flex flex-col items-center justify-center p-8">
+          <div className="text-center space-y-6 max-w-sm">
+            <div className="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-12 h-12 text-green-600" />
             </div>
-            <div className="flex justify-between">
-              <span>Prix</span>
-              <span className="font-bold">{selectedRoute?.price.toLocaleString()} CDF</span>
+            
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">
+                Commande créée !
+              </h2>
+              <p className="text-muted-foreground">
+                Votre livraison {selectedMode} a été confirmée
+              </p>
             </div>
-          </div>
 
-          <div className="text-xs text-muted-foreground">
-            Redirection vers le suivi...
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>Commande #</span>
+                <span className="font-mono">{orderId.slice(-8)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Prix</span>
+                <span className="font-bold">{selectedRoute?.price.toLocaleString()} CDF</span>
+              </div>
+            </div>
+
+            <div className="text-xs text-muted-foreground">
+              Redirection vers le suivi...
+            </div>
           </div>
         </div>
+        
+        {/* Navigation en bas */}
+        <ModernBottomNavigation
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+        />
       </div>
     );
   }
@@ -168,261 +181,277 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
   // Étape 2: Confirmation
   if (step === 'confirm' && canProceed && selectedRoute) {
     return (
-      <div className="h-full flex flex-col bg-background">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-primary to-primary/80 p-4 text-primary-foreground">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold">Confirmation</h1>
-              <p className="text-sm opacity-90">Vérifiez votre commande</p>
+      <div className="min-h-screen flex flex-col bg-background">
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-primary to-primary/80 p-4 text-primary-foreground">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-bold">Confirmation</h1>
+                <p className="text-sm opacity-90">Vérifiez votre commande</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setStep('input')}
+                className="text-primary-foreground"
+              >
+                ← Modifier
+              </Button>
             </div>
+          </div>
+
+          {/* Résumé de la commande */}
+          <div className="flex-1 p-4 space-y-4 pb-24">
+            {/* Trajet */}
+            <Card className="p-4">
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                Trajet
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-3 h-3 rounded-full bg-green-500 mt-1.5"></div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">Récupération</div>
+                    <div className="text-sm text-muted-foreground">{pickup?.address}</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-3 h-3 rounded-full bg-red-500 mt-1.5"></div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">Livraison</div>
+                    <div className="text-sm text-muted-foreground">{destination?.address}</div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Mode sélectionné */}
+            <Card className="p-4">
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <Package className="w-4 h-4" />
+                Mode de livraison
+              </h3>
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">
+                  {deliveryModes.find(m => m.id === selectedMode)?.icon}
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold">
+                    {deliveryModes.find(m => m.id === selectedMode)?.name}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {deliveryModes.find(m => m.id === selectedMode)?.description}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-lg">{selectedRoute.price.toLocaleString()} CDF</div>
+                  <div className="text-sm text-muted-foreground">
+                    {UnifiedLocationService.formatDuration(selectedRoute.duration)}
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Détails */}
+            <Card className="p-4">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Distance</span>
+                  <span>{UnifiedLocationService.formatDistance(selectedRoute.distance)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Temps estimé</span>
+                  <span>{UnifiedLocationService.formatDuration(selectedRoute.duration)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold">
+                  <span>Total</span>
+                  <span>{selectedRoute.price.toLocaleString()} CDF</span>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Bouton de confirmation fixé en bas */}
+          <div className="p-4 border-t bg-background">
             <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setStep('input')}
-              className="text-primary-foreground"
+              onClick={handleConfirm}
+              disabled={submitting}
+              className="w-full"
+              size="lg"
             >
-              ← Modifier
+              {submitting ? 'Création...' : 'Confirmer la commande'}
+              <CheckCircle className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </div>
-
-        {/* Résumé de la commande */}
-        <div className="flex-1 p-4 space-y-4">
-          {/* Trajet */}
-          <Card className="p-4">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
-              Trajet
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="w-3 h-3 rounded-full bg-green-500 mt-1.5"></div>
-                <div className="flex-1">
-                  <div className="font-medium text-sm">Récupération</div>
-                  <div className="text-sm text-muted-foreground">{pickup?.address}</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-3 h-3 rounded-full bg-red-500 mt-1.5"></div>
-                <div className="flex-1">
-                  <div className="font-medium text-sm">Livraison</div>
-                  <div className="text-sm text-muted-foreground">{destination?.address}</div>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Mode sélectionné */}
-          <Card className="p-4">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <Package className="w-4 h-4" />
-              Mode de livraison
-            </h3>
-            <div className="flex items-center gap-3">
-              <div className="text-2xl">
-                {deliveryModes.find(m => m.id === selectedMode)?.icon}
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold">
-                  {deliveryModes.find(m => m.id === selectedMode)?.name}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {deliveryModes.find(m => m.id === selectedMode)?.description}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="font-bold text-lg">{selectedRoute.price.toLocaleString()} CDF</div>
-                <div className="text-sm text-muted-foreground">
-                  {UnifiedLocationService.formatDuration(selectedRoute.duration)}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Détails */}
-          <Card className="p-4">
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Distance</span>
-                <span>{UnifiedLocationService.formatDistance(selectedRoute.distance)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Temps estimé</span>
-                <span>{UnifiedLocationService.formatDuration(selectedRoute.duration)}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between font-bold">
-                <span>Total</span>
-                <span>{selectedRoute.price.toLocaleString()} CDF</span>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Bouton de confirmation */}
-        <div className="p-4 border-t">
-          <Button
-            onClick={handleConfirm}
-            disabled={submitting}
-            className="w-full"
-            size="lg"
-          >
-            {submitting ? 'Création...' : 'Confirmer la commande'}
-            <CheckCircle className="w-4 h-4 ml-2" />
-          </Button>
-        </div>
+        
+        {/* Navigation en bas */}
+        <ModernBottomNavigation
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+        />
       </div>
     );
   }
 
   // Étape 1: Saisie des adresses (Interface unifiée)
   return (
-    <div className="h-full flex flex-col bg-background">
-      {/* Header moderne */}
-      <div className="bg-gradient-to-r from-primary to-primary/80 p-4 text-primary-foreground">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold">Livraison Express</h1>
-            <p className="text-sm opacity-90">Saisissez vos adresses</p>
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex-1 flex flex-col">
+        {/* Header moderne */}
+        <div className="bg-gradient-to-r from-primary to-primary/80 p-4 text-primary-foreground">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-bold">Livraison Express</h1>
+              <p className="text-sm opacity-90">Saisissez vos adresses</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onCancel}
+              className="text-primary-foreground"
+            >
+              ✕
+            </Button>
           </div>
+        </div>
+
+        {/* Formulaire unifié */}
+        <div className="flex-1 p-4 space-y-4 pb-24">
+          {/* Récupération */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              <span className="text-sm font-medium">Récupération</span>
+              {pickup?.type === 'geocoded' && (
+                <Badge variant="outline" className="text-xs">
+                  <Star className="w-3 h-3 mr-1" />
+                  Position détectée
+                </Badge>
+              )}
+            </div>
+            <UnifiedLocationSearch
+              placeholder="Où récupérer ?"
+              value={pickup?.address || ''}
+              onLocationSelect={setPickup}
+              showCurrentLocation={true}
+            />
+          </div>
+
+          {/* Destination */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <span className="text-sm font-medium">Destination</span>
+            </div>
+            <UnifiedLocationSearch
+              placeholder="Où livrer ?"
+              value={destination?.address || ''}
+              onLocationSelect={setDestination}
+              showCurrentLocation={false}
+            />
+          </div>
+
+          {/* Modes de livraison avec prix en temps réel */}
+          {routes.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Mode de livraison</span>
+                {calculating && (
+                  <div className="text-xs text-muted-foreground">Calcul en cours...</div>
+                )}
+              </div>
+              
+              {deliveryModes.map((mode) => {
+                const route = routes.find(r => r.mode === mode.id);
+                const isSelected = selectedMode === mode.id;
+                
+                return (
+                  <Card
+                    key={mode.id}
+                    className={`p-4 cursor-pointer transition-all border-2 ${
+                      isSelected
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => setSelectedMode(mode.id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="text-2xl">{mode.icon}</div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold">{mode.name}</h3>
+                            <Badge variant="secondary" className="text-xs">
+                              {mode.description}
+                            </Badge>
+                          </div>
+                          <div className="flex gap-2 mt-1">
+                            {mode.features.map((feature, idx) => (
+                              <span key={idx} className="text-xs text-muted-foreground">
+                                {feature}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {route ? (
+                          <>
+                            <div className="font-bold text-lg">
+                              {route.price.toLocaleString()} CDF
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              <Clock className="w-3 h-3 inline mr-1" />
+                              {UnifiedLocationService.formatDuration(route.duration)}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-sm text-muted-foreground">---</div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Distance et temps */}
+          {selectedRoute && (
+            <Card className="p-3 bg-muted/30">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Distance</span>
+                <span className="font-medium">
+                  {UnifiedLocationService.formatDistance(selectedRoute.distance)}
+                </span>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        {/* Bouton continuer fixé en bas */}
+        <div className="p-4 border-t bg-background">
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={onCancel}
-            className="text-primary-foreground"
+            onClick={() => setStep('confirm')}
+            disabled={!canProceed || calculating}
+            className="w-full"
+            size="lg"
           >
-            ✕
+            {calculating ? 'Calcul...' : `Continuer • ${selectedRoute?.price.toLocaleString() || '---'} CDF`}
+            <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
       </div>
-
-      {/* Formulaire unifié */}
-      <div className="flex-1 p-4 space-y-4">
-        {/* Récupération */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span className="text-sm font-medium">Récupération</span>
-            {pickup?.type === 'geocoded' && (
-              <Badge variant="outline" className="text-xs">
-                <Star className="w-3 h-3 mr-1" />
-                Position détectée
-              </Badge>
-            )}
-          </div>
-          <UnifiedLocationSearch
-            placeholder="Où récupérer ?"
-            value={pickup?.address || ''}
-            onLocationSelect={setPickup}
-            showCurrentLocation={true}
-          />
-        </div>
-
-        {/* Destination */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span className="text-sm font-medium">Destination</span>
-          </div>
-          <UnifiedLocationSearch
-            placeholder="Où livrer ?"
-            value={destination?.address || ''}
-            onLocationSelect={setDestination}
-            showCurrentLocation={false}
-          />
-        </div>
-
-        {/* Modes de livraison avec prix en temps réel */}
-        {routes.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Mode de livraison</span>
-              {calculating && (
-                <div className="text-xs text-muted-foreground">Calcul en cours...</div>
-              )}
-            </div>
-            
-            {deliveryModes.map((mode) => {
-              const route = routes.find(r => r.mode === mode.id);
-              const isSelected = selectedMode === mode.id;
-              
-              return (
-                <Card
-                  key={mode.id}
-                  className={`p-4 cursor-pointer transition-all border-2 ${
-                    isSelected
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                  onClick={() => setSelectedMode(mode.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl">{mode.icon}</div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">{mode.name}</h3>
-                          <Badge variant="secondary" className="text-xs">
-                            {mode.description}
-                          </Badge>
-                        </div>
-                        <div className="flex gap-2 mt-1">
-                          {mode.features.map((feature, idx) => (
-                            <span key={idx} className="text-xs text-muted-foreground">
-                              {feature}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      {route ? (
-                        <>
-                          <div className="font-bold text-lg">
-                            {route.price.toLocaleString()} CDF
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            <Clock className="w-3 h-3 inline mr-1" />
-                            {UnifiedLocationService.formatDuration(route.duration)}
-                          </div>
-                        </>
-                      ) : (
-                        <div className="text-sm text-muted-foreground">---</div>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Distance et temps */}
-        {selectedRoute && (
-          <Card className="p-3 bg-muted/30">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Distance</span>
-              <span className="font-medium">
-                {UnifiedLocationService.formatDistance(selectedRoute.distance)}
-              </span>
-            </div>
-          </Card>
-        )}
-      </div>
-
-      {/* Bouton continuer */}
-      <div className="p-4 border-t">
-        <Button
-          onClick={() => setStep('confirm')}
-          disabled={!canProceed || calculating}
-          className="w-full"
-          size="lg"
-        >
-          {calculating ? 'Calcul...' : `Continuer • ${selectedRoute?.price.toLocaleString() || '---'} CDF`}
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
-      </div>
+      
+      {/* Navigation en bas */}
+      <ModernBottomNavigation
+        activeTab={activeTab}
+        onTabChange={onTabChange}
+      />
     </div>
   );
 };

@@ -6,11 +6,18 @@ import { useLanguage } from '@/contexts/LanguageContext';
 interface ModernDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
 type DeliveryModeLocal = 'flash' | 'flex' | 'maxicharge';
 
-const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterfaceProps) => {
+const ModernDeliveryInterface = ({ 
+  onSubmit, 
+  onCancel, 
+  activeTab = 'home', 
+  onTabChange = () => {} 
+}: ModernDeliveryInterfaceProps) => {
   const [currentView, setCurrentView] = useState<'main' | 'tracking'>('main');
   const [orderData, setOrderData] = useState<any>(null);
   const { t } = useLanguage();
@@ -43,6 +50,8 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
     <OneStepDeliveryInterface
       onSubmit={handleDeliverySubmit}
       onCancel={onCancel}
+      activeTab={activeTab}
+      onTabChange={onTabChange}
     />
   );
 };
