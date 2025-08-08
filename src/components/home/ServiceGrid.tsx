@@ -49,7 +49,7 @@ export const ServiceGrid = ({ onServiceSelect }: ServiceGridProps) => {
 
   return (
     <div className="px-4 mb-6">
-      <div className="flex justify-center gap-6">
+      <div className="grid grid-cols-4 gap-4 justify-items-center">
         {mainServices.map((service) => {
           const Icon = service.icon;
           return (
@@ -65,7 +65,7 @@ export const ServiceGrid = ({ onServiceSelect }: ServiceGridProps) => {
               >
                 <Icon className="h-7 w-7" />
               </button>
-              <span className="text-sm font-medium text-foreground mt-2">{service.name}</span>
+              <span className="text-xs font-medium text-foreground mt-2 text-center line-clamp-2">{service.name}</span>
             </div>
           );
         })}

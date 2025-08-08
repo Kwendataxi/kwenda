@@ -7,9 +7,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 interface RecentPlacesProps {
   onPlaceSelect: (placeName: string, coordinates?: { lat: number; lng: number }) => void;
+  onViewAll?: () => void;
 }
 
-export const RecentPlaces = ({ onPlaceSelect }: RecentPlacesProps) => {
+export const RecentPlaces = ({ onPlaceSelect, onViewAll }: RecentPlacesProps) => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { recentPlaces, homePlace, workPlace, loading, markAsUsed } = usePlaces();
@@ -59,7 +60,18 @@ export const RecentPlaces = ({ onPlaceSelect }: RecentPlacesProps) => {
 
   return (
     <div className="px-4 mb-6">
-      <h3 className="text-lg font-semibold text-foreground mb-4">{t('home.recent_places')}</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-foreground">{t('home.recent_places')}</h3>
+        {onViewAll && (
+          <button
+            onClick={onViewAll}
+            className="text-sm text-primary hover:underline"
+            aria-label="Voir tous les lieux"
+          >
+            Voir tout
+          </button>
+        )}
+      </div>
       
       <div className="space-y-2">
         {displayPlaces.map((place) => (

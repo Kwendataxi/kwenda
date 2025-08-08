@@ -5,13 +5,15 @@ import { UniversalSearchBar } from './UniversalSearchBar';
 import { RecentPlaces } from './RecentPlaces';
 import { MarketplacePreview } from './MarketplacePreview';
 import { ModernBottomNavigation } from './ModernBottomNavigation';
-import { Button } from '@/components/ui/button';
-import { Database } from 'lucide-react';
+import { HomeTrendsSheet } from './HomeTrendsSheet';
+import { HomeRecentPlacesSheet } from './HomeRecentPlacesSheet';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
 interface ModernHomeScreenProps {
   onServiceSelect: (service: string) => void;
   onSearch: (query: string) => void;
   featuredProducts: any[];
+  trendingProducts?: any[];
   onProductSelect: (product: any) => void;
   onMarketplaceViewAll: () => void;
   onNavigateToTestData?: () => void;
@@ -21,11 +23,15 @@ export const ModernHomeScreen = ({
   onServiceSelect,
   onSearch,
   featuredProducts,
+  trendingProducts,
   onProductSelect,
   onMarketplaceViewAll,
   onNavigateToTestData
 }: ModernHomeScreenProps) => {
   const [activeTab, setActiveTab] = useState('home');
+  const [trendsOpen, setTrendsOpen] = useState(false);
+  const [placesOpen, setPlacesOpen] = useState(false);
+  const { unreadCount } = useRealtimeNotifications();
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -68,12 +74,13 @@ export const ModernHomeScreen = ({
             onSearch(placeName);
             onServiceSelect('transport');
           }}
+          onViewAll={() => setPlacesOpen(true)}
         />
         
         <MarketplacePreview
           featuredProducts={featuredProducts}
           onProductSelect={onProductSelect}
-          onViewAll={onMarketplaceViewAll}
+          onViewAll={() => setTrendsOpen(true)}
         />
         
       </div>
