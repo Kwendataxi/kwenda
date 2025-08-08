@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { CountryService } from '@/services/countryConfig';
-import { Search, MapPin, Clock, Navigation, Zap, Mic, QrCode, Home, Building2, Plane } from 'lucide-react';
+import { Search, MapPin, Clock, Zap, Mic, Home, Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -120,7 +120,8 @@ export const EnhancedTaxiSearchBar = ({
   };
 
   const shortcuts = getSmartShortcuts();
-
+  // keep shortcuts computed for potential future use
+  void shortcuts;
   // Initialize speech recognition
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -274,6 +275,7 @@ export const EnhancedTaxiSearchBar = ({
       setLoading(false);
     }
   };
+  void handleCurrentLocation;
 
   const handleFocus = () => {
     setShowSuggestions(true);
@@ -288,32 +290,6 @@ export const EnhancedTaxiSearchBar = ({
 
   return (
     <div className="space-y-4">
-      {/* Search Shortcuts */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        {shortcuts.map((shortcut) => (
-          <Button
-            key={shortcut.id}
-            variant="outline"
-            size="sm"
-            onClick={shortcut.action}
-            className="flex items-center gap-2 whitespace-nowrap shrink-0 h-10 px-4 bg-white hover:bg-primary/5 transition-all duration-200"
-          >
-            <shortcut.icon className="h-4 w-4" />
-            {shortcut.label}
-          </Button>
-        ))}
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCurrentLocation}
-          disabled={loading}
-          className="flex items-center gap-2 whitespace-nowrap shrink-0 h-10 px-4 bg-white hover:bg-primary/5"
-        >
-          <Navigation className="h-4 w-4" />
-          Ma position
-        </Button>
-      </div>
 
       {/* Enhanced Search Bar */}
       <div className="relative">
