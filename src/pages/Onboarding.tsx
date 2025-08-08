@@ -19,31 +19,31 @@ const useOnboardingContext = (): OnboardingContext => {
   return allowed.includes(fromLocal) ? (fromLocal as OnboardingContext) : "client";
 };
 
-const slidesByContext: Record<OnboardingContext, Array<{ title: string; desc: string; img: string }>> = {
+const slidesByContext: Record<OnboardingContext, Array<{ title: string; desc: string }>> = {
   client: [
-    { title: "Réservez un trajet en 2 taps", desc: "Moto, Taxi, Bus – au meilleur prix avec suivi en temps réel.", img: heroVtc },
-    { title: "Livraison express & cargo", desc: "Envoyez des colis rapidement, avec options d'assistance.", img: appIcon },
-    { title: "Marketplace intégrée", desc: "Achetez et vendez avec paiement sécurisé KwendaPay.", img: appIcon },
+    { title: "Réservez un trajet en 2 taps", desc: "Moto, Taxi, Bus – au meilleur prix avec suivi en temps réel." },
+    { title: "Livraison express & cargo", desc: "Envoyez des colis rapidement, avec options d'assistance." },
+    { title: "Marketplace intégrée", desc: "Achetez et vendez avec paiement sécurisé KwendaPay." },
   ],
   chauffeur: [
-    { title: "Gérez vos courses facilement", desc: "Acceptez/Refusez, suivez vos gains et défis.", img: driverIcon },
-    { title: "Abonnements & crédits", desc: "Optimisez vos revenus avec des plans adaptés.", img: appIcon },
-    { title: "Validation multi-niveaux", desc: "Un processus clair jusqu'à l'approbation.", img: appIcon },
+    { title: "Gérez vos courses facilement", desc: "Acceptez/Refusez, suivez vos gains et défis." },
+    { title: "Abonnements & crédits", desc: "Optimisez vos revenus avec des plans adaptés." },
+    { title: "Validation multi-niveaux", desc: "Un processus clair jusqu'à l'approbation." },
   ],
   partenaire: [
-    { title: "Administrez votre flotte", desc: "Suivez performances, commissions et validations.", img: appIcon },
-    { title: "Analytics en temps réel", desc: "Visualisez vos KPIs clés instantanément.", img: appIcon },
-    { title: "Gestion financière", desc: "Comptes, retraits, partages de revenus.", img: appIcon },
+    { title: "Administrez votre flotte", desc: "Suivez performances, commissions et validations." },
+    { title: "Analytics en temps réel", desc: "Visualisez vos KPIs clés instantanément." },
+    { title: "Gestion financière", desc: "Comptes, retraits, partages de revenus." },
   ],
   marketplace: [
-    { title: "Vendez sans friction", desc: "Mettez en ligne, discutez, finalisez en escrow.", img: appIcon },
-    { title: "Achetez en confiance", desc: "Produits validés, chat intégré, suivi.", img: appIcon },
-    { title: "KwendaPay sécurisé", desc: "Paiements rapides, portefeuille CDF.", img: appIcon },
+    { title: "Vendez sans friction", desc: "Mettez en ligne, discutez, finalisez en escrow." },
+    { title: "Achetez en confiance", desc: "Produits validés, chat intégré, suivi." },
+    { title: "KwendaPay sécurisé", desc: "Paiements rapides, portefeuille CDF." },
   ],
   admin: [
-    { title: "Supervision totale", desc: "Opérations, support, finances et zones.", img: appIcon },
-    { title: "Alertes & temps réel", desc: "Gardez le contrôle avec des widgets live.", img: appIcon },
-    { title: "Modération & sécurité", desc: "RLS, vérifications et conformité.", img: appIcon },
+    { title: "Supervision totale", desc: "Opérations, support, finances et zones." },
+    { title: "Alertes & temps réel", desc: "Gardez le contrôle avec des widgets live." },
+    { title: "Modération & sécurité", desc: "RLS, vérifications et conformité." },
   ],
 };
 
@@ -96,7 +96,7 @@ const Onboarding: React.FC = () => {
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <img src={appIcon} alt="Logo Kwenda" className="h-8 w-8" />
+            <BrandLogo size={32} />
             <h1 className="text-lg font-semibold">Bienvenue</h1>
           </div>
           <Button variant="ghost" onClick={finish} aria-label="Passer l'onboarding" className="hover-scale">
@@ -113,7 +113,7 @@ const Onboarding: React.FC = () => {
                 {slides.map((s, i) => (
                   <CarouselItem key={i} className="pl-0">
                     <div className="flex min-h-[60vh] flex-col items-center justify-center px-6 py-10 text-center">
-                      <img src={s.img} alt={s.title} className="mb-6 h-40 w-40 object-cover rounded-xl shadow" loading="lazy" />
+                      <BrandLogo size={160} className="mb-6" alt={s.title} />
                       <h2 className="text-2xl font-semibold">{s.title}</h2>
                       <p className="mt-2 text-muted-foreground">{s.desc}</p>
                     </div>
