@@ -2635,6 +2635,39 @@ export type Database = {
           },
         ]
       }
+      ride_offers: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          driver_id: string
+          expires_at: string | null
+          id: string
+          ride_request_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          driver_id: string
+          expires_at?: string | null
+          id?: string
+          ride_request_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          driver_id?: string
+          expires_at?: string | null
+          id?: string
+          ride_request_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ride_requests: {
         Row: {
           acceptance_time: string | null
