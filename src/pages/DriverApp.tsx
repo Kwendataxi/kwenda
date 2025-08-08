@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { DriverDeliveryDashboard } from '@/components/driver/DriverDeliveryDashboard';
 import MobileDriverInterface from '@/components/mobile/MobileDriverInterface';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { useDriverServiceType } from '@/hooks/useDriverServiceType';
 import { toast } from 'sonner';
@@ -10,10 +10,13 @@ import { DriverCodeManager } from '@/components/driver/DriverCodeManager';
 import { DriverReferrals } from '@/components/driver/DriverReferrals';
 import { DriverCreditManager } from '@/components/driver/DriverCreditManager';
 import { DriverWalletPanel } from '@/components/driver/DriverWalletPanel';
-
+import { DriverHeader } from '@/components/driver/DriverHeader';
+import { DriverBottomNavigation } from '@/components/driver/DriverBottomNavigation';
+import { DriverMoreSheet } from '@/components/driver/DriverMoreSheet';
 const DriverApp = () => {
   const { loading: loadingProfile, serviceType } = useDriverServiceType();
   const [tab, setTab] = useState<'rides' | 'deliveries' | 'wallet' | 'credits' | 'challenges' | 'partner' | 'referrals'>('deliveries');
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
     if (!loadingProfile) {
@@ -37,17 +40,9 @@ const DriverApp = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto p-4 pb-28">
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-          <TabsList className="flex flex-wrap gap-2 w-full mb-4">
-            <TabsTrigger value="rides">Courses</TabsTrigger>
-            <TabsTrigger value="deliveries">Livraisons</TabsTrigger>
-            <TabsTrigger value="wallet">Wallet</TabsTrigger>
-            <TabsTrigger value="credits">Crédits</TabsTrigger>
-            <TabsTrigger value="challenges">Challenges</TabsTrigger>
-            <TabsTrigger value="partner">Code Partenaire</TabsTrigger>
-            <TabsTrigger value="referrals">Parrainage</TabsTrigger>
-          </TabsList>
+          <DriverHeader serviceType={serviceType} />
 
           <TabsContent value="rides" className="mt-0">
             <MobileDriverInterface
@@ -90,6 +85,16 @@ const DriverApp = () => {
             <DriverReferrals />
           </TabsContent>
         </Tabs>
+        <DriverBottomNavigation
+          activeTab={tab === 'deliveries' ? 'deliveries' : 'rides'}
+          onTabChange={(t) => setTab(t)}
+          onOpenMore={() => setMoreOpen(true)}
+        />
+        <DriverMoreSheet
+          open={moreOpen}
+          onOpenChange={setMoreOpen}
+          onSelect={(t) => setTab(t)}
+        />
       </div>
     </div>
   );
