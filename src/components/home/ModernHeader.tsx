@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, MapPin, Battery, Wifi, WifiOff, Signal } from 'lucide-react';
+import { Bell, MapPin, Battery, Wifi, WifiOff, Signal, RefreshCw, Navigation } from 'lucide-react';
 import NotificationCenter from '@/components/advanced/NotificationCenter';
 import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation } from '@/hooks/useGeolocation';
@@ -8,6 +8,7 @@ import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { useProfile } from '@/hooks/useProfile';
 import { GeocodingService } from '@/services/geocoding';
+import { Button } from '@/components/ui/button';
 
 interface ModernHeaderProps {
   hasNotifications?: boolean;
@@ -40,9 +41,9 @@ export const ModernHeader = ({
     geolocation.getCurrentPosition();
   }, [geolocation.getCurrentPosition]);
 
-  // Reverse geocoding to get address from coordinates
+  // Reverse geocoding to get address from coordinates - only for real GPS
   useEffect(() => {
-    if (geolocation.latitude && geolocation.longitude && !geocodingLoading) {
+    if (geolocation.latitude && geolocation.longitude && geolocation.isRealGPS && !geocodingLoading) {
       const reverseGeocode = async () => {
         try {
           setGeocodingLoading(true);
@@ -53,7 +54,7 @@ export const ModernHeader = ({
           setCurrentAddress(address);
         } catch (error) {
           console.error('Geocoding error:', error);
-          // Fallback to coordinates
+          // Fallback to coordinates for real GPS
           setCurrentAddress(`${geolocation.latitude.toFixed(4)}, ${geolocation.longitude.toFixed(4)}`);
         } finally {
           setGeocodingLoading(false);
@@ -61,8 +62,11 @@ export const ModernHeader = ({
       };
 
       reverseGeocode();
+    } else if (geolocation.error && !geolocation.loading) {
+      // No GPS available - show error state
+      setCurrentAddress(t('location.unavailable'));
     }
-  }, [geolocation.latitude, geolocation.longitude]);
+  }, [geolocation.latitude, geolocation.longitude, geolocation.isRealGPS, geolocation.error]);
 
   // Battery status monitoring
   useEffect(() => {
@@ -109,9 +113,33 @@ export const ModernHeader = ({
               {getGreeting()}, {profileLoading ? '...' : displayName.split(' ')[0]}
             </p>
             <div className="flex items-center gap-2 mt-1">
-              <MapPin className="h-4 w-4 text-primary" />
+              <div className="flex items-center gap-1">
+                {geolocation.isRealGPS ? (
+                  <Navigation className="h-4 w-4 text-green-500" />
+                ) : (
+                  <MapPin className="h-4 w-4 text-orange-500" />
+                )}
+                {geolocation.error && !geolocation.loading && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={geolocation.forceRefreshPosition}
+                    className="h-6 px-2 ml-1"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
               <p className="text-muted-foreground text-sm">
-                {geolocation.loading || geocodingLoading ? t('common.loading') : currentAddress}
+                {geolocation.loading || geocodingLoading ? (
+                  t('common.loading')
+                ) : geolocation.error ? (
+                  <span className="text-orange-600">{t('location.gps_unavailable')}</span>
+                ) : geolocation.isRealGPS ? (
+                  currentAddress
+                ) : (
+                  <span className="text-orange-600">{t('location.approximate')}</span>
+                )}
               </p>
             </div>
           </div>

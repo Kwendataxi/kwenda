@@ -10,6 +10,7 @@ interface LocationState {
   loading: boolean;
   error: string | null;
   lastKnownPosition: { latitude: number; longitude: number } | null;
+  isRealGPS: boolean; // Indique si c'est une vraie position GPS
 }
 
 interface UseGeolocationOptions {
@@ -47,6 +48,7 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
     loading: false,
     error: null,
     lastKnownPosition: null,
+    isRealGPS: false,
   });
   
   const { toast } = useToast();
@@ -58,13 +60,33 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
     watchPosition = false,
   } = options;
 
-  // Load cached position on init
+  // Load cached position on init with timestamp validation
   useEffect(() => {
     const cached = localStorage.getItem('lastKnownPosition');
-    if (cached) {
+    const cacheTimestamp = localStorage.getItem('lastKnownPositionTime');
+    
+    if (cached && cacheTimestamp) {
       try {
         const position = JSON.parse(cached);
-        setLocation(prev => ({ ...prev, lastKnownPosition: position }));
+        const timestamp = parseInt(cacheTimestamp);
+        const now = Date.now();
+        const isRealGPS = localStorage.getItem('lastPositionWasRealGPS') === 'true';
+        
+        // Only use cache if it's less than 1 hour old for real GPS, or 5 minutes for fallback
+        const maxAge = isRealGPS ? 3600000 : 300000; // 1 hour vs 5 minutes
+        
+        if (now - timestamp < maxAge) {
+          setLocation(prev => ({ 
+            ...prev, 
+            lastKnownPosition: position,
+            isRealGPS 
+          }));
+        } else {
+          // Clear old cache
+          localStorage.removeItem('lastKnownPosition');
+          localStorage.removeItem('lastKnownPositionTime');
+          localStorage.removeItem('lastPositionWasRealGPS');
+        }
       } catch (error) {
         console.error('Error loading cached position:', error);
       }
@@ -93,25 +115,11 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
     }
   }, []);
 
-  const getCurrentPosition = useCallback(async (retryCount = 0) => {
+  const getCurrentPosition = useCallback(async (retryCount = 0, forceRefresh = false) => {
     setLocation(prev => ({ ...prev, loading: true, error: null }));
 
     try {
       let position: Position | GeolocationPosition;
-      
-      // Coordonnées par défaut pour Kinshasa
-      const defaultKinshasaLocation = {
-        coords: {
-          latitude: -4.4419,
-          longitude: 15.2663,
-          accuracy: 1000,
-          altitude: null,
-          altitudeAccuracy: null,
-          heading: null,
-          speed: null
-        },
-        timestamp: Date.now()
-      };
       
       if (isCapacitorAvailable()) {
         // Use Capacitor geolocation for mobile apps
@@ -121,9 +129,9 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
         }
 
         position = await Geolocation.getCurrentPosition({
-          enableHighAccuracy,
-          timeout,
-          maximumAge,
+          enableHighAccuracy: true, // Force high accuracy for real GPS
+          timeout: 30000, // Increased timeout for better GPS lock
+          maximumAge: forceRefresh ? 0 : 60000, // Force fresh position if requested
         });
       } else {
         // Check HTTPS requirement
@@ -133,9 +141,9 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
         
         // Fallback to browser geolocation API
         const browserPosition = await getBrowserLocation({
-          enableHighAccuracy,
-          timeout,
-          maximumAge,
+          enableHighAccuracy: true, // Force high accuracy
+          timeout: 30000, // Increased timeout
+          maximumAge: forceRefresh ? 0 : 60000, // Force fresh if requested
         });
         position = {
           coords: browserPosition.coords,
@@ -143,13 +151,18 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
         } as Position;
       }
 
+      // Validate that we got a real GPS position (accuracy < 100m for real GPS)
+      const isRealGPS = position.coords.accuracy !== null && position.coords.accuracy < 100;
+      
       const newPosition = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       };
       
-      // Cache the position
+      // Cache the position with metadata
       localStorage.setItem('lastKnownPosition', JSON.stringify(newPosition));
+      localStorage.setItem('lastKnownPositionTime', Date.now().toString());
+      localStorage.setItem('lastPositionWasRealGPS', isRealGPS.toString());
       
       setLocation(prev => ({
         ...prev,
@@ -159,77 +172,79 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
         loading: false,
         error: null,
         lastKnownPosition: newPosition,
+        isRealGPS,
       }));
 
       return position;
     } catch (error) {
       const errorCode = error instanceof Error ? error.message : 'UNKNOWN_ERROR';
       
-      // Retry logic for network errors
-      if (retryCount < 2 && ['TIMEOUT', 'POSITION_UNAVAILABLE'].includes(errorCode)) {
-        const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
-        setTimeout(() => getCurrentPosition(retryCount + 1), delay);
+      // Retry logic for network errors - more aggressive retries for real GPS
+      if (retryCount < 3 && ['TIMEOUT', 'POSITION_UNAVAILABLE'].includes(errorCode)) {
+        const delay = Math.pow(2, retryCount) * 2000; // Longer delays for GPS
+        setTimeout(() => getCurrentPosition(retryCount + 1, forceRefresh), delay);
         return;
       }
       
-      // Use cached position if available
+      // Use cached position only if it's recent and was real GPS
       const cached = localStorage.getItem('lastKnownPosition');
-      if (cached) {
+      const cacheTimestamp = localStorage.getItem('lastKnownPositionTime');
+      const wasRealGPS = localStorage.getItem('lastPositionWasRealGPS') === 'true';
+      
+      if (cached && cacheTimestamp && wasRealGPS) {
         try {
           const cachedPosition = JSON.parse(cached);
-          setLocation(prev => ({
-            ...prev,
-            latitude: cachedPosition.latitude,
-            longitude: cachedPosition.longitude,
-            accuracy: null,
-            loading: false,
-            error: getErrorMessage(errorCode),
-            lastKnownPosition: cachedPosition,
-          }));
+          const timestamp = parseInt(cacheTimestamp);
+          const now = Date.now();
           
-          toast({
-            title: "Position mise en cache",
-            description: "Utilisation de votre dernière position connue",
-            variant: "default",
-          });
-          
-          return {
-            coords: cachedPosition,
-            timestamp: Date.now(),
-          } as Position;
+          // Only use cache if it's less than 30 minutes old for real GPS positions
+          if (now - timestamp < 1800000) { // 30 minutes
+            setLocation(prev => ({
+              ...prev,
+              latitude: cachedPosition.latitude,
+              longitude: cachedPosition.longitude,
+              accuracy: null,
+              loading: false,
+              error: getErrorMessage(errorCode),
+              lastKnownPosition: cachedPosition,
+              isRealGPS: true, // Cached real GPS position
+            }));
+            
+            toast({
+              title: "Position GPS récente",
+              description: "Utilisation de votre dernière position GPS connue",
+              variant: "default",
+            });
+            
+            return {
+              coords: cachedPosition,
+              timestamp: Date.now(),
+            } as Position;
+          }
         } catch (e) {
           console.error('Error parsing cached position:', e);
         }
       }
       
-      // Final fallback to current country's main city
-      const currentCountry = CountryService.getCurrentCountry();
-      const fallbackCoords = currentCountry.majorCities[0].coordinates;
-      
+      // Final error - no valid cached position or GPS unavailable
       setLocation(prev => ({
         ...prev,
-        latitude: fallbackCoords.lat,
-        longitude: fallbackCoords.lng,
+        latitude: null,
+        longitude: null,
         accuracy: null,
         loading: false,
         error: getErrorMessage(errorCode),
-        lastKnownPosition: { latitude: fallbackCoords.lat, longitude: fallbackCoords.lng },
+        lastKnownPosition: null,
+        isRealGPS: false,
       }));
       
       toast({
         title: getErrorTitle(errorCode),
-        description: getErrorMessage(errorCode),
+        description: getErrorMessage(errorCode) + " - Localisation manuelle disponible",
         variant: "destructive",
       });
       
-      return {
-        coords: {
-          latitude: fallbackCoords.lat,
-          longitude: fallbackCoords.lng,
-          accuracy: null,
-        },
-        timestamp: Date.now(),
-      } as Position;
+      throw error; // Let the caller handle the error
     }
   }, [enableHighAccuracy, timeout, maximumAge, toast, requestPermissions]);
 
@@ -298,6 +313,13 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
                   longitude: position.coords.longitude,
                 };
                 
+                const isRealGPS = position.coords.accuracy !== null && position.coords.accuracy < 100;
+                
+                // Update cache with new position
+                localStorage.setItem('lastKnownPosition', JSON.stringify(newPosition));
+                localStorage.setItem('lastKnownPositionTime', Date.now().toString());
+                localStorage.setItem('lastPositionWasRealGPS', isRealGPS.toString());
+                
                 setLocation(prev => ({
                   ...prev,
                   latitude: position.coords.latitude,
@@ -306,6 +328,7 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
                   loading: false,
                   error: null,
                   lastKnownPosition: newPosition,
+                  isRealGPS,
                 }));
               }
             }
@@ -319,6 +342,13 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
                 longitude: position.coords.longitude,
               };
               
+              const isRealGPS = position.coords.accuracy !== null && position.coords.accuracy < 100;
+              
+              // Update cache with new position
+              localStorage.setItem('lastKnownPosition', JSON.stringify(newPosition));
+              localStorage.setItem('lastKnownPositionTime', Date.now().toString());
+              localStorage.setItem('lastPositionWasRealGPS', isRealGPS.toString());
+              
               setLocation(prev => ({
                 ...prev,
                 latitude: position.coords.latitude,
@@ -327,6 +357,7 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
                 loading: false,
                 error: null,
                 lastKnownPosition: newPosition,
+                isRealGPS,
               }));
             },
             (error: GeolocationPositionError) => {
@@ -431,9 +462,15 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
     );
   }, [location.latitude, location.longitude, calculateDistance]);
 
+  // Force refresh GPS position
+  const forceRefreshPosition = useCallback(() => {
+    getCurrentPosition(0, true);
+  }, [getCurrentPosition]);
+
   return {
     ...location,
     getCurrentPosition,
+    forceRefreshPosition,
     watchCurrentPosition,
     calculateDistance,
     getDistanceToMainCity,
