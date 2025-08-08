@@ -238,12 +238,12 @@ const YangoStyleDeliveryInterface = ({ onSubmit, onCancel }: YangoStyleDeliveryI
       </div>
 
       {/* Map Section */}
-      <div className="h-64 relative">
+      <div className="min-h-[60vh] relative">
         <MapboxMap
           pickupLocation={pickup ? pickup.coordinates : undefined}
           destination={destination ? destination.coordinates : undefined}
           showRouting={!!(pickup && destination)}
-          height="256px"
+          height="65vh"
           onLocationSelect={(coordinates) => {
             if (!pickup) {
               GeocodingService.reverseGeocode(coordinates[0], coordinates[1]).then(address => {

@@ -10,6 +10,8 @@ import { EnhancedTaxiSearchBar } from './EnhancedTaxiSearchBar';
 import { QuickBookingInterface } from './QuickBookingInterface';
 import { useAdvancedRideRequest } from '@/hooks/useAdvancedRideRequest';
 import { useLanguage } from '@/contexts/LanguageContext';
+import MapboxMap from '../maps/MapboxMap';
+import { GeocodingService } from '@/services/geocoding';
 
 interface Location {
   address: string;

@@ -73,50 +73,60 @@ export class GeocodingService {
       url.searchParams.set('country', country.mapboxCountryCode);
       url.searchParams.set('limit', '8');
       url.searchParams.set('language', country.language || 'fr');
-      // Types étendus pour plus de précision
       url.searchParams.set('types', 'poi,address,place,locality,neighborhood,district');
-      // Bbox du pays courant pour de meilleurs résultats
-      url.searchParams.set('bbox', `${country.bbox[0]},${country.bbox[1]},${country.bbox[2]},${country.bbox[3]}`);
-      // Forcer la recherche fuzzy pour une meilleure correspondance
       url.searchParams.set('fuzzyMatch', 'true');
       url.searchParams.set('routing', 'true');
 
       const response = await fetch(url);
-      
       if (!response.ok) {
         throw new Error(`Erreur de géocodage: ${response.status}`);
       }
 
       const data: MapboxResponse = await response.json();
-      
-      // Trier les résultats par pertinence et proximité
-      const results = data.features
+
+      let results = data.features
         .map(feature => ({
           place_name: feature.place_name,
           center: feature.center,
           place_type: feature.place_type,
           properties: feature.properties,
-        }))
-        .sort((a, b) => {
-          // Prioriser les résultats qui contiennent le terme de recherche exactement
-          const aExactMatch = a.place_name.toLowerCase().includes(query.toLowerCase());
-          const bExactMatch = b.place_name.toLowerCase().includes(query.toLowerCase());
-          
-          if (aExactMatch && !bExactMatch) return -1;
-          if (!aExactMatch && bExactMatch) return 1;
-          
-          // Calculer la distance à partir de Kinshasa centre
-          const distanceA = Math.sqrt(
-            Math.pow(a.center[0] - defaultProximity.lng, 2) + 
-            Math.pow(a.center[1] - defaultProximity.lat, 2)
-          );
-          const distanceB = Math.sqrt(
-            Math.pow(b.center[0] - defaultProximity.lng, 2) + 
-            Math.pow(b.center[1] - defaultProximity.lat, 2)
-          );
-          
-          return distanceA - distanceB;
-        });
+        }));
+
+      // Si peu de résultats, relancer sans restriction de pays/bbox pour élargir la recherche
+      if (results.length < 3) {
+        const url2 = new URL('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(query) + '.json');
+        url2.searchParams.set('access_token', token);
+        url2.searchParams.set('proximity', `${defaultProximity.lng},${defaultProximity.lat}`);
+        url2.searchParams.set('limit', '8');
+        url2.searchParams.set('language', country.language || 'fr');
+        url2.searchParams.set('types', 'poi,address,place,locality,neighborhood,district');
+        url2.searchParams.set('fuzzyMatch', 'true');
+        const response2 = await fetch(url2);
+        if (response2.ok) {
+          const data2: MapboxResponse = await response2.json();
+          const widened = data2.features.map(f => ({
+            place_name: f.place_name,
+            center: f.center,
+            place_type: f.place_type,
+            properties: f.properties,
+          }));
+          // Fusionner en supprimant les doublons par place_name
+          const map = new Map<string, any>();
+          [...results, ...widened].forEach(r => map.set(r.place_name, r));
+          results = Array.from(map.values());
+        }
+      }
+
+      // Trier par pertinence et proximité
+      results = results.sort((a, b) => {
+        const aExactMatch = a.place_name.toLowerCase().includes(query.toLowerCase());
+        const bExactMatch = b.place_name.toLowerCase().includes(query.toLowerCase());
+        if (aExactMatch && !bExactMatch) return -1;
+        if (!aExactMatch && bExactMatch) return 1;
+        const distanceA = Math.sqrt(Math.pow(a.center[0] - defaultProximity.lng, 2) + Math.pow(a.center[1] - defaultProximity.lat, 2));
+        const distanceB = Math.sqrt(Math.pow(b.center[0] - defaultProximity.lng, 2) + Math.pow(b.center[1] - defaultProximity.lat, 2));
+        return distanceA - distanceB;
+      });
 
       return results;
     } catch (error) {

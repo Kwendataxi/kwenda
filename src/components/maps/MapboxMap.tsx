@@ -25,7 +25,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
   showRouting = false,
   center = [15.2663, -4.4419], // Kinshasa coordinates
   zoom = 12,
-  height = "400px"
+  height = "65vh"
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -65,7 +65,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
         
         map.current = new mapboxgl.Map({
           container: mapContainer.current!,
-          style: 'mapbox://styles/mapbox/streets-v12',
+          style: 'mapbox://styles/mapbox/navigation-day-v1',
           center: center,
           zoom: zoom,
           attributionControl: false,
