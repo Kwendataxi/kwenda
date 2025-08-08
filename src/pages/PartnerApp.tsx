@@ -1,74 +1,57 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { DriverValidationManager } from '@/components/partner/DriverValidationManager';
+import { useState } from 'react';
 import { PartnerDriverManager } from '@/components/partner/PartnerDriverManager';
 import PartnerRentalManager from '@/components/partner/rental/PartnerRentalManager';
-import { RentalSubscriptionManager } from '@/components/partner/rental/RentalSubscriptionManager';
 import { ResponsivePartnerLayout } from '@/components/partner/ResponsivePartnerLayout';
-import { ResponsiveQuickActions } from '@/components/partner/ResponsiveQuickActions';
-import { ResponsiveActivityFeed } from '@/components/partner/ResponsiveActivityFeed';
-import { ResponsiveVehicleGrid } from '@/components/partner/ResponsiveVehicleGrid';
-import { DriverWalletManager } from '@/components/partner/DriverWalletManager';
-import { PartnerCommissionDashboard } from '@/components/partner/PartnerCommissionDashboard';
-import { CommissionWithdrawal } from '@/components/partner/CommissionWithdrawal';
 import { usePartnerStats } from '@/hooks/usePartnerStats';
-import { usePartnerFinances } from '@/hooks/usePartnerFinances';
 import { usePartnerActivity } from '@/hooks/usePartnerActivity';
+import { Button } from "@/components/ui/button"
+import { ArrowLeft, CalendarIcon, Download, Eye, Filter, Plus, Search, Star, TrendingDown, TrendingUp, UserPlus, Users } from "lucide-react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Building2, 
-  Users, 
-  Car, 
-  DollarSign, 
-  FileText, 
-  UserPlus,
-  Search,
-  Filter,
-  Download,
-  Eye,
-  BarChart3,
-  CreditCard,
-  Settings,
-  TrendingUp,
-  TrendingDown,
-  Calendar as CalendarIcon,
-  Fuel,
-  Shield,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  MapPin,
-  Star,
-  Plus,
-  Edit,
-  Trash2,
-  ArrowLeft,
-  PieChart,
-  Activity,
-  Wallet,
-  Receipt
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
 
 const PartnerApp = () => {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'finances' | 'commissions' | 'subscriptions'>('dashboard');
-  const [dateRange, setDateRange] = useState<Date | undefined>(new Date());
-  const isMobile = useIsMobile();
+  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers'>('dashboard');
   
   // Use real data hooks
   const { stats, loading: statsLoading } = usePartnerStats();
-  const { finances, loading: financesLoading, topUpCredits } = usePartnerFinances();
   const { activities, loading: activitiesLoading } = usePartnerActivity();
+
+  const [dateRange, setDateRange] = useState<Date | undefined>(new Date());
+  const isMobile = useIsMobile();
+
+  // Mock data for demonstration
+  const finances = {
+    companyCredits: 1250000,
+    monthlySpent: 320000,
+  };
+
+  const topUpCredits = (amount: number) => {
+    alert(`Recharge de crédit de ${amount} CFA effectuée!`);
+  };
 
   const renderDashboard = () => (
     <div className="space-y-6">
@@ -77,51 +60,8 @@ const PartnerApp = () => {
   );
 
   const renderFleetManagement = () => (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Mobile Header */}
-      {isMobile && (
-        <div className="sticky top-0 bg-background border-b border-grey-100 px-4 py-3 z-10">
-          <h1 className="text-heading-lg text-card-foreground">Mes véhicules</h1>
-        </div>
-      )}
-
-      {/* Desktop Header */}
-      {!isMobile && (
-        <div className="flex items-center mb-6">
-          <h1 className="text-display-sm text-card-foreground">Mes véhicules</h1>
-        </div>
-      )}
-
-      {/* Fleet Management Section */}
-      <div className={`${isMobile ? 'px-4' : ''} space-y-6`}>
-        {/* Section Title */}
-        <div>
-          <h2 className={`text-card-foreground font-semibold mb-2 ${isMobile ? 'text-xl' : 'text-heading-lg'}`}>
-            Gestion de flotte
-          </h2>
-          <p className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-body-lg'}`}>
-            Gérez vos véhicules de location et taxis
-          </p>
-        </div>
-
-        {/* Tabs Component */}
-        <PartnerRentalManager />
-
-        {/* Vehicle Stats Summary */}
-        <div className="bg-card rounded-xl p-4 border border-grey-100">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Car className="h-5 w-5 text-red-500" />
-              <span className={`text-card-foreground font-medium ${isMobile ? 'text-sm' : 'text-body-md'}`}>
-                Total
-              </span>
-            </div>
-            <span className={`font-bold text-card-foreground ${isMobile ? 'text-lg' : 'text-heading-sm'}`}>
-              {statsLoading ? '...' : stats.totalFleet}
-            </span>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PartnerRentalManager />
     </div>
   );
 
@@ -636,10 +576,6 @@ const PartnerApp = () => {
     switch (currentView) {
       case 'vehicles':
         return renderFleetManagement();
-      case 'finances':
-        return <DriverWalletManager />;
-      case 'commissions':
-        return renderCommissions();
       case 'drivers':
         return <PartnerDriverManager />;
       default:
@@ -649,17 +585,18 @@ const PartnerApp = () => {
 
   const getViewTitle = () => {
     switch (currentView) {
-      case 'vehicles': return 'Gestion Véhicules';
-      case 'finances': return 'Finances';
-      case 'commissions': return 'Commissions';
-      case 'drivers': return 'Gestion Chauffeurs';
-      default: return 'Tableau de bord';
+      case 'vehicles': 
+        return 'Mes véhicules';
+      case 'drivers': 
+        return 'Chauffeurs';
+      default: 
+        return 'Tableau de bord';
     }
   };
 
   return (
     <ResponsivePartnerLayout
-      stats={{ ...stats, companyCredits: finances.companyCredits }}
+      stats={stats}
       currentView={currentView}
       onViewChange={(view: string) => setCurrentView(view as any)}
       title={getViewTitle()}
