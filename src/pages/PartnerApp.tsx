@@ -536,41 +536,6 @@ const PartnerApp = () => {
     </div>
   );
 
-  const renderCommissions = () => (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Mobile Header */}
-      {isMobile && (
-        <div className="sticky top-0 bg-background border-b border-grey-100 px-4 py-3 z-10">
-          <h1 className="text-heading-lg text-card-foreground">Commissions</h1>
-        </div>
-      )}
-
-      {/* Desktop Header */}
-      {!isMobile && (
-        <div className="flex items-center mb-6">
-          <h1 className="text-display-sm text-card-foreground">Commissions</h1>
-        </div>
-      )}
-
-      {/* Commission Management Section */}
-      <div className={`${isMobile ? 'px-4' : ''} space-y-6`}>
-        <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
-            <TabsTrigger value="withdrawals">Retraits</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="dashboard" className="mt-6">
-            <PartnerCommissionDashboard />
-          </TabsContent>
-
-          <TabsContent value="withdrawals" className="mt-6">
-            <CommissionWithdrawal />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  );
 
   const renderContent = () => {
     switch (currentView) {
