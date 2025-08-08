@@ -76,71 +76,51 @@ const PartnerApp = () => {
   );
 
   const renderFleetManagement = () => (
-    <div>
-      <div className="flex items-center mb-4">
-        <Button variant="ghost" onClick={() => setCurrentView('dashboard')} className="mr-3 rounded-xl">
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className={`text-card-foreground flex-1 ${isMobile ? 'text-lg' : 'text-heading-lg'}`}>
-          Mes véhicules
-        </h1>
+    <div className="min-h-screen bg-background pb-20">
+      {/* Mobile Header */}
+      {isMobile && (
+        <div className="sticky top-0 bg-background border-b border-grey-100 px-4 py-3 z-10">
+          <h1 className="text-heading-lg text-card-foreground">Mes véhicules</h1>
+        </div>
+      )}
+
+      {/* Desktop Header */}
+      {!isMobile && (
+        <div className="flex items-center mb-6">
+          <h1 className="text-display-sm text-card-foreground">Mes véhicules</h1>
+        </div>
+      )}
+
+      {/* Fleet Management Section */}
+      <div className={`${isMobile ? 'px-4' : ''} space-y-6`}>
+        {/* Section Title */}
+        <div>
+          <h2 className={`text-card-foreground font-semibold mb-2 ${isMobile ? 'text-xl' : 'text-heading-lg'}`}>
+            Gestion de flotte
+          </h2>
+          <p className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-body-lg'}`}>
+            Gérez vos véhicules de location et taxis
+          </p>
+        </div>
+
+        {/* Tabs Component */}
+        <PartnerRentalManager />
+
+        {/* Vehicle Stats Summary */}
+        <div className="bg-card rounded-xl p-4 border border-grey-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Car className="h-5 w-5 text-red-500" />
+              <span className={`text-card-foreground font-medium ${isMobile ? 'text-sm' : 'text-body-md'}`}>
+                Total
+              </span>
+            </div>
+            <span className={`font-bold text-card-foreground ${isMobile ? 'text-lg' : 'text-heading-sm'}`}>
+              {statsLoading ? '...' : stats.totalFleet}
+            </span>
+          </div>
+        </div>
       </div>
-
-      <PartnerRentalManager />
-
-      
-      <div className={`grid gap-3 mb-6 ${isMobile ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-3'}`}>
-        <Card className="card-floating border-0 p-4 text-center">
-          <Car className="h-6 w-6 text-primary mx-auto mb-2" />
-          <p className="text-caption text-muted-foreground">Total</p>
-          <p className="text-heading-sm font-bold text-card-foreground">{statsLoading ? '...' : stats.totalFleet}</p>
-        </Card>
-        <Card className="card-floating border-0 p-4 text-center">
-          <CheckCircle className="h-6 w-6 text-green-500 mx-auto mb-2" />
-          <p className="text-caption text-muted-foreground">Disponibles</p>
-          <p className="text-heading-sm font-bold text-card-foreground">{statsLoading ? '...' : stats.availableVehicles}</p>
-        </Card>
-        <Card className="card-floating border-0 p-4 text-center">
-          <AlertTriangle className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
-          <p className="text-caption text-muted-foreground">Maintenance</p>
-          <p className="text-heading-sm font-bold text-card-foreground">2</p>
-        </Card>
-      </div>
-
-      <ResponsiveVehicleGrid 
-        vehicles={[
-          { 
-            id: "VH-001", 
-            model: "Toyota Corolla 2022", 
-            plate: "ABC 123 CI", 
-            driver: "Jean Kouassi",
-            status: "En course",
-            mileage: "45,230 km",
-            fuel: 75,
-            color: "bg-blue-500"
-          },
-          { 
-            id: "VH-002", 
-            model: "Honda Accord 2021", 
-            plate: "DEF 456 CI", 
-            driver: "Marie Diallo",
-            status: "Disponible",
-            mileage: "32,180 km",
-            fuel: 90,
-            color: "bg-green-500"
-          },
-          { 
-            id: "VH-003", 
-            model: "Nissan Sentra 2023", 
-            plate: "GHI 789 CI", 
-            driver: "Paul Yao",
-            status: "Maintenance",
-            mileage: "28,940 km",
-            fuel: 40,
-            color: "bg-yellow-500"
-          },
-        ]}
-      />
     </div>
   );
 
