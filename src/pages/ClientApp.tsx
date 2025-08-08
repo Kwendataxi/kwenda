@@ -141,7 +141,14 @@ const ClientApp = () => {
   // Transport states
   const [activeBooking, setActiveBooking] = useState<any>(null);
   const [isTripChatOpen, setIsTripChatOpen] = useState(false);
-  
+
+  // Prefill for taxi when coming from home search
+  type TaxiPrefill = {
+    pickup?: { address: string; coordinates?: { lat: number; lng: number } };
+    destination?: { address: string; coordinates?: { lat: number; lng: number } };
+  };
+  const [taxiPrefill, setTaxiPrefill] = useState<TaxiPrefill>({});
+
   // Remove old transport booking hook since it's now integrated
 
   // Delivery states  
@@ -304,11 +311,14 @@ const ClientApp = () => {
     }
   };
 
-  const handleUniversalSearch = (query: string) => {
+  const handleUniversalSearch = (query: string, coordinates?: { lat: number; lng: number }) => {
+    // Prefill taxi and navigate to transport
+    setServiceType('transport');
+    setCurrentView('service');
+    setTaxiPrefill({
+      destination: { address: query, coordinates }
+    });
     setSearchQuery(query);
-    // For now, default to marketplace search
-    setServiceType('marketplace');
-    setMarketplaceTab('explore');
   };
 
   const handleMarketplaceViewAll = () => {
@@ -340,7 +350,10 @@ const ClientApp = () => {
   const renderTransportService = () => {
     return (
       <div className="space-y-4">
-        <AdvancedTaxiInterface />
+        <AdvancedTaxiInterface 
+          initialPickup={taxiPrefill.pickup && taxiPrefill.pickup.coordinates ? { address: taxiPrefill.pickup.address, coordinates: { lat: taxiPrefill.pickup.coordinates.lat, lng: taxiPrefill.pickup.coordinates.lng } } : undefined}
+          initialDestination={taxiPrefill.destination && taxiPrefill.destination.coordinates ? { address: taxiPrefill.destination.address, coordinates: { lat: taxiPrefill.destination.coordinates.lat, lng: taxiPrefill.destination.coordinates.lng } } : undefined}
+        />
         
         {/* Trip Chat Modal */}
         {isTripChatOpen && activeBooking && (

@@ -2,7 +2,7 @@ import { EnhancedTaxiSearchBar } from '@/components/transport/EnhancedTaxiSearch
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface UniversalSearchBarProps {
-  onSearch: (query: string) => void;
+  onSearch: (query: string, coordinates?: { lat: number; lng: number }) => void;
   onTransportSelect: () => void;
   placeholder?: string;
 }
@@ -15,7 +15,7 @@ export const UniversalSearchBar = ({
   const { t } = useLanguage();
 
   const handleSearch = (query: string, coordinates?: { lat: number; lng: number }) => {
-    onSearch(query);
+    onSearch(query, coordinates);
   };
 
   return (

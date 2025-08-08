@@ -11,7 +11,7 @@ import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
 interface ModernHomeScreenProps {
   onServiceSelect: (service: string) => void;
-  onSearch: (query: string) => void;
+  onSearch: (query: string, coordinates?: { lat: number; lng: number }) => void;
   featuredProducts: any[];
   trendingProducts?: any[];
   onProductSelect: (product: any) => void;
@@ -71,7 +71,7 @@ export const ModernHomeScreen = ({
         
         <RecentPlaces 
           onPlaceSelect={(placeName, coordinates) => {
-            onSearch(placeName);
+            onSearch(placeName, coordinates);
             onServiceSelect('transport');
           }}
           onViewAll={() => setPlacesOpen(true)}

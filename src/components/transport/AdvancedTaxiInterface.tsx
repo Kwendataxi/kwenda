@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Clock, User, Star, Phone, Navigation, X, Zap, Calendar } from 'lucide-react';
+import { MapPin, Clock, User, Star, Phone, Navigation } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LocationInput from './LocationInput';
 import YangoStyleVehicleSelection from './YangoStyleVehicleSelection';
-import { EnhancedTaxiSearchBar } from './EnhancedTaxiSearchBar';
-import { QuickBookingInterface } from './QuickBookingInterface';
 import { useAdvancedRideRequest } from '@/hooks/useAdvancedRideRequest';
 import { useLanguage } from '@/contexts/LanguageContext';
-import MapboxMap from '../maps/MapboxMap';
-import { GeocodingService } from '@/services/geocoding';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface Location {
   address: string;
@@ -20,7 +15,12 @@ interface Location {
   type?: string;
 }
 
-export const AdvancedTaxiInterface = () => {
+interface AdvancedTaxiInterfaceProps {
+  initialPickup?: Location;
+  initialDestination?: Location;
+}
+
+export const AdvancedTaxiInterface = ({ initialPickup, initialDestination }: AdvancedTaxiInterfaceProps) => {
   const { t } = useLanguage();
   const {
     loading,
@@ -42,6 +42,7 @@ export const AdvancedTaxiInterface = () => {
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [pickupSearch, setPickupSearch] = useState('');
   const [destinationSearch, setDestinationSearch] = useState('');
+  const { getCurrentPosition } = useGeolocation();
 
   // Calculer prix estimé quand les locations changent
   useEffect(() => {
@@ -56,6 +57,33 @@ export const AdvancedTaxiInterface = () => {
         .then(price => setCurrentPrice(price));
     }
   }, [pickup, destination, selectedVehicle, calculateEstimatedPrice]);
+
+  // Hydrate from initial props and current location
+  useEffect(() => {
+    if (initialPickup && !pickup) setPickup(initialPickup);
+    if (initialDestination && !destination) setDestination(initialDestination);
+  }, [initialPickup, initialDestination]);
+
+  useEffect(() => {
+    const hydratePickup = async () => {
+      if (initialDestination && !pickup) {
+        try {
+          const pos = await getCurrentPosition();
+          if (pos?.coords) {
+            setPickup({
+              address: 'Ma position actuelle',
+              coordinates: { lat: pos.coords.latitude, lng: pos.coords.longitude }
+            });
+          }
+        } catch {}
+      }
+    };
+    hydratePickup();
+  }, [initialDestination]);
+
+  useEffect(() => {
+    if (pickup && destination) setStep('vehicle');
+  }, [pickup, destination]);
 
   // Gérer les changements d'état de la course
   useEffect(() => {
@@ -319,79 +347,6 @@ export const AdvancedTaxiInterface = () => {
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
-      {/* Enhanced Taxi Search Interface */}
-      <Tabs defaultValue="search" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="search" className="flex items-center gap-2">
-            <Navigation className="h-4 w-4" />
-            Recherche
-          </TabsTrigger>
-          <TabsTrigger value="quick" className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            Express
-          </TabsTrigger>
-          <TabsTrigger value="scheduled" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Programmé
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="search" className="space-y-4 mt-6">
-          {/* Enhanced Search Bar */}
-          <EnhancedTaxiSearchBar
-            onSearch={(query, coordinates) => {
-              if (coordinates) {
-                setDestination({
-                  address: query,
-                  coordinates: { lat: coordinates.lat, lng: coordinates.lng }
-                });
-                setStep('vehicle');
-              }
-            }}
-            onTransportSelect={() => {}}
-            placeholder="Où allez-vous ?"
-          />
-
-          {/* Navigation Steps */}
-          <div className="flex justify-center space-x-4 mb-6">
-            {['location', 'vehicle'].map((stepName, index) => (
-              <div 
-                key={stepName}
-                className={`flex items-center space-x-2 ${
-                  step === stepName ? 'text-primary' : 'text-muted-foreground'
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                  step === stepName ? 'border-primary bg-primary text-white' : 'border-muted'
-                }`}>
-                  {index + 1}
-                </div>
-                <span className="text-sm font-medium capitalize">{stepName}</span>
-              </div>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="quick" className="mt-6">
-          <QuickBookingInterface />
-        </TabsContent>
-
-        <TabsContent value="scheduled" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Programmer une course
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                Fonctionnalité de programmation bientôt disponible
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
 
       {step === 'location' && (
         <Card>
