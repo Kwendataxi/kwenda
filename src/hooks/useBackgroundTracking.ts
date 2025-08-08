@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Geolocation, Position } from '@capacitor/geolocation';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -49,28 +49,20 @@ export const useBackgroundTracking = (opts: BackgroundTrackingOptions = {}) => {
   const distanceFilter = opts.distanceFilterMeters ?? 25; // meters
   const minInterval = opts.minIntervalMs ?? 10_000; // 10s
 
-  // Lazy load plugin (optional)
+// Lazy load plugin (native only)
   const bgPluginRef = useRef<any>(null);
   useEffect(() => {
-    let mounted = true;
-    (async () => {
+    if (Capacitor.isNativePlatform()) {
       try {
-        if (Capacitor.isNativePlatform()) {
-          // Try cap-community plugin API
-          const mod = await import('@capacitor-community/background-geolocation');
-          bgPluginRef.current = (mod as any).BackgroundGeolocation;
-          setSupported(true);
-        } else {
-          setSupported(false);
-        }
+        bgPluginRef.current = registerPlugin<any>('BackgroundGeolocation');
+        setSupported(true);
       } catch (e) {
-        console.warn('BackgroundGeolocation plugin not available, will fallback to Geolocation.watchPosition()', e);
+        console.warn('BackgroundGeolocation register failed, fallback to Geolocation.watchPosition()', e);
         setSupported(false);
       }
-    })();
-    return () => {
-      mounted = false;
-    };
+    } else {
+      setSupported(false);
+    }
   }, []);
 
   const stop = useCallback(async () => {
