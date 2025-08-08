@@ -37,14 +37,6 @@ export const PartnerKPIGrid: React.FC<PartnerKPIGridProps> = ({ stats }) => {
       color: "bg-secondary",
       badge: { text: "+8% vs hier", icon: TrendingUp, class: "bg-green-50 text-green-600" }
     },
-    {
-      icon: Wallet,
-      label: "Crédit entreprise",
-      value: (stats.companyCredits || 0).toLocaleString(),
-      suffix: " CDF",
-      color: "bg-yellow-500",
-      badge: { text: "CFA disponible", class: "bg-yellow-50 text-yellow-600" }
-    }
   ];
 
   return (
@@ -62,7 +54,7 @@ export const PartnerKPIGrid: React.FC<PartnerKPIGridProps> = ({ stats }) => {
                 </span>
               </div>
               
-              <p className={`text-white font-bold mb-2 ${isMobile ? 'text-lg' : 'text-display-sm'}`}>
+              <p className={`text-foreground font-bold mb-2 ${isMobile ? 'text-lg' : 'text-display-sm'}`}>
                 {item.value}{item.suffix}
               </p>
               
