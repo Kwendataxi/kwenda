@@ -57,9 +57,7 @@ export const ModernHomeScreen = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-grey-50 to-white">
-      <ModernHeader 
-        hasNotifications={true}
-      />
+      <ModernHeader />
       
       <div className="space-y-4 pb-24">
         <ServiceGrid onServiceSelect={onServiceSelect} />

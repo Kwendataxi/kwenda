@@ -7,16 +7,13 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { useProfile } from '@/hooks/useProfile';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { GeocodingService } from '@/services/geocoding';
 import { Button } from '@/components/ui/button';
 
-interface ModernHeaderProps {
-  hasNotifications?: boolean;
-}
+interface ModernHeaderProps {}
 
-export const ModernHeader = ({ 
-  hasNotifications = false
-}: ModernHeaderProps) => {
+export const ModernHeader = ({}: ModernHeaderProps) => {
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -27,6 +24,9 @@ export const ModernHeader = ({
   const [batteryLevel, setBatteryLevel] = useState(100);
   const [isCharging, setIsCharging] = useState(false);
   const { displayName, loading: profileLoading } = useProfile();
+  
+  // Real-time notifications
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotifications } = useRealtimeNotifications();
   
   // Dynamic greeting based on time
   const getGreeting = () => {
@@ -152,9 +152,11 @@ export const ModernHeader = ({
                 className="relative p-3 bg-white rounded-xl hover:bg-grey-50 transition-all duration-200 shadow-sm border border-grey-100 hover:scale-105 active:scale-95"
               >
                 <Bell className="h-5 w-5 text-foreground" />
-                {hasNotifications && (
-                  <div className="absolute -top-1 -right-1 h-5 w-5 bg-gradient-to-r from-primary to-primary-glow rounded-full flex items-center justify-center animate-pulse">
-                    <span className="text-xs font-bold text-white">{t('home.notifications.unread')}</span>
+                {unreadCount > 0 && (
+                  <div className="absolute -top-1 -right-1 min-h-5 min-w-5 bg-destructive rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-destructive-foreground px-1">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
                   </div>
                 )}
               </button>
