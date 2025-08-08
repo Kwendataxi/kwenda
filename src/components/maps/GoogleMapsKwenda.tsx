@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Navigation, Plus, Minus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GoogleMapsKwendaProps {
   onLocationSelect?: (location: { lat: number; lng: number; address: string }) => void;
@@ -294,32 +295,32 @@ const GoogleMapsKwenda: React.FC<GoogleMapsKwendaProps> = (props) => {
   useEffect(() => {
     const fetchApiKey = async () => {
       try {
-        const response = await fetch('https://wddlktajnhwhyquwcdgf.supabase.co/functions/v1/get-google-maps-key', {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || '';
+
+        const response = await fetch('/api/functions/v1/get-google-maps-key', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(window as any).supabase?.supabaseKey || ''}`
+            'Authorization': `Bearer ${token}`
           }
         });
         
-        if (!response.ok) throw new Error('Failed to fetch API key');
+        if (!response.ok) throw new Error('Google Maps API non disponible');
         const data = await response.json();
         
         if (data.error) throw new Error(data.error);
         setApiKey(data.apiKey);
       } catch (error) {
-        toast({
-          title: "Erreur",
-          description: "Impossible de charger Google Maps",
-          variant: "destructive"
-        });
+        console.warn('Google Maps fallback mode activated:', error);
+        // Mode dégradé: pas d'erreur utilisateur, juste pas de carte
       } finally {
         setLoading(false);
       }
     };
 
     fetchApiKey();
-  }, [toast]);
+  }, []);
 
   if (loading) {
     return (
