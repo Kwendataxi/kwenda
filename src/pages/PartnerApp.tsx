@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { DriverValidationManager } from '@/components/partner/DriverValidationManager';
 import { PartnerDriverManager } from '@/components/partner/PartnerDriverManager';
+import PartnerRentalManager from '@/components/partner/rental/PartnerRentalManager';
+import PartnerHeader from '@/components/partner/PartnerHeader';
 import { usePartnerStats } from '@/hooks/usePartnerStats';
 import { usePartnerFinances } from '@/hooks/usePartnerFinances';
 import { usePartnerActivity } from '@/hooks/usePartnerActivity';
@@ -61,11 +63,12 @@ const PartnerApp = () => {
 
   const renderDashboard = () => (
     <div className="min-h-screen bg-background">
+      <PartnerHeader title="Tableau de bord" subtitle="Kwenda Taxi Partner" />
       <div className="p-4">
         {/* Header */}
         <div className="card-floating p-6 mb-6 animate-slide-up">
           <h1 className="text-display-sm text-card-foreground mb-2">Tableau de bord</h1>
-          <p className="text-body-lg text-muted-foreground">Entreprise NTA Solutions</p>
+          <p className="text-body-lg text-muted-foreground">Kwenda Taxi Partner</p>
         </div>
 
         {/* Real-time Overview Cards */}
@@ -260,7 +263,7 @@ const PartnerApp = () => {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-grey-100 px-6 py-3 flex justify-around">
         {[
           { icon: BarChart3, label: "Dashboard", view: 'dashboard' },
-          { icon: Car, label: "Flotte", view: 'fleet' },
+            { icon: Car, label: "Flotte", view: 'fleet' },
           { icon: Users, label: "Chauffeurs", view: 'drivers' },
           { icon: PieChart, label: "Analytics", view: 'analytics' },
           { icon: CreditCard, label: "Facturation", view: 'billing' },
@@ -284,15 +287,16 @@ const PartnerApp = () => {
 
   const renderFleetManagement = () => (
     <div className="min-h-screen bg-background pb-20">
+      <PartnerHeader title="Gestion de flotte" subtitle="Véhicules & Taxis" />
       <div className="flex items-center p-4 border-b border-grey-100">
         <Button variant="ghost" onClick={() => setCurrentView('dashboard')} className="mr-3 rounded-xl">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-heading-lg text-card-foreground flex-1">Gestion de flotte</h1>
-        <Button size="sm" className="rounded-xl">
-          <Plus className="h-4 w-4 mr-1" />
-          Ajouter véhicule
-        </Button>
+        <h1 className="text-heading-lg text-card-foreground flex-1">Mes véhicules</h1>
+      </div>
+
+      <div className="p-4">
+        <PartnerRentalManager />
       </div>
 
       <div className="p-4">

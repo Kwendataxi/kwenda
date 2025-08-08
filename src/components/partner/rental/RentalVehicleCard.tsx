@@ -22,14 +22,18 @@ export default function RentalVehicleCard({ vehicle, onEdit }: Props) {
       : "bg-yellow-100 text-yellow-700";
 
   return (
-    <Card className="hover:shadow-md transition">
-      <CardContent className="p-4">
+    <Card className="rounded-2xl border-0 shadow-sm hover:shadow-elegant transition-all duration-300 bg-card">
+      <CardContent className="p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold">{vehicle.name}</h3>
-              <Badge className={statusColor}>{vehicle.moderation_status}</Badge>
-              {!vehicle.is_active && <Badge variant="secondary">inactif</Badge>}
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-heading-sm font-bold text-foreground">{vehicle.name}</h3>
+              <Badge className={`${statusColor} rounded-lg font-medium`}>
+                {vehicle.moderation_status === 'approved' ? '✓ Approuvé' : 
+                 vehicle.moderation_status === 'rejected' ? '✗ Rejeté' : 
+                 '⏳ En attente'}
+              </Badge>
+              {!vehicle.is_active && <Badge variant="secondary" className="rounded-lg">Inactif</Badge>}
             </div>
             <p className="text-sm text-muted-foreground">
               {vehicle.brand} {vehicle.model} • {vehicle.year} • {vehicle.seats} places
@@ -51,13 +55,23 @@ export default function RentalVehicleCard({ vehicle, onEdit }: Props) {
               />
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => onEdit(vehicle)}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => onEdit(vehicle)}
+                className="rounded-xl hover:bg-primary hover:text-primary-foreground transition-colors"
+              >
                 <Pencil className="w-4 h-4 mr-1" /> Éditer
               </Button>
               <Button
                 variant="destructive"
                 size="sm"
-                onClick={() => deleteVehicle.mutate(vehicle.id)}
+                onClick={() => {
+                  if (confirm('Êtes-vous sûr de vouloir supprimer ce véhicule ?')) {
+                    deleteVehicle.mutate(vehicle.id);
+                  }
+                }}
+                className="rounded-xl"
               >
                 <Trash2 className="w-4 h-4 mr-1" /> Supprimer
               </Button>

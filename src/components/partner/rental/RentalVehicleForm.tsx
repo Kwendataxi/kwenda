@@ -84,9 +84,9 @@ export default function RentalVehicleForm({ categories, initial, onSaved }: Prop
   };
 
   return (
-    <Card>
-      <CardContent className="p-4 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <Card className="rounded-2xl border-0 shadow-elegant bg-card">
+      <CardContent className="p-6 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-1">
             <label className="text-sm font-medium">Catégorie</label>
             <Select value={values.category_id} onValueChange={(v) => handleChange("category_id" as any, v)}>
@@ -215,8 +215,18 @@ export default function RentalVehicleForm({ categories, initial, onSaved }: Prop
           </div>
         </div>
 
-        <div className="flex justify-end gap-2">
-          <Button onClick={handleSubmit} className="bg-gradient-to-r from-primary to-primary-glow text-white">
+        <div className="flex justify-end gap-3 pt-4 border-t">
+          <Button 
+            variant="outline" 
+            onClick={() => onSaved?.()}
+            className="rounded-xl"
+          >
+            Annuler
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            className="rounded-xl bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all"
+          >
             {isEditing ? "Mettre à jour" : "Publier l'annonce"}
           </Button>
         </div>

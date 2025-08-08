@@ -60,8 +60,8 @@ export default function TaxiVehicleForm({ initial, onSaved }: Props) {
   };
 
   return (
-    <Card className="rounded-2xl shadow-sm">
-      <CardContent className="p-6 space-y-4">
+    <Card className="rounded-2xl border-0 shadow-elegant bg-card">
+      <CardContent className="p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="text-sm font-medium">Nom</label>
@@ -123,8 +123,18 @@ export default function TaxiVehicleForm({ initial, onSaved }: Props) {
           </div>
         </div>
 
-        <div className="flex justify-end">
-          <Button onClick={handleSubmit} className="btn-modern bg-gradient-to-r from-primary to-primary-glow text-background">
+        <div className="flex justify-end gap-3 pt-4 border-t">
+          <Button 
+            variant="outline" 
+            onClick={() => onSaved?.()}
+            className="rounded-xl"
+          >
+            Annuler
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            className="rounded-xl bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all"
+          >
             {isEditing ? "Mettre à jour" : "Ajouter le taxi"}
           </Button>
         </div>

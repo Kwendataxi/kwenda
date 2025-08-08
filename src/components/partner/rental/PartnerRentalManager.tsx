@@ -6,7 +6,7 @@ import { usePartnerRentals, RentalVehicle } from "@/hooks/usePartnerRentals";
 import RentalVehicleForm from "./RentalVehicleForm";
 import RentalVehicleCard from "./RentalVehicleCard";
 import PartnerBookingsList from "./PartnerBookingsList";
-import { Plus } from "lucide-react";
+import { Plus, Car } from "lucide-react";
 import { usePartnerTaxiVehicles, TaxiVehicle } from "@/hooks/usePartnerTaxiVehicles";
 import TaxiVehicleForm from "@/components/partner/taxi/TaxiVehicleForm";
 import TaxiVehicleCard from "@/components/partner/taxi/TaxiVehicleCard";
@@ -22,22 +22,44 @@ export default function PartnerRentalManager() {
   const [creatingTaxi, setCreatingTaxi] = useState(false);
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Gestion de flotte (Location & Taxi)</h2>
+        <div>
+          <h2 className="text-heading-lg font-bold text-foreground">Gestion de flotte</h2>
+          <p className="text-body-md text-muted-foreground">Gérez vos véhicules de location et taxis</p>
+        </div>
       </div>
 
-      <Tabs defaultValue="vehicles">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="vehicles">Mes véhicules (Location)</TabsTrigger>
-          <TabsTrigger value="taxi">Taxis</TabsTrigger>
-          <TabsTrigger value="bookings">Réservations</TabsTrigger>
+      <Tabs defaultValue="vehicles" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-muted p-1">
+          <TabsTrigger 
+            value="vehicles" 
+            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+          >
+            Location
+          </TabsTrigger>
+          <TabsTrigger 
+            value="taxi"
+            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+          >
+            Taxis
+          </TabsTrigger>
+          <TabsTrigger 
+            value="bookings"
+            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+          >
+            Réservations
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="vehicles" className="space-y-4">
+        <TabsContent value="vehicles" className="space-y-6 mt-6">
           <div className="flex justify-end">
-            <Button onClick={() => { setEditing(null); setCreating(true); }}>
-              <Plus className="w-4 h-4 mr-1" /> Nouvelle annonce (Location)
+            <Button 
+              onClick={() => { setEditing(null); setCreating(true); }}
+              className="rounded-xl bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all"
+            >
+              <Plus className="w-4 h-4 mr-2" /> 
+              Nouvelle annonce location
             </Button>
           </div>
 
@@ -56,22 +78,30 @@ export default function PartnerRentalManager() {
             />
           )}
 
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {vehicles.map((v) => (
               <RentalVehicleCard key={v.id} vehicle={v} onEdit={setEditing} />
             ))}
             {vehicles.length === 0 && (
-              <div className="text-sm text-muted-foreground text-center py-6">
-                Aucune annonce de location encore. Créez votre première annonce.
+              <div className="col-span-full">
+                <div className="text-center py-12 bg-muted/30 rounded-2xl border border-dashed">
+                  <Car className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-body-md text-muted-foreground">Aucune annonce de location</p>
+                  <p className="text-body-sm text-muted-foreground/70">Créez votre première annonce pour commencer</p>
+                </div>
               </div>
             )}
           </div>
         </TabsContent>
 
-        <TabsContent value="taxi" className="space-y-4">
+        <TabsContent value="taxi" className="space-y-6 mt-6">
           <div className="flex justify-end">
-            <Button onClick={() => { setEditingTaxi(null); setCreatingTaxi(true); }}>
-              <Plus className="w-4 h-4 mr-1" /> Nouveau taxi
+            <Button 
+              onClick={() => { setEditingTaxi(null); setCreatingTaxi(true); }}
+              className="rounded-xl bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all"
+            >
+              <Plus className="w-4 h-4 mr-2" /> 
+              Nouveau taxi
             </Button>
           </div>
 
@@ -83,19 +113,23 @@ export default function PartnerRentalManager() {
             <TaxiVehicleForm initial={editingTaxi} onSaved={() => setEditingTaxi(null)} />
           )}
 
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {taxiVehicles.map((v) => (
               <TaxiVehicleCard key={v.id} vehicle={v} onEdit={setEditingTaxi} />
             ))}
             {taxiVehicles.length === 0 && (
-              <div className="text-sm text-muted-foreground text-center py-6">
-                Aucun taxi encore. Ajoutez votre premier véhicule taxi.
+              <div className="col-span-full">
+                <div className="text-center py-12 bg-muted/30 rounded-2xl border border-dashed">
+                  <Car className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-body-md text-muted-foreground">Aucun taxi enregistré</p>
+                  <p className="text-body-sm text-muted-foreground/70">Ajoutez votre premier véhicule taxi</p>
+                </div>
               </div>
             )}
           </div>
         </TabsContent>
 
-        <TabsContent value="bookings">
+        <TabsContent value="bookings" className="mt-6">
           <PartnerBookingsList
             bookings={bookings}
             onUpdateStatus={(id, status) => updateBookingStatus.mutate({ id, status })}
