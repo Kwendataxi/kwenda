@@ -7,6 +7,7 @@ import { GeocodingService } from '@/services/geocoding';
 import { usePriceEstimator } from '@/hooks/usePricingRules';
 import { useDeliveryOrders } from '@/hooks/useDeliveryOrders';
 import { useToast } from '@/hooks/use-toast';
+import MapboxMap from '@/components/maps/MapboxMap';
 import { 
   ArrowLeft,
   MapPin, 
@@ -52,6 +53,7 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
   const [estimatedPrice, setEstimatedPrice] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [selectingLocation, setSelectingLocation] = useState<'pickup' | 'destination' | null>(null);
 
   const { getCurrentPosition } = useGeolocation();
   const { toast } = useToast();
@@ -120,21 +122,22 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
   const handleCurrentLocation = async () => {
     setIsLocationLoading(true);
     try {
-      // Utiliser d'abord les coordonnées par défaut de Kinshasa si nécessaire
-      const defaultLocation = { latitude: -4.4419, longitude: 15.2663 };
+      // Coordonnées de Kinshasa par défaut
+      const defaultKinshasa = { latitude: -4.4419, longitude: 15.2663 };
       
       let position = await getCurrentPosition();
       
-      // Si pas de position ou position invalide, utiliser les coordonnées par défaut
+      // Validation de la position obtenue
       if (!position?.coords || 
           position.coords.latitude === 0 || 
           position.coords.longitude === 0 ||
           Math.abs(position.coords.latitude) < 0.01 ||
           Math.abs(position.coords.longitude) < 0.01) {
         
+        // Utiliser les coordonnées de Kinshasa par défaut
         position = {
           coords: {
-            ...defaultLocation,
+            ...defaultKinshasa,
             accuracy: 1000,
             altitudeAccuracy: null,
             altitude: null,
@@ -145,8 +148,8 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
         };
         
         toast({
-          title: 'Position approximative',
-          description: 'Utilisation de votre position approximative à Kinshasa',
+          title: 'Position à Kinshasa',
+          description: 'Localisation centrée sur Kinshasa',
           variant: 'default'
         });
       }
@@ -162,9 +165,15 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
         };
         setPickup(location);
         setPickupSearch(location.address);
+        
+        toast({
+          title: 'Position trouvée',
+          description: 'Point de départ mis à jour',
+          variant: 'default'
+        });
       }
     } catch (error) {
-      // En cas d'erreur, utiliser les coordonnées par défaut de Kinshasa
+      // Fallback vers Kinshasa
       const defaultLocation = {
         address: 'Kinshasa, République Démocratique du Congo',
         coordinates: [15.2663, -4.4419] as [number, number]
@@ -187,10 +196,10 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
     
     setIsLoading(true);
     try {
-      // Utiliser les coordonnées de Kinshasa comme proximité par défaut
-      const defaultProximity = { lng: 15.2663, lat: -4.4419 };
+      // Proximité centrée sur Kinshasa
+      const kinshasaProximity = { lng: 15.2663, lat: -4.4419 };
       
-      const results = await GeocodingService.searchPlaces(query, defaultProximity);
+      const results = await GeocodingService.searchPlaces(query, kinshasaProximity);
       if (results.length > 0) {
         const location = { 
           address: results[0].place_name, 
@@ -204,10 +213,16 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
           setDestination(location);
           setDestinationSearch(location.address);
         }
+        
+        toast({
+          title: 'Adresse trouvée',
+          description: `${isPickup ? 'Départ' : 'Destination'} mis à jour`,
+          variant: 'default'
+        });
       } else {
         toast({
           title: 'Aucun résultat',
-          description: 'Essayez une autre adresse ou utilisez un repère connu',
+          description: 'Essayez une autre adresse ou un repère connu à Kinshasa',
           variant: 'default'
         });
       }
@@ -219,6 +234,44 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleMapLocationSelect = async (coordinates: [number, number]) => {
+    if (!selectingLocation) return;
+
+    try {
+      const address = await GeocodingService.reverseGeocode(coordinates[0], coordinates[1]);
+      const location = {
+        address: address || `${coordinates[1].toFixed(4)}, ${coordinates[0].toFixed(4)}`,
+        coordinates
+      };
+
+      if (selectingLocation === 'pickup') {
+        setPickup(location);
+        setPickupSearch(location.address);
+        toast({
+          title: 'Départ sélectionné',
+          description: 'Point de départ mis à jour sur la carte',
+          variant: 'default'
+        });
+      } else {
+        setDestination(location);
+        setDestinationSearch(location.address);
+        toast({
+          title: 'Destination sélectionnée',
+          description: 'Destination mise à jour sur la carte',
+          variant: 'default'
+        });
+      }
+      
+      setSelectingLocation(null);
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de récupérer l\'adresse',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -288,15 +341,44 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
       {/* Interface unique simplifiée */}
       <div className="p-4 space-y-4">
         
-        {/* Carte de localisation - Taille réduite */}
+        {/* Carte interactive Mapbox */}
         <Card className="p-3 bg-gradient-to-r from-primary/5 to-secondary/5">
-          <div className="flex items-center gap-2 mb-3">
-            <Navigation2 className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold text-foreground">Localisation</h3>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Navigation2 className="w-5 h-5 text-primary" />
+              <h3 className="font-semibold text-foreground">Carte Interactive - Kinshasa</h3>
+            </div>
+            {selectingLocation && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectingLocation(null)}
+                className="text-xs"
+              >
+                Annuler
+              </Button>
+            )}
           </div>
-          <div className="text-center p-6 border-2 border-dashed border-primary/20 rounded-lg bg-primary/5">
-            <p className="text-sm text-muted-foreground mb-3">Sélection interactive sur carte disponible prochainement</p>
-            <p className="text-xs text-muted-foreground">Coordonnées de référence: Kinshasa (-4.4419, 15.2663)</p>
+          
+          <div className="relative">
+            <MapboxMap
+              onLocationSelect={handleMapLocationSelect}
+              pickupLocation={pickup?.coordinates}
+              destination={destination?.coordinates}
+              showRouting={!!(pickup && destination)}
+              center={[15.2663, -4.4419]} // Kinshasa
+              zoom={12}
+              height="30vh"
+            />
+            
+            {selectingLocation && (
+              <div className="absolute top-2 left-2 right-2 bg-primary/90 text-white p-2 rounded-lg text-center text-sm font-medium">
+                {selectingLocation === 'pickup' 
+                  ? 'Cliquez sur la carte pour sélectionner le départ'
+                  : 'Cliquez sur la carte pour sélectionner la destination'
+                }
+              </div>
+            )}
           </div>
         </Card>
 
@@ -320,13 +402,22 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
                   size="sm"
                   onClick={handleCurrentLocation}
                   disabled={isLocationLoading}
-                  className="px-3"
+                  className="px-2"
                 >
                   {isLocationLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Target className="w-4 h-4" />
                   )}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectingLocation('pickup')}
+                  disabled={selectingLocation === 'pickup'}
+                  className="px-2"
+                >
+                  <MapPin className="w-4 h-4" />
                 </Button>
               </div>
               {pickup && (
@@ -343,14 +434,25 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
             <MapPin className="w-3 h-3 text-secondary flex-shrink-0" />
             <div className="flex-1">
               <label className="text-sm font-medium text-foreground">Destination</label>
-              <Input
-                placeholder="Où livrer ?"
-                value={destinationSearch}
-                onChange={(e) => setDestinationSearch(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleLocationSearch(destinationSearch, false)}
-                className="mt-2"
-                disabled={isLoading}
-              />
+              <div className="flex gap-2 mt-2">
+                <Input
+                  placeholder="Où livrer ?"
+                  value={destinationSearch}
+                  onChange={(e) => setDestinationSearch(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleLocationSearch(destinationSearch, false)}
+                  className="flex-1"
+                  disabled={isLoading}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectingLocation('destination')}
+                  disabled={selectingLocation === 'destination'}
+                  className="px-2"
+                >
+                  <MapPin className="w-4 h-4" />
+                </Button>
+              </div>
               {destination && (
                 <p className="text-xs text-muted-foreground mt-1 truncate">{destination.address}</p>
               )}
