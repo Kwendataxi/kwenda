@@ -63,79 +63,103 @@ export class GeocodingService {
 
     try {
       const token = await this.getMapboxToken();
-      
+
       const country = CountryService.getCurrentCountry();
+      const userLang = (typeof navigator !== 'undefined' && navigator.language) ? navigator.language : (country.language || 'fr');
+
+      // Determine effective proximity
       const defaultProximity = this.getDefaultProximity(proximity);
-      
-      const url = new URL('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(query) + '.json');
-      url.searchParams.set('access_token', token);
-      url.searchParams.set('proximity', `${defaultProximity.lng},${defaultProximity.lat}`);
-      url.searchParams.set('country', country.mapboxCountryCode);
-      url.searchParams.set('limit', '8');
-      url.searchParams.set('language', country.language || 'fr');
-      url.searchParams.set('types', 'poi,address,place,locality,neighborhood,district');
-      url.searchParams.set('fuzzyMatch', 'true');
-      url.searchParams.set('routing', 'true');
 
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Erreur de géocodage: ${response.status}`);
+      // Helper to check if a point is inside a bbox [minLng, minLat, maxLng, maxLat]
+      const isInBbox = (lng: number, lat: number, bbox: [number, number, number, number]) => (
+        lng >= bbox[0] && lng <= bbox[2] && lat >= bbox[1] && lat <= bbox[3]
+      );
+
+      // Create a small local bbox (~0.5°) around proximity when available
+      const localBbox: [number, number, number, number] = [
+        defaultProximity.lng - 0.5,
+        defaultProximity.lat - 0.5,
+        defaultProximity.lng + 0.5,
+        defaultProximity.lat + 0.5,
+      ];
+
+      // Pass 1: proximity + local bbox, include country filter only if proximity is inside current country bbox
+      const pass1 = new URL('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(query) + '.json');
+      pass1.searchParams.set('access_token', token);
+      pass1.searchParams.set('proximity', `${defaultProximity.lng},${defaultProximity.lat}`);
+      pass1.searchParams.set('bbox', `${localBbox[0]},${localBbox[1]},${localBbox[2]},${localBbox[3]}`);
+      if (isInBbox(defaultProximity.lng, defaultProximity.lat, country.bbox)) {
+        pass1.searchParams.set('country', country.mapboxCountryCode);
       }
+      pass1.searchParams.set('limit', '8');
+      pass1.searchParams.set('language', userLang);
+      pass1.searchParams.set('types', 'poi,address,place,locality,neighborhood,district');
+      pass1.searchParams.set('fuzzyMatch', 'true');
+      pass1.searchParams.set('routing', 'true');
 
-      const data: MapboxResponse = await response.json();
+      const responses: GeocodeResult[] = [];
 
-      let results = data.features
-        .map(feature => ({
-          place_name: feature.place_name,
-          center: feature.center,
-          place_type: feature.place_type,
-          properties: feature.properties,
+      const fetchAndPush = async (url: URL) => {
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const data: MapboxResponse = await res.json();
+        const items = data.features.map(f => ({
+          place_name: f.place_name,
+          center: f.center,
+          place_type: f.place_type,
+          properties: f.properties,
         }));
+        // Merge unique by place_name
+        const byName = new Map<string, GeocodeResult>();
+        [...responses, ...items].forEach(r => byName.set(r.place_name, r as GeocodeResult));
+        const merged = Array.from(byName.values());
+        responses.splice(0, responses.length, ...merged);
+      };
 
-      // Si peu de résultats, relancer sans restriction de pays/bbox pour élargir la recherche
-      if (results.length < 3) {
-        const url2 = new URL('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(query) + '.json');
-        url2.searchParams.set('access_token', token);
-        url2.searchParams.set('proximity', `${defaultProximity.lng},${defaultProximity.lat}`);
-        url2.searchParams.set('limit', '8');
-        url2.searchParams.set('language', country.language || 'fr');
-        url2.searchParams.set('types', 'poi,address,place,locality,neighborhood,district');
-        url2.searchParams.set('fuzzyMatch', 'true');
-        const response2 = await fetch(url2);
-        if (response2.ok) {
-          const data2: MapboxResponse = await response2.json();
-          const widened = data2.features.map(f => ({
-            place_name: f.place_name,
-            center: f.center,
-            place_type: f.place_type,
-            properties: f.properties,
-          }));
-          // Fusionner en supprimant les doublons par place_name
-          const map = new Map<string, any>();
-          [...results, ...widened].forEach(r => map.set(r.place_name, r));
-          results = Array.from(map.values());
-        }
+      await fetchAndPush(pass1);
+
+      // Pass 2: broaden by removing country and bbox but keep proximity
+      if (responses.length < 3) {
+        const pass2 = new URL('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(query) + '.json');
+        pass2.searchParams.set('access_token', token);
+        pass2.searchParams.set('proximity', `${defaultProximity.lng},${defaultProximity.lat}`);
+        pass2.searchParams.set('limit', '8');
+        pass2.searchParams.set('language', userLang);
+        pass2.searchParams.set('types', 'poi,address,place,locality,neighborhood,district');
+        pass2.searchParams.set('fuzzyMatch', 'true');
+        await fetchAndPush(pass2);
       }
 
-      // Trier par pertinence et proximité
-      results = results.sort((a, b) => {
-        const aExactMatch = a.place_name.toLowerCase().includes(query.toLowerCase());
-        const bExactMatch = b.place_name.toLowerCase().includes(query.toLowerCase());
-        if (aExactMatch && !bExactMatch) return -1;
-        if (!aExactMatch && bExactMatch) return 1;
-        const distanceA = Math.sqrt(Math.pow(a.center[0] - defaultProximity.lng, 2) + Math.pow(a.center[1] - defaultProximity.lat, 2));
-        const distanceB = Math.sqrt(Math.pow(b.center[0] - defaultProximity.lng, 2) + Math.pow(b.center[1] - defaultProximity.lat, 2));
+      // Pass 3: global search without proximity if still few results
+      if (responses.length < 3) {
+        const pass3 = new URL('https://api.mapbox.com/geocoding/v5/mapbox.places/' + encodeURIComponent(query) + '.json');
+        pass3.searchParams.set('access_token', token);
+        pass3.searchParams.set('limit', '8');
+        pass3.searchParams.set('language', userLang);
+        pass3.searchParams.set('types', 'poi,address,place,locality,neighborhood,district');
+        pass3.searchParams.set('fuzzyMatch', 'true');
+        await fetchAndPush(pass3);
+      }
+
+      // Sort by text match and proximity
+      let results = responses.sort((a, b) => {
+        const aExact = a.place_name.toLowerCase().includes(query.toLowerCase());
+        const bExact = b.place_name.toLowerCase().includes(query.toLowerCase());
+        if (aExact && !bExact) return -1;
+        if (!aExact && bExact) return 1;
+        const distanceA = Math.hypot(a.center[0] - defaultProximity.lng, a.center[1] - defaultProximity.lat);
+        const distanceB = Math.hypot(b.center[0] - defaultProximity.lng, b.center[1] - defaultProximity.lat);
         return distanceA - distanceB;
       });
 
       return results;
     } catch (error) {
       console.error('Erreur lors de la recherche de lieux:', error);
-      
+
       // Fallback dynamique basé sur le pays courant
       const fallbackPlaces = this.getFallbackPlaces();
-      
-      return fallbackPlaces.filter(place => 
+
+      return fallbackPlaces.filter(place =>
         place.place_name.toLowerCase().includes(query.toLowerCase())
       ) as GeocodeResult[];
     }
@@ -162,24 +186,25 @@ export class GeocodingService {
   static async reverseGeocode(lng: number, lat: number): Promise<string> {
     try {
       const token = await this.getMapboxToken();
-      
+
       const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json`);
       url.searchParams.set('access_token', token);
-      url.searchParams.set('language', CountryService.getCurrentCountry().language || 'fr');
+      const userLang = (typeof navigator !== 'undefined' && navigator.language) ? navigator.language : (CountryService.getCurrentCountry().language || 'fr');
+      url.searchParams.set('language', userLang);
       url.searchParams.set('limit', '1');
 
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error(`Erreur de géocodage inverse: ${response.status}`);
       }
 
       const data: MapboxResponse = await response.json();
-      
+
       if (data.features.length > 0) {
         return data.features[0].place_name;
       }
-      
+
       return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
     } catch (error) {
       console.error('Erreur lors du géocodage inverse:', error);

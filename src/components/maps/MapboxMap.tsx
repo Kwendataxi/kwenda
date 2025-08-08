@@ -23,9 +23,9 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
   pickupLocation,
   destination,
   showRouting = false,
-  center = [15.2663, -4.4419], // Kinshasa coordinates
+  center = [0, 0], // Global default; will fly to user when available
   zoom = 12,
-  height = "65vh"
+  height = "70vh"
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -207,6 +207,77 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
       console.error('Error adding destination marker:', error);
     }
   }, [destination, mapReady]);
+
+  // Draw route when pickup and destination are set
+  useEffect(() => {
+    if (!map.current || !mapReady) return;
+
+    // Clean existing route if toggled off or points missing
+    const removeRoute = () => {
+      if (!map.current) return;
+      if (map.current.getLayer('route-line')) {
+        map.current.removeLayer('route-line');
+      }
+      if (map.current.getSource('route')) {
+        map.current.removeSource('route');
+      }
+    };
+
+    if (!showRouting || !pickupLocation || !destination) {
+      removeRoute();
+      return;
+    }
+
+    const fetchRoute = async () => {
+      try {
+        const token = (mapboxgl as any).accessToken as string;
+        const url = `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${pickupLocation[0]},${pickupLocation[1]};${destination[0]},${destination[1]}?geometries=geojson&overview=full&access_token=${token}`;
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const data = await res.json();
+        const route = data?.routes?.[0]?.geometry;
+        if (!route || !map.current) return;
+
+        // Remove existing and add new route
+        removeRoute();
+        map.current.addSource('route', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: route,
+          },
+        } as any);
+
+        map.current.addLayer({
+          id: 'route-line',
+          type: 'line',
+          source: 'route',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round',
+          },
+          paint: {
+            'line-color': '#2563EB',
+            'line-width': 5,
+            'line-opacity': 0.85,
+          },
+        } as any);
+
+        // Fit bounds to route
+        const bounds = new mapboxgl.LngLatBounds();
+        route.coordinates.forEach((c: [number, number]) => bounds.extend(c));
+        map.current.fitBounds(bounds, { padding: 60, duration: 800 });
+      } catch (e) {
+        console.error('Failed to fetch route:', e);
+      }
+    };
+
+    fetchRoute();
+
+    // Cleanup on unmount/changes
+    return () => removeRoute();
+  }, [mapReady, showRouting, pickupLocation, destination]);
 
   const handleLocateUser = async () => {
     try {

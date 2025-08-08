@@ -159,7 +159,16 @@ export const EnhancedTaxiSearchBar = ({
 
     setLoading(true);
     try {
-      const results = await GeocodingService.searchPlaces(searchQuery);
+      // Try to use current position to bias results globally
+      let proximity: { lng: number; lat: number } | undefined = undefined;
+      try {
+        const pos = await getCurrentPosition();
+        if (pos?.coords) {
+          proximity = { lng: pos.coords.longitude, lat: pos.coords.latitude };
+        }
+      } catch {}
+
+      const results = await GeocodingService.searchPlaces(searchQuery, proximity);
       
       // Enhanced results with local context
       const enhancedResults = results.map(result => ({
