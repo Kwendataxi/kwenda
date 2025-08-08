@@ -20,7 +20,7 @@ import {
   Navigation,
   Package
 } from 'lucide-react';
-import MapboxMap from '@/components/maps/MapboxMap';
+import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
 
 interface Location {
   address: string;
@@ -273,28 +273,31 @@ const OneClickDeliveryInterface = ({ onSubmit, onCancel }: OneClickDeliveryInter
 
       {/* Carte */}
       <div className="relative h-[45vh]">
-        <MapboxMap
-          pickupLocation={pickup ? pickup.coordinates : undefined}
-          destination={destination ? destination.coordinates : undefined}
-          showRouting={!!(pickup && destination)}
+        <GoogleMapsKwenda
+          pickup={pickup ? { lat: pickup.coordinates[1], lng: pickup.coordinates[0] } : undefined}
+          destination={destination ? { lat: destination.coordinates[1], lng: destination.coordinates[0] } : undefined}
+          showRoute={!!(pickup && destination)}
+          center={pickup ? { lat: pickup.coordinates[1], lng: pickup.coordinates[0] } : { lat: 4.0383, lng: 21.7587 }}
+          zoom={13}
           height="45vh"
+          deliveryMode="flash"
           onLocationSelect={(coordinates) => {
             if (step === 'pickup') {
-              GeocodingService.reverseGeocode(coordinates[0], coordinates[1]).then(address => {
+              GeocodingService.reverseGeocode(coordinates.lng, coordinates.lat).then(address => {
                 setPickup({ 
-                  address: address || `${coordinates[1].toFixed(4)}, ${coordinates[0].toFixed(4)}`, 
-                  coordinates 
+                  address: address || `${coordinates.lat.toFixed(4)}, ${coordinates.lng.toFixed(4)}`, 
+                  coordinates: [coordinates.lng, coordinates.lat]
                 });
-                setPickupSearch(address || `${coordinates[1].toFixed(4)}, ${coordinates[0].toFixed(4)}`);
+                setPickupSearch(address || `${coordinates.lat.toFixed(4)}, ${coordinates.lng.toFixed(4)}`);
                 setStep('destination');
               });
             } else if (step === 'destination') {
-              GeocodingService.reverseGeocode(coordinates[0], coordinates[1]).then(address => {
+              GeocodingService.reverseGeocode(coordinates.lng, coordinates.lat).then(address => {
                 setDestination({ 
-                  address: address || `${coordinates[1].toFixed(4)}, ${coordinates[0].toFixed(4)}`, 
-                  coordinates 
+                  address: address || `${coordinates.lat.toFixed(4)}, ${coordinates.lng.toFixed(4)}`, 
+                  coordinates: [coordinates.lng, coordinates.lat]
                 });
-                setDestinationSearch(address || `${coordinates[1].toFixed(4)}, ${coordinates[0].toFixed(4)}`);
+                setDestinationSearch(address || `${coordinates.lat.toFixed(4)}, ${coordinates.lng.toFixed(4)}`);
                 setStep('confirm');
               });
             }

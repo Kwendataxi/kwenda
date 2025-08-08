@@ -18,7 +18,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import LocationInput from './LocationInput';
-import MapboxMap from '../maps/MapboxMap';
+import GoogleMapsKwenda from '../maps/GoogleMapsKwenda';
 
 interface Location {
   address: string;
@@ -312,10 +312,12 @@ const ModernTaxiInterface: React.FC<ModernTaxiInterfaceProps> = ({
           {(pickup || destination) && (
             <Card>
               <CardContent className="p-4">
-                <MapboxMap
-                  pickupLocation={pickup?.coordinates}
-                  destination={destination?.coordinates}
-                  showRouting={!!(pickup && destination)}
+                <GoogleMapsKwenda
+                  pickup={pickup ? { lat: pickup.coordinates[1], lng: pickup.coordinates[0] } : undefined}
+                  destination={destination ? { lat: destination.coordinates[1], lng: destination.coordinates[0] } : undefined}
+                  showRoute={!!(pickup && destination)}
+                  center={pickup ? { lat: pickup.coordinates[1], lng: pickup.coordinates[0] } : { lat: -4.2634, lng: 15.2429 }}
+                  zoom={13}
                   height="300px"
                 />
               </CardContent>

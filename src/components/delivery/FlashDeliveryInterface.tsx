@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import MapboxMap from '@/components/maps/MapboxMap';
+import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
 import { GeocodingService } from '@/services/geocoding';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { usePlaces } from '@/hooks/usePlaces';
@@ -208,28 +208,31 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
       {/* Compact Mapbox Map */}
       <div className="px-4 py-2">
         <div className="relative">
-          <MapboxMap
-            pickupLocation={pickup ? pickup.coordinates : undefined}
-            destination={destination ? destination.coordinates : undefined}
-            showRouting={!!(pickup && destination)}
+          <GoogleMapsKwenda
+            pickup={pickup ? { lat: pickup.coordinates[1], lng: pickup.coordinates[0] } : undefined}
+            destination={destination ? { lat: destination.coordinates[1], lng: destination.coordinates[0] } : undefined}
+            showRoute={!!(pickup && destination)}
+            center={pickup ? { lat: pickup.coordinates[1], lng: pickup.coordinates[0] } : { lat: 4.0383, lng: 21.7587 }}
+            zoom={12}
             height="160px"
+            deliveryMode="flash"
             onLocationSelect={(coordinates) => {
               // Handle map location selection
               if (!pickup) {
-                GeocodingService.reverseGeocode(coordinates[0], coordinates[1]).then(address => {
+                GeocodingService.reverseGeocode(coordinates.lng, coordinates.lat).then(address => {
                   setPickup({
-                    address: address || `${coordinates[1].toFixed(4)}, ${coordinates[0].toFixed(4)}`,
-                    coordinates
+                    address: address || `${coordinates.lat.toFixed(4)}, ${coordinates.lng.toFixed(4)}`,
+                    coordinates: [coordinates.lng, coordinates.lat]
                   });
-                  setPickupSearch(address || `${coordinates[1].toFixed(4)}, ${coordinates[0].toFixed(4)}`);
+                  setPickupSearch(address || `${coordinates.lat.toFixed(4)}, ${coordinates.lng.toFixed(4)}`);
                 });
               } else if (!destination) {
-                GeocodingService.reverseGeocode(coordinates[0], coordinates[1]).then(address => {
+                GeocodingService.reverseGeocode(coordinates.lng, coordinates.lat).then(address => {
                   setDestination({
-                    address: address || `${coordinates[1].toFixed(4)}, ${coordinates[0].toFixed(4)}`,
-                    coordinates
+                    address: address || `${coordinates.lat.toFixed(4)}, ${coordinates.lng.toFixed(4)}`,
+                    coordinates: [coordinates.lng, coordinates.lat]
                   });
-                  setDestinationSearch(address || `${coordinates[1].toFixed(4)}, ${coordinates[0].toFixed(4)}`);
+                  setDestinationSearch(address || `${coordinates.lat.toFixed(4)}, ${coordinates.lng.toFixed(4)}`);
                 });
               }
             }}

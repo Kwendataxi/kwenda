@@ -15,7 +15,7 @@ export interface DirectionsResult {
   geometry: [number, number][]; // [lng, lat] pairs
   steps: RouteStep[];
   trafficAware: boolean;
-  provider: 'mapbox' | 'google';
+  provider: 'google' | 'fallback';
 }
 
 export interface DirectionsOptions {
@@ -28,22 +28,7 @@ export interface DirectionsOptions {
 }
 
 export class DirectionsService {
-  private static mapboxToken: string = '';
   private static googleApiKey: string = '';
-
-  static async getMapboxToken(): Promise<string> {
-    if (this.mapboxToken) return this.mapboxToken;
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-      if (error) throw error;
-      this.mapboxToken = data.token;
-      return this.mapboxToken;
-    } catch (error) {
-      console.error('Error fetching Mapbox token:', error);
-      throw new Error('Mapbox token not available');
-    }
-  }
 
   static async getGoogleApiKey(): Promise<string> {
     if (this.googleApiKey) return this.googleApiKey;
@@ -74,67 +59,17 @@ export class DirectionsService {
     destination: { lat: number; lng: number },
     options: DirectionsOptions = {}
   ): Promise<DirectionsResult> {
-    // Try Mapbox first (generally better for RDC)
+    // Try Google Directions first
     try {
-      return await this.getMapboxDirections(origin, destination, options);
-    } catch (mapboxError) {
-      console.warn('Mapbox directions failed, trying Google:', mapboxError);
+      return await this.getGoogleDirections(origin, destination, options);
+    } catch (googleError) {
+      console.warn('Google directions failed, using fallback:', googleError);
       
-      // Fallback to Google Directions
-      try {
-        return await this.getGoogleDirections(origin, destination, options);
-      } catch (googleError) {
-        console.error('Both Mapbox and Google directions failed:', googleError);
-        
-        // Ultimate fallback: straight line calculation
-        return this.getFallbackDirections(origin, destination);
-      }
+      // Ultimate fallback: straight line calculation
+      return this.getFallbackDirections(origin, destination);
     }
   }
 
-  private static async getMapboxDirections(
-    origin: { lat: number; lng: number },
-    destination: { lat: number; lng: number },
-    options: DirectionsOptions
-  ): Promise<DirectionsResult> {
-    const token = await this.getMapboxToken();
-    const profile = options.profile === 'driving-traffic' ? 'driving-traffic' : (options.profile || 'driving');
-    
-    const coordinates = `${origin.lng},${origin.lat};${destination.lng},${destination.lat}`;
-    
-    let url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coordinates}`;
-    url += `?access_token=${token}`;
-    url += '&geometries=geojson';
-    url += '&steps=true';
-    url += '&overview=full';
-    
-    if (options.alternatives) url += '&alternatives=true';
-
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (!response.ok || !data.routes || data.routes.length === 0) {
-      throw new Error(`Mapbox API error: ${data.message || 'No routes found'}`);
-    }
-
-    const route = data.routes[0];
-    
-    return {
-      distance: route.distance,
-      duration: route.duration,
-      distanceText: `${(route.distance / 1000).toFixed(1)} km`,
-      durationText: this.formatDuration(route.duration),
-      geometry: route.geometry.coordinates,
-      steps: route.legs[0]?.steps?.map((step: any) => ({
-        instruction: step.maneuver.instruction,
-        distance: step.distance,
-        duration: step.duration,
-        coordinates: step.geometry.coordinates
-      })) || [],
-      trafficAware: profile === 'driving-traffic',
-      provider: 'mapbox'
-    };
-  }
 
   private static async getGoogleDirections(
     origin: { lat: number; lng: number },
@@ -223,7 +158,7 @@ export class DirectionsService {
         coordinates: [[origin.lng, origin.lat], [destination.lng, destination.lat]]
       }],
       trafficAware: false,
-      provider: 'mapbox'
+      provider: 'fallback'
     };
   }
 

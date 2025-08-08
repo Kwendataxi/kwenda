@@ -8,7 +8,7 @@ import { usePriceEstimator } from '@/hooks/usePricingRules';
 import { useDeliveryOrders } from '@/hooks/useDeliveryOrders';
 import { useToast } from '@/hooks/use-toast';
 import { UniversalLocationSearch } from '@/components/location/UniversalLocationSearch';
-import KwendaDynamicMap from '@/components/maps/KwendaDynamicMap';
+import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
 import { 
   ArrowLeft,
   MapPin, 
@@ -362,15 +362,19 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
           </div>
           
           <div className="relative">
-            <KwendaDynamicMap
-              onLocationSelect={handleMapLocationSelect}
-              pickupLocation={pickup?.coordinates}
-              destination={destination?.coordinates}
-              showRouting={!!(pickup && destination)}
-              center={[15.2663, -4.4419]} // Kinshasa
+            <GoogleMapsKwenda
+              pickup={pickup ? { lat: pickup.coordinates[1], lng: pickup.coordinates[0] } : undefined}
+              destination={destination ? { lat: destination.coordinates[1], lng: destination.coordinates[0] } : undefined}
+              showRoute={!!(pickup && destination)}
+              center={pickup ? { lat: pickup.coordinates[1], lng: pickup.coordinates[0] } : { lat: -4.4419, lng: 15.2663 }}
               zoom={12}
               height="30vh"
-              deliveryMode={selectedMode as 'flash' | 'flex' | 'maxicharge'}
+              deliveryMode={selectedMode}
+              onLocationSelect={(coordinates) => {
+                if (selectingLocation) {
+                  handleMapLocationSelect([coordinates.lng, coordinates.lat]);
+                }
+              }}
             />
             
             {selectingLocation && (
