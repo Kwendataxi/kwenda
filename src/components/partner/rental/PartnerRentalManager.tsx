@@ -31,22 +31,23 @@ export default function PartnerRentalManager() {
       </div>
 
       <Tabs defaultValue="vehicles" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-muted p-1">
+        <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-muted p-1 h-auto">
+          {/* Mobile: Stack tabs on small screens */}
           <TabsTrigger 
             value="vehicles" 
-            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all text-sm md:text-base px-2 md:px-4 py-2"
           >
             Location
           </TabsTrigger>
           <TabsTrigger 
             value="taxi"
-            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all text-sm md:text-base px-2 md:px-4 py-2"
           >
             Taxis
           </TabsTrigger>
           <TabsTrigger 
             value="bookings"
-            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all"
+            className="rounded-xl data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all text-sm md:text-base px-2 md:px-4 py-2"
           >
             Réservations
           </TabsTrigger>
@@ -78,7 +79,7 @@ export default function PartnerRentalManager() {
             />
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {vehicles.map((v) => (
               <RentalVehicleCard key={v.id} vehicle={v} onEdit={setEditing} />
             ))}
@@ -113,7 +114,7 @@ export default function PartnerRentalManager() {
             <TaxiVehicleForm initial={editingTaxi} onSaved={() => setEditingTaxi(null)} />
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {taxiVehicles.map((v) => (
               <TaxiVehicleCard key={v.id} vehicle={v} onEdit={setEditingTaxi} />
             ))}

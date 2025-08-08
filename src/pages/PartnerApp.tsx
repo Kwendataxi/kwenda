@@ -3,10 +3,14 @@ import { Button } from '@/components/ui/button';
 import { DriverValidationManager } from '@/components/partner/DriverValidationManager';
 import { PartnerDriverManager } from '@/components/partner/PartnerDriverManager';
 import PartnerRentalManager from '@/components/partner/rental/PartnerRentalManager';
-import PartnerHeader from '@/components/partner/PartnerHeader';
+import { ResponsivePartnerLayout } from '@/components/partner/ResponsivePartnerLayout';
+import { ResponsiveQuickActions } from '@/components/partner/ResponsiveQuickActions';
+import { ResponsiveActivityFeed } from '@/components/partner/ResponsiveActivityFeed';
+import { ResponsiveVehicleGrid } from '@/components/partner/ResponsiveVehicleGrid';
 import { usePartnerStats } from '@/hooks/usePartnerStats';
 import { usePartnerFinances } from '@/hooks/usePartnerFinances';
 import { usePartnerActivity } from '@/hooks/usePartnerActivity';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -55,6 +59,7 @@ import { format } from 'date-fns';
 const PartnerApp = () => {
   const [currentView, setCurrentView] = useState('dashboard');
   const [dateRange, setDateRange] = useState<Date | undefined>(new Date());
+  const isMobile = useIsMobile();
   
   // Use real data hooks
   const { stats, loading: statsLoading } = usePartnerStats();
@@ -62,348 +67,99 @@ const PartnerApp = () => {
   const { activities, loading: activitiesLoading } = usePartnerActivity();
 
   const renderDashboard = () => (
-    <div className="min-h-screen bg-background">
-      <PartnerHeader title="Tableau de bord" subtitle="Kwenda Taxi Partner" />
-      <div className="p-4">
-        {/* Header */}
-        <div className="card-floating p-6 mb-6 animate-slide-up">
-          <h1 className="text-display-sm text-card-foreground mb-2">Tableau de bord</h1>
-          <p className="text-body-lg text-muted-foreground">Kwenda Taxi Partner</p>
-        </div>
-
-        {/* Real-time Overview Cards */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="card-floating p-4 animate-scale-in">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center">
-                <Users className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-body-md font-semibold text-card-foreground">Chauffeurs actifs</span>
-            </div>
-            <p className="text-display-sm text-card-foreground font-bold">{statsLoading ? '...' : stats.activeDrivers}</p>
-            <p className="text-caption text-secondary font-medium bg-secondary-light px-2 py-1 rounded-md inline-block mt-1">
-              <Activity className="w-3 h-3 inline mr-1" />
-              En temps réel
-            </p>
-          </div>
-          
-          <div className="card-floating p-4 animate-scale-in">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                <Car className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-body-md font-semibold text-card-foreground">Courses en cours</span>
-            </div>
-            <p className="text-display-sm text-card-foreground font-bold">{statsLoading ? '...' : stats.ongoingRides}</p>
-            <p className="text-caption text-green-600 font-medium bg-green-50 px-2 py-1 rounded-md inline-block mt-1">
-              <TrendingUp className="w-3 h-3 inline mr-1" />
-              +12%
-            </p>
-          </div>
-          
-          <div className="card-floating p-4 animate-scale-in">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center">
-                <DollarSign className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-body-md font-semibold text-card-foreground">Revenus aujourd'hui</span>
-            </div>
-            <p className="text-heading-lg text-card-foreground font-bold">{statsLoading ? '...' : Math.round(stats.todayRevenue).toLocaleString()} CDF</p>
-            <p className="text-caption text-green-600 font-medium bg-green-50 px-2 py-1 rounded-md inline-block mt-1">
-              <TrendingUp className="w-3 h-3 inline mr-1" />
-              +8% vs hier
-            </p>
-          </div>
-          
-          <div className="card-floating p-4 animate-scale-in">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center">
-                <Wallet className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-body-md font-semibold text-card-foreground">Crédit entreprise</span>
-            </div>
-            <p className="text-display-sm text-card-foreground font-bold">{financesLoading ? '...' : finances.companyCredits.toLocaleString()} CDF</p>
-            <p className="text-caption text-yellow-600 font-medium bg-yellow-50 px-2 py-1 rounded-md inline-block mt-1">
-              CFA disponible
-            </p>
-          </div>
-        </div>
-
-        {/* Fleet Status */}
-        <Card className="card-floating border-0 mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Car className="h-5 w-5" />
-              État de la flotte
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-body-sm text-muted-foreground">Véhicules disponibles</p>
-                <p className="text-heading-md font-bold text-card-foreground">
-                  {statsLoading ? '...' : `${stats.availableVehicles} / ${stats.totalFleet}`}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-body-sm text-muted-foreground">Taux d'utilisation</p>
-                <p className="text-heading-md font-bold text-primary">
-                  {statsLoading ? '...' : `${stats.totalFleet > 0 ? Math.round(((stats.totalFleet - stats.availableVehicles) / stats.totalFleet) * 100) : 0}%`}
-                </p>
-              </div>
-            </div>
-            <Progress 
-              value={stats.totalFleet > 0 ? ((stats.totalFleet - stats.availableVehicles) / stats.totalFleet) * 100 : 0} 
-              className="h-2"
-            />
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        <div className="mb-6">
-          <h2 className="text-heading-lg text-card-foreground mb-4">Actions rapides</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <Button 
-              className="h-20 flex-col gap-3 rounded-xl bg-gradient-primary shadow-elegant hover:shadow-glow transition-all duration-300"
-              onClick={() => setCurrentView('fleet')}
-            >
-              <Car className="h-6 w-6" />
-              <span className="text-body-md font-semibold">Gérer flotte</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-20 flex-col gap-3 rounded-xl border-grey-200 hover:border-primary hover:bg-primary-light transition-all duration-300"
-              onClick={() => setCurrentView('analytics')}
-            >
-              <BarChart3 className="h-6 w-6" />
-              <span className="text-body-md font-semibold">Analytics</span>
-            </Button>
-          </div>
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            <Button 
-              variant="outline" 
-              className="h-16 flex-col gap-2 rounded-xl border-grey-200 hover:border-secondary hover:bg-secondary-light transition-all duration-300"
-              onClick={() => setCurrentView('employees')}
-            >
-              <UserPlus className="h-5 w-5" />
-              <span className="text-body-sm font-semibold">Employés</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-16 flex-col gap-2 rounded-xl border-grey-200 hover:border-accent hover:bg-accent-light transition-all duration-300"
-              onClick={() => setCurrentView('credits')}
-            >
-              <Wallet className="h-5 w-5" />
-              <span className="text-body-sm font-semibold">Crédits</span>
-            </Button>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="mb-20">
-          <h2 className="text-heading-lg text-card-foreground mb-4">Activité récente</h2>
-          <div className="space-y-3">
-            {activitiesLoading ? (
-              <div className="card-floating p-4 flex items-center gap-4">
-                <div className="w-12 h-12 bg-grey-200 rounded-xl animate-pulse"></div>
-                <div className="flex-1">
-                  <div className="h-4 bg-grey-200 rounded mb-2 animate-pulse"></div>
-                  <div className="h-3 bg-grey-200 rounded w-2/3 animate-pulse"></div>
-                </div>
-              </div>
-            ) : activities.length === 0 ? (
-              <div className="card-floating p-6 text-center">
-                <p className="text-muted-foreground">Aucune activité récente</p>
-              </div>
-            ) : (
-              activities.slice(0, 5).map((activity) => {
-                const getIcon = () => {
-                  switch (activity.icon) {
-                    case 'Car': return Car;
-                    case 'UserPlus': return UserPlus;
-                    case 'CreditCard': return CreditCard;
-                    case 'Package': return Receipt;
-                    default: return Activity;
-                  }
-                };
-                const IconComponent = getIcon();
-                
-                const getTimeAgo = (timestamp: string) => {
-                  const now = new Date().getTime();
-                  const activityTime = new Date(timestamp).getTime();
-                  const diffInMinutes = Math.floor((now - activityTime) / (1000 * 60));
-                  
-                  if (diffInMinutes < 1) return 'À l\'instant';
-                  if (diffInMinutes < 60) return `Il y a ${diffInMinutes} min`;
-                  if (diffInMinutes < 1440) return `Il y a ${Math.floor(diffInMinutes / 60)}h`;
-                  return `Il y a ${Math.floor(diffInMinutes / 1440)} jour(s)`;
-                };
-
-                return (
-                  <div key={activity.id} className="card-floating p-4 flex items-center gap-4 hover:shadow-lg transition-all duration-200">
-                    <div className={`w-12 h-12 ${activity.color} rounded-xl flex items-center justify-center shadow-sm`}>
-                      <IconComponent className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-body-md font-semibold text-card-foreground">{activity.title}</p>
-                      <p className="text-body-sm text-muted-foreground">{activity.description}</p>
-                    </div>
-                    <span className="text-caption text-muted-foreground bg-grey-100 px-2 py-1 rounded-md">
-                      {getTimeAgo(activity.timestamp)}
-                    </span>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
+    <div>
+      {/* Header */}
+      <div className="card-floating p-6 mb-6 animate-slide-up">
+        <h1 className={`text-card-foreground mb-2 ${isMobile ? 'text-lg' : 'text-display-sm'}`}>
+          Tableau de bord
+        </h1>
+        <p className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-body-lg'}`}>
+          Kwenda Taxi Partner
+        </p>
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-grey-100 px-6 py-3 flex justify-around">
-        {[
-          { icon: BarChart3, label: "Dashboard", view: 'dashboard' },
-            { icon: Car, label: "Flotte", view: 'fleet' },
-          { icon: Users, label: "Chauffeurs", view: 'drivers' },
-          { icon: PieChart, label: "Analytics", view: 'analytics' },
-          { icon: CreditCard, label: "Facturation", view: 'billing' },
-        ].map((item) => (
-          <button
-            key={item.label}
-            onClick={() => setCurrentView(item.view)}
-            className={`flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-all duration-200 ${
-              currentView === item.view 
-                ? 'text-primary bg-primary-light' 
-                : 'text-muted-foreground hover:text-primary hover:bg-grey-50'
-            }`}
-          >
-            <item.icon className="h-5 w-5" />
-            <span className="text-caption font-medium">{item.label}</span>
-          </button>
-        ))}
+      {/* Quick Actions */}
+      <ResponsiveQuickActions onViewChange={setCurrentView} />
+
+      {/* Recent Activity */}
+      <div className={`${isMobile ? 'mb-4' : 'mb-20'}`}>
+        <h2 className={`text-card-foreground mb-4 ${isMobile ? 'text-lg' : 'text-heading-lg'}`}>
+          Activité récente
+        </h2>
+        <ResponsiveActivityFeed 
+          activities={activities} 
+          loading={activitiesLoading}
+        />
       </div>
     </div>
   );
 
   const renderFleetManagement = () => (
-    <div className="min-h-screen bg-background pb-20">
-      <PartnerHeader title="Gestion de flotte" subtitle="Véhicules & Taxis" />
-      <div className="flex items-center p-4 border-b border-grey-100">
+    <div>
+      <div className="flex items-center mb-4">
         <Button variant="ghost" onClick={() => setCurrentView('dashboard')} className="mr-3 rounded-xl">
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-heading-lg text-card-foreground flex-1">Mes véhicules</h1>
+        <h1 className={`text-card-foreground flex-1 ${isMobile ? 'text-lg' : 'text-heading-lg'}`}>
+          Mes véhicules
+        </h1>
       </div>
 
-      <div className="p-4">
-        <PartnerRentalManager />
+      <PartnerRentalManager />
+
+      
+      <div className={`grid gap-3 mb-6 ${isMobile ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-3'}`}>
+        <Card className="card-floating border-0 p-4 text-center">
+          <Car className="h-6 w-6 text-primary mx-auto mb-2" />
+          <p className="text-caption text-muted-foreground">Total</p>
+          <p className="text-heading-sm font-bold text-card-foreground">{statsLoading ? '...' : stats.totalFleet}</p>
+        </Card>
+        <Card className="card-floating border-0 p-4 text-center">
+          <CheckCircle className="h-6 w-6 text-green-500 mx-auto mb-2" />
+          <p className="text-caption text-muted-foreground">Disponibles</p>
+          <p className="text-heading-sm font-bold text-card-foreground">{statsLoading ? '...' : stats.availableVehicles}</p>
+        </Card>
+        <Card className="card-floating border-0 p-4 text-center">
+          <AlertTriangle className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
+          <p className="text-caption text-muted-foreground">Maintenance</p>
+          <p className="text-heading-sm font-bold text-card-foreground">2</p>
+        </Card>
       </div>
 
-      <div className="p-4">
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <Card className="card-floating border-0 p-4 text-center">
-            <Car className="h-6 w-6 text-primary mx-auto mb-2" />
-            <p className="text-caption text-muted-foreground">Total</p>
-            <p className="text-heading-sm font-bold text-card-foreground">{statsLoading ? '...' : stats.totalFleet}</p>
-          </Card>
-          <Card className="card-floating border-0 p-4 text-center">
-            <CheckCircle className="h-6 w-6 text-green-500 mx-auto mb-2" />
-            <p className="text-caption text-muted-foreground">Disponibles</p>
-            <p className="text-heading-sm font-bold text-card-foreground">{statsLoading ? '...' : stats.availableVehicles}</p>
-          </Card>
-          <Card className="card-floating border-0 p-4 text-center">
-            <AlertTriangle className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
-            <p className="text-caption text-muted-foreground">Maintenance</p>
-            <p className="text-heading-sm font-bold text-card-foreground">2</p>
-          </Card>
-        </div>
-
-        <div className="space-y-3">
-          {[
-            { 
-              id: "VH-001", 
-              model: "Toyota Corolla 2022", 
-              plate: "ABC 123 CI", 
-              driver: "Jean Kouassi",
-              status: "En course",
-              mileage: "45,230 km",
-              fuel: 75,
-              color: "bg-blue-500"
-            },
-            { 
-              id: "VH-002", 
-              model: "Honda Accord 2021", 
-              plate: "DEF 456 CI", 
-              driver: "Marie Diallo",
-              status: "Disponible",
-              mileage: "32,180 km",
-              fuel: 90,
-              color: "bg-green-500"
-            },
-            { 
-              id: "VH-003", 
-              model: "Nissan Sentra 2023", 
-              plate: "GHI 789 CI", 
-              driver: "Paul Yao",
-              status: "Maintenance",
-              mileage: "28,940 km",
-              fuel: 40,
-              color: "bg-yellow-500"
-            },
-          ].map((vehicle, index) => (
-            <Card key={index} className="card-floating border-0 hover:shadow-lg transition-all duration-200">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 ${vehicle.color} rounded-xl flex items-center justify-center shadow-sm`}>
-                      <Car className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-body-md font-semibold text-card-foreground">{vehicle.model}</p>
-                      <p className="text-body-sm text-muted-foreground">{vehicle.plate}</p>
-                    </div>
-                  </div>
-                  <Badge 
-                    variant={
-                      vehicle.status === "Disponible" ? "default" :
-                      vehicle.status === "En course" ? "secondary" : "outline"
-                    }
-                    className="rounded-md"
-                  >
-                    {vehicle.status}
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-3">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-body-sm text-muted-foreground">{vehicle.mileage}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Fuel className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-body-sm text-muted-foreground">{vehicle.fuel}%</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-body-sm text-muted-foreground">{vehicle.driver}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" className="rounded-lg">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="rounded-lg">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+      <ResponsiveVehicleGrid 
+        vehicles={[
+          { 
+            id: "VH-001", 
+            model: "Toyota Corolla 2022", 
+            plate: "ABC 123 CI", 
+            driver: "Jean Kouassi",
+            status: "En course",
+            mileage: "45,230 km",
+            fuel: 75,
+            color: "bg-blue-500"
+          },
+          { 
+            id: "VH-002", 
+            model: "Honda Accord 2021", 
+            plate: "DEF 456 CI", 
+            driver: "Marie Diallo",
+            status: "Disponible",
+            mileage: "32,180 km",
+            fuel: 90,
+            color: "bg-green-500"
+          },
+          { 
+            id: "VH-003", 
+            model: "Nissan Sentra 2023", 
+            plate: "GHI 789 CI", 
+            driver: "Paul Yao",
+            status: "Maintenance",
+            mileage: "28,940 km",
+            fuel: 40,
+            color: "bg-yellow-500"
+          },
+        ]}
+      />
     </div>
   );
 
@@ -878,17 +634,18 @@ const PartnerApp = () => {
     </div>
   );
 
-  switch (currentView) {
-    case 'fleet':
-      return renderFleetManagement();
-    case 'analytics':
-      return renderAnalytics();
-    case 'credits':
-      return renderCreditsManagement();
-    case 'employees':
-      return renderEmployees();
-    case 'billing':
-      return renderBilling();
+  const renderContent = () => {
+    switch (currentView) {
+      case 'fleet':
+        return renderFleetManagement();
+      case 'analytics':
+        return renderAnalytics();
+      case 'credits':
+        return renderCreditsManagement();
+      case 'employees':
+        return renderEmployees();
+      case 'billing':
+        return renderBilling();
       case 'validation':
         return <DriverValidationManager />;
       case 'drivers':
@@ -897,5 +654,31 @@ const PartnerApp = () => {
         return renderDashboard();
     }
   };
+
+  const getViewTitle = () => {
+    switch (currentView) {
+      case 'fleet': return 'Gestion de flotte';
+      case 'analytics': return 'Analytics & Rapports';
+      case 'credits': return 'Crédit Entreprise';
+      case 'employees': return 'Employés';
+      case 'billing': return 'Facturation';
+      case 'validation': return 'Validation Chauffeurs';
+      case 'drivers': return 'Gestion Chauffeurs';
+      default: return 'Tableau de bord';
+    }
+  };
+
+  return (
+    <ResponsivePartnerLayout
+      stats={{ ...stats, companyCredits: finances.companyCredits }}
+      currentView={currentView}
+      onViewChange={setCurrentView}
+      title={getViewTitle()}
+      subtitle="Kwenda Taxi Partner"
+    >
+      {renderContent()}
+    </ResponsivePartnerLayout>
+  );
+};
 
 export default PartnerApp;
