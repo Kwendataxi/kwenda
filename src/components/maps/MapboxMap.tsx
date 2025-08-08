@@ -105,7 +105,12 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
     initializeMap();
 
     return () => {
-      map.current?.remove();
+      if (map.current) {
+        map.current.remove();
+        // Avoid calling map methods after removal
+        // by clearing the reference
+        map.current = null;
+      }
     };
   }, [center, zoom, onLocationSelect]);
 
@@ -214,12 +219,18 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
 
     // Clean existing route if toggled off or points missing
     const removeRoute = () => {
-      if (!map.current) return;
-      if (map.current.getLayer('route-line')) {
-        map.current.removeLayer('route-line');
+      const m = map.current as mapboxgl.Map | null;
+      if (!m) return;
+      // Guard against calling map methods after removal or before style loads
+      // @ts-ignore - isStyleLoaded exists at runtime
+      if (!(m as any).style || (typeof (m as any).isStyleLoaded === 'function' && !(m as any).isStyleLoaded())) {
+        return;
       }
-      if (map.current.getSource('route')) {
-        map.current.removeSource('route');
+      if (m.getLayer('route-line')) {
+        m.removeLayer('route-line');
+      }
+      if (m.getSource('route')) {
+        m.removeSource('route');
       }
     };
 
