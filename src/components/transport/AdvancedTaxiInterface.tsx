@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Clock, User, Star, Phone, Navigation, X, Zap, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LocationInput from './LocationInput';
@@ -39,6 +40,8 @@ export const AdvancedTaxiInterface = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<string>('standard');
   const [distance, setDistance] = useState<number>(0);
   const [currentPrice, setCurrentPrice] = useState<number>(0);
+  const [pickupSearch, setPickupSearch] = useState('');
+  const [destinationSearch, setDestinationSearch] = useState('');
 
   // Calculer prix estimé quand les locations changent
   useEffect(() => {

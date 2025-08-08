@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -38,6 +38,7 @@ const YangoStyleDeliveryInterface = ({ onSubmit, onCancel }: YangoStyleDeliveryI
   const [selectedDeliveryType, setSelectedDeliveryType] = useState('flash');
   const [businessMode, setBusinessMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [regionLabel, setRegionLabel] = useState('Votre région');
 
   const { getCurrentPosition } = useGeolocation();
   const { toast } = useToast();
@@ -77,6 +78,23 @@ const YangoStyleDeliveryInterface = ({ onSubmit, onCancel }: YangoStyleDeliveryI
       description: 'Gros volumes et objets lourds'
     }
   ];
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const position = await getCurrentPosition();
+        if (position?.coords) {
+          const addr = await GeocodingService.reverseGeocode(position.coords.longitude, position.coords.latitude);
+          if (addr) {
+            const parts = addr.split(',');
+            setRegionLabel(parts.slice(-2).join(', ').trim());
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, []);
 
   const calculateTotalPrice = () => {
     if (!pickup || !destination) return 0;
@@ -227,7 +245,7 @@ const YangoStyleDeliveryInterface = ({ onSubmit, onCancel }: YangoStyleDeliveryI
             </Button>
             <div>
               <h1 className="text-lg font-semibold text-foreground">ENVOYER UN COLIS</h1>
-              <p className="text-sm text-muted-foreground">Kinshasa</p>
+              <p className="text-sm text-muted-foreground">{regionLabel}</p>
             </div>
           </div>
           <div className="text-right">

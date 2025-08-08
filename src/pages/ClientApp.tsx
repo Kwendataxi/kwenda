@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ChatProvider } from '@/components/chat/ChatProvider';
-import { FloatingChatButton } from '@/components/home/FloatingChatButton';
+import { FloatingChatButton as MarketplaceFloatingChatButton } from '@/components/marketplace/FloatingChatButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -1011,8 +1011,10 @@ const ClientApp = () => {
         
         {/* Performance Indicator hidden on client for a cleaner UI */}
         
-        {/* Floating Chat Button */}
-        <FloatingChatButton offsetBottomClass="mb-20" position={currentView !== 'lottery' && serviceType !== 'marketplace' ? 'left' : 'right'} />
+        {/* Floating Chat Button - Marketplace only */}
+        {serviceType === 'marketplace' && (
+          <MarketplaceFloatingChatButton />
+        )}
       
       {/* Loading State */}
       {isLoading && (
@@ -1190,7 +1192,7 @@ const ClientApp = () => {
           <div className="px-6 py-4 flex justify-around max-w-md mx-auto">
             {[
               { icon: Home, label: "Accueil", key: "home" },
-              { icon: Zap, label: "Tombola", key: "lottery" },
+              ...(currentView === 'home' ? [{ icon: Zap, label: "Tombola", key: "lottery" }] : []),
               { icon: Activity, label: "Activité", key: "activity" },
               { icon: User, label: "Compte", key: "profil" },
             ].map((item) => (
@@ -1211,8 +1213,8 @@ const ClientApp = () => {
         </div>
       )}
       
-      {/* Lottery Ticket Floater - Only show outside lottery view */}
-      {currentView !== 'lottery' && serviceType !== 'marketplace' && (
+      {/* Lottery Ticket Floater - Home only */}
+      {currentView === 'home' && (
         <LotteryTicketFloater 
           onOpenLottery={() => setCurrentView('lottery')}
         />
