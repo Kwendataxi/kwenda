@@ -334,6 +334,7 @@ serve(async (req) => {
 
         let adminCommission = activities.reduce((sum: number, a: any) => sum + (Number(a.metadata?.commission_breakdown?.adminAmount) || 0), 0)
         let platformFees = activities.reduce((sum: number, a: any) => sum + (Number(a.metadata?.commission_breakdown?.platformAmount) || 0), 0)
+        const partnerCommission = activities.reduce((sum: number, a: any) => sum + (Number(a.metadata?.commission_breakdown?.partnerAmount) || 0), 0)
 
         if (adminCommission === 0 && platformFees === 0 && totalRevenue > 0) {
           adminCommission = totalRevenue * 0.10
@@ -385,6 +386,7 @@ serve(async (req) => {
                 adminCommission,
                 driverEarnings,
                 platformFees,
+                partnerCommission,
                 transportRevenue,
                 deliveryRevenue,
                 activeDrivers,

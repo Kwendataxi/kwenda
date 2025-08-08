@@ -21,10 +21,10 @@ export const PartnerDriverManager = () => {
   } = usePartnerDrivers();
 
   const [newDriverCode, setNewDriverCode] = useState('');
-  const [newCommissionRate, setNewCommissionRate] = useState(15);
+  const [newCommissionRate, setNewCommissionRate] = useState(2.0);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingDriver, setEditingDriver] = useState<string | null>(null);
-  const [editCommission, setEditCommission] = useState(15);
+  const [editCommission, setEditCommission] = useState(2.0);
 
   const handleAddDriver = async () => {
     if (newDriverCode.length !== 8) {

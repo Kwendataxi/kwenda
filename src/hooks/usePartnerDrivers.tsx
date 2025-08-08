@@ -125,6 +125,9 @@ export const usePartnerDrivers = () => {
         return false;
       }
 
+      // Clamp commission to [0, 2.5]
+      const clampedRate = Math.min(Math.max(commissionRate, 0), 2.5);
+
       // Add the driver to the partner's fleet
       const { data, error } = await supabase
         .from('partner_drivers')
@@ -132,7 +135,7 @@ export const usePartnerDrivers = () => {
           partner_id: user.id,
           driver_id: codeData.driver_id,
           driver_code: driverCode.toUpperCase(),
-          commission_rate: commissionRate,
+          commission_rate: clampedRate,
           status: 'active'
         })
         .select()

@@ -26,6 +26,7 @@ interface FinancialMetrics {
   adminCommission: number;
   driverEarnings: number;
   platformFees: number;
+  partnerCommission: number;
   transportRevenue: number;
   deliveryRevenue: number;
   activeDrivers: number;
@@ -48,6 +49,7 @@ export const FinancialDashboard = () => {
     adminCommission: 0,
     driverEarnings: 0,
     platformFees: 0,
+    partnerCommission: 0,
     transportRevenue: 0,
     deliveryRevenue: 0,
     activeDrivers: 0,
@@ -124,6 +126,7 @@ export const FinancialDashboard = () => {
         adminCommission: Number(payload.metrics?.adminCommission || 0),
         driverEarnings: Number(payload.metrics?.driverEarnings || 0),
         platformFees: Number(payload.metrics?.platformFees || 0),
+        partnerCommission: Number(payload.metrics?.partnerCommission || 0),
         transportRevenue: Number(payload.metrics?.transportRevenue || 0),
         deliveryRevenue: Number(payload.metrics?.deliveryRevenue || 0),
         activeDrivers: Number(payload.metrics?.activeDrivers || 0),
@@ -255,7 +258,20 @@ export const FinancialDashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Gains Chauffeurs</CardTitle>
+            <CardTitle className="text-sm font-medium">Commissions Partenaires</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{metrics.partnerCommission.toLocaleString()} CDF</div>
+            <div className="text-xs text-muted-foreground">
+              {(metrics.totalRevenue > 0 ? ((metrics.partnerCommission / metrics.totalRevenue) * 100) : 0).toFixed(1)}% du total
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Gains Chauffeurs (net)</CardTitle>
             <Car className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>

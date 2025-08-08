@@ -187,6 +187,9 @@ export const DriverTransactionHistory: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <div className="p-3 border rounded bg-muted/30 text-sm text-muted-foreground">
+        Gains des courses (portefeuille) — distincts des recharges de crédits.
+      </div>
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
