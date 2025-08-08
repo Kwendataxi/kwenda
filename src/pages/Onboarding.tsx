@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import type { CarouselApi } from "@/components/ui/carousel";
-import appIcon from "@/assets/app-icon.png";
-import driverIcon from "@/assets/driver-icon.png";
-import heroVtc from "@/assets/hero-vtc.jpg";
+import BrandLogo from "@/components/brand/BrandLogo";
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
