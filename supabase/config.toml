@@ -1,1 +1,4 @@
 project_id = "wddlktajnhwhyquwcdgf"
+
+[functions.partner-driver-earnings]
+verify_jwt = true

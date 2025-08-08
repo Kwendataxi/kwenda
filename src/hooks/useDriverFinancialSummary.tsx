@@ -57,10 +57,10 @@ export const useDriverFinancialSummary = (initialRange: SummaryRange = '30d') =>
       if (txErr) throw txErr;
 
       const totalTopup = (txs || [])
-        .filter(t => ['topup', 'credit'].includes((t as any).transaction_type))
+        .filter(t => (t as any).transaction_type === 'credit')
         .reduce((s, t: any) => s + Number(t.amount || 0), 0);
       const totalSpent = (txs || [])
-        .filter(t => ['deduction', 'debit'].includes((t as any).transaction_type))
+        .filter(t => (t as any).transaction_type === 'debit')
         .reduce((s, t: any) => s + Number(t.amount || 0), 0);
 
       // 3) Transport bookings (earnings)

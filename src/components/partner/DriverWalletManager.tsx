@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Wallet, Plus, History, TrendingUp, AlertTriangle, Users } from 'lucide-react';
 import { useDriverWalletManager } from '@/hooks/useDriverWalletManager';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { usePartnerEarnings } from '@/hooks/usePartnerEarnings';
 
 export const DriverWalletManager = () => {
   const { drivers, topUpHistory, loading, topUpDriverWallet, getDriverStats } = useDriverWalletManager();
@@ -18,6 +19,8 @@ export const DriverWalletManager = () => {
   const [topUpAmount, setTopUpAmount] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<string>('');
   const [isTopUpDialogOpen, setIsTopUpDialogOpen] = useState(false);
+
+  const { loading: earningsLoading, data: earnings, range, setRange } = usePartnerEarnings('30d');
 
   const stats = getDriverStats();
 
