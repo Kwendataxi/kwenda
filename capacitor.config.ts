@@ -22,6 +22,11 @@ const config: CapacitorConfig = {
     },
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"]
+    },
+    SplashScreen: {
+      launchAutoHide: true,
+      launchFadeOutDuration: 400,
+      backgroundColor: "#0B1220"
     }
   },
   bundledWebRuntime: false,

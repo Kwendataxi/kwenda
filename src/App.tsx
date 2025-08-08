@@ -16,6 +16,9 @@ import AdminApp from "./pages/AdminApp";
 import MarketplaceApp from "./pages/MarketplaceApp";
 import NotFound from "./pages/NotFound";
 import { ChatProvider } from "@/components/chat/ChatProvider";
+import Onboarding from "./pages/Onboarding";
+import { OnboardingRedirect } from "@/components/onboarding/OnboardingRedirect";
+import { StartupExperience } from "@/components/splash/StartupExperience";
 
 const queryClient = new QueryClient();
 
@@ -26,12 +29,18 @@ const App = () => (
         <LanguageProvider>
         <TooltipProvider>
           <ChatProvider>
+            <StartupExperience />
             <Toaster />
             <Sonner />
             <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/auth" element={
+                <OnboardingRedirect>
+                  <Auth />
+                </OnboardingRedirect>
+              } />
               <Route path="/client" element={
                 <ProtectedRoute>
                   <ClientApp />
