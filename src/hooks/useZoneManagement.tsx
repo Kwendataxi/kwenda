@@ -1,26 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
+import { Database } from '@/integrations/supabase/types';
 
-export interface Zone {
-  id: string;
-  name: string;
-  zone_type: string;
-  city: string;
-  coordinates: any;
+export type Zone = Database['public']['Tables']['service_zones']['Row'] & {
   center?: { lat: number; lng: number };
-  is_active: boolean;
-  status: 'active' | 'inactive' | 'maintenance';
-  base_price_multiplier: number;
-  description?: string;
-  maintenance_start?: string;
-  maintenance_end?: string;
-  metadata?: any;
-  created_at: string;
-  updated_at: string;
-  created_by?: string;
-  updated_by?: string;
-}
+};
 
 export interface ZoneStatistics {
   zone_id: string;
@@ -37,22 +22,7 @@ export interface ZoneStatistics {
   calculated_at: string;
 }
 
-export interface ZonePricingRule {
-  id: string;
-  zone_id: string;
-  vehicle_class: string;
-  base_price: number;
-  price_per_km: number;
-  price_per_minute: number;
-  surge_multiplier: number;
-  minimum_fare: number;
-  maximum_fare?: number;
-  time_based_pricing?: any[];
-  special_pricing?: any;
-  is_active: boolean;
-  valid_from: string;
-  valid_until?: string;
-}
+export type ZonePricingRule = Database['public']['Tables']['zone_pricing_rules']['Row'];
 
 export const useZoneManagement = () => {
   const [zones, setZones] = useState<Zone[]>([]);
@@ -123,7 +93,7 @@ export const useZoneManagement = () => {
       
       setZonePricingRules(prev => ({
         ...prev,
-        [zoneId]: data || []
+        [zoneId]: (data || []) as ZonePricingRule[]
       }));
     } catch (err: any) {
       console.error('Erreur lors du chargement des règles de tarification:', err);
@@ -135,17 +105,25 @@ export const useZoneManagement = () => {
     try {
       const { data, error } = await supabase
         .from('service_zones')
-        .insert([{
-          ...zoneData,
+        .insert({
+          name: zoneData.name || '',
+          coordinates: zoneData.coordinates || [],
+          zone_type: zoneData.zone_type || 'custom',
+          city: zoneData.city || '',
+          is_active: zoneData.is_active || true,
+          status: zoneData.status || 'active',
+          surge_multiplier: zoneData.surge_multiplier || 1.0,
+          base_price_multiplier: zoneData.base_price_multiplier || 1.0,
+          description: zoneData.description,
           created_by: (await supabase.auth.getUser()).data.user?.id,
           updated_by: (await supabase.auth.getUser()).data.user?.id,
-        }])
+        })
         .select()
         .single();
 
       if (error) throw error;
 
-      setZones(prev => [data, ...prev]);
+      setZones(prev => [data as Zone, ...prev]);
       toast({
         title: "Succès",
         description: "Zone créée avec succès",
@@ -179,7 +157,7 @@ export const useZoneManagement = () => {
       if (error) throw error;
 
       setZones(prev => prev.map(zone => 
-        zone.id === zoneId ? { ...zone, ...data } : zone
+        zone.id === zoneId ? { ...zone, ...data as Zone } : zone
       ));
 
       toast({
@@ -237,11 +215,23 @@ export const useZoneManagement = () => {
     try {
       const { data, error } = await supabase
         .from('zone_pricing_rules')
-        .upsert([{
-          ...rule,
+        .upsert({
+          zone_id: rule.zone_id || '',
+          vehicle_class: rule.vehicle_class || 'standard',
+          base_price: rule.base_price || 0,
+          price_per_km: rule.price_per_km || 0,
+          price_per_minute: rule.price_per_minute || 0,
+          surge_multiplier: rule.surge_multiplier || 1.0,
+          minimum_fare: rule.minimum_fare || 0,
+          maximum_fare: rule.maximum_fare,
+          time_based_pricing: rule.time_based_pricing,
+          special_pricing: rule.special_pricing,
+          is_active: rule.is_active || true,
+          valid_from: rule.valid_from || new Date().toISOString(),
+          valid_until: rule.valid_until,
           created_by: (await supabase.auth.getUser()).data.user?.id,
           updated_by: (await supabase.auth.getUser()).data.user?.id,
-        }])
+        })
         .select()
         .single();
 

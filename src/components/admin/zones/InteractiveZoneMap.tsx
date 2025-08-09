@@ -198,9 +198,8 @@ export const InteractiveZoneMap: React.FC<InteractiveZoneMapProps> = ({
     // Créer la zone
     const newZone: Partial<Zone> = {
       name: zoneName,
-      type: 'custom',
+      zone_type: 'custom',
       city: 'Kinshasa',
-      country: 'RDC',
       coordinates,
       center,
       is_active: true,
@@ -257,7 +256,7 @@ export const InteractiveZoneMap: React.FC<InteractiveZoneMapProps> = ({
     const newZonePolygons: Record<string, any> = {};
 
     zones.forEach(zone => {
-      if (!zone.coordinates || zone.coordinates.length === 0) return;
+      if (!zone.coordinates || !Array.isArray(zone.coordinates) || zone.coordinates.length === 0) return;
 
       const polygon = new window.google.maps.Polygon({
         paths: zone.coordinates,

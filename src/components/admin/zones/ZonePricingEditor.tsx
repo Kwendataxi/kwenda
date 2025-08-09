@@ -66,7 +66,7 @@ export const ZonePricingEditor: React.FC<ZonePricingEditorProps> = ({
     const currentRule = getCurrentRule();
     if (currentRule) {
       setEditingRule(currentRule);
-      setTimeBasedRules(currentRule.time_based_pricing || []);
+      setTimeBasedRules((currentRule.time_based_pricing as unknown as TimeBasedRule[]) || []);
     } else {
       setEditingRule({
         zone_id: zone.id,
@@ -94,7 +94,7 @@ export const ZonePricingEditor: React.FC<ZonePricingEditorProps> = ({
 
     const ruleToSave = {
       ...editingRule,
-      time_based_pricing: timeBasedRules,
+      time_based_pricing: timeBasedRules as any,
     };
 
     try {

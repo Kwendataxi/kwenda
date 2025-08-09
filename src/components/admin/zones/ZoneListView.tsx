@@ -305,14 +305,14 @@ export const ZoneListView: React.FC<ZoneListViewProps> = ({
                   <TableCell>
                     <div>
                       <div className="font-medium">{zone.name}</div>
-                      <div className="text-sm text-muted-foreground">{zone.type}</div>
+                      <div className="text-sm text-muted-foreground">{zone.zone_type}</div>
                     </div>
                   </TableCell>
                   
                   <TableCell>
                     <div>
                       <div>{zone.city}</div>
-                      <div className="text-sm text-muted-foreground">{zone.country}</div>
+                      <div className="text-sm text-muted-foreground">Zone {zone.zone_type}</div>
                     </div>
                   </TableCell>
                   
