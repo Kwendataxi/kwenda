@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Package, Clock, MapPin, Star, CheckCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { UnifiedLocationService, LocationResult, RouteResult } from '@/services/unifiedLocationService';
+import { UnifiedLocationService, LocationResult } from '@/services/unifiedLocationService';
 import UnifiedLocationSearch from './UnifiedLocationSearch';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
@@ -67,7 +66,7 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
   const [orderId, setOrderId] = useState<string>('');
 
   const { toast } = useToast();
-  const { createDeliveryOrder, submitting, calculateDeliveryPrice } = useEnhancedDeliveryOrders();
+  const { createDeliveryOrder, submitting } = useEnhancedDeliveryOrders();
 
   // Appliquer le mode initial le cas échéant
   useEffect(() => {
