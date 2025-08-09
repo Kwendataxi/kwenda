@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Phone, Mail, MessageCircle, ChevronDown, ChevronUp, Send, Ticket, Star, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { Phone, Mail, MessageCircle, Send, Ticket, Star, Clock, CheckCircle, AlertCircle } from "lucide-react";
 
 const CustomerSupport = () => {
   const { toast } = useToast();
