@@ -57,14 +57,28 @@ const SimpleLocationSearch: React.FC<SimpleLocationSearchProps> = ({
         return;
       }
 
+      // Validation stricte des données reçues
+      if (!data || !Array.isArray(data)) {
+        console.warn('Format de données invalide:', data);
+        setResults([]);
+        return;
+      }
+
       const geocodeResults = data as GeocodeResult[];
-      const locationResults: LocationData[] = geocodeResults.map((result, index) => ({
-        address: result.formatted_address,
-        lat: result.geometry.location.lat,
-        lng: result.geometry.location.lng,
-        type: 'geocoded' as const,
-        placeId: `geocoded-${index}`
-      }));
+      const locationResults: LocationData[] = geocodeResults
+        .filter(result => 
+          result && 
+          result.formatted_address && 
+          result.geometry?.location?.lat && 
+          result.geometry?.location?.lng
+        )
+        .map((result, index) => ({
+          address: result.formatted_address,
+          lat: result.geometry.location.lat,
+          lng: result.geometry.location.lng,
+          type: 'geocoded' as const,
+          placeId: `geocoded-${index}`
+        }));
 
       setResults(locationResults.slice(0, 5));
     } catch (error) {

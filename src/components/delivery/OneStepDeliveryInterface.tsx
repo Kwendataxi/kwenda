@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { smartLocationService } from '@/services/smartLocationService';
+
 import SimpleLocationSearch from './SimpleLocationSearch';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
@@ -80,11 +80,37 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
 
   // Auto-détecter position actuelle au chargement
   useEffect(() => {
-    smartLocationService.getCurrentLocation()
-      .then(location => setPickup(location))
-      .catch(() => {
-        // Silence, fallback déjà géré dans le service
-      });
+    const getCurrentLocation = async () => {
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000
+          });
+        });
+
+        const location: LocationData = {
+          address: "Position actuelle",
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          type: 'current'
+        };
+
+        setPickup(location);
+      } catch (error) {
+        console.warn('Position actuelle non disponible:', error);
+        // Fallback vers centre-ville Kinshasa
+        setPickup({
+          address: "Centre-ville, Kinshasa",
+          lat: -4.3250,
+          lng: 15.3222,
+          type: 'popular'
+        });
+      }
+    };
+
+    getCurrentLocation();
   }, []);
   // Sélection par défaut si non fournie
   useEffect(() => {
