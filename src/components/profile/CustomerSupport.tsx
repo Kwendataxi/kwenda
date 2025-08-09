@@ -1,71 +1,206 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Phone, Mail, MessageCircle, HelpCircle, Clock, CheckCircle, AlertCircle, Send } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Phone, Mail, MessageCircle, ChevronDown, ChevronUp, Send, Ticket, Star, Clock, CheckCircle, AlertCircle } from "lucide-react";
 
-export const CustomerSupport = () => {
+const CustomerSupport = () => {
   const { toast } = useToast();
-  const [ticketForm, setTicketForm] = useState({
-    subject: '',
-    category: '',
-    priority: 'medium',
-    description: '',
-  });
+  const { user } = useAuth();
+  
+  // Form state
+  const [subject, setSubject] = useState("");
+  const [category, setCategory] = useState("");
+  const [priority, setPriority] = useState("medium");
+  const [description, setDescription] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Tickets state
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [isLoadingTickets, setIsLoadingTickets] = useState(true);
 
-  const handleSubmitTicket = () => {
-    if (!ticketForm.subject || !ticketForm.category || !ticketForm.description) {
+  // Load user tickets
+  useEffect(() => {
+    if (user) {
+      fetchTickets();
+    }
+  }, [user]);
+
+  // Load messages when ticket is selected
+  useEffect(() => {
+    if (selectedTicket) {
+      fetchMessages(selectedTicket.id);
+    }
+  }, [selectedTicket]);
+
+  const fetchTickets = async () => {
+    if (!user) return;
+    
+    setIsLoadingTickets(true);
+    try {
+      const { data, error } = await supabase
+        .from('enhanced_support_tickets')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTickets(data || []);
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
       toast({
-        title: "Champs requis",
-        description: "Veuillez remplir tous les champs obligatoires.",
+        title: "Erreur",
+        description: "Impossible de charger vos tickets",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingTickets(false);
+    }
+  };
+
+  const fetchMessages = async (ticketId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('support_messages')
+        .select('*')
+        .eq('ticket_id', ticketId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setMessages(data || []);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+  const handleSubmitTicket = async () => {
+    if (!user) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez être connecté pour créer un ticket",
         variant: "destructive",
       });
       return;
     }
 
-    toast({
-      title: "Ticket créé",
-      description: "Votre demande a été envoyée. Nous vous répondrons sous 24h.",
-    });
+    if (!subject.trim() || !category || !description.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    setTicketForm({
-      subject: '',
-      category: '',
-      priority: 'medium',
-      description: '',
-    });
+    setIsSubmitting(true);
+    try {
+      const { data, error } = await supabase
+        .rpc('create_support_ticket', {
+          p_user_id: user.id,
+          p_subject: subject.trim(),
+          p_category: category,
+          p_description: description.trim(),
+          p_priority: priority,
+          p_metadata: { user_type: 'client' }
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Ticket créé",
+        description: `Votre ticket #${data[0]?.ticket_number} a été créé avec succès`,
+        variant: "default",
+      });
+
+      // Reset form and refresh tickets
+      setSubject("");
+      setCategory("");
+      setPriority("medium");
+      setDescription("");
+      fetchTickets();
+    } catch (error) {
+      console.error('Error creating ticket:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le ticket",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  const handleSendMessage = async () => {
+    if (!selectedTicket || !newMessage.trim() || !user) return;
+
+    try {
+      const { error } = await supabase
+        .from('support_messages')
+        .insert([{
+          ticket_id: selectedTicket.id,
+          sender_id: user.id,
+          sender_type: 'user',
+          message: newMessage.trim()
+        }]);
+
+      if (error) throw error;
+
+      setNewMessage("");
+      fetchMessages(selectedTicket.id);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'envoyer le message",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Contact methods
   const contactMethods = [
     {
+      type: "phone",
+      title: "Téléphone",
+      description: "Support téléphonique",
+      contact: "+243 XX XXX XXXX",
+      availability: "Lun-Ven 8h-18h",
       icon: Phone,
-      title: 'Téléphone',
-      value: '+243 123 456 789',
-      description: 'Lun-Ven 8h-18h',
-      available: true,
+      available: true
     },
     {
+      type: "email",
+      title: "Email",
+      description: "Support par email",
+      contact: "support@kwenda.app",
+      availability: "Réponse sous 24h",
       icon: Mail,
-      title: 'Email',
-      value: 'support@kwenda.cd',
-      description: 'Réponse sous 24h',
-      available: true,
+      available: true
     },
     {
+      type: "chat",
+      title: "Chat en direct",
+      description: "Support instantané",
+      contact: "Disponible maintenant",
+      availability: "24h/24",
       icon: MessageCircle,
-      title: 'Chat en direct',
-      value: 'Disponible maintenant',
-      description: 'Réponse immédiate',
-      available: false,
-    },
+      available: false
+    }
   ];
 
+  // FAQ items
   const faqItems = [
     {
       question: "Comment puis-je annuler ma course ?",
@@ -86,211 +221,306 @@ export const CustomerSupport = () => {
     {
       question: "Mes données sont-elles sécurisées ?",
       answer: "Oui, nous utilisons un chiffrement de niveau bancaire pour protéger vos données personnelles et financières. Vos informations ne sont jamais partagées avec des tiers sans votre consentement."
-    },
+    }
   ];
 
-  const mockTickets = [
-    {
-      id: '001',
-      subject: 'Problème de paiement',
-      status: 'En cours',
-      priority: 'high',
-      date: '2024-01-15',
-      category: 'Paiement'
-    },
-    {
-      id: '002',
-      subject: 'Course non effectuée',
-      status: 'Résolu',
-      priority: 'medium',
-      date: '2024-01-12',
-      category: 'Transport'
-    },
-  ];
-
+  // Helper functions
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'En cours': return <Clock className="w-4 h-4" />;
-      case 'Résolu': return <CheckCircle className="w-4 h-4" />;
+      case 'open': return <AlertCircle className="w-4 h-4 text-orange-500" />;
+      case 'in_progress': return <Clock className="w-4 h-4 text-blue-500" />;
+      case 'resolved': return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'closed': return <CheckCircle className="w-4 h-4 text-gray-500" />;
       default: return <AlertCircle className="w-4 h-4" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'En cours': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-      case 'Résolu': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+      case 'open': return "bg-orange-100 text-orange-800 border-orange-200";
+      case 'in_progress': return "bg-blue-100 text-blue-800 border-blue-200";
+      case 'resolved': return "bg-green-100 text-green-800 border-green-200";
+      case 'closed': return "bg-gray-100 text-gray-800 border-gray-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'low': return "bg-green-100 text-green-800 border-green-200";
+      case 'medium': return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case 'high': return "bg-red-100 text-red-800 border-red-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 max-w-4xl mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-2">Centre d'assistance</h2>
-        <p className="text-muted-foreground">Nous sommes là pour vous aider</p>
+    <div className="space-y-6 p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-primary/10 rounded-lg">
+          <MessageCircle className="w-6 h-6 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold">Support Client</h1>
+          <p className="text-muted-foreground">Nous sommes là pour vous aider</p>
+        </div>
       </div>
 
-      {/* Contact Methods */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        {contactMethods.map((method) => {
-          const IconComponent = method.icon;
-          return (
-            <Card key={method.title} className={`hover:shadow-md transition-shadow ${!method.available ? 'opacity-60' : ''}`}>
-              <CardContent className="p-4 text-center">
-                <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
-                  method.available ? 'bg-primary/10' : 'bg-muted'
-                }`}>
-                  <IconComponent className={`w-6 h-6 ${method.available ? 'text-primary' : 'text-muted-foreground'}`} />
-                </div>
-                <h3 className="font-semibold mb-1">{method.title}</h3>
-                <p className="text-sm font-medium mb-1">{method.value}</p>
-                <p className="text-xs text-muted-foreground">{method.description}</p>
-                {!method.available && (
-                  <Badge variant="secondary" className="mt-2">Bientôt disponible</Badge>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* New Ticket Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Send className="w-5 h-5" />
-              Créer un ticket
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="subject">Sujet *</Label>
-              <Input
-                id="subject"
-                value={ticketForm.subject}
-                onChange={(e) => setTicketForm(prev => ({ ...prev, subject: e.target.value }))}
-                placeholder="Décrivez brièvement votre problème"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="category">Catégorie *</Label>
-                <Select
-                  value={ticketForm.category}
-                  onValueChange={(value) => setTicketForm(prev => ({ ...prev, category: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="transport">Transport</SelectItem>
-                    <SelectItem value="payment">Paiement</SelectItem>
-                    <SelectItem value="account">Compte</SelectItem>
-                    <SelectItem value="technical">Technique</SelectItem>
-                    <SelectItem value="other">Autre</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="priority">Priorité</Label>
-                <Select
-                  value={ticketForm.priority}
-                  onValueChange={(value) => setTicketForm(prev => ({ ...prev, priority: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Faible</SelectItem>
-                    <SelectItem value="medium">Moyenne</SelectItem>
-                    <SelectItem value="high">Élevée</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="description">Description *</Label>
-              <Textarea
-                id="description"
-                value={ticketForm.description}
-                onChange={(e) => setTicketForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Décrivez votre problème en détail..."
-                rows={4}
-              />
-            </div>
-
-            <Button onClick={handleSubmitTicket} className="w-full">
-              <Send className="w-4 h-4 mr-2" />
-              Envoyer le ticket
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* My Tickets */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <HelpCircle className="w-5 h-5" />
-              Mes tickets
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {mockTickets.length === 0 ? (
-              <div className="text-center py-8">
-                <HelpCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Aucun ticket pour le moment</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {mockTickets.map((ticket) => (
-                  <div key={ticket.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium truncate">{ticket.subject}</h4>
-                        <p className="text-sm text-muted-foreground">#{ticket.id} • {ticket.category}</p>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Contact Methods */}
+        <div className="lg:col-span-3">
+          <h2 className="text-lg font-semibold mb-4">Nous contacter</h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            {contactMethods.map((method, index) => {
+              const IconComponent = method.icon;
+              return (
+                <Card key={index} className="transition-all duration-200 hover:shadow-md">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <IconComponent className="w-5 h-5 text-blue-600" />
                       </div>
-                      <div className="ml-4 text-right">
-                        <Badge className={getStatusColor(ticket.status)}>
-                          {getStatusIcon(ticket.status)}
-                          <span className="ml-1">{ticket.status}</span>
-                        </Badge>
-                        <p className="text-xs text-muted-foreground mt-1">{ticket.date}</p>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm">{method.title}</h3>
+                        <p className="text-xs text-muted-foreground mb-2">{method.description}</p>
+                        <p className="font-mono text-sm text-primary">{method.contact}</p>
+                        <p className="text-xs text-muted-foreground">{method.availability}</p>
+                        {!method.available && (
+                          <Badge variant="secondary" className="mt-2 text-xs">Bientôt disponible</Badge>
+                        )}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
 
-      {/* FAQ Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <HelpCircle className="w-5 h-5" />
-            Questions fréquentes
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Accordion type="single" collapsible className="w-full">
-            {faqItems.map((item, index) => (
-              <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger className="text-left">{item.question}</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  {item.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </CardContent>
-      </Card>
+        {/* Create Ticket Form */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Ticket className="w-5 h-5" />
+                Créer un Ticket de Support
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Catégorie *</label>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez une catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="transport">Transport</SelectItem>
+                      <SelectItem value="paiement">Paiement</SelectItem>
+                      <SelectItem value="compte">Compte</SelectItem>
+                      <SelectItem value="livraison">Livraison</SelectItem>
+                      <SelectItem value="marketplace">Marketplace</SelectItem>
+                      <SelectItem value="technique">Technique</SelectItem>
+                      <SelectItem value="autre">Autre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Priorité</label>
+                  <Select value={priority} onValueChange={setPriority}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Faible</SelectItem>
+                      <SelectItem value="medium">Moyenne</SelectItem>
+                      <SelectItem value="high">Élevée</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Sujet *</label>
+                <Input
+                  placeholder="Décrivez brièvement votre problème"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description détaillée *</label>
+                <Textarea
+                  placeholder="Décrivez votre problème en détail..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={4}
+                />
+              </div>
+
+              <Button 
+                onClick={handleSubmitTicket}
+                disabled={isSubmitting || !user}
+                className="w-full"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                {isSubmitting ? "Envoi en cours..." : "Envoyer le Ticket"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* User Tickets Section */}
+        <div className="lg:col-span-1">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Ticket className="w-5 h-5" />
+                Mes Tickets
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoadingTickets ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <p className="mt-2 text-muted-foreground text-sm">Chargement...</p>
+                </div>
+              ) : (
+                <ScrollArea className="h-64">
+                  <div className="space-y-3">
+                    {tickets.map((ticket) => (
+                      <div 
+                        key={ticket.id} 
+                        className={`border rounded-lg p-3 hover:bg-muted/50 transition-colors cursor-pointer text-sm ${
+                          selectedTicket?.id === ticket.id ? 'border-primary bg-primary/5' : ''
+                        }`}
+                        onClick={() => setSelectedTicket(ticket)}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {ticket.ticket_number}
+                          </span>
+                          <Badge className={getStatusColor(ticket.status)}>
+                            {getStatusIcon(ticket.status)}
+                          </Badge>
+                        </div>
+                        <h4 className="font-medium mb-1">{ticket.subject}</h4>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(ticket.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
+                    {tickets.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Ticket className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">Aucun ticket</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Ticket Detail and Chat */}
+        {selectedTicket && (
+          <div className="lg:col-span-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5" />
+                  {selectedTicket.subject}
+                  <Badge className={getStatusColor(selectedTicket.status)}>
+                    {selectedTicket.status.replace('_', ' ')}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="bg-muted/50 p-4 rounded-lg">
+                    <p className="text-sm">{selectedTicket.description}</p>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Conversation</h4>
+                    <ScrollArea className="h-64 border rounded-lg p-4">
+                      <div className="space-y-4">
+                        {messages.map((message) => (
+                          <div 
+                            key={message.id}
+                            className={`flex ${message.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}
+                          >
+                            <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                              message.sender_type === 'user' 
+                                ? 'bg-primary text-primary-foreground' 
+                                : 'bg-muted'
+                            }`}>
+                              <p className="text-sm">{message.message}</p>
+                              <span className="text-xs opacity-70">
+                                {new Date(message.created_at).toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                    
+                    {selectedTicket.status !== 'closed' && (
+                      <div className="flex gap-2">
+                        <Textarea
+                          placeholder="Tapez votre message..."
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          className="flex-1"
+                          rows={3}
+                        />
+                        <Button 
+                          onClick={handleSendMessage}
+                          disabled={!newMessage.trim()}
+                          size="sm"
+                        >
+                          <Send className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* FAQ Section */}
+        <div className="lg:col-span-3">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="w-5 h-5" />
+                Questions Fréquentes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Accordion type="single" collapsible className="w-full">
+                {faqItems.map((item, index) => (
+                  <AccordionItem key={index} value={`item-${index}`}>
+                    <AccordionTrigger className="text-left">{item.question}</AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground">
+                      {item.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };
+
+export default CustomerSupport;

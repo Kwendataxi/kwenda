@@ -3866,6 +3866,29 @@ export type Database = {
         Args: { zone_id_param: string; vehicle_class_param: string }
         Returns: number
       }
+      create_support_ticket: {
+        Args: {
+          p_user_id: string
+          p_subject: string
+          p_category: string
+          p_description: string
+          p_priority?: string
+          p_metadata?: Json
+        }
+        Returns: {
+          id: string
+          ticket_number: string
+          user_id: string
+          subject: string
+          category: string
+          priority: string
+          status: string
+          description: string
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }[]
+      }
       generate_driver_code: {
         Args: Record<PropertyKey, never>
         Returns: string

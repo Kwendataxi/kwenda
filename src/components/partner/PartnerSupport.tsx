@@ -164,24 +164,20 @@ const PartnerSupport = () => {
     setIsSubmitting(true);
     try {
       const { data, error } = await supabase
-        .from('enhanced_support_tickets')
-        .insert({
-          user_id: user.id,
-          subject: subject.trim(),
-          category,
-          priority,
-          description: description.trim(),
-          status: 'open',
-          metadata: { user_type: 'partner' }
-        })
-        .select()
-        .single();
+        .rpc('create_support_ticket', {
+          p_user_id: user.id,
+          p_subject: subject.trim(),
+          p_category: category,
+          p_description: description.trim(),
+          p_priority: priority,
+          p_metadata: { user_type: 'partner' }
+        });
 
       if (error) throw error;
 
       toast({
         title: "Ticket créé",
-        description: `Votre ticket #${data.ticket_number} a été créé avec succès`,
+        description: `Votre ticket #${data[0]?.ticket_number} a été créé avec succès`,
         variant: "default",
       });
 

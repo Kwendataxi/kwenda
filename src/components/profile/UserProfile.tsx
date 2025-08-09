@@ -20,7 +20,7 @@ import { ActivityHistory } from './ActivityHistory';
 import { KwendaPayWallet } from '../wallet/KwendaPayWallet';
 import ReferralSystem from '../advanced/ReferralSystem';
 import { UserAddressesManager } from './UserAddressesManager';
-import { CustomerSupport } from './CustomerSupport';
+import CustomerSupport from './CustomerSupport';
 import { DriverUpgrade } from './DriverUpgrade';
 import { TeamAccountManager } from './TeamAccountManager';
 import { UserSettings } from './UserSettings';
