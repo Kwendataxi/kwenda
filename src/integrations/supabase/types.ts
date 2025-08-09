@@ -3448,6 +3448,72 @@ export type Database = {
           },
         ]
       }
+      user_notification_preferences: {
+        Row: {
+          chat_messages: boolean
+          created_at: string
+          delivery_updates: boolean
+          digest_frequency: string
+          driver_updates: boolean
+          id: string
+          marketplace_updates: boolean
+          payment_alerts: boolean
+          priority_only: boolean
+          promotions: boolean
+          push_enabled: boolean
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          ride_updates: boolean
+          sound_enabled: boolean
+          system_alerts: boolean
+          updated_at: string
+          user_id: string
+          vibration_enabled: boolean
+        }
+        Insert: {
+          chat_messages?: boolean
+          created_at?: string
+          delivery_updates?: boolean
+          digest_frequency?: string
+          driver_updates?: boolean
+          id?: string
+          marketplace_updates?: boolean
+          payment_alerts?: boolean
+          priority_only?: boolean
+          promotions?: boolean
+          push_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          ride_updates?: boolean
+          sound_enabled?: boolean
+          system_alerts?: boolean
+          updated_at?: string
+          user_id: string
+          vibration_enabled?: boolean
+        }
+        Update: {
+          chat_messages?: boolean
+          created_at?: string
+          delivery_updates?: boolean
+          digest_frequency?: string
+          driver_updates?: boolean
+          id?: string
+          marketplace_updates?: boolean
+          payment_alerts?: boolean
+          priority_only?: boolean
+          promotions?: boolean
+          push_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          ride_updates?: boolean
+          sound_enabled?: boolean
+          system_alerts?: boolean
+          updated_at?: string
+          user_id?: string
+          vibration_enabled?: boolean
+        }
+        Relationships: []
+      }
       user_notifications: {
         Row: {
           action_label: string | null

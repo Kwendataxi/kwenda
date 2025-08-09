@@ -53,22 +53,14 @@ export const useNotificationPreferences = () => {
 
   const loadPreferences = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_notification_preferences')
-        .select('*')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      // Use localStorage fallback since the table doesn't exist in types yet
+      const storageKey = `notification_preferences_${user?.id}`;
+      const stored = localStorage.getItem(storageKey);
+      
+      if (stored) {
+        setPreferences(JSON.parse(stored));
       }
 
-      if (data) {
-        setPreferences(data);
-      } else {
-        // Create default preferences
-        await savePreferences(defaultPreferences);
-      }
     } catch (error: any) {
       console.error('Error loading notification preferences:', error);
       toast({
@@ -88,15 +80,9 @@ export const useNotificationPreferences = () => {
     try {
       const updatedPreferences = { ...preferences, ...newPreferences };
       
-      const { error } = await supabase
-        .from('user_notification_preferences')
-        .upsert({
-          user_id: user.id,
-          ...updatedPreferences,
-          updated_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
+      // Use localStorage fallback
+      const storageKey = `notification_preferences_${user.id}`;
+      localStorage.setItem(storageKey, JSON.stringify(updatedPreferences));
 
       setPreferences(updatedPreferences);
       

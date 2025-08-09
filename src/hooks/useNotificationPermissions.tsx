@@ -82,7 +82,6 @@ export const useNotificationPermissions = () => {
         icon: '/android-chrome-192x192.png',
         badge: '/android-chrome-192x192.png',
         tag: 'kwenda-notification',
-        renotify: true,
         ...options
       });
 
