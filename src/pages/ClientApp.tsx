@@ -57,7 +57,7 @@ import DeliveryTracking from '@/components/delivery/DeliveryTracking';
 import YangoStyleDeliveryInterface from '@/components/delivery/YangoStyleDeliveryInterface';
 
 // Rental components
-import VehicleRentalInterface from '@/components/rental/VehicleRentalInterface';
+import ModernVehicleRentalInterface from '@/components/rental/ModernVehicleRentalInterface';
 
 // Marketplace components
 import { ModernProductCard } from '@/components/marketplace/ModernProductCard';
@@ -309,7 +309,7 @@ const ClientApp = () => {
     } else if (service === 'marketplace') {
       setMarketplaceTab('explore');
     } else if (service === 'rental') {
-      // Handle rental service
+      setRentalStep('interface');
     }
   };
 
@@ -460,7 +460,7 @@ const ClientApp = () => {
     }
 
     return (
-      <VehicleRentalInterface
+      <ModernVehicleRentalInterface
         onCancel={() => setCurrentView('home')}
         onBookingComplete={handleRentalBookingComplete}
       />

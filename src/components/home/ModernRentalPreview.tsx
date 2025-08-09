@@ -33,14 +33,9 @@ const ModernRentalPreview = ({ onOpenRental }: ModernRentalPreviewProps) => {
     return <IconComponent className={className || "w-6 h-6"} />;
   };
 
-  const getCategoryColor = (categoryName: string) => {
-    const colors = {
-      'Eco': 'from-green-500 to-emerald-600',
-      'Premium': 'from-blue-500 to-indigo-600', 
-      'First Class': 'from-purple-500 to-pink-600',
-      'Utilitaires': 'from-orange-500 to-red-600'
-    };
-    return colors[categoryName as keyof typeof colors] || 'from-primary to-primary-glow';
+  const getCategoryColor = (_categoryName: string) => {
+    // Use design system semantic tokens for consistent theming
+    return 'from-primary to-primary-glow';
   };
 
   const featuredCategories = categories.slice(0, 4);
@@ -78,7 +73,7 @@ const ModernRentalPreview = ({ onOpenRental }: ModernRentalPreviewProps) => {
           return (
             <Card 
               key={category.id}
-              className="group cursor-pointer rounded-2xl border-2 hover:border-primary/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg overflow-hidden"
+              className="group cursor-pointer rounded-2xl border-2 hover:border-primary/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg overflow-hidden animate-fade-in"
               onClick={onOpenRental}
             >
               <CardContent className="p-0">

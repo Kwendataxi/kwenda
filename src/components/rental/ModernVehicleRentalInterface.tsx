@@ -77,14 +77,9 @@ const ModernVehicleRentalInterface = ({ onCancel, onBookingComplete }: ModernVeh
     return <IconComponent className={className || "w-6 h-6"} />;
   };
 
-  const getCategoryColor = (categoryName: string) => {
-    const colors = {
-      'Eco': 'from-green-500 to-emerald-600',
-      'Premium': 'from-blue-500 to-indigo-600', 
-      'First Class': 'from-purple-500 to-pink-600',
-      'Utilitaires': 'from-orange-500 to-red-600'
-    };
-    return colors[categoryName as keyof typeof colors] || 'from-primary to-primary-glow';
+  const getCategoryColor = (_categoryName: string) => {
+    // Use design system semantic tokens for consistent theming
+    return 'from-primary to-primary-glow';
   };
 
   const renderCitySelection = () => (

@@ -137,6 +137,38 @@ export function useModernRentals(selectedCity?: string) {
     enabled: !!userLocation,
   });
 
+  // Realtime updates for rentals (categories, vehicles, pricing)
+  useEffect(() => {
+    const channel = supabase
+      .channel('modern-rentals-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rental_vehicles' },
+        () => {
+          qc.invalidateQueries({ queryKey: ['modern-rental-vehicles', userLocation] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rental_vehicle_categories' },
+        () => {
+          qc.invalidateQueries({ queryKey: ['modern-rental-categories'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rental_city_pricing' },
+        () => {
+          qc.invalidateQueries({ queryKey: ['city-pricing', userLocation] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc, userLocation]);
+
   // Calculer le prix avec multiplier de ville
   const calculateCityPrice = (basePrice: number, categoryId?: string): number => {
     if (!pricingQuery.data) return basePrice;
