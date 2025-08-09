@@ -245,7 +245,15 @@ serve(async (req) => {
         reference_type: service_type,
         metadata: {
           transaction_id: transactionId,
-          commission_breakdown: { adminAmount, driverAmount, partnerAmount, driverNetAmount, platformAmount }
+          commission_breakdown: { 
+            total_amount: amount,
+            admin_amount: adminAmount, 
+            driver_amount_gross: driverAmount, 
+            partner_amount: partnerAmount, 
+            driver_amount_net: driverNetAmount, 
+            platform_amount: platformAmount 
+          },
+          service_details: { service_type, booking_id, delivery_id }
         }
       },
       // Driver earnings (net)
@@ -259,7 +267,21 @@ serve(async (req) => {
         reference_type: service_type,
         metadata: {
           transaction_id: transactionId,
-          commission_rates: { driver: commissionSettings.driver_rate, partner: partnerRate }
+          commission_breakdown: {
+            total_amount: amount,
+            driver_amount_gross: driverAmount,
+            partner_amount: partnerAmount,
+            driver_amount_net: typeof driverNetAmount === 'number' ? driverNetAmount : driverAmount,
+            admin_amount: adminAmount,
+            platform_amount: platformAmount
+          },
+          commission_rates: { 
+            driver: commissionSettings.driver_rate, 
+            partner: partnerRate,
+            admin: commissionSettings.admin_rate,
+            platform: commissionSettings.platform_rate
+          },
+          service_details: { service_type, booking_id, delivery_id }
         }
       }
     ];

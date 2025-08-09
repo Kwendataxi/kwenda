@@ -24,6 +24,20 @@ interface Transaction {
   reference_id?: string;
   balance_after: number;
   created_at: string;
+  metadata?: {
+    commission_breakdown?: {
+      total_amount?: number;
+      driver_amount_gross?: number;
+      partner_amount?: number;
+      driver_amount_net?: number;
+      admin_amount?: number;
+      platform_amount?: number;
+    };
+    commission_rates?: {
+      driver?: number;
+      partner?: number;
+    };
+  };
 }
 
 export const DriverTransactionHistory: React.FC = () => {
@@ -319,37 +333,86 @@ export const DriverTransactionHistory: React.FC = () => {
               {filteredTransactions.map((transaction) => (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="border rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex items-center space-x-3">
-                    {getTransactionIcon(transaction.transaction_type)}
-                    <div>
-                      <p className="font-medium">{transaction.description}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDate(transaction.created_at)}
-                        {transaction.payment_method && (
-                          <span className="ml-2">via {transaction.payment_method}</span>
-                        )}
+                  <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center space-x-3">
+                      {getTransactionIcon(transaction.transaction_type)}
+                      <div>
+                        <p className="font-medium">{transaction.description}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatDate(transaction.created_at)}
+                          {transaction.payment_method && (
+                            <span className="ml-2">via {transaction.payment_method}</span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <p className={`font-semibold ${
+                        transaction.transaction_type === 'credit' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {transaction.transaction_type === 'credit' ? '+' : '-'}
+                        {formatAmount(transaction.amount, transaction.currency)}
                       </p>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant={getStatusBadgeVariant(transaction.status)}>
+                          {transaction.status}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">
+                          Solde: {formatAmount(transaction.balance_after, transaction.currency)}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="text-right">
-                    <p className={`font-semibold ${
-                      transaction.transaction_type === 'credit' ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {transaction.transaction_type === 'credit' ? '+' : '-'}
-                      {formatAmount(transaction.amount, transaction.currency)}
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant={getStatusBadgeVariant(transaction.status)}>
-                        {transaction.status}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        Solde: {formatAmount(transaction.balance_after, transaction.currency)}
-                      </span>
+
+                  {/* Commission breakdown for earnings */}
+                  {transaction.transaction_type === 'credit' && 
+                   transaction.metadata?.commission_breakdown && (
+                    <div className="px-4 pb-4 border-t bg-muted/20">
+                      <div className="pt-3">
+                        <p className="text-sm font-medium text-muted-foreground mb-2">
+                          Détail des frais:
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="flex justify-between">
+                            <span>Prix total course:</span>
+                            <span className="font-medium">
+                              {formatAmount(transaction.metadata.commission_breakdown.total_amount || 0)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Part chauffeur brute:</span>
+                            <span className="font-medium">
+                              {formatAmount(transaction.metadata.commission_breakdown.driver_amount_gross || 0)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-red-600">
+                            <span>- Frais Kwenda:</span>
+                            <span className="font-medium">
+                              -{formatAmount((transaction.metadata.commission_breakdown.admin_amount || 0) + 
+                                            (transaction.metadata.commission_breakdown.platform_amount || 0))}
+                            </span>
+                          </div>
+                          {(transaction.metadata.commission_breakdown.partner_amount || 0) > 0 && (
+                            <div className="flex justify-between text-orange-600">
+                              <span>- Frais partenaire ({transaction.metadata.commission_rates?.partner || 0}%):</span>
+                              <span className="font-medium">
+                                -{formatAmount(transaction.metadata.commission_breakdown.partner_amount || 0)}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex justify-between text-green-600 font-semibold border-t pt-1">
+                            <span>Montant net reçu:</span>
+                            <span>
+                              {formatAmount(transaction.metadata.commission_breakdown.driver_amount_net || 0)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               ))}
             </div>
