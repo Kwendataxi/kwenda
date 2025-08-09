@@ -71,10 +71,12 @@ export const MobileDriverInterface: React.FC<MobileDriverInterfaceProps> = ({
   );
 
   const renderCompactStats = () => (
-    <LazyLoadWrapper>
+    <LazyLoadWrapper immediate>
       <OptimizedGrid 
         className="grid-cols-3 gap-3 mb-6"
         itemsPerPage={3}
+        fullRender
+        showNotice={false}
       >
         {[
           {
@@ -114,7 +116,7 @@ export const MobileDriverInterface: React.FC<MobileDriverInterfaceProps> = ({
   );
 
   const renderQuickActions = () => (
-    <LazyLoadWrapper>
+    <LazyLoadWrapper immediate>
       <Card className="border-border/50 mb-6">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -254,7 +256,7 @@ export const MobileDriverInterface: React.FC<MobileDriverInterfaceProps> = ({
     if (!activeBooking) return null;
 
     return (
-      <LazyLoadWrapper>
+      <LazyLoadWrapper immediate>
         <Card className="shadow-lg">
           <CardHeader>
             <div className="flex items-center justify-between">

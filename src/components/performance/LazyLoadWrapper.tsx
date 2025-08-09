@@ -7,6 +7,7 @@ interface LazyLoadWrapperProps {
   threshold?: number;
   rootMargin?: string;
   className?: string;
+  immediate?: boolean;
 }
 
 export const LazyLoadWrapper: React.FC<LazyLoadWrapperProps> = ({
@@ -14,19 +15,25 @@ export const LazyLoadWrapper: React.FC<LazyLoadWrapperProps> = ({
   fallback,
   threshold = 0.1,
   rootMargin = '50px',
-  className = ''
+  className = '',
+  immediate = false
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+useEffect(() => {
+    if (immediate) {
+      setIsVisible(true);
+      setIsLoaded(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-          // Simulate loading time
-          setTimeout(() => setIsLoaded(true), 300);
+          setIsLoaded(true);
           observer.disconnect();
         }
       },
@@ -38,7 +45,7 @@ export const LazyLoadWrapper: React.FC<LazyLoadWrapperProps> = ({
     }
 
     return () => observer.disconnect();
-  }, [threshold, rootMargin]);
+  }, [threshold, rootMargin, immediate]);
 
   return (
     <div ref={ref} className={className}>

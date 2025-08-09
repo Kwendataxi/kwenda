@@ -7,29 +7,36 @@ interface OptimizedGridProps {
   className?: string;
   itemsPerPage?: number;
   enableVirtualization?: boolean;
+  fullRender?: boolean;
+  showNotice?: boolean;
 }
 
 export const OptimizedGrid: React.FC<OptimizedGridProps> = ({
   children,
   className = '',
   itemsPerPage = 20,
-  enableVirtualization = false
+  enableVirtualization = false,
+  fullRender = false,
+  showNotice = true
 }) => {
   const { isSlowConnection, isLowMemory } = usePerformanceMonitor();
 
-  // Reduce items for slow connections or low memory
+// Reduce items for slow connections or low memory
   const optimizedItemCount = useMemo(() => {
+    if (fullRender) {
+      return children.length;
+    }
     if (isSlowConnection || isLowMemory) {
-      return Math.min(itemsPerPage / 2, children.length);
+      return Math.min(Math.floor(itemsPerPage / 2), children.length);
     }
     return Math.min(itemsPerPage, children.length);
-  }, [isSlowConnection, isLowMemory, itemsPerPage, children.length]);
+  }, [fullRender, isSlowConnection, isLowMemory, itemsPerPage, children.length]);
 
   const itemsToShow = useMemo(() => {
     return children.slice(0, optimizedItemCount);
   }, [children, optimizedItemCount]);
 
-  if (enableVirtualization && (isSlowConnection || isLowMemory)) {
+if (enableVirtualization && !fullRender && (isSlowConnection || isLowMemory)) {
     // Simple virtualization: only render visible items
     return (
       <div className={`grid gap-4 ${className}`}>
@@ -38,7 +45,7 @@ export const OptimizedGrid: React.FC<OptimizedGridProps> = ({
             {child}
           </LazyLoadWrapper>
         ))}
-        {children.length > optimizedItemCount && (
+        {showNotice && children.length > optimizedItemCount && (
           <div className="col-span-full text-center p-4">
             <p className="text-sm text-muted-foreground">
               {children.length - optimizedItemCount} éléments supplémentaires masqués pour optimiser les performances
@@ -49,10 +56,10 @@ export const OptimizedGrid: React.FC<OptimizedGridProps> = ({
     );
   }
 
-  return (
+return (
     <div className={`grid gap-4 ${className}`}>
       {itemsToShow}
-      {children.length > optimizedItemCount && (
+      {showNotice && children.length > optimizedItemCount && (
         <div className="col-span-full text-center p-4">
           <p className="text-sm text-muted-foreground">
             Chargement optimisé: {optimizedItemCount} sur {children.length} éléments
