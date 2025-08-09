@@ -11,6 +11,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import { ModernZoneManagementDashboard } from '@/components/admin/zones/ModernZoneManagementDashboard';
+import NextGenDispatchMonitor from '@/components/admin/NextGenDispatchMonitor';
 import { DriverFinancialManager } from '@/components/admin/DriverFinancialManager';
 import { AdvancedSupportCenter } from '@/components/admin/AdvancedSupportCenter';
 import { ResponsiveAdminLayout } from '@/components/admin/ResponsiveAdminLayout';
