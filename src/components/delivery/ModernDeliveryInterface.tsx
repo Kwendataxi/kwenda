@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import OneStepDeliveryInterface from './OneStepDeliveryInterface';
-import DeliveryTracking from './DeliveryTracking';
+import DeliveryLiveTracker from './DeliveryLiveTracker';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ModernDeliveryInterfaceProps {
@@ -38,7 +38,7 @@ const ModernDeliveryInterface = ({
 
   if (currentView === 'tracking' && orderData) {
     return (
-      <DeliveryTracking
+      <DeliveryLiveTracker
         orderId={orderData.orderId}
         orderData={orderData}
         onBack={handleBackToMain}
