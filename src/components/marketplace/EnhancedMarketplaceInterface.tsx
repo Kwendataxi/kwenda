@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Package, Store, User, Plus, ArrowLeft } from 'lucide-react';
+import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -396,7 +396,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
         <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as any)}>
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="shop" className="flex items-center gap-2">
-              <Store className="w-4 h-4" />
+              <ShoppingBag className="w-4 h-4" />
               Boutique
             </TabsTrigger>
             <TabsTrigger value="sell" className="flex items-center gap-2">
@@ -404,11 +404,11 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
               Vendre
             </TabsTrigger>
             <TabsTrigger value="orders" className="flex items-center gap-2">
-              <Package className="w-4 h-4" />
+              <CartIcon className="w-4 h-4" />
               Commandes
             </TabsTrigger>
             <TabsTrigger value="vendor" className="flex items-center gap-2">
-              <User className="w-4 h-4" />
+              <Store className="w-4 h-4" />
               Vendeur
             </TabsTrigger>
           </TabsList>
