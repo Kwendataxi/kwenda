@@ -325,15 +325,29 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
         </Card>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
         {loading ? (
-          Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="bg-card rounded-lg p-4 animate-pulse">
-              <div className="aspect-square bg-muted rounded-lg mb-3"></div>
-              <div className="h-4 bg-muted rounded mb-2"></div>
-              <div className="h-3 bg-muted rounded w-1/2"></div>
-            </div>
+          Array.from({ length: 8 }).map((_, index) => (
+            <Card key={index} className="overflow-hidden animate-pulse">
+              <div className="aspect-square bg-muted"></div>
+              <div className="p-4 space-y-3">
+                <div className="h-4 bg-muted rounded"></div>
+                <div className="h-3 bg-muted rounded w-3/4"></div>
+                <div className="h-4 bg-muted rounded w-1/2"></div>
+                <div className="h-9 bg-muted rounded"></div>
+              </div>
+            </Card>
           ))
+        ) : filteredProducts.length === 0 ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+              <Package className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="font-semibold text-lg mb-2">Aucun produit trouvé</h3>
+            <p className="text-muted-foreground max-w-sm">
+              Essayez de modifier vos critères de recherche ou explorez d'autres catégories
+            </p>
+          </div>
         ) : (
           filteredProducts.map(product => (
             <ModernProductCard
