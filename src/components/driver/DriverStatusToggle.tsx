@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useUnifiedDispatcher } from '@/hooks/useUnifiedDispatcher';
-import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { 
   Power, 
   MapPin, 
@@ -30,31 +30,18 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
     loading 
   } = useUnifiedDispatcher();
   
-  const geolocation = useEnhancedGeolocation();
-  const location = geolocation.enhancedData?.coordinates;
-  const isTracking = geolocation.isTracking;
-  const startTracking = geolocation.startTracking;
-  const stopTracking = geolocation.stopTracking;
+  const { latitude, longitude } = useGeolocation({ watchPosition: true });
 
   const [updating, setUpdating] = useState(false);
 
-  // Auto-update location when online
-  useEffect(() => {
-    if (dispatchStatus.isOnline && !isTracking) {
-      startTracking();
-    } else if (!dispatchStatus.isOnline && isTracking) {
-      stopTracking();
-    }
-  }, [dispatchStatus.isOnline, isTracking, startTracking, stopTracking]);
-
   // Update location in dispatch system
   useEffect(() => {
-      if (location && dispatchStatus.isOnline) {
-        updateDriverStatus({
-          currentLocation: { lat: location.latitude, lng: location.longitude }
-        });
-      }
-  }, [location, dispatchStatus.isOnline, updateDriverStatus]);
+    if (latitude && longitude && dispatchStatus.isOnline) {
+      updateDriverStatus({
+        currentLocation: { lat: latitude, lng: longitude }
+      });
+    }
+  }, [latitude, longitude, dispatchStatus.isOnline, updateDriverStatus]);
 
   const handleOnlineToggle = async (isOnline: boolean) => {
     setUpdating(true);
@@ -67,12 +54,6 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
       if (!success) {
         // Revert if failed
         return;
-      }
-
-      if (isOnline) {
-        startTracking();
-      } else {
-        stopTracking();
       }
     } finally {
       setUpdating(false);
@@ -230,13 +211,13 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
           <div className="pt-3 border-t border-border/50">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <MapPin className="h-3 w-3" />
-               {location ? (
-                <span>Position: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}</span>
+              {latitude && longitude ? (
+                <span>Position: {latitude.toFixed(6)}, {longitude.toFixed(6)}</span>
               ) : (
                 <span>Localisation en cours...</span>
               )}
             </div>
-            {location && (
+            {latitude && longitude && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                 <Clock className="h-3 w-3" />
                 <span>Dernière mise à jour: {new Date().toLocaleTimeString('fr-FR')}</span>

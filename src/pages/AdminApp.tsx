@@ -24,6 +24,7 @@ import { ADMIN_NAVIGATION, ADMIN_ROLE_LABELS } from '@/types/roles';
 import { AdminPricingManager } from '@/components/admin/AdminPricingManager';
 import { AdminFiltersBar } from '@/components/admin/AdminFiltersBar';
 import { AdvancedUserManagement } from '@/components/admin/users/AdvancedUserManagement';
+import UnifiedDispatchMonitor from '@/components/admin/UnifiedDispatchMonitor';
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
 import { 
   LayoutDashboard,
@@ -191,6 +192,22 @@ const AdminApp = () => {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Configuration Tarifaire</h2>
             <AdminPricingManager />
+          </div>
+        </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="dispatch" className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Monitoring des Opérations</h1>
+            <p className="text-muted-foreground">Surveillez en temps réel toutes les commandes et chauffeurs</p>
+          </div>
+        </div>
+        
+        <PermissionGuard requiredPermissions={['transport_admin']}>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Centre de Contrôle Unifié</h2>
+            <UnifiedDispatchMonitor />
           </div>
         </PermissionGuard>
       </TabsContent>
