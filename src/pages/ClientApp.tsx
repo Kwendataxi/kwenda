@@ -54,7 +54,7 @@ import TripChat from '@/components/transport/TripChat';
 // Delivery components
 import ModernDeliveryOrderInterface from '@/components/delivery/ModernDeliveryOrderInterface';
 import DeliveryTracking from '@/components/delivery/DeliveryTracking';
-import YangoStyleDeliveryInterface from '@/components/delivery/YangoStyleDeliveryInterface';
+import ModernDeliveryInterface from '@/components/delivery/ModernDeliveryInterface';
 
 // Rental components
 import ModernVehicleRentalInterface from '@/components/rental/ModernVehicleRentalInterface';
@@ -612,11 +612,9 @@ const ClientApp = () => {
       );
     }
     return (
-      <YangoStyleDeliveryInterface
+      <ModernDeliveryInterface
         onSubmit={(data) => {
-          setDeliveryOrderData(data);
-          setDeliveryId(data.orderId);
-          setDeliveryStep('tracking');
+          // Optionnel: gérer un événement de confirmation externe si nécessaire
           toast({ title: 'Livraison confirmée', description: 'Votre colis sera récupéré sous peu.' });
         }}
         onCancel={() => setCurrentView('home')}
