@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { smartLocationService } from '@/services/smartLocationService';
-import SmartLocationSearch from './SmartLocationSearch';
+import SimpleLocationSearch from './SimpleLocationSearch';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
 import { supabase } from '@/integrations/supabase/client';
@@ -262,7 +262,7 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
                 </Badge>
               )}
             </div>
-            <SmartLocationSearch
+            <SimpleLocationSearch
               placeholder="Où récupérer ?"
               value={pickup?.address || ''}
               onLocationSelect={setPickup}
@@ -276,7 +276,7 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
               <div className="w-3 h-3 rounded-full bg-red-500"></div>
               <span className="text-sm font-medium">Destination</span>
             </div>
-            <SmartLocationSearch
+            <SimpleLocationSearch
               placeholder="Où livrer ?"
               value={destination?.address || ''}
               onLocationSelect={setDestination}

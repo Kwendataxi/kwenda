@@ -13,10 +13,12 @@ serve(async (req) => {
   try {
     const { query } = await req.json()
     
-    if (!query || query.length < 1) {
+    // Validation stricte - éviter les erreurs 400
+    if (!query || typeof query !== 'string' || query.trim().length < 2) {
+      console.log('Query invalide ou trop courte:', query);
       return new Response(
-        JSON.stringify({ error: 'Query trop court' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        JSON.stringify([]),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       )
     }
 
@@ -80,7 +82,7 @@ serve(async (req) => {
       }
       
       return new Response(
-        JSON.stringify(fallbackResult),
+        JSON.stringify(fallbackResult.results),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -113,8 +115,9 @@ serve(async (req) => {
         .slice(0, 8) // Augmenté à 8 résultats pour plus de choix
     }
 
+    // Retourner directement les résultats au format attendu
     return new Response(
-      JSON.stringify(data),
+      JSON.stringify(data.results || []),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
     
@@ -139,7 +142,7 @@ serve(async (req) => {
     }
     
     return new Response(
-      JSON.stringify(fallbackResult),
+      JSON.stringify(fallbackResult.results),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
