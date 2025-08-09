@@ -26,6 +26,8 @@ import { AdminFiltersBar } from '@/components/admin/AdminFiltersBar';
 import { AdvancedUserManagement } from '@/components/admin/users/AdvancedUserManagement';
 import UnifiedDispatchMonitor from '@/components/admin/UnifiedDispatchMonitor';
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
+import { ProductModerationDashboard } from '@/components/marketplace/ProductModerationDashboard';
+import { AdminNotificationCenter } from '@/components/admin/AdminNotificationCenter';
 import { 
   LayoutDashboard,
   Users,
@@ -208,6 +210,38 @@ const AdminApp = () => {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Centre de Contrôle Unifié</h2>
             <UnifiedDispatchMonitor />
+          </div>
+        </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="marketplace" className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Modération Marketplace</h1>
+            <p className="text-muted-foreground">Gérez et modérez les produits de la marketplace</p>
+          </div>
+        </div>
+        
+        <PermissionGuard requiredPermissions={['marketplace_moderate']}>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Gestion des Produits</h2>
+            <ProductModerationDashboard />
+          </div>
+        </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="notifications" className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Centre de Notifications</h1>
+            <p className="text-muted-foreground">Envoyez des notifications aux utilisateurs</p>
+          </div>
+        </div>
+        
+        <PermissionGuard requiredPermissions={['notifications_write']}>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Gestion des Notifications</h2>
+            <AdminNotificationCenter />
           </div>
         </PermissionGuard>
       </TabsContent>
@@ -468,238 +502,9 @@ const AdminApp = () => {
 
           </TabsContent>
 
-          <TabsContent value="marketplace" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-heading-lg text-card-foreground">Modération Marketplace</h3>
-              <div className="flex gap-2">
-                <Button variant="outline" className="rounded-xl">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filtres
-                </Button>
-                <Button variant="outline" className="rounded-xl">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Actualiser
-                </Button>
-              </div>
-            </div>
+          {/* Marketplace tab content moved to line 215 after dispatch tab */}
 
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <Card className="card-floating border-0 text-center p-4">
-                <ShoppingBag className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                <p className="text-caption text-muted-foreground">En attente</p>
-                <p className="text-heading-lg font-bold text-card-foreground">8</p>
-              </Card>
-              <Card className="card-floating border-0 text-center p-4">
-                <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                <p className="text-caption text-muted-foreground">Approuvées</p>
-                <p className="text-heading-lg font-bold text-card-foreground">156</p>
-              </Card>
-              <Card className="card-floating border-0 text-center p-4">
-                <Ban className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                <p className="text-caption text-muted-foreground">Rejetées</p>
-                <p className="text-heading-lg font-bold text-card-foreground">23</p>
-              </Card>
-            </div>
-
-            <div className="space-y-4">
-              {[
-                {
-                  id: "ANN-001",
-                  title: "iPhone 13 Pro Max 256GB",
-                  seller: "Jean Kouassi",
-                  price: "450,000 CFA",
-                  category: "Électronique",
-                  status: "pending",
-                  date: "Il y a 2h",
-                  reports: 0,
-                  image: "📱"
-                },
-                {
-                  id: "ANN-002", 
-                  title: "Véhicule Toyota Corolla 2020",
-                  seller: "Marie Diallo",
-                  price: "8,500,000 CFA",
-                  category: "Automobile",
-                  status: "pending",
-                  date: "Il y a 4h",
-                  reports: 2,
-                  image: "🚗"
-                },
-                {
-                  id: "ANN-003",
-                  title: "Appartement 3 pièces Cocody",
-                  seller: "Paul Yao",
-                  price: "85,000 CFA/mois",
-                  category: "Immobilier",
-                  status: "flagged",
-                  date: "Il y a 1j",
-                  reports: 5,
-                  image: "🏠"
-                }
-              ].map((listing, index) => (
-                <Card key={index} className="card-floating border-0">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-grey-100 rounded-xl flex items-center justify-center text-2xl">
-                          {listing.image}
-                        </div>
-                        <div>
-                          <p className="text-body-md font-semibold text-card-foreground">{listing.title}</p>
-                          <p className="text-body-sm text-muted-foreground">{listing.seller} • {listing.category}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {listing.reports > 0 && (
-                          <Badge variant="destructive" className="rounded-md">
-                            <Flag className="w-3 h-3 mr-1" />
-                            {listing.reports}
-                          </Badge>
-                        )}
-                        <Badge 
-                          variant={
-                            listing.status === "pending" ? "outline" :
-                            listing.status === "flagged" ? "destructive" : "default"
-                          }
-                          className="rounded-md"
-                        >
-                          {listing.status === "pending" ? "En attente" :
-                           listing.status === "flagged" ? "Signalée" : "Approuvée"}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-heading-sm font-bold text-primary">{listing.price}</p>
-                        <p className="text-caption text-muted-foreground">{listing.date}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="rounded-lg">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" className="rounded-lg bg-green-500 hover:bg-green-600">
-                          <CheckCircle className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="destructive" className="rounded-lg">
-                          <Ban className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="finance" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-heading-lg text-card-foreground">Gestion financière & Tarifs</h3>
-              <div className="flex gap-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="rounded-xl">
-                      <CalendarIcon className="h-4 w-4 mr-2" />
-                      {dateRange ? format(dateRange, "PPP") : "Période"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dateRange}
-                      onSelect={setDateRange}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <Button variant="outline" className="rounded-xl">
-                  <Download className="h-4 w-4 mr-2" />
-                  Exporter
-                </Button>
-              </div>
-            </div>
-
-            {/* Revenue Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="card-floating border-0">
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-secondary rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <DollarSign className="h-6 w-6 text-white" />
-                  </div>
-                  <p className="text-caption text-muted-foreground">Revenus totaux</p>
-                  <p className="text-heading-lg font-bold text-card-foreground">125.2M CFA</p>
-                  <p className="text-caption text-green-600 font-medium">+15.3% ce mois</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="card-floating border-0">
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Percent className="h-6 w-6 text-white" />
-                  </div>
-                  <p className="text-caption text-muted-foreground">Commission</p>
-                  <p className="text-heading-lg font-bold text-card-foreground">12.5M CFA</p>
-                  <p className="text-caption text-muted-foreground">10% de commission</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="card-floating border-0">
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Clock className="h-6 w-6 text-white" />
-                  </div>
-                  <p className="text-caption text-muted-foreground">En attente</p>
-                  <p className="text-heading-lg font-bold text-card-foreground">2.8M CFA</p>
-                  <p className="text-caption text-yellow-600 font-medium">À verser</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="card-floating border-0">
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <AlertTriangle className="h-6 w-6 text-white" />
-                  </div>
-                  <p className="text-caption text-muted-foreground">Litiges</p>
-                  <p className="text-heading-lg font-bold text-card-foreground">145K CFA</p>
-                  <p className="text-caption text-red-600 font-medium">3 en cours</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Pricing Management */}
-            <Card className="card-floating border-0">
-              <CardHeader>
-                <CardTitle className="text-heading-md">Gestion des tarifs</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { service: "Transport", basePrice: "500", commission: "10", currency: "CFA" },
-                    { service: "Livraison", basePrice: "300", commission: "15", currency: "CFA" },
-                    { service: "Marketplace", basePrice: "0", commission: "5", currency: "%" },
-                  ].map((pricing, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-grey-50 rounded-xl">
-                      <div>
-                        <p className="text-body-md font-semibold text-card-foreground">{pricing.service}</p>
-                        <p className="text-body-sm text-muted-foreground">Prix de base: {pricing.basePrice} {pricing.currency}</p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="text-body-sm text-muted-foreground">Commission</p>
-                          <p className="text-heading-sm font-bold text-primary">{pricing.commission}%</p>
-                        </div>
-                        <Button size="sm" variant="outline" className="rounded-lg">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-          </TabsContent>
+          {/* Finance content moved to financial tab */}
 
         <TabsContent value="support" className="space-y-6">
           <div className="flex items-center justify-between">

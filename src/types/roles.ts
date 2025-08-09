@@ -34,6 +34,9 @@ export type Permission =
   | 'support_admin'
   | 'analytics_read'
   | 'analytics_admin'
+  | 'notifications_read'
+  | 'notifications_write'
+  | 'notifications_admin'
   | 'system_admin';
 
 export interface UserRoleData {
@@ -105,6 +108,9 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   support_admin: 'Admin support',
   analytics_read: 'Voir analytics',
   analytics_admin: 'Admin analytics',
+  notifications_read: 'Voir notifications',
+  notifications_write: 'Envoyer notifications',
+  notifications_admin: 'Admin notifications',
   system_admin: 'Admin système'
 };
 

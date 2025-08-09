@@ -13,6 +13,7 @@ import {
   ShoppingBag,
   Headphones,
   Settings,
+  Bell,
 } from 'lucide-react';
 
 interface AdminVerticalNavProps {
@@ -34,6 +35,8 @@ const NAV_ITEMS: Array<{
   { id: 'zones', label: 'Zones', icon: MapPin },
   { id: 'drivers', label: 'Chauffeurs', icon: Car },
   { id: 'users', label: 'Utilisateurs', icon: Users },
+  { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'support', label: 'Support', icon: Headphones },
   { id: 'settings', label: 'Paramètres', icon: Settings },
 ];

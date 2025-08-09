@@ -53,6 +53,152 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_notification_templates: {
+        Row: {
+          content_template: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          title_template: string
+          type_id: string
+          updated_at: string
+        }
+        Insert: {
+          content_template: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          title_template: string
+          type_id: string
+          updated_at?: string
+        }
+        Update: {
+          content_template?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          title_template?: string
+          type_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notification_templates_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "admin_notification_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_notification_types: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      admin_notifications: {
+        Row: {
+          content: string
+          created_at: string
+          failed_sends: number | null
+          id: string
+          metadata: Json | null
+          priority: string
+          scheduled_for: string | null
+          sender_id: string
+          sent_at: string | null
+          status: string
+          successful_sends: number | null
+          target_criteria: Json | null
+          target_type: string
+          template_id: string | null
+          title: string
+          total_recipients: number | null
+          type_id: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          failed_sends?: number | null
+          id?: string
+          metadata?: Json | null
+          priority?: string
+          scheduled_for?: string | null
+          sender_id: string
+          sent_at?: string | null
+          status?: string
+          successful_sends?: number | null
+          target_criteria?: Json | null
+          target_type: string
+          template_id?: string | null
+          title: string
+          total_recipients?: number | null
+          type_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          failed_sends?: number | null
+          id?: string
+          metadata?: Json | null
+          priority?: string
+          scheduled_for?: string | null
+          sender_id?: string
+          sent_at?: string | null
+          status?: string
+          successful_sends?: number | null
+          target_criteria?: Json | null
+          target_type?: string
+          template_id?: string | null
+          title?: string
+          total_recipients?: number | null
+          type_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notifications_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "admin_notification_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_notifications_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "admin_notification_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       challenge_rewards: {
         Row: {
           challenge_id: string
@@ -3281,6 +3427,62 @@ export type Database = {
           },
         ]
       }
+      user_notifications: {
+        Row: {
+          action_label: string | null
+          action_url: string | null
+          admin_notification_id: string | null
+          content: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_read: boolean
+          priority: string
+          read_at: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_label?: string | null
+          action_url?: string | null
+          admin_notification_id?: string | null
+          content: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          priority?: string
+          read_at?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_label?: string | null
+          action_url?: string | null
+          admin_notification_id?: string | null
+          content?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          priority?: string
+          read_at?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notifications_admin_notification_id_fkey"
+            columns: ["admin_notification_id"]
+            isOneToOne: false
+            referencedRelation: "admin_notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_places: {
         Row: {
           address: string
@@ -3661,6 +3863,10 @@ export type Database = {
       }
       geocode_location: {
         Args: { query_text: string }
+        Returns: Json
+      }
+      get_notification_stats: {
+        Args: { admin_id?: string }
         Returns: Json
       }
       get_user_roles: {
