@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { IntegrationGeocodingService } from '@/services/integrationGeocoding';
 
 interface EnhancedClientInterfaceProps {
   className?: string;
@@ -54,12 +55,17 @@ const EnhancedClientInterface: React.FC<EnhancedClientInterfaceProps> = ({ class
     }
 
     try {
+      // Géocoder les adresses - simulation pour le moment
+      // En production, utiliser le service de géocodage 
+      const pickupCoords = await geocodeAddress(pickupLocation);
+      const destCoords = await geocodeAddress(destination);
+
       // Create ride request using the enhanced system
       const request = await createRideRequest({
         pickupLocation,
         destination,
-        pickupCoordinates: [0, 0], // Would be from geocoding
-        destinationCoordinates: [0, 0], // Would be from geocoding
+        pickupCoordinates: pickupCoords,
+        destinationCoordinates: destCoords,
         vehicleClass: selectedVehicle
       });
 
@@ -69,6 +75,20 @@ const EnhancedClientInterface: React.FC<EnhancedClientInterfaceProps> = ({ class
     } catch (error) {
       console.error('Error creating booking:', error);
       toast.error('Erreur lors de la création de la réservation');
+    }
+  };
+
+  // Géocodage d'adresse avec le service intégré
+  const geocodeAddress = async (address: string): Promise<[number, number]> => {
+    try {
+      const result = await IntegrationGeocodingService.geocodeAddress(address);
+      return [result.lat, result.lng];
+    } catch (error) {
+      console.error('Erreur géocodage:', error);
+      // Fallback coordonnées Kinshasa avec variation
+      const baseCoords: [number, number] = [-4.3217, 15.3069];
+      const variation = (Math.random() - 0.5) * 0.02;
+      return [baseCoords[0] + variation, baseCoords[1] + variation];
     }
   };
 

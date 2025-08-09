@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { GoogleMapsService } from '@/services/googleMapsService';
+import { IntegrationGeocodingService } from '@/services/integrationGeocoding';
 
 // Harmoniser avec LocationResult de UnifiedLocationService
 export interface DeliveryLocation {
@@ -40,7 +40,11 @@ export const useEnhancedDeliveryOrders = () => {
     mode: 'flash' | 'flex' | 'maxicharge'
   ): Promise<{ price: number; distance: number; duration: number }> => {
     try {
-      const distanceData = await GoogleMapsService.calculateDistance(pickup, destination);
+      // Calculer la distance entre les points
+      const distanceKm = IntegrationGeocodingService.calculateDistance(
+        pickup.lat, pickup.lng,
+        destination.lat, destination.lng
+      );
       
       // Tarification basée sur la distance et le mode
       const basePrices = {
@@ -55,13 +59,13 @@ export const useEnhancedDeliveryOrders = () => {
         maxicharge: 800
       };
 
-      const distanceKm = distanceData.distance / 1000;
       const price = basePrices[mode] + (distanceKm * pricePerKm[mode]);
+      const durationMinutes = distanceKm * 3; // 3 min par km
 
       return {
         price: Math.round(price),
-        distance: distanceData.distance,
-        duration: distanceData.duration
+        distance: distanceKm * 1000, // convertir en mètres
+        duration: durationMinutes * 60 // convertir en secondes
       };
     } catch (error) {
       console.error('Erreur calcul prix:', error);

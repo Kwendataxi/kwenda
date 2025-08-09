@@ -52,7 +52,7 @@ import { AdvancedTaxiInterface } from '@/components/transport/AdvancedTaxiInterf
 import TripChat from '@/components/transport/TripChat';
 
 // Delivery components
-import ModernDeliveryInterface from '@/components/delivery/ModernDeliveryInterface';
+import ModernDeliveryOrderInterface from '@/components/delivery/ModernDeliveryOrderInterface';
 import DeliveryTracking from '@/components/delivery/DeliveryTracking';
 
 // Rental components
@@ -587,10 +587,7 @@ const ClientApp = () => {
   const renderDeliveryService = () => {
     // La nouvelle interface intégrée gère le tracking directement
     return (
-      <ModernDeliveryInterface
-        onSubmit={handleModernDeliverySubmit}
-        onCancel={() => setServiceType('transport')}
-      />
+      <ModernDeliveryOrderInterface />
     );
   };
 

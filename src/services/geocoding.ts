@@ -23,15 +23,15 @@ export class GeocodingService {
     if (this.mapboxToken) return this.mapboxToken;
 
     try {
-      const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+      const { data, error } = await supabase.functions.invoke('geocode-proxy');
       
       if (error) throw error;
-      if (!data?.token) throw new Error('Token Mapbox non trouvé');
+      if (!data?.token) throw new Error('Token géocodage non trouvé');
       
       this.mapboxToken = data.token;
       return this.mapboxToken;
     } catch (error) {
-      console.error('Erreur lors de la récupération du token Mapbox:', error);
+      console.error('Erreur lors de la récupération du token géocodage:', error);
       throw new Error('Service de géocodage indisponible');
     }
   }

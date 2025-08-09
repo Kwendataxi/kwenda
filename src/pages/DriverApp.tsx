@@ -12,6 +12,7 @@ import { DriverCodeManager } from '@/components/driver/DriverCodeManager';
 import { DriverReferrals } from '@/components/driver/DriverReferrals';
 import UnifiedDriverNotifications from '@/components/driver/UnifiedDriverNotifications';
 import DriverStatusToggle from '@/components/driver/DriverStatusToggle';
+import UniversalDriverInterface from '@/components/driver/UniversalDriverInterface';
 
 const DriverApp = () => {
   const { loading } = useDriverServiceType();
@@ -33,11 +34,7 @@ const DriverApp = () => {
       <main className="container mx-auto px-4 pb-20 pt-4">
         {tab === 'rides' && <MobileDriverInterface onNavigateToEarnings={() => setTab('wallet')} onNavigateToCredits={() => setTab('credits')} onNavigateToNavigation={() => {}} />}
         {tab === 'deliveries' && (
-          <div className="space-y-4">
-            <DriverStatusToggle />
-            <UnifiedDriverNotifications />
-            <DriverDeliveryDashboard />
-          </div>
+          <UniversalDriverInterface />
         )}
         {tab === 'wallet' && <DriverWalletPanel />}
         {tab === 'credits' && <DriverCreditManager />}

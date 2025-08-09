@@ -41,25 +41,39 @@ export const useUnifiedDispatcher = () => {
     if (!user) return false;
 
     try {
+      console.log('Mise à jour statut chauffeur:', status);
+
+      const updateData: any = {
+        driver_id: user.id,
+        is_online: status.isOnline ?? dispatchStatus.isOnline,
+        is_available: status.isAvailable ?? dispatchStatus.isAvailable,
+        last_ping: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      // Ajouter les coordonnées si disponibles
+      if (status.currentLocation?.lat && status.currentLocation?.lng) {
+        updateData.latitude = status.currentLocation.lat;
+        updateData.longitude = status.currentLocation.lng;
+      }
+
       const { error } = await supabase
         .from('driver_locations')
-        .upsert({
-          driver_id: user.id,
-          is_online: status.isOnline ?? dispatchStatus.isOnline,
-          is_available: status.isAvailable ?? dispatchStatus.isAvailable,
-          latitude: status.currentLocation?.lat,
-          longitude: status.currentLocation?.lng,
-          last_ping: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+        .upsert(updateData, {
+          onConflict: 'driver_id'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur Supabase:', error);
+        throw error;
+      }
 
       setDispatchStatus(prev => ({ ...prev, ...status }));
+      toast.success('Statut mis à jour');
       return true;
     } catch (error: any) {
       console.error('Error updating driver status:', error);
-      toast.error('Erreur lors de la mise à jour du statut');
+      toast.error(`Erreur: ${error.message}`);
       return false;
     }
   };
