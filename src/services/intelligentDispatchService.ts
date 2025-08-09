@@ -132,7 +132,8 @@ export class IntelligentDispatchService {
     request: DispatchRequest,
     radius: number
   ): Promise<DriverCandidate[]> {
-    const { data: drivers, error } = await supabase
+    // Récupérer les chauffeurs actifs depuis la base
+    const { data: driversData, error } = await supabase
       .from('driver_locations')
       .select(`
         driver_id,
@@ -142,22 +143,37 @@ export class IntelligentDispatchService {
         last_ping
       `)
       .eq('is_online', true)
-      .eq('is_available', true)
-      .eq('driver_profiles.is_active', true)
-      .eq('driver_profiles.verification_status', 'verified')
-      .or(`service_type.eq.all,service_type.eq.${request.service_type}`, { 
-        foreignTable: 'driver_profiles' 
-      });
+      .eq('is_available', true);
 
-    if (error || !drivers) {
+    if (error || !driversData) {
       console.error('Erreur recherche chauffeurs:', error);
       return [];
     }
 
-    // Filtrer par distance et calculer métriques
-    const candidates: DriverCandidate[] = [];
+    // Récupérer les profils des chauffeurs séparément
+    const driverIds = driversData.map(d => d.driver_id);
+    if (driverIds.length === 0) return [];
 
-    for (const driver of drivers) {
+    const { data: profilesData } = await supabase
+      .from('driver_profiles')
+      .select('user_id, service_type, rating_average, total_rides, is_active, verification_status')
+      .in('user_id', driverIds)
+      .eq('is_active', true)
+      .eq('verification_status', 'verified');
+
+    // Combiner les données et filtrer par distance
+    const candidates: DriverCandidate[] = [];
+    const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+
+    for (const driver of driversData) {
+      const profile = profilesMap.get(driver.driver_id);
+      
+      // Vérifier que le profil existe et correspond au service
+      if (!profile || 
+          (profile.service_type !== 'all' && profile.service_type !== request.service_type)) {
+        continue;
+      }
+
       const distance = this.calculateDistance(
         request.pickup_location.lat,
         request.pickup_location.lng,
@@ -175,10 +191,10 @@ export class IntelligentDispatchService {
           longitude: driver.longitude,
           distance,
           score: 0, // Sera calculé plus tard
-          rating: driver.driver_profiles?.rating_average || 3.0,
-          total_rides: driver.driver_profiles?.total_rides || 0,
+          rating: profile.rating_average || 3.0,
+          total_rides: profile.total_rides || 0,
           vehicle_class: driver.vehicle_class || 'standard',
-          service_type: driver.driver_profiles?.service_type || 'taxi',
+          service_type: profile.service_type || 'taxi',
           last_activity: driver.last_ping,
           acceptance_rate: stats.acceptance_rate,
           completion_rate: stats.completion_rate,
@@ -295,8 +311,7 @@ export class IntelligentDispatchService {
         .select('*')
         .eq('service_type', request.service_type)
         .eq('vehicle_class', request.vehicle_class || 'standard')
-        .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       const basePrice = pricingRule?.base_price || 2000;
       const pricePerKm = pricingRule?.price_per_km || 300;

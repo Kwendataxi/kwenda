@@ -14,6 +14,7 @@ import {
   Headphones,
   Settings,
   Bell,
+  Zap,
 } from 'lucide-react';
 
 interface AdminVerticalNavProps {
@@ -33,6 +34,7 @@ const NAV_ITEMS: Array<{
   { id: 'financial', label: 'Dashboard Financier', icon: PieChart },
   { id: 'tarifs', label: 'Tarifs', icon: Tag },
   { id: 'zones', label: 'Zones', icon: MapPin },
+  { id: 'dispatch', label: 'Dispatch NG', icon: Zap },
   { id: 'drivers', label: 'Chauffeurs', icon: Car },
   { id: 'users', label: 'Utilisateurs', icon: Users },
   { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
