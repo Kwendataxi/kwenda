@@ -1,5 +1,8 @@
-import { EnhancedTaxiSearchBar } from '@/components/transport/EnhancedTaxiSearchBar';
+import { UniversalSearchInterface } from '@/components/search/UniversalSearchInterface';
+import { useUniversalSearch } from '@/hooks/useUniversalSearch';
+import { locationSearchProvider, getPopularSuggestions } from '@/services/searchProviders';
 import { useLanguage } from '@/contexts/LanguageContext';
+import type { SearchResult } from '@/components/search/UniversalSearchInterface';
 
 interface UniversalSearchBarProps {
   onSearch: (query: string, coordinates?: { lat: number; lng: number }) => void;
@@ -14,16 +17,47 @@ export const UniversalSearchBar = ({
 }: UniversalSearchBarProps) => {
   const { t } = useLanguage();
 
-  const handleSearch = (query: string, coordinates?: { lat: number; lng: number }) => {
-    onSearch(query, coordinates);
+  const searchConfig = {
+    type: 'location' as const,
+    placeholder: t('home.search.placeholder') || placeholder,
+    minCharacters: 1,
+    maxResults: 8,
+    debounceMs: 100,
+    enableVoiceSearch: true,
+    showPopularSuggestions: true,
+    showRecentSearches: true
+  };
+
+  const {
+    searchHistory,
+    popularSuggestions,
+    saveToHistory
+  } = useUniversalSearch({
+    config: searchConfig,
+    customSearchProvider: locationSearchProvider
+  });
+
+  const handleSearchResult = (result: SearchResult) => {
+    saveToHistory(result);
+    onSearch(result.title, result.coordinates);
+    onTransportSelect();
+  };
+
+  const handleSearch = (query: string) => {
+    onSearch(query);
+    onTransportSelect();
   };
 
   return (
     <div className="px-4 mb-6">
-      <EnhancedTaxiSearchBar
+      <UniversalSearchInterface
+        config={searchConfig}
+        onSearchResult={handleSearchResult}
         onSearch={handleSearch}
-        onTransportSelect={onTransportSelect}
-        placeholder={t('home.search.placeholder')}
+        popularSuggestions={popularSuggestions.length > 0 ? popularSuggestions : getPopularSuggestions('location')}
+        recentSearches={searchHistory}
+        customSearchProvider={locationSearchProvider}
+        className="w-full"
       />
     </div>
   );
