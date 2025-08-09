@@ -13,6 +13,9 @@ export interface PricingRule {
   price_per_minute: number;
   minimum_fare: number;
   surge_multiplier: number;
+  waiting_fee_per_minute: number;
+  free_waiting_time_minutes: number;
+  max_waiting_time_minutes: number;
   currency: string;
   city: string;
   is_active: boolean;
@@ -73,6 +76,9 @@ export const usePricingRules = () => {
             price_per_minute: rule.price_per_minute || existing.price_per_minute,
             minimum_fare: rule.minimum_fare || existing.minimum_fare,
             surge_multiplier: rule.surge_multiplier || existing.surge_multiplier,
+            waiting_fee_per_minute: rule.waiting_fee_per_minute || existing.waiting_fee_per_minute,
+            free_waiting_time_minutes: rule.free_waiting_time_minutes || existing.free_waiting_time_minutes,
+            max_waiting_time_minutes: rule.max_waiting_time_minutes || existing.max_waiting_time_minutes,
             currency: rule.currency || existing.currency,
             city: rule.city || existing.city
           })
@@ -89,6 +95,9 @@ export const usePricingRules = () => {
             price_per_minute: rule.price_per_minute || 0,
             minimum_fare: rule.minimum_fare || 0,
             surge_multiplier: rule.surge_multiplier || 1,
+            waiting_fee_per_minute: rule.waiting_fee_per_minute || 50,
+            free_waiting_time_minutes: rule.free_waiting_time_minutes || 5,
+            max_waiting_time_minutes: rule.max_waiting_time_minutes || 15,
             currency: rule.currency || 'CDF',
             city: rule.city || 'Kinshasa',
             is_active: true
@@ -145,5 +154,21 @@ export const usePriceEstimator = (service_type: ServiceCategory, vehicle_class: 
     return Math.round(def.base + d * def.perKm);
   };
 
-  return { estimate, rule };
+  const calculateWaitingFees = (arrivalTime: Date, boardingTime: Date): { waitingMinutes: number; billableMinutes: number; waitingFee: number } => {
+    if (!rule || !arrivalTime || !boardingTime) {
+      return { waitingMinutes: 0, billableMinutes: 0, waitingFee: 0 };
+    }
+    
+    const waitingMinutes = Math.floor((boardingTime.getTime() - arrivalTime.getTime()) / (1000 * 60));
+    const billableMinutes = Math.max(0, waitingMinutes - (rule.free_waiting_time_minutes || 5));
+    const waitingFee = billableMinutes * (rule.waiting_fee_per_minute || 50);
+    
+    return { waitingMinutes, billableMinutes, waitingFee: Math.round(waitingFee) };
+  };
+
+  const calculateFinalPrice = (basePrice: number, waitingFee: number = 0): number => {
+    return Math.round(basePrice + waitingFee);
+  };
+
+  return { estimate, rule, calculateWaitingFees, calculateFinalPrice };
 };

@@ -494,9 +494,10 @@ async function updateRideStatus(supabase: any, rideRequestId: string, data: any)
 
   switch (status) {
     case 'driver_arrived':
-      updates.pickup_time = new Date().toISOString();
+      updates.driver_arrived_at = new Date().toISOString();
       break;
     case 'in_progress':
+      updates.customer_boarded_at = new Date().toISOString();
       updates.pickup_time = updates.pickup_time || new Date().toISOString();
       break;
     case 'completed':
