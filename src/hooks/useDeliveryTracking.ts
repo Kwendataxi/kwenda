@@ -22,6 +22,7 @@ export interface DeliveryOrder {
   estimated_price: number | null;
   actual_price: number | null;
   created_at: string;
+  updated_at: string; // present in DB schema
   delivery_time: string | null;
 }
 
