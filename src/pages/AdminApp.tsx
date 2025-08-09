@@ -28,7 +28,7 @@ import { AdvancedUserManagement } from '@/components/admin/users/AdvancedUserMan
 import UnifiedDispatchMonitor from '@/components/admin/UnifiedDispatchMonitor';
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
-import { ProductModerationDashboard } from '@/components/marketplace/ProductModerationDashboard';
+import { AdminMarketplaceManager } from '@/components/marketplace/AdminMarketplaceManager';
 import { AdminNotificationCenter } from '@/components/admin/AdminNotificationCenter';
 import { RealTimeActivityFeed } from '@/components/admin/RealTimeActivityFeed';
 import { OnlineDriversList } from '@/components/admin/OnlineDriversList';
@@ -226,7 +226,7 @@ const AdminApp = () => {
         <PermissionGuard requiredPermissions={['marketplace_moderate']}>
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Gestion des Produits</h2>
-            <ProductModerationDashboard />
+            <AdminMarketplaceManager onBack={() => {}} />
           </div>
         </PermissionGuard>
       </TabsContent>
