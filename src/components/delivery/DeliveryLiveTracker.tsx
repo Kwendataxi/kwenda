@@ -55,7 +55,7 @@ export default function DeliveryLiveTracker({ orderId, orderData, onBack }: Deli
               <Package className="w-4 h-4" />
               <span className="text-sm">{packageType || 'Colis'}</span>
             </div>
-            <h1 className="text-xl font-bold mt-1">{statusLabel}</h1>
+            <h1 className="text-xl font-bold mt-1">{order?.status === 'searching_driver' ? 'Recherche de livreur…' : statusLabel}</h1>
           </div>
           {price !== null && (
             <div className="text-right">

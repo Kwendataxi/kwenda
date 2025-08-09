@@ -9,6 +9,7 @@ import { UnifiedLocationService, LocationResult, RouteResult } from '@/services/
 import UnifiedLocationSearch from './UnifiedLocationSearch';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
+import { supabase } from '@/integrations/supabase/client';
 
 interface OneStepDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
@@ -68,7 +69,7 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
   const [orderId, setOrderId] = useState<string>('');
 
   const { toast } = useToast();
-  const { createDeliveryOrder, submitting } = useEnhancedDeliveryOrders();
+  const { createDeliveryOrder, submitting, calculateDeliveryPrice } = useEnhancedDeliveryOrders();
 
   // Appliquer le mode initial le cas échéant
   useEffect(() => {
@@ -85,34 +86,48 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
         // Silence, fallback déjà géré dans le service
       });
   }, []);
+  // Sélection par défaut si non fournie
+  useEffect(() => {
+    if (!selectedMode && pickup && destination) {
+      setSelectedMode(initialSelectedMode || 'flex');
+    }
+  }, [pickup, destination, selectedMode, initialSelectedMode]);
 
   // Calculer les prix quand pickup ET destination sont définis
   useEffect(() => {
-    if (pickup && destination) {
-      setCalculating(true);
-      
-      UnifiedLocationService.calculateRoute(pickup, destination)
-        .then(routeResults => {
-          setRoutes(routeResults);
-          // Auto-sélectionner le mode optimal (flex par défaut)
-          setSelectedMode('flex');
-        })
-        .catch(error => {
+    const compute = async () => {
+      if (pickup && destination && selectedMode) {
+        setCalculating(true);
+        try {
+          const res = await calculateDeliveryPrice(
+            { address: pickup.address, lat: pickup.lat, lng: pickup.lng, type: pickup.type } as any,
+            { address: destination.address, lat: destination.lat, lng: destination.lng, type: destination.type } as any,
+            selectedMode
+          );
+          setRoutes([
+            {
+              mode: selectedMode,
+              distance: res.distance,
+              duration: res.duration,
+              price: res.price,
+            }
+          ]);
+        } catch (error) {
           console.error('Route calculation error:', error);
           toast({
             title: "Erreur de calcul",
-            description: "Impossible de calculer l'itinéraire. Veuillez réessayer.",
+            description: "Impossible de calculer le tarif. Veuillez réessayer.",
             variant: "destructive"
           });
-        })
-        .finally(() => {
+        } finally {
           setCalculating(false);
-        });
-    } else {
-      setRoutes([]);
-      setSelectedMode(null);
-    }
-  }, [pickup, destination, toast]);
+        }
+      } else {
+        setRoutes([]);
+      }
+    };
+    compute();
+  }, [pickup, destination, selectedMode, calculateDeliveryPrice, toast]);
 
   const canProceed = pickup && destination && selectedMode && routes.length > 0;
   const selectedRoute = routes.find(r => r.mode === selectedMode);
@@ -137,14 +152,34 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
 
       const newOrderId = await createDeliveryOrder(orderData);
       setOrderId(newOrderId);
+
+      // Déclencher la recherche de livreur (rayon selon mode)
+      try {
+        const { data, error } = await supabase.functions.invoke('delivery-dispatcher', {
+          body: {
+            action: 'find_drivers',
+            orderId: newOrderId,
+            mode: selectedMode!,
+            pickupCoordinates: { lat: pickup!.lat, lng: pickup!.lng }
+          }
+        });
+        if (error || data?.success === false) {
+          console.warn('Recherche livreur échouée:', error || data);
+          toast({
+            title: "Aucun livreur pour l'instant",
+            description: "Nous réessaierons automatiquement.",
+          });
+        }
+      } catch (e) {
+        console.error('Invocation delivery-dispatcher erreur:', e);
+      }
+
       setStep('created');
-      
       console.log('Commande créée avec ID:', newOrderId);
-      
-      // Auto-transition vers le tracking après 2 secondes
+
       setTimeout(() => {
         onSubmit({ ...orderData, orderId: newOrderId });
-      }, 2000);
+      }, 1200);
     } catch (error) {
       console.error('Erreur dans handleConfirm:', error);
       // Error géré par le hook

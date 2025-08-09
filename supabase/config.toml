@@ -2,3 +2,6 @@ project_id = "wddlktajnhwhyquwcdgf"
 
 [functions.partner-driver-earnings]
 verify_jwt = true
+
+[functions.delivery-dispatcher]
+verify_jwt = true
