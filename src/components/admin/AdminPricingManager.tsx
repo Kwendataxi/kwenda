@@ -19,25 +19,39 @@ export const AdminPricingManager = () => {
     return grouped;
   }, [rules]);
 
-  const [editValues, setEditValues] = useState<Record<string, { base_price: string; price_per_km: string; currency: string }>>({});
-  const [newRule, setNewRule] = useState<{ service_type: ServiceCategory; vehicle_class: string; base_price: string; price_per_km: string; currency: string }>({
-    service_type: 'transport', vehicle_class: '', base_price: '', price_per_km: '', currency: 'CDF'
+  const [editValues, setEditValues] = useState<Record<string, { base_price: number; price_per_km: number; price_per_minute: number; minimum_fare: number; surge_multiplier: number; currency: string }>>({});
+  const [newRule, setNewRule] = useState({
+    service_type: 'transport' as ServiceCategory,
+    vehicle_class: '',
+    base_price: 0,
+    price_per_km: 0,
+    price_per_minute: 0,
+    minimum_fare: 0,
+    surge_multiplier: 1.0,
+    currency: 'CDF',
+    city: 'Kinshasa'
   });
   const [deletingRule, setDeletingRule] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>();
 
-  const handleSave = async (service_type: ServiceCategory, vehicle_class: string) => {
-    const key = `${service_type}:${vehicle_class}`;
+  const handleSave = async (rule: PricingRule) => {
+    const key = `${rule.service_type}:${rule.vehicle_class}`;
     const values = editValues[key];
+    if (!values) return;
+    
     try {
       await upsertRule.mutateAsync({
-        service_type,
-        vehicle_class,
-        base_price: Number(values.base_price),
-        price_per_km: Number(values.price_per_km),
-        currency: values.currency || 'CDF'
+        service_type: rule.service_type,
+        vehicle_class: rule.vehicle_class,
+        base_price: values.base_price,
+        price_per_km: values.price_per_km,
+        price_per_minute: values.price_per_minute,
+        minimum_fare: values.minimum_fare,
+        surge_multiplier: values.surge_multiplier,
+        currency: values.currency,
+        city: rule.city
       });
-      toast({ title: 'Tarif enregistré', description: `${vehicle_class} (${service_type}) mis à jour.` });
+      toast({ title: 'Tarif enregistré', description: `${rule.vehicle_class} (${rule.service_type}) mis à jour.` });
       setLastUpdate(new Date());
     } catch (e: any) {
       toast({ title: 'Erreur', description: e.message || 'Impossible de sauvegarder', variant: 'destructive' });
@@ -47,18 +61,22 @@ export const AdminPricingManager = () => {
   const handleCreate = async () => {
     if (!newRule.vehicle_class || !newRule.base_price || !newRule.price_per_km) return;
     try {
-      await upsertRule.mutateAsync({
-        service_type: newRule.service_type,
-        vehicle_class: newRule.vehicle_class,
-        base_price: Number(newRule.base_price),
-        price_per_km: Number(newRule.price_per_km),
-        currency: newRule.currency || 'CDF'
-      });
+      await upsertRule.mutateAsync(newRule);
       toast({ 
         title: 'Règle ajoutée', 
         description: `${newRule.vehicle_class} (${newRule.service_type}) - Prix actualisé en temps réel` 
       });
-      setNewRule({ service_type: 'transport', vehicle_class: '', base_price: '', price_per_km: '', currency: 'CDF' });
+      setNewRule({ 
+        service_type: 'transport', 
+        vehicle_class: '', 
+        base_price: 0, 
+        price_per_km: 0, 
+        price_per_minute: 0,
+        minimum_fare: 0,
+        surge_multiplier: 1.0,
+        currency: 'CDF', 
+        city: 'Kinshasa' 
+      });
       setLastUpdate(new Date());
     } catch (e: any) {
       toast({ title: 'Erreur', description: e.message || 'Impossible d\'ajouter', variant: 'destructive' });
@@ -74,13 +92,13 @@ export const AdminPricingManager = () => {
         title: 'Règle supprimée', 
         description: `${rule.vehicle_class} (${rule.service_type}) désactivée` 
       });
+      setLastUpdate(new Date());
     } catch (e: any) {
       toast({ 
         title: 'Erreur', 
         description: e.message || 'Impossible de supprimer', 
         variant: 'destructive' 
       });
-      setLastUpdate(new Date());
     } finally {
       setDeletingRule(null);
     }
@@ -88,12 +106,19 @@ export const AdminPricingManager = () => {
 
   const Row = ({ r }: { r: PricingRule }) => {
     const key = `${r.service_type}:${r.vehicle_class}`;
-    const values = editValues[key] || { base_price: String(r.base_price), price_per_km: String(r.price_per_km), currency: r.currency };
+    const values = editValues[key] || { 
+      base_price: r.base_price, 
+      price_per_km: r.price_per_km, 
+      price_per_minute: r.price_per_minute || 0,
+      minimum_fare: r.minimum_fare || 0,
+      surge_multiplier: r.surge_multiplier || 1,
+      currency: r.currency 
+    };
     const isDeleting = deletingRule === r.id;
     const isSaving = upsertRule.isPending;
     
     return (
-      <div className="grid grid-cols-6 gap-3 items-center p-3 rounded-lg border border-border bg-card">
+      <div className="grid grid-cols-8 gap-2 items-center p-3 rounded-lg border border-border bg-card">
         <div className="col-span-2">
           <p className="text-sm font-medium text-card-foreground">{r.vehicle_class}</p>
           <p className="text-xs text-muted-foreground capitalize">{r.service_type}</p>
@@ -101,27 +126,48 @@ export const AdminPricingManager = () => {
         <Input
           type="number"
           value={values.base_price}
-          onChange={(e) => setEditValues(prev => ({ ...prev, [key]: { ...values, base_price: e.target.value } }))}
+          onChange={(e) => setEditValues(prev => ({ ...prev, [key]: { ...values, base_price: parseFloat(e.target.value) || 0 } }))}
           placeholder="Base"
           disabled={isSaving || isDeleting}
+          className="w-20"
         />
         <Input
           type="number"
           value={values.price_per_km}
-          onChange={(e) => setEditValues(prev => ({ ...prev, [key]: { ...values, price_per_km: e.target.value } }))}
+          onChange={(e) => setEditValues(prev => ({ ...prev, [key]: { ...values, price_per_km: parseFloat(e.target.value) || 0 } }))}
           placeholder="/km"
           disabled={isSaving || isDeleting}
+          className="w-20"
         />
         <Input
-          className="w-20"
-          value={values.currency}
-          onChange={(e) => setEditValues(prev => ({ ...prev, [key]: { ...values, currency: e.target.value } }))}
+          type="number"
+          value={values.price_per_minute}
+          onChange={(e) => setEditValues(prev => ({ ...prev, [key]: { ...values, price_per_minute: parseFloat(e.target.value) || 0 } }))}
+          placeholder="/min"
           disabled={isSaving || isDeleting}
+          className="w-20"
         />
-        <div className="flex items-center gap-2">
+        <Input
+          type="number"
+          value={values.minimum_fare}
+          onChange={(e) => setEditValues(prev => ({ ...prev, [key]: { ...values, minimum_fare: parseFloat(e.target.value) || 0 } }))}
+          placeholder="Min"
+          disabled={isSaving || isDeleting}
+          className="w-20"
+        />
+        <Input
+          type="number"
+          step="0.1"
+          value={values.surge_multiplier}
+          onChange={(e) => setEditValues(prev => ({ ...prev, [key]: { ...values, surge_multiplier: parseFloat(e.target.value) || 1 } }))}
+          placeholder="Surge"
+          disabled={isSaving || isDeleting}
+          className="w-20"
+        />
+        <div className="flex items-center gap-1">
           <Button 
             size="sm" 
-            onClick={() => handleSave(r.service_type, r.vehicle_class)}
+            onClick={() => handleSave(r)}
             disabled={isSaving || isDeleting}
           >
             {isSaving ? (
@@ -217,7 +263,7 @@ export const AdminPricingManager = () => {
 
               <div className="pt-4 border-t border-border">
                 <h3 className="text-sm font-semibold mb-3">Ajouter une règle</h3>
-                <div className="grid grid-cols-6 gap-3 items-center">
+                <div className="grid grid-cols-8 gap-2 items-center">
                   <Select value={newRule.service_type} onValueChange={(v: ServiceCategory) => setNewRule(prev => ({ ...prev, service_type: v }))}>
                     <SelectTrigger className="col-span-1">
                       <SelectValue placeholder="Catégorie" />
@@ -229,7 +275,7 @@ export const AdminPricingManager = () => {
                   </Select>
                   <Input
                     className="col-span-1"
-                    placeholder="Code (ex: eco, premium, flash)"
+                    placeholder="Code (ex: eco)"
                     value={newRule.vehicle_class}
                     onChange={(e) => setNewRule(prev => ({ ...prev, vehicle_class: e.target.value }))}
                   />
@@ -237,25 +283,40 @@ export const AdminPricingManager = () => {
                     className="col-span-1"
                     type="number"
                     placeholder="Base"
-                    value={newRule.base_price}
-                    onChange={(e) => setNewRule(prev => ({ ...prev, base_price: e.target.value }))}
+                    value={newRule.base_price || ''}
+                    onChange={(e) => setNewRule(prev => ({ ...prev, base_price: parseFloat(e.target.value) || 0 }))}
                   />
                   <Input
                     className="col-span-1"
                     type="number"
                     placeholder="/km"
-                    value={newRule.price_per_km}
-                    onChange={(e) => setNewRule(prev => ({ ...prev, price_per_km: e.target.value }))}
+                    value={newRule.price_per_km || ''}
+                    onChange={(e) => setNewRule(prev => ({ ...prev, price_per_km: parseFloat(e.target.value) || 0 }))}
                   />
                   <Input
                     className="col-span-1"
-                    placeholder="Devise"
-                    value={newRule.currency}
-                    onChange={(e) => setNewRule(prev => ({ ...prev, currency: e.target.value }))}
+                    type="number"
+                    placeholder="/min"
+                    value={newRule.price_per_minute || ''}
+                    onChange={(e) => setNewRule(prev => ({ ...prev, price_per_minute: parseFloat(e.target.value) || 0 }))}
+                  />
+                  <Input
+                    className="col-span-1"
+                    type="number"
+                    placeholder="Min"
+                    value={newRule.minimum_fare || ''}
+                    onChange={(e) => setNewRule(prev => ({ ...prev, minimum_fare: parseFloat(e.target.value) || 0 }))}
+                  />
+                  <Input
+                    className="col-span-1"
+                    type="number"
+                    step="0.1"
+                    placeholder="Surge"
+                    value={newRule.surge_multiplier || ''}
+                    onChange={(e) => setNewRule(prev => ({ ...prev, surge_multiplier: parseFloat(e.target.value) || 1 }))}
                   />
                   <Button className="col-span-1" onClick={handleCreate}>
-                    <Plus className="w-4 h-4 mr-1" />
-                    Ajouter
+                    <Plus className="w-4 h-4" />
                   </Button>
                 </div>
               </div>

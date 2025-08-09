@@ -10,7 +10,11 @@ export interface PricingRule {
   vehicle_class: string;
   base_price: number;
   price_per_km: number;
+  price_per_minute: number;
+  minimum_fare: number;
+  surge_multiplier: number;
   currency: string;
+  city: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -66,7 +70,11 @@ export const usePricingRules = () => {
           .update({
             base_price: rule.base_price,
             price_per_km: rule.price_per_km,
-            currency: rule.currency || existing.currency
+            price_per_minute: rule.price_per_minute || existing.price_per_minute,
+            minimum_fare: rule.minimum_fare || existing.minimum_fare,
+            surge_multiplier: rule.surge_multiplier || existing.surge_multiplier,
+            currency: rule.currency || existing.currency,
+            city: rule.city || existing.city
           })
           .eq('id', existing.id);
         if (error) throw error;
@@ -78,7 +86,11 @@ export const usePricingRules = () => {
             vehicle_class: rule.vehicle_class,
             base_price: rule.base_price,
             price_per_km: rule.price_per_km,
+            price_per_minute: rule.price_per_minute || 0,
+            minimum_fare: rule.minimum_fare || 0,
+            surge_multiplier: rule.surge_multiplier || 1,
             currency: rule.currency || 'CDF',
+            city: rule.city || 'Kinshasa',
             is_active: true
           });
         if (error) throw error;
