@@ -34,7 +34,7 @@ interface Product {
   condition: string;
   description: string;
   seller_id: string;
-  seller?: { display_name: string };
+  seller: { display_name: string };
   location: string;
   coordinates?: { lat: number; lng: number };
   inStock: boolean;
@@ -99,10 +99,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
       setLoading(true);
       const { data, error } = await supabase
         .from('marketplace_products')
-        .select(`
-          *,
-          seller:profiles!seller_id(display_name, phone_number)
-        `)
+        .select('*')
         .eq('status', 'active')
         .eq('moderation_status', 'approved')
         .order('created_at', { ascending: false });
@@ -121,9 +118,11 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
         condition: product.condition || 'new',
         description: product.description || '',
         seller_id: product.seller_id,
-        seller: product.seller || { display_name: 'Vendeur' },
+        seller: { display_name: 'Vendeur' },
         location: product.location || 'Kinshasa',
-        coordinates: product.coordinates,
+        coordinates: product.coordinates && typeof product.coordinates === 'object' 
+          ? product.coordinates as { lat: number; lng: number }
+          : undefined,
         inStock: true,
         stockCount: Math.floor(Math.random() * 20) + 1,
         rating: 4.5,
@@ -208,7 +207,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
         price: product.price,
         image: product.image,
         quantity: 1,
-        seller: product.seller?.display_name || 'Vendeur inconnu',
+        seller: product.seller.display_name || 'Vendeur inconnu',
         seller_id: product.seller_id,
         coordinates: product.coordinates
       }]);
@@ -339,9 +338,13 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
           filteredProducts.map(product => (
             <ModernProductCard
               key={product.id}
-        product={{ ...product, name: product.title }}
-        onAddToCart={() => addToCart(product)}
-        onViewDetails={() => handleCreateOrder(product)}
+              product={{ 
+                ...product, 
+                name: product.title,
+                seller: product.seller.display_name
+              }}
+              onAddToCart={() => addToCart(product)}
+              onViewDetails={() => handleCreateOrder(product)}
             />
           ))
         )}

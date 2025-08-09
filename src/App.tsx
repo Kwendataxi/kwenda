@@ -13,7 +13,7 @@ import ClientApp from "./pages/ClientApp";
 import DriverApp from "./pages/DriverApp";
 import PartnerApp from "./pages/PartnerApp";
 import AdminApp from "./pages/AdminApp";
-import MarketplaceApp from "./pages/MarketplaceApp";
+
 import NotFound from "./pages/NotFound";
 // Footer Pages
 import HelpCenter from "./pages/support/HelpCenter";
@@ -70,11 +70,6 @@ const App = () => (
               <Route path="/admin" element={
                 <ProtectedRoute>
                   <AdminApp />
-                </ProtectedRoute>
-              } />
-              <Route path="/marketplace" element={
-                <ProtectedRoute>
-                  <MarketplaceApp />
                 </ProtectedRoute>
               } />
               
