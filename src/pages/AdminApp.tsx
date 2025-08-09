@@ -26,8 +26,11 @@ import { AdminFiltersBar } from '@/components/admin/AdminFiltersBar';
 import { AdvancedUserManagement } from '@/components/admin/users/AdvancedUserManagement';
 import UnifiedDispatchMonitor from '@/components/admin/UnifiedDispatchMonitor';
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
+import { useRealTimeStats } from '@/hooks/useRealTimeStats';
 import { ProductModerationDashboard } from '@/components/marketplace/ProductModerationDashboard';
 import { AdminNotificationCenter } from '@/components/admin/AdminNotificationCenter';
+import { RealTimeActivityFeed } from '@/components/admin/RealTimeActivityFeed';
+import { OnlineDriversList } from '@/components/admin/OnlineDriversList';
 import { 
   LayoutDashboard,
   Users,
@@ -95,6 +98,7 @@ const AdminApp = () => {
   const isMobile = useIsMobile();
   const { adminRole, hasPermission, hasAnyPermission, loading: rolesLoading } = useUserRoles();
   const { loading: analyticsLoading, dashboardData, fetchDashboardAnalytics } = useAdminAnalytics();
+  const { stats: realTimeStatsData, loading: realTimeLoading } = useRealTimeStats();
   
   useEffect(() => {
     fetchDashboardAnalytics(analyticsDateRange)
@@ -103,19 +107,15 @@ const AdminApp = () => {
   const realTimeStats = useMemo(() => {
     const overview = (dashboardData as any)?.overview || {}
     return {
-      totalUsers: overview.total_users ?? 0,
-      activeDrivers: overview.total_drivers ?? 0,
-      todayRevenue: overview.total_revenue ?? 0,
-      activeRides: 0,
-      marketplaceOrders: 0,
-      activeUsers: overview.total_users ?? 0,
-      todayRides: 0,
-      incidents: 0,
-      onlineDrivers: 0,
+      totalUsers: realTimeStatsData.totalUsers || overview.total_users || 0,
+      totalDrivers: realTimeStatsData.totalDrivers || overview.total_drivers || 0,
+      totalRevenue: realTimeStatsData.totalRevenue || overview.total_revenue || 0,
+      activeRides: realTimeStatsData.activeRides || 0,
+      onlineDrivers: realTimeStatsData.onlineDrivers || 0,
       pendingModeration: 0,
-      supportTickets: overview.pending_support_tickets ?? 0
+      supportTickets: overview.pending_support_tickets || 0
     }
-  }, [dashboardData])
+  }, [dashboardData, realTimeStatsData])
 
   // Filtrer la navigation selon les permissions
   const allowedNavItems = ADMIN_NAVIGATION.filter(item => 
@@ -303,10 +303,10 @@ const AdminApp = () => {
                     </div>
                     <div className="ml-4">
                       <p className="text-body-sm font-medium text-muted-foreground">Chauffeurs</p>
-                      <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.activeDrivers.toLocaleString()}</p>
+                       <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.totalDrivers.toLocaleString()}</p>
+                     </div>
                     </div>
-                   </div>
-                   {realTimeStats.activeDrivers > 0 ? (
+                    {realTimeStats.totalDrivers > 0 ? (
                      <div className="mt-4">
                        <span className="text-body-sm text-muted-foreground">Chauffeurs inscrits</span>
                      </div>
@@ -326,10 +326,10 @@ const AdminApp = () => {
                     </div>
                     <div className="ml-4">
                       <p className="text-body-sm font-medium text-muted-foreground">Revenus (période)</p>
-                      <p className="text-heading-lg font-bold text-card-foreground">{realTimeStats.todayRevenue.toLocaleString()} CDF</p>
+                       <p className="text-heading-lg font-bold text-card-foreground">{realTimeStats.totalRevenue.toLocaleString()} CDF</p>
+                     </div>
                     </div>
-                   </div>
-                   {realTimeStats.todayRevenue > 0 ? (
+                    {realTimeStats.totalRevenue > 0 ? (
                      <div className="mt-4">
                        <span className="text-body-sm text-muted-foreground">Revenus période sélectionnée</span>
                      </div>
@@ -420,62 +420,16 @@ const AdminApp = () => {
               </Card>
             </div>
 
-            {/* Recent Activity */}
+            {/* Real-time Activity and Drivers */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="card-floating border-0">
-                <CardHeader>
-                  <CardTitle className="text-heading-md">Activité en temps réel</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {[
-                      { type: "new_user", message: "Jean Kouassi s'est inscrit", time: "Il y a 2 min", status: "success" },
-                      { type: "ride_completed", message: "Course Cocody → Plateau terminée", time: "Il y a 5 min", status: "success" },
-                      { type: "incident", message: "Signalement d'incident", time: "Il y a 8 min", status: "warning" },
-                      { type: "payment", message: "Paiement de 2,500 FCFA reçu", time: "Il y a 12 min", status: "success" },
-                    ].map((activity, index) => (
-                      <div key={index} className="flex items-center space-x-3">
-                        <div className={`w-3 h-3 rounded-full ${
-                          activity.status === 'success' ? 'bg-secondary' : 'bg-yellow-500'
-                        }`} />
-                        <div className="flex-1">
-                          <p className="text-body-sm font-medium text-card-foreground">{activity.message}</p>
-                          <p className="text-caption text-muted-foreground">{activity.time}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="card-floating border-0">
-                <CardHeader>
-                  <CardTitle className="text-heading-md">Chauffeurs en ligne</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-body-sm text-muted-foreground">Total en ligne</span>
-                      <span className="text-heading-sm font-bold text-secondary">{realTimeStats.onlineDrivers} chauffeurs</span>
-                    </div>
-                    <div className="space-y-3">
-                      {[
-                        { name: "Kouame Paul", zone: "Cocody", rides: 8, rating: 4.9 },
-                        { name: "Traore Sekou", zone: "Plateau", rides: 12, rating: 4.8 },
-                        { name: "Diallo Mamadou", zone: "Marcory", rides: 6, rating: 5.0 },
-                      ].map((driver, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-grey-50 rounded-xl">
-                          <div>
-                            <p className="text-body-sm font-medium text-card-foreground">{driver.name}</p>
-                            <p className="text-caption text-muted-foreground">{driver.zone} • {driver.rides} courses</p>
-                          </div>
-                          <Badge variant="secondary" className="rounded-md">{driver.rating}★</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <RealTimeActivityFeed 
+                activities={realTimeStatsData.recentActivities}
+                loading={realTimeLoading}
+              />
+              <OnlineDriversList 
+                drivers={realTimeStatsData.onlineDriversList}
+                loading={realTimeLoading}
+              />
             </div>
             </PermissionGuard>
           </TabsContent>
