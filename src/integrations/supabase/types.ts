@@ -2019,8 +2019,10 @@ export type Database = {
           city: string
           created_at: string
           currency: string
+          free_waiting_time_minutes: number | null
           id: string
           is_active: boolean
+          max_waiting_time_minutes: number | null
           minimum_fare: number
           price_per_km: number
           price_per_minute: number
@@ -2028,14 +2030,17 @@ export type Database = {
           surge_multiplier: number
           updated_at: string
           vehicle_class: string
+          waiting_fee_per_minute: number | null
         }
         Insert: {
           base_price?: number
           city?: string
           created_at?: string
           currency?: string
+          free_waiting_time_minutes?: number | null
           id?: string
           is_active?: boolean
+          max_waiting_time_minutes?: number | null
           minimum_fare?: number
           price_per_km?: number
           price_per_minute?: number
@@ -2043,14 +2048,17 @@ export type Database = {
           surge_multiplier?: number
           updated_at?: string
           vehicle_class?: string
+          waiting_fee_per_minute?: number | null
         }
         Update: {
           base_price?: number
           city?: string
           created_at?: string
           currency?: string
+          free_waiting_time_minutes?: number | null
           id?: string
           is_active?: boolean
+          max_waiting_time_minutes?: number | null
           minimum_fare?: number
           price_per_km?: number
           price_per_minute?: number
@@ -2058,6 +2066,7 @@ export type Database = {
           surge_multiplier?: number
           updated_at?: string
           vehicle_class?: string
+          waiting_fee_per_minute?: number | null
         }
         Relationships: []
       }
@@ -2822,10 +2831,12 @@ export type Database = {
           cancellation_time: string | null
           completion_time: string | null
           created_at: string
+          customer_boarded_at: string | null
           destination: string
           destination_coordinates: Json
           destination_zone_id: string | null
           dispatch_time: string | null
+          driver_arrived_at: string | null
           estimated_price: number | null
           final_price: number | null
           id: string
@@ -2839,6 +2850,8 @@ export type Database = {
           updated_at: string
           user_id: string
           vehicle_class: string
+          waiting_fee_amount: number | null
+          waiting_time_minutes: number | null
         }
         Insert: {
           acceptance_time?: string | null
@@ -2847,10 +2860,12 @@ export type Database = {
           cancellation_time?: string | null
           completion_time?: string | null
           created_at?: string
+          customer_boarded_at?: string | null
           destination: string
           destination_coordinates: Json
           destination_zone_id?: string | null
           dispatch_time?: string | null
+          driver_arrived_at?: string | null
           estimated_price?: number | null
           final_price?: number | null
           id?: string
@@ -2864,6 +2879,8 @@ export type Database = {
           updated_at?: string
           user_id: string
           vehicle_class?: string
+          waiting_fee_amount?: number | null
+          waiting_time_minutes?: number | null
         }
         Update: {
           acceptance_time?: string | null
@@ -2872,10 +2889,12 @@ export type Database = {
           cancellation_time?: string | null
           completion_time?: string | null
           created_at?: string
+          customer_boarded_at?: string | null
           destination?: string
           destination_coordinates?: Json
           destination_zone_id?: string | null
           dispatch_time?: string | null
+          driver_arrived_at?: string | null
           estimated_price?: number | null
           final_price?: number | null
           id?: string
@@ -2889,6 +2908,8 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vehicle_class?: string
+          waiting_fee_amount?: number | null
+          waiting_time_minutes?: number | null
         }
         Relationships: [
           {
