@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, CheckCircle, Star } from 'lucide-react';
+import { ArrowRight, CheckCircle, Star, MapPin, Clock, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -64,9 +64,11 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
   const [destination, setDestination] = useState<LocationResult | null>(null);
   const [selectedMode, setSelectedMode] = useState<'flash' | 'flex' | 'maxicharge' | null>(null);
   const [orderId, setOrderId] = useState<string>('');
+  const [priceInfo, setPriceInfo] = useState<{price: number, distance: number, duration: number} | null>(null);
+  const [calculating, setCalculating] = useState(false);
 
   const { toast } = useToast();
-  const { createDeliveryOrder, submitting } = useEnhancedDeliveryOrders();
+  const { createDeliveryOrder, submitting, calculateDeliveryPrice } = useEnhancedDeliveryOrders();
 
   // Appliquer le mode initial le cas échéant
   useEffect(() => {
@@ -90,7 +92,37 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
     }
   }, [pickup, destination, selectedMode, initialSelectedMode]);
 
-  const canProceed = pickup && destination && selectedMode;
+  // Calcul automatique du prix dès que pickup + destination + mode sont définis
+  useEffect(() => {
+    const calculatePrice = async () => {
+      if (pickup && destination && selectedMode) {
+        setCalculating(true);
+        try {
+          const result = await calculateDeliveryPrice({
+            address: pickup.address,
+            lat: pickup.lat,
+            lng: pickup.lng
+          }, {
+            address: destination.address,
+            lat: destination.lat,
+            lng: destination.lng
+          }, selectedMode);
+          setPriceInfo(result);
+        } catch (error) {
+          console.error('Erreur calcul prix:', error);
+          setPriceInfo(null);
+        } finally {
+          setCalculating(false);
+        }
+      } else {
+        setPriceInfo(null);
+      }
+    };
+
+    calculatePrice();
+  }, [pickup, destination, selectedMode, calculateDeliveryPrice]);
+
+  const canProceed = pickup && destination && selectedMode && priceInfo;
 
   const handleSearchDriver = async () => {
     if (!canProceed) return;
@@ -103,10 +135,9 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
         pickup: pickup!,
         destination: destination!,
         mode: selectedMode!,
-        // Estimation de base, prix réel calculé côté serveur
-        estimatedPrice: 5000,
-        distance: 5,
-        duration: 30
+        estimatedPrice: priceInfo!.price,
+        distance: priceInfo!.distance,
+        duration: priceInfo!.duration
       };
 
       console.log('Données commande préparées:', orderData);
@@ -252,10 +283,10 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
             />
           </div>
 
-          {/* Mode sélectionné */}
+          {/* Mode sélectionné et prix */}
           {selectedMode && (
             <Card className="p-4 bg-primary/5 border-primary/20">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 mb-3">
                 <div className="text-2xl">
                   {deliveryModes.find(m => m.id === selectedMode)?.icon}
                 </div>
@@ -268,19 +299,63 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
                   </div>
                 </div>
               </div>
+              
+              {/* Informations de prix */}
+              {calculating ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                  Calcul du prix...
+                </div>
+              ) : priceInfo ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-muted-foreground" />
+                      <span>Distance</span>
+                    </div>
+                    <span className="font-medium">{priceInfo.distance.toFixed(1)} km</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <span>Temps estimé</span>
+                    </div>
+                    <span className="font-medium">{Math.round(priceInfo.duration)} min</span>
+                  </div>
+                  <div className="flex items-center justify-between border-t pt-2">
+                    <div className="flex items-center gap-2">
+                      <Package className="w-4 h-4 text-primary" />
+                      <span className="font-semibold">Prix</span>
+                    </div>
+                    <span className="text-lg font-bold text-primary">{priceInfo.price.toLocaleString()} CDF</span>
+                  </div>
+                </div>
+              ) : pickup && destination ? (
+                <div className="text-sm text-muted-foreground">
+                  Calcul du prix en cours...
+                </div>
+              ) : null}
             </Card>
           )}
         </div>
 
-        {/* Bouton rechercher livreur fixé en bas */}
+        {/* Bouton continuer avec prix fixé en bas */}
         <div className="p-4 border-t bg-background">
           <Button
             onClick={handleSearchDriver}
-            disabled={!canProceed || submitting}
+            disabled={!canProceed || submitting || calculating}
             className="w-full"
             size="lg"
           >
-            {submitting ? 'Recherche en cours...' : 'Rechercher un livreur'}
+            {submitting ? (
+              'Recherche en cours...'
+            ) : calculating ? (
+              'Calcul du prix...'
+            ) : priceInfo ? (
+              `Continuer • ${priceInfo.price.toLocaleString()} CDF`
+            ) : (
+              'Sélectionner les adresses'
+            )}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
