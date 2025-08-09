@@ -1445,15 +1445,24 @@ export type Database = {
           completed_at: string | null
           confirmed_at: string | null
           created_at: string
+          customer_feedback: string | null
+          customer_rating: number | null
           delivered_at: string | null
           delivery_address: string | null
+          delivery_attempted_at: string | null
           delivery_coordinates: Json | null
           delivery_method: string
+          driver_notes: string | null
+          estimated_delivery_time: string | null
           id: string
+          in_transit_at: string | null
           notes: string | null
           payment_status: string
+          pickup_coordinates: Json | null
+          preparing_at: string | null
           product_id: string
           quantity: number
+          ready_for_pickup_at: string | null
           seller_id: string
           status: string
           total_amount: number
@@ -1465,15 +1474,24 @@ export type Database = {
           completed_at?: string | null
           confirmed_at?: string | null
           created_at?: string
+          customer_feedback?: string | null
+          customer_rating?: number | null
           delivered_at?: string | null
           delivery_address?: string | null
+          delivery_attempted_at?: string | null
           delivery_coordinates?: Json | null
           delivery_method?: string
+          driver_notes?: string | null
+          estimated_delivery_time?: string | null
           id?: string
+          in_transit_at?: string | null
           notes?: string | null
           payment_status?: string
+          pickup_coordinates?: Json | null
+          preparing_at?: string | null
           product_id: string
           quantity?: number
+          ready_for_pickup_at?: string | null
           seller_id: string
           status?: string
           total_amount: number
@@ -1485,15 +1503,24 @@ export type Database = {
           completed_at?: string | null
           confirmed_at?: string | null
           created_at?: string
+          customer_feedback?: string | null
+          customer_rating?: number | null
           delivered_at?: string | null
           delivery_address?: string | null
+          delivery_attempted_at?: string | null
           delivery_coordinates?: Json | null
           delivery_method?: string
+          driver_notes?: string | null
+          estimated_delivery_time?: string | null
           id?: string
+          in_transit_at?: string | null
           notes?: string | null
           payment_status?: string
+          pickup_coordinates?: Json | null
+          preparing_at?: string | null
           product_id?: string
           quantity?: number
+          ready_for_pickup_at?: string | null
           seller_id?: string
           status?: string
           total_amount?: number
@@ -1656,6 +1683,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      order_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          notification_type: string
+          order_id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          order_id: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          order_id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_notifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partner_commission_tracking: {
         Row: {
@@ -4139,6 +4210,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_delivery_estimate: {
+        Args: { order_id_param: string }
+        Returns: string
+      }
       calculate_rental_price: {
         Args: {
           base_price: number

@@ -19,6 +19,7 @@ import { SellProductForm } from './SellProductForm';
 import { VendorDashboard } from './VendorDashboard';
 import { DeliveryCalculator } from './DeliveryCalculator';
 import { OrderTracker } from './OrderTracker';
+import { AdvancedOrderTracker } from './AdvancedOrderTracker';
 
 // Hooks
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
@@ -438,7 +439,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
           </TabsContent>
 
           <TabsContent value="orders" className="mt-4">
-            <OrderTracker />
+            <AdvancedOrderTracker />
           </TabsContent>
 
           <TabsContent value="vendor" className="mt-4">

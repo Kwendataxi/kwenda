@@ -13,12 +13,24 @@ interface MarketplaceOrder {
   total_amount: number;
   delivery_address?: string;
   delivery_coordinates?: any;
+  pickup_coordinates?: any;
   status: string;
   payment_status: string;
   delivery_method: string;
   notes?: string;
   created_at: string;
   updated_at: string;
+  confirmed_at?: string;
+  preparing_at?: string;
+  ready_for_pickup_at?: string;
+  in_transit_at?: string;
+  delivery_attempted_at?: string;
+  delivered_at?: string;
+  completed_at?: string;
+  estimated_delivery_time?: string;
+  driver_notes?: string;
+  customer_rating?: number;
+  customer_feedback?: string;
   product?: {
     title: string;
     price: number;
@@ -126,9 +138,10 @@ export const useMarketplaceOrders = () => {
           total_amount: totalAmount,
           delivery_address: deliveryAddress,
           delivery_coordinates: deliveryCoordinates,
+          pickup_coordinates: deliveryCoordinates, // Store pickup location
           delivery_method: deliveryMethod,
           notes: notes,
-          status: 'pending',
+          status: 'pending_payment',
           payment_status: 'pending'
         })
         .select()
@@ -157,11 +170,24 @@ export const useMarketplaceOrders = () => {
         `Paiement en séquestre pour commande ${order.id}`
       );
 
-      // Update order payment status
+      // Update order payment status and move to pending confirmation
       await supabase
         .from('marketplace_orders')
-        .update({ payment_status: 'held' })
+        .update({ 
+          payment_status: 'held',
+          status: 'pending' 
+        })
         .eq('id', order.id);
+
+      // Call Edge Function to process the order (notifications, etc.)
+      try {
+        await supabase.functions.invoke('process-marketplace-order', {
+          body: { orderId: order.id }
+        });
+      } catch (processError) {
+        console.error('Failed to process order:', processError);
+        // Ne pas faire échouer la commande pour une erreur de traitement
+      }
 
       fetchOrders();
       return order.id;
@@ -171,77 +197,58 @@ export const useMarketplaceOrders = () => {
     }
   };
 
-  // Confirm order (seller accepts)
-  const confirmOrder = async (orderId: string) => {
+  // Update order status via Edge Function
+  const updateOrderStatus = async (orderId: string, newStatus: string, metadata: any = {}) => {
     try {
-      const { error } = await supabase
-        .from('marketplace_orders')
-        .update({
-          status: 'confirmed',
-          confirmed_at: new Date().toISOString()
-        })
-        .eq('id', orderId);
+      const { data, error } = await supabase.functions.invoke('handle-order-status-change', {
+        body: { 
+          orderId, 
+          newStatus,
+          metadata 
+        }
+      });
 
       if (error) throw error;
 
       fetchOrders();
+      return data;
     } catch (error) {
-      console.error('Error confirming order:', error);
+      console.error('Error updating order status:', error);
       throw error;
     }
+  };
+
+  // Confirm order (seller accepts)
+  const confirmOrder = async (orderId: string) => {
+    return updateOrderStatus(orderId, 'confirmed');
+  };
+
+  // Mark order as preparing
+  const markAsPreparing = async (orderId: string) => {
+    return updateOrderStatus(orderId, 'preparing');
+  };
+
+  // Mark order as ready for pickup/delivery
+  const markAsReady = async (orderId: string) => {
+    return updateOrderStatus(orderId, 'ready_for_pickup');
+  };
+
+  // Mark order as in transit (for delivery)
+  const markAsInTransit = async (orderId: string, driverId?: string) => {
+    return updateOrderStatus(orderId, 'in_transit', { driver_id: driverId });
   };
 
   // Mark as delivered
-  const markAsDelivered = async (orderId: string) => {
-    try {
-      const { error } = await supabase
-        .from('marketplace_orders')
-        .update({
-          status: 'delivered',
-          delivered_at: new Date().toISOString()
-        })
-        .eq('id', orderId);
-
-      if (error) throw error;
-
-      fetchOrders();
-    } catch (error) {
-      console.error('Error marking as delivered:', error);
-      throw error;
-    }
+  const markAsDelivered = async (orderId: string, driverNotes?: string) => {
+    return updateOrderStatus(orderId, 'delivered', { driver_notes: driverNotes });
   };
 
   // Complete order (buyer confirms receipt)
-  const completeOrder = async (orderId: string) => {
-    try {
-      // Update order status
-      const { error: orderError } = await supabase
-        .from('marketplace_orders')
-        .update({
-          status: 'completed',
-          payment_status: 'completed',
-          completed_at: new Date().toISOString()
-        })
-        .eq('id', orderId);
-
-      if (orderError) throw orderError;
-
-      // Release escrow payment
-      const { error: escrowError } = await supabase
-        .from('escrow_payments')
-        .update({
-          status: 'released',
-          released_at: new Date().toISOString()
-        })
-        .eq('order_id', orderId);
-
-      if (escrowError) throw escrowError;
-
-      fetchOrders();
-    } catch (error) {
-      console.error('Error completing order:', error);
-      throw error;
-    }
+  const completeOrder = async (orderId: string, rating?: number, feedback?: string) => {
+    return updateOrderStatus(orderId, 'completed', { 
+      customer_rating: rating,
+      customer_feedback: feedback 
+    });
   };
 
   // Cancel order
@@ -319,7 +326,11 @@ export const useMarketplaceOrders = () => {
     orders,
     loading,
     createOrder,
+    updateOrderStatus,
     confirmOrder,
+    markAsPreparing,
+    markAsReady,
+    markAsInTransit,
     markAsDelivered,
     completeOrder,
     cancelOrder,
