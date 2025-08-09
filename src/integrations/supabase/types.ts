@@ -4039,6 +4039,10 @@ export type Database = {
         | "notifications_read"
         | "notifications_write"
         | "notifications_admin"
+        | "zones_read"
+        | "zones_write"
+        | "zones_admin"
+        | "drivers_admin"
       user_role: "client" | "driver" | "partner" | "admin"
     }
     CompositeTypes: {
@@ -4203,6 +4207,10 @@ export const Constants = {
         "notifications_read",
         "notifications_write",
         "notifications_admin",
+        "zones_read",
+        "zones_write",
+        "zones_admin",
+        "drivers_admin",
       ],
       user_role: ["client", "driver", "partner", "admin"],
     },
