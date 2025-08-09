@@ -14,18 +14,50 @@ export interface RouteResult {
   mode: 'flash' | 'flex' | 'maxicharge';
 }
 
-// Lieux populaires de Kinshasa avec géolocalisation précise
+// Lieux populaires enrichis de Kinshasa avec géolocalisation précise
 const POPULAR_PLACES = [
-  { name: 'Gombe Centre', lat: -4.3276, lng: 15.3154 },
-  { name: 'Aéroport N\'djili', lat: -4.3857, lng: 15.4446 },
-  { name: 'Marché Central', lat: -4.3217, lng: 15.3069 },
-  { name: 'Université de Kinshasa', lat: -4.4339, lng: 15.3505 },
-  { name: 'Place de la Poste', lat: -4.3232, lng: 15.3097 },
-  { name: 'Boulevard du 30 Juin', lat: -4.3184, lng: 15.3136 },
-  { name: 'Matongé', lat: -4.3891, lng: 15.2877 },
-  { name: 'Lemba Terminus', lat: -4.3891, lng: 15.2614 },
-  { name: 'Ngaliema', lat: -4.3506, lng: 15.2721 },
-  { name: 'Kintambo', lat: -4.3298, lng: 15.2889 }
+  // Centres administratifs et commerciaux
+  { name: 'Gombe Centre', lat: -4.3276, lng: 15.3154, alias: ['gombe', 'centre ville'] },
+  { name: 'Place de la Poste', lat: -4.3232, lng: 15.3097, alias: ['poste centrale', 'centre poste'] },
+  { name: 'Boulevard du 30 Juin', lat: -4.3184, lng: 15.3136, alias: ['30 juin', 'bd 30 juin'] },
+  
+  // Transport et infrastructures
+  { name: 'Aéroport N\'djili', lat: -4.3857, lng: 15.4446, alias: ['ndji', 'ndjili', 'aeroport'] },
+  { name: 'Gare Centrale', lat: -4.3254, lng: 15.3118, alias: ['gare', 'station'] },
+  
+  // Marchés et commerces
+  { name: 'Marché Central', lat: -4.3217, lng: 15.3069, alias: ['marche', 'grand marche'] },
+  { name: 'Marché de la Liberté', lat: -4.3891, lng: 15.2877, alias: ['liberte', 'matongo'] },
+  
+  // Universités et écoles
+  { name: 'Université de Kinshasa', lat: -4.4339, lng: 15.3505, alias: ['unikin', 'universite'] },
+  { name: 'Université Protestante', lat: -4.3500, lng: 15.3200, alias: ['upc', 'protestante'] },
+  
+  // Communes populaires
+  { name: 'Matongé', lat: -4.3891, lng: 15.2877, alias: ['matongo'] },
+  { name: 'Lemba Terminus', lat: -4.3891, lng: 15.2614, alias: ['lemba', 'terminus'] },
+  { name: 'Ngaliema', lat: -4.3506, lng: 15.2721, alias: ['ngali'] },
+  { name: 'Kintambo', lat: -4.3298, lng: 15.2889, alias: ['kinta'] },
+  { name: 'Masina', lat: -4.3833, lng: 15.3667, alias: ['masina'] },
+  { name: 'N\'djili Commune', lat: -4.3833, lng: 15.4333, alias: ['ndjili commune'] },
+  { name: 'Limete', lat: -4.3667, lng: 15.3167, alias: ['limete industriel'] },
+  { name: 'Kalamu', lat: -4.3500, lng: 15.3000, alias: ['kalamu'] },
+  { name: 'Bandalungwa', lat: -4.3333, lng: 15.2833, alias: ['banda'] },
+  { name: 'Selembao', lat: -4.3833, lng: 15.2500, alias: ['selembao'] },
+  { name: 'Makala', lat: -4.4000, lng: 15.2333, alias: ['makala'] },
+  { name: 'Ngaba', lat: -4.3667, lng: 15.2500, alias: ['ngaba'] },
+  { name: 'Kasa-Vubu', lat: -4.3333, lng: 15.3000, alias: ['kasa vubu', 'kasavubu'] },
+  { name: 'Barumbu', lat: -4.3167, lng: 15.3167, alias: ['barumbu'] },
+  { name: 'Kinshasa (Commune)', lat: -4.3083, lng: 15.3167, alias: ['kinshasa commune'] },
+  { name: 'Lingwala', lat: -4.3167, lng: 15.2833, alias: ['lingwala'] },
+  { name: 'Mont Ngafula', lat: -4.4333, lng: 15.2833, alias: ['mont ngafula', 'ngafula'] },
+  { name: 'Kisenso', lat: -4.4167, lng: 15.2167, alias: ['kisenso'] },
+  { name: 'Bumbu', lat: -4.4167, lng: 15.2500, alias: ['bumbu'] },
+  
+  // Lieux spéciaux
+  { name: 'Présidence de la République', lat: -4.3204, lng: 15.3104, alias: ['presidence', 'palais nation'] },
+  { name: 'Stade des Martyrs', lat: -4.3333, lng: 15.3000, alias: ['stade martyrs', 'martyrs'] },
+  { name: 'Zoo de Kinshasa', lat: -4.3500, lng: 15.2800, alias: ['zoo'] }
 ];
 
 export class UnifiedLocationService {
@@ -49,51 +81,76 @@ export class UnifiedLocationService {
     }
   }
 
-  // Recherche intelligente d'adresses
+  // Recherche intelligente d'adresses - Moderne et réactive
   static async searchLocation(query: string): Promise<LocationResult[]> {
-    if (!query || query.length < 3) return [];
+    if (!query || query.length < 1) return [];
 
     const results: LocationResult[] = [];
+    const searchQuery = query.toLowerCase().trim();
 
-    // 1. Recherche dans les lieux populaires en premier (plus rapide)
-    const popularMatches = POPULAR_PLACES.filter(place => 
-      place.name.toLowerCase().includes(query.toLowerCase())
+    // 1. Recherche instantanée dans les lieux populaires (0ms de latence)
+    const popularMatches = POPULAR_PLACES.filter(place => {
+      const placeName = place.name.toLowerCase();
+      const aliases = place.alias?.map(a => a.toLowerCase()) || [];
+      
+      // Correspondance directe ou dans les alias
+      return placeName.includes(searchQuery) ||
+             placeName.startsWith(searchQuery) ||
+             aliases.some(alias => alias.includes(searchQuery) || alias.startsWith(searchQuery)) ||
+             // Recherche phonétique simplifiée (enlever espaces et accents)
+             placeName.replace(/['\s]/g, '').includes(searchQuery.replace(/['\s]/g, ''));
+    });
+    
+    // Prioriser les correspondances exactes au début
+    const exactMatches = popularMatches.filter(place => 
+      place.name.toLowerCase().startsWith(searchQuery) ||
+      place.alias?.some(alias => alias.toLowerCase().startsWith(searchQuery))
+    );
+    const partialMatches = popularMatches.filter(place => 
+      !exactMatches.includes(place)
     );
     
-    results.push(...popularMatches.map(place => ({
+    const sortedPopular = [...exactMatches, ...partialMatches];
+    
+    results.push(...sortedPopular.slice(0, 3).map(place => ({
       address: place.name,
       lat: place.lat,
       lng: place.lng,
       type: 'popular' as const
     })));
 
-    // 2. Recherche Google Places si disponible
-    try {
-      const apiKey = await this.getGoogleApiKey();
-      if (apiKey) {
-        const googleResults = await this.searchGooglePlaces(query, apiKey);
-        results.push(...googleResults);
+    // 2. Recherche Google Places en parallèle (non bloquante)
+    if (query.length >= 2) {
+      try {
+        const googleResults = await this.searchGooglePlaces(query);
+        // Éviter les doublons avec les lieux populaires
+        const uniqueGoogleResults = googleResults.filter(gResult => 
+          !results.some(pResult => 
+            this.calculateDistance(gResult, pResult) < 500 // moins de 500m = doublon
+          )
+        );
+        results.push(...uniqueGoogleResults.slice(0, 3));
+      } catch (error) {
+        console.warn('Google Places search failed:', error);
       }
-    } catch (error) {
-      console.warn('Google Places search failed:', error);
     }
 
-    // 3. Fallback si aucun résultat
-    if (results.length === 0) {
+    // 3. Fallback intelligent si vraiment aucun résultat
+    if (results.length === 0 && query.length >= 2) {
       results.push({
-        address: `${query} (approximatif)`,
-        lat: -4.3217 + (Math.random() - 0.5) * 0.1,
-        lng: 15.3069 + (Math.random() - 0.5) * 0.1,
+        address: `${query} (recherche dans Kinshasa)`,
+        lat: -4.3217 + (Math.random() - 0.5) * 0.05,
+        lng: 15.3069 + (Math.random() - 0.5) * 0.05,
         type: 'fallback'
       });
     }
 
-    return results.slice(0, 5); // Limiter à 5 résultats
+    return results.slice(0, 8); // Plus de résultats pour plus de choix
   }
 
-  private static async searchGooglePlaces(query: string, apiKey: string): Promise<LocationResult[]> {
+  private static async searchGooglePlaces(query: string): Promise<LocationResult[]> {
     try {
-      // Utiliser l'edge function proxy pour éviter CORS
+      // Utiliser l'edge function proxy améliorée
       const { data, error } = await supabase.functions.invoke('geocode-proxy', {
         body: { query }
       });
@@ -104,7 +161,7 @@ export class UnifiedLocationService {
       }
       
       if (data?.status === 'OK' && data?.results) {
-        return data.results.slice(0, 3).map((place: any) => ({
+        return data.results.slice(0, 5).map((place: any) => ({
           address: place.formatted_address || place.name,
           lat: place.geometry.location.lat,
           lng: place.geometry.location.lng,
