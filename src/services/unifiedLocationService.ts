@@ -81,76 +81,60 @@ export class UnifiedLocationService {
     }
   }
 
-  // Recherche intelligente d'adresses - Moderne et réactive
+  // Recherche simplifiée et robuste
   static async searchLocation(query: string): Promise<LocationResult[]> {
     if (!query || query.length < 1) return [];
 
-    const results: LocationResult[] = [];
-    const searchQuery = query.toLowerCase().trim();
+    try {
+      const results: LocationResult[] = [];
+      const searchQuery = query.toLowerCase().trim();
 
-    // 1. Recherche instantanée dans les lieux populaires (0ms de latence)
-    const popularMatches = POPULAR_PLACES.filter(place => {
-      const placeName = place.name.toLowerCase();
-      const aliases = place.alias?.map(a => a.toLowerCase()) || [];
-      
-      // Correspondance directe ou dans les alias
-      return placeName.includes(searchQuery) ||
-             placeName.startsWith(searchQuery) ||
-             aliases.some(alias => alias.includes(searchQuery) || alias.startsWith(searchQuery)) ||
-             // Recherche phonétique simplifiée (enlever espaces et accents)
-             placeName.replace(/['\s]/g, '').includes(searchQuery.replace(/['\s]/g, ''));
-    });
-    
-    // Prioriser les correspondances exactes au début
-    const exactMatches = popularMatches.filter(place => 
-      place.name.toLowerCase().startsWith(searchQuery) ||
-      place.alias?.some(alias => alias.toLowerCase().startsWith(searchQuery))
-    );
-    const partialMatches = popularMatches.filter(place => 
-      !exactMatches.includes(place)
-    );
-    
-    const sortedPopular = [...exactMatches, ...partialMatches];
-    
-    results.push(...sortedPopular.slice(0, 3).map(place => ({
-      address: place.name,
-      lat: place.lat,
-      lng: place.lng,
-      type: 'popular' as const
-    })));
-
-    // 2. Recherche Google Places en parallèle (non bloquante)
-    if (query.length >= 2) {
-      try {
-        const googleResults = await this.searchGooglePlaces(query);
-        // Éviter les doublons avec les lieux populaires
-        const uniqueGoogleResults = googleResults.filter(gResult => 
-          !results.some(pResult => 
-            this.calculateDistance(gResult, pResult) < 500 // moins de 500m = doublon
-          )
-        );
-        results.push(...uniqueGoogleResults.slice(0, 3));
-      } catch (error) {
-        console.warn('Google Places search failed:', error);
-      }
-    }
-
-    // 3. Fallback intelligent si vraiment aucun résultat
-    if (results.length === 0 && query.length >= 2) {
-      results.push({
-        address: `${query} (recherche dans Kinshasa)`,
-        lat: -4.3217 + (Math.random() - 0.5) * 0.05,
-        lng: 15.3069 + (Math.random() - 0.5) * 0.05,
-        type: 'fallback'
+      // 1. Recherche dans les lieux populaires
+      const popularMatches = POPULAR_PLACES.filter(place => {
+        const placeName = place.name.toLowerCase();
+        const aliases = place.alias?.map(a => a.toLowerCase()) || [];
+        
+        return placeName.includes(searchQuery) ||
+               placeName.startsWith(searchQuery) ||
+               aliases.some(alias => alias.includes(searchQuery) || alias.startsWith(searchQuery));
       });
-    }
+      
+      results.push(...popularMatches.slice(0, 3).map(place => ({
+        address: place.name,
+        lat: place.lat,
+        lng: place.lng,
+        type: 'popular' as const
+      })));
 
-    return results.slice(0, 8); // Plus de résultats pour plus de choix
+      // 2. Recherche Google Places
+      if (query.length >= 2) {
+        try {
+          const googleResults = await this.searchGooglePlaces(query);
+          results.push(...googleResults.slice(0, 3));
+        } catch (error) {
+          console.warn('Google Places failed:', error);
+        }
+      }
+
+      // 3. Fallback si aucun résultat
+      if (results.length === 0 && query.length >= 2) {
+        results.push({
+          address: `${query} (Kinshasa)`,
+          lat: -4.3217,
+          lng: 15.3069,
+          type: 'fallback'
+        });
+      }
+
+      return results.slice(0, 6);
+    } catch (error) {
+      console.error('Search error:', error);
+      return [];
+    }
   }
 
   private static async searchGooglePlaces(query: string): Promise<LocationResult[]> {
     try {
-      // Utiliser l'edge function proxy améliorée
       const { data, error } = await supabase.functions.invoke('geocode-proxy', {
         body: { query }
       });
@@ -160,18 +144,18 @@ export class UnifiedLocationService {
         return [];
       }
       
-      if (data?.status === 'OK' && data?.results) {
-        return data.results.slice(0, 5).map((place: any) => ({
-          address: place.formatted_address || place.name,
-          lat: place.geometry.location.lat,
-          lng: place.geometry.location.lng,
+      if (data?.status === 'OK' && Array.isArray(data?.results)) {
+        return data.results.slice(0, 3).map((place: any) => ({
+          address: place.formatted_address || place.name || 'Adresse inconnue',
+          lat: place.geometry?.location?.lat || -4.3217,
+          lng: place.geometry?.location?.lng || 15.3069,
           type: 'geocoded' as const
         }));
       }
       
       return [];
     } catch (error) {
-      console.warn('Geocode search failed:', error);
+      console.warn('Geocode failed:', error);
       return [];
     }
   }

@@ -3,7 +3,14 @@ import { Search, MapPin, Clock, Star, Navigation } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { UnifiedLocationService, LocationResult } from '@/services/unifiedLocationService';
+import { UnifiedLocationService } from '@/services/unifiedLocationService';
+
+export interface LocationResult {
+  address: string;
+  lat: number;
+  lng: number;
+  type?: 'geocoded' | 'popular' | 'fallback';
+}
 
 interface UnifiedLocationSearchProps {
   placeholder: string;
@@ -27,7 +34,7 @@ const UnifiedLocationSearch: React.FC<UnifiedLocationSearchProps> = ({
   const searchTimeout = useRef<NodeJS.Timeout>();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Recherche ultra-réactive avec debounce optimisé
+  // Recherche simplifiée et robuste
   useEffect(() => {
     if (searchTimeout.current) {
       clearTimeout(searchTimeout.current);
@@ -35,11 +42,10 @@ const UnifiedLocationSearch: React.FC<UnifiedLocationSearchProps> = ({
 
     if (query.length >= 1) {
       setLoading(true);
-      // Recherche instantanée pour les lieux populaires (pas de délai)
-      const instantSearch = async () => {
+      searchTimeout.current = setTimeout(async () => {
         try {
           const searchResults = await UnifiedLocationService.searchLocation(query);
-          setResults(searchResults);
+          setResults(searchResults || []);
           setIsOpen(true);
         } catch (error) {
           console.error('Search error:', error);
@@ -47,10 +53,7 @@ const UnifiedLocationSearch: React.FC<UnifiedLocationSearchProps> = ({
         } finally {
           setLoading(false);
         }
-      };
-      
-      // Debounce réduit pour une expérience plus fluide
-      searchTimeout.current = setTimeout(instantSearch, 150);
+      }, 200);
     } else {
       setResults([]);
       setIsOpen(false);
