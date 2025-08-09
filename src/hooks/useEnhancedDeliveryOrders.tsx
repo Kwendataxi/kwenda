@@ -39,51 +39,48 @@ export const useEnhancedDeliveryOrders = () => {
     destination: DeliveryLocation,
     mode: 'flash' | 'flex' | 'maxicharge'
   ): Promise<{ price: number; distance: number; duration: number }> => {
+    console.log('Calcul prix démarré:', { pickup, destination, mode });
+    
     try {
       // Calculer la distance entre les points
       const distanceKm = IntegrationGeocodingService.calculateDistance(
         pickup.lat, pickup.lng,
         destination.lat, destination.lng
       );
+      
+      console.log('Distance calculée:', distanceKm, 'km');
 
-      // Récupérer les tarifs dynamiques depuis l'admin (pricing_rules)
-      const { data: rule, error: pricingError } = await supabase
-        .from('pricing_rules')
-        .select('base_price, price_per_km, currency')
-        .eq('service_type', 'delivery')
-        .eq('vehicle_class', mode)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (pricingError) {
-        console.warn('Impossible de récupérer les tarifs dynamiques:', pricingError);
-      }
-
+      // Tarifs par défaut simplifiés
       const defaults = {
         flash: { base: 5000, perKm: 500 },
         flex: { base: 3000, perKm: 300 },
         maxicharge: { base: 8000, perKm: 800 }
       } as const;
 
-      const base = rule?.base_price ?? defaults[mode].base;
-      const perKm = rule?.price_per_km ?? defaults[mode].perKm;
+      const base = defaults[mode].base;
+      const perKm = defaults[mode].perKm;
 
       const price = base + (distanceKm * perKm);
-      const durationMinutes = distanceKm * 3; // 3 min par km
+      const durationMinutes = Math.max(15, distanceKm * 3); // minimum 15min
 
-      return {
+      const result = {
         price: Math.round(price),
-        distance: distanceKm * 1000, // convertir en mètres
-        duration: durationMinutes * 60 // convertir en secondes
+        distance: distanceKm, // en km directement
+        duration: durationMinutes // en minutes directement
       };
+      
+      console.log('Résultat calcul prix:', result);
+      return result;
     } catch (error) {
       console.error('Erreur calcul prix:', error);
       // Prix par défaut en cas d'erreur
-      return {
+      const fallback = {
         price: mode === 'flash' ? 8000 : mode === 'flex' ? 5000 : 12000,
-        distance: 5000, // 5km par défaut
-        duration: 1800  // 30min par défaut
+        distance: 5, // 5km par défaut
+        duration: 30  // 30min par défaut
       };
+      console.log('Utilisation prix fallback:', fallback);
+      return fallback;
     }
   };
 

@@ -313,7 +313,7 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
                       <MapPin className="w-4 h-4 text-muted-foreground" />
                       <span>Distance</span>
                     </div>
-                    <span className="font-medium">{priceInfo.distance.toFixed(1)} km</span>
+                    <span className="font-medium">{priceInfo.distance?.toFixed(1)} km</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
@@ -327,7 +327,7 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
                       <Package className="w-4 h-4 text-primary" />
                       <span className="font-semibold">Prix</span>
                     </div>
-                    <span className="text-lg font-bold text-primary">{priceInfo.price.toLocaleString()} CDF</span>
+                    <span className="text-lg font-bold text-primary">{priceInfo.price?.toLocaleString()} CDF</span>
                   </div>
                 </div>
               ) : pickup && destination ? (
@@ -352,7 +352,7 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
             ) : calculating ? (
               'Calcul du prix...'
             ) : priceInfo ? (
-              `Continuer • ${priceInfo.price.toLocaleString()} CDF`
+              `Continuer • ${priceInfo.price?.toLocaleString()} CDF`
             ) : (
               'Sélectionner les adresses'
             )}
