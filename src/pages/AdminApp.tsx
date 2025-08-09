@@ -10,7 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
-import { ZoneManagementDashboard } from '@/components/admin/ZoneManagementDashboard';
+import { ModernZoneManagementDashboard } from '@/components/admin/zones/ModernZoneManagementDashboard';
 import { DriverFinancialManager } from '@/components/admin/DriverFinancialManager';
 import { AdvancedSupportCenter } from '@/components/admin/AdvancedSupportCenter';
 import { ResponsiveAdminLayout } from '@/components/admin/ResponsiveAdminLayout';
@@ -446,7 +446,7 @@ const AdminApp = () => {
           <PermissionGuard requiredPermissions={['transport_admin']} showError>
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">Configuration des Zones</h2>
-              <ZoneManagementDashboard />
+              <ModernZoneManagementDashboard />
             </div>
           </PermissionGuard>
         </TabsContent>
@@ -477,6 +477,7 @@ const AdminApp = () => {
           {/* Marketplace tab content moved to line 215 after dispatch tab */}
 
           {/* Finance content moved to financial tab */}
+
 
         <TabsContent value="support" className="space-y-6">
           <div className="flex items-center justify-between">

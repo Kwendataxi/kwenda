@@ -15,12 +15,16 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
+  Map,
+  List,
+  DollarSign
 } from 'lucide-react';
 import { useZoneManagement } from '@/hooks/useZoneManagement';
 import { InteractiveZoneMap } from './InteractiveZoneMap';
 import { ZoneListView } from './ZoneListView';
 import { ZonePricingEditor } from './ZonePricingEditor';
 import { ZoneAnalyticsPanel } from './ZoneAnalyticsPanel';
+import ZoneImportExport from './ZoneImportExport';
 import { useToast } from '@/hooks/use-toast';
 
 export const ModernZoneManagementDashboard: React.FC = () => {
@@ -265,22 +269,26 @@ export const ModernZoneManagementDashboard: React.FC = () => {
 
       {/* Interface principale avec onglets */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="map" className="flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
+            <Map className="h-4 w-4" />
             Carte interactive
           </TabsTrigger>
           <TabsTrigger value="list" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
+            <List className="h-4 w-4" />
             Liste des zones
           </TabsTrigger>
           <TabsTrigger value="pricing" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
+            <DollarSign className="h-4 w-4" />
             Tarification
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Analytics
+          </TabsTrigger>
+          <TabsTrigger value="import-export" className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Import/Export
           </TabsTrigger>
         </TabsList>
 
@@ -354,6 +362,14 @@ export const ModernZoneManagementDashboard: React.FC = () => {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="import-export" className="space-y-6">
+          <ZoneImportExport
+            zones={zones}
+            onImport={handleZoneCreate}
+            onExport={handleExportZones}
+          />
         </TabsContent>
       </Tabs>
     </div>

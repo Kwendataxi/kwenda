@@ -78,14 +78,20 @@ export const useRealTimeStats = () => {
         .select('*', { count: 'exact', head: true })
         .in('status', ['pending', 'accepted', 'in_progress'])
 
-      // Fetch total revenue from wallet transactions
-      const { data: revenueData } = await supabase
-        .from('wallet_transactions')
-        .select('amount')
-        .eq('transaction_type', 'credit')
-        .eq('currency', 'CDF')
+      // Fetch total revenue from transport bookings and delivery orders
+      const { data: transportRevenueData } = await supabase
+        .from('transport_bookings')
+        .select('actual_price')
+        .eq('status', 'completed')
 
-      const totalRevenue = revenueData?.reduce((sum, transaction) => sum + (transaction.amount || 0), 0) || 0
+      const { data: deliveryRevenueData } = await supabase
+        .from('delivery_orders')
+        .select('actual_price')
+        .eq('status', 'completed')
+
+      const transportRevenue = transportRevenueData?.reduce((sum, booking) => sum + (booking.actual_price || 0), 0) || 0
+      const deliveryRevenue = deliveryRevenueData?.reduce((sum, order) => sum + (order.actual_price || 0), 0) || 0
+      const totalRevenue = transportRevenue + deliveryRevenue
 
       // Fetch recent activities
       const { data: activitiesData } = await supabase
