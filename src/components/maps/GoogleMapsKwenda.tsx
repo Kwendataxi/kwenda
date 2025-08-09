@@ -15,6 +15,7 @@ interface GoogleMapsKwendaProps {
   zoom?: number;
   height?: string;
   deliveryMode?: 'flash' | 'flex' | 'maxicharge';
+  driverLocation?: { lat: number; lng: number; heading?: number | null };
 }
 
 const render = (status: Status) => {
@@ -41,14 +42,16 @@ const GoogleMapsComponent: React.FC<GoogleMapsKwendaProps & { apiKey: string }> 
   zoom = 12,
   height = "400px",
   deliveryMode,
+  driverLocation,
   apiKey
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [pickupMarker, setPickupMarker] = useState<google.maps.Marker | null>(null);
-  const [destinationMarker, setDestinationMarker] = useState<google.maps.Marker | null>(null);
-  const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
-  const { toast } = useToast();
+const [map, setMap] = useState<google.maps.Map | null>(null);
+const [pickupMarker, setPickupMarker] = useState<google.maps.Marker | null>(null);
+const [destinationMarker, setDestinationMarker] = useState<google.maps.Marker | null>(null);
+const [driverMarker, setDriverMarker] = useState<google.maps.Marker | null>(null);
+const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
+const { toast } = useToast();
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -156,10 +159,53 @@ const GoogleMapsComponent: React.FC<GoogleMapsKwendaProps & { apiKey: string }> 
       }
     });
 
-    setDestinationMarker(marker);
+setDestinationMarker(marker);
   }, [map, destination]);
 
-  // Gestion de l'itinéraire
+  // Gestion du marker du livreur en temps réel
+  useEffect(() => {
+    if (!map || !driverLocation) return;
+
+    if (driverMarker) {
+      driverMarker.setMap(null);
+    }
+
+    const symbol: google.maps.Symbol = {
+      path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+      scale: 5,
+      fillColor: '#ec2027',
+      fillOpacity: 1,
+      strokeWeight: 2,
+      strokeColor: '#ffffff',
+      rotation: typeof driverLocation.heading === 'number' ? driverLocation.heading : 0,
+    };
+
+    const marker = new google.maps.Marker({
+      position: { lat: driverLocation.lat, lng: driverLocation.lng },
+      map,
+      title: 'Livreur',
+      icon: symbol,
+      zIndex: 999,
+    });
+
+    setDriverMarker(marker);
+  }, [map, driverLocation]);
+
+  // Ajuster la vue pour inclure tous les points lorsque aucun itinéraire n'est affiché
+  useEffect(() => {
+    if (!map) return;
+    if (showRoute) return; // DirectionsRenderer gère le fitBounds quand l'itinéraire est visible
+
+    const bounds = new google.maps.LatLngBounds();
+    let hasAny = false;
+    if (pickup) { bounds.extend(pickup); hasAny = true; }
+    if (destination) { bounds.extend(destination); hasAny = true; }
+    if (driverLocation) { bounds.extend({ lat: driverLocation.lat, lng: driverLocation.lng }); hasAny = true; }
+
+    if (hasAny) {
+      map.fitBounds(bounds, 64);
+    }
+  }, [map, pickup, destination, driverLocation, showRoute]);
   useEffect(() => {
     if (!map || !pickup || !destination || !showRoute) return;
 

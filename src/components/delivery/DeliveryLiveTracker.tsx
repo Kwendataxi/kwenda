@@ -29,7 +29,7 @@ const formatDateTime = (iso?: string | null) => {
 };
 
 export default function DeliveryLiveTracker({ orderId, orderData, onBack }: DeliveryLiveTrackerProps) {
-  const { order, statusLabel, price, packageType, driverProfile, recipientProfile } = useDeliveryTracking(orderId);
+  const { order, statusLabel, price, packageType, driverProfile, recipientProfile, driverLocation } = useDeliveryTracking(orderId);
 
   const pickup = useMemo(() => {
     const c = (order?.pickup_coordinates as any) || orderData?.pickup;
@@ -74,6 +74,7 @@ export default function DeliveryLiveTracker({ orderId, orderData, onBack }: Deli
           showRoute={Boolean(pickup && destination)}
           height="320px"
           deliveryMode={deliveryMode}
+          driverLocation={driverLocation ? { lat: driverLocation.lat, lng: driverLocation.lng, heading: driverLocation.heading ?? null } : undefined}
         />
       </div>
 
@@ -124,7 +125,7 @@ export default function DeliveryLiveTracker({ orderId, orderData, onBack }: Deli
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="w-4 h-4" />
-              <span>Dernière mise à jour {formatDateTime(order?.updated_at as any)}</span>
+              <span>Dernière mise à jour {formatDateTime((driverLocation?.updated_at as any) || (order?.updated_at as any))}</span>
             </div>
           </CardContent>
         </Card>
