@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Users, Car, DollarSign, Wallet, Activity, TrendingUp } from 'lucide-react';
+import { Users, Car, DollarSign, Wallet, Activity, TrendingUp, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -19,7 +19,7 @@ export const PartnerKPIGrid: React.FC<PartnerKPIGridProps> = ({ stats }) => {
       value: stats.activeDrivers || 0,
       suffix: "",
       color: "bg-accent",
-      badge: { text: "En temps réel", icon: Activity, class: "bg-secondary-light text-secondary" }
+      badge: { text: stats.activeDrivers > 0 ? "Actifs" : "Aucun", icon: Activity, class: stats.activeDrivers > 0 ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-600" }
     },
     {
       icon: Car,
@@ -27,7 +27,7 @@ export const PartnerKPIGrid: React.FC<PartnerKPIGridProps> = ({ stats }) => {
       value: stats.ongoingRides || 0,
       suffix: "",
       color: "bg-primary",
-      badge: { text: "+12%", icon: TrendingUp, class: "bg-green-50 text-green-600" }
+      badge: { text: stats.ongoingRides > 0 ? "En cours" : "Aucune", icon: stats.ongoingRides > 0 ? TrendingUp : Clock, class: stats.ongoingRides > 0 ? "bg-blue-50 text-blue-600" : "bg-gray-50 text-gray-600" }
     },
     {
       icon: DollarSign,
@@ -35,7 +35,7 @@ export const PartnerKPIGrid: React.FC<PartnerKPIGridProps> = ({ stats }) => {
       value: Math.round(stats.todayRevenue || 0).toLocaleString(),
       suffix: " CDF",
       color: "bg-secondary",
-      badge: { text: "+8% vs hier", icon: TrendingUp, class: "bg-green-50 text-green-600" }
+      badge: { text: stats.todayRevenue > 0 ? "Aujourd'hui" : "Aucun", icon: DollarSign, class: stats.todayRevenue > 0 ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-600" }
     },
   ];
 

@@ -282,12 +282,16 @@ const AdminApp = () => {
                       <p className="text-body-sm font-medium text-muted-foreground">Utilisateurs</p>
                       <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.totalUsers.toLocaleString()}</p>
                     </div>
-                  </div>
-                  <div className="mt-4 flex items-center">
-                    <TrendingUp className="h-4 w-4 text-secondary" />
-                    <span className="text-body-sm text-secondary ml-1 font-medium">+12.5%</span>
-                    <span className="text-body-sm text-muted-foreground ml-1">ce mois</span>
-                  </div>
+                   </div>
+                   {realTimeStats.totalUsers > 0 ? (
+                     <div className="mt-4">
+                       <span className="text-body-sm text-muted-foreground">Total enregistré</span>
+                     </div>
+                   ) : (
+                     <div className="mt-4">
+                       <span className="text-body-sm text-muted-foreground">Aucun utilisateur</span>
+                     </div>
+                   )}
                 </CardContent>
               </Card>
 
@@ -301,12 +305,16 @@ const AdminApp = () => {
                       <p className="text-body-sm font-medium text-muted-foreground">Chauffeurs</p>
                       <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.activeDrivers.toLocaleString()}</p>
                     </div>
-                  </div>
-                  <div className="mt-4 flex items-center">
-                    <TrendingUp className="h-4 w-4 text-secondary" />
-                    <span className="text-body-sm text-secondary ml-1 font-medium">+8.2%</span>
-                    <span className="text-body-sm text-muted-foreground ml-1">vs hier</span>
-                  </div>
+                   </div>
+                   {realTimeStats.activeDrivers > 0 ? (
+                     <div className="mt-4">
+                       <span className="text-body-sm text-muted-foreground">Chauffeurs inscrits</span>
+                     </div>
+                   ) : (
+                     <div className="mt-4">
+                       <span className="text-body-sm text-muted-foreground">Aucun chauffeur</span>
+                     </div>
+                   )}
                 </CardContent>
               </Card>
 
@@ -320,12 +328,16 @@ const AdminApp = () => {
                       <p className="text-body-sm font-medium text-muted-foreground">Revenus (période)</p>
                       <p className="text-heading-lg font-bold text-card-foreground">{realTimeStats.todayRevenue.toLocaleString()} CDF</p>
                     </div>
-                  </div>
-                  <div className="mt-4 flex items-center">
-                    <TrendingUp className="h-4 w-4 text-secondary" />
-                    <span className="text-body-sm text-secondary ml-1 font-medium">+15.3%</span>
-                    <span className="text-body-sm text-muted-foreground ml-1">vs hier</span>
-                  </div>
+                   </div>
+                   {realTimeStats.todayRevenue > 0 ? (
+                     <div className="mt-4">
+                       <span className="text-body-sm text-muted-foreground">Revenus période sélectionnée</span>
+                     </div>
+                   ) : (
+                     <div className="mt-4">
+                       <span className="text-body-sm text-muted-foreground">Aucun revenu</span>
+                     </div>
+                   )}
                 </CardContent>
               </Card>
 
@@ -377,9 +389,15 @@ const AdminApp = () => {
                       <p className="text-display-sm font-bold text-card-foreground">{realTimeStats.supportTickets}</p>
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <span className="text-body-sm text-green-600 font-medium bg-green-50 px-2 py-1 rounded-md">5 résolus aujourd'hui</span>
-                  </div>
+                   {realTimeStats.supportTickets > 0 ? (
+                     <div className="mt-4">
+                       <span className="text-body-sm text-yellow-600 font-medium bg-yellow-50 px-2 py-1 rounded-md">En attente</span>
+                     </div>
+                   ) : (
+                     <div className="mt-4">
+                       <span className="text-body-sm text-green-600 font-medium bg-green-50 px-2 py-1 rounded-md">Aucun ticket</span>
+                     </div>
+                   )}
                 </CardContent>
               </Card>
 
