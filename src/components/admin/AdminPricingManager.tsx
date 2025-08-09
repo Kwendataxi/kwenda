@@ -3,12 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { usePricingRules, ServiceCategory, PricingRule } from '@/hooks/usePricingRules';
-import { Loader2, Save, Plus } from 'lucide-react';
+import { PricingUpdateNotification } from './PricingUpdateNotification';
+import { Loader2, Save, Plus, Trash2, AlertTriangle } from 'lucide-react';
 
 export const AdminPricingManager = () => {
-  const { rules, isLoading, upsertRule } = usePricingRules();
+  const { rules, isLoading, upsertRule, deactivateRule } = usePricingRules();
   const { toast } = useToast();
 
   const byCategory = useMemo(() => {
@@ -21,6 +23,8 @@ export const AdminPricingManager = () => {
   const [newRule, setNewRule] = useState<{ service_type: ServiceCategory; vehicle_class: string; base_price: string; price_per_km: string; currency: string }>({
     service_type: 'transport', vehicle_class: '', base_price: '', price_per_km: '', currency: 'CDF'
   });
+  const [deletingRule, setDeletingRule] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date>();
 
   const handleSave = async (service_type: ServiceCategory, vehicle_class: string) => {
     const key = `${service_type}:${vehicle_class}`;
@@ -34,6 +38,7 @@ export const AdminPricingManager = () => {
         currency: values.currency || 'CDF'
       });
       toast({ title: 'Tarif enregistré', description: `${vehicle_class} (${service_type}) mis à jour.` });
+      setLastUpdate(new Date());
     } catch (e: any) {
       toast({ title: 'Erreur', description: e.message || 'Impossible de sauvegarder', variant: 'destructive' });
     }
@@ -49,20 +54,48 @@ export const AdminPricingManager = () => {
         price_per_km: Number(newRule.price_per_km),
         currency: newRule.currency || 'CDF'
       });
-      toast({ title: 'Règle ajoutée', description: `${newRule.vehicle_class} (${newRule.service_type})` });
+      toast({ 
+        title: 'Règle ajoutée', 
+        description: `${newRule.vehicle_class} (${newRule.service_type}) - Prix actualisé en temps réel` 
+      });
       setNewRule({ service_type: 'transport', vehicle_class: '', base_price: '', price_per_km: '', currency: 'CDF' });
+      setLastUpdate(new Date());
     } catch (e: any) {
       toast({ title: 'Erreur', description: e.message || 'Impossible d\'ajouter', variant: 'destructive' });
+    }
+  };
+
+  const handleDelete = async (rule: PricingRule) => {
+    if (deletingRule) return;
+    setDeletingRule(rule.id);
+    try {
+      await deactivateRule.mutateAsync(rule.id);
+      toast({ 
+        title: 'Règle supprimée', 
+        description: `${rule.vehicle_class} (${rule.service_type}) désactivée` 
+      });
+    } catch (e: any) {
+      toast({ 
+        title: 'Erreur', 
+        description: e.message || 'Impossible de supprimer', 
+        variant: 'destructive' 
+      });
+      setLastUpdate(new Date());
+    } finally {
+      setDeletingRule(null);
     }
   };
 
   const Row = ({ r }: { r: PricingRule }) => {
     const key = `${r.service_type}:${r.vehicle_class}`;
     const values = editValues[key] || { base_price: String(r.base_price), price_per_km: String(r.price_per_km), currency: r.currency };
+    const isDeleting = deletingRule === r.id;
+    const isSaving = upsertRule.isPending;
+    
     return (
-      <div className="grid grid-cols-5 gap-3 items-center p-3 rounded-lg border border-border">
+      <div className="grid grid-cols-6 gap-3 items-center p-3 rounded-lg border border-border bg-card">
         <div className="col-span-2">
-          <p className="text-sm font-medium">{r.vehicle_class}</p>
+          <p className="text-sm font-medium text-card-foreground">{r.vehicle_class}</p>
           <p className="text-xs text-muted-foreground capitalize">{r.service_type}</p>
         </div>
         <Input
@@ -70,23 +103,71 @@ export const AdminPricingManager = () => {
           value={values.base_price}
           onChange={(e) => setEditValues(prev => ({ ...prev, [key]: { ...values, base_price: e.target.value } }))}
           placeholder="Base"
+          disabled={isSaving || isDeleting}
         />
         <Input
           type="number"
           value={values.price_per_km}
           onChange={(e) => setEditValues(prev => ({ ...prev, [key]: { ...values, price_per_km: e.target.value } }))}
           placeholder="/km"
+          disabled={isSaving || isDeleting}
+        />
+        <Input
+          className="w-20"
+          value={values.currency}
+          onChange={(e) => setEditValues(prev => ({ ...prev, [key]: { ...values, currency: e.target.value } }))}
+          disabled={isSaving || isDeleting}
         />
         <div className="flex items-center gap-2">
-          <Input
-            className="w-24"
-            value={values.currency}
-            onChange={(e) => setEditValues(prev => ({ ...prev, [key]: { ...values, currency: e.target.value } }))}
-          />
-          <Button size="sm" onClick={() => handleSave(r.service_type, r.vehicle_class)}>
-            <Save className="w-4 h-4 mr-1" />
-            Sauver
+          <Button 
+            size="sm" 
+            onClick={() => handleSave(r.service_type, r.vehicle_class)}
+            disabled={isSaving || isDeleting}
+          >
+            {isSaving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
           </Button>
+          
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                size="sm" 
+                variant="destructive" 
+                disabled={isSaving || isDeleting}
+              >
+                {isDeleting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                  Confirmer la suppression
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Êtes-vous sûr de vouloir supprimer la règle de tarification pour <strong>{r.vehicle_class}</strong> ({r.service_type}) ?
+                  <br /><br />
+                  Cette action désactivera immédiatement la règle et affectera les calculs de prix en temps réel sur l'application client.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={() => handleDelete(r)}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Supprimer
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     );
@@ -94,9 +175,15 @@ export const AdminPricingManager = () => {
 
   return (
     <div className="space-y-6">
+      <PricingUpdateNotification lastUpdate={lastUpdate} />
       <Card>
         <CardHeader>
-          <CardTitle className="text-heading-md">Gestion des Tarifs</CardTitle>
+          <CardTitle className="text-heading-md flex items-center gap-2">
+            Gestion des Tarifs
+            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+              Synchronisation temps réel
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {isLoading ? (
