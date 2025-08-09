@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,14 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [estimatedPrice, setEstimatedPrice] = useState<number>(0);
   const [distance, setDistance] = useState<number>(0);
+  const [isCalculating, setIsCalculating] = useState<boolean>(false);
+
+  // Refs for scrollable container and sections
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const addressesRef = useRef<HTMLDivElement | null>(null);
+  const modeRef = useRef<HTMLDivElement | null>(null);
+  const packageRef = useRef<HTMLDivElement | null>(null);
+  const notesRef = useRef<HTMLDivElement | null>(null);
   
   const { 
     calculateDeliveryPrice, 
@@ -40,6 +48,17 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
     submitting 
   } = useEnhancedDeliveryOrders();
   const { rules, isLoading: pricingLoading } = usePricingRules();
+
+  const scrollToSection = useCallback((ref: React.RefObject<HTMLDivElement>) => {
+    if (!ref.current || !containerRef.current) return;
+    const top = ref.current.offsetTop - 8; // small offset
+    containerRef.current.scrollTo({ top, behavior: 'smooth' });
+  }, []);
+
+  const handleFieldFocus = useCallback((e: React.FocusEvent<HTMLElement>) => {
+    // Ensure field is visible within the scroll container on mobile keyboards
+    (e.currentTarget as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, []);
 
   const deliveryModes = [
     { 
@@ -167,15 +186,29 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
           Commander une livraison
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 max-h-[calc(100vh-220px)] overflow-y-auto md:max-h-[calc(100vh-260px)] lg:max-h-[calc(100vh-320px)] pr-1">
+      <CardContent
+          ref={containerRef}
+          className="space-y-4 max-h-[calc(100dvh-220px)] overflow-y-auto md:max-h-[calc(100dvh-260px)] lg:max-h-[calc(100dvh-320px)] pr-1 scroll-smooth overscroll-contain pb-24 md:pb-6"
+        >
+        {/* Quick Navigation */}
+        <nav className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+          <div className="flex gap-2 p-2">
+            <Button size="sm" variant="outline" onClick={() => scrollToSection(addressesRef)}>Adresses</Button>
+            <Button size="sm" variant="outline" onClick={() => scrollToSection(modeRef)}>Mode</Button>
+            <Button size="sm" variant="outline" onClick={() => scrollToSection(packageRef)}>Colis</Button>
+            <Button size="sm" variant="outline" onClick={() => scrollToSection(notesRef)}>Notes</Button>
+          </div>
+        </nav>
+
         {/* Location Inputs */}
-        <div className="space-y-3">
+        <section ref={addressesRef} aria-labelledby="addresses-title" className="space-y-3 pt-2">
           <div className="relative">
             <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-500" />
             <Input
               placeholder="Adresse de collecte"
               value={pickupLocation}
               onChange={(e) => setPickupLocation(e.target.value)}
+              onFocus={handleFieldFocus}
               className="pl-10"
             />
           </div>
@@ -186,13 +219,14 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
               placeholder="Adresse de livraison"
               value={deliveryLocation}
               onChange={(e) => setDeliveryLocation(e.target.value)}
+              onFocus={handleFieldFocus}
               className="pl-10"
             />
           </div>
-        </div>
+        </section>
 
         {/* Delivery Mode Selection */}
-        <div className="space-y-3">
+        <section ref={modeRef} aria-labelledby="mode-title" className="space-y-3">
           <div className="text-sm font-medium">Mode de livraison :</div>
           <div className="grid gap-2">
             {deliveryModes.map((mode) => (
@@ -213,7 +247,7 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
               </Button>
             ))}
           </div>
-        </div>
+        </section>
 
         {/* Package Details */}
         <div className="space-y-3">

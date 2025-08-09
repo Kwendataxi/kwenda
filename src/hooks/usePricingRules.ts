@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useEffect } from 'react';
 
 export type ServiceCategory = 'transport' | 'delivery';
 
@@ -29,6 +30,24 @@ export const usePricingRules = () => {
       return (data || []) as PricingRule[];
     }
   });
+
+  // Realtime updates: keep tariffs in sync with admin changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('pricing-rules-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'pricing_rules' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['pricing_rules'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      try { supabase.removeChannel(channel); } catch {}
+    };
+  }, [queryClient]);
 
   const upsertRule = useMutation({
     mutationFn: async (rule: Partial<PricingRule> & { service_type: ServiceCategory; vehicle_class: string }) => {
