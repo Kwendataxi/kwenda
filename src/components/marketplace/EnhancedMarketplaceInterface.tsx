@@ -14,7 +14,7 @@ import { CategoryFilter } from './CategoryFilter';
 import { SearchBar } from './SearchBar';
 import { ModernProductCard } from './ModernProductCard';
 import { ShoppingCart } from './ShoppingCart';
-import { CreateOrderDialog } from './CreateOrderDialog';
+import { FlexibleOrderDialog } from './FlexibleOrderDialog';
 import { SellProductForm } from './SellProductForm';
 import { VendorDashboard } from './VendorDashboard';
 import { DeliveryCalculator } from './DeliveryCalculator';
@@ -460,7 +460,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
 
       {/* Order Dialog */}
       {selectedProduct && (
-        <CreateOrderDialog
+        <FlexibleOrderDialog
           product={selectedProduct}
           isOpen={isOrderDialogOpen}
           onClose={() => {
@@ -471,6 +471,9 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
             setIsOrderDialogOpen(false);
             setSelectedProduct(null);
             setCurrentTab('orders');
+          }}
+          onCreateOrder={async (orderData) => {
+            await ordersHook.createOrderFlexible(orderData);
           }}
         />
       )}

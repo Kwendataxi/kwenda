@@ -105,24 +105,30 @@ export const useMarketplaceOrders = () => {
     }
   };
 
-  // Create an order
-  const createOrder = async (
-    productId: string,
-    sellerId: string,
-    quantity: number,
-    unitPrice: number,
-    deliveryAddress?: string,
-    deliveryCoordinates?: any,
-    deliveryMethod: string = 'pickup',
-    notes?: string
-  ) => {
-    if (!user || !wallet) return null;
+  // Create an order with flexible payment
+  const createOrderFlexible = async (orderData: {
+    productId: string;
+    sellerId: string;
+    quantity: number;
+    unitPrice: number;
+    deliveryAddress?: string;
+    deliveryCoordinates?: any;
+    deliveryMethod: string;
+    notes?: string;
+    paymentMethod: 'wallet' | 'mobile_money';
+    paymentData?: any;
+  }) => {
+    if (!user) return null;
 
-    const totalAmount = quantity * unitPrice;
+    const DELIVERY_FEE = 7000;
+    const subtotal = orderData.quantity * orderData.unitPrice;
+    const totalAmount = subtotal + (orderData.deliveryMethod !== 'pickup' ? DELIVERY_FEE : 0);
 
-    // Check if user has sufficient balance
-    if (wallet.balance < totalAmount) {
-      throw new Error('Solde insuffisant pour cette commande');
+    // Only check wallet balance if using wallet payment
+    if (orderData.paymentMethod === 'wallet') {
+      if (!wallet || wallet.balance < totalAmount) {
+        throw new Error('Solde insuffisant. Veuillez utiliser Mobile Money ou recharger votre portefeuille.');
+      }
     }
 
     try {
@@ -131,53 +137,70 @@ export const useMarketplaceOrders = () => {
         .from('marketplace_orders')
         .insert({
           buyer_id: user.id,
-          seller_id: sellerId,
-          product_id: productId,
-          quantity,
-          unit_price: unitPrice,
+          seller_id: orderData.sellerId,
+          product_id: orderData.productId,
+          quantity: orderData.quantity,
+          unit_price: orderData.unitPrice,
           total_amount: totalAmount,
-          delivery_address: deliveryAddress,
-          delivery_coordinates: deliveryCoordinates,
-          pickup_coordinates: deliveryCoordinates, // Store pickup location
-          delivery_method: deliveryMethod,
-          notes: notes,
-          status: 'pending_payment',
-          payment_status: 'pending'
+          delivery_address: orderData.deliveryAddress,
+          delivery_coordinates: orderData.deliveryCoordinates,
+          pickup_coordinates: orderData.deliveryCoordinates,
+          delivery_method: orderData.deliveryMethod,
+          notes: orderData.notes,
+          status: orderData.paymentMethod === 'wallet' ? 'pending_payment' : 'pending',
+          payment_status: orderData.paymentMethod === 'wallet' ? 'pending' : 'completed'
         })
         .select()
         .single();
 
       if (orderError) throw orderError;
 
-      // Create escrow payment (hold funds)
-      const { error: escrowError } = await supabase
-        .from('escrow_payments')
-        .insert({
-          order_id: order.id,
-          buyer_id: user.id,
-          seller_id: sellerId,
-          amount: totalAmount,
-          payment_method: 'wallet',
-          status: 'held'
-        });
+      if (orderData.paymentMethod === 'wallet') {
+        // Create escrow payment (hold funds from wallet)
+        const { error: escrowError } = await supabase
+          .from('escrow_payments')
+          .insert({
+            order_id: order.id,
+            buyer_id: user.id,
+            seller_id: orderData.sellerId,
+            amount: totalAmount,
+            payment_method: 'wallet',
+            status: 'held'
+          });
 
-      if (escrowError) throw escrowError;
+        if (escrowError) throw escrowError;
 
-      // Deduct from buyer's wallet (funds held in escrow)
-      await transferFunds(
-        'system',
-        totalAmount,
-        `Paiement en séquestre pour commande ${order.id}`
-      );
+        // Deduct from buyer's wallet (funds held in escrow)
+        await transferFunds(
+          'system',
+          totalAmount,
+          `Paiement en séquestre pour commande ${order.id}`
+        );
 
-      // Update order payment status and move to pending confirmation
-      await supabase
-        .from('marketplace_orders')
-        .update({ 
-          payment_status: 'held',
-          status: 'pending' 
-        })
-        .eq('id', order.id);
+        // Update order payment status and move to pending confirmation
+        await supabase
+          .from('marketplace_orders')
+          .update({ 
+            payment_status: 'held',
+            status: 'pending' 
+          })
+          .eq('id', order.id);
+      } else {
+        // Mobile Money payment - create payment record
+        const { error: escrowError } = await supabase
+          .from('escrow_payments')
+          .insert({
+            order_id: order.id,
+            buyer_id: user.id,
+            seller_id: orderData.sellerId,
+            amount: totalAmount,
+            payment_method: 'mobile_money',
+            transaction_reference: orderData.paymentData?.transactionId,
+            status: 'held'
+          });
+
+        if (escrowError) throw escrowError;
+      }
 
       // Call Edge Function to process the order (notifications, etc.)
       try {
@@ -195,6 +218,30 @@ export const useMarketplaceOrders = () => {
       console.error('Error creating order:', error);
       throw error;
     }
+  };
+
+  // Legacy create order method for backward compatibility
+  const createOrder = async (
+    productId: string,
+    sellerId: string,
+    quantity: number,
+    unitPrice: number,
+    deliveryAddress?: string,
+    deliveryCoordinates?: any,
+    deliveryMethod: string = 'pickup',
+    notes?: string
+  ) => {
+    return createOrderFlexible({
+      productId,
+      sellerId,
+      quantity,
+      unitPrice,
+      deliveryAddress,
+      deliveryCoordinates,
+      deliveryMethod,
+      notes,
+      paymentMethod: 'wallet'
+    });
   };
 
   // Update order status via Edge Function
@@ -326,6 +373,7 @@ export const useMarketplaceOrders = () => {
     orders,
     loading,
     createOrder,
+    createOrderFlexible,
     updateOrderStatus,
     confirmOrder,
     markAsPreparing,
