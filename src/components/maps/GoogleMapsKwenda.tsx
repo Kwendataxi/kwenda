@@ -295,21 +295,12 @@ const GoogleMapsKwenda: React.FC<GoogleMapsKwendaProps> = (props) => {
   useEffect(() => {
     const fetchApiKey = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const token = session?.access_token || '';
-
-        const response = await fetch('/api/functions/v1/get-google-maps-key', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
+        // Invoke Supabase Edge Function to get API key
+        const { data, error } = await supabase.functions.invoke('get-google-maps-key', {
+          body: {},
         });
-        
-        if (!response.ok) throw new Error('Google Maps API non disponible');
-        const data = await response.json();
-        
-        if (data.error) throw new Error(data.error);
+        if (error) throw error;
+        if (!data?.apiKey) throw new Error('Google Maps API non disponible');
         setApiKey(data.apiKey);
       } catch (error) {
         console.warn('Google Maps fallback mode activated:', error);

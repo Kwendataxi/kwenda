@@ -54,6 +54,7 @@ import TripChat from '@/components/transport/TripChat';
 // Delivery components
 import ModernDeliveryOrderInterface from '@/components/delivery/ModernDeliveryOrderInterface';
 import DeliveryTracking from '@/components/delivery/DeliveryTracking';
+import YangoStyleDeliveryInterface from '@/components/delivery/YangoStyleDeliveryInterface';
 
 // Rental components
 import VehicleRentalInterface from '@/components/rental/VehicleRentalInterface';
@@ -154,6 +155,7 @@ const ClientApp = () => {
   // Delivery states  
   const [deliveryStep, setDeliveryStep] = useState<'interface' | 'tracking'>('interface');
   const [deliveryId, setDeliveryId] = useState<string | null>(null);
+  const [deliveryOrderData, setDeliveryOrderData] = useState<any | null>(null);
 
   // Rental states
   const [rentalStep, setRentalStep] = useState<'interface' | 'confirmation'>('interface');
@@ -585,12 +587,42 @@ const ClientApp = () => {
   };
 
   const renderDeliveryService = () => {
-    // La nouvelle interface intégrée gère le tracking directement
+    if (deliveryStep === 'tracking' && deliveryId) {
+      return (
+        <div className="min-h-screen bg-background p-4">
+          <div className="max-w-md mx-auto">
+            <div className="flex items-center gap-4 mb-6">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setDeliveryStep('interface'); setDeliveryId(null); }}
+                className="rounded-xl"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <h1 className="text-lg font-semibold text-foreground">Suivi de livraison</h1>
+            </div>
+            <DeliveryTracking
+              orderId={deliveryId}
+              orderData={deliveryOrderData}
+              onBack={() => { setDeliveryStep('interface'); setDeliveryId(null); setCurrentView('home'); }}
+            />
+          </div>
+        </div>
+      );
+    }
     return (
-      <ModernDeliveryOrderInterface />
+      <YangoStyleDeliveryInterface
+        onSubmit={(data) => {
+          setDeliveryOrderData(data);
+          setDeliveryId(data.orderId);
+          setDeliveryStep('tracking');
+          toast({ title: 'Livraison confirmée', description: 'Votre colis sera récupéré sous peu.' });
+        }}
+        onCancel={() => setCurrentView('home')}
+      />
     );
   };
-
 
   const handleSellProduct = async (formData: any) => {
     try {
