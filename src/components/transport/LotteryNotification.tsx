@@ -3,6 +3,7 @@ import { Ticket, Sparkles, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { NOTIFICATION_CONFIG } from '@/config/notificationConfig';
 
 interface LotteryNotificationProps {
   show: boolean;
@@ -26,11 +27,11 @@ export const LotteryNotification = ({
   useEffect(() => {
     if (show) {
       setIsVisible(true);
-      // Auto-close après 5 secondes
+      // Auto-close après durée configurée
       const timer = setTimeout(() => {
         setIsVisible(false);
-        setTimeout(onClose, 300); // Attendre la fin de l'animation
-      }, 5000);
+        setTimeout(onClose, NOTIFICATION_CONFIG.ANIMATION.EXIT_DURATION);
+      }, NOTIFICATION_CONFIG.LOTTERY_NOTIFICATION_DURATION);
       return () => clearTimeout(timer);
     }
   }, [show, onClose]);

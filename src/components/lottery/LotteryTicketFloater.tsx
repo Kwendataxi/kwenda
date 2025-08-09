@@ -3,6 +3,7 @@ import { Ticket, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLottery } from '@/hooks/useLottery';
+import { NOTIFICATION_CONFIG } from '@/config/notificationConfig';
 
 interface LotteryTicketFloaterProps {
   onOpenLottery: () => void;
@@ -17,7 +18,7 @@ export const LotteryTicketFloater = ({ onOpenLottery }: LotteryTicketFloaterProp
   useEffect(() => {
     if (availableTickets > lastTicketCount && lastTicketCount > 0) {
       setAnimate(true);
-      const timer = setTimeout(() => setAnimate(false), 2000);
+      const timer = setTimeout(() => setAnimate(false), NOTIFICATION_CONFIG.LOTTERY_ANIMATION_DURATION);
       return () => clearTimeout(timer);
     }
     setLastTicketCount(availableTickets);

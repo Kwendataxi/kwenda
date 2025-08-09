@@ -1,5 +1,6 @@
 // Service de notifications push robuste avec retry intelligent
 import { supabase } from '@/integrations/supabase/client';
+import { NOTIFICATION_CONFIG } from '@/config/notificationConfig';
 
 interface NotificationPayload {
   user_id: string;
@@ -10,7 +11,7 @@ interface NotificationPayload {
   data?: any;
   sound?: boolean;
   vibration?: boolean;
-  timeout?: number; // En secondes
+  timeout?: number; // En millisecondes (par défaut 2000ms)
 }
 
 interface NotificationResult {
@@ -288,7 +289,7 @@ export class RobustNotificationService {
         },
         sound: true,
         vibration: true,
-        timeout: 60 // 1 minute
+        timeout: NOTIFICATION_CONFIG.RIDE_REQUEST_TIMEOUT
       });
 
       notifications.push(notification);

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { X, Bell, CheckCircle, AlertTriangle, XCircle, Info } from 'lucide-react';
 import { useNotificationActions, NotificationAction } from '@/hooks/useNotificationActions';
+import { NOTIFICATION_CONFIG } from '@/config/notificationConfig';
 
 interface NotificationToastProps {
   id: string;
@@ -24,7 +25,7 @@ const NotificationToast: React.FC<NotificationToastProps> = ({
   title,
   message,
   priority = 'normal',
-  duration = 5000,
+  duration = NOTIFICATION_CONFIG.DEFAULT_DURATION,
   actions,
   metadata,
   onClose,
@@ -55,7 +56,7 @@ const NotificationToast: React.FC<NotificationToastProps> = ({
     if (!isVisible) {
       const timeout = setTimeout(() => {
         onClose?.(id);
-      }, 300);
+      }, NOTIFICATION_CONFIG.ANIMATION.EXIT_DURATION);
       return () => clearTimeout(timeout);
     }
   }, [isVisible, id, onClose]);
@@ -115,7 +116,7 @@ const NotificationToast: React.FC<NotificationToastProps> = ({
           initial={{ opacity: 0, y: position.includes('top') ? -50 : 50, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: position.includes('top') ? -50 : 50, scale: 0.95 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
+          transition={{ duration: NOTIFICATION_CONFIG.ANIMATION.EXIT_DURATION / 1000, ease: "easeOut" }}
           className={`
             fixed z-50 w-full max-w-sm pointer-events-auto
             ${getPositionClasses()}
