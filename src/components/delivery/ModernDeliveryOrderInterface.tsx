@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { usePricingRules } from '@/hooks/usePricingRules';
 
 interface ModernDeliveryOrderInterfaceProps {
   className?: string;
@@ -38,30 +39,39 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
     loading, 
     submitting 
   } = useEnhancedDeliveryOrders();
+  const { rules, isLoading: pricingLoading } = usePricingRules();
 
   const deliveryModes = [
     { 
       id: 'flash', 
       name: 'Flash', 
       icon: Zap, 
-      description: 'Livraison rapide moto (1-2h)',
-      basePrice: '5,000'
+      description: 'Livraison rapide moto (1-2h)'
     },
     { 
       id: 'flex', 
       name: 'Flex', 
       icon: Package, 
-      description: 'Livraison standard (2-4h)',
-      basePrice: '3,000'
+      description: 'Livraison standard (2-4h)'
     },
     { 
       id: 'maxicharge', 
       name: 'MaxiCharge', 
       icon: Truck, 
-      description: 'Gros colis camion (4-8h)',
-      basePrice: '8,000'
+      description: 'Gros colis camion (4-8h)'
     }
   ];
+
+  const fallbackBase: Record<'flash' | 'flex' | 'maxicharge', number> = {
+    flash: 5000,
+    flex: 3000,
+    maxicharge: 8000
+  };
+
+  const getBasePriceForMode = (modeId: 'flash' | 'flex' | 'maxicharge') => {
+    const rule = rules.find(r => r.service_type === 'delivery' && r.vehicle_class === modeId);
+    return rule?.base_price ?? fallbackBase[modeId];
+  };
 
   const handleCalculatePrice = async () => {
     if (!pickupLocation || !deliveryLocation) {
@@ -157,7 +167,7 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
           Commander une livraison
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 max-h-[calc(100vh-220px)] overflow-y-auto md:max-h-[calc(100vh-260px)] lg:max-h-[calc(100vh-320px)] pr-1">
         {/* Location Inputs */}
         <div className="space-y-3">
           <div className="relative">
@@ -198,7 +208,7 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
                     <div className="font-medium">{mode.name}</div>
                     <div className="text-xs text-muted-foreground">{mode.description}</div>
                   </div>
-                  <div className="font-semibold">À partir de {mode.basePrice} CDF</div>
+                  <div className="font-semibold">{pricingLoading ? 'Chargement…' : `À partir de ${getBasePriceForMode(mode.id as 'flash'|'flex'|'maxicharge').toLocaleString()} CDF`}</div>
                 </div>
               </Button>
             ))}

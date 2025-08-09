@@ -45,21 +45,30 @@ export const useEnhancedDeliveryOrders = () => {
         pickup.lat, pickup.lng,
         destination.lat, destination.lng
       );
-      
-      // Tarification basée sur la distance et le mode
-      const basePrices = {
-        flash: 5000, // CDF - livraison rapide moto
-        flex: 3000,  // CDF - livraison standard
-        maxicharge: 8000 // CDF - gros colis camion
-      };
 
-      const pricePerKm = {
-        flash: 500,
-        flex: 300,
-        maxicharge: 800
-      };
+      // Récupérer les tarifs dynamiques depuis l'admin (pricing_rules)
+      const { data: rule, error: pricingError } = await supabase
+        .from('pricing_rules')
+        .select('base_price, price_per_km, currency')
+        .eq('service_type', 'delivery')
+        .eq('vehicle_class', mode)
+        .eq('is_active', true)
+        .maybeSingle();
 
-      const price = basePrices[mode] + (distanceKm * pricePerKm[mode]);
+      if (pricingError) {
+        console.warn('Impossible de récupérer les tarifs dynamiques:', pricingError);
+      }
+
+      const defaults = {
+        flash: { base: 5000, perKm: 500 },
+        flex: { base: 3000, perKm: 300 },
+        maxicharge: { base: 8000, perKm: 800 }
+      } as const;
+
+      const base = rule?.base_price ?? defaults[mode].base;
+      const perKm = rule?.price_per_km ?? defaults[mode].perKm;
+
+      const price = base + (distanceKm * perKm);
       const durationMinutes = distanceKm * 3; // 3 min par km
 
       return {
