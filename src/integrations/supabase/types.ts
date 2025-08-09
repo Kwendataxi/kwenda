@@ -919,6 +919,62 @@ export type Database = {
           },
         ]
       }
+      driver_zone_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          assignment_type: string
+          created_at: string
+          driver_id: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_concurrent_requests: number | null
+          metadata: Json | null
+          priority_level: number | null
+          updated_at: string
+          zone_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          assignment_type?: string
+          created_at?: string
+          driver_id: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_concurrent_requests?: number | null
+          metadata?: Json | null
+          priority_level?: number | null
+          updated_at?: string
+          zone_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          assignment_type?: string
+          created_at?: string
+          driver_id?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_concurrent_requests?: number | null
+          metadata?: Json | null
+          priority_level?: number | null
+          updated_at?: string
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_zone_assignments_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "service_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dynamic_pricing: {
         Row: {
           available_drivers: number
@@ -2961,11 +3017,18 @@ export type Database = {
           city: string
           coordinates: Json
           created_at: string
+          created_by: string | null
+          description: string | null
           id: string
           is_active: boolean
+          maintenance_end: string | null
+          maintenance_start: string | null
+          metadata: Json | null
           name: string
+          status: string | null
           surge_multiplier: number
           updated_at: string
+          updated_by: string | null
           zone_type: string
         }
         Insert: {
@@ -2973,11 +3036,18 @@ export type Database = {
           city?: string
           coordinates: Json
           created_at?: string
+          created_by?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean
+          maintenance_end?: string | null
+          maintenance_start?: string | null
+          metadata?: Json | null
           name: string
+          status?: string | null
           surge_multiplier?: number
           updated_at?: string
+          updated_by?: string | null
           zone_type?: string
         }
         Update: {
@@ -2985,11 +3055,18 @@ export type Database = {
           city?: string
           coordinates?: Json
           created_at?: string
+          created_by?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean
+          maintenance_end?: string | null
+          maintenance_start?: string | null
+          metadata?: Json | null
           name?: string
+          status?: string | null
           surge_multiplier?: number
           updated_at?: string
+          updated_by?: string | null
           zone_type?: string
         }
         Relationships: []
@@ -3915,6 +3992,148 @@ export type Database = {
         }
         Relationships: []
       }
+      zone_pricing_rules: {
+        Row: {
+          base_price: number
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          maximum_fare: number | null
+          minimum_fare: number
+          price_per_km: number
+          price_per_minute: number
+          special_pricing: Json | null
+          surge_multiplier: number
+          time_based_pricing: Json | null
+          updated_at: string
+          updated_by: string | null
+          valid_from: string
+          valid_until: string | null
+          vehicle_class: string
+          zone_id: string
+        }
+        Insert: {
+          base_price?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          maximum_fare?: number | null
+          minimum_fare?: number
+          price_per_km?: number
+          price_per_minute?: number
+          special_pricing?: Json | null
+          surge_multiplier?: number
+          time_based_pricing?: Json | null
+          updated_at?: string
+          updated_by?: string | null
+          valid_from?: string
+          valid_until?: string | null
+          vehicle_class?: string
+          zone_id: string
+        }
+        Update: {
+          base_price?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          maximum_fare?: number | null
+          minimum_fare?: number
+          price_per_km?: number
+          price_per_minute?: number
+          special_pricing?: Json | null
+          surge_multiplier?: number
+          time_based_pricing?: Json | null
+          updated_at?: string
+          updated_by?: string | null
+          valid_from?: string
+          valid_until?: string | null
+          vehicle_class?: string
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zone_pricing_rules_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "service_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      zone_statistics: {
+        Row: {
+          active_drivers: number | null
+          available_drivers: number | null
+          average_trip_duration: number | null
+          average_wait_time: number | null
+          calculated_at: string
+          cancellation_rate: number | null
+          completion_rate: number | null
+          customer_satisfaction_avg: number | null
+          customer_satisfaction_count: number | null
+          date: string
+          hour_of_day: number | null
+          id: string
+          metadata: Json | null
+          peak_demand_multiplier: number | null
+          total_deliveries: number | null
+          total_revenue: number | null
+          total_rides: number | null
+          zone_id: string
+        }
+        Insert: {
+          active_drivers?: number | null
+          available_drivers?: number | null
+          average_trip_duration?: number | null
+          average_wait_time?: number | null
+          calculated_at?: string
+          cancellation_rate?: number | null
+          completion_rate?: number | null
+          customer_satisfaction_avg?: number | null
+          customer_satisfaction_count?: number | null
+          date?: string
+          hour_of_day?: number | null
+          id?: string
+          metadata?: Json | null
+          peak_demand_multiplier?: number | null
+          total_deliveries?: number | null
+          total_revenue?: number | null
+          total_rides?: number | null
+          zone_id: string
+        }
+        Update: {
+          active_drivers?: number | null
+          available_drivers?: number | null
+          average_trip_duration?: number | null
+          average_wait_time?: number | null
+          calculated_at?: string
+          cancellation_rate?: number | null
+          completion_rate?: number | null
+          customer_satisfaction_avg?: number | null
+          customer_satisfaction_count?: number | null
+          date?: string
+          hour_of_day?: number | null
+          id?: string
+          metadata?: Json | null
+          peak_demand_multiplier?: number | null
+          total_deliveries?: number | null
+          total_revenue?: number | null
+          total_rides?: number | null
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zone_statistics_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "service_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -3931,6 +4150,14 @@ export type Database = {
       calculate_surge_pricing: {
         Args: { zone_id_param: string; vehicle_class_param: string }
         Returns: number
+      }
+      calculate_zone_statistics: {
+        Args: {
+          zone_id_param: string
+          date_param?: string
+          hour_param?: number
+        }
+        Returns: undefined
       }
       create_support_ticket: {
         Args: {
@@ -3990,6 +4217,21 @@ export type Database = {
       get_zone_for_coordinates: {
         Args: { lat: number; lng: number }
         Returns: string
+      }
+      get_zone_pricing: {
+        Args: {
+          zone_id_param: string
+          vehicle_class_param?: string
+          datetime_param?: string
+        }
+        Returns: {
+          base_price: number
+          price_per_km: number
+          price_per_minute: number
+          surge_multiplier: number
+          minimum_fare: number
+          maximum_fare: number
+        }[]
       }
       has_permission: {
         Args: {
