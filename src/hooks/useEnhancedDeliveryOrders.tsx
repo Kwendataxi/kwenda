@@ -2,19 +2,15 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { IntegrationGeocodingService } from '@/services/integrationGeocoding';
+import type { LocationData } from '@/types/location';
 
-// Harmoniser avec LocationResult de UnifiedLocationService
-export interface DeliveryLocation {
-  address: string;
-  lat: number;
-  lng: number;
-  type?: 'geocoded' | 'popular' | 'fallback';
-}
+// Export for backward compatibility
+export type DeliveryLocation = LocationData;
 
 export interface DeliveryOrderData {
   city: string;
-  pickup: DeliveryLocation;
-  destination: DeliveryLocation;
+  pickup: LocationData;
+  destination: LocationData;
   mode: 'flash' | 'flex' | 'maxicharge';
   packageType?: string;
   weight?: number;
@@ -35,8 +31,8 @@ export const useEnhancedDeliveryOrders = () => {
   const { toast } = useToast();
 
   const calculateDeliveryPrice = async (
-    pickup: DeliveryLocation,
-    destination: DeliveryLocation,
+    pickup: LocationData,
+    destination: LocationData,
     mode: 'flash' | 'flex' | 'maxicharge'
   ): Promise<{ price: number; distance: number; duration: number }> => {
     console.log('Calcul prix démarré:', { pickup, destination, mode });

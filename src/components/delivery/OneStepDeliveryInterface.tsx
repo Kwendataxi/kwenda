@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { UnifiedLocationService, LocationResult } from '@/services/unifiedLocationService';
-import UnifiedLocationSearch from './UnifiedLocationSearch';
+import { smartLocationService } from '@/services/smartLocationService';
+import SmartLocationSearch from './SmartLocationSearch';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
 import { supabase } from '@/integrations/supabase/client';
+import type { LocationData } from '@/types/location';
 
 interface OneStepDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
@@ -60,8 +61,8 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
   selectedPackageId,
 }) => {
   const [step, setStep] = useState<'input' | 'confirm' | 'created'>('input');
-  const [pickup, setPickup] = useState<LocationResult | null>(null);
-  const [destination, setDestination] = useState<LocationResult | null>(null);
+  const [pickup, setPickup] = useState<LocationData | null>(null);
+  const [destination, setDestination] = useState<LocationData | null>(null);
   const [selectedMode, setSelectedMode] = useState<'flash' | 'flex' | 'maxicharge' | null>(null);
   const [orderId, setOrderId] = useState<string>('');
   const [priceInfo, setPriceInfo] = useState<{price: number, distance: number, duration: number} | null>(null);
@@ -79,7 +80,7 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
 
   // Auto-détecter position actuelle au chargement
   useEffect(() => {
-    UnifiedLocationService.getCurrentLocation()
+    smartLocationService.getCurrentLocation()
       .then(location => setPickup(location))
       .catch(() => {
         // Silence, fallback déjà géré dans le service
@@ -261,7 +262,7 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
                 </Badge>
               )}
             </div>
-            <UnifiedLocationSearch
+            <SmartLocationSearch
               placeholder="Où récupérer ?"
               value={pickup?.address || ''}
               onLocationSelect={setPickup}
@@ -275,7 +276,7 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
               <div className="w-3 h-3 rounded-full bg-red-500"></div>
               <span className="text-sm font-medium">Destination</span>
             </div>
-            <UnifiedLocationSearch
+            <SmartLocationSearch
               placeholder="Où livrer ?"
               value={destination?.address || ''}
               onLocationSelect={setDestination}
