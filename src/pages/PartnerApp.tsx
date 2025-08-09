@@ -7,6 +7,7 @@ import { CommissionWithdrawal } from '@/components/partner/CommissionWithdrawal'
 import { RentalSubscriptionManager } from '@/components/partner/rental/RentalSubscriptionManager';
 import { usePartnerStats } from '@/hooks/usePartnerStats';
 import { usePartnerActivity } from '@/hooks/usePartnerActivity';
+import { PartnerEarningsCard } from '@/components/partner/PartnerEarningsCard';
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, CalendarIcon, Download, Eye, Filter, Plus, Search, Star, TrendingDown, TrendingUp, UserPlus, Users } from "lucide-react"
 import {
@@ -443,6 +444,7 @@ const PartnerApp = () => {
           </TabsList>
 
           <TabsContent value="dashboard" className="mt-6">
+            <PartnerEarningsCard range="30d" />
             <PartnerCommissionDashboard />
           </TabsContent>
 

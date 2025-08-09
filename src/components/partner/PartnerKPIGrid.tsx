@@ -31,11 +31,19 @@ export const PartnerKPIGrid: React.FC<PartnerKPIGridProps> = ({ stats }) => {
     },
     {
       icon: DollarSign,
-      label: "Revenus aujourd'hui",
-      value: Math.round(stats.todayRevenue || 0).toLocaleString(),
+      label: "Commissions gagnées",
+      value: Math.round(stats.totalCommissions || 0).toLocaleString(),
       suffix: " CDF",
       color: "bg-secondary",
-      badge: { text: stats.todayRevenue > 0 ? "Aujourd'hui" : "Aucun", icon: DollarSign, class: stats.todayRevenue > 0 ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-600" }
+      badge: { text: stats.totalCommissions > 0 ? "Gains réels" : "Aucun", icon: DollarSign, class: stats.totalCommissions > 0 ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-600" }
+    },
+    {
+      icon: Wallet,
+      label: "Montant rechargé",
+      value: Math.round(stats.totalTopups || 0).toLocaleString(),
+      suffix: " CDF",
+      color: "bg-orange-500",
+      badge: { text: stats.totalTopups > 0 ? "Investissement" : "Aucun", icon: Wallet, class: stats.totalTopups > 0 ? "bg-orange-50 text-orange-600" : "bg-gray-50 text-gray-600" }
     },
   ];
 
