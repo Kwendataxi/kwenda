@@ -59,30 +59,22 @@ import ModernDeliveryInterface from '@/components/delivery/ModernDeliveryInterfa
 // Rental components
 import ModernVehicleRentalInterface from '@/components/rental/ModernVehicleRentalInterface';
 
-// Marketplace components
-import { ModernProductCard } from '@/components/marketplace/ModernProductCard';
-import { BottomNavigation } from '@/components/marketplace/BottomNavigation';
-import { SellProductForm } from '@/components/marketplace/SellProductForm';
-import { ModernMarketplaceHeader } from '@/components/marketplace/ModernMarketplaceHeader';
-import { CategoryFilter } from '@/components/marketplace/CategoryFilter';
-import { SearchBar } from '@/components/marketplace/SearchBar';
-import { ShoppingCart as CartComponent } from '@/components/marketplace/ShoppingCart';
-import { ProductDetails } from '@/components/marketplace/ProductDetails';
-import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, ShoppingBag } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { LazyLoadWrapper } from '@/components/performance/LazyLoadWrapper';
-import { PerformanceIndicator } from '@/components/performance/PerformanceIndicator';
-import { OptimizedGrid } from '@/components/performance/OptimizedGrid';
-import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
+  // Marketplace components
+  import { EnhancedMarketplaceInterface } from '@/components/marketplace/EnhancedMarketplaceInterface';
+  import { Badge } from '@/components/ui/badge';
+  import { ShoppingCart, ShoppingBag } from 'lucide-react';
+  import { useToast } from '@/hooks/use-toast';
+  import { LazyLoadWrapper } from '@/components/performance/LazyLoadWrapper';
+  import { PerformanceIndicator } from '@/components/performance/PerformanceIndicator';
+  import { OptimizedGrid } from '@/components/performance/OptimizedGrid';
+  import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 
-// Chat and order components
-
-import { ModernChatInterface } from '@/components/marketplace/ModernChatInterface';
-import { OrderManagement } from '@/components/marketplace/OrderManagement';
-import { CreateOrderDialog } from '@/components/marketplace/CreateOrderDialog';
-import { ActivityTab } from '@/components/marketplace/ActivityTab';
-import { EditProductForm } from '@/components/marketplace/EditProductForm';
+  // Chat and order components
+  import { ModernChatInterface } from '@/components/marketplace/ModernChatInterface';
+  import { OrderManagement } from '@/components/marketplace/OrderManagement';
+  import { CreateOrderDialog } from '@/components/marketplace/CreateOrderDialog';
+  import { ActivityTab } from '@/components/marketplace/ActivityTab';
+  import { EditProductForm } from '@/components/marketplace/EditProductForm';
 
 // Testing components
 import { TestDataGenerator } from '@/components/testing/TestDataGenerator';
@@ -161,45 +153,19 @@ const ClientApp = () => {
   const [rentalStep, setRentalStep] = useState<'interface' | 'confirmation'>('interface');
   const [rentalBooking, setRentalBooking] = useState<any>(null);
 
-  // Marketplace state
+  // Marketplace state - simplified as it's now handled by EnhancedMarketplaceInterface
   const { toast } = useToast();
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({
-    priceRange: [0, 500000] as [number, number],
-    inStockOnly: false,
-    freeShipping: false,
-  });
-  const [cartItems, setCartItems] = useState<any[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
-  const [marketplaceTab, setMarketplaceTab] = useState('explore');
-  const [showingTrends, setShowingTrends] = useState(false);
-
-  // Chat and order states
-  const [isOrderManagementOpen, setIsOrderManagementOpen] = useState(false);
-  const [isCreateOrderDialogOpen, setIsCreateOrderDialogOpen] = useState(false);
-  const [orderProduct, setOrderProduct] = useState<any>(null);
-  
-  // Marketplace management states
-  const [editingProduct, setEditingProduct] = useState<any>(null);
-  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
 
   // Chat and order hooks
-  
   const ordersHook = useMarketplaceOrders();
   
   // Lottery hooks
   const lotteryTickets = useLotteryTickets();
   const { notifications, showNotification, hideNotification } = useLotteryNotifications();
 
-  // Marketplace data from Supabase
+  // Simplified marketplace data for home preview only
   const [marketplaceProducts, setMarketplaceProducts] = useState<any[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
-  const [showChat, setShowChat] = useState(false);
-  const [chatProductId, setChatProductId] = useState<string | undefined>();
-  const [chatSellerId, setChatSellerId] = useState<string | undefined>();
 
   // Auto-attribution des tickets de connexion quotidienne
   useEffect(() => {
@@ -273,29 +239,8 @@ const ClientApp = () => {
   // Use either real products or fallback to empty array
   const mockProducts = marketplaceProducts;
 
-  // Filter products based on category, search, and filters
-  const filteredProducts = mockProducts.filter(product => {
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.seller.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesPrice = product.price >= filters.priceRange[0] && product.price <= filters.priceRange[1];
-    const matchesStock = !filters.inStockOnly || product.inStock;
-    const matchesTrending = !showingTrends || product.isTrending;
-    
-    return matchesCategory && matchesSearch && matchesPrice && matchesStock && matchesTrending;
-  });
-
-  // Get trending products sorted by score
-  const trendingProducts = mockProducts
-    .filter(product => product.isTrending)
-    .sort((a, b) => (b.trendingScore || 0) - (a.trendingScore || 0));
-
-  // Get product counts per category
-  const productCounts = mockProducts.reduce((acc, product) => {
-    acc[product.category] = (acc[product.category] || 0) + 1;
-    acc.all = mockProducts.length;
-    return acc;
-  }, {} as Record<string, number>);
+  // Products available for home preview
+  const homeProducts = marketplaceProducts.slice(0, 4).map(p => ({ ...p, isPopular: Math.random() > 0.5 }));
 
   const handleServiceSelect = (service: string) => {
     if (service === 'history' || service === 'activity') {
@@ -307,7 +252,7 @@ const ClientApp = () => {
     if (service === 'delivery') {
       setDeliveryStep('interface');
     } else if (service === 'marketplace') {
-      setMarketplaceTab('explore');
+      // Marketplace handled by EnhancedMarketplaceInterface
     } else if (service === 'rental') {
       setRentalStep('interface');
     }
@@ -320,27 +265,21 @@ const ClientApp = () => {
     setTaxiPrefill({
       destination: { address: query, coordinates }
     });
-    setSearchQuery(query);
   };
 
   const handleMarketplaceViewAll = () => {
     setServiceType('marketplace');
-    setMarketplaceTab('explore');
-    setShowingTrends(true);
-  };
-
-  const handleBackFromTrends = () => {
-    setShowingTrends(false);
+    setCurrentView('service');
   };
 
   const renderHome = () => (
     <ModernHomeScreen
       onServiceSelect={handleServiceSelect}
       onSearch={handleUniversalSearch}
-      featuredProducts={mockProducts.slice(0, 4).map(p => ({ ...p, isPopular: Math.random() > 0.5 }))}
+      featuredProducts={homeProducts}
       onProductSelect={(product) => {
-        setSelectedProduct(product);
-        setIsProductDetailsOpen(true);
+        setServiceType('marketplace');
+        setCurrentView('service');
       }}
       onMarketplaceViewAll={handleMarketplaceViewAll}
       onNavigateToTestData={() => setCurrentView('test-data')}
@@ -476,115 +415,7 @@ const ClientApp = () => {
     return totalPrice;
   };
 
-  // Marketplace functions
-  const handleAddToCart = async (product: any, quantity: number = 1) => {
-    const existingItem = cartItems.find(item => item.id === product.id);
-    
-    if (existingItem) {
-      setCartItems(items =>
-        items.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        )
-      );
-    } else {
-      setCartItems(items => [...items, {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image || product.images?.[0],
-        quantity,
-        seller: product.seller
-      }]);
-    }
-
-    // Attribuer des tickets pour l'achat marketplace
-    await lotteryTickets.awardMarketplaceBuyTickets(product.id);
-
-    toast({
-      title: "Produit ajouté",
-      description: `${product.name} a été ajouté à votre panier`,
-    });
-  };
-
-  const handleUpdateCartQuantity = (id: string, quantity: number) => {
-    if (quantity === 0) {
-      handleRemoveFromCart(id);
-      return;
-    }
-    
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id ? { ...item, quantity } : item
-      )
-    );
-  };
-
-  const handleRemoveFromCart = (id: string) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-    toast({
-      title: "Produit retiré",
-      description: "Le produit a été retiré de votre panier",
-    });
-  };
-
-  const handleViewProductDetails = (product: any) => {
-    setSelectedProduct(product);
-    setIsProductDetailsOpen(true);
-  };
-
-  const handleSearch = () => {
-    // Search is already handled by the filter effect
-    toast({
-      title: "Recherche effectuée",
-      description: `${filteredProducts.length} produit(s) trouvé(s)`,
-    });
-  };
-
-  const handleCheckout = () => {
-    toast({
-      title: "Commande en cours",
-      description: "Redirection vers le paiement...",
-    });
-    // Here you would integrate with a payment system
-    setIsCartOpen(false);
-  };
-
-  // Chat and order handlers
-  const handleContactSeller = async (productId: string, sellerId: string) => {
-    try {
-      setChatProductId(productId);
-      setChatSellerId(sellerId);
-      setShowChat(true);
-      setIsProductDetailsOpen(false);
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de contacter le vendeur",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleStartOrder = (productId: string, sellerId: string) => {
-    const product = mockProducts.find(p => p.id === productId);
-    if (product) {
-      setOrderProduct(product);
-      setIsCreateOrderDialogOpen(true);
-      
-    }
-  };
-
-  const handleOrderSuccess = () => {
-    toast({
-      title: "Commande créée",
-      description: "Votre commande a été créée avec succès",
-    });
-    setIsCreateOrderDialogOpen(false);
-    setOrderProduct(null);
-    ordersHook.refetch?.();
-  };
+  // Marketplace now handled by EnhancedMarketplaceInterface
 
   const renderDeliveryService = () => {
     if (deliveryStep === 'tracking' && deliveryId) {
@@ -622,349 +453,7 @@ const ClientApp = () => {
     );
   };
 
-  const handleSellProduct = async (formData: any) => {
-    try {
-      // Upload images to Supabase Storage
-      const imageUrls: string[] = [];
-      
-      for (const file of formData.images) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `product-images/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('profile-pictures')
-          .upload(filePath, file);
-
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from('profile-pictures')
-          .getPublicUrl(filePath);
-
-        imageUrls.push(urlData.publicUrl);
-      }
-
-      // Create product in database
-      const { error } = await supabase
-        .from('marketplace_products')
-        .insert({
-          title: formData.title,
-          description: formData.description,
-          price: parseFloat(formData.price),
-          category: formData.category,
-          condition: formData.condition,
-          images: imageUrls,
-          seller_id: (await supabase.auth.getUser()).data.user?.id,
-          status: 'active'
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Produit publié",
-        description: "Votre produit est maintenant en vente!",
-      });
-      
-      // Refresh products and go to activity tab
-      const fetchProducts = async () => {
-        const { data: products, error } = await supabase
-          .from('marketplace_products')
-          .select('*')
-          .eq('status', 'active')
-          .order('created_at', { ascending: false });
-
-        if (!error && products) {
-          const transformedProducts = products.map(product => ({
-            id: product.id,
-            name: product.title,
-            price: product.price,
-            image: Array.isArray(product.images) && product.images.length > 0 
-              ? product.images[0] 
-              : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
-            images: Array.isArray(product.images) ? product.images : [],
-            rating: 4.5,
-            reviews: Math.floor(Math.random() * 200) + 10,
-            seller: 'Vendeur Kwenda',
-            category: product.category?.toLowerCase() || 'other',
-            description: product.description || '',
-            specifications: {},
-            inStock: true,
-            stockCount: Math.floor(Math.random() * 20) + 1,
-            isTrending: product.featured || false,
-            trendingScore: product.featured ? Math.floor(Math.random() * 30) + 70 : 0,
-            condition: product.condition,
-            location: product.location,
-            coordinates: product.coordinates
-          }));
-          
-          setMarketplaceProducts(transformedProducts);
-        }
-      };
-      
-      await fetchProducts();
-      setMarketplaceTab('activity');
-    } catch (error) {
-      console.error('Error creating product:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de publier le produit",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Product management handlers for ActivityTab
-  const handleAddProduct = () => {
-    setMarketplaceTab('sell');
-  };
-
-  const handleEditProduct = (product: any) => {
-    setEditingProduct(product);
-    setIsEditFormOpen(true);
-  };
-
-  const handleViewProduct = (product: any) => {
-    setSelectedProduct(product);
-    setIsProductDetailsOpen(true);
-  };
-
-  const handleUpdateProduct = async () => {
-    // Refresh products after update
-    const fetchProducts = async () => {
-      const { data: products, error } = await supabase
-        .from('marketplace_products')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
-
-      if (!error && products) {
-        const transformedProducts = products.map(product => ({
-          id: product.id,
-          name: product.title,
-          price: product.price,
-          image: Array.isArray(product.images) && product.images.length > 0 
-            ? product.images[0] 
-            : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
-          images: Array.isArray(product.images) ? product.images : [],
-          rating: 4.5,
-          reviews: Math.floor(Math.random() * 200) + 10,
-          seller: 'Vendeur Kwenda',
-          category: product.category?.toLowerCase() || 'other',
-          description: product.description || '',
-          specifications: {},
-          inStock: true,
-          stockCount: Math.floor(Math.random() * 20) + 1,
-          isTrending: product.featured || false,
-          trendingScore: product.featured ? Math.floor(Math.random() * 30) + 70 : 0,
-          condition: product.condition,
-          location: product.location,
-          coordinates: product.coordinates
-        }));
-        
-        setMarketplaceProducts(transformedProducts);
-      }
-    };
-    
-    await fetchProducts();
-    setIsEditFormOpen(false);
-    setEditingProduct(null);
-  };
-
-  const renderMarketplaceService = () => {
-    if (marketplaceTab === 'sell') {
-      return (
-        <SellProductForm
-          onBack={() => setMarketplaceTab('explore')}
-          onSubmit={handleSellProduct}
-        />
-      );
-    }
-
-    if (marketplaceTab === 'activity') {
-      return (
-        <div className="min-h-screen bg-background pb-20">
-          <ModernMarketplaceHeader
-            cartItemsCount={cartItems.length}
-            onCartClick={() => setIsCartOpen(true)}
-          />
-          <ActivityTab 
-            onAddProduct={handleAddProduct}
-            onEditProduct={handleEditProduct}
-            onViewProduct={handleViewProduct}
-          />
-          <BottomNavigation
-            activeTab={marketplaceTab}
-            onTabChange={setMarketplaceTab}
-            cartItemsCount={cartItems.length}
-            favoritesCount={0}
-          />
-        </div>
-      );
-    }
-
-    if (marketplaceTab === 'favorites') {
-      const favoriteProducts = mockProducts.filter(product => 
-        // This will be replaced by real favorites from FavoritesManager
-        false // Temporary placeholder
-      );
-      
-      return (
-        <div className="min-h-screen bg-background pb-20">
-          <ModernMarketplaceHeader
-            cartItemsCount={cartItems.length}
-            onCartClick={() => setIsCartOpen(true)}
-          />
-          
-          <div className="p-4">
-            <h2 className="text-lg font-semibold mb-4">Mes Favoris</h2>
-            
-            {favoriteProducts.length === 0 ? (
-              <div className="text-center py-16">
-                <Heart className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">Aucun favori</h3>
-                <p className="text-muted-foreground mb-4">
-                  Ajoutez des produits à vos favoris en appuyant sur le cœur
-                </p>
-                <Button onClick={() => setMarketplaceTab('explore')}>
-                  Explorer les produits
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                {favoriteProducts.map((product) => (
-                   <ModernProductCard
-                     key={product.id}
-                     product={product}
-                     onAddToCart={handleAddToCart}
-                     onViewDetails={handleViewProductDetails}
-                   />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <BottomNavigation
-            activeTab={marketplaceTab}
-            onTabChange={setMarketplaceTab}
-            cartItemsCount={cartItems.length}
-            favoritesCount={0} // Will be updated with real favorites count
-          />
-        </div>
-      );
-    }
-
-    // Default explore view
-    return (
-      <div className="min-h-screen bg-background pb-20">
-        <ModernMarketplaceHeader
-          cartItemsCount={cartItems.length}
-          onCartClick={() => setIsCartOpen(true)}
-        />
-        
-        <div className="space-y-4">
-          {showingTrends ? (
-            // Vue "Toutes les tendances"
-            <div className="px-4">
-              <div className="flex items-center gap-4 mb-6">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleBackFromTrends}
-                  className="rounded-xl"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <div>
-                  <h1 className="text-lg font-semibold text-foreground">{t('marketplace.trending_products')}</h1>
-                  <p className="text-sm text-muted-foreground">{trendingProducts.length} produits tendances</p>
-                </div>
-              </div>
-              
-              {trendingProducts.length === 0 ? (
-                <div className="text-center py-16">
-                  <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Aucun produit tendance</h3>
-                  <p className="text-muted-foreground">
-                    Aucun produit n'est actuellement en tendance
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  {trendingProducts.map((product) => (
-                     <div key={product.id} className="relative">
-                       <ModernProductCard
-                         product={product}
-                         onAddToCart={handleAddToCart}
-                         onViewDetails={handleViewProductDetails}
-                       />
-                       {/* Badge de score de tendance */}
-                       <div className="absolute top-2 left-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-                         🔥 #{trendingProducts.findIndex(p => p.id === product.id) + 1}
-                       </div>
-                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            // Vue normale du marketplace
-            <>
-              <div className="px-4">
-                <SearchBar
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  onSearch={handleSearch}
-                  filters={filters}
-                  onFiltersChange={setFilters}
-                />
-              </div>
-              
-              <CategoryFilter
-                selectedCategory={selectedCategory}
-                onCategoryChange={setSelectedCategory}
-                productCounts={productCounts}
-              />
-              
-              <div className="px-4 pb-4">
-                {filteredProducts.length === 0 ? (
-                  <div className="text-center py-16">
-                    <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Aucun produit trouvé</h3>
-                    <p className="text-muted-foreground">
-                      Essayez de modifier vos filtres de recherche
-                    </p>
-                  </div>
-                ) : (
-                  <OptimizedGrid 
-                    className="grid-cols-2"
-                    itemsPerPage={20}
-                    enableVirtualization={true}
-                  >
-                    {filteredProducts.map((product) => (
-                       <ModernProductCard
-                         key={product.id}
-                         product={product}
-                         onAddToCart={handleAddToCart}
-                         onViewDetails={handleViewProductDetails}
-                       />
-                    ))}
-                  </OptimizedGrid>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-
-        <BottomNavigation
-          activeTab={marketplaceTab}
-          onTabChange={setMarketplaceTab}
-          cartItemsCount={cartItems.length}
-          favoritesCount={0} // Will be updated with real favorites count
-        />
-      </div>
-    );
-  };
+  // Marketplace now handled by EnhancedMarketplaceInterface
 
   const renderProfile = () => (
     <div className="min-h-screen bg-background pb-20">
@@ -1082,7 +571,11 @@ const ClientApp = () => {
             case 'rental':
               return renderRentalService();
             case 'marketplace':
-              return renderMarketplaceService();
+              return (
+                <EnhancedMarketplaceInterface 
+                  onBack={() => setCurrentView('home')}
+                />
+              );
             default:
               return renderHome();
           }
@@ -1144,77 +637,7 @@ const ClientApp = () => {
         }
       })()}
 
-      {/* Marketplace Components */}
-      <CartComponent
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        cartItems={cartItems}
-        onUpdateQuantity={handleUpdateCartQuantity}
-        onRemoveItem={handleRemoveFromCart}
-        onCheckout={handleCheckout}
-      />
-      
-      <ProductDetails
-        product={selectedProduct}
-        isOpen={isProductDetailsOpen}
-        onClose={() => setIsProductDetailsOpen(false)}
-        onAddToCart={handleAddToCart}
-        onContactSeller={handleContactSeller}
-        onStartOrder={() => {
-          if (selectedProduct) {
-            setOrderProduct(selectedProduct);
-            setIsCreateOrderDialogOpen(true);
-            setIsProductDetailsOpen(false);
-          }
-        }}
-      />
-
-
-      {/* Order Management */}
-      <OrderManagement
-        isOpen={isOrderManagementOpen}
-        onClose={() => setIsOrderManagementOpen(false)}
-      />
-
-      {/* Create Order Dialog */}
-      <CreateOrderDialog
-        product={orderProduct}
-        isOpen={isCreateOrderDialogOpen}
-        onClose={() => {
-          setIsCreateOrderDialogOpen(false);
-          setOrderProduct(null);
-        }}
-        onSuccess={handleOrderSuccess}
-      />
-
-      {/* Modern Chat Interface */}
-      {showChat && (
-        <div className="fixed inset-0 z-50 bg-background">
-          <ModernChatInterface
-            productId={chatProductId}
-            sellerId={chatSellerId}
-            onClose={() => {
-              setShowChat(false);
-              setChatProductId(undefined);
-              setChatSellerId(undefined);
-            }}
-          />
-        </div>
-      )}
-
-      {/* Edit Product Form Modal */}
-      {isEditFormOpen && editingProduct && (
-        <div className="fixed inset-0 z-50 bg-background">
-          <EditProductForm
-            product={editingProduct}
-            onBack={() => {
-              setIsEditFormOpen(false);
-              setEditingProduct(null);
-            }}
-            onUpdate={handleUpdateProduct}
-          />
-        </div>
-      )}
+      {/* Marketplace components now handled by EnhancedMarketplaceInterface */}
       
 
       {/* Fixed Bottom Navigation - Only show for non-marketplace */}
