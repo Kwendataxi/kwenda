@@ -15,6 +15,8 @@ interface OneStepDeliveryInterfaceProps {
   onCancel: () => void;
   activeTab?: string;
   onTabChange?: (tab: string) => void;
+  initialSelectedMode?: 'flash' | 'flex' | 'maxicharge';
+  selectedPackageId?: string;
 }
 
 interface DeliveryMode {
@@ -53,7 +55,9 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
   onSubmit,
   onCancel,
   activeTab = 'home',
-  onTabChange = () => {}
+  onTabChange = () => {},
+  initialSelectedMode,
+  selectedPackageId,
 }) => {
   const [step, setStep] = useState<'input' | 'confirm' | 'created'>('input');
   const [pickup, setPickup] = useState<LocationResult | null>(null);
@@ -65,6 +69,13 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
 
   const { toast } = useToast();
   const { createDeliveryOrder, submitting } = useEnhancedDeliveryOrders();
+
+  // Appliquer le mode initial le cas échéant
+  useEffect(() => {
+    if (initialSelectedMode) {
+      setSelectedMode(initialSelectedMode);
+    }
+  }, [initialSelectedMode]);
 
   // Auto-détecter position actuelle au chargement
   useEffect(() => {
