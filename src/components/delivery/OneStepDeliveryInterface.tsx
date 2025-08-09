@@ -63,9 +63,7 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
   const [step, setStep] = useState<'input' | 'confirm' | 'created'>('input');
   const [pickup, setPickup] = useState<LocationResult | null>(null);
   const [destination, setDestination] = useState<LocationResult | null>(null);
-  const [routes, setRoutes] = useState<RouteResult[]>([]);
   const [selectedMode, setSelectedMode] = useState<'flash' | 'flex' | 'maxicharge' | null>(null);
-  const [calculating, setCalculating] = useState(false);
   const [orderId, setOrderId] = useState<string>('');
 
   const { toast } = useToast();
@@ -93,49 +91,12 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
     }
   }, [pickup, destination, selectedMode, initialSelectedMode]);
 
-  // Calculer les prix quand pickup ET destination sont définis
-  useEffect(() => {
-    const compute = async () => {
-      if (pickup && destination && selectedMode) {
-        setCalculating(true);
-        try {
-          const res = await calculateDeliveryPrice(
-            { address: pickup.address, lat: pickup.lat, lng: pickup.lng, type: pickup.type } as any,
-            { address: destination.address, lat: destination.lat, lng: destination.lng, type: destination.type } as any,
-            selectedMode
-          );
-          setRoutes([
-            {
-              mode: selectedMode,
-              distance: res.distance,
-              duration: res.duration,
-              price: res.price,
-            }
-          ]);
-        } catch (error) {
-          console.error('Route calculation error:', error);
-          toast({
-            title: "Erreur de calcul",
-            description: "Impossible de calculer le tarif. Veuillez réessayer.",
-            variant: "destructive"
-          });
-        } finally {
-          setCalculating(false);
-        }
-      } else {
-        setRoutes([]);
-      }
-    };
-    compute();
-  }, [pickup, destination, selectedMode, calculateDeliveryPrice, toast]);
+  const canProceed = pickup && destination && selectedMode;
 
-  const canProceed = pickup && destination && selectedMode && routes.length > 0;
-  const selectedRoute = routes.find(r => r.mode === selectedMode);
+  const handleSearchDriver = async () => {
+    if (!canProceed) return;
 
-  const handleConfirm = async () => {
-    if (!canProceed || !selectedRoute) return;
-
-    console.log('Confirmation commande - État:', { pickup, destination, selectedMode, selectedRoute });
+    console.log('Recherche de livreur - État:', { pickup, destination, selectedMode });
 
     try {
       const orderData = {
@@ -143,9 +104,10 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
         pickup: pickup!,
         destination: destination!,
         mode: selectedMode!,
-        estimatedPrice: selectedRoute.price,
-        distance: selectedRoute.distance,
-        duration: selectedRoute.duration
+        // Estimation de base, prix réel calculé côté serveur
+        estimatedPrice: 5000,
+        distance: 5,
+        duration: 30
       };
 
       console.log('Données commande préparées:', orderData);
@@ -211,8 +173,8 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
                 <span className="font-mono">{orderId.slice(-8)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Prix</span>
-                <span className="font-bold">{selectedRoute?.price.toLocaleString()} CDF</span>
+                <span>Mode</span>
+                <span className="font-bold">{deliveryModes.find(m => m.id === selectedMode)?.name}</span>
               </div>
             </div>
 
@@ -231,124 +193,7 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
     );
   }
 
-  // Étape 2: Confirmation
-  if (step === 'confirm' && canProceed && selectedRoute) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-primary to-primary/80 p-4 text-primary-foreground">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-xl font-bold">Confirmation</h1>
-                <p className="text-sm opacity-90">Vérifiez votre commande</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setStep('input')}
-                className="text-primary-foreground"
-              >
-                ← Modifier
-              </Button>
-            </div>
-          </div>
-
-          {/* Résumé de la commande */}
-          <div className="flex-1 p-4 space-y-4 pb-24">
-            {/* Trajet */}
-            <Card className="p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                Trajet
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-3 h-3 rounded-full bg-green-500 mt-1.5"></div>
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">Récupération</div>
-                    <div className="text-sm text-muted-foreground">{pickup?.address}</div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-3 h-3 rounded-full bg-red-500 mt-1.5"></div>
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">Livraison</div>
-                    <div className="text-sm text-muted-foreground">{destination?.address}</div>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Mode sélectionné */}
-            <Card className="p-4">
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <Package className="w-4 h-4" />
-                Mode de livraison
-              </h3>
-              <div className="flex items-center gap-3">
-                <div className="text-2xl">
-                  {deliveryModes.find(m => m.id === selectedMode)?.icon}
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold">
-                    {deliveryModes.find(m => m.id === selectedMode)?.name}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {deliveryModes.find(m => m.id === selectedMode)?.description}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-lg">{selectedRoute.price.toLocaleString()} CDF</div>
-                  <div className="text-sm text-muted-foreground">
-                    {UnifiedLocationService.formatDuration(selectedRoute.duration)}
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Détails */}
-            <Card className="p-4">
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span>Distance</span>
-                  <span>{UnifiedLocationService.formatDistance(selectedRoute.distance)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Temps estimé</span>
-                  <span>{UnifiedLocationService.formatDuration(selectedRoute.duration)}</span>
-                </div>
-                <Separator />
-                <div className="flex justify-between font-bold">
-                  <span>Total</span>
-                  <span>{selectedRoute.price.toLocaleString()} CDF</span>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Bouton de confirmation fixé en bas */}
-          <div className="p-4 border-t bg-background">
-            <Button
-              onClick={handleConfirm}
-              disabled={submitting}
-              className="w-full"
-              size="lg"
-            >
-              {submitting ? 'Création...' : 'Confirmer la commande'}
-              <CheckCircle className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
-        </div>
-        
-        {/* Navigation en bas */}
-        <ModernBottomNavigation
-          activeTab={activeTab}
-          onTabChange={onTabChange}
-        />
-      </div>
-    );
-  }
+  // Plus d'étape confirmation - action directe
 
   // Étape 1: Saisie des adresses (Interface unifiée)
   return (
@@ -408,72 +253,35 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
             />
           </div>
 
-          {/* Mode sélectionné et prix */}
+          {/* Mode sélectionné */}
           {selectedMode && (
-            <div className="space-y-3">
-              {/* Mode sélectionné (lecture seule) */}
-              <Card className="p-4 bg-primary/5 border-primary/20">
-                <div className="flex items-center gap-3">
-                  <div className="text-2xl">
-                    {deliveryModes.find(m => m.id === selectedMode)?.icon}
+            <Card className="p-4 bg-primary/5 border-primary/20">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">
+                  {deliveryModes.find(m => m.id === selectedMode)?.icon}
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold">
+                    {deliveryModes.find(m => m.id === selectedMode)?.name}
                   </div>
-                  <div className="flex-1">
-                    <div className="font-semibold">
-                      {deliveryModes.find(m => m.id === selectedMode)?.name}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {deliveryModes.find(m => m.id === selectedMode)?.description}
-                    </div>
+                  <div className="text-sm text-muted-foreground">
+                    {deliveryModes.find(m => m.id === selectedMode)?.description}
                   </div>
                 </div>
-              </Card>
-
-              {/* Prix calculé */}
-              {selectedRoute && (
-                <Card className="p-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Distance</span>
-                      <span>{UnifiedLocationService.formatDistance(selectedRoute.distance)}</span>
-                    </div>
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total</span>
-                      <span>{selectedRoute.price.toLocaleString()} CDF</span>
-                    </div>
-                  </div>
-                </Card>
-              )}
-
-              {calculating && (
-                <div className="text-center text-sm text-muted-foreground">
-                  Calcul du prix en cours...
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Distance et temps */}
-          {selectedRoute && (
-            <Card className="p-3 bg-muted/30">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Distance</span>
-                <span className="font-medium">
-                  {UnifiedLocationService.formatDistance(selectedRoute.distance)}
-                </span>
               </div>
             </Card>
           )}
         </div>
 
-        {/* Bouton continuer fixé en bas */}
+        {/* Bouton rechercher livreur fixé en bas */}
         <div className="p-4 border-t bg-background">
           <Button
-            onClick={() => setStep('confirm')}
-            disabled={!canProceed || calculating}
+            onClick={handleSearchDriver}
+            disabled={!canProceed || submitting}
             className="w-full"
             size="lg"
           >
-            {calculating ? 'Calcul...' : `Continuer • ${selectedRoute?.price.toLocaleString() || '---'} CDF`}
+            {submitting ? 'Recherche en cours...' : 'Rechercher un livreur'}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
