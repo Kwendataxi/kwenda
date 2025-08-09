@@ -32,33 +32,33 @@ export const MobileKPIGrid: React.FC<MobileKPIGridProps> = ({ realTimeStats }) =
   const kpiData: KPIData[] = [
     {
       title: 'Utilisateurs Total',
-      value: realTimeStats.totalUsers.toLocaleString(),
-      trend: realTimeStats.totalUsers > 0 ? 'Actif' : 'Vide',
-      trendDirection: realTimeStats.totalUsers > 0 ? 'up' as const : 'neutral' as const,
+      value: (realTimeStats?.totalUsers || 0).toLocaleString(),
+      trend: (realTimeStats?.totalUsers || 0) > 0 ? 'Actif' : 'Vide',
+      trendDirection: (realTimeStats?.totalUsers || 0) > 0 ? 'up' as const : 'neutral' as const,
       icon: <Users className="h-5 w-5" />,
       color: 'bg-blue-500'
     },
     {
-      title: 'Chauffeurs Actifs',
-      value: realTimeStats.activeDrivers.toLocaleString(),
-      trend: realTimeStats.activeDrivers > 0 ? 'Inscrits' : 'Aucun',
-      trendDirection: realTimeStats.activeDrivers > 0 ? 'up' as const : 'neutral' as const,
+      title: 'Chauffeurs Total',
+      value: (realTimeStats?.totalDrivers || 0).toLocaleString(),
+      trend: (realTimeStats?.totalDrivers || 0) > 0 ? 'Inscrits' : 'Aucun',
+      trendDirection: (realTimeStats?.totalDrivers || 0) > 0 ? 'up' as const : 'neutral' as const,
       icon: <Car className="h-5 w-5" />,
       color: 'bg-green-500'
     },
     {
-      title: 'Revenus',
-      value: `${realTimeStats.todayRevenue.toLocaleString()} CDF`,
-      trend: realTimeStats.todayRevenue > 0 ? 'Période' : 'Aucun',
-      trendDirection: realTimeStats.todayRevenue > 0 ? 'up' as const : 'neutral' as const,
+      title: 'Revenus Total',
+      value: `${(realTimeStats?.totalRevenue || 0).toLocaleString()} CDF`,
+      trend: (realTimeStats?.totalRevenue || 0) > 0 ? 'Généré' : 'Aucun',
+      trendDirection: (realTimeStats?.totalRevenue || 0) > 0 ? 'up' as const : 'neutral' as const,
       icon: <DollarSign className="h-5 w-5" />,
       color: 'bg-yellow-500'
     },
     {
       title: 'Courses Actives',
-      value: realTimeStats.activeRides.toLocaleString(),
-      trend: realTimeStats.activeRides > 0 ? 'En cours' : 'Aucune',
-      trendDirection: realTimeStats.activeRides > 0 ? 'up' as const : 'neutral' as const,
+      value: (realTimeStats?.activeRides || 0).toLocaleString(),
+      trend: (realTimeStats?.activeRides || 0) > 0 ? 'En cours' : 'Aucune',
+      trendDirection: (realTimeStats?.activeRides || 0) > 0 ? 'up' as const : 'neutral' as const,
       icon: <TrendingUp className="h-5 w-5" />,
       color: 'bg-purple-500'
     }
