@@ -461,7 +461,7 @@ const ClientApp = () => {
   // Marketplace now handled by EnhancedMarketplaceInterface
 
   const renderProfile = () => (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-24 safe-area-inset">
       <div className="flex items-center gap-4 p-4 mb-4">
         <Button
           variant="ghost"
@@ -473,7 +473,9 @@ const ClientApp = () => {
         </Button>
         <h1 className="text-heading-lg text-card-foreground">Mon Profil</h1>
       </div>
-      <ResponsiveUserProfile userType="client" />
+      <div className="px-4">
+        <ResponsiveUserProfile userType="client" />
+      </div>
     </div>
   );
 
@@ -482,7 +484,7 @@ const ClientApp = () => {
   );
 
   const renderPayment = () => (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-24 safe-area-inset">
       <div className="p-4">
         <div className="flex items-center gap-4 mb-6">
           <Button

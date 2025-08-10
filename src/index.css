@@ -60,6 +60,12 @@ All colors MUST be HSL.
     --input: 214.3 31.8% 91.4%;
     --ring: 357 79% 54%;
 
+    /* Safe area and responsive utilities */
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+
     /* Design system extensions */
     --gradient-primary: linear-gradient(135deg, hsl(357, 79%, 54%), hsl(357, 79%, 64%));
     --gradient-hero: linear-gradient(135deg, hsl(357, 79%, 54%) 0%, hsl(42, 89%, 52%) 100%);
@@ -139,10 +145,17 @@ All colors MUST be HSL.
     touch-action: manipulation;
   }
 
-  /* Safe area support for mobile devices */
+/* Safe area support for mobile devices */
   .safe-area-padding {
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+  }
+
+  .safe-area-inset {
+    padding-top: var(--safe-area-top);
+    padding-bottom: var(--safe-area-bottom);
+    padding-left: var(--safe-area-left);
+    padding-right: var(--safe-area-right);
   }
 
   /* Enhanced touch targets for mobile */

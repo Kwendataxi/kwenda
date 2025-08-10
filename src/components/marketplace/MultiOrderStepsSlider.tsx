@@ -403,11 +403,11 @@ export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) 
                         {order.delivery_method === 'delivery' && (
                           <div className="bg-muted/50 rounded-lg p-3 space-y-2">
                             <div className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4 text-muted-foreground" />
+                              <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                               <h6 className="text-sm font-medium text-foreground">Adresse de livraison</h6>
                             </div>
                             {order.delivery_address ? (
-                              <p className="text-sm text-muted-foreground leading-relaxed pl-6">
+                              <p className="text-sm text-muted-foreground leading-relaxed pl-6 break-words">
                                 {order.delivery_address}
                               </p>
                             ) : (
