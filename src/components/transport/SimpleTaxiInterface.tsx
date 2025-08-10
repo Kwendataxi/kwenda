@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useMasterLocation } from '@/hooks/useMasterLocation';
+import { useNextGenDispatch } from '@/hooks/useNextGenDispatch';
 import { UniversalLocationPicker } from '@/components/location/UniversalLocationPicker';
 import { LocationData } from '@/types/location';
 import { toast } from 'sonner';
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatCurrency } from '@/lib/utils';
+import ModernDriverSearch from './ModernDriverSearch';
 
 interface Vehicle {
   id: string;
@@ -90,6 +92,8 @@ interface SimpleTaxiInterfaceProps {
   onBack?: () => void;
 }
 
+type ViewState = 'booking' | 'searching';
+
 const SimpleTaxiInterface: React.FC<SimpleTaxiInterfaceProps> = ({
   onBookingRequest,
   initialPickup,
@@ -104,7 +108,18 @@ const SimpleTaxiInterface: React.FC<SimpleTaxiInterfaceProps> = ({
     loading: locationLoading,
     error: locationError
   } = useMasterLocation();
+
+  const {
+    isSearching,
+    availableDrivers,
+    estimatedPrice,
+    searchDrivers,
+    selectDriver,
+    cancelSearch,
+    searchWithExpandedRadius
+  } = useNextGenDispatch();
   
+  const [currentView, setCurrentView] = useState<ViewState>('booking');
   const [pickup, setPickup] = useState<LocationData | null>(initialPickup || null);
   const [destination, setDestination] = useState<LocationData | null>(initialDestination || null);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -151,26 +166,92 @@ const SimpleTaxiInterface: React.FC<SimpleTaxiInterfaceProps> = ({
     }
 
     try {
-      const estimatedPrice = calculatePrice(selectedVehicle);
-
-      const bookingData = {
-        pickupLocation: pickup.address,
-        pickupCoordinates: [pickup.lng, pickup.lat],
+      // Switch to search view
+      setCurrentView('searching');
+      
+      // Start driver search
+      const request = {
+        pickup_location: pickup.address,
+        pickup_coordinates: { lat: pickup.lat, lng: pickup.lng },
         destination: destination.address,
-        destinationCoordinates: [destination.lng, destination.lat],
-        vehicleClass: selectedVehicle.type,
-        estimatedPrice: Math.round(estimatedPrice),
-        distance: distance || 0
+        destination_coordinates: { lat: destination.lat, lng: destination.lng },
+        service_type: 'transport' as const,
+        vehicle_class: selectedVehicle.type,
+        priority: 'normal' as const
+      };
+
+      await searchDrivers(request);
+    } catch (error) {
+      console.error('Erreur lors de la recherche:', error);
+      toast.error('Erreur lors de la recherche de chauffeurs');
+      setCurrentView('booking');
+    }
+  };
+
+  const handleDriverSelect = async (driverId: string) => {
+    try {
+      await selectDriver({ driver_id: driverId });
+      
+      // Create booking data for parent callback
+      const bookingData = {
+        pickupLocation: pickup!.address,
+        pickupCoordinates: [pickup!.lng, pickup!.lat],
+        destination: destination!.address,
+        destinationCoordinates: [destination!.lng, destination!.lat],
+        vehicleClass: selectedVehicle!.type,
+        estimatedPrice: Math.round(calculatePrice(selectedVehicle!)),
+        distance: distance || 0,
+        driverId: driverId
       };
 
       await onBookingRequest(bookingData);
-      
-      toast.success('Demande de course créée avec succès');
+      toast.success('Course confirmée avec succès!');
     } catch (error) {
-      console.error('Erreur lors de la réservation:', error);
-      toast.error('Erreur lors de la réservation');
+      console.error('Erreur lors de la confirmation:', error);
+      toast.error('Erreur lors de la confirmation');
     }
   };
+
+  const handleCancelSearch = () => {
+    cancelSearch();
+    setCurrentView('booking');
+  };
+
+  const handleExpandRadius = async () => {
+    if (!pickup || !destination || !selectedVehicle) return;
+    
+    try {
+      const request = {
+        pickup_location: pickup.address,
+        pickup_coordinates: { lat: pickup.lat, lng: pickup.lng },
+        destination: destination.address,
+        destination_coordinates: { lat: destination.lat, lng: destination.lng },
+        service_type: 'transport' as const,
+        vehicle_class: selectedVehicle.type,
+        priority: 'high' as const
+      };
+
+      await searchWithExpandedRadius(request);
+      toast.info('Recherche élargie en cours...');
+    } catch (error) {
+      console.error('Erreur recherche élargie:', error);
+      toast.error('Erreur lors de la recherche élargie');
+    }
+  };
+
+  // Show driver search interface
+  if (currentView === 'searching') {
+    return (
+      <ModernDriverSearch
+        isSearching={isSearching}
+        drivers={availableDrivers}
+        estimatedPrice={estimatedPrice || (selectedVehicle ? Math.round(calculatePrice(selectedVehicle)) : 0)}
+        onDriverSelect={handleDriverSelect}
+        onCancel={handleCancelSearch}
+        onExpandRadius={handleExpandRadius}
+      />
+    );
+  }
 
   return (
     <div className="max-w-lg mx-auto space-y-4 p-4">
