@@ -2116,6 +2116,72 @@ export type Database = {
           },
         ]
       }
+      places_database: {
+        Row: {
+          accuracy: number | null
+          category: string
+          city: string
+          commune: string | null
+          country_code: string
+          created_at: string
+          district: string | null
+          id: string
+          is_active: boolean
+          is_popular: boolean
+          latitude: number
+          longitude: number
+          metadata: Json | null
+          name: string
+          name_fr: string
+          name_local: string | null
+          place_type: string
+          search_keywords: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          accuracy?: number | null
+          category?: string
+          city?: string
+          commune?: string | null
+          country_code?: string
+          created_at?: string
+          district?: string | null
+          id?: string
+          is_active?: boolean
+          is_popular?: boolean
+          latitude: number
+          longitude: number
+          metadata?: Json | null
+          name: string
+          name_fr: string
+          name_local?: string | null
+          place_type?: string
+          search_keywords?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          accuracy?: number | null
+          category?: string
+          city?: string
+          commune?: string | null
+          country_code?: string
+          created_at?: string
+          district?: string | null
+          id?: string
+          is_active?: boolean
+          is_popular?: boolean
+          latitude?: number
+          longitude?: number
+          metadata?: Json | null
+          name?: string
+          name_fr?: string
+          name_local?: string | null
+          place_type?: string
+          search_keywords?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pricing_rules: {
         Row: {
           base_price: number
@@ -4397,6 +4463,10 @@ export type Database = {
       calculate_delivery_estimate: {
         Args: { order_id_param: string }
         Returns: string
+      }
+      calculate_distance_km: {
+        Args: { lat1: number; lng1: number; lat2: number; lng2: number }
+        Returns: number
       }
       calculate_rental_price: {
         Args: {
