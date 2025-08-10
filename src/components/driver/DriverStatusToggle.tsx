@@ -30,35 +30,76 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
     loading 
   } = useUnifiedDispatcher();
   
-  const { enhancedData, startAdaptiveTracking, stopAdaptiveTracking } = useEnhancedGeolocation({ 
+  const { 
+    enhancedData, 
+    startAdaptiveTracking, 
+    stopAdaptiveTracking,
+    error: locationError
+  } = useEnhancedGeolocation({ 
     enableBackgroundTracking: dispatchStatus.isOnline,
-    adaptiveTracking: true 
+    adaptiveTracking: true,
+    tripMode: false,
+    securityMode: true
   });
+  
   const latitude = enhancedData?.latitude;
   const longitude = enhancedData?.longitude;
 
   const [updating, setUpdating] = useState(false);
 
-  // Update location in dispatch system
+  // Update location in dispatch system with better error handling
   useEffect(() => {
     if (latitude && longitude && dispatchStatus.isOnline) {
-      updateDriverStatus({
-        currentLocation: { lat: latitude, lng: longitude }
-      });
+      const updateLocation = async () => {
+        const success = await updateDriverStatus({
+          latitude,
+          longitude,
+          currentLocation: { lat: latitude, lng: longitude }
+        });
+        
+        if (!success && !locationError) {
+          console.error('Failed to update driver location');
+        }
+      };
+      
+      updateLocation();
     }
-  }, [latitude, longitude, dispatchStatus.isOnline, updateDriverStatus]);
+  }, [latitude, longitude, dispatchStatus.isOnline, updateDriverStatus, locationError]);
 
   const handleOnlineToggle = async (isOnline: boolean) => {
     setUpdating(true);
     try {
-      const success = await updateDriverStatus({ 
-        isOnline,
-        isAvailable: isOnline ? true : dispatchStatus.isAvailable
-      });
-      
-      if (!success) {
-        // Revert if failed
-        return;
+      if (isOnline) {
+        // When going online, start location tracking first
+        startAdaptiveTracking();
+        
+        // Wait for location if needed
+        const coordinates = latitude && longitude 
+          ? { latitude, longitude }
+          : undefined;
+          
+        const success = await updateDriverStatus({ 
+          isOnline,
+          isAvailable: true,
+          latitude: coordinates?.latitude,
+          longitude: coordinates?.longitude
+        });
+        
+        if (!success) {
+          return;
+        }
+      } else {
+        // When going offline, update status first then stop tracking
+        const success = await updateDriverStatus({ 
+          isOnline,
+          isAvailable: false
+        });
+        
+        if (!success) {
+          return;
+        }
+        
+        stopAdaptiveTracking();
       }
     } finally {
       setUpdating(false);
@@ -93,18 +134,38 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
 
   const getStatusBadge = () => {
     if (!dispatchStatus.isOnline) {
-      return <Badge variant="secondary" className="bg-gray-500 text-white">Hors ligne</Badge>;
+      return (
+        <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border border-muted">
+          <div className="w-2 h-2 rounded-full bg-gray-400 mr-1.5"></div>
+          Hors ligne
+        </Badge>
+      );
     }
     
     if (activeOrders.length > 0) {
-      return <Badge variant="secondary" className="bg-blue-500 text-white">En course</Badge>;
+      return (
+        <Badge variant="default" className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-lg">
+          <div className="w-2 h-2 rounded-full bg-white mr-1.5 animate-pulse"></div>
+          En course ({activeOrders.length})
+        </Badge>
+      );
     }
     
     if (dispatchStatus.isAvailable) {
-      return <Badge variant="secondary" className="bg-green-500 text-white">Disponible</Badge>;
+      return (
+        <Badge variant="default" className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg">
+          <div className="w-2 h-2 rounded-full bg-white mr-1.5 animate-pulse"></div>
+          Disponible
+        </Badge>
+      );
     }
     
-    return <Badge variant="secondary" className="bg-yellow-500 text-white">Occupé</Badge>;
+    return (
+      <Badge variant="outline" className="border-yellow-500 text-yellow-600 bg-yellow-50 shadow-sm">
+        <div className="w-2 h-2 rounded-full bg-yellow-500 mr-1.5"></div>
+        Occupé
+      </Badge>
+    );
   };
 
   return (

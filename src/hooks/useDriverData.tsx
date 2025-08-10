@@ -137,18 +137,21 @@ export const useDriverData = () => {
     }
   };
 
-  // Update driver online status
-  const updateOnlineStatus = async (online: boolean) => {
+  // Update driver online status with real coordinates
+  const updateOnlineStatus = async (online: boolean, coordinates?: { latitude: number; longitude: number }) => {
     if (!user) return;
 
     try {
-      // Update driver location status (with default coordinates for Kinshasa)
+      // Use provided coordinates or default to Kinshasa center
+      const latitude = coordinates?.latitude || -4.3217;
+      const longitude = coordinates?.longitude || 15.3069;
+
       const { error } = await supabase
         .from('driver_locations')
         .upsert({
           driver_id: user.id,
-          latitude: -4.3217, // Default Kinshasa center
-          longitude: 15.3069,
+          latitude,
+          longitude,
           is_online: online,
           is_available: online,
           last_ping: new Date().toISOString(),

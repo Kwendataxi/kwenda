@@ -20,6 +20,9 @@ export interface UnifiedOrderNotification {
 export interface DispatchStatus {
   isOnline: boolean;
   isAvailable: boolean;
+  latitude?: number;
+  longitude?: number;
+  vehicleClass?: string;
   currentLocation?: { lat: number; lng: number };
   activeZone?: string;
   serviceTypes: string[];
@@ -36,8 +39,8 @@ export const useUnifiedDispatcher = () => {
   const [pendingNotifications, setPendingNotifications] = useState<UnifiedOrderNotification[]>([]);
   const [activeOrders, setActiveOrders] = useState<any[]>([]);
 
-  // Update driver status and location
-  const updateDriverStatus = async (status: Partial<DispatchStatus>) => {
+  // Update driver status and location with unique constraint
+  const updateDriverStatus = async (status: Partial<DispatchStatus>): Promise<boolean> => {
     if (!user) return false;
 
     try {
@@ -47,14 +50,25 @@ export const useUnifiedDispatcher = () => {
         driver_id: user.id,
         is_online: status.isOnline ?? dispatchStatus.isOnline,
         is_available: status.isAvailable ?? dispatchStatus.isAvailable,
+        vehicle_class: status.vehicleClass || dispatchStatus.vehicleClass || 'standard',
         last_ping: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
 
-      // Ajouter les coordonnées si disponibles
-      if (status.currentLocation?.lat && status.currentLocation?.lng) {
+      // Add coordinates from multiple sources
+      if (status.latitude && status.longitude) {
+        updateData.latitude = status.latitude;
+        updateData.longitude = status.longitude;
+      } else if (status.currentLocation?.lat && status.currentLocation?.lng) {
         updateData.latitude = status.currentLocation.lat;
         updateData.longitude = status.currentLocation.lng;
+      } else if (dispatchStatus.latitude && dispatchStatus.longitude) {
+        updateData.latitude = dispatchStatus.latitude;
+        updateData.longitude = dispatchStatus.longitude;
+      } else {
+        // Default to Kinshasa center if no coordinates
+        updateData.latitude = -4.3217;
+        updateData.longitude = 15.3069;
       }
 
       const { error } = await supabase
@@ -68,8 +82,18 @@ export const useUnifiedDispatcher = () => {
         throw error;
       }
 
+      // Update local state
       setDispatchStatus(prev => ({ ...prev, ...status }));
-      toast.success('Statut mis à jour');
+      
+      // Show appropriate feedback
+      if (status.isOnline !== undefined) {
+        if (status.isOnline) {
+          toast.success('Statut mis à jour : En ligne');
+        } else {
+          toast.info('Statut mis à jour : Hors ligne');
+        }
+      }
+      
       return true;
     } catch (error: any) {
       console.error('Error updating driver status:', error);
