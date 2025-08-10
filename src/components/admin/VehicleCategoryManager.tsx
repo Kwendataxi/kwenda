@@ -42,18 +42,14 @@ export const VehicleCategoryManager = () => {
     sort_order: '1'
   });
 
-  // Récupérer les catégories de véhicules
-  const { data: categories, isLoading } = useQuery<VehicleCategory[]>({
-    queryKey: ['vehicle-categories-admin'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('vehicle_categories')
-        .select('*')
-        .order('sort_order', { ascending: true });
-      if (error) throw error;
-      return data || [];
-    }
-  });
+  // Mock data pour les catégories en attendant la vraie implémentation
+  const categories = [
+    { id: '1', name: 'ECO', description: 'Véhicules économiques et écologiques', icon_name: 'Car', color_class: 'text-green-600', base_price: 30000, recommended_price_range: {min: 25000, max: 40000}, is_active: true, sort_order: 1, created_at: new Date().toISOString() },
+    { id: '2', name: 'PREMIUM', description: 'Véhicules haut de gamme', icon_name: 'Car', color_class: 'text-purple-600', base_price: 60000, recommended_price_range: {min: 50000, max: 80000}, is_active: true, sort_order: 2, created_at: new Date().toISOString() },
+    { id: '3', name: 'FIRST CLASS', description: 'Véhicules de luxe', icon_name: 'Car', color_class: 'text-yellow-600', base_price: 100000, recommended_price_range: {min: 80000, max: 150000}, is_active: true, sort_order: 3, created_at: new Date().toISOString() },
+    { id: '4', name: 'UTILITAIRES', description: 'Véhicules utilitaires', icon_name: 'Truck', color_class: 'text-blue-600', base_price: 45000, recommended_price_range: {min: 35000, max: 60000}, is_active: true, sort_order: 4, created_at: new Date().toISOString() }
+  ];
+  const isLoading = false;
 
   // Mutation pour créer/modifier une catégorie
   const saveCategory = useMutation({
@@ -68,24 +64,9 @@ export const VehicleCategoryManager = () => {
         }
       };
 
-      if (editingCategory) {
-        const { data, error } = await supabase
-          .from('vehicle_categories')
-          .update(payload)
-          .eq('id', editingCategory.id)
-          .select()
-          .single();
-        if (error) throw error;
-        return data;
-      } else {
-        const { data, error } = await supabase
-          .from('vehicle_categories')
-          .insert(payload)
-          .select()
-          .single();
-        if (error) throw error;
-        return data;
-      }
+      // Désactiver les mutations pour l'instant car les tables n'existent pas encore
+      console.log('Sauvegarde désactivée:', payload);
+      throw new Error('Fonctionnalité non disponible - tables en cours de création');
     },
     onSuccess: () => {
       toast({
@@ -109,11 +90,9 @@ export const VehicleCategoryManager = () => {
   // Mutation pour supprimer une catégorie
   const deleteCategory = useMutation({
     mutationFn: async (categoryId: string) => {
-      const { error } = await supabase
-        .from('vehicle_categories')
-        .delete()
-        .eq('id', categoryId);
-      if (error) throw error;
+      // Désactiver les suppressions pour l'instant
+      console.log('Suppression désactivée:', categoryId);
+      throw new Error('Fonctionnalité non disponible - tables en cours de création');
     },
     onSuccess: () => {
       toast({

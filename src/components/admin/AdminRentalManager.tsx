@@ -17,15 +17,13 @@ export const AdminRentalManager = () => {
   const { data: stats } = useQuery({
     queryKey: ['rental-admin-stats'],
     queryFn: async () => {
-      const [vehiclesResponse, subscriptionsResponse, categoriesResponse] = await Promise.all([
+      const [vehiclesResponse, subscriptionsResponse] = await Promise.all([
         supabase.from('rental_vehicles').select('moderation_status, is_active'),
-        supabase.from('partner_rental_subscriptions').select('status'),
-        supabase.from('vehicle_categories').select('id, name')
+        supabase.from('driver_subscriptions').select('status')
       ]);
 
       const vehicles = vehiclesResponse.data || [];
       const subscriptions = subscriptionsResponse.data || [];
-      const categories = categoriesResponse.data || [];
 
       return {
         totalVehicles: vehicles.length,
@@ -33,7 +31,7 @@ export const AdminRentalManager = () => {
         approvedVehicles: vehicles.filter(v => v.moderation_status === 'approved').length,
         activeVehicles: vehicles.filter(v => v.is_active).length,
         activeSubscriptions: subscriptions.filter(s => s.status === 'active').length,
-        totalCategories: categories.length
+        totalCategories: 4 // Nombre fixe pour l'instant
       };
     }
   });
