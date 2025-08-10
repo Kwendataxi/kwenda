@@ -20,6 +20,7 @@ import {
   Timer,
   Car
 } from "lucide-react";
+import VendorSelfDeliveryButton from './VendorSelfDeliveryButton';
 import { motion } from "framer-motion";
 
 interface MarketplaceOrder {
@@ -63,7 +64,8 @@ export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) 
     return orders.filter(order => 
       order.status !== 'pending' && 
       order.status !== 'cancelled' &&
-      order.status !== 'delivered'
+      order.status !== 'delivered' &&
+      order.status !== 'completed'
     );
   }, [orders]);
 
@@ -348,100 +350,109 @@ export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.2 }}
-                    className={`glass rounded-xl overflow-hidden border shadow-elegant hover:shadow-glow transition-all duration-300 ${
-                      isUrgent ? 'border-destructive/50 bg-destructive/5' : 'border-primary/20'
-                    }`}
-                  >
-                    {/* Header */}
-                    <div className={`px-6 py-4 border-b ${
-                      isUrgent ? 'bg-destructive/10 border-destructive/20' : 'bg-gradient-primary/10 border-primary/20'
-                    }`}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                            isUrgent ? 'bg-destructive/20' : 'bg-primary/20'
-                          }`}>
-                            <Package className={`h-4 w-4 ${isUrgent ? 'text-destructive' : 'text-primary'}`} />
-                          </div>
-                          <div>
-                            <h4 className="text-heading-sm text-foreground">
-                              {order.marketplace_products?.title || 'Produit inconnu'}
-                            </h4>
-                            <p className="text-caption text-muted-foreground">
-                              {order.profiles?.display_name || 'Client anonyme'}
-                            </p>
-                          </div>
-                        </div>
+                     className={`glass rounded-xl overflow-hidden border shadow-elegant hover:shadow-glow transition-all duration-300 ${
+                       isUrgent ? 'border-destructive/50 bg-destructive/5' : 'border-primary/20'
+                     }`}
+                   >
+                     {/* Header */}
+                     <div className={`px-3 py-2 border-b ${
+                       isUrgent ? 'bg-destructive/10 border-destructive/20' : 'bg-gradient-primary/10 border-primary/20'
+                     }`}>
+                       <div className="flex items-center justify-between">
+                         <div className="flex items-center gap-2">
+                           <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+                             isUrgent ? 'bg-destructive/20' : 'bg-primary/20'
+                           }`}>
+                             <Package className={`h-3 w-3 ${isUrgent ? 'text-destructive' : 'text-primary'}`} />
+                           </div>
+                           <div>
+                             <h4 className="text-sm font-medium text-foreground">
+                               {order.marketplace_products?.title || 'Produit inconnu'}
+                             </h4>
+                             <p className="text-xs text-muted-foreground">
+                               {order.profiles?.display_name || 'Client anonyme'}
+                             </p>
+                           </div>
+                         </div>
                         {getStatusBadge(order.status, isUrgent)}
                       </div>
                     </div>
 
-                    <div className="p-6 space-y-6">
-                      {/* Order details */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-muted-foreground text-caption">
-                            <Package className="h-4 w-4" />
-                            Quantité: {order.quantity}
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground text-caption">
-                            <MapPin className="h-4 w-4" />
-                            {order.delivery_method === 'delivery' ? 'Livraison' : 'Retrait'}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-body-sm text-muted-foreground">Total</p>
-                          <p className="text-heading-sm font-bold text-foreground">
-                            {Number(order.total_amount).toLocaleString()} FC
-                          </p>
-                        </div>
-                      </div>
+                    <div className="p-3 space-y-3">
+                       {/* Order details */}
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                         <div className="space-y-1">
+                           <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                             <Package className="h-3 w-3" />
+                             Qté: {order.quantity}
+                           </div>
+                           <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                             <MapPin className="h-3 w-3" />
+                             {order.delivery_method === 'delivery' ? 'Livraison' : 'Retrait'}
+                           </div>
+                         </div>
+                         <div className="text-right">
+                           <p className="text-xs text-muted-foreground">Total</p>
+                           <p className="text-sm font-bold text-foreground">
+                             {Number(order.total_amount).toLocaleString()} FC
+                           </p>
+                         </div>
+                       </div>
 
-                      {/* Progress steps */}
-                      <div className="space-y-4">
-                        <h5 className="text-body-md font-semibold text-foreground">Progression</h5>
-                        <div className="space-y-3">
-                          {steps.map((step, stepIndex) => {
-                            const Icon = step.icon;
-                            return (
-                              <div
-                                key={step.id}
-                                className={`flex items-center gap-4 p-3 rounded-lg transition-all duration-200 ${
-                                  step.completed ? 'bg-primary/10 border border-primary/20' :
-                                  step.current ? 'bg-muted/50 border border-muted-foreground/30' :
-                                  'bg-muted/20'
-                                }`}
-                              >
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                  step.completed ? 'bg-primary text-white' :
-                                  step.current ? 'bg-muted-foreground text-white' :
-                                  'bg-muted text-muted-foreground'
-                                }`}>
-                                  {step.completed ? (
-                                    <CheckCircle className="h-4 w-4" />
-                                  ) : (
-                                    <Icon className="h-4 w-4" />
-                                  )}
-                                </div>
-                                
-                                <div className="flex-1">
-                                  <p className={`text-body-sm font-medium ${
-                                    step.completed ? 'text-primary' :
-                                    step.current ? 'text-foreground' :
-                                    'text-muted-foreground'
-                                  }`}>
-                                    {step.label}
-                                  </p>
-                                </div>
+                       {/* Self-delivery option */}
+                       {order.delivery_method === 'delivery' && (order.status === 'ready' || order.status === 'ready_for_pickup') && (
+                         <VendorSelfDeliveryButton
+                           orderId={order.id}
+                           orderStatus={order.status}
+                           onAssignment={onOrderUpdate}
+                         />
+                       )}
 
-                                {step.action && (
-                                  <Button
-                                    onClick={step.action.onClick}
-                                    disabled={processing.includes(order.id)}
-                                    className="min-touch-target bg-gradient-primary hover:shadow-glow transition-all duration-300 text-white font-medium"
-                                    size="sm"
-                                  >
-                                    {processing.includes(order.id) ? (
+                       {/* Progress steps */}
+                       <div className="space-y-2">
+                         <h5 className="text-sm font-semibold text-foreground">Progression</h5>
+                         <div className="space-y-2">
+                           {steps.map((step, stepIndex) => {
+                             const Icon = step.icon;
+                             return (
+                               <div
+                                 key={step.id}
+                                 className={`flex items-center gap-2 p-2 rounded-lg transition-all duration-200 ${
+                                   step.completed ? 'bg-primary/10 border border-primary/20' :
+                                   step.current ? 'bg-muted/50 border border-muted-foreground/30' :
+                                   'bg-muted/20'
+                                 }`}
+                               >
+                                 <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                                   step.completed ? 'bg-primary text-white' :
+                                   step.current ? 'bg-muted-foreground text-white' :
+                                   'bg-muted text-muted-foreground'
+                                 }`}>
+                                   {step.completed ? (
+                                     <CheckCircle className="h-3 w-3" />
+                                   ) : (
+                                     <Icon className="h-3 w-3" />
+                                   )}
+                                 </div>
+                                 
+                                 <div className="flex-1">
+                                   <p className={`text-xs font-medium ${
+                                     step.completed ? 'text-primary' :
+                                     step.current ? 'text-foreground' :
+                                     'text-muted-foreground'
+                                   }`}>
+                                     {step.label}
+                                   </p>
+                                 </div>
+
+                                 {step.action && (
+                                   <Button
+                                     onClick={step.action.onClick}
+                                     disabled={processing.includes(order.id)}
+                                     className="bg-gradient-primary hover:shadow-glow transition-all duration-300 text-white font-medium"
+                                     size="sm"
+                                   >
+                                     {processing.includes(order.id) ? (
                                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                     ) : (
                                       step.action.label

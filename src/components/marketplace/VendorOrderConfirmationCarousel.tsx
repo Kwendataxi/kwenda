@@ -19,6 +19,7 @@ interface OrderForConfirmation {
   delivery_address?: string;
   notes?: string;
   vendor_confirmation_status: string;
+  status: string;
   created_at: string;
   // Relations
   profiles?: {
@@ -117,7 +118,8 @@ export default function VendorOrderConfirmationCarousel({ orders, onOrderUpdate 
   };
 
   const pendingOrders = orders.filter(order => 
-    order.vendor_confirmation_status === 'awaiting_confirmation'
+    order.vendor_confirmation_status === 'awaiting_confirmation' &&
+    order.status === 'pending'
   );
 
   if (pendingOrders.length === 0) {
@@ -194,27 +196,27 @@ export default function VendorOrderConfirmationCarousel({ orders, onOrderUpdate 
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.2 }}
-                  className="glass rounded-xl overflow-hidden border border-primary/20 shadow-elegant hover:shadow-glow transition-all duration-300"
-                >
-                  {/* Header avec status */}
-                  <div className="bg-gradient-primary/10 px-6 py-4 border-b border-primary/20">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
-                          <Package className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <h4 className="text-heading-sm text-foreground">Nouvelle commande</h4>
-                          <p className="text-caption text-muted-foreground">
-                            {new Date(order.created_at).toLocaleString('fr-FR', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                        </div>
-                      </div>
+                   className="glass rounded-xl overflow-hidden border border-primary/20 shadow-elegant hover:shadow-glow transition-all duration-300"
+                 >
+                   {/* Header avec status */}
+                   <div className="bg-gradient-primary/10 px-3 py-2 border-b border-primary/20">
+                     <div className="flex items-center justify-between">
+                       <div className="flex items-center gap-2">
+                         <div className="w-6 h-6 bg-primary/20 rounded-lg flex items-center justify-center">
+                           <Package className="h-3 w-3 text-primary" />
+                         </div>
+                         <div>
+                           <h4 className="text-body-md font-medium text-foreground">Nouvelle commande</h4>
+                           <p className="text-xs text-muted-foreground">
+                             {new Date(order.created_at).toLocaleString('fr-FR', {
+                               day: '2-digit',
+                               month: '2-digit',
+                               hour: '2-digit',
+                               minute: '2-digit'
+                             })}
+                           </p>
+                         </div>
+                       </div>
                       <Badge 
                         variant="destructive" 
                         className="bg-destructive/10 text-destructive border-destructive/20 animate-pulse"
@@ -225,42 +227,42 @@ export default function VendorOrderConfirmationCarousel({ orders, onOrderUpdate 
                     </div>
                   </div>
 
-                  <div className="p-6 space-y-6">
-                    {/* Informations principales */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Produit */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-muted-foreground text-caption font-medium">
-                          <Package className="h-4 w-4" />
-                          PRODUIT
-                        </div>
-                        <div className="bg-muted/50 rounded-lg p-4">
-                          <h5 className="text-body-md font-semibold text-foreground mb-1">
-                            {order.marketplace_products?.title || 'Produit inconnu'}
-                          </h5>
-                          <p className="text-body-sm text-muted-foreground">
-                            {order.quantity} × {Number(order.marketplace_products?.price || 0).toLocaleString()} FC
-                          </p>
-                        </div>
-                      </div>
+                  <div className="p-3 space-y-3">
+                     {/* Informations principales */}
+                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                       {/* Produit */}
+                       <div className="space-y-2">
+                         <div className="flex items-center gap-1 text-muted-foreground text-xs font-medium">
+                           <Package className="h-3 w-3" />
+                           PRODUIT
+                         </div>
+                         <div className="bg-muted/50 rounded-lg p-2">
+                           <h5 className="text-sm font-semibold text-foreground mb-1">
+                             {order.marketplace_products?.title || 'Produit inconnu'}
+                           </h5>
+                           <p className="text-xs text-muted-foreground">
+                             {order.quantity} × {Number(order.marketplace_products?.price || 0).toLocaleString()} FC
+                           </p>
+                         </div>
+                       </div>
 
-                      {/* Client */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-muted-foreground text-caption font-medium">
-                          <User className="h-4 w-4" />
-                          CLIENT
-                        </div>
-                        <div className="bg-muted/50 rounded-lg p-4">
-                          <h5 className="text-body-md font-semibold text-foreground mb-1">
-                            {order.profiles?.display_name || 'Client anonyme'}
-                          </h5>
-                          <div className="flex items-center gap-1 text-body-sm text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
-                            Commande du {new Date(order.created_at).toLocaleDateString('fr-FR')}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                       {/* Client */}
+                       <div className="space-y-2">
+                         <div className="flex items-center gap-1 text-muted-foreground text-xs font-medium">
+                           <User className="h-3 w-3" />
+                           CLIENT
+                         </div>
+                         <div className="bg-muted/50 rounded-lg p-2">
+                           <h5 className="text-sm font-semibold text-foreground mb-1">
+                             {order.profiles?.display_name || 'Client anonyme'}
+                           </h5>
+                           <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                             <Calendar className="h-2 w-2" />
+                             {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                           </div>
+                         </div>
+                       </div>
+                     </div>
 
                     {/* Détails de livraison */}
                     <div className="space-y-3">
