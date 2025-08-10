@@ -38,12 +38,22 @@ const ModernTaxiInterface: React.FC<ModernTaxiInterfaceProps> = ({
   }
 
   return (
-    <StepByStepTaxiInterface 
-      onBookingRequest={onBookingRequest}
-      initialPickup={initialPickup}
-      initialDestination={selectedDestination}
-      onBack={() => setCurrentView('home')}
-    />
+      <StepByStepTaxiInterface 
+        onBookingRequest={onBookingRequest}
+        initialPickup={initialPickup ? {
+          address: initialPickup.address,
+          lat: initialPickup.coordinates?.lat || 0,
+          lng: initialPickup.coordinates?.lng || 0,
+          type: 'recent' as const
+        } : undefined}
+        initialDestination={selectedDestination ? {
+          address: selectedDestination.address,
+          lat: selectedDestination.coordinates?.lat || 0,
+          lng: selectedDestination.coordinates?.lng || 0,
+          type: 'recent' as const
+        } : undefined}
+        onBack={() => setCurrentView('home')}
+      />
   );
 };
 

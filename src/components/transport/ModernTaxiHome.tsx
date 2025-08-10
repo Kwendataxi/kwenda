@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { usePromotionalAds } from '@/hooks/usePromotionalAds';
 import { useAuth } from '@/hooks/useAuth';
-import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
-import { ZoneService } from '@/services/zoneService';
+import { useMasterLocation } from '@/hooks/useMasterLocation';
 import { motion } from 'framer-motion';
 import { 
   MapPin, 
@@ -33,23 +32,14 @@ export const ModernTaxiHome = ({
 }: ModernTaxiHomeProps) => {
   const { user } = useAuth();
   const { ads, loading: adsLoading, trackAdImpression, trackAdClick } = usePromotionalAds();
-  const { enhancedData } = useEnhancedGeolocation({ enableBackgroundTracking: false });
+  const { location } = useMasterLocation();
   const [currentLocation, setCurrentLocation] = useState<string>('Détection...');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
-    if (enhancedData?.accuracy && enhancedData.latitude && enhancedData.longitude) {
-      // Detect zone based on coordinates
-      const zone = ZoneService.getZoneByPoint(enhancedData.longitude, enhancedData.latitude);
-      if (zone) {
-        setCurrentLocation(`${zone.nameFr}, ${zone.id.includes('abidjan') ? 'Abidjan' : 'RDC'}`);
-      } else {
-        setCurrentLocation('Kinshasa, RDC');
-      }
+    if (location?.address) {
+      setCurrentLocation(location.address);
     }
-  }, [enhancedData]);
+  }, [location]);
 
   useEffect(() => {
     // Track ad impressions when component loads
@@ -66,26 +56,13 @@ export const ModernTaxiHome = ({
     }
   };
 
-  const handleSearchInput = (value: string) => {
-    setSearchQuery(value);
-    
-    if (value.trim().length > 2) {
-      const results = ZoneService.searchPopularPlaces(value, 5);
-      setSearchResults(results);
-      setShowSuggestions(true);
-    } else {
-      setSearchResults([]);
-      setShowSuggestions(false);
-    }
-  };
-
-  const handleDestinationClick = (place: any) => {
+  const handleDestinationClick = (destination: { address: string; lat?: number; lng?: number }) => {
     onDestinationSelect({
-      address: place.address,
-      coordinates: { lat: place.coordinates[1], lng: place.coordinates[0] }
+      address: destination.address,
+      coordinates: destination.lat && destination.lng 
+        ? { lat: destination.lat, lng: destination.lng }
+        : undefined
     });
-    setShowSuggestions(false);
-    setSearchQuery('');
   };
 
   const displayedAds = ads.slice(0, 1); // Show max 1 ad for space optimization

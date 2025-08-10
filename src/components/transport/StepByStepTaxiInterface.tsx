@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
-import { GooglePlacesService } from '@/services/googlePlacesService';
-import { DirectionsService } from '@/services/directionsService';
+import { useMasterLocation } from '@/hooks/useMasterLocation';
+import { UniversalLocationPicker } from '@/components/location/UniversalLocationPicker';
+import { LocationData } from '@/types/location';
 import { toast } from 'sonner';
 import { 
   MapPin, 
@@ -21,10 +21,7 @@ import {
 import GoogleMapsKwenda from '../maps/GoogleMapsKwenda';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface Location {
-  address: string;
-  coordinates: { lat: number; lng: number };
-}
+// Using unified LocationData type
 
 interface Vehicle {
   id: string;
@@ -92,8 +89,8 @@ const VEHICLES: Vehicle[] = [
 
 interface StepByStepTaxiInterfaceProps {
   onBookingRequest: (bookingData: any) => void;
-  initialPickup?: { address: string; coordinates?: { lat: number; lng: number } };
-  initialDestination?: { address: string; coordinates?: { lat: number; lng: number } };
+  initialPickup?: LocationData;
+  initialDestination?: LocationData;
   onBack?: () => void;
 }
 
@@ -104,38 +101,32 @@ const StepByStepTaxiInterface: React.FC<StepByStepTaxiInterfaceProps> = ({
   onBack
 }) => {
   const { user } = useAuth();
-  const geolocation = useEnhancedGeolocation({ 
-    enableBackgroundTracking: false
-  });
-  
   const { 
-    enhancedData,
-    currentZone 
-  } = geolocation;
+    location,
+    getCurrentPosition,
+    searchLocation,
+    calculateDistance,
+    loading: locationLoading,
+    error: locationError
+  } = useMasterLocation();
   
   const [currentStep, setCurrentStep] = useState<'pickup' | 'destination' | 'vehicle' | 'confirm'>(
     initialDestination ? 'pickup' : 'pickup'
   );
-  const [pickup, setPickup] = useState<Location | null>(
-    initialPickup ? { address: initialPickup.address, coordinates: initialPickup.coordinates || { lat: 0, lng: 0 } } : null
-  );
-  const [destination, setDestination] = useState<Location | null>(
-    initialDestination ? { address: initialDestination.address, coordinates: initialDestination.coordinates || { lat: 0, lng: 0 } } : null
-  );
+  const [pickup, setPickup] = useState<LocationData | null>(initialPickup || null);
+  const [destination, setDestination] = useState<LocationData | null>(initialDestination || null);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [routeDetails, setRouteDetails] = useState<any>(null);
   const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
 
   // Auto-detect current location for pickup
   useEffect(() => {
-    if (currentStep === 'pickup' && !pickup && enhancedData?.latitude) {
-      detectCurrentLocation();
+    if (currentStep === 'pickup' && !pickup && location) {
+      setPickup(location);
+      toast.success('Position détectée automatiquement');
+      setTimeout(() => setCurrentStep('destination'), 800);
     }
-  }, [currentStep, enhancedData]);
+  }, [currentStep, location, pickup]);
 
   // Calculate route when both locations are set
   useEffect(() => {
@@ -144,61 +135,22 @@ const StepByStepTaxiInterface: React.FC<StepByStepTaxiInterfaceProps> = ({
     }
   }, [pickup, destination]);
 
-  const detectCurrentLocation = async () => {
-    setIsDetectingLocation(true);
-    try {
-      // Enhanced geolocation is automatically tracking, just check current data
-      if (enhancedData?.latitude && enhancedData?.longitude) {
-        const address = await GooglePlacesService.reverseGeocode(
-          enhancedData.longitude, 
-          enhancedData.latitude
-        );
-        
-        setPickup({
-          address,
-          coordinates: { lat: enhancedData.latitude, lng: enhancedData.longitude }
-        });
-        
-        toast.success('Position détectée automatiquement');
-        setTimeout(() => setCurrentStep('destination'), 800);
-      }
-    } catch (error) {
-      console.error('Erreur de géolocalisation:', error);
-      toast.error('Impossible de détecter votre position');
-    } finally {
-      setIsDetectingLocation(false);
-    }
-  };
-
-  const searchPlaces = async (query: string) => {
-    if (!query || query.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-
-    setIsSearching(true);
-    try {
-      const proximity = enhancedData ? { lng: enhancedData.longitude, lat: enhancedData.latitude } : undefined;
-      const results = await GooglePlacesService.searchPlaces(query, proximity);
-      setSearchResults(results);
-    } catch (error) {
-      console.error('Erreur de recherche:', error);
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
   const calculateRoute = async () => {
     if (!pickup || !destination) return;
 
     setIsCalculatingRoute(true);
     try {
-      const directions = await DirectionsService.getDirections(
-        pickup.coordinates,
-        destination.coordinates
-      );
-      setRouteDetails(directions);
+      const distance = calculateDistance(
+        { lat: pickup.lat, lng: pickup.lng },
+        { lat: destination.lat, lng: destination.lng }
+      ) / 1000;
+      const duration = Math.round(distance * 60 / 25); // Estimation: 25 km/h en ville
+      
+      setRouteDetails({
+        distance: distance * 1000, // en mètres
+        duration: duration * 60,   // en secondes
+        polyline: null // Sera ajouté avec Google Maps si nécessaire
+      });
     } catch (error) {
       console.error('Erreur calcul itinéraire:', error);
       toast.error('Impossible de calculer l\'itinéraire');
@@ -207,22 +159,14 @@ const StepByStepTaxiInterface: React.FC<StepByStepTaxiInterfaceProps> = ({
     }
   };
 
-  const selectLocation = (result: any) => {
-    const location = {
-      address: result.place_name,
-      coordinates: { lat: result.center[1], lng: result.center[0] }
-    };
-
-    if (currentStep === 'pickup') {
+  const handleLocationSelect = (location: LocationData, step: 'pickup' | 'destination') => {
+    if (step === 'pickup') {
       setPickup(location);
       setCurrentStep('destination');
-    } else if (currentStep === 'destination') {
+    } else if (step === 'destination') {
       setDestination(location);
       setCurrentStep('vehicle');
     }
-
-    setSearchQuery('');
-    setSearchResults([]);
   };
 
   const handleBooking = async () => {
@@ -237,9 +181,9 @@ const StepByStepTaxiInterface: React.FC<StepByStepTaxiInterfaceProps> = ({
 
       const bookingData = {
         pickupLocation: pickup.address,
-        pickupCoordinates: [pickup.coordinates.lng, pickup.coordinates.lat],
+        pickupCoordinates: [pickup.lng, pickup.lat],
         destination: destination.address,
-        destinationCoordinates: [destination.coordinates.lng, destination.coordinates.lat],
+        destinationCoordinates: [destination.lng, destination.lat],
         vehicleClass: selectedVehicle.type,
         estimatedPrice: Math.round(estimatedPrice),
         routeDetails
@@ -328,80 +272,20 @@ const StepByStepTaxiInterface: React.FC<StepByStepTaxiInterfaceProps> = ({
                       D'où partez-vous ?
                     </h2>
                     <p className="text-muted-foreground">
-                      Nous détectons automatiquement votre position
+                      Choisissez votre point de départ
                     </p>
                   </div>
 
-                  {currentZone && (
-                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-sm">
-                      <MapPinIcon className="w-4 h-4 mr-1" />
-                      Zone: {currentZone.name}
-                    </div>
-                  )}
-
-                  <Button
-                    onClick={detectCurrentLocation}
-                    disabled={isDetectingLocation}
-                    className="w-full h-12"
-                    size="lg"
-                  >
-                    {isDetectingLocation ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Détection en cours...
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="w-5 h-5 mr-2" />
-                        Détecter ma position
-                      </>
-                    )}
-                  </Button>
-
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t border-muted" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">ou</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <input
-                      type="text"
-                      placeholder="Saisir une adresse manuellement"
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        searchPlaces(e.target.value);
-                      }}
-                      className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-
-                    {isSearching && (
-                      <div className="text-center py-4">
-                        <Loader2 className="w-5 h-5 animate-spin mx-auto text-primary" />
-                      </div>
-                    )}
-
-                    {searchResults.length > 0 && (
-                      <div className="space-y-2 max-h-60 overflow-y-auto">
-                        {searchResults.map((result, index) => (
-                          <button
-                            key={index}
-                            onClick={() => selectLocation(result)}
-                            className="w-full text-left p-3 border border-border rounded-lg hover:bg-muted transition-colors"
-                          >
-                            <div className="flex items-center">
-                              <MapPin className="w-4 h-4 mr-3 text-muted-foreground" />
-                              <span className="text-foreground">{result.place_name}</span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <UniversalLocationPicker
+                    context="transport"
+                    placeholder="D'où partez-vous ?"
+                    value={pickup}
+                    onLocationSelect={(location) => handleLocationSelect(location, 'pickup')}
+                    showCurrentLocation={true}
+                    showNearbyPlaces={true}
+                    showRecentLocations={true}
+                    autoFocus={true}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -439,40 +323,17 @@ const StepByStepTaxiInterface: React.FC<StepByStepTaxiInterfaceProps> = ({
                     </div>
                   )}
 
-                  <input
-                    type="text"
+                  <UniversalLocationPicker
+                    context="transport"
                     placeholder="Où souhaitez-vous aller ?"
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      searchPlaces(e.target.value);
-                    }}
-                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    autoFocus
+                    value={destination}
+                    onLocationSelect={(location) => handleLocationSelect(location, 'destination')}
+                    showCurrentLocation={false}
+                    showNearbyPlaces={true}
+                    showRecentLocations={true}
+                    autoFocus={true}
+                    maxResults={8}
                   />
-
-                  {isSearching && (
-                    <div className="text-center py-4">
-                      <Loader2 className="w-5 h-5 animate-spin mx-auto text-primary" />
-                    </div>
-                  )}
-
-                  {searchResults.length > 0 && (
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {searchResults.map((result, index) => (
-                        <button
-                          key={index}
-                          onClick={() => selectLocation(result)}
-                          className="w-full text-left p-3 border border-border rounded-lg hover:bg-muted transition-colors"
-                        >
-                          <div className="flex items-center">
-                            <Navigation className="w-4 h-4 mr-3 text-muted-foreground" />
-                            <span className="text-foreground">{result.place_name}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
 
                   <Button
                     variant="outline"
@@ -644,10 +505,10 @@ const StepByStepTaxiInterface: React.FC<StepByStepTaxiInterfaceProps> = ({
 
                   {/* Map Preview */}
                   {pickup && destination && (
-                    <div className="h-48 rounded-lg overflow-hidden">
+                  <div className="h-48 rounded-lg overflow-hidden">
                       <GoogleMapsKwenda
-                        pickup={pickup.coordinates}
-                        destination={destination.coordinates}
+                        pickup={{ lat: pickup.lat, lng: pickup.lng }}
+                        destination={{ lat: destination.lat, lng: destination.lng }}
                         showRoute={true}
                         height="192px"
                       />
