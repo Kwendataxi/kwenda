@@ -51,7 +51,7 @@ interface Props {
   onOrderUpdate: () => void;
 }
 
-type StatusFilter = 'all' | 'confirmed' | 'preparing' | 'ready' | 'assigned' | 'picked_up';
+type StatusFilter = 'all' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'assigned' | 'picked_up';
 
 export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) {
   const { updateOrderStatus } = useMarketplaceOrders();
@@ -83,7 +83,7 @@ export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) 
       return (
         (order.status === 'confirmed' && hoursSinceCreated > 2) ||
         (order.status === 'preparing' && hoursSinceCreated > 4) ||
-        (order.status === 'ready' && hoursSinceCreated > 1)
+        (order.status === 'ready_for_pickup' && hoursSinceCreated > 1)
       );
     });
   }, [confirmedOrders]);
@@ -96,7 +96,7 @@ export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) 
       
       const statusMessages = {
         'preparing': 'Commande mise en préparation',
-        'ready': 'Commande prête pour récupération',
+        'ready_for_pickup': 'Commande prête pour récupération',
         'assigned': 'Chauffeur assigné à la commande',
         'picked_up': 'Commande récupérée par le livreur',
         'delivered': 'Commande livrée avec succès'
@@ -149,14 +149,14 @@ export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) 
         } : null
       },
       {
-        id: 'ready',
+        id: 'ready_for_pickup',
         label: order.delivery_method === 'pickup' ? 'Prête pour retrait' : 'Prête pour livraison',
         icon: order.delivery_method === 'pickup' ? ShoppingBag : Package,
         completed: !!order.ready_at,
-        current: order.status === 'ready',
+        current: order.status === 'ready_for_pickup',
         action: order.status === 'preparing' ? {
           label: 'Marquer comme prête',
-          onClick: () => handleStepAction(order.id, 'ready', {
+          onClick: () => handleStepAction(order.id, 'ready_for_pickup', {
             ready_at: new Date().toISOString()
           })
         } : null
@@ -171,7 +171,7 @@ export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) 
           icon: Car,
           completed: !!order.driver_assigned_at,
           current: order.status === 'assigned',
-          action: order.status === 'ready' ? {
+          action: order.status === 'ready_for_pickup' ? {
             label: 'Assigner un chauffeur',
             onClick: () => handleStepAction(order.id, 'assigned', {
               driver_assigned_at: new Date().toISOString()
@@ -201,7 +201,7 @@ export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) 
     const variants = {
       confirmed: { variant: "secondary" as const, icon: Clock, label: "Confirmée" },
       preparing: { variant: "default" as const, icon: ChefHat, label: "En préparation" },
-      ready: { variant: "outline" as const, icon: Package, label: "Prête" },
+      ready_for_pickup: { variant: "outline" as const, icon: Package, label: "Prête" },
       assigned: { variant: "outline" as const, icon: Car, label: "Assignée" },
       picked_up: { variant: "outline" as const, icon: Truck, label: "Récupérée" }
     };
@@ -309,7 +309,7 @@ export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) 
             { key: 'all', label: 'Toutes', count: confirmedOrders.length },
             { key: 'confirmed', label: 'Confirmées', count: confirmedOrders.filter(o => o.status === 'confirmed').length },
             { key: 'preparing', label: 'En préparation', count: confirmedOrders.filter(o => o.status === 'preparing').length },
-            { key: 'ready', label: 'Prêtes', count: confirmedOrders.filter(o => o.status === 'ready').length },
+            { key: 'ready_for_pickup', label: 'Prêtes', count: confirmedOrders.filter(o => o.status === 'ready_for_pickup').length },
             { key: 'assigned', label: 'Assignées', count: confirmedOrders.filter(o => o.status === 'assigned').length }
           ].filter(filter => filter.count > 0).map(filter => (
             <Button
@@ -400,7 +400,7 @@ export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) 
                        </div>
 
                        {/* Self-delivery option */}
-                       {order.delivery_method === 'delivery' && (order.status === 'ready' || order.status === 'ready_for_pickup') && (
+                       {order.delivery_method === 'delivery' && order.status === 'ready_for_pickup' && (
                          <VendorSelfDeliveryButton
                            orderId={order.id}
                            orderStatus={order.status}
