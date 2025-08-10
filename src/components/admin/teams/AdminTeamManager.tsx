@@ -33,13 +33,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 
 interface TeamAccount {
   id: string;
+  owner_id: string;
   name: string;
-  contact_email: string;
-  industry?: string;
-  team_size?: string;
-  status: 'active' | 'inactive' | 'pending' | 'suspended';
-  member_count: number;
-  total_spent: number;
+  description?: string;
+  settings?: any;
   created_at: string;
   updated_at: string;
 }
@@ -53,12 +50,13 @@ interface TeamRequest {
   contact_email: string;
   phone?: string;
   request_reason?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: string;
   reviewed_by?: string;
   reviewed_at?: string;
   rejection_reason?: string;
   created_at: string;
   updated_at: string;
+  metadata?: any;
 }
 
 interface TeamStats {
@@ -124,12 +122,11 @@ export const AdminTeamManager = () => {
       // Calculer les statistiques
       const newStats: TeamStats = {
         totalTeams: (teamsData || []).length,
-        activeTeams: (teamsData || []).filter(t => t.status === 'active').length,
-        pendingTeams: (teamsData || []).filter(t => t.status === 'pending').length,
-        totalMembers: (teamsData || []).reduce((sum, t) => sum + (t.member_count || 0), 0),
-        totalRevenue: (teamsData || []).reduce((sum, t) => sum + (t.total_spent || 0), 0),
-        avgMembersPerTeam: (teamsData || []).length > 0 ? 
-          Math.round((teamsData || []).reduce((sum, t) => sum + (t.member_count || 0), 0) / (teamsData || []).length) : 0,
+        activeTeams: (teamsData || []).length, // Tous actifs par défaut
+        pendingTeams: 0,
+        totalMembers: 0, // À calculer plus tard si nécessaire
+        totalRevenue: 0, // À calculer plus tard si nécessaire 
+        avgMembersPerTeam: 0,
         pendingRequests: (requestsData || []).filter(r => r.status === 'pending').length
       };
       setStats(newStats);
@@ -157,8 +154,7 @@ export const AdminTeamManager = () => {
 
     if (searchQuery) {
       filteredTeamsData = filteredTeamsData.filter(team => 
-        team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        team.contact_email.toLowerCase().includes(searchQuery.toLowerCase())
+        team.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
       filteredRequestsData = filteredRequestsData.filter(request => 
@@ -168,7 +164,6 @@ export const AdminTeamManager = () => {
     }
 
     if (statusFilter !== 'all') {
-      filteredTeamsData = filteredTeamsData.filter(team => team.status === statusFilter);
       filteredRequestsData = filteredRequestsData.filter(request => request.status === statusFilter);
     }
 
@@ -178,22 +173,10 @@ export const AdminTeamManager = () => {
 
   const handleStatusChange = async (teamId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .from('team_accounts')
-        .update({ status: newStatus })
-        .eq('id', teamId);
-
-      if (error) throw error;
-
-      setTeams(prevTeams => 
-        prevTeams.map(team => 
-          team.id === teamId ? { ...team, status: newStatus as any } : team
-        )
-      );
-
+      // Note: La table team_accounts n'a pas de colonne status dans le schéma actuel
       toast({
-        title: "Statut mis à jour",
-        description: "Le statut de l'équipe a été modifié avec succès.",
+        title: "Information",
+        description: "La gestion des statuts sera implémentée prochainement.",
       });
     } catch (error) {
       toast({
@@ -436,21 +419,21 @@ export const AdminTeamManager = () => {
                   <TableCell>
                     <div>
                       <div className="font-medium">{team.name}</div>
-                      <div className="text-sm text-muted-foreground">{team.contact_email}</div>
+                      <div className="text-sm text-muted-foreground">{team.description || 'Aucune description'}</div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{team.industry || 'Non spécifié'}</Badge>
+                    <Badge variant="outline">Non spécifié</Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <Users className="w-4 h-4 text-muted-foreground" />
-                      {team.member_count}
+                      0
                     </div>
                   </TableCell>
-                  <TableCell>{getStatusBadge(team.status)}</TableCell>
+                  <TableCell>{getStatusBadge('active')}</TableCell>
                   <TableCell>
-                    <div className="font-medium">{formatCurrency(team.total_spent)}</div>
+                    <div className="font-medium">{formatCurrency(0)}</div>
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
@@ -472,24 +455,10 @@ export const AdminTeamManager = () => {
                           <Eye className="w-4 h-4 mr-2" />
                           Voir détails
                         </DropdownMenuItem>
-                        {team.status === 'pending' && (
-                          <DropdownMenuItem onClick={() => handleStatusChange(team.id, 'active')}>
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Approuver
-                          </DropdownMenuItem>
-                        )}
-                        {team.status === 'active' && (
-                          <DropdownMenuItem onClick={() => handleStatusChange(team.id, 'suspended')}>
-                            <AlertTriangle className="w-4 h-4 mr-2" />
-                            Suspendre
-                          </DropdownMenuItem>
-                        )}
-                        {team.status === 'suspended' && (
-                          <DropdownMenuItem onClick={() => handleStatusChange(team.id, 'active')}>
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Réactiver
-                          </DropdownMenuItem>
-                        )}
+                        <DropdownMenuItem onClick={() => handleStatusChange(team.id, 'suspended')}>
+                          <AlertTriangle className="w-4 h-4 mr-2" />
+                          Suspendre (Bientôt disponible)
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -655,10 +624,8 @@ export const AdminTeamManager = () => {
                       <div className="space-y-2">
                         <h4 className="font-semibold">Informations générales</h4>
                         <p><strong>Nom:</strong> {selectedTeam.name}</p>
-                        <p><strong>Email:</strong> {selectedTeam.contact_email}</p>
-                        <p><strong>Industrie:</strong> {selectedTeam.industry || 'Non spécifié'}</p>
-                        <p><strong>Taille:</strong> {selectedTeam.team_size || 'Non spécifié'}</p>
-                        <p><strong>Statut:</strong> {getStatusBadge(selectedTeam.status)}</p>
+                        <p><strong>Description:</strong> {selectedTeam.description || 'Non spécifiée'}</p>
+                        <p><strong>Statut:</strong> {getStatusBadge('active')}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -667,8 +634,8 @@ export const AdminTeamManager = () => {
                     <CardContent className="p-4">
                       <div className="space-y-2">
                         <h4 className="font-semibold">Statistiques</h4>
-                        <p><strong>Membres:</strong> {selectedTeam.member_count}</p>
-                        <p><strong>Total dépensé:</strong> {formatCurrency(selectedTeam.total_spent)}</p>
+                        <p><strong>Membres:</strong> 0</p>
+                        <p><strong>Total dépensé:</strong> {formatCurrency(0)}</p>
                         <p><strong>Créé le:</strong> {new Date(selectedTeam.created_at).toLocaleDateString('fr-FR')}</p>
                         <p><strong>Mis à jour:</strong> {new Date(selectedTeam.updated_at).toLocaleDateString('fr-FR')}</p>
                       </div>

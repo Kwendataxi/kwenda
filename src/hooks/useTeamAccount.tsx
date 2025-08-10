@@ -6,14 +6,8 @@ interface TeamAccount {
   id: string;
   owner_id: string;
   name: string;
-  contact_email: string;
-  industry?: string;
-  team_size?: string;
-  phone?: string;
-  status: 'active' | 'inactive' | 'suspended';
-  member_count: number;
-  total_spent: number;
-  subscription_plan: string;
+  description?: string;
+  settings?: any;
   created_at: string;
   updated_at: string;
 }
@@ -22,13 +16,11 @@ interface TeamMember {
   id: string;
   team_id: string;
   user_id: string;
-  role: 'admin' | 'manager' | 'member';
-  status: 'active' | 'inactive' | 'pending';
-  invited_by?: string;
+  role: string;
+  status: string;
+  permissions?: any;
   invited_at?: string;
   joined_at?: string;
-  created_at: string;
-  updated_at: string;
   // Relations
   profiles?: {
     display_name?: string;
@@ -96,12 +88,9 @@ export const useTeamAccount = (): TeamAccountHook => {
       if (currentTeam) {
         const { data: members, error: membersError } = await supabase
           .from('team_members')
-          .select(`
-            *,
-            profiles(display_name, phone_number)
-          `)
+          .select('*')
           .eq('team_id', currentTeam.id)
-          .order('created_at', { ascending: false });
+          .order('joined_at', { ascending: false });
 
         if (membersError) throw membersError;
         setTeamMembers(members || []);

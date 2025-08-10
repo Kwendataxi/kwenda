@@ -11,12 +11,13 @@ interface TeamRequest {
   contact_email: string;
   phone?: string;
   request_reason?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: string;
   reviewed_by?: string;
   reviewed_at?: string;
   rejection_reason?: string;
   created_at: string;
   updated_at: string;
+  metadata?: any;
 }
 
 interface TeamRequestsHook {

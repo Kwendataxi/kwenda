@@ -267,7 +267,7 @@ export const TeamAccountManager = () => {
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-primary mb-1">
-                  {teamAccount ? teamAccount.member_count : 0}
+                  {teamMembers ? teamMembers.length : 0}
                 </div>
                 <p className="text-sm text-muted-foreground">Membres actifs</p>
               </CardContent>
@@ -281,7 +281,7 @@ export const TeamAccountManager = () => {
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-primary mb-1">
-                  {teamAccount ? `${teamAccount.total_spent.toLocaleString()} CDF` : '0 CDF'}
+                  0 CDF
                 </div>
                 <p className="text-sm text-muted-foreground">Budget utilisé</p>
               </CardContent>
@@ -305,12 +305,12 @@ export const TeamAccountManager = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="font-medium">Email de contact:</span>
-                    <p className="text-muted-foreground">{teamAccount.contact_email}</p>
+                    <span className="font-medium">Description:</span>
+                    <p className="text-muted-foreground">{teamAccount.description || 'Aucune description'}</p>
                   </div>
                   <div>
                     <span className="font-medium">Plan d'abonnement:</span>
-                    <p className="text-muted-foreground capitalize">{teamAccount.subscription_plan}</p>
+                    <p className="text-muted-foreground capitalize">Standard</p>
                   </div>
                 </div>
               </CardContent>
@@ -587,7 +587,7 @@ export const TeamAccountManager = () => {
                               {member.profiles?.phone_number || 'Téléphone non renseigné'}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Rejoint le {new Date(member.created_at).toLocaleDateString('fr-FR')}
+                              {member.joined_at ? `Rejoint le ${new Date(member.joined_at).toLocaleDateString('fr-FR')}` : 'Date d\'adhésion inconnue'}
                             </p>
                           </div>
                         </div>
