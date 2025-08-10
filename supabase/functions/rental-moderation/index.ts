@@ -73,7 +73,7 @@ serve(async (req) => {
     const service = createClient(supabaseUrl, serviceKey);
 
     const updates: any = {
-      moderator_id: adminId, // corrigé: utiliser moderator_id
+      moderator_id: adminId,
       moderated_at: new Date().toISOString(),
       rejection_reason: null,
     };

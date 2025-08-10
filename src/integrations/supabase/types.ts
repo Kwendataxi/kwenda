@@ -2868,7 +2868,9 @@ export type Database = {
           location_address: string | null
           location_coordinates: Json | null
           model: string
+          moderated_at: string | null
           moderation_status: string | null
+          moderator_id: string | null
           name: string
           partner_id: string | null
           rejection_reason: string | null
@@ -2901,7 +2903,9 @@ export type Database = {
           location_address?: string | null
           location_coordinates?: Json | null
           model: string
+          moderated_at?: string | null
           moderation_status?: string | null
+          moderator_id?: string | null
           name: string
           partner_id?: string | null
           rejection_reason?: string | null
@@ -2934,7 +2938,9 @@ export type Database = {
           location_address?: string | null
           location_coordinates?: Json | null
           model?: string
+          moderated_at?: string | null
           moderation_status?: string | null
+          moderator_id?: string | null
           name?: string
           partner_id?: string | null
           rejection_reason?: string | null

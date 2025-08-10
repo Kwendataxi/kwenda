@@ -17,7 +17,15 @@ export const AdminRentalModeration = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('rental_vehicles')
-        .select('*')
+        .select(`
+          *,
+          partner_profiles!inner(
+            company_name,
+            contact_email,
+            phone,
+            id
+          )
+        `)
         .eq('moderation_status', 'pending')
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -30,7 +38,15 @@ export const AdminRentalModeration = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('partner_taxi_vehicles')
-        .select('*')
+        .select(`
+          *,
+          partner_profiles!inner(
+            company_name,
+            contact_email,
+            phone,
+            id
+          )
+        `)
         .eq('moderation_status', 'pending')
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -123,15 +139,40 @@ export const AdminRentalModeration = () => {
                       <Badge variant="outline">En attente</Badge>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2 text-sm">
-                      <p><strong>Marque:</strong> {vehicle.brand}</p>
-                      <p><strong>Modèle:</strong> {vehicle.model}</p>
-                      <p><strong>Année:</strong> {vehicle.year}</p>
-                      <p><strong>Classe:</strong> {vehicle.vehicle_class}</p>
-                      <p><strong>Places:</strong> {vehicle.seats}</p>
-                      <p><strong>Plaque:</strong> {vehicle.license_plate}</p>
-                    </div>
+                   <CardContent className="space-y-4">
+                     {vehicle.partner_profiles && (
+                       <div className="p-3 bg-muted rounded-md">
+                         <p className="text-sm font-medium text-primary">
+                           Partenaire: {vehicle.partner_profiles.company_name}
+                         </p>
+                         <p className="text-xs text-muted-foreground">
+                           {vehicle.partner_profiles.contact_email}
+                         </p>
+                         <p className="text-xs text-muted-foreground">
+                           {vehicle.partner_profiles.phone}
+                         </p>
+                       </div>
+                     )}
+                     <div className="space-y-2 text-sm">
+                       <p><strong>Marque:</strong> {vehicle.brand}</p>
+                       <p><strong>Modèle:</strong> {vehicle.model}</p>
+                       <p><strong>Année:</strong> {vehicle.year}</p>
+                       <p><strong>Classe:</strong> {vehicle.vehicle_class}</p>
+                       <p><strong>Places:</strong> {vehicle.seats}</p>
+                       <p><strong>Plaque:</strong> {vehicle.license_plate}</p>
+                       {vehicle.price && (
+                         <p><strong>Prix:</strong> {vehicle.price} CDF/jour</p>
+                       )}
+                     </div>
+                     {vehicle.images && vehicle.images.length > 0 && (
+                       <div className="mt-2">
+                         <img 
+                           src={vehicle.images[0]} 
+                           alt={vehicle.name}
+                           className="w-full h-32 object-cover rounded-md"
+                         />
+                       </div>
+                     )}
                     <div className="flex gap-2">
                       <Button
                         variant="destructive"
@@ -183,15 +224,37 @@ export const AdminRentalModeration = () => {
                       <Badge variant="outline">En attente</Badge>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2 text-sm">
-                      <p><strong>Marque:</strong> {vehicle.brand}</p>
-                      <p><strong>Modèle:</strong> {vehicle.model}</p>
-                      <p><strong>Année:</strong> {vehicle.year}</p>
-                      <p><strong>Classe:</strong> {vehicle.vehicle_class}</p>
-                      <p><strong>Places:</strong> {vehicle.seats}</p>
-                      <p><strong>Plaque:</strong> {vehicle.license_plate}</p>
-                    </div>
+                   <CardContent className="space-y-4">
+                     {vehicle.partner_profiles && (
+                       <div className="p-3 bg-muted rounded-md">
+                         <p className="text-sm font-medium text-primary">
+                           Partenaire: {vehicle.partner_profiles.company_name}
+                         </p>
+                         <p className="text-xs text-muted-foreground">
+                           {vehicle.partner_profiles.contact_email}
+                         </p>
+                         <p className="text-xs text-muted-foreground">
+                           {vehicle.partner_profiles.phone}
+                         </p>
+                       </div>
+                     )}
+                     <div className="space-y-2 text-sm">
+                       <p><strong>Marque:</strong> {vehicle.brand}</p>
+                       <p><strong>Modèle:</strong> {vehicle.model}</p>
+                       <p><strong>Année:</strong> {vehicle.year}</p>
+                       <p><strong>Classe:</strong> {vehicle.vehicle_class}</p>
+                       <p><strong>Places:</strong> {vehicle.seats}</p>
+                       <p><strong>Plaque:</strong> {vehicle.license_plate}</p>
+                     </div>
+                     {vehicle.images && vehicle.images.length > 0 && (
+                       <div className="mt-2">
+                         <img 
+                           src={vehicle.images[0]} 
+                           alt={vehicle.name}
+                           className="w-full h-32 object-cover rounded-md"
+                         />
+                       </div>
+                     )}
                     <div className="flex gap-2">
                       <Button
                         variant="destructive"
