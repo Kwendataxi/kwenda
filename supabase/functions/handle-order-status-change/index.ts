@@ -43,7 +43,7 @@ serve(async (req) => {
         updateData.in_transit_at = new Date().toISOString()
         if (metadata.driver_id) {
           // Assigner le livreur si fourni
-          const { error: assignmentError } = await supabaseClient
+          const { error: assignmentError } = await supabase
             .from('marketplace_delivery_assignments')
             .update({
               driver_id: metadata.driver_id,
@@ -66,7 +66,7 @@ serve(async (req) => {
 
     // Calculer l'estimation de livraison
     if (['confirmed', 'preparing', 'ready_for_pickup', 'in_transit'].includes(newStatus)) {
-      const { data: estimation } = await supabaseClient
+      const { data: estimation } = await supabase
         .rpc('calculate_delivery_estimate', { order_id_param: orderId })
       
       if (estimation) {
@@ -75,7 +75,7 @@ serve(async (req) => {
     }
 
     // Mettre à jour la commande
-    const { data: order, error: orderError } = await supabaseClient
+    const { data: order, error: orderError } = await supabase
       .from('marketplace_orders')
       .update(updateData)
       .eq('id', orderId)
