@@ -642,15 +642,21 @@ const ClientApp = () => {
       {/* Marketplace components now handled by EnhancedMarketplaceInterface */}
       
 
-      {/* Modern Bottom Navigation - Only show for non-marketplace */}
-      {serviceType !== 'marketplace' && (
-        <ModernBottomNavigation
-          activeTab={currentView}
-          onTabChange={setCurrentView}
-          notificationCount={0} // TODO: Connect to real notifications
-          favoritesCount={0} // TODO: Connect to favorites count
-        />
-      )}
+      {/* Modern Bottom Navigation - Always visible */}
+      <ModernBottomNavigation
+        activeTab={currentView === 'home' ? 'home' : currentView === 'history' || currentView === 'activity' ? 'activity' : 'profil'}
+        onTabChange={(tab) => {
+          if (tab === 'home') {
+            setCurrentView('home');
+          } else if (tab === 'activity') {
+            setCurrentView('history');
+          } else if (tab === 'profil') {
+            setCurrentView('profil');
+          }
+        }}
+        notificationCount={0} // TODO: Connect to real notifications
+        favoritesCount={0} // TODO: Connect to favorites count
+      />
       
       {/* Lottery Ticket Floater - Home only */}
       {currentView === 'home' && (
