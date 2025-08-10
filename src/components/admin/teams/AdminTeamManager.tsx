@@ -506,6 +506,129 @@ export const AdminTeamManager = () => {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+      
+        <TabsContent value="requests">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Demandes d'Équipe
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Entreprise</TableHead>
+                    <TableHead>Industrie</TableHead>
+                    <TableHead>Taille</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="w-[100px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredRequests.map((request) => (
+                    <TableRow key={request.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{request.company_name}</div>
+                          <div className="text-sm text-muted-foreground">{request.contact_email}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{request.industry || 'Non spécifié'}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{request.team_size || 'Non spécifié'}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {request.phone && <div>📞 {request.phone}</div>}
+                          <div>✉️ {request.contact_email}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(request.status)}</TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {new Date(request.created_at).toLocaleDateString('fr-FR')}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedRequest(request);
+                              setShowRequestDetails(true);
+                            }}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          {request.status === 'pending' && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleApproveRequest(request.id)}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                              </Button>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700"
+                                  >
+                                    <XCircle className="w-4 h-4" />
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle>Rejeter la demande</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4">
+                                    <Textarea
+                                      placeholder="Motif du rejet..."
+                                      value={rejectionReason}
+                                      onChange={(e) => setRejectionReason(e.target.value)}
+                                    />
+                                    <div className="flex gap-2 justify-end">
+                                      <Button variant="outline">Annuler</Button>
+                                      <Button 
+                                        variant="destructive"
+                                        onClick={() => handleRejectRequest(request.id, rejectionReason)}
+                                      >
+                                        Rejeter
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {filteredRequests.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Aucune demande trouvée</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog de détails */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
@@ -569,8 +692,102 @@ export const AdminTeamManager = () => {
               </TabsContent>
             </Tabs>
           )}
-          </DialogContent>
-        </Dialog>
-      </div>
-    );
-  };
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de détails des demandes */}
+      <Dialog open={showRequestDetails} onOpenChange={setShowRequestDetails}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5" />
+              Détails de la demande
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedRequest && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Informations générales</h4>
+                  <div className="space-y-2 text-sm">
+                    <p><strong>Entreprise:</strong> {selectedRequest.company_name}</p>
+                    <p><strong>Email:</strong> {selectedRequest.contact_email}</p>
+                    <p><strong>Téléphone:</strong> {selectedRequest.phone || 'Non renseigné'}</p>
+                    <p><strong>Industrie:</strong> {selectedRequest.industry || 'Non spécifiée'}</p>
+                    <p><strong>Taille équipe:</strong> {selectedRequest.team_size || 'Non spécifiée'}</p>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Statut et dates</h4>
+                  <div className="space-y-2 text-sm">
+                    <p><strong>Statut:</strong> {getStatusBadge(selectedRequest.status)}</p>
+                    <p><strong>Demande créée:</strong> {new Date(selectedRequest.created_at).toLocaleDateString('fr-FR')}</p>
+                    {selectedRequest.reviewed_at && (
+                      <p><strong>Révisée le:</strong> {new Date(selectedRequest.reviewed_at).toLocaleDateString('fr-FR')}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {selectedRequest.request_reason && (
+                <div>
+                  <h4 className="font-semibold mb-2">Motif de la demande</h4>
+                  <p className="text-sm bg-muted p-3 rounded">{selectedRequest.request_reason}</p>
+                </div>
+              )}
+
+              {selectedRequest.rejection_reason && (
+                <div>
+                  <h4 className="font-semibold mb-2">Motif du rejet</h4>
+                  <p className="text-sm bg-red-50 text-red-800 p-3 rounded">{selectedRequest.rejection_reason}</p>
+                </div>
+              )}
+
+              {selectedRequest.status === 'pending' && (
+                <div className="flex gap-2 pt-4">
+                  <Button 
+                    onClick={() => handleApproveRequest(selectedRequest.id)}
+                    className="flex-1"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Approuver
+                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="destructive" className="flex-1">
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Rejeter
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Rejeter la demande</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <Textarea
+                          placeholder="Motif du rejet..."
+                          value={rejectionReason}
+                          onChange={(e) => setRejectionReason(e.target.value)}
+                        />
+                        <div className="flex gap-2 justify-end">
+                          <Button variant="outline">Annuler</Button>
+                          <Button 
+                            variant="destructive"
+                            onClick={() => handleRejectRequest(selectedRequest.id, rejectionReason)}
+                          >
+                            Rejeter
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
