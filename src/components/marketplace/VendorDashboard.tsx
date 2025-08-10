@@ -27,9 +27,9 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TouchOptimizedInterface } from '@/components/mobile/TouchOptimizedInterface';
 import VendorNotificationBadge from './VendorNotificationBadge';
-import VendorOrderConfirmation from './VendorOrderConfirmation';
+import VendorOrderConfirmationCarousel from './VendorOrderConfirmationCarousel';
 import VendorOrderStepsManager from './VendorOrderStepsManager';
-import MultiOrderStepsManager from './MultiOrderStepsManager';
+import MultiOrderStepsSlider from './MultiOrderStepsSlider';
 import VendorRevenueDashboard from './VendorRevenueDashboard';
 import { MobileVendorHeader } from './mobile/MobileVendorHeader';
 import { MobileVendorStats } from './mobile/MobileVendorStats';
@@ -389,7 +389,7 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
     return (
       <div className={isMobile ? "px-4 pb-20" : ""}>
         <div className="space-y-6">
-          <VendorOrderConfirmation 
+          <VendorOrderConfirmationCarousel 
             orders={ordersForConfirmation.filter(order => 
               order.vendor_confirmation_status === 'awaiting_confirmation'
             )}
@@ -397,7 +397,7 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
           />
           
           {confirmedOrders.length > 0 && (
-            <MultiOrderStepsManager
+            <MultiOrderStepsSlider
               orders={confirmedOrders}
               onOrderUpdate={handleOrderUpdate}
             />
