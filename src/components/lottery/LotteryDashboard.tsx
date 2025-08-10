@@ -29,9 +29,9 @@ export const LotteryDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      {/* En-tête compact */}
-      <div className="p-4 pb-0">
+    <div className="h-full bg-gradient-to-b from-background to-muted/20 flex flex-col">
+      {/* En-tête compact - masqué en modal */}
+      <div className="p-4 pb-0 hidden sm:block">
         <div className="flex items-center gap-2 mb-2">
           <Sparkles className="h-5 w-5 text-primary" />
           <h1 className="text-xl font-bold">Tombola Kwenda</h1>
@@ -42,8 +42,8 @@ export const LotteryDashboard = () => {
       </div>
 
       {/* Statistiques en chips horizontales */}
-      <div className="px-4 mb-4">
-        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+      <div className="px-4 mb-4 flex-shrink-0">
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 no-scrollbar">
           <div className="flex-shrink-0 bg-gradient-to-r from-primary/20 to-primary/10 backdrop-blur-sm border border-primary/20 rounded-xl px-4 py-3 min-w-[120px]">
             <div className="flex items-center gap-2">
               <Ticket className="h-4 w-4 text-primary" />
@@ -77,8 +77,8 @@ export const LotteryDashboard = () => {
       </div>
 
       {/* Navigation sticky moderne */}
-      <Tabs defaultValue="draws" className="flex-1">
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b px-4 py-3">
+      <Tabs defaultValue="draws" className="flex-1 flex flex-col">
+        <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-b px-4 py-3">
           <TabsList className="w-full h-11 p-1 bg-muted/50 backdrop-blur-sm grid grid-cols-4">
             <TabsTrigger 
               value="draws" 
@@ -121,7 +121,7 @@ export const LotteryDashboard = () => {
         </div>
 
         <div className="flex-1 overflow-auto">
-          <TabsContent value="draws" className="p-4 space-y-3 m-0">
+          <TabsContent value="draws" className="p-4 space-y-3 m-0 overflow-auto">
             <div className="grid gap-3">
               {currentDraws.length > 0 ? (
                 currentDraws.map((draw) => (
@@ -136,15 +136,15 @@ export const LotteryDashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="tickets" className="p-4 m-0">
+          <TabsContent value="tickets" className="p-4 m-0 overflow-auto">
             <LotteryTicketsList tickets={tickets} />
           </TabsContent>
 
-          <TabsContent value="wins" className="p-4 m-0">
+          <TabsContent value="wins" className="p-4 m-0 overflow-auto">
             <LotteryWinsList wins={myWins} />
           </TabsContent>
 
-          <TabsContent value="how" className="p-4 space-y-4 m-0">
+          <TabsContent value="how" className="p-4 space-y-4 m-0 overflow-auto">
             {/* Caroussel horizontal pour méthodes */}
             <div className="space-y-3">
               <h3 className="text-lg font-semibold flex items-center gap-2">

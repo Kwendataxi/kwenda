@@ -17,6 +17,7 @@ import {
   Zap,
   Database,
   Megaphone,
+  Trophy,
 } from 'lucide-react';
 
 interface AdminVerticalNavProps {
@@ -40,6 +41,7 @@ const NAV_ITEMS: Array<{
   { id: 'drivers', label: 'Chauffeurs', icon: Car },
   { id: 'users', label: 'Utilisateurs', icon: Users },
   { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
+  { id: 'lottery', label: 'Tombola', icon: Trophy },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'ads', label: 'Publicités', icon: Megaphone },
   { id: 'support', label: 'Support', icon: Headphones },

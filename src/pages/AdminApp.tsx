@@ -22,6 +22,7 @@ import { AdminNotificationCenter } from '@/components/admin/AdminNotificationCen
 import { AdvancedSupportCenter } from '@/components/admin/AdvancedSupportCenter';
 import { ModernZoneManagementDashboard } from '@/components/admin/zones/ModernZoneManagementDashboard';
 import { PromotionalAdsManager } from '@/components/admin/PromotionalAdsManager';
+import { AdminLotteryDashboard } from '@/components/admin/AdminLotteryDashboard';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -169,6 +170,12 @@ const AdminApp = () => {
       <TabsContent value="support" className="space-y-6">
         <PermissionGuard requiredPermissions={['support_admin']}>
           <AdvancedSupportCenter />
+        </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="lottery" className="space-y-6">
+        <PermissionGuard requiredPermissions={['analytics_read']}>
+          <AdminLotteryDashboard />
         </PermissionGuard>
       </TabsContent>
     </Tabs>

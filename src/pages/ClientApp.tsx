@@ -43,7 +43,8 @@ import {
   Bike,
   Heart,
   Zap,
-  CheckCircle
+  CheckCircle,
+  Sparkles
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -164,6 +165,7 @@ const ClientApp = () => {
   // Lottery hooks
   const lotteryTickets = useLotteryTickets();
   const { notifications, showNotification, hideNotification } = useLotteryNotifications();
+  const [isLotteryOpen, setIsLotteryOpen] = useState(false);
 
   // Simplified marketplace data for home preview only
   const [marketplaceProducts, setMarketplaceProducts] = useState<any[]>([]);
@@ -663,8 +665,41 @@ const ClientApp = () => {
       
       {/* Lottery Ticket Floater - Omniprésent et discret */}
       <LotteryTicketFloater 
-        onOpenLottery={() => setCurrentView('lottery')}
+        onOpenLottery={() => setIsLotteryOpen(true)}
       />
+        
+      {/* Lottery Dashboard Modal */}
+      {isLotteryOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          {/* Overlay */}
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsLotteryOpen(false)}
+          />
+          {/* Modal Content */}
+          <div className="relative w-full h-[85vh] sm:h-[80vh] sm:max-w-md sm:mx-auto bg-background sm:rounded-2xl overflow-hidden shadow-xl sm:mt-0 rounded-t-2xl">
+            <div className="h-full flex flex-col">
+              {/* Header avec bouton fermer */}
+              <div className="flex-shrink-0 flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold">Tombola Kwenda</h2>
+                </div>
+                <button
+                  onClick={() => setIsLotteryOpen(false)}
+                  className="w-8 h-8 rounded-full bg-muted/50 backdrop-blur-sm border border-border flex items-center justify-center hover:bg-muted transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </button>
+              </div>
+              {/* Content */}
+              <div className="flex-1 overflow-hidden">
+                <LotteryDashboard />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Lottery Notifications */}
       {notifications.map((notification) => (
