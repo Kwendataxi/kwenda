@@ -5,11 +5,12 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 
-import { SmartLocationInput } from '@/components/location/SmartLocationInput';
+import { UniversalLocationPicker } from '@/components/location/UniversalLocationPicker';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
 import { supabase } from '@/integrations/supabase/client';
-import { unifiedLocationService, type LocationData } from '@/services/unifiedLocationService';
+import { LocationData } from '@/services/MasterLocationService';
+import { useMasterLocation } from '@/hooks/useMasterLocation';
 
 interface OneStepDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
@@ -78,17 +79,16 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
     }
   }, [initialSelectedMode]);
 
-  // Auto-détecter position actuelle au chargement avec service unifié
-  useEffect(() => {
-    const getCurrentLocation = async () => {
-      try {
-        const location = await unifiedLocationService.getCurrentPosition({
-          enableHighAccuracy: true,
-          timeout: 30000,
-          fallbackToIP: true,
-          fallbackToDefault: true
-        });
+  const { getCurrentPosition } = useMasterLocation();
 
+  // Auto-détecter position actuelle au chargement
+  useEffect(() => {
+    const getLocation = async () => {
+      try {
+        const location = await getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 30000
+        });
         setPickup(location);
       } catch (error) {
         console.warn('Position actuelle non disponible:', error);
@@ -96,8 +96,8 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
       }
     };
 
-    getCurrentLocation();
-  }, []);
+    getLocation();
+  }, [getCurrentPosition]);
   // Sélection par défaut si non fournie
   useEffect(() => {
     if (!selectedMode && pickup && destination) {
@@ -111,15 +111,7 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
       if (pickup && destination && selectedMode) {
         setCalculating(true);
         try {
-          const result = await calculateDeliveryPrice({
-            address: pickup.address,
-            lat: pickup.lat,
-            lng: pickup.lng
-          }, {
-            address: destination.address,
-            lat: destination.lat,
-            lng: destination.lng
-          }, selectedMode);
+          const result = await calculateDeliveryPrice(pickup, destination, selectedMode);
           setPriceInfo(result);
         } catch (error) {
           console.error('Erreur calcul prix:', error);
@@ -274,12 +266,12 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
                 </Badge>
               )}
             </div>
-            <SmartLocationInput
+            <UniversalLocationPicker
               placeholder="Où récupérer ?"
-              value={pickup?.address || ''}
+              value={pickup}
               onLocationSelect={setPickup}
               showCurrentLocation={true}
-              enableManualFallback={true}
+              context="delivery"
             />
           </div>
 
@@ -289,12 +281,12 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
               <div className="w-3 h-3 rounded-full bg-red-500"></div>
               <span className="text-sm font-medium">Destination</span>
             </div>
-            <SmartLocationInput
+            <UniversalLocationPicker
               placeholder="Où livrer ?"
-              value={destination?.address || ''}
+              value={destination}
               onLocationSelect={setDestination}
               showCurrentLocation={false}
-              enableManualFallback={true}
+              context="delivery"
             />
           </div>
 

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { IntegrationGeocodingService } from '@/services/integrationGeocoding';
-import type { LocationData } from '@/types/location';
+import type { LocationData } from '@/services/MasterLocationService';
 
 // Export for backward compatibility
 export type DeliveryLocation = LocationData;
@@ -35,46 +34,55 @@ export const useEnhancedDeliveryOrders = () => {
     destination: LocationData,
     mode: 'flash' | 'flex' | 'maxicharge'
   ): Promise<{ price: number; distance: number; duration: number }> => {
-    console.log('Calcul prix démarré:', { pickup, destination, mode });
+    console.log('Calcul prix livraison démarré:', { pickup, destination, mode });
     
     try {
-      // Calculer la distance entre les points
-      const distanceKm = IntegrationGeocodingService.calculateDistance(
-        pickup.lat, pickup.lng,
-        destination.lat, destination.lng
-      );
+      // Calculer la distance entre les points (formule haversine)
+      const R = 6371; // Rayon de la Terre en km
+      const dLat = (destination.lat - pickup.lat) * Math.PI / 180;
+      const dLng = (destination.lng - pickup.lng) * Math.PI / 180;
+      
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(pickup.lat * Math.PI / 180) * Math.cos(destination.lat * Math.PI / 180) *
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+      
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distanceKm = R * c;
       
       console.log('Distance calculée:', distanceKm, 'km');
 
-      // Tarifs par défaut simplifiés
-      const defaults = {
-        flash: { base: 5000, perKm: 500 },
-        flex: { base: 3000, perKm: 300 },
-        maxicharge: { base: 8000, perKm: 800 }
+      // Tarifs réalistes pour l'Afrique (CDF)
+      const tarifs = {
+        flash: { base: 5000, perKm: 500, speedFactor: 1.5 },    // Ultra rapide moto
+        flex: { base: 3000, perKm: 300, speedFactor: 1.0 },     // Standard voiture  
+        maxicharge: { base: 8000, perKm: 800, speedFactor: 0.7 } // Gros colis camion
       } as const;
 
-      const base = defaults[mode].base;
-      const perKm = defaults[mode].perKm;
-
-      const price = base + (distanceKm * perKm);
-      const durationMinutes = Math.max(15, distanceKm * 3); // minimum 15min
+      const tarif = tarifs[mode];
+      const prix = Math.round(tarif.base + (distanceKm * tarif.perKm));
+      
+      // Calcul du temps selon le mode et la distance (trafic Kinshasa/Abidjan)
+      const vitesseMoyenne = mode === 'flash' ? 25 : mode === 'flex' ? 20 : 15; // km/h
+      const dureeMinutes = Math.max(15, Math.round((distanceKm / vitesseMoyenne) * 60));
 
       const result = {
-        price: Math.round(price),
-        distance: distanceKm, // en km directement
-        duration: durationMinutes // en minutes directement
+        price: prix,
+        distance: Math.round(distanceKm * 1000) / 1000, // Arrondi à 3 décimales
+        duration: dureeMinutes
       };
       
-      console.log('Résultat calcul prix:', result);
+      console.log('Calcul prix livraison terminé:', result);
       return result;
     } catch (error) {
-      console.error('Erreur calcul prix:', error);
-      // Prix par défaut en cas d'erreur
+      console.error('Erreur calcul prix livraison:', error);
+      
+      // Prix de secours réalistes
       const fallback = {
         price: mode === 'flash' ? 8000 : mode === 'flex' ? 5000 : 12000,
-        distance: 5, // 5km par défaut
-        duration: 30  // 30min par défaut
+        distance: 5,
+        duration: mode === 'flash' ? 25 : mode === 'flex' ? 35 : 45
       };
+      
       console.log('Utilisation prix fallback:', fallback);
       return fallback;
     }
