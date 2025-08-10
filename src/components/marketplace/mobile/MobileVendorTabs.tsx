@@ -1,14 +1,15 @@
 import React from 'react';
-import { Package, CheckCircle, DollarSign, Bell } from 'lucide-react';
+import { Store, Package, DollarSign, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { TouchOptimizedInterface } from '@/components/mobile/TouchOptimizedInterface';
+import NotificationBadge from '@/components/notifications/NotificationBadge';
+import { motion } from 'framer-motion';
 
 interface TabItem {
   id: string;
   label: string;
-  icon: React.ComponentType<any>;
+  icon: any;
   badge?: number;
 }
 
@@ -33,12 +34,12 @@ export const MobileVendorTabs: React.FC<MobileVendorTabsProps> = ({
     {
       id: 'products',
       label: 'Produits',
-      icon: Package
+      icon: Store,
     },
     {
       id: 'confirmations',
       label: 'Confirmations',
-      icon: CheckCircle,
+      icon: Package,
       badge: confirmationCount
     },
     {
@@ -54,35 +55,51 @@ export const MobileVendorTabs: React.FC<MobileVendorTabsProps> = ({
     }
   ];
 
+  const handleTabChange = (tabId: string) => {
+    try {
+      onTabChange(tabId);
+    } catch (error) {
+      console.error('Error changing tab:', error);
+    }
+  };
+
   if (variant === 'bottom') {
     return (
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="grid grid-cols-4 h-16">
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border px-2 py-2 z-50">
+        <div className="flex justify-around max-w-lg mx-auto">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = currentTab === tab.id;
             
             return (
-              <TouchOptimizedInterface key={tab.id}>
-                <Button
-                  variant="ghost"
-                  className={`h-full flex-col gap-1 rounded-none relative ${
-                    isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground'
+              <motion.button
+                key={tab.id}
+                whileTap={{ scale: 0.95 }}
+                className={`
+                  relative flex flex-col items-center gap-1 px-4 py-3 rounded-xl transition-all duration-300
+                  backdrop-blur-lg border shadow-lg hover:shadow-xl
+                  ${isActive 
+                    ? 'bg-gradient-to-br from-primary/20 to-primary/10 border-primary/30 text-primary shadow-primary/20' 
+                    : 'bg-background/80 border-border/50 text-muted-foreground hover:bg-background/90 hover:border-primary/20 hover:text-primary'
                   }`}
-                  onClick={() => onTabChange(tab.id)}
-                 >
-                   <Icon className="w-5 h-5" />
-                   {showLabels && <span className="text-xs">{tab.label}</span>}
-                   {tab.badge && tab.badge > 0 && (
-                    <Badge 
-                      variant="destructive" 
-                      className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center"
-                    >
-                      {tab.badge > 99 ? '99+' : tab.badge}
-                    </Badge>
-                  )}
-                </Button>
-              </TouchOptimizedInterface>
+                onClick={() => handleTabChange(tab.id)}
+              >
+                <Icon className={`w-5 h-5 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`} />
+                {showLabels && (
+                  <span className={`text-xs font-medium ${isActive ? 'text-primary' : ''}`}>
+                    {tab.label}
+                  </span>
+                )}
+                {tab.badge && tab.badge > 0 && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1"
+                  >
+                    <NotificationBadge count={tab.badge} variant="destructive" size="sm" />
+                  </motion.div>
+                )}
+              </motion.button>
             );
           })}
         </div>
@@ -91,35 +108,50 @@ export const MobileVendorTabs: React.FC<MobileVendorTabsProps> = ({
   }
 
   return (
-    <ScrollArea className="w-full">
-      <div className="flex gap-2 p-4 pb-2">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = currentTab === tab.id;
-          
-          return (
-            <TouchOptimizedInterface key={tab.id}>
-               <Button
-                 variant={isActive ? 'default' : 'outline'}
-                 size={showLabels ? "sm" : "icon"}
-                 className={`relative ${showLabels ? 'whitespace-nowrap min-h-11' : 'h-11 w-11'}`}
-                 onClick={() => onTabChange(tab.id)}
-               >
-                 <Icon className={`w-4 h-4 ${showLabels ? 'mr-2' : ''}`} />
-                 {showLabels && tab.label}
+    <div className="flex overflow-x-auto scrollbar-hide bg-gradient-to-r from-background/95 to-background/90 backdrop-blur-sm px-4 py-3 gap-3 border-b border-border/50">
+      {tabs.map((tab) => {
+        const Icon = tab.icon;
+        const isActive = currentTab === tab.id;
+        
+        return (
+          <TouchOptimizedInterface key={tab.id}>
+            <motion.div
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ y: -1 }}
+            >
+              <Button
+                variant="ghost"
+                size={showLabels ? "sm" : "icon"}
+                className={`
+                  relative transition-all duration-300 backdrop-blur-lg border shadow-sm hover:shadow-md
+                  ${showLabels ? 'whitespace-nowrap min-h-11 px-4' : 'h-11 w-11'}
+                  ${isActive 
+                    ? 'bg-gradient-to-br from-primary/20 to-primary/10 border-primary/30 text-primary shadow-primary/20 hover:from-primary/25 hover:to-primary/15' 
+                    : 'bg-background/60 border-border/40 text-muted-foreground hover:bg-background/80 hover:border-primary/20 hover:text-primary'
+                  }
+                `}
+                onClick={() => handleTabChange(tab.id)}
+              >
+                <Icon className={`w-4 h-4 transition-transform duration-200 ${showLabels ? 'mr-2' : ''} ${isActive ? 'scale-110' : ''}`} />
+                {showLabels && (
+                  <span className={`font-medium ${isActive ? 'text-primary' : ''}`}>
+                    {tab.label}
+                  </span>
+                )}
                 {tab.badge && tab.badge > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="ml-2 h-5 w-5 p-0 text-xs flex items-center justify-center"
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1"
                   >
-                    {tab.badge > 99 ? '99+' : tab.badge}
-                  </Badge>
+                    <NotificationBadge count={tab.badge} variant="destructive" size="sm" />
+                  </motion.div>
                 )}
               </Button>
-            </TouchOptimizedInterface>
-          );
-        })}
-      </div>
-    </ScrollArea>
+            </motion.div>
+          </TouchOptimizedInterface>
+        );
+      })}
+    </div>
   );
 };

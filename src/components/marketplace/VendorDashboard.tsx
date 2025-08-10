@@ -454,21 +454,32 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
 
           <MobileVendorStats stats={statsData} loading={earningsLoading} />
 
-          <div className="sticky top-14 z-30 bg-background border-b">
+          <div className="sticky top-14 z-30">
             <MobileVendorTabs
               currentTab={currentTab}
               onTabChange={setCurrentTab}
               confirmationCount={ordersForConfirmation.length}
               notificationCount={unreadCount}
               variant="horizontal"
+              showLabels={false}
             />
           </div>
 
           <div className="min-h-[calc(100vh-180px)]">
             {currentTab === 'products' && renderProductsTab()}
             {currentTab === 'confirmations' && renderConfirmationTab()}
-            {currentTab === 'revenue' && renderRevenueTab()}
-            {currentTab === 'notifications' && (
+            {currentTab === 'revenue' && !earningsLoading && renderRevenueTab()}
+            {currentTab === 'revenue' && earningsLoading && (
+              <div className="px-4 pb-20 space-y-4">
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <div className="w-8 h-8 mx-auto mb-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                    <p className="text-muted-foreground">Chargement des revenus...</p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+            {currentTab === 'notifications' && !notificationsLoading && (
               <div className="px-4 pb-20 space-y-4">
                 {notifications.length === 0 ? (
                   <Card>
