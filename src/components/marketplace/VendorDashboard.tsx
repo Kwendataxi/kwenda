@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useVendorNotifications } from '@/hooks/useVendorNotifications';
+import { useVendorEarnings } from '@/hooks/useVendorEarnings';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Store, 
@@ -13,13 +15,17 @@ import {
   AlertCircle,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  Bell
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import VendorNotificationBadge from './VendorNotificationBadge';
+import VendorOrderConfirmation from './VendorOrderConfirmation';
+import VendorRevenueDashboard from './VendorRevenueDashboard';
 
 interface VendorDashboardProps {
   onProductUpdate: () => void;
@@ -29,16 +35,27 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
   const { user } = useAuth();
   const { toast } = useToast();
   
+  // Use new hooks for notifications and earnings
+  const { 
+    notifications, 
+    unreadCount, 
+    loading: notificationsLoading,
+    markAsRead,
+    markAsAcknowledged,
+    markAllAsRead 
+  } = useVendorNotifications();
+  
+  const { 
+    earnings, 
+    summary, 
+    loading: earningsLoading,
+    markAsPaid, 
+    refetch: refetchEarnings 
+  } = useVendorEarnings();
+  
   const [myProducts, setMyProducts] = useState<any[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [ordersForConfirmation, setOrdersForConfirmation] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    activeProducts: 0,
-    totalOrders: 0,
-    totalRevenue: 0,
-    pendingOrders: 0
-  });
 
   useEffect(() => {
     if (user) {
@@ -61,33 +78,22 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
 
       if (productsError) throw productsError;
 
-      // Load vendor orders
-      const { data: vendorOrders, error: ordersError } = await supabase
+      // Load orders awaiting confirmation
+      const { data: pendingOrders, error: ordersError } = await supabase
         .from('marketplace_orders')
         .select(`
           *,
-          marketplace_products!inner(title, price, images)
+          marketplace_products!inner(title, price, images),
+          profiles!marketplace_orders_buyer_id_fkey(display_name, phone_number)
         `)
         .eq('seller_id', user.id)
+        .eq('vendor_confirmation_status', 'awaiting_confirmation')
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
 
       setMyProducts(products || []);
-      setOrders(vendorOrders || []);
-
-      // Calculate stats
-      const activeProducts = products?.filter(p => p.status === 'active').length || 0;
-      const totalRevenue = vendorOrders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
-      const pendingOrders = vendorOrders?.filter(o => o.status === 'pending').length || 0;
-
-      setStats({
-        totalProducts: products?.length || 0,
-        activeProducts,
-        totalOrders: vendorOrders?.length || 0,
-        totalRevenue,
-        pendingOrders
-      });
+      setOrdersForConfirmation(pendingOrders || []);
 
     } catch (error) {
       console.error('Error loading vendor data:', error);
@@ -159,86 +165,71 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
     }
   };
 
-  const confirmOrder = async (orderId: string) => {
-    try {
-      const { error } = await supabase
-        .from('marketplace_orders')
-        .update({ 
-          status: 'confirmed',
-          confirmed_at: new Date().toISOString()
-        })
-        .eq('id', orderId)
-        .eq('seller_id', user?.id);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Commande confirmée',
-        description: 'La commande a été confirmée et sera traitée',
-      });
-
-      loadVendorData();
-    } catch (error) {
-      console.error('Error confirming order:', error);
-      toast({
-        title: 'Erreur',
-        description: 'Impossible de confirmer la commande',
-        variant: 'destructive',
-      });
-    }
+  const handleOrderUpdate = () => {
+    loadVendorData();
+    refetchEarnings();
   };
 
-  const renderStatsCards = () => (
-    <div className="grid grid-cols-2 gap-4 mb-6">
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Produits</p>
-              <p className="text-2xl font-bold">{stats.activeProducts}/{stats.totalProducts}</p>
+  const renderStatsCards = () => {
+    const activeProducts = myProducts.filter(p => p.status === 'active').length;
+    const totalProducts = myProducts.length;
+    
+    return (
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Produits</p>
+                <p className="text-2xl font-bold">{activeProducts}/{totalProducts}</p>
+              </div>
+              <Store className="w-8 h-8 text-primary" />
             </div>
-            <Store className="w-8 h-8 text-primary" />
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Commandes</p>
-              <p className="text-2xl font-bold">{stats.totalOrders}</p>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Confirmations</p>
+                <p className="text-2xl font-bold">{ordersForConfirmation.length}</p>
+              </div>
+              <Package className="w-8 h-8 text-primary" />
             </div>
-            <Package className="w-8 h-8 text-primary" />
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Revenus</p>
-              <p className="text-2xl font-bold">{stats.totalRevenue.toLocaleString()} FC</p>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Revenus effectifs</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {summary.paid.amount.toLocaleString()} FC
+                </p>
+              </div>
+              <DollarSign className="w-8 h-8 text-green-600" />
             </div>
-            <DollarSign className="w-8 h-8 text-primary" />
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">En attente</p>
-              <p className="text-2xl font-bold">{stats.pendingOrders}</p>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">En attente</p>
+                <p className="text-2xl font-bold text-orange-500">
+                  {(summary.pending.amount + summary.confirmed.amount).toLocaleString()} FC
+                </p>
+              </div>
+              <Clock className="w-8 h-8 text-orange-500" />
             </div>
-            <Clock className="w-8 h-8 text-orange-500" />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
 
   const renderProductsTab = () => (
     <div className="space-y-4">
@@ -300,60 +291,15 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
     </div>
   );
 
-  const renderOrdersTab = () => (
-    <div className="space-y-4">
-      {orders.map(order => (
-        <Card key={order.id}>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <h3 className="font-medium">{order.marketplace_products?.title}</h3>
-                <p className="text-sm text-muted-foreground">
-                  Commande #{order.id.slice(0, 8)}
-                </p>
-              </div>
-              <Badge variant={
-                order.status === 'pending' ? 'destructive' :
-                order.status === 'confirmed' ? 'default' :
-                order.status === 'delivered' ? 'secondary' : 'outline'
-              }>
-                {order.status === 'pending' ? 'En attente' :
-                 order.status === 'confirmed' ? 'Confirmée' :
-                 order.status === 'delivered' ? 'Livrée' : order.status}
-              </Badge>
-            </div>
+  const renderConfirmationTab = () => (
+    <VendorOrderConfirmation 
+      orders={ordersForConfirmation}
+      onOrderUpdate={handleOrderUpdate}
+    />
+  );
 
-            <div className="flex justify-between items-center text-sm">
-              <span>Quantité: {order.quantity}</span>
-              <span className="font-semibold">{order.total_amount.toLocaleString()} FC</span>
-            </div>
-
-            {order.delivery_address && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Livraison: {order.delivery_address}
-              </p>
-            )}
-
-            {order.status === 'pending' && (
-              <div className="flex gap-2 mt-3">
-                <Button 
-                  size="sm" 
-                  onClick={() => confirmOrder(order.id)}
-                  className="flex-1"
-                >
-                  <CheckCircle className="w-4 h-4 mr-1" />
-                  Confirmer
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  Refuser
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+  const renderRevenueTab = () => (
+    <VendorRevenueDashboard />
   );
 
   if (loading) {
@@ -371,20 +317,94 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
 
   return (
     <div>
+      {/* Header with notification badge */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Tableau de bord vendeur</h2>
+        <VendorNotificationBadge />
+      </div>
+
       {renderStatsCards()}
       
       <Tabs defaultValue="products" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="products">Mes Produits</TabsTrigger>
-          <TabsTrigger value="orders">Commandes</TabsTrigger>
+          <TabsTrigger value="confirmations" className="relative">
+            Confirmations
+            {ordersForConfirmation.length > 0 && (
+              <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 text-xs">
+                {ordersForConfirmation.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="revenue">Revenus</TabsTrigger>
+          <TabsTrigger value="notifications">
+            Notifications
+            {unreadCount > 0 && (
+              <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 text-xs">
+                {unreadCount}
+              </Badge>
+            )}
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="products" className="mt-4">
           {renderProductsTab()}
         </TabsContent>
         
-        <TabsContent value="orders" className="mt-4">
-          {renderOrdersTab()}
+        <TabsContent value="confirmations" className="mt-4">
+          {renderConfirmationTab()}
+        </TabsContent>
+        
+        <TabsContent value="revenue" className="mt-4">
+          {renderRevenueTab()}
+        </TabsContent>
+        
+        <TabsContent value="notifications" className="mt-4">
+          <div className="space-y-4">
+            {notifications.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <Bell className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Aucune notification</p>
+                </CardContent>
+              </Card>
+            ) : (
+              notifications.map(notification => (
+                <Card key={notification.id} className={!notification.is_read ? 'border-primary' : ''}>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-medium">{notification.title}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {notification.message}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {new Date(notification.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      {!notification.is_read && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => markAsRead(notification.id)}
+                        >
+                          Marquer lu
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+            
+            {unreadCount > 0 && (
+              <div className="text-center">
+                <Button onClick={markAllAsRead} variant="outline">
+                  Marquer tout comme lu
+                </Button>
+              </div>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>
