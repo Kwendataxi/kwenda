@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useEnhancedRealTimeStats } from '@/hooks/useEnhancedRealTimeStats';
+import { useTeamStats } from '@/hooks/useTeamStats';
 import { formatCurrency } from '@/lib/utils';
 import { 
   Users, 
@@ -16,7 +17,8 @@ import {
   Activity,
   Clock,
   CheckCircle,
-  AlertTriangle
+  AlertTriangle,
+  Building
 } from 'lucide-react';
 
 interface StatCardProps {
