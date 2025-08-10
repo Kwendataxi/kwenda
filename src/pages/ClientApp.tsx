@@ -48,7 +48,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 // Transport components
-import { AdvancedTaxiInterface } from '@/components/transport/AdvancedTaxiInterface';
+import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
 import TripChat from '@/components/transport/TripChat';
 
 // Delivery components
@@ -291,9 +291,10 @@ const ClientApp = () => {
   const renderTransportService = () => {
     return (
       <div className="space-y-4">
-        <AdvancedTaxiInterface 
-          initialPickup={taxiPrefill.pickup && taxiPrefill.pickup.coordinates ? { address: taxiPrefill.pickup.address, coordinates: { lat: taxiPrefill.pickup.coordinates.lat, lng: taxiPrefill.pickup.coordinates.lng } } : undefined}
-          initialDestination={taxiPrefill.destination && taxiPrefill.destination.coordinates ? { address: taxiPrefill.destination.address, coordinates: { lat: taxiPrefill.destination.coordinates.lat, lng: taxiPrefill.destination.coordinates.lng } } : undefined}
+        <ModernTaxiInterface 
+          onBookingRequest={() => {}}
+          initialPickup={taxiPrefill.pickup}
+          initialDestination={taxiPrefill.destination}
         />
         
         {/* Trip Chat Modal */}
