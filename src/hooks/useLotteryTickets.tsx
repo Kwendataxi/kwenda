@@ -16,10 +16,11 @@ export const useLotteryTickets = () => {
     if (!user) return null;
 
     try {
-      console.log(`Attribution de ${count} tickets pour action: ${sourceType}`);
+      console.log(`Attribution de ${count} tickets pour action: ${sourceType}`, { user: user.id, sourceId });
 
       const { data, error } = await supabase.functions.invoke('lottery-system', {
         body: {
+          action: 'award_ticket',
           userId: user.id,
           sourceType,
           sourceId,
@@ -28,8 +29,10 @@ export const useLotteryTickets = () => {
         }
       });
 
+      console.log('Réponse Edge Function:', { data, error });
+
       if (error) {
-        console.error('Erreur attribution tickets:', error);
+        console.error('Erreur Edge Function:', error);
         return null;
       }
 

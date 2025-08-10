@@ -32,23 +32,28 @@ serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get('action');
     
-    // Si pas d'action en query param, essayer de lire le body
-    if (!action) {
-      const body = await req.json();
-      if (body.userId && body.sourceType) {
-        return await awardTicket(req, supabaseClient);
-      }
+    // Lire le body une seule fois
+    let body;
+    try {
+      const bodyText = await req.text();
+      body = bodyText ? JSON.parse(bodyText) : {};
+    } catch (e) {
+      body = {};
     }
+    
+    // Déterminer l'action
+    const finalAction = action || body.action || (body.userId && body.sourceType ? 'award_ticket' : null);
 
-    switch (action) {
+    switch (finalAction) {
       case 'award_ticket':
-        return await awardTicket(req, supabaseClient);
+        return await awardTicket(body, supabaseClient);
+      case 'drawLottery':
       case 'draw_lottery':
-        return await drawLottery(req, supabaseClient);
+        return await drawLottery(body, supabaseClient);
       case 'create_daily_draw':
         return await createDailyDraw(supabaseClient);
       default:
-        throw new Error('Action non supportée');
+        throw new Error(`Action non supportée: ${finalAction}`);
     }
 
   } catch (error) {
@@ -64,9 +69,8 @@ serve(async (req) => {
 });
 
 // Attribuer des tickets de tombola
-async function awardTicket(req: Request, supabase: any) {
-  const body = await req.text();
-  const { userId, sourceType, sourceId, multiplier = 1, count = 1 }: LotteryTicketRequest = JSON.parse(body);
+async function awardTicket(body: any, supabase: any) {
+  const { userId, sourceType, sourceId, multiplier = 1, count = 1 }: LotteryTicketRequest = body;
 
   console.log(`Attribution de ${count} tickets pour ${userId} (source: ${sourceType})`);
 
@@ -127,8 +131,8 @@ async function awardTicket(req: Request, supabase: any) {
 }
 
 // Effectuer un tirage de tombola
-async function drawLottery(req: Request, supabase: any) {
-  const { drawId }: DrawLotteryRequest = await req.json();
+async function drawLottery(body: any, supabase: any) {
+  const { drawId }: DrawLotteryRequest = body;
 
   console.log(`Démarrage du tirage: ${drawId}`);
 
