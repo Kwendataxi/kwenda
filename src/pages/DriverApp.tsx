@@ -52,7 +52,10 @@ const DriverApp = () => {
       <DriverMoreSheet 
         open={moreOpen} 
         onOpenChange={setMoreOpen}
-        onSelect={() => {}}
+        onSelect={(selectedTab) => {
+          setTab(selectedTab);
+          setMoreOpen(false);
+        }}
       />
     </div>
   );
