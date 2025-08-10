@@ -10,8 +10,9 @@ const config: CapacitorConfig = {
   },
   plugins: {
     Geolocation: {
-      permissions: ["location"],
-      accuracy: "high"
+      permissions: ["location", "coarseLocation"],
+      accuracy: "high",
+      requestLocationWhenInUse: true
     },
     Camera: {
       permissions: ["camera", "photos"]

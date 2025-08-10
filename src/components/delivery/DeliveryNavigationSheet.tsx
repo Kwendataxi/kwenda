@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { MapPin, Navigation, ExternalLink, PackageCheck, CheckCircle2 } from 'lucide-react';
 import { NavigationMap } from '@/components/maps/NavigationMap';
-import { UnifiedLocationService } from '@/services/unifiedLocationService';
+import { unifiedLocationService } from '@/services/unifiedLocationService';
 import { useRealtimeTracking } from '@/hooks/useRealtimeTracking';
 import type { UnifiedDeliveryItem } from '@/hooks/useUnifiedDeliveryQueue';
 
@@ -46,7 +46,7 @@ export const DeliveryNavigationSheet: React.FC<DeliveryNavigationSheetProps> = (
     let mounted = true;
 
     const init = async () => {
-      const curr = await UnifiedLocationService.getCurrentLocation();
+      const curr = await unifiedLocationService.getCurrentPosition();
       if (!mounted) return;
       setOrigin({ lat: curr.lat, lng: curr.lng, address: curr.address });
       // Start realtime presence at first location
@@ -74,7 +74,7 @@ export const DeliveryNavigationSheet: React.FC<DeliveryNavigationSheetProps> = (
       }
 
       // Geocode address as fallback
-      const results = await UnifiedLocationService.searchLocation(addr);
+      const results = await unifiedLocationService.searchLocation(addr);
       if (results && results.length > 0) {
         setDestination({ lat: results[0].lat, lng: results[0].lng, address: results[0].address });
       }

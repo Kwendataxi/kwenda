@@ -5,11 +5,11 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 
-import SimpleLocationSearch from './SimpleLocationSearch';
+import { SmartLocationInput } from '@/components/location/SmartLocationInput';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
 import { supabase } from '@/integrations/supabase/client';
-import type { LocationData } from '@/types/location';
+import { unifiedLocationService, type LocationData } from '@/services/unifiedLocationService';
 
 interface OneStepDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
@@ -78,35 +78,21 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
     }
   }, [initialSelectedMode]);
 
-  // Auto-détecter position actuelle au chargement
+  // Auto-détecter position actuelle au chargement avec service unifié
   useEffect(() => {
     const getCurrentLocation = async () => {
       try {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 300000
-          });
+        const location = await unifiedLocationService.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 30000,
+          fallbackToIP: true,
+          fallbackToDefault: true
         });
-
-        const location: LocationData = {
-          address: "Position actuelle",
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-          type: 'current'
-        };
 
         setPickup(location);
       } catch (error) {
         console.warn('Position actuelle non disponible:', error);
-        // Fallback vers centre-ville Kinshasa
-        setPickup({
-          address: "Centre-ville, Kinshasa",
-          lat: -4.3250,
-          lng: 15.3222,
-          type: 'popular'
-        });
+        // Ne pas bloquer l'interface, laisser l'utilisateur saisir manuellement
       }
     };
 
@@ -288,11 +274,12 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
                 </Badge>
               )}
             </div>
-            <SimpleLocationSearch
+            <SmartLocationInput
               placeholder="Où récupérer ?"
               value={pickup?.address || ''}
               onLocationSelect={setPickup}
               showCurrentLocation={true}
+              enableManualFallback={true}
             />
           </div>
 
@@ -302,11 +289,12 @@ const OneStepDeliveryInterface: React.FC<OneStepDeliveryInterfaceProps> = ({
               <div className="w-3 h-3 rounded-full bg-red-500"></div>
               <span className="text-sm font-medium">Destination</span>
             </div>
-            <SimpleLocationSearch
+            <SmartLocationInput
               placeholder="Où livrer ?"
               value={destination?.address || ''}
               onLocationSelect={setDestination}
               showCurrentLocation={false}
+              enableManualFallback={true}
             />
           </div>
 

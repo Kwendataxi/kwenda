@@ -3,8 +3,9 @@ export interface LocationData {
   address: string;
   lat: number;
   lng: number;
-  type?: 'current' | 'geocoded' | 'popular' | 'recent';
+  type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'ip' | 'fallback';
   placeId?: string;
+  accuracy?: number;
 }
 
 // Format de retour pour les résultats de recherche

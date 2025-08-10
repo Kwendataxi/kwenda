@@ -3,13 +3,13 @@ import { Search, MapPin, Clock, Star, Navigation } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { UnifiedLocationService } from '@/services/unifiedLocationService';
+import { unifiedLocationService } from '@/services/unifiedLocationService';
 
 export interface LocationResult {
   address: string;
   lat: number;
   lng: number;
-  type?: 'geocoded' | 'popular' | 'fallback';
+  type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'ip' | 'fallback';
 }
 
 interface UnifiedLocationSearchProps {
@@ -28,7 +28,7 @@ const UnifiedLocationSearch: React.FC<UnifiedLocationSearchProps> = ({
   className = ''
 }) => {
   const [query, setQuery] = useState(value);
-  const [results, setResults] = useState<LocationResult[]>([]);
+  const [results, setResults] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const searchTimeout = useRef<NodeJS.Timeout>();
@@ -44,7 +44,7 @@ const UnifiedLocationSearch: React.FC<UnifiedLocationSearchProps> = ({
       setLoading(true);
       searchTimeout.current = setTimeout(async () => {
         try {
-          const searchResults = await UnifiedLocationService.searchLocation(query);
+          const searchResults = await unifiedLocationService.searchLocation(query);
           setResults(searchResults || []);
           setIsOpen(true);
         } catch (error) {
@@ -88,7 +88,7 @@ const UnifiedLocationSearch: React.FC<UnifiedLocationSearchProps> = ({
   const handleCurrentLocation = async () => {
     setLoading(true);
     try {
-      const currentLocation = await UnifiedLocationService.getCurrentLocation();
+      const currentLocation = await unifiedLocationService.getCurrentPosition();
       handleLocationSelect(currentLocation);
     } catch (error) {
       console.error('Current location error:', error);

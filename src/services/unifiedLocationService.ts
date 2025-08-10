@@ -1,296 +1,412 @@
-import { supabase } from '@/integrations/supabase/client';
+import { Geolocation, Position } from '@capacitor/geolocation';
+import { CountryService } from './countryConfig';
+import { IPGeolocationService } from './ipGeolocation';
 
-export interface LocationResult {
+export interface LocationData {
   address: string;
   lat: number;
   lng: number;
-  type?: 'geocoded' | 'popular' | 'fallback';
+  type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'ip' | 'fallback';
+  placeId?: string;
+  accuracy?: number;
 }
 
-export interface RouteResult {
-  distance: number; // meters
-  duration: number; // seconds
-  price: number;    // CDF
-  mode: 'flash' | 'flex' | 'maxicharge';
+export interface LocationSearchResult extends LocationData {
+  id: string;
+  title?: string;
+  subtitle?: string;
 }
 
-// Lieux populaires enrichis de Kinshasa avec géolocalisation précise
-const POPULAR_PLACES = [
-  // Centres administratifs et commerciaux
-  { name: 'Gombe Centre', lat: -4.3276, lng: 15.3154, alias: ['gombe', 'centre ville'] },
-  { name: 'Place de la Poste', lat: -4.3232, lng: 15.3097, alias: ['poste centrale', 'centre poste'] },
-  { name: 'Boulevard du 30 Juin', lat: -4.3184, lng: 15.3136, alias: ['30 juin', 'bd 30 juin'] },
-  
-  // Transport et infrastructures
-  { name: 'Aéroport N\'djili', lat: -4.3857, lng: 15.4446, alias: ['ndji', 'ndjili', 'aeroport'] },
-  { name: 'Gare Centrale', lat: -4.3254, lng: 15.3118, alias: ['gare', 'station'] },
-  
-  // Marchés et commerces
-  { name: 'Marché Central', lat: -4.3217, lng: 15.3069, alias: ['marche', 'grand marche'] },
-  { name: 'Marché de la Liberté', lat: -4.3891, lng: 15.2877, alias: ['liberte', 'matongo'] },
-  
-  // Universités et écoles
-  { name: 'Université de Kinshasa', lat: -4.4339, lng: 15.3505, alias: ['unikin', 'universite'] },
-  { name: 'Université Protestante', lat: -4.3500, lng: 15.3200, alias: ['upc', 'protestante'] },
-  
-  // Communes populaires
-  { name: 'Matongé', lat: -4.3891, lng: 15.2877, alias: ['matongo'] },
-  { name: 'Lemba Terminus', lat: -4.3891, lng: 15.2614, alias: ['lemba', 'terminus'] },
-  { name: 'Ngaliema', lat: -4.3506, lng: 15.2721, alias: ['ngali'] },
-  { name: 'Kintambo', lat: -4.3298, lng: 15.2889, alias: ['kinta'] },
-  { name: 'Masina', lat: -4.3833, lng: 15.3667, alias: ['masina'] },
-  { name: 'N\'djili Commune', lat: -4.3833, lng: 15.4333, alias: ['ndjili commune'] },
-  { name: 'Limete', lat: -4.3667, lng: 15.3167, alias: ['limete industriel'] },
-  { name: 'Kalamu', lat: -4.3500, lng: 15.3000, alias: ['kalamu'] },
-  { name: 'Bandalungwa', lat: -4.3333, lng: 15.2833, alias: ['banda'] },
-  { name: 'Selembao', lat: -4.3833, lng: 15.2500, alias: ['selembao'] },
-  { name: 'Makala', lat: -4.4000, lng: 15.2333, alias: ['makala'] },
-  { name: 'Ngaba', lat: -4.3667, lng: 15.2500, alias: ['ngaba'] },
-  { name: 'Kasa-Vubu', lat: -4.3333, lng: 15.3000, alias: ['kasa vubu', 'kasavubu'] },
-  { name: 'Barumbu', lat: -4.3167, lng: 15.3167, alias: ['barumbu'] },
-  { name: 'Kinshasa (Commune)', lat: -4.3083, lng: 15.3167, alias: ['kinshasa commune'] },
-  { name: 'Lingwala', lat: -4.3167, lng: 15.2833, alias: ['lingwala'] },
-  { name: 'Mont Ngafula', lat: -4.4333, lng: 15.2833, alias: ['mont ngafula', 'ngafula'] },
-  { name: 'Kisenso', lat: -4.4167, lng: 15.2167, alias: ['kisenso'] },
-  { name: 'Bumbu', lat: -4.4167, lng: 15.2500, alias: ['bumbu'] },
-  
-  // Lieux spéciaux
-  { name: 'Présidence de la République', lat: -4.3204, lng: 15.3104, alias: ['presidence', 'palais nation'] },
-  { name: 'Stade des Martyrs', lat: -4.3333, lng: 15.3000, alias: ['stade martyrs', 'martyrs'] },
-  { name: 'Zoo de Kinshasa', lat: -4.3500, lng: 15.2800, alias: ['zoo'] }
-];
+// Check if Capacitor is available
+const isCapacitorAvailable = () => {
+  return typeof window !== 'undefined' && 
+         (window as any).Capacitor && 
+         (window as any).Capacitor.isNativePlatform &&
+         (window as any).Capacitor.isNativePlatform();
+};
 
-export class UnifiedLocationService {
-  private static googleApiKey: string = '';
+// Check if we're in a secure context (HTTPS or localhost)
+const isSecureContext = () => {
+  return window.location.protocol === 'https:' || 
+         window.location.hostname === 'localhost' ||
+         window.location.hostname === '127.0.0.1';
+};
 
-  // Récupération sécurisée de la clé API
-  private static async getGoogleApiKey(): Promise<string> {
-    if (this.googleApiKey) return this.googleApiKey;
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('get-google-maps-key');
-      
-      if (error) throw new Error(error.message);
-      if (data?.error) throw new Error(data.error);
-      
-      this.googleApiKey = data.apiKey;
-      return this.googleApiKey;
-    } catch (error) {
-      console.warn('Google API non disponible, mode fallback activé:', error);
-      return '';
+class UnifiedLocationService {
+  private static instance: UnifiedLocationService;
+  private cache = new Map<string, { result: LocationSearchResult[]; timestamp: number }>();
+  private positionCache: { position: LocationData; timestamp: number; wasRealGPS: boolean } | null = null;
+
+  static getInstance(): UnifiedLocationService {
+    if (!this.instance) {
+      this.instance = new UnifiedLocationService();
     }
+    return this.instance;
   }
 
-  // Recherche simplifiée et robuste
-  static async searchLocation(query: string): Promise<LocationResult[]> {
-    if (!query || query.length < 1) return [];
+  constructor() {
+    this.loadCachedPosition();
+  }
+
+  // === GÉOLOCALISATION GPS ===
+
+  async getCurrentPosition(options: {
+    enableHighAccuracy?: boolean;
+    timeout?: number;
+    maximumAge?: number;
+    fallbackToIP?: boolean;
+    fallbackToDefault?: boolean;
+  } = {}): Promise<LocationData> {
+    const defaultOptions = {
+      enableHighAccuracy: true,
+      timeout: 30000, // 30 secondes pour GPS
+      maximumAge: 300000, // 5 minutes
+      fallbackToIP: true,
+      fallbackToDefault: true,
+      ...options
+    };
+
+    console.log('🌍 Unified Location Service: Demande de position GPS...');
 
     try {
-      const results: LocationResult[] = [];
-      const searchQuery = query.toLowerCase().trim();
+      // Étape 1: Tenter GPS
+      const position = await this.getGPSPosition(defaultOptions);
+      console.log('✅ Position GPS obtenue:', position);
+      return position;
+    } catch (gpsError) {
+      console.warn('⚠️ GPS échoué:', gpsError);
 
-      // 1. Recherche dans les lieux populaires
-      const popularMatches = POPULAR_PLACES.filter(place => {
-        const placeName = place.name.toLowerCase();
-        const aliases = place.alias?.map(a => a.toLowerCase()) || [];
-        
-        return placeName.includes(searchQuery) ||
-               placeName.startsWith(searchQuery) ||
-               aliases.some(alias => alias.includes(searchQuery) || alias.startsWith(searchQuery));
-      });
-      
-      results.push(...popularMatches.slice(0, 3).map(place => ({
-        address: place.name,
-        lat: place.lat,
-        lng: place.lng,
-        type: 'popular' as const
-      })));
+      // Étape 2: Utiliser cache récent si disponible
+      if (this.positionCache && this.isCacheValid(this.positionCache.timestamp, 1800000)) { // 30 min
+        console.log('📍 Utilisation cache position');
+        return this.positionCache.position;
+      }
 
-      // 2. Recherche Google Places
-      if (query.length >= 2) {
+      // Étape 3: Fallback vers IP si autorisé
+      if (defaultOptions.fallbackToIP) {
         try {
-          const googleResults = await this.searchGooglePlaces(query);
-          results.push(...googleResults.slice(0, 3));
-        } catch (error) {
-          console.warn('Google Places failed:', error);
+          const ipPosition = await this.getIPPosition();
+          console.log('🌐 Position IP obtenue:', ipPosition);
+          return ipPosition;
+        } catch (ipError) {
+          console.warn('⚠️ IP géolocalisation échouée:', ipError);
         }
       }
 
-      // 3. Fallback si aucun résultat
-      if (results.length === 0 && query.length >= 2) {
-        results.push({
-          address: `${query} (Kinshasa)`,
-          lat: -4.3217,
-          lng: 15.3069,
-          type: 'fallback'
-        });
+      // Étape 4: Position par défaut si autorisée
+      if (defaultOptions.fallbackToDefault) {
+        console.log('🏙️ Utilisation position par défaut');
+        return this.getDefaultPosition();
       }
 
-      return results.slice(0, 6);
-    } catch (error) {
-      console.error('Search error:', error);
-      return [];
+      throw new Error('Toutes les méthodes de géolocalisation ont échoué');
     }
   }
 
-  private static async searchGooglePlaces(query: string): Promise<LocationResult[]> {
-    try {
-      const { data, error } = await supabase.functions.invoke('geocode-proxy', {
-        body: { query }
+  private async getGPSPosition(options: any): Promise<LocationData> {
+    // Vérifications préliminaires
+    if (!isSecureContext() && !isCapacitorAvailable()) {
+      throw new Error('HTTPS_REQUIRED');
+    }
+
+    let position: Position | GeolocationPosition;
+
+    if (isCapacitorAvailable()) {
+      // Mobile/Native
+      console.log('📱 Utilisation Capacitor Geolocation');
+      
+      // Demander permissions
+      const permissions = await Geolocation.requestPermissions();
+      if (permissions.location !== 'granted') {
+        throw new Error('PERMISSION_DENIED');
+      }
+
+      position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: options.enableHighAccuracy,
+        timeout: options.timeout,
+        maximumAge: options.maximumAge,
       });
+    } else {
+      // Browser
+      console.log('🌐 Utilisation navigator.geolocation');
       
-      if (error) {
-        console.warn('Geocode proxy error:', error);
-        return [];
-      }
-      
-      if (data?.status === 'OK' && Array.isArray(data?.results)) {
-        return data.results.slice(0, 3).map((place: any) => ({
-          address: place.formatted_address || place.name || 'Adresse inconnue',
-          lat: place.geometry?.location?.lat || -4.3217,
-          lng: place.geometry?.location?.lng || 15.3069,
-          type: 'geocoded' as const
-        }));
-      }
-      
-      return [];
-    } catch (error) {
-      console.warn('Geocode failed:', error);
-      return [];
-    }
-  }
-
-  // Calcul unifié distance + prix
-  static async calculateRoute(
-    pickup: LocationResult,
-    destination: LocationResult
-  ): Promise<RouteResult[]> {
-    // Calcul de distance (haversine pour fallback)
-    const distance = this.calculateDistance(pickup, destination);
-    
-    // Estimation du temps de trajet (vitesse moyenne Kinshasa: 25 km/h)
-    const duration = (distance / 1000) / 25 * 3600; // en secondes
-
-    // Calcul des prix pour chaque mode
-    const basePrices = {
-      flash: 5000,      // Moto rapide
-      flex: 3000,       // Standard
-      maxicharge: 8000  // Camion
-    };
-
-    const pricePerKm = {
-      flash: 500,
-      flex: 300,
-      maxicharge: 800
-    };
-
-    const distanceKm = distance / 1000;
-
-    return [
-      {
-        distance,
-        duration: Math.round(duration * 0.7), // Flash plus rapide
-        price: Math.round(basePrices.flash + (distanceKm * pricePerKm.flash)),
-        mode: 'flash'
-      },
-      {
-        distance,
-        duration: Math.round(duration),
-        price: Math.round(basePrices.flex + (distanceKm * pricePerKm.flex)),
-        mode: 'flex'
-      },
-      {
-        distance,
-        duration: Math.round(duration * 1.3), // Camion plus lent
-        price: Math.round(basePrices.maxicharge + (distanceKm * pricePerKm.maxicharge)),
-        mode: 'maxicharge'
-      }
-    ];
-  }
-
-  // Calcul distance haversine
-  private static calculateDistance(
-    point1: { lat: number; lng: number },
-    point2: { lat: number; lng: number }
-  ): number {
-    const R = 6371e3; // Rayon terre en mètres
-    const φ1 = point1.lat * Math.PI/180;
-    const φ2 = point2.lat * Math.PI/180;
-    const Δφ = (point2.lat - point1.lat) * Math.PI/180;
-    const Δλ = (point2.lng - point1.lng) * Math.PI/180;
-
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-    return R * c;
-  }
-
-  // Position utilisateur avec fallback robuste
-  static async getCurrentLocation(): Promise<LocationResult> {
-    try {
-      // Vérifier si la géolocalisation est disponible
       if (!navigator.geolocation) {
-        throw new Error('Géolocalisation non supportée');
+        throw new Error('GEOLOCATION_NOT_SUPPORTED');
       }
 
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+      position = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(
           resolve,
           (error) => {
-            console.warn('Geolocation error:', error.message);
-            reject(error);
+            const errorMap: { [key: number]: string } = {
+              1: 'PERMISSION_DENIED',
+              2: 'POSITION_UNAVAILABLE',
+              3: 'TIMEOUT'
+            };
+            reject(new Error(errorMap[error.code] || 'UNKNOWN_ERROR'));
           },
           {
-            timeout: 8000,
-            enableHighAccuracy: true,
-            maximumAge: 300000 // 5 minutes
+            enableHighAccuracy: options.enableHighAccuracy,
+            timeout: options.timeout,
+            maximumAge: options.maximumAge,
           }
         );
       });
-
-      // Vérifier si les coordonnées sont dans une zone raisonnable pour Kinshasa/Abidjan
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-      
-      console.log('Position détectée:', { lat, lng });
-
-      return {
-        address: 'Ma position actuelle',
-        lat,
-        lng,
-        type: 'geocoded'
-      };
-    } catch (error) {
-      console.warn('Géolocalisation échouée, utilisation du fallback:', error);
-      
-      // Fallback intelligent : centre de Kinshasa
-      return {
-        address: 'Kinshasa Centre (position approximative)',
-        lat: -4.3217,
-        lng: 15.3069,
-        type: 'fallback'
-      };
     }
-  }
 
-  // Formatage des durées
-  static formatDuration(seconds: number): string {
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
+    const isRealGPS = position.coords.accuracy !== null && position.coords.accuracy < 100;
     
-    if (hours > 0) {
-      return `${hours}h ${minutes % 60}min`;
+    const locationData: LocationData = {
+      address: 'Position actuelle',
+      lat: position.coords.latitude,
+      lng: position.coords.longitude,
+      type: 'current',
+      accuracy: position.coords.accuracy
+    };
+
+    // Mise en cache
+    this.positionCache = {
+      position: locationData,
+      timestamp: Date.now(),
+      wasRealGPS: isRealGPS
+    };
+    this.saveCachedPosition();
+
+    // Géocodage inverse pour l'adresse
+    try {
+      const address = await this.reverseGeocode(locationData.lat, locationData.lng);
+      locationData.address = address;
+    } catch (e) {
+      console.warn('Géocodage inverse échoué:', e);
     }
-    return `${minutes}min`;
+
+    return locationData;
   }
 
-  // Formatage des distances
-  static formatDistance(meters: number): string {
+  private async getIPPosition(): Promise<LocationData> {
+    try {
+      const ipLocation = await IPGeolocationService.getLocationFromIP();
+      if (ipLocation) {
+        const locationData: LocationData = {
+          address: 'Position estimée (IP)',
+          lat: ipLocation.lat,
+          lng: ipLocation.lng,
+          type: 'ip',
+          accuracy: 10000 // IP accuracy is low
+        };
+
+        // Mise en cache IP
+        this.positionCache = {
+          position: locationData,
+          timestamp: Date.now(),
+          wasRealGPS: false
+        };
+
+        return locationData;
+      }
+      throw new Error('IP location unavailable');
+    } catch (error) {
+      throw new Error('IP_GEOLOCATION_FAILED');
+    }
+  }
+
+  private getDefaultPosition(): LocationData {
+    const country = CountryService.getCurrentCountry();
+    const mainCity = country.majorCities[0];
+    
+    return {
+      address: `${mainCity.name} (centre-ville)`,
+      lat: mainCity.coordinates.lat,
+      lng: mainCity.coordinates.lng,
+      type: 'fallback',
+      accuracy: 50000 // Large radius for fallback
+    };
+  }
+
+  // === RECHERCHE D'ADRESSES ===
+
+  async searchLocation(query: string, userLocation?: LocationData): Promise<LocationSearchResult[]> {
+    if (!query.trim()) return [];
+
+    const cacheKey = `search_${query}`;
+    const cached = this.cache.get(cacheKey);
+    
+    if (cached && this.isCacheValid(cached.timestamp, 300000)) { // 5 minutes
+      return cached.result;
+    }
+
+    try {
+      console.log('🔍 Recherche:', query);
+      
+      // 1. Lieux populaires locaux d'abord
+      const popularResults = this.searchPopularPlaces(query);
+      
+      // 2. Recherche via API Google
+      const apiResults = await this.searchViaGoogleAPI(query, userLocation);
+      
+      // 3. Combiner et dédupliquer
+      const allResults = [...popularResults, ...apiResults];
+      const uniqueResults = this.deduplicateResults(allResults);
+      
+      // Mise en cache
+      this.cache.set(cacheKey, {
+        result: uniqueResults,
+        timestamp: Date.now()
+      });
+      
+      return uniqueResults;
+    } catch (error) {
+      console.error('Erreur recherche:', error);
+      
+      // Fallback vers lieux populaires seulement
+      return this.searchPopularPlaces(query);
+    }
+  }
+
+  private searchPopularPlaces(query: string): LocationSearchResult[] {
+    const country = CountryService.getCurrentCountry();
+    
+    // Construire une liste de lieux populaires basiques pour chaque ville
+    const popularPlaces = [
+      { name: 'Aéroport', coordinates: { lat: -4.3857, lng: 15.4446 }, city: 'Kinshasa' },
+      { name: 'Centre-ville', coordinates: { lat: -4.3250, lng: 15.3222 }, city: 'Kinshasa' },
+      { name: 'Gombe', coordinates: { lat: -4.3199, lng: 15.3074 }, city: 'Kinshasa' },
+      { name: 'Limete', coordinates: { lat: -4.3835, lng: 15.2943 }, city: 'Kinshasa' },
+      { name: 'Marché Central', coordinates: { lat: -4.3225, lng: 15.3095 }, city: 'Kinshasa' },
+    ];
+
+    const filteredPlaces = popularPlaces.filter(place => 
+      place.name.toLowerCase().includes(query.toLowerCase())
+    ).slice(0, 3);
+
+    return filteredPlaces.map(place => ({
+      id: `popular_${place.name}`,
+      address: place.name,
+      title: place.name,
+      subtitle: place.city,
+      lat: place.coordinates.lat,
+      lng: place.coordinates.lng,
+      type: 'popular' as const
+    }));
+  }
+
+  private async searchViaGoogleAPI(query: string, userLocation?: LocationData): Promise<LocationSearchResult[]> {
+    try {
+      // Import supabase dynamically to avoid SSR issues
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data, error } = await supabase.functions.invoke('geocode-proxy', {
+        body: { 
+          address: query,
+          location: userLocation ? `${userLocation.lat},${userLocation.lng}` : undefined
+        }
+      });
+
+      if (error) throw error;
+      
+      return (data.results || []).slice(0, 5).map((result: any, index: number) => ({
+        id: `google_${index}`,
+        address: result.formatted_address,
+        title: result.formatted_address.split(',')[0],
+        subtitle: result.formatted_address.split(',').slice(1).join(',').trim(),
+        lat: result.geometry.location.lat,
+        lng: result.geometry.location.lng,
+        type: 'geocoded' as const,
+        placeId: result.place_id
+      }));
+    } catch (error) {
+      console.error('Google API search failed:', error);
+      return [];
+    }
+  }
+
+  private async reverseGeocode(lat: number, lng: number): Promise<string> {
+    try {
+      // Import supabase dynamically to avoid SSR issues
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data, error } = await supabase.functions.invoke('geocode-proxy', {
+        body: { 
+          latlng: `${lat},${lng}`
+        }
+      });
+
+      if (error) throw error;
+      
+      return data.results?.[0]?.formatted_address || 'Position détectée';
+    } catch (error) {
+      console.error('Reverse geocoding failed:', error);
+      return 'Position détectée';
+    }
+  }
+
+  // === UTILITAIRES ===
+
+  private deduplicateResults(results: LocationSearchResult[]): LocationSearchResult[] {
+    const seen = new Set<string>();
+    return results.filter(result => {
+      const key = `${result.lat.toFixed(4)}_${result.lng.toFixed(4)}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  private isCacheValid(timestamp: number, maxAge: number): boolean {
+    return Date.now() - timestamp < maxAge;
+  }
+
+  private loadCachedPosition(): void {
+    try {
+      const cached = localStorage.getItem('unified_position_cache');
+      if (cached) {
+        this.positionCache = JSON.parse(cached);
+      }
+    } catch (error) {
+      console.warn('Failed to load cached position:', error);
+    }
+  }
+
+  private saveCachedPosition(): void {
+    try {
+      if (this.positionCache) {
+        localStorage.setItem('unified_position_cache', JSON.stringify(this.positionCache));
+      }
+    } catch (error) {
+      console.warn('Failed to save cached position:', error);
+    }
+  }
+
+  // === CALCULS ===
+
+  calculateDistance(point1: { lat: number; lng: number }, point2: { lat: number; lng: number }): number {
+    const R = 6371; // Earth's radius in km
+    const dLat = (point2.lat - point1.lat) * Math.PI / 180;
+    const dLng = (point2.lng - point1.lng) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  formatDistance(meters: number): string {
     if (meters < 1000) {
       return `${Math.round(meters)}m`;
     }
     return `${(meters / 1000).toFixed(1)}km`;
   }
+
+  formatDuration(seconds: number): string {
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) {
+      return `${minutes}min`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours}h${remainingMinutes > 0 ? ` ${remainingMinutes}min` : ''}`;
+  }
 }
+
+export const unifiedLocationService = UnifiedLocationService.getInstance();

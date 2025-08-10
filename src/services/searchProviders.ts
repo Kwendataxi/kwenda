@@ -1,11 +1,11 @@
 import { SearchResult } from '@/components/search/UniversalSearchInterface';
-import { UnifiedLocationService } from '@/services/unifiedLocationService';
+import { unifiedLocationService } from '@/services/unifiedLocationService';
 import { supabase } from '@/integrations/supabase/client';
 
 // Provider de recherche pour les lieux
 export const locationSearchProvider = async (query: string): Promise<SearchResult[]> => {
   try {
-    const locations = await UnifiedLocationService.searchLocation(query);
+    const locations = await unifiedLocationService.searchLocation(query);
     
     return locations.map((location, index) => ({
       id: `location-${index}`,
