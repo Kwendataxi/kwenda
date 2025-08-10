@@ -449,11 +449,12 @@ const ClientApp = () => {
     }
     return (
       <ModernDeliveryInterface
-        onSubmit={(data) => {
-          // Optionnel: gérer un événement de confirmation externe si nécessaire
-          toast({ title: 'Livraison confirmée', description: 'Votre colis sera récupéré sous peu.' });
-        }}
+        onSubmit={handleModernDeliverySubmit}
         onCancel={() => setCurrentView('home')}
+        activeTab={'delivery'}
+        onTabChange={(tab) => {
+          if (tab === 'home') setCurrentView('home');
+        }}
       />
     );
   };

@@ -92,7 +92,7 @@ export const ModernDeliveryInterface: React.FC<ModernDeliveryInterfaceProps> = (
     }
   }, [pickup, destination, selectedMode]);
 
-  // Calcul automatique du prix
+  // Calcul automatique du prix avec cache pour éviter la boucle infinie
   useEffect(() => {
     const calculatePrice = async () => {
       if (pickup && destination && selectedMode) {
@@ -115,8 +115,15 @@ export const ModernDeliveryInterface: React.FC<ModernDeliveryInterfaceProps> = (
       }
     };
 
-    calculatePrice();
-  }, [pickup, destination, selectedMode, calculateDeliveryPrice]);
+    // Cache simple pour éviter les recalculs inutiles
+    const currentKey = pickup && destination && selectedMode 
+      ? `${pickup.lat}-${pickup.lng}-${destination.lat}-${destination.lng}-${selectedMode}`
+      : null;
+    
+    if (currentKey) {
+      calculatePrice();
+    }
+  }, [pickup?.lat, pickup?.lng, destination?.lat, destination?.lng, selectedMode]);
 
   const canProceed = pickup && destination && selectedMode && priceInfo;
 

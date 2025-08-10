@@ -188,6 +188,12 @@ export const UniversalLocationPicker: React.FC<UniversalLocationPickerProps> = (
   };
 
   const handleLocationSelect = (location: LocationData | LocationSearchResult) => {
+    // Validation des coordonnées
+    if (!location.lat || !location.lng) {
+      console.error('Localisation invalide - coordonnées manquantes:', location);
+      return;
+    }
+
     const selectedLocation: LocationData = {
       address: location.address,
       lat: location.lat,
@@ -294,7 +300,7 @@ export const UniversalLocationPicker: React.FC<UniversalLocationPickerProps> = (
         <Input
           ref={inputRef}
           type="text"
-          value={value?.address || query}
+          value={query || value?.address || ''}
           onChange={handleInputChange}
           onFocus={handleFocus}
           placeholder={finalPlaceholder}
