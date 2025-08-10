@@ -59,7 +59,7 @@ import DeliveryTracking from '@/components/delivery/DeliveryTracking';
 import ModernDeliveryInterface from '@/components/delivery/ModernDeliveryInterface';
 
 // Rental components
-import ModernVehicleRentalInterface from '@/components/rental/ModernVehicleRentalInterface';
+import FluidRentalInterface from '@/components/rental/FluidRentalInterface';
 
   // Marketplace components
   import { EnhancedMarketplaceInterface } from '@/components/marketplace/EnhancedMarketplaceInterface';
@@ -404,7 +404,7 @@ const ClientApp = () => {
     }
 
     return (
-      <ModernVehicleRentalInterface
+      <FluidRentalInterface
         onCancel={() => setCurrentView('home')}
         onBookingComplete={handleRentalBookingComplete}
       />
