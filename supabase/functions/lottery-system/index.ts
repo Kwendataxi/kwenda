@@ -152,6 +152,8 @@ async function drawLottery(body: any, supabase: any) {
     throw new Error(`Le tirage ne peut pas être déclenché (statut: ${draw.status})`);
   }
 
+  console.log(`Tirage trouvé: ${draw.name} (statut: ${draw.status})`);
+
   // Marquer le tirage comme actif
   await supabase
     .from('lottery_draws')
@@ -170,6 +172,8 @@ async function drawLottery(body: any, supabase: any) {
   if (entriesError) {
     throw new Error(`Erreur récupération participations: ${entriesError.message}`);
   }
+
+  console.log(`Participations trouvées: ${entries?.length || 0}`);
 
   if (entries.length === 0) {
     // Aucun participant, annuler le tirage
@@ -195,6 +199,8 @@ async function drawLottery(body: any, supabase: any) {
     }
   });
 
+  console.log(`Entrées pondérées: ${weightedEntries.length}`);
+
   // Sélectionner les gagnants
   const winners: any[] = [];
   const prizePool = draw.prize_pool;
@@ -215,6 +221,8 @@ async function drawLottery(body: any, supabase: any) {
       if (attempts >= 100) break; // Éviter boucle infinie
       
       selectedEntries.add(winnerEntry.id);
+      
+      console.log(`Gagnant sélectionné: ${winnerEntry.user_id} pour ${prize.prize_name}`);
       
       // Créer l'enregistrement de gain
       const { data: win, error: winError } = await supabase
