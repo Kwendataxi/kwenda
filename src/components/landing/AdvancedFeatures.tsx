@@ -16,8 +16,8 @@ const AdvancedFeatures = () => {
       id: "geolocation",
       icon: <MapPin className="w-8 h-8" />,
       title: "Géolocalisation Précise",
-      subtitle: "Optimisé pour Kinshasa",
-      description: "Navigation intelligente qui connaît chaque rue, avenue et quartier de Kinshasa. Localisation précise même dans les zones les plus reculées.",
+      subtitle: "Optimisé pour le Congo RDC",
+      description: "Navigation intelligente qui connaît chaque rue de Kinshasa, Lubumbashi et Kolwezi. Localisation précise même dans les zones les plus reculées.",
       benefits: [
         "Reconnaissance automatique des adresses",
         "Navigation optimisée pour les embouteillages",
@@ -25,7 +25,7 @@ const AdvancedFeatures = () => {
         "Mode hors-ligne pour les zones sans réseau"
       ],
       gradient: "from-primary to-primary-glow",
-      stats: { accuracy: "99%", coverage: "Tout Kinshasa", landmarks: "1000+" }
+      stats: { accuracy: "99%", coverage: "3 Villes", landmarks: "1500+" }
     },
     {
       id: "payment",
@@ -127,8 +127,8 @@ const AdvancedFeatures = () => {
             Pourquoi choisir Kwenda Taxi ?
           </h2>
           <p className="text-body-lg text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-            Une application pensée spécifiquement pour les défis et opportunités de Kinshasa,
-            avec des fonctionnalités uniques que vous ne trouverez nulle part ailleurs.
+            Une application pensée spécifiquement pour les défis et opportunités du Congo RDC,
+            avec des fonctionnalités uniques adaptées à Kinshasa, Lubumbashi et Kolwezi.
           </p>
         </div>
 

@@ -48,13 +48,13 @@ const ModernHero = () => {
                 L'Application <span className="text-primary animate-gradient bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent">Tout-en-Un</span>
                 <br />
                 <span className="bg-gradient-to-r from-secondary via-accent to-primary bg-clip-text text-transparent animate-gradient">
-                  pour Kinshasa
+                  pour le Congo RDC
                 </span>
               </h2>
               
               <p className="text-body-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto lg:mx-0 text-center lg:text-left stagger-4">
                 Transport VTC, Livraison Express, Location de Véhicules, Marketplace et Tombola - 
-                Tout ce dont vous avez besoin dans une seule application conçue pour la RDC.
+                Disponible à Kinshasa, Lubumbashi et Kolwezi. Une seule application pour tout le Congo RDC.
               </p>
             </div>
 
@@ -62,8 +62,8 @@ const ModernHero = () => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 stagger-5">
               <div className="glass rounded-xl p-4 text-center group hover:bg-primary/5 transition-all duration-300 interactive-scale">
                 <MapPin className="w-6 h-6 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <div className="text-heading-sm">Tout Kinshasa</div>
-                <div className="text-caption text-muted-foreground">Zone couverte</div>
+                <div className="text-heading-sm">3 Villes</div>
+                <div className="text-caption text-muted-foreground">Kinshasa • Lubumbashi • Kolwezi</div>
               </div>
               <div className="glass rounded-xl p-4 text-center group hover:bg-secondary/5 transition-all duration-300 interactive-scale">
                 <Clock className="w-6 h-6 text-secondary mx-auto mb-2 group-hover:scale-110 transition-transform" />

@@ -29,7 +29,7 @@ const CTASection = () => {
     {
       icon: <Store className="w-8 h-8" />,
       title: "Pour les Commerçants",
-      description: "Vendez vos produits dans tout Kinshasa avec livraison intégrée",
+      description: "Vendez vos produits dans les 3 grandes villes avec livraison intégrée",
       benefits: ["Audience élargie", "Livraison incluse", "Paiements sécurisés", "Commission faible"],
       cta: "Vendre en ligne",
       gradient: "from-accent to-primary"
@@ -74,7 +74,7 @@ const CTASection = () => {
           </h2>
           <p className="text-body-lg text-muted-foreground max-w-3xl mx-auto">
             Que vous soyez client, chauffeur ou commerçant, Kwenda Taxi a la solution parfaite pour vous. 
-            Rejoignez dès aujourd'hui la communauté qui révolutionne Kinshasa !
+            Rejoignez dès aujourd'hui la communauté qui révolutionne Kinshasa, Lubumbashi et Kolwezi !
           </p>
         </div>
 
@@ -192,7 +192,7 @@ const CTASection = () => {
               
               <p className="text-base lg:text-xl mb-6 lg:mb-8 leading-relaxed">
                 Kwenda Taxi n'est pas juste une application, c'est un mouvement pour moderniser 
-                le transport et le commerce à Kinshasa. Ensemble, construisons l'avenir de notre ville !
+                le transport et le commerce au Congo RDC. Ensemble, construisons l'avenir de Kinshasa, Lubumbashi et Kolwezi !
               </p>
 
               <div className="flex flex-col gap-3 lg:gap-4 justify-center">

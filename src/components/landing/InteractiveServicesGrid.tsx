@@ -17,7 +17,7 @@ const InteractiveServicesGrid = () => {
       id: "transport",
       icon: <Car className="w-10 h-10" />,
       title: "Transport VTC",
-      description: "Déplacements rapides et confortables dans tout Kinshasa",
+      description: "Déplacements rapides et confortables à Kinshasa, Lubumbashi & Kolwezi",
       price: "À partir de 500 CDF",
       popular: true,
       gradient: "from-primary to-primary-glow",
@@ -63,7 +63,7 @@ const InteractiveServicesGrid = () => {
       id: "marketplace",
       icon: <Store className="w-10 h-10" />,
       title: "Marketplace Kwenda",
-      description: "Achetez et vendez en toute sécurité avec livraison intégrée",
+      description: "Achetez et vendez dans les 3 grandes villes avec livraison intégrée",
       price: "Commission 3%",
       gradient: "from-primary via-accent to-secondary",
       features: [
@@ -104,7 +104,7 @@ const InteractiveServicesGrid = () => {
           </h2>
           <p className="text-body-lg text-muted-foreground max-w-4xl mx-auto leading-relaxed">
             Kwenda Taxi combine transport, livraison, location, marketplace et divertissement 
-            dans une seule application intelligente adaptée aux réalités de Kinshasa.
+            dans une seule application intelligente. Disponible à Kinshasa, Lubumbashi et Kolwezi.
           </p>
         </div>
 

@@ -20,8 +20,8 @@ const TestimonialsSection = () => {
     {
       name: "Jean-Baptiste Mukendi",
       role: "Chauffeur Partenaire",
-      location: "Lemba, Kinshasa",
-      content: "Devenir chauffeur Kwenda m'a permis d'augmenter mes revenus de 40%. Le système de commission est équitable et je reçois mes paiements rapidement sur mon portefeuille KwendaPay.",
+      location: "Lubumbashi, Haut-Katanga",
+      content: "Kwenda m'a ouvert de nouveaux horizons à Lubumbashi ! Les revenus sont stables et je peux maintenant subvenir aux besoins de ma famille. L'équipe support est fantastique.",
       rating: 5,
       service: "Partenaire Chauffeur",
       avatar: "👨🏿‍💼",
@@ -30,8 +30,8 @@ const TestimonialsSection = () => {
     {
       name: "Grâce Nzuzi",
       role: "Commerçante",
-      location: "Matete, Kinshasa",
-      content: "Grâce à la marketplace Kwenda, j'ai pu vendre mes produits dans tout Kinshasa. La livraison intégrée me fait gagner énormément de temps et mes clients sont satisfaits !",
+      location: "Kolwezi, Lualaba",
+      content: "Depuis Kolwezi, je vends maintenant dans toute la province ! Kwenda marketplace m'a connectée à des clients de Lubumbashi et même Kinshasa. Un succès incroyable !",
       rating: 5,
       service: "Marketplace",
       avatar: "👩🏿‍💼",
@@ -85,8 +85,8 @@ const TestimonialsSection = () => {
             Ce que disent nos utilisateurs
           </h2>
           <p className="text-body-lg text-muted-foreground max-w-3xl mx-auto">
-            Découvrez comment Kwenda Taxi transforme la vie quotidienne des habitants de Kinshasa,
-            qu'ils soient clients, chauffeurs ou commerçants.
+            Découvrez comment Kwenda Taxi transforme la vie quotidienne dans les 3 grandes villes du Congo :
+            Kinshasa, Lubumbashi et Kolwezi.
           </p>
         </div>
 
