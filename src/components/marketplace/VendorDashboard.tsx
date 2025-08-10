@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useVendorNotifications } from '@/hooks/useVendorNotifications';
 import { useVendorEarnings } from '@/hooks/useVendorEarnings';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Store, 
@@ -16,16 +17,22 @@ import {
   Eye,
   Edit,
   Trash2,
-  Bell
+  Bell,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TouchOptimizedInterface } from '@/components/mobile/TouchOptimizedInterface';
 import VendorNotificationBadge from './VendorNotificationBadge';
 import VendorOrderConfirmation from './VendorOrderConfirmation';
 import VendorRevenueDashboard from './VendorRevenueDashboard';
+import { MobileVendorHeader } from './mobile/MobileVendorHeader';
+import { MobileVendorStats } from './mobile/MobileVendorStats';
+import { MobileVendorTabs } from './mobile/MobileVendorTabs';
+import { MobileProductCard } from './mobile/MobileProductCard';
 
 interface VendorDashboardProps {
   onProductUpdate: () => void;
@@ -34,6 +41,7 @@ interface VendorDashboardProps {
 export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdate }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   // Use new hooks for notifications and earnings
   const { 
@@ -56,6 +64,8 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
   const [myProducts, setMyProducts] = useState<any[]>([]);
   const [ordersForConfirmation, setOrdersForConfirmation] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentTab, setCurrentTab] = useState('products');
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -63,11 +73,15 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
     }
   }, [user]);
 
-  const loadVendorData = async () => {
+  const loadVendorData = async (isRefresh = false) => {
     if (!user) return;
     
     try {
-      setLoading(true);
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       
       // Load vendor products
       const { data: products, error: productsError } = await supabase
@@ -149,6 +163,7 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
       });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -276,78 +291,144 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
     );
   };
 
-  const renderProductsTab = () => (
-    <div className="space-y-4">
-      {myProducts.map(product => (
-        <Card key={product.id}>
-          <CardContent className="p-4">
-            <div className="flex gap-4">
-              <img
-                src={Array.isArray(product.images) && product.images.length > 0 
-                  ? product.images[0] 
-                  : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=100&h=100&fit=crop'}
-                alt={product.title}
-                className="w-16 h-16 object-cover rounded-lg"
+  const renderProductsTab = () => {
+    if (isMobile) {
+      return (
+        <div className="px-4 pb-20">
+          {myProducts.length === 0 ? (
+            <Card>
+              <CardContent className="p-6 text-center">
+                <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">Aucun produit</p>
+              </CardContent>
+            </Card>
+          ) : (
+            myProducts.map(product => (
+              <MobileProductCard
+                key={product.id}
+                product={product}
+                onView={(id) => console.log('View product', id)}
+                onEdit={(id) => console.log('Edit product', id)}
+                onDelete={deleteProduct}
+                onToggleStatus={toggleProductStatus}
               />
-              
-              <div className="flex-1">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-medium">{product.title}</h3>
-                    <p className="text-sm text-muted-foreground">{product.category}</p>
-                    <p className="font-semibold text-primary">{product.price.toLocaleString()} FC</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
-                      {product.status === 'active' ? 'Actif' : 'Inactif'}
-                    </Badge>
-                    <Switch
-                      checked={product.status === 'active'}
-                      onCheckedChange={() => toggleProductStatus(product.id, product.status)}
-                    />
-                  </div>
-                </div>
+            ))
+          )}
+        </div>
+      );
+    }
 
-                <div className="flex items-center gap-2 mt-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="w-4 h-4 mr-1" />
-                    Voir
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Edit className="w-4 h-4 mr-1" />
-                    Modifier
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => deleteProduct(product.id)}
-                    className="text-destructive"
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Supprimer
-                  </Button>
+    return (
+      <div className="space-y-4">
+        {myProducts.map(product => (
+          <Card key={product.id}>
+            <CardContent className="p-4">
+              <div className="flex gap-4">
+                <img
+                  src={Array.isArray(product.images) && product.images.length > 0 
+                    ? product.images[0] 
+                    : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=100&h=100&fit=crop'}
+                  alt={product.title}
+                  className="w-16 h-16 object-cover rounded-lg"
+                />
+                
+                <div className="flex-1">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-medium">{product.title}</h3>
+                      <p className="text-sm text-muted-foreground">{product.category}</p>
+                      <p className="font-semibold text-primary">{product.price.toLocaleString()} FC</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
+                        {product.status === 'active' ? 'Actif' : 'Inactif'}
+                      </Badge>
+                      <Switch
+                        checked={product.status === 'active'}
+                        onCheckedChange={() => toggleProductStatus(product.id, product.status)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 mt-2">
+                    <Button variant="outline" size="sm">
+                      <Eye className="w-4 h-4 mr-1" />
+                      Voir
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Edit className="w-4 h-4 mr-1" />
+                      Modifier
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => deleteProduct(product.id)}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Supprimer
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
+  const renderConfirmationTab = () => (
+    <div className={isMobile ? "px-4 pb-20" : ""}>
+      <VendorOrderConfirmation 
+        orders={ordersForConfirmation}
+        onOrderUpdate={handleOrderUpdate}
+      />
     </div>
   );
 
-  const renderConfirmationTab = () => (
-    <VendorOrderConfirmation 
-      orders={ordersForConfirmation}
-      onOrderUpdate={handleOrderUpdate}
-    />
+  const renderRevenueTab = () => (
+    <div className={isMobile ? "px-4 pb-20" : ""}>
+      <VendorRevenueDashboard />
+    </div>
   );
 
-  const renderRevenueTab = () => (
-    <VendorRevenueDashboard />
-  );
+  const handleRefresh = async () => {
+    await loadVendorData(true);
+    await refetchEarnings();
+  };
+
+  const handleNotificationClick = () => {
+    setCurrentTab('notifications');
+  };
+
+  const statsData = {
+    activeProducts: myProducts.filter(p => p.status === 'active').length,
+    totalProducts: myProducts.length,
+    pendingConfirmations: ordersForConfirmation.length,
+    effectiveRevenue: summary.paid.amount,
+    pendingRevenue: summary.pending.amount + summary.confirmed.amount
+  };
 
   if (loading) {
+    if (isMobile) {
+      return (
+        <div className="min-h-screen bg-background">
+          <MobileVendorHeader title="Vendeur" />
+          <MobileVendorStats stats={statsData} loading={true} />
+          <div className="p-4 space-y-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="bg-card rounded-lg p-4 animate-pulse">
+                <div className="h-4 bg-muted rounded mb-2"></div>
+                <div className="h-3 bg-muted rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-4">
         {Array.from({ length: 4 }).map((_, index) => (
@@ -360,12 +441,128 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
     );
   }
 
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <TouchOptimizedInterface enableSwipeGestures={false}>
+        <div className="min-h-screen bg-background">
+          <MobileVendorHeader 
+            title="Tableau de bord"
+            notificationCount={unreadCount}
+            onNotificationClick={handleNotificationClick}
+          />
+
+          <MobileVendorStats stats={statsData} loading={earningsLoading} />
+
+          <div className="sticky top-14 z-30 bg-background border-b">
+            <MobileVendorTabs
+              currentTab={currentTab}
+              onTabChange={setCurrentTab}
+              confirmationCount={ordersForConfirmation.length}
+              notificationCount={unreadCount}
+              variant="horizontal"
+            />
+          </div>
+
+          <div className="min-h-[calc(100vh-180px)]">
+            {currentTab === 'products' && renderProductsTab()}
+            {currentTab === 'confirmations' && renderConfirmationTab()}
+            {currentTab === 'revenue' && renderRevenueTab()}
+            {currentTab === 'notifications' && (
+              <div className="px-4 pb-20 space-y-4">
+                {notifications.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-6 text-center">
+                      <Bell className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">Aucune notification</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  notifications.map(notification => (
+                    <Card key={notification.id} className={!notification.is_read ? 'border-primary' : ''}>
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm">{notification.title}</h4>
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                              {notification.message}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              {new Date(notification.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                          {!notification.is_read && (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => markAsRead(notification.id)}
+                              className="flex-shrink-0 ml-2"
+                            >
+                              Marquer lu
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+                
+                {unreadCount > 0 && (
+                  <div className="text-center">
+                    <Button onClick={markAllAsRead} variant="outline" className="min-h-11">
+                      Marquer tout comme lu
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Pull to refresh indicator */}
+          {refreshing && (
+            <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-50">
+              <div className="bg-background/95 backdrop-blur rounded-full p-2 shadow-lg border">
+                <RefreshCw className="w-4 h-4 animate-spin text-primary" />
+              </div>
+            </div>
+          )}
+
+          {/* Floating refresh button */}
+          <div className="fixed bottom-4 right-4 z-40">
+            <TouchOptimizedInterface>
+              <Button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="w-12 h-12 rounded-full shadow-lg"
+                size="sm"
+              >
+                <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+              </Button>
+            </TouchOptimizedInterface>
+          </div>
+        </div>
+      </TouchOptimizedInterface>
+    );
+  }
+
+  // Desktop Layout  
   return (
     <div>
       {/* Header with notification badge */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Tableau de bord vendeur</h2>
-        <VendorNotificationBadge />
+        <div className="flex items-center gap-2">
+          <Button 
+            onClick={handleRefresh}
+            disabled={refreshing}
+            variant="outline"
+            size="sm"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
+          <VendorNotificationBadge />
+        </div>
       </div>
 
       {renderStatsCards()}
