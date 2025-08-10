@@ -38,6 +38,7 @@ const NAV_ITEMS: Array<{
   { id: 'tarifs', label: 'Tarifs', icon: Tag },
   { id: 'zones', label: 'Zones', icon: MapPin },
   { id: 'dispatch', label: 'Dispatch NG', icon: Zap },
+  { id: 'location', label: 'Location', icon: Car },
   { id: 'drivers', label: 'Chauffeurs', icon: Car },
   { id: 'users', label: 'Utilisateurs', icon: Users },
   { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },

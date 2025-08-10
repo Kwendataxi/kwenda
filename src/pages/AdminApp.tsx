@@ -23,6 +23,7 @@ import { AdvancedSupportCenter } from '@/components/admin/AdvancedSupportCenter'
 import { ModernZoneManagementDashboard } from '@/components/admin/zones/ModernZoneManagementDashboard';
 import { PromotionalAdsManager } from '@/components/admin/PromotionalAdsManager';
 import { AdminLotteryDashboard } from '@/components/admin/AdminLotteryDashboard';
+import { AdminRentalManager } from '@/components/admin/AdminRentalManager';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -170,6 +171,12 @@ const AdminApp = () => {
       <TabsContent value="support" className="space-y-6">
         <PermissionGuard requiredPermissions={['support_admin']}>
           <AdvancedSupportCenter />
+        </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="location" className="space-y-6">
+        <PermissionGuard requiredPermissions={['transport_admin']}>
+          <AdminRentalManager />
         </PermissionGuard>
       </TabsContent>
 
