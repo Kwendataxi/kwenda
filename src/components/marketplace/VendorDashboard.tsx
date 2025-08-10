@@ -29,6 +29,7 @@ import { TouchOptimizedInterface } from '@/components/mobile/TouchOptimizedInter
 import VendorNotificationBadge from './VendorNotificationBadge';
 import VendorOrderConfirmation from './VendorOrderConfirmation';
 import VendorOrderStepsManager from './VendorOrderStepsManager';
+import MultiOrderStepsManager from './MultiOrderStepsManager';
 import VendorRevenueDashboard from './VendorRevenueDashboard';
 import { MobileVendorHeader } from './mobile/MobileVendorHeader';
 import { MobileVendorStats } from './mobile/MobileVendorStats';
@@ -396,7 +397,7 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
           />
           
           {confirmedOrders.length > 0 && (
-            <VendorOrderStepsManager
+            <MultiOrderStepsManager
               orders={confirmedOrders}
               onOrderUpdate={handleOrderUpdate}
             />
