@@ -62,6 +62,22 @@ serve(async (req) => {
         updateData.completed_at = new Date().toISOString()
         updateData.payment_status = 'completed'
         break
+      case 'cancelled':
+      case 'rejected':
+        // Gérer l'annulation/refus de commande
+        updateData.payment_status = 'refunded'
+        updateData.revenue_status = 'cancelled'
+        if (metadata.rejection_reason) {
+          updateData.vendor_rejection_reason = metadata.rejection_reason
+        }
+        if (newStatus === 'rejected') {
+          updateData.vendor_confirmation_status = 'rejected'
+        }
+        console.log(`Order ${orderId} ${newStatus} with reason:`, metadata.rejection_reason || 'No reason provided')
+        break
+      default:
+        console.warn(`Status ${newStatus} not specifically handled, updating status only`)
+        break
     }
 
     // Calculer l'estimation de livraison
