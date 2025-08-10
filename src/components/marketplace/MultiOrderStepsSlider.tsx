@@ -397,9 +397,28 @@ export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) 
                              {Number(order.total_amount).toLocaleString()} FC
                            </p>
                          </div>
-                       </div>
+                        </div>
 
-                       {/* Self-delivery option */}
+                        {/* Delivery address - Only for delivery orders */}
+                        {order.delivery_method === 'delivery' && (
+                          <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-muted-foreground" />
+                              <h6 className="text-sm font-medium text-foreground">Adresse de livraison</h6>
+                            </div>
+                            {order.delivery_address ? (
+                              <p className="text-sm text-muted-foreground leading-relaxed pl-6">
+                                {order.delivery_address}
+                              </p>
+                            ) : (
+                              <p className="text-sm text-muted-foreground italic pl-6">
+                                Adresse non spécifiée
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Self-delivery option */}
                        {order.delivery_method === 'delivery' && order.status === 'ready_for_pickup' && (
                          <VendorSelfDeliveryButton
                            orderId={order.id}
