@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Ticket, Gift } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Ticket, Gift, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useLottery } from '@/hooks/useLottery';
 import { NOTIFICATION_CONFIG } from '@/config/notificationConfig';
@@ -29,55 +28,62 @@ export const LotteryTicketFloater = ({ onOpenLottery }: LotteryTicketFloaterProp
 
   if (loading) return null;
 
+  // Ne pas afficher si pas de tickets et pas de gains
+  if (availableTickets === 0 && unclaimedWins === 0) return null;
+
   return (
-    <div className="fixed bottom-24 right-4 z-40">
-      <Button
+    <div className="fixed top-4 right-4 z-50">
+      <div
         onClick={onOpenLottery}
-        size="lg"
         className={`
-          relative h-14 px-4 bg-gradient-to-r from-purple-500 to-pink-500 
-          hover:from-purple-600 hover:to-pink-600 text-white shadow-xl
-          transition-all duration-300 hover:scale-105 rounded-2xl
-          ${animate ? 'animate-bounce' : ''}
+          relative cursor-pointer group
+          h-8 px-3 rounded-full
+          backdrop-blur-xl bg-gradient-to-r from-primary/20 to-accent/20
+          border border-white/20 shadow-lg
+          transition-all duration-500 ease-out
+          hover:scale-110 hover:shadow-xl hover:shadow-primary/25
+          ${animate ? 'animate-pulse' : availableTickets > 0 ? 'animate-pulse-glow' : ''}
+          ${availableTickets === 0 ? 'opacity-60' : 'opacity-95'}
         `}
       >
-        <div className="flex items-center gap-3">
+        {/* Contenu principal */}
+        <div className="flex items-center gap-2 h-full">
           <div className="relative">
-            <Ticket className="h-6 w-6" />
+            <Ticket className="h-3.5 w-3.5 text-primary-foreground" />
+            
+            {/* Animation burst pour nouveaux tickets */}
             {animate && (
-              <div className="absolute inset-0 bg-white/30 rounded-full animate-ping" />
+              <>
+                <div className="absolute inset-0 animate-ping">
+                  <Sparkles className="h-3.5 w-3.5 text-yellow-400" />
+                </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse opacity-30" />
+              </>
             )}
           </div>
           
-          <div className="text-left">
-            <div className="text-sm font-bold">Tombola</div>
-            <div className="text-xs opacity-90">
-              {availableTickets} ticket{availableTickets !== 1 ? 's' : ''}
-            </div>
-          </div>
+          <span className="text-xs font-bold text-primary-foreground leading-none">
+            {availableTickets}
+          </span>
         </div>
 
-        {/* Badge pour nouveaux tickets */}
-        {animate && (
-          <Badge 
-            variant="secondary" 
-            className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 animate-pulse"
-          >
-            Nouveau!
-          </Badge>
-        )}
-
-        {/* Badge pour gains non réclamés */}
+        {/* Badge gains non réclamés - position optimisée */}
         {unclaimedWins > 0 && (
-          <div className="absolute -top-2 -left-2 bg-gradient-to-r from-green-400 to-green-600 text-white rounded-full min-w-[24px] h-6 flex items-center justify-center text-xs font-bold animate-pulse">
-            <Gift className="h-3 w-3 mr-1" />
-            {unclaimedWins}
+          <div className="absolute -top-1 -right-1 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-full min-w-[16px] h-4 flex items-center justify-center">
+            <Gift className="h-2 w-2" />
           </div>
         )}
 
-        {/* Effet de lueur */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur-xl -z-10" />
-      </Button>
+        {/* Effet glassmorphism glow */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/10 to-accent/10 blur-sm -z-10 group-hover:blur-md transition-all duration-300" />
+        
+        {/* Particle effect sur hover */}
+        <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <Sparkles className="h-2 w-2 text-yellow-400 animate-spin" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

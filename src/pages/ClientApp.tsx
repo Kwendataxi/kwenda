@@ -661,12 +661,10 @@ const ClientApp = () => {
         favoritesCount={0} // TODO: Connect to favorites count
       />
       
-      {/* Lottery Ticket Floater - Home only */}
-      {currentView === 'home' && (
-        <LotteryTicketFloater 
-          onOpenLottery={() => setCurrentView('lottery')}
-        />
-      )}
+      {/* Lottery Ticket Floater - Omniprésent et discret */}
+      <LotteryTicketFloater 
+        onOpenLottery={() => setCurrentView('lottery')}
+      />
       
       {/* Lottery Notifications */}
       {notifications.map((notification) => (
