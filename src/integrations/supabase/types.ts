@@ -123,81 +123,39 @@ export type Database = {
       }
       admin_notifications: {
         Row: {
-          content: string
           created_at: string
-          failed_sends: number | null
+          data: Json | null
           id: string
-          metadata: Json | null
-          priority: string
-          scheduled_for: string | null
-          sender_id: string
-          sent_at: string | null
-          status: string
-          successful_sends: number | null
-          target_criteria: Json | null
-          target_type: string
-          template_id: string | null
+          is_read: boolean
+          message: string
+          severity: string
           title: string
-          total_recipients: number | null
-          type_id: string
+          type: string
           updated_at: string
         }
         Insert: {
-          content: string
           created_at?: string
-          failed_sends?: number | null
+          data?: Json | null
           id?: string
-          metadata?: Json | null
-          priority?: string
-          scheduled_for?: string | null
-          sender_id: string
-          sent_at?: string | null
-          status?: string
-          successful_sends?: number | null
-          target_criteria?: Json | null
-          target_type: string
-          template_id?: string | null
+          is_read?: boolean
+          message: string
+          severity?: string
           title: string
-          total_recipients?: number | null
-          type_id: string
+          type?: string
           updated_at?: string
         }
         Update: {
-          content?: string
           created_at?: string
-          failed_sends?: number | null
+          data?: Json | null
           id?: string
-          metadata?: Json | null
-          priority?: string
-          scheduled_for?: string | null
-          sender_id?: string
-          sent_at?: string | null
-          status?: string
-          successful_sends?: number | null
-          target_criteria?: Json | null
-          target_type?: string
-          template_id?: string | null
+          is_read?: boolean
+          message?: string
+          severity?: string
           title?: string
-          total_recipients?: number | null
-          type_id?: string
+          type?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "admin_notifications_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "admin_notification_templates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "admin_notifications_type_id_fkey"
-            columns: ["type_id"]
-            isOneToOne: false
-            referencedRelation: "admin_notification_types"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       challenge_rewards: {
         Row: {
@@ -3843,15 +3801,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_notifications_admin_notification_id_fkey"
-            columns: ["admin_notification_id"]
-            isOneToOne: false
-            referencedRelation: "admin_notifications"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_places: {
         Row: {

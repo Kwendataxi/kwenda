@@ -19,20 +19,11 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-interface AdminNotification {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  severity: 'info' | 'warning' | 'error' | 'success';
-  data?: any;
-  read: boolean;
-  created_at: string;
-}
+import { AdminSystemNotification } from '@/types/adminNotifications';
 
 export default function AdminNotifications() {
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+  const [notifications, setNotifications] = useState<AdminSystemNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread' | 'urgent'>('all');
 
@@ -45,7 +36,10 @@ export default function AdminNotifications() {
         .limit(50);
 
       if (error) throw error;
-      setNotifications(data || []);
+      setNotifications((data || []).map(item => ({
+        ...item,
+        severity: item.severity as AdminSystemNotification['severity']
+      })));
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast({
@@ -62,14 +56,14 @@ export default function AdminNotifications() {
     try {
       const { error } = await supabase
         .from('admin_notifications')
-        .update({ read: true })
+        .update({ is_read: true })
         .eq('id', notificationId);
 
       if (error) throw error;
 
       setNotifications(prev => 
         prev.map(notif => 
-          notif.id === notificationId ? { ...notif, read: true } : notif
+          notif.id === notificationId ? { ...notif, is_read: true } : notif
         )
       );
     } catch (error) {
@@ -79,17 +73,17 @@ export default function AdminNotifications() {
 
   const markAllAsRead = async () => {
     try {
-      const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
+      const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
       
       const { error } = await supabase
         .from('admin_notifications')
-        .update({ read: true })
+        .update({ is_read: true })
         .in('id', unreadIds);
 
       if (error) throw error;
 
       setNotifications(prev => 
-        prev.map(notif => ({ ...notif, read: true }))
+        prev.map(notif => ({ ...notif, is_read: true }))
       );
 
       toast({
@@ -154,7 +148,7 @@ export default function AdminNotifications() {
   const filteredNotifications = notifications.filter(notification => {
     switch (filter) {
       case 'unread':
-        return !notification.read;
+        return !notification.is_read;
       case 'urgent':
         return notification.severity === 'error' || notification.severity === 'warning';
       default:
@@ -162,9 +156,9 @@ export default function AdminNotifications() {
     }
   });
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.is_read).length;
   const urgentCount = notifications.filter(n => 
-    (n.severity === 'error' || n.severity === 'warning') && !n.read
+    (n.severity === 'error' || n.severity === 'warning') && !n.is_read
   ).length;
 
   useEffect(() => {
@@ -290,7 +284,7 @@ export default function AdminNotifications() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   className={`p-3 rounded-lg border transition-all duration-200 ${
-                    notification.read 
+                    notification.is_read 
                       ? 'bg-muted/30 border-border/50' 
                       : 'bg-background border-primary/20 shadow-sm'
                   }`}
@@ -309,7 +303,7 @@ export default function AdminNotifications() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className={`text-sm font-medium truncate ${
-                            notification.read ? 'text-muted-foreground' : 'text-foreground'
+                            notification.is_read ? 'text-muted-foreground' : 'text-foreground'
                           }`}>
                             {notification.title}
                           </h4>
@@ -319,13 +313,13 @@ export default function AdminNotifications() {
                           >
                             {notification.severity}
                           </Badge>
-                          {!notification.read && (
+                          {!notification.is_read && (
                             <div className="w-2 h-2 bg-primary rounded-full"></div>
                           )}
                         </div>
 
                         <p className={`text-xs mb-2 ${
-                          notification.read ? 'text-muted-foreground' : 'text-foreground'
+                          notification.is_read ? 'text-muted-foreground' : 'text-foreground'
                         }`}>
                           {notification.message}
                         </p>
@@ -345,7 +339,7 @@ export default function AdminNotifications() {
                     </div>
 
                     <div className="flex items-center gap-1">
-                      {!notification.read && (
+                      {!notification.is_read && (
                         <Button
                           variant="ghost"
                           size="sm"

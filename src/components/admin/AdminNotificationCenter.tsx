@@ -148,14 +148,15 @@ export const AdminNotificationCenter: React.FC = () => {
   };
 
   const loadNotifications = async () => {
-    const { data, error } = await supabase
-      .from('admin_notifications')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(50);
+    // Temporarily disabled to avoid conflicts with admin_notifications table
+    // const { data, error } = await supabase
+    //   .from('admin_notifications')
+    //   .select('*')
+    //   .order('created_at', { ascending: false })
+    //   .limit(50);
 
-    if (error) throw error;
-    setNotifications(data || []);
+    // if (error) throw error;
+    setNotifications([]);
   };
 
   const loadStats = async () => {

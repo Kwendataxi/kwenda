@@ -452,8 +452,8 @@ export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) 
                                      className="bg-gradient-primary hover:shadow-glow transition-all duration-300 text-white font-medium"
                                      size="sm"
                                    >
-                                     {processing.includes(order.id) ? (
-                                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                      {processing.includes(order.id) ? (
+                                       <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                     ) : (
                                       step.action.label
                                     )}
@@ -467,25 +467,26 @@ export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) 
 
                       {/* Quick action if available */}
                       {nextAction && (
-                        <div className="bg-gradient-card rounded-xl p-4 border border-primary/20">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-body-sm font-medium text-foreground">
-                                Prochaine action recommandée
-                              </p>
-                              <p className="text-caption text-muted-foreground">
-                                {nextAction.action?.label}
-                              </p>
-                            </div>
-                            <Button
-                              onClick={nextAction.action?.onClick}
-                              disabled={processing.includes(order.id)}
-                              className="bg-gradient-primary hover:shadow-glow transition-all duration-300 text-white font-semibold"
-                            >
-                              <ChevronRight className="h-4 w-4 ml-1" />
-                            </Button>
-                          </div>
-                        </div>
+                         <div className="bg-gradient-card rounded-lg p-2 border border-primary/20">
+                           <div className="flex items-center justify-between">
+                             <div>
+                               <p className="text-xs font-medium text-foreground">
+                                 Prochaine action
+                               </p>
+                               <p className="text-xs text-muted-foreground">
+                                 {nextAction.action?.label}
+                               </p>
+                             </div>
+                             <Button
+                               onClick={nextAction.action?.onClick}
+                               disabled={processing.includes(order.id)}
+                               className="bg-gradient-primary hover:shadow-glow transition-all duration-300 text-white font-medium"
+                               size="sm"
+                             >
+                               <ChevronRight className="h-3 w-3 ml-1" />
+                             </Button>
+                           </div>
+                         </div>
                       )}
                     </div>
                   </motion.div>
@@ -509,29 +510,29 @@ export default function MultiOrderStepsSlider({ orders, onOrderUpdate }: Props) 
           )}
         </Carousel>
 
-        {/* Quick navigation */}
-        {filteredOrders.length > 1 && (
-          <div className="flex justify-center gap-2 mt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentOrderIndex(Math.max(0, currentOrderIndex - 1))}
-              disabled={currentOrderIndex === 0}
-              className="flex items-center gap-2"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Précédente
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentOrderIndex(Math.min(filteredOrders.length - 1, currentOrderIndex + 1))}
-              disabled={currentOrderIndex === filteredOrders.length - 1}
-              className="flex items-center gap-2"
-            >
-              Suivante
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+         {/* Quick navigation */}
+         {filteredOrders.length > 1 && (
+           <div className="flex justify-center gap-2 mt-2">
+             <Button
+               variant="outline"
+               size="sm"
+               onClick={() => setCurrentOrderIndex(Math.max(0, currentOrderIndex - 1))}
+               disabled={currentOrderIndex === 0}
+               className="flex items-center gap-1 text-xs"
+             >
+               <ChevronLeft className="h-3 w-3" />
+               Précédente
+             </Button>
+             <Button
+               variant="outline"
+               size="sm"
+               onClick={() => setCurrentOrderIndex(Math.min(filteredOrders.length - 1, currentOrderIndex + 1))}
+               disabled={currentOrderIndex === filteredOrders.length - 1}
+               className="flex items-center gap-1 text-xs"
+             >
+               Suivante
+               <ChevronRight className="h-3 w-3" />
+             </Button>
           </div>
         )}
       </div>
