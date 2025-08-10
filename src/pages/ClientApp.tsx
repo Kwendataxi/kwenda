@@ -17,6 +17,7 @@ import OfflineMode from '@/components/advanced/OfflineMode';
 import SecurityVerification from '@/components/advanced/SecurityVerification';
 import { ResponsiveUserProfile } from '@/components/profile/ResponsiveUserProfile';
 import { ModernHomeScreen } from '@/components/home/ModernHomeScreen';
+import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
 import { 
   MapPin, 
   Car, 
@@ -641,31 +642,14 @@ const ClientApp = () => {
       {/* Marketplace components now handled by EnhancedMarketplaceInterface */}
       
 
-      {/* Fixed Bottom Navigation - Only show for non-marketplace */}
+      {/* Modern Bottom Navigation - Only show for non-marketplace */}
       {serviceType !== 'marketplace' && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-grey-100 z-50">
-          <div className="px-6 py-4 flex justify-around max-w-md mx-auto">
-            {[
-              { icon: Home, label: "Accueil", key: "home" },
-              ...(currentView === 'home' ? [{ icon: Zap, label: "Tombola", key: "lottery" }] : []),
-              { icon: Activity, label: "Activité", key: "activity" },
-              { icon: User, label: "Compte", key: "profil" },
-            ].map((item) => (
-              <button
-                key={item.key}
-                onClick={() => setCurrentView(item.key)}
-                className={`flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-200 ${
-                  currentView === item.key 
-                    ? 'text-grey-900 bg-grey-100' 
-                    : 'text-grey-500 hover:text-grey-700 hover:bg-grey-50'
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="text-xs font-medium">{item.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+        <ModernBottomNavigation
+          activeTab={currentView}
+          onTabChange={setCurrentView}
+          notificationCount={0} // TODO: Connect to real notifications
+          favoritesCount={0} // TODO: Connect to favorites count
+        />
       )}
       
       {/* Lottery Ticket Floater - Home only */}
