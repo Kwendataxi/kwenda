@@ -27,16 +27,20 @@ export const MarketplacePreview = ({
 }: MarketplacePreviewProps) => {
   const { t } = useLanguage();
   return (
-    <div className="px-4 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-foreground">{t('home.marketplace.trending')}</h3>
+    <div className="px-4 mb-4">
+      {/* Section header simplifiée */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <ShoppingBag className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">Marketplace</h3>
+        </div>
         <Button 
           variant="ghost" 
           size="sm" 
-          className="text-primary"
+          className="text-primary hover:bg-primary/5"
           onClick={onViewAll}
         >
-          {t('home.marketplace.view_all')}
+          Explorer
           <ArrowRight className="h-4 w-4 ml-1" />
         </Button>
       </div>
