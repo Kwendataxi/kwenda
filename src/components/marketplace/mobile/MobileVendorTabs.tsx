@@ -18,6 +18,7 @@ interface MobileVendorTabsProps {
   confirmationCount?: number;
   notificationCount?: number;
   variant?: 'bottom' | 'horizontal';
+  showLabels?: boolean;
 }
 
 export const MobileVendorTabs: React.FC<MobileVendorTabsProps> = ({
@@ -25,7 +26,8 @@ export const MobileVendorTabs: React.FC<MobileVendorTabsProps> = ({
   onTabChange,
   confirmationCount = 0,
   notificationCount = 0,
-  variant = 'horizontal'
+  variant = 'horizontal',
+  showLabels = false
 }) => {
   const tabs: TabItem[] = [
     {
@@ -68,10 +70,10 @@ export const MobileVendorTabs: React.FC<MobileVendorTabsProps> = ({
                     isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground'
                   }`}
                   onClick={() => onTabChange(tab.id)}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="text-xs">{tab.label}</span>
-                  {tab.badge && tab.badge > 0 && (
+                 >
+                   <Icon className="w-5 h-5" />
+                   {showLabels && <span className="text-xs">{tab.label}</span>}
+                   {tab.badge && tab.badge > 0 && (
                     <Badge 
                       variant="destructive" 
                       className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center"
@@ -97,14 +99,14 @@ export const MobileVendorTabs: React.FC<MobileVendorTabsProps> = ({
           
           return (
             <TouchOptimizedInterface key={tab.id}>
-              <Button
-                variant={isActive ? 'default' : 'outline'}
-                size="sm"
-                className="relative whitespace-nowrap min-h-11"
-                onClick={() => onTabChange(tab.id)}
-              >
-                <Icon className="w-4 h-4 mr-2" />
-                {tab.label}
+               <Button
+                 variant={isActive ? 'default' : 'outline'}
+                 size={showLabels ? "sm" : "icon"}
+                 className={`relative ${showLabels ? 'whitespace-nowrap min-h-11' : 'h-11 w-11'}`}
+                 onClick={() => onTabChange(tab.id)}
+               >
+                 <Icon className={`w-4 h-4 ${showLabels ? 'mr-2' : ''}`} />
+                 {showLabels && tab.label}
                 {tab.badge && tab.badge > 0 && (
                   <Badge 
                     variant="destructive" 
