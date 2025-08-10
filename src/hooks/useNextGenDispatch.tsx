@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { intelligentDispatch } from '@/services/intelligentDispatchService';
 import { robustNotifications } from '@/services/robustNotificationService';
-import { advancedGeoLocation } from '@/services/advancedGeolocation';
+import { useMasterLocation } from '@/hooks/useMasterLocation';
 import { toast } from 'sonner';
 
 interface NextGenDispatchState {
@@ -42,54 +42,43 @@ export const useNextGenDispatch = () => {
     error: null
   });
 
-  // Initialiser la géolocalisation avancée
+  // Utiliser MasterLocation unifié
+  const {
+    location: masterLocation,
+    loading: locationLoading,
+    error: locationError,
+    getCurrentPosition,
+    hasLocation,
+    isHighAccuracy
+  } = useMasterLocation({
+    autoDetectLocation: true,
+    enableHighAccuracy: true,
+    fallbackToIP: true,
+    fallbackToDatabase: true
+  });
+
+  // Synchroniser l'état avec MasterLocation
   useEffect(() => {
-    const initializeLocation = async () => {
-      try {
-        const position = await advancedGeoLocation.getCurrentPosition({
-          enableHighAccuracy: true,
-          timeout: 10000,
-          fallbackToIP: true
-        });
-
-        setState(prev => ({
-          ...prev,
-          currentLocation: {
-            lat: position.latitude,
-            lng: position.longitude
-          },
-          city: position.city || null
-        }));
-
-        // Commencer la surveillance continue
-        advancedGeoLocation.startWatching((position) => {
-          setState(prev => ({
-            ...prev,
-            currentLocation: {
-              lat: position.latitude,
-              lng: position.longitude
-            },
-            city: position.city || prev.city
-          }));
-        });
-
-        toast.success(`Localisation détectée: ${position.city || 'Zone inconnue'}`);
-
-      } catch (error: any) {
-        console.error('Erreur géolocalisation:', error);
-        setState(prev => ({
-          ...prev,
-          error: 'Impossible de localiser votre position'
-        }));
-      }
-    };
-
-    initializeLocation();
-
-    return () => {
-      advancedGeoLocation.stopWatching();
-    };
-  }, []);
+    if (masterLocation) {
+      setState(prev => ({
+        ...prev,
+        currentLocation: {
+          lat: masterLocation.lat,
+          lng: masterLocation.lng
+        },
+        city: masterLocation.address.split(',')[0] || null,
+        loading: false
+      }));
+    }
+    
+    if (locationError) {
+      setState(prev => ({
+        ...prev,
+        error: locationError,
+        loading: false
+      }));
+    }
+  }, [masterLocation, locationError]);
 
   // Lancer une recherche de chauffeurs intelligente
   const searchDrivers = useCallback(async (request: DispatchRequest) => {
@@ -256,8 +245,8 @@ export const useNextGenDispatch = () => {
       return {
         dispatch: dispatchMetrics,
         notifications: notificationMetrics,
-        location_accuracy: advancedGeoLocation.getCurrentAccuracy(),
-        is_high_accuracy: advancedGeoLocation.isHighAccuracy()
+        location_accuracy: masterLocation?.accuracy || 0,
+        is_high_accuracy: isHighAccuracy
       };
     } catch (error) {
       console.error('Erreur métriques:', error);
@@ -306,8 +295,8 @@ export const useNextGenDispatch = () => {
     getPriceEstimate,
     
     // Status
-    hasLocation: !!state.currentLocation,
-    isHighAccuracy: advancedGeoLocation.isHighAccuracy(),
+    hasLocation: hasLocation,
+    isHighAccuracy: isHighAccuracy,
     retryQueueSize: robustNotifications.getRetryQueueSize()
   };
 };

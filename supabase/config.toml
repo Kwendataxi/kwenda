@@ -5,3 +5,9 @@ verify_jwt = true
 
 [functions.delivery-dispatcher]
 verify_jwt = true
+
+[functions.geocode-proxy]
+verify_jwt = false
+
+[functions.push-notifications]
+verify_jwt = true

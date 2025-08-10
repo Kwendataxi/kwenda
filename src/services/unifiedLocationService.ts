@@ -189,8 +189,8 @@ class UnifiedLocationService {
       if (ipLocation) {
         const locationData: LocationData = {
           address: 'Position estimée (IP)',
-          lat: ipLocation.lat,
-          lng: ipLocation.lng,
+          lat: ipLocation.latitude,
+          lng: ipLocation.longitude,
           type: 'ip',
           accuracy: 10000 // IP accuracy is low
         };

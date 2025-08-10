@@ -219,8 +219,8 @@ class MasterLocationService {
 
     const locationData: LocationData = {
       address: 'Position estimée via IP',
-      lat: ipLocation.lat,
-      lng: ipLocation.lng,
+      lat: ipLocation.latitude,
+      lng: ipLocation.longitude,
       type: 'ip',
       accuracy: 10000
     };

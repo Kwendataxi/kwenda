@@ -7,12 +7,15 @@ export const NOTIFICATION_CONFIG = {
   CRITICAL_DURATION: 1500, // Pour notifications critiques
   INFO_DURATION: 2000,     // Pour notifications informatives
   
-  // Durées spécifiques par type
-  TOAST_REMOVE_DELAY: 2000,               // Shadcn Toast
-  LOTTERY_NOTIFICATION_DURATION: 2000,    // Notifications loterie
-  LOTTERY_ANIMATION_DURATION: 2000,       // Animations tickets
-  ADMIN_NOTIFICATION_DURATION: 2000,      // Notifications admin
-  RIDE_REQUEST_TIMEOUT: 60000,            // Timeout demandes course (60s)
+  // Timeouts spécifiques
+  RIDE_REQUEST_TIMEOUT: 30000, // 30 secondes pour répondre à une course
+  DELIVERY_REQUEST_TIMEOUT: 25000, // 25 secondes pour livraison
+  MARKETPLACE_ORDER_TIMEOUT: 60000, // 1 minute pour commande marketplace
+  
+  // Durées spéciales
+  LOTTERY_NOTIFICATION_DURATION: 3000, // Notification loterie
+  LOTTERY_ANIMATION_DURATION: 1000,    // Animation ticket
+  CHALLENGE_NOTIFICATION_DURATION: 2500, // Notification défi
   
   // Durées des animations (en millisecondes)
   ANIMATION: {
