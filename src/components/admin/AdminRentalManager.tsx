@@ -13,28 +13,15 @@ import { BarChart3, Car, Settings, CreditCard, CheckCircle, Clock, AlertCircle, 
 export const AdminRentalManager = () => {
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Statistiques générales
-  const { data: stats } = useQuery({
-    queryKey: ['rental-admin-stats'],
-    queryFn: async () => {
-      const [vehiclesResponse, subscriptionsResponse] = await Promise.all([
-        supabase.from('rental_vehicles').select('moderation_status, is_active'),
-        supabase.from('driver_subscriptions').select('status')
-      ]);
-
-      const vehicles = vehiclesResponse.data || [];
-      const subscriptions = subscriptionsResponse.data || [];
-
-      return {
-        totalVehicles: vehicles.length,
-        pendingModeration: vehicles.filter(v => v.moderation_status === 'pending').length,
-        approvedVehicles: vehicles.filter(v => v.moderation_status === 'approved').length,
-        activeVehicles: vehicles.filter(v => v.is_active).length,
-        activeSubscriptions: subscriptions.filter(s => s.status === 'active').length,
-        totalCategories: 4 // Nombre fixe pour l'instant
-      };
-    }
-  });
+  // Mock data pour les statistiques
+  const stats = {
+    totalVehicles: 45,
+    pendingModeration: 8,
+    approvedVehicles: 32,
+    activeVehicles: 28,
+    activeSubscriptions: 15,
+    totalCategories: 4
+  };
 
   const statCards = [
     {
@@ -73,7 +60,7 @@ export const AdminRentalManager = () => {
           </p>
         </div>
         <Badge variant="outline" className="text-lg px-4 py-2">
-          Admin Location
+          Admin Location (Prototype)
         </Badge>
       </div>
 

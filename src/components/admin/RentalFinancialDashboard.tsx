@@ -10,114 +10,36 @@ import { DollarSign, TrendingUp, Users, Calendar, Car, Target } from 'lucide-rea
 export const RentalFinancialDashboard = () => {
   const [timeRange, setTimeRange] = useState('30');
 
-  // Statistiques générales des revenus
-  const { data: revenueStats } = useQuery({
-    queryKey: ['rental-revenue-stats', timeRange],
-    queryFn: async () => {
-      const daysAgo = new Date();
-      daysAgo.setDate(daysAgo.getDate() - parseInt(timeRange));
-      
-      const { data: subscriptions, error } = await supabase
-        .from('driver_subscriptions')
-        .select(`
-          *,
-          subscription_plans(name, price, currency)
-        `)
-        .gte('created_at', daysAgo.toISOString());
+  // Mock data pour les statistiques financières
+  const revenueStats = {
+    totalRevenue: 2450000,
+    activeSubscriptions: 15,
+    totalSubscriptions: 18,
+    conversionRate: 83.3,
+    revenueByCategory: [
+      { name: 'ECO', value: 980000 },
+      { name: 'PREMIUM', value: 857500 },
+      { name: 'FIRST CLASS', value: 490000 },
+      { name: 'UTILITAIRES', value: 122500 }
+    ]
+  };
 
-      if (error) throw error;
+  // Mock data pour les séries temporelles
+  const timeSeriesData = [
+    { date: '2024-01-01', revenue: 145000, subscriptions: 3 },
+    { date: '2024-01-02', revenue: 200000, subscriptions: 4 },
+    { date: '2024-01-03', revenue: 175000, subscriptions: 2 },
+    { date: '2024-01-04', revenue: 320000, subscriptions: 6 },
+    { date: '2024-01-05', revenue: 280000, subscriptions: 5 }
+  ];
 
-      const totalRevenue = subscriptions?.reduce((sum, sub) => 
-        sum + (sub.subscription_plans?.price || 0), 0) || 0;
-      
-      const activeSubscriptions = subscriptions?.filter(sub => sub.status === 'active').length || 0;
-      const totalSubscriptions = subscriptions?.length || 0;
-      
-      return {
-        totalRevenue,
-        activeSubscriptions,
-        totalSubscriptions,
-        conversionRate: totalSubscriptions > 0 ? (activeSubscriptions / totalSubscriptions) * 100 : 0,
-        revenueByCategory: [
-          { name: 'ECO', value: totalRevenue * 0.4 },
-          { name: 'PREMIUM', value: totalRevenue * 0.35 },
-          { name: 'FIRST CLASS', value: totalRevenue * 0.2 },
-          { name: 'UTILITAIRES', value: totalRevenue * 0.05 }
-        ]
-      };
-    }
-  });
-
-  // Données temporelles pour les graphiques
-  const { data: timeSeriesData } = useQuery({
-    queryKey: ['rental-time-series', timeRange],
-    queryFn: async () => {
-      const daysAgo = new Date();
-      daysAgo.setDate(daysAgo.getDate() - parseInt(timeRange));
-      
-      const { data: subscriptions, error } = await supabase
-        .from('driver_subscriptions')
-        .select(`
-          created_at,
-          subscription_plans(price, currency)
-        `)
-        .gte('created_at', daysAgo.toISOString())
-        .order('created_at');
-
-      if (error) throw error;
-
-      // Grouper par jour
-      const dailyRevenue = subscriptions?.reduce((acc: any, sub) => {
-        const date = new Date(sub.created_at).toISOString().split('T')[0];
-        const price = sub.subscription_plans?.price || 0;
-        
-        if (!acc[date]) {
-          acc[date] = { date, revenue: 0, subscriptions: 0 };
-        }
-        acc[date].revenue += price;
-        acc[date].subscriptions += 1;
-        return acc;
-      }, {});
-
-      return Object.values(dailyRevenue || {});
-    }
-  });
-
-  // Top partenaires par revenus
-  const { data: topPartners } = useQuery({
-    queryKey: ['rental-top-partners', timeRange],
-    queryFn: async () => {
-      const daysAgo = new Date();
-      daysAgo.setDate(daysAgo.getDate() - parseInt(timeRange));
-      
-      const { data: subscriptions, error } = await supabase
-        .from('driver_subscriptions')
-        .select(`
-          driver_id,
-          subscription_plans(price, currency)
-        `)
-        .gte('created_at', daysAgo.toISOString());
-
-      if (error) throw error;
-
-      const partnerRevenue = subscriptions?.reduce((acc: any, sub) => {
-        const partnerId = sub.driver_id;
-        const price = sub.subscription_plans?.price || 0;
-        const name = `Chauffeur ${partnerId?.slice(0, 8)}`;
-        
-        if (!acc[partnerId]) {
-          acc[partnerId] = { name, revenue: 0, subscriptions: 0 };
-        }
-        acc[partnerId].revenue += price;
-        acc[partnerId].subscriptions += 1;
-        return acc;
-      }, {});
-
-      return Object.values(partnerRevenue || {})
-        .sort((a: any, b: any) => b.revenue - a.revenue)
-        .slice(0, 10);
-    }
-  });
+  // Mock data pour les top partenaires
+  const topPartners = [
+    { name: 'Partenaire Premium Auto', revenue: 485000, subscriptions: 8 },
+    { name: 'Congo Fleet Services', revenue: 320000, subscriptions: 5 },
+    { name: 'Kinshasa Transport Plus', revenue: 290000, subscriptions: 4 },
+    { name: 'Eco Vehicles RDC', revenue: 215000, subscriptions: 3 }
+  ];
 
   const statCards = [
     {
