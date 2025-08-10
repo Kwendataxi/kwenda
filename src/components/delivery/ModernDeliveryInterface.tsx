@@ -15,6 +15,8 @@ import { useEnhancedDeliveryOrders, type DeliveryOrderData } from '@/hooks/useEn
 import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
 import { LocationData } from '@/services/MasterLocationService';
 import { formatCurrency } from '@/lib/utils';
+import { ModernDeliveryDriverSearch } from './ModernDeliveryDriverSearch';
+import DeliveryLiveTracker from './DeliveryLiveTracker';
 
 interface ModernDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
@@ -79,8 +81,9 @@ export const ModernDeliveryInterface: React.FC<ModernDeliveryInterfaceProps> = (
   );
   const [priceInfo, setPriceInfo] = useState<{price: number; distance: number; duration: number} | null>(null);
   const [calculating, setCalculating] = useState(false);
-  const [step, setStep] = useState<'form' | 'confirm' | 'success'>('form');
+  const [step, setStep] = useState<'form' | 'confirm' | 'searching' | 'tracking' | 'success'>('form');
   const [orderId, setOrderId] = useState<string>('');
+  const [assignedDriverId, setAssignedDriverId] = useState<string>('');
 
   const { toast } = useToast();
   const { createDeliveryOrder, submitting, calculateDeliveryPrice } = useEnhancedDeliveryOrders();
@@ -143,16 +146,56 @@ export const ModernDeliveryInterface: React.FC<ModernDeliveryInterfaceProps> = (
 
       const newOrderId = await createDeliveryOrder(orderData);
       setOrderId(newOrderId);
-      setStep('success');
-
-      // Redirection après succès
-      setTimeout(() => {
-        onSubmit({ ...orderData, orderId: newOrderId });
-      }, 2000);
+      setStep('searching'); // Passer directement à la recherche de livreur
     } catch (error) {
       console.error('Erreur création commande:', error);
     }
   };
+
+  const handleDriverAssigned = (driverId: string, driverData: any) => {
+    setAssignedDriverId(driverId);
+    setStep('tracking');
+  };
+
+  const handleBackToForm = () => {
+    setStep('form');
+    setOrderId('');
+    setAssignedDriverId('');
+  };
+
+  const handleCancelSearch = () => {
+    setStep('form');
+    // Optionnel: annuler la commande dans la DB
+  };
+
+  // Interface de recherche de livreur
+  if (step === 'searching') {
+    return (
+      <ModernDeliveryDriverSearch
+        orderId={orderId}
+        deliveryMode={selectedMode!}
+        estimatedPrice={priceInfo!.price}
+        onDriverAssigned={handleDriverAssigned}
+        onCancel={handleCancelSearch}
+        onBackToForm={handleBackToForm}
+      />
+    );
+  }
+
+  // Interface de tracking en temps réel
+  if (step === 'tracking') {
+    return (
+      <DeliveryLiveTracker
+        orderId={orderId}
+        orderData={{
+          pickup: pickup ? { lat: pickup.lat, lng: pickup.lng, address: pickup.address } : undefined,
+          destination: destination ? { lat: destination.lat, lng: destination.lng, address: destination.address } : undefined,
+          mode: selectedMode
+        }}
+        onBack={handleBackToForm}
+      />
+    );
+  }
 
   // Interface de succès
   if (step === 'success') {
