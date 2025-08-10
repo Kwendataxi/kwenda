@@ -81,7 +81,7 @@ import ModernVehicleRentalInterface from '@/components/rental/ModernVehicleRenta
 import { TestDataGenerator } from '@/components/testing/TestDataGenerator';
 
 // Hooks
-
+import { useViewTransition } from '@/hooks/useViewTransition';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useAuth } from '@/hooks/useAuth';
 import { LotteryDashboard } from '@/components/lottery/LotteryDashboard';
@@ -128,6 +128,7 @@ const ClientApp = () => {
   const { t, language, setLanguage, formatCurrency } = useLanguage();
   const { compressData, decompressData } = useDataCompression();
   const { optimizations, measureLoadTime } = usePerformanceMonitor();
+  const { transitionToView } = useViewTransition();
   const [currentView, setCurrentView] = useState('home');
   const [serviceType, setServiceType] = useState('transport');
   const [isLoading, setIsLoading] = useState(false);
@@ -646,12 +647,14 @@ const ClientApp = () => {
       <ModernBottomNavigation
         activeTab={currentView === 'home' ? 'home' : currentView === 'history' || currentView === 'activity' ? 'activity' : 'profil'}
         onTabChange={(tab) => {
+          const preserveScroll = serviceType === 'marketplace';
+          
           if (tab === 'home') {
-            setCurrentView('home');
+            transitionToView(setCurrentView, 'home', { preserveScroll });
           } else if (tab === 'activity') {
-            setCurrentView('history');
+            transitionToView(setCurrentView, 'history', { preserveScroll });
           } else if (tab === 'profil') {
-            setCurrentView('profil');
+            transitionToView(setCurrentView, 'profil', { preserveScroll });
           }
         }}
         notificationCount={0} // TODO: Connect to real notifications
