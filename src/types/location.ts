@@ -3,7 +3,7 @@ export interface LocationData {
   address: string;
   lat: number;
   lng: number;
-  type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'ip' | 'fallback';
+  type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'ip' | 'fallback' | 'database';
   placeId?: string;
   accuracy?: number;
 }

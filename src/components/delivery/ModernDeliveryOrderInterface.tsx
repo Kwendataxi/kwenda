@@ -5,7 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
-import { IntegrationGeocodingService } from '@/services/integrationGeocoding';
+import { UniversalLocationPicker } from '@/components/location/UniversalLocationPicker';
+import { LocationData } from '@/types/location';
+import { useMasterLocation } from '@/hooks/useMasterLocation';
 import { 
   Package, 
   MapPin, 
@@ -25,8 +27,8 @@ interface ModernDeliveryOrderInterfaceProps {
 }
 
 const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> = ({ className }) => {
-  const [pickupLocation, setPickupLocation] = useState('');
-  const [deliveryLocation, setDeliveryLocation] = useState('');
+  const [pickup, setPickup] = useState<LocationData | null>(null);
+  const [destination, setDestination] = useState<LocationData | null>(null);
   const [selectedMode, setSelectedMode] = useState<'flash' | 'flex' | 'maxicharge'>('flex');
   const [packageType, setPackageType] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
@@ -48,6 +50,7 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
     submitting 
   } = useEnhancedDeliveryOrders();
   const { rules, isLoading: pricingLoading } = usePricingRules();
+  const { calculateDistance, formatDistance } = useMasterLocation();
 
   const scrollToSection = useCallback((ref: React.RefObject<HTMLDivElement>) => {
     if (!ref.current || !containerRef.current) return;
@@ -93,22 +96,16 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
   };
 
   const handleCalculatePrice = async () => {
-    if (!pickupLocation || !deliveryLocation) {
+    if (!pickup || !destination) {
       toast.error('Veuillez saisir les adresses de collecte et de livraison');
       return;
     }
 
     try {
-      // Géocoder les adresses
-      const pickupCoords = await IntegrationGeocodingService.geocodeAddress(pickupLocation);
-      const deliveryCoords = await IntegrationGeocodingService.geocodeAddress(deliveryLocation);
-
-      // Calculer le prix
-      const priceData = await calculateDeliveryPrice(
-        { address: pickupLocation, lat: pickupCoords.lat, lng: pickupCoords.lng },
-        { address: deliveryLocation, lat: deliveryCoords.lat, lng: deliveryCoords.lng },
-        selectedMode
-      );
+      setIsCalculating(true);
+      
+      // Calculer le prix avec les nouvelles locations
+      const priceData = await calculateDeliveryPrice(pickup, destination, selectedMode);
 
       setEstimatedPrice(priceData.price);
       setDistance(priceData.distance);
@@ -117,11 +114,13 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
     } catch (error) {
       console.error('Erreur calcul prix:', error);
       toast.error('Erreur lors du calcul du prix');
+    } finally {
+      setIsCalculating(false);
     }
   };
 
   const handleCreateOrder = async () => {
-    if (!pickupLocation || !deliveryLocation) {
+    if (!pickup || !destination) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
@@ -132,25 +131,11 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
     }
 
     try {
-      // Géocoder les adresses
-      const pickupCoords = await IntegrationGeocodingService.geocodeAddress(pickupLocation);
-      const deliveryCoords = await IntegrationGeocodingService.geocodeAddress(deliveryLocation);
-
-      // Créer la commande
+      // Créer la commande avec les nouvelles locations
       const orderData = {
         city: 'Kinshasa', // À adapter selon la géolocalisation
-        pickup: { 
-          address: pickupLocation, 
-          lat: pickupCoords.lat, 
-          lng: pickupCoords.lng,
-          type: 'geocoded' as const
-        },
-        destination: { 
-          address: deliveryLocation, 
-          lat: deliveryCoords.lat, 
-          lng: deliveryCoords.lng,
-          type: 'geocoded' as const
-        },
+        pickup,
+        destination,
         mode: selectedMode,
         packageType,
         specialInstructions,
@@ -163,8 +148,8 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
       
       if (orderId) {
         // Reset form
-        setPickupLocation('');
-        setDeliveryLocation('');
+        setPickup(null);
+        setDestination(null);
         setPackageType('');
         setSpecialInstructions('');
         setEstimatedPrice(0);
@@ -200,27 +185,34 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
           </div>
         </nav>
 
-        {/* Location Inputs */}
-        <section ref={addressesRef} aria-labelledby="addresses-title" className="space-y-3 pt-2">
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-500" />
-            <Input
+        {/* Location Inputs Modernes */}
+        <section ref={addressesRef} aria-labelledby="addresses-title" className="space-y-4 pt-2">
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              Point de collecte
+            </label>
+            <UniversalLocationPicker
+              value={pickup}
+              onLocationSelect={setPickup}
               placeholder="Adresse de collecte"
-              value={pickupLocation}
-              onChange={(e) => setPickupLocation(e.target.value)}
-              onFocus={handleFieldFocus}
-              className="pl-10"
+              context="delivery"
+              variant="default"
+              showCurrentLocation={true}
             />
           </div>
           
-          <div className="relative">
-            <Navigation className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-red-500" />
-            <Input
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Navigation className="w-3 h-3 text-red-500" />
+              Point de livraison
+            </label>
+            <UniversalLocationPicker
+              value={destination}
+              onLocationSelect={setDestination}
               placeholder="Adresse de livraison"
-              value={deliveryLocation}
-              onChange={(e) => setDeliveryLocation(e.target.value)}
-              onFocus={handleFieldFocus}
-              className="pl-10"
+              context="delivery"
+              variant="default"
             />
           </div>
         </section>
@@ -275,12 +267,21 @@ const ModernDeliveryOrderInterface: React.FC<ModernDeliveryOrderInterfaceProps> 
         <div className="space-y-3">
           <Button 
             onClick={handleCalculatePrice}
-            disabled={loading || !pickupLocation || !deliveryLocation}
+            disabled={isCalculating || !pickup || !destination}
             variant="outline"
             className="w-full"
           >
-            <Search className="h-4 w-4 mr-2" />
-            Calculer le prix
+            {isCalculating ? (
+              <>
+                <div className="w-4 h-4 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin mr-2" />
+                Calcul en cours...
+              </>
+            ) : (
+              <>
+                <Search className="h-4 w-4 mr-2" />
+                Calculer le prix
+              </>
+            )}
           </Button>
 
           {estimatedPrice > 0 && (
