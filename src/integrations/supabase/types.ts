@@ -2274,6 +2274,69 @@ export type Database = {
         }
         Relationships: []
       }
+      promotional_ads: {
+        Row: {
+          click_count: number | null
+          created_at: string
+          created_by: string | null
+          cta_action: string
+          cta_target: string | null
+          cta_text: string
+          description: string
+          display_priority: number | null
+          end_date: string | null
+          id: string
+          image_url: string | null
+          impression_count: number | null
+          is_active: boolean
+          start_date: string
+          target_user_types: string[] | null
+          target_zones: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          click_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          cta_action: string
+          cta_target?: string | null
+          cta_text?: string
+          description: string
+          display_priority?: number | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          impression_count?: number | null
+          is_active?: boolean
+          start_date?: string
+          target_user_types?: string[] | null
+          target_zones?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          click_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          cta_action?: string
+          cta_target?: string | null
+          cta_text?: string
+          description?: string
+          display_priority?: number | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          impression_count?: number | null
+          is_active?: boolean
+          start_date?: string
+          target_user_types?: string[] | null
+          target_zones?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       push_messages: {
         Row: {
           audience_role: string | null

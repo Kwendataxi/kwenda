@@ -92,10 +92,16 @@ const VEHICLES: Vehicle[] = [
 
 interface StepByStepTaxiInterfaceProps {
   onBookingRequest: (bookingData: any) => void;
+  initialPickup?: { address: string; coordinates?: { lat: number; lng: number } };
+  initialDestination?: { address: string; coordinates?: { lat: number; lng: number } };
+  onBack?: () => void;
 }
 
 const StepByStepTaxiInterface: React.FC<StepByStepTaxiInterfaceProps> = ({
-  onBookingRequest
+  onBookingRequest,
+  initialPickup,
+  initialDestination,
+  onBack
 }) => {
   const { user } = useAuth();
   const geolocation = useEnhancedGeolocation({ 
@@ -107,9 +113,15 @@ const StepByStepTaxiInterface: React.FC<StepByStepTaxiInterfaceProps> = ({
     currentZone 
   } = geolocation;
   
-  const [currentStep, setCurrentStep] = useState<'pickup' | 'destination' | 'vehicle' | 'confirm'>('pickup');
-  const [pickup, setPickup] = useState<Location | null>(null);
-  const [destination, setDestination] = useState<Location | null>(null);
+  const [currentStep, setCurrentStep] = useState<'pickup' | 'destination' | 'vehicle' | 'confirm'>(
+    initialDestination ? 'pickup' : 'pickup'
+  );
+  const [pickup, setPickup] = useState<Location | null>(
+    initialPickup ? { address: initialPickup.address, coordinates: initialPickup.coordinates || { lat: 0, lng: 0 } } : null
+  );
+  const [destination, setDestination] = useState<Location | null>(
+    initialDestination ? { address: initialDestination.address, coordinates: initialDestination.coordinates || { lat: 0, lng: 0 } } : null
+  );
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [routeDetails, setRouteDetails] = useState<any>(null);
   const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);

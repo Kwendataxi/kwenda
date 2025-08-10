@@ -21,6 +21,7 @@ import { AdminMarketplaceManager } from '@/components/marketplace/AdminMarketpla
 import { AdminNotificationCenter } from '@/components/admin/AdminNotificationCenter';
 import { AdvancedSupportCenter } from '@/components/admin/AdvancedSupportCenter';
 import { ModernZoneManagementDashboard } from '@/components/admin/zones/ModernZoneManagementDashboard';
+import { PromotionalAdsManager } from '@/components/admin/PromotionalAdsManager';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -156,6 +157,12 @@ const AdminApp = () => {
       <TabsContent value="notifications" className="space-y-6">
         <PermissionGuard requiredPermissions={['notifications_write']}>
           <AdminNotificationCenter />
+        </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="ads" className="space-y-6">
+        <PermissionGuard requiredPermissions={['notifications_write']}>
+          <PromotionalAdsManager />
         </PermissionGuard>
       </TabsContent>
 
