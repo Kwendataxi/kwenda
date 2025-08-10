@@ -92,123 +92,20 @@ export const ModernTaxiHome = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 pb-6">
-      {/* Compact Header */}
+      {/* Simple Header */}
       <div className="px-4 pt-6 pb-4">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-xl font-bold text-foreground">Où allez-vous ?</h1>
-            <p className="text-sm text-muted-foreground">Transport rapide</p>
+            <h1 className="text-xl font-bold text-foreground">Transport</h1>
+            <p className="text-sm text-muted-foreground">Service de course</p>
           </div>
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
             <div className="w-4 h-4 rounded-full bg-primary" />
           </div>
         </div>
-
-        {/* Main Search Bar */}
-        <div className="relative">
-          <Card className="mb-4 shadow-lg border-0 bg-white">
-            <CardContent className="p-3">
-              <div className="flex items-center">
-                <Search className="w-5 h-5 text-muted-foreground mr-3" />
-                <input 
-                  type="text"
-                  placeholder="Université, Hôpital, Marché..."
-                  value={searchQuery}
-                  onChange={(e) => handleSearchInput(e.target.value)}
-                  className="w-full border-0 shadow-none text-base bg-transparent focus:outline-none"
-                />
-              </div>
-              
-              {/* Current Location */}
-              <div className="flex items-center mt-3 pt-3 border-t border-border">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-3" />
-                <div className="flex-1">
-                  <div className="flex items-center">
-                    <HomeIcon className="w-3 h-3 mr-2 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Position actuelle</span>
-                  </div>
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {currentLocation}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Search Suggestions */}
-          {showSuggestions && searchResults.length > 0 && (
-            <Card className="absolute top-full left-0 right-0 z-50 shadow-xl border-0 bg-white">
-              <CardContent className="p-0">
-                {searchResults.map((place, index) => (
-                  <motion.div
-                    key={place.id}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="p-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted/50"
-                    onClick={() => handleDestinationClick(place)}
-                  >
-                    <div className="flex items-center">
-                      <MapPin className="w-4 h-4 text-primary mr-3" />
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground text-sm">{place.nameFr}</p>
-                        <p className="text-xs text-muted-foreground">{place.address}</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-        </div>
       </div>
 
       <div className="px-4 space-y-4">
-        {/* Promotional Ads */}
-        {!adsLoading && displayedAds.length > 0 && (
-          <div className="space-y-3">
-            {displayedAds.map((ad, index) => (
-              <motion.div
-                key={ad.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card 
-                  className="overflow-hidden cursor-pointer transition-transform hover:scale-[1.02] shadow-lg border-0"
-                  onClick={() => handleAdClick(ad)}
-                >
-                  <CardContent className="p-0">
-                    <div className="relative h-16 bg-gradient-to-r from-primary to-primary/80">
-                      {ad.image_url && (
-                        <img 
-                          src={ad.image_url} 
-                          alt={ad.title}
-                          className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
-                        />
-                      )}
-                      <div className="absolute inset-0 p-3 flex items-center justify-between text-white">
-                        <div className="flex-1">
-                          <div className="flex items-center mb-1">
-                            {ad.title.includes('Green') && <Leaf className="w-3 h-3 mr-2" />}
-                            {ad.title.includes('Cheaper') && <DollarSign className="w-3 h-3 mr-2" />}
-                            <h3 className="font-bold text-sm">{ad.title}</h3>
-                          </div>
-                          <p className="text-white/90 text-xs">{ad.description}</p>
-                        </div>
-                        <div className="text-right">
-                          <Badge variant="secondary" className="bg-white/20 text-white border-white/30 text-xs">
-                            {ad.cta_text}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        )}
 
         {/* Single Booking Button */}
         <div>
