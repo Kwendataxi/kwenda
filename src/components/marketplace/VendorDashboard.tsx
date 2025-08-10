@@ -76,30 +76,75 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
         .eq('seller_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (productsError) throw productsError;
+      if (productsError) {
+        console.error('Error loading products:', productsError);
+        toast({
+          title: 'Erreur',
+          description: 'Erreur lors du chargement des produits',
+          variant: 'destructive',
+        });
+      } else {
+        setMyProducts(products || []);
+      }
 
-      // Load orders awaiting confirmation
+      // Load orders awaiting confirmation (simplified query)
       const { data: pendingOrders, error: ordersError } = await supabase
         .from('marketplace_orders')
-        .select(`
-          *,
-          marketplace_products!inner(title, price, images),
-          profiles!marketplace_orders_buyer_id_fkey(display_name, phone_number)
-        `)
+        .select('*')
         .eq('seller_id', user.id)
         .eq('vendor_confirmation_status', 'awaiting_confirmation')
         .order('created_at', { ascending: false });
 
-      if (ordersError) throw ordersError;
-
-      setMyProducts(products || []);
-      setOrdersForConfirmation(pendingOrders || []);
+      if (ordersError) {
+        console.error('Error loading orders:', ordersError);
+        toast({
+          title: 'Erreur',
+          description: 'Erreur lors du chargement des commandes',
+          variant: 'destructive',
+        });
+      } else {
+        // Enrichir les commandes avec les données des produits et profils séparément
+        const enrichedOrders = await Promise.all(
+          (pendingOrders || []).map(async (order) => {
+            try {
+              // Récupérer les données du produit
+              const { data: product } = await supabase
+                .from('marketplace_products')
+                .select('title, price, images')
+                .eq('id', order.product_id)
+                .single();
+              
+              // Récupérer les données du profil acheteur
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('display_name, phone_number')
+                .eq('user_id', order.buyer_id)
+                .single();
+              
+              return {
+                ...order,
+                marketplace_products: product || { title: 'Produit inconnu', price: 0, images: [] },
+                profiles: profile || { display_name: 'Utilisateur inconnu', phone_number: '' }
+              };
+            } catch (error) {
+              console.error('Error enriching order:', error);
+              return {
+                ...order,
+                marketplace_products: { title: 'Produit inconnu', price: 0, images: [] },
+                profiles: { display_name: 'Utilisateur inconnu', phone_number: '' }
+              };
+            }
+          })
+        );
+        
+        setOrdersForConfirmation(enrichedOrders);
+      }
 
     } catch (error) {
       console.error('Error loading vendor data:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de charger vos données vendeur',
+        description: 'Erreur générale lors du chargement des données',
         variant: 'destructive',
       });
     } finally {

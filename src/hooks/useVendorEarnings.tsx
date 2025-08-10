@@ -69,10 +69,17 @@ export function useVendorEarnings(): UseVendorEarningsReturn {
         .eq('vendor_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setEarnings(data || []);
+      if (error) {
+        console.error('Error fetching vendor earnings:', error);
+        // Si la table vendor_earnings est vide ou n'existe pas, on retourne un tableau vide
+        setEarnings([]);
+      } else {
+        setEarnings(data || []);
+      }
     } catch (error) {
       console.error('Error fetching vendor earnings:', error);
+      // En cas d'erreur, on retourne un tableau vide pour éviter les crashes
+      setEarnings([]);
     } finally {
       setLoading(false);
     }
