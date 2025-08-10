@@ -50,10 +50,10 @@ export const useDriverData = () => {
 
       if (todayError) throw todayError;
 
-      // Get total completed rides count
-      const { count: totalRides, error: countError } = await supabase
+      // Get total completed rides count and earnings
+      const { data: allRides, count: totalRides, error: countError } = await supabase
         .from('transport_bookings')
-        .select('*', { count: 'exact', head: true })
+        .select('actual_price', { count: 'exact' })
         .eq('driver_id', user.id)
         .eq('status', 'completed');
 
@@ -67,20 +67,29 @@ export const useDriverData = () => {
 
       if (ratingError) throw ratingError;
 
-      // Calculate today's earnings
+      // Calculate earnings
       const todayEarnings = todayRides?.reduce((sum, ride) => sum + (ride.actual_price || 0), 0) || 0;
+      const totalEarnings = allRides?.reduce((sum, ride) => sum + (ride.actual_price || 0), 0) || 0;
 
       // Calculate average rating
       const avgRating = ratings?.length 
         ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length 
         : 0;
 
+      // Get online hours (simplified calculation)
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const hoursOnline = Math.min(
+        Math.floor((Date.now() - startOfDay.getTime()) / (1000 * 60 * 60)),
+        24
+      );
+
       setStats({
         today_earnings: todayEarnings,
         total_rides: totalRides || 0,
-        hours_online: 8, // This would need activity tracking
+        hours_online: hoursOnline,
         rating: Math.round(avgRating * 10) / 10,
-        total_earnings: 0 // Would need wallet integration
+        total_earnings: totalEarnings
       });
 
     } catch (error: any) {
@@ -133,8 +142,23 @@ export const useDriverData = () => {
     if (!user) return;
 
     try {
-      // In a real implementation, we'd update a driver_status table
-      // For now, just update local state
+      // Update driver location status (with default coordinates for Kinshasa)
+      const { error } = await supabase
+        .from('driver_locations')
+        .upsert({
+          driver_id: user.id,
+          latitude: -4.3217, // Default Kinshasa center
+          longitude: 15.3069,
+          is_online: online,
+          is_available: online,
+          last_ping: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'driver_id'
+        });
+
+      if (error) throw error;
+
       setIsOnline(online);
       
       if (online) {

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useUnifiedDispatcher } from '@/hooks/useUnifiedDispatcher';
-import { useGeolocation } from '@/hooks/useGeolocation';
+import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
 import { 
   Power, 
   MapPin, 
@@ -30,7 +30,12 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
     loading 
   } = useUnifiedDispatcher();
   
-  const { latitude, longitude } = useGeolocation({ watchPosition: true });
+  const { enhancedData, startAdaptiveTracking, stopAdaptiveTracking } = useEnhancedGeolocation({ 
+    enableBackgroundTracking: dispatchStatus.isOnline,
+    adaptiveTracking: true 
+  });
+  const latitude = enhancedData?.latitude;
+  const longitude = enhancedData?.longitude;
 
   const [updating, setUpdating] = useState(false);
 

@@ -247,31 +247,44 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
                 {/* Animation radar de recherche */}
                 <div className="relative w-32 h-32 mx-auto">
                   <div className="absolute inset-0 rounded-full border-2 border-primary/20"></div>
-                  <motion.div
-                    className="absolute inset-0 rounded-full border-2 border-primary"
-                    animate={{
-                      scale: [1, 1.5, 2],
-                      opacity: [1, 0.5, 0]
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeOut"
-                    }}
-                  />
-                  <motion.div
-                    className="absolute inset-0 rounded-full border-2 border-secondary"
-                    animate={{
-                      scale: [1, 1.5, 2],
-                      opacity: [1, 0.5, 0]
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      delay: 0.5,
-                      ease: "easeOut"
-                    }}
-                  />
+                   <motion.div
+                     className="absolute inset-0 rounded-full border-2 border-primary/60"
+                     animate={{
+                       scale: [1, 1.8, 2.2],
+                       opacity: [0.8, 0.3, 0]
+                     }}
+                     transition={{
+                       duration: 3,
+                       repeat: Infinity,
+                       ease: "easeOut"
+                     }}
+                   />
+                   <motion.div
+                     className="absolute inset-8 rounded-full border-2 border-primary/80"
+                     animate={{
+                       scale: [1, 1.4, 1.8],
+                       opacity: [0.6, 0.2, 0]
+                     }}
+                     transition={{
+                       duration: 3,
+                       repeat: Infinity,
+                       delay: 1,
+                       ease: "easeOut"
+                     }}
+                   />
+                   <motion.div
+                     className="absolute inset-12 rounded-full border-2 border-secondary/60"
+                     animate={{
+                       scale: [1, 1.2, 1.5],
+                       opacity: [0.4, 0.1, 0]
+                     }}
+                     transition={{
+                       duration: 3,
+                       repeat: Infinity,
+                       delay: 2,
+                       ease: "easeOut"
+                     }}
+                   />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Package className="w-8 h-8 text-primary" />
                   </div>
