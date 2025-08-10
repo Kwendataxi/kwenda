@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TouchOptimizedInterface } from '@/components/mobile/TouchOptimizedInterface';
 import VendorNotificationBadge from './VendorNotificationBadge';
 import VendorOrderConfirmation from './VendorOrderConfirmation';
+import VendorOrderStepsManager from './VendorOrderStepsManager';
 import VendorRevenueDashboard from './VendorRevenueDashboard';
 import { MobileVendorHeader } from './mobile/MobileVendorHeader';
 import { MobileVendorStats } from './mobile/MobileVendorStats';
@@ -379,14 +380,31 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
     );
   };
 
-  const renderConfirmationTab = () => (
-    <div className={isMobile ? "px-4 pb-20" : ""}>
-      <VendorOrderConfirmation 
-        orders={ordersForConfirmation}
-        onOrderUpdate={handleOrderUpdate}
-      />
-    </div>
-  );
+  const renderConfirmationTab = () => {
+    const confirmedOrders = ordersForConfirmation.filter(order => 
+      ['confirmed', 'preparing', 'ready_for_pickup', 'assigned_to_driver'].includes(order.status)
+    );
+
+    return (
+      <div className={isMobile ? "px-4 pb-20" : ""}>
+        <div className="space-y-6">
+          <VendorOrderConfirmation 
+            orders={ordersForConfirmation.filter(order => 
+              order.vendor_confirmation_status === 'awaiting_confirmation'
+            )}
+            onOrderUpdate={handleOrderUpdate}
+          />
+          
+          {confirmedOrders.length > 0 && (
+            <VendorOrderStepsManager
+              orders={confirmedOrders}
+              onOrderUpdate={handleOrderUpdate}
+            />
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const renderRevenueTab = () => (
     <div className={isMobile ? "px-4 pb-20" : ""}>

@@ -1441,6 +1441,7 @@ export type Database = {
       }
       marketplace_orders: {
         Row: {
+          assigned_to_driver_at: string | null
           buyer_id: string
           completed_at: string | null
           confirmed_at: string | null
@@ -1458,6 +1459,7 @@ export type Database = {
           in_transit_at: string | null
           notes: string | null
           payment_status: string
+          picked_up_by_driver_at: string | null
           pickup_coordinates: Json | null
           preparing_at: string | null
           product_id: string
@@ -1474,6 +1476,7 @@ export type Database = {
           vendor_rejection_reason: string | null
         }
         Insert: {
+          assigned_to_driver_at?: string | null
           buyer_id: string
           completed_at?: string | null
           confirmed_at?: string | null
@@ -1491,6 +1494,7 @@ export type Database = {
           in_transit_at?: string | null
           notes?: string | null
           payment_status?: string
+          picked_up_by_driver_at?: string | null
           pickup_coordinates?: Json | null
           preparing_at?: string | null
           product_id: string
@@ -1507,6 +1511,7 @@ export type Database = {
           vendor_rejection_reason?: string | null
         }
         Update: {
+          assigned_to_driver_at?: string | null
           buyer_id?: string
           completed_at?: string | null
           confirmed_at?: string | null
@@ -1524,6 +1529,7 @@ export type Database = {
           in_transit_at?: string | null
           notes?: string | null
           payment_status?: string
+          picked_up_by_driver_at?: string | null
           pickup_coordinates?: Json | null
           preparing_at?: string | null
           product_id?: string

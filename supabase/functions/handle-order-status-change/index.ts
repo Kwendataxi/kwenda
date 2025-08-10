@@ -1,5 +1,5 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
+    const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
@@ -90,15 +90,32 @@ serve(async (req) => {
       throw new Error(`Failed to update order: ${orderError.message}`)
     }
 
-    // Actions spéciales selon le statut
-    if (newStatus === 'in_transit' && order.delivery_method === 'delivery') {
-      // Notifier le client du début de livraison avec estimation
-      console.log('Order is now in transit, notifications will be sent via trigger')
+    console.log(`Order ${orderId} updated successfully to ${newStatus}`)
+
+    // Handle special actions based on status
+    if (newStatus === 'ready_for_pickup' && order.delivery_method === 'delivery') {
+      // Auto-assign to an available driver for delivery orders
+      try {
+        const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/marketplace-driver-assignment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`
+          },
+          body: JSON.stringify({ orderId })
+        })
+
+        const result = await response.json()
+        console.log('Driver assignment result:', result)
+      } catch (assignmentError) {
+        console.error('Failed to assign driver:', assignmentError)
+        // Don't fail the status update if driver assignment fails
+      }
     }
 
     if (newStatus === 'completed') {
-      // Libérer le paiement escrow
-      const { error: escrowError } = await supabaseClient
+      // Release escrow payment
+      const { error: escrowError } = await supabase
         .from('escrow_payments')
         .update({
           status: 'released',
@@ -111,44 +128,64 @@ serve(async (req) => {
       } else {
         console.log('Escrow payment released successfully')
       }
-
-      // Appeler l'Edge Function pour traiter la commande complète
-      try {
-        await supabaseClient.functions.invoke('process-marketplace-order', {
-          body: { orderId }
-        })
-      } catch (processError) {
-        console.error('Failed to process completed order:', processError)
-      }
     }
 
-    // Broadcast real-time update
-    const channel = supabaseClient.channel(`order-${orderId}`)
-    await channel.send({
-      type: 'broadcast',
-      event: 'order_status_updated',
-      payload: {
-        order_id: orderId,
-        new_status: newStatus,
-        estimated_delivery: updateData.estimated_delivery_time,
-        updated_at: updateData.updated_at
+    // Create notifications based on status change
+    const notificationTitle = getNotificationTitle(newStatus)
+    const notificationMessage = getNotificationMessage(newStatus, order.delivery_method)
+
+    if (notificationTitle && notificationMessage) {
+      // Notify buyer
+      const { error: buyerNotificationError } = await supabase
+        .from('order_notifications')
+        .insert({
+          order_id: orderId,
+          user_id: order.buyer_id,
+          notification_type: getNotificationType(newStatus, 'buyer'),
+          title: notificationTitle,
+          message: notificationMessage,
+          metadata: { 
+            order_id: orderId, 
+            status: newStatus,
+            delivery_method: order.delivery_method
+          }
+        })
+
+      if (buyerNotificationError) {
+        console.error('Error creating buyer notification:', buyerNotificationError)
       }
-    })
+
+      // Notify seller for certain statuses
+      const sellerNotificationType = getNotificationType(newStatus, 'seller')
+      if (sellerNotificationType) {
+        const { error: sellerNotificationError } = await supabase
+          .from('order_notifications')
+          .insert({
+            order_id: orderId,
+            user_id: order.seller_id,
+            notification_type: sellerNotificationType,
+            title: getNotificationTitle(newStatus, 'seller'),
+            message: getNotificationMessage(newStatus, order.delivery_method, 'seller'),
+            metadata: { 
+              order_id: orderId, 
+              status: newStatus,
+              delivery_method: order.delivery_method
+            }
+          })
+
+        if (sellerNotificationError) {
+          console.error('Error creating seller notification:', sellerNotificationError)
+        }
+      }
+    }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        orderId,
-        newStatus,
-        estimatedDelivery: updateData.estimated_delivery_time,
-        order
+        order,
+        message: 'Order status updated successfully' 
       }),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
@@ -156,16 +193,75 @@ serve(async (req) => {
     
     return new Response(
       JSON.stringify({ 
-        error: error.message,
-        success: false 
+        success: false, 
+        error: error.message 
       }),
       { 
-        status: 400,
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400
       }
     )
   }
 })
+
+function getNotificationTitle(status: string, recipient: 'buyer' | 'seller' = 'buyer'): string | null {
+  const titles = {
+    buyer: {
+      'confirmed': 'Commande confirmée',
+      'preparing': 'Commande en préparation', 
+      'ready_for_pickup': 'Commande prête',
+      'assigned_to_driver': 'Livreur assigné',
+      'picked_up_by_driver': 'Commande récupérée',
+      'in_transit': 'Commande en livraison',
+      'delivered': 'Commande livrée',
+      'completed': 'Commande terminée'
+    },
+    seller: {
+      'completed': 'Paiement libéré'
+    }
+  }
+
+  return titles[recipient][status as keyof typeof titles[typeof recipient]] || null
+}
+
+function getNotificationMessage(status: string, deliveryMethod: string, recipient: 'buyer' | 'seller' = 'buyer'): string | null {
+  const messages = {
+    buyer: {
+      'confirmed': 'Votre commande a été confirmée par le vendeur',
+      'preparing': 'Le vendeur prépare votre commande',
+      'ready_for_pickup': deliveryMethod === 'pickup' 
+        ? 'Votre commande est prête pour retrait en boutique'
+        : 'Votre commande est prête et sera bientôt assignée à un livreur',
+      'assigned_to_driver': 'Un livreur a été assigné à votre commande',
+      'picked_up_by_driver': 'Le livreur a récupéré votre commande chez le vendeur',
+      'in_transit': 'Votre commande est en route vers vous',
+      'delivered': 'Votre commande a été livrée avec succès',
+      'completed': 'Transaction terminée avec succès'
+    },
+    seller: {
+      'completed': 'Le paiement de votre vente a été libéré'
+    }
+  }
+
+  return messages[recipient][status as keyof typeof messages[typeof recipient]] || null
+}
+
+function getNotificationType(status: string, recipient: 'buyer' | 'seller'): string | null {
+  const types = {
+    buyer: {
+      'confirmed': 'order_confirmed',
+      'preparing': 'order_preparing',
+      'ready_for_pickup': 'order_ready',
+      'assigned_to_driver': 'order_assigned_to_driver',
+      'picked_up_by_driver': 'order_picked_up',
+      'in_transit': 'order_in_transit',
+      'delivered': 'order_delivered',
+      'completed': 'order_completed'
+    },
+    seller: {
+      'completed': 'payment_released'
+    }
+  }
+
+  return types[recipient][status as keyof typeof types[typeof recipient]] || null
+}
