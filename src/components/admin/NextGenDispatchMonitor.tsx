@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { intelligentDispatch } from '@/services/intelligentDispatchService';
 import { robustNotifications } from '@/services/robustNotificationService';
-import { advancedGeoLocation } from '@/services/advancedGeolocation';
+import { useMasterLocation } from '@/hooks/useMasterLocation';
 import { supabase } from '@/integrations/supabase/client';
 
 interface DispatchMetrics {
@@ -55,6 +55,8 @@ export default function NextGenDispatchMonitor() {
     location_accuracy: 0,
     notification_success_rate: 0
   });
+
+  const { accuracy } = useMasterLocation();
 
   const [realtimeStats, setRealtimeStats] = useState<RealtimeStats>({
     total_requests_today: 0,
@@ -103,7 +105,7 @@ export default function NextGenDispatchMonitor() {
         surge_frequency: dispatchMetrics.surge_frequency,
         active_requests: activeRequests || 0,
         available_drivers: availableDrivers || 0,
-        location_accuracy: advancedGeoLocation.getCurrentAccuracy() || 0,
+        location_accuracy: accuracy || 0,
         notification_success_rate: notificationStats.success_rate
       });
 
