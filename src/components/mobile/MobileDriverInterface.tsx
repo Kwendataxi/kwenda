@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TouchOptimizedButton, SwipeableCard } from './TouchOptimizedInterface';
+import { DriverQuickActions } from '../driver/DriverQuickActions';
 import { MobileOptimizer } from '@/components/performance/MobileOptimizer';
 import { LazyLoadWrapper } from '@/components/performance/LazyLoadWrapper';
 import { OptimizedGrid } from '@/components/performance/OptimizedGrid';
@@ -117,48 +118,13 @@ export const MobileDriverInterface: React.FC<MobileDriverInterfaceProps> = ({
 
   const renderQuickActions = () => (
     <LazyLoadWrapper immediate>
-      <Card className="border-border/50 mb-6">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            Actions rapides
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-3 gap-3">
-            <TouchOptimizedButton
-              variant="outline"
-              size="md"
-              onClick={onNavigateToEarnings}
-              className="flex items-center justify-center gap-2 h-12"
-              hapticFeedback="medium"
-            >
-              <TrendingUp className="h-4 w-4" />
-              Gains
-            </TouchOptimizedButton>
-            <TouchOptimizedButton
-              variant="outline"
-              size="md"
-              onClick={onNavigateToCredits}
-              className="flex items-center justify-center gap-2 h-12"
-              hapticFeedback="medium"
-            >
-              <DollarSign className="h-4 w-4" />
-              Crédits
-            </TouchOptimizedButton>
-            <TouchOptimizedButton
-              variant={isTracking ? "default" : "outline"}
-              size="md"
-              onClick={() => (isTracking ? stop() : start())}
-              className="flex items-center justify-center gap-2 h-12"
-              hapticFeedback="medium"
-            >
-              <Navigation className="h-4 w-4" />
-              {isTracking ? 'Suivi actif' : 'Activer suivi'}
-            </TouchOptimizedButton>
-          </div>
-        </CardContent>
-      </Card>
+      <DriverQuickActions
+        onNavigateToEarnings={onNavigateToEarnings}
+        onNavigateToCredits={onNavigateToCredits}
+        isTracking={isTracking}
+        onToggleTracking={() => (isTracking ? stop() : start())}
+        className="mb-6"
+      />
     </LazyLoadWrapper>
   );
 
