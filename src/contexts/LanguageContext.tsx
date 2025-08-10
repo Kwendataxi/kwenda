@@ -1104,11 +1104,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const formatCurrency = (amount: number, currency: 'CDF' | 'USD' = 'CDF'): string => {
     if (currency === 'CDF') {
       return new Intl.NumberFormat('fr-CD', {
-        style: 'currency',
-        currency: 'CDF',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
-      }).format(amount);
+      }).format(amount) + ' CDF';
     } else {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
