@@ -251,6 +251,10 @@ const ClientApp = () => {
       setCurrentView('history');
       return;
     }
+    if (service === 'lottery' || service === 'tombola') {
+      setCurrentView('lottery');
+      return;
+    }
     setServiceType(service);
     setCurrentView('service');
     if (service === 'delivery') {
