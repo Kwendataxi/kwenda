@@ -3446,6 +3446,60 @@ export type Database = {
           },
         ]
       }
+      team_requests: {
+        Row: {
+          company_name: string
+          contact_email: string
+          created_at: string
+          id: string
+          industry: string | null
+          metadata: Json | null
+          phone: string | null
+          rejection_reason: string | null
+          request_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          team_size: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          contact_email: string
+          created_at?: string
+          id?: string
+          industry?: string | null
+          metadata?: Json | null
+          phone?: string | null
+          rejection_reason?: string | null
+          request_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          team_size?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          contact_email?: string
+          created_at?: string
+          id?: string
+          industry?: string | null
+          metadata?: Json | null
+          phone?: string | null
+          rejection_reason?: string | null
+          request_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          team_size?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transport_bookings: {
         Row: {
           actual_price: number | null

@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -24,7 +25,9 @@ import {
   UserCheck,
   BarChart3,
   Download,
-  Calendar
+  Calendar,
+  Clock,
+  MessageSquare
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -41,6 +44,23 @@ interface TeamAccount {
   updated_at: string;
 }
 
+interface TeamRequest {
+  id: string;
+  user_id: string;
+  company_name: string;
+  industry?: string;
+  team_size?: string;
+  contact_email: string;
+  phone?: string;
+  request_reason?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewed_by?: string;
+  reviewed_at?: string;
+  rejection_reason?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 interface TeamStats {
   totalTeams: number;
   activeTeams: number;
@@ -48,88 +68,74 @@ interface TeamStats {
   totalMembers: number;
   totalRevenue: number;
   avgMembersPerTeam: number;
+  pendingRequests: number;
 }
 
 export const AdminTeamManager = () => {
   const { toast } = useToast();
   const [teams, setTeams] = useState<TeamAccount[]>([]);
+  const [teamRequests, setTeamRequests] = useState<TeamRequest[]>([]);
   const [filteredTeams, setFilteredTeams] = useState<TeamAccount[]>([]);
+  const [filteredRequests, setFilteredRequests] = useState<TeamRequest[]>([]);
   const [stats, setStats] = useState<TeamStats>({
     totalTeams: 0,
     activeTeams: 0,
     pendingTeams: 0,
     totalMembers: 0,
     totalRevenue: 0,
-    avgMembersPerTeam: 0
+    avgMembersPerTeam: 0,
+    pendingRequests: 0
   });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedTeam, setSelectedTeam] = useState<TeamAccount | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<TeamRequest | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showRequestDetails, setShowRequestDetails] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
 
-  // Charger les données des équipes
-  const fetchTeams = async () => {
+  // Charger les données des équipes et demandes
+  const fetchData = async () => {
     try {
       setLoading(true);
       
-      // Mock data pour le moment - sera remplacé par la vraie requête
-      const mockTeams: TeamAccount[] = [
-        {
-          id: '1',
-          name: 'TechCorp DRC',
-          contact_email: 'admin@techcorp.cd',
-          industry: 'Technologie',
-          team_size: '11-50',
-          status: 'active',
-          member_count: 25,
-          total_spent: 150000,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          name: 'LogiTrans SARL',
-          contact_email: 'contact@logitrans.cd',
-          industry: 'Logistique',
-          team_size: '51-200',
-          status: 'pending',
-          member_count: 0,
-          total_spent: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: '3',
-          name: 'Finance Plus',
-          contact_email: 'team@financeplus.cd',
-          industry: 'Finance',
-          team_size: '1-10',
-          status: 'suspended',
-          member_count: 8,
-          total_spent: 45000,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
+      // Charger les équipes réelles
+      const { data: teamsData, error: teamsError } = await supabase
+        .from('team_accounts')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      setTeams(mockTeams);
-      setFilteredTeams(mockTeams);
+      if (teamsError) throw teamsError;
+
+      // Charger les demandes en attente
+      const { data: requestsData, error: requestsError } = await supabase
+        .from('team_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (requestsError) throw requestsError;
+
+      setTeams(teamsData || []);
+      setTeamRequests(requestsData || []);
+      setFilteredTeams(teamsData || []);
+      setFilteredRequests(requestsData || []);
 
       // Calculer les statistiques
       const newStats: TeamStats = {
-        totalTeams: mockTeams.length,
-        activeTeams: mockTeams.filter(t => t.status === 'active').length,
-        pendingTeams: mockTeams.filter(t => t.status === 'pending').length,
-        totalMembers: mockTeams.reduce((sum, t) => sum + t.member_count, 0),
-        totalRevenue: mockTeams.reduce((sum, t) => sum + t.total_spent, 0),
-        avgMembersPerTeam: mockTeams.length > 0 ? 
-          Math.round(mockTeams.reduce((sum, t) => sum + t.member_count, 0) / mockTeams.length) : 0
+        totalTeams: (teamsData || []).length,
+        activeTeams: (teamsData || []).filter(t => t.status === 'active').length,
+        pendingTeams: (teamsData || []).filter(t => t.status === 'pending').length,
+        totalMembers: (teamsData || []).reduce((sum, t) => sum + (t.member_count || 0), 0),
+        totalRevenue: (teamsData || []).reduce((sum, t) => sum + (t.total_spent || 0), 0),
+        avgMembersPerTeam: (teamsData || []).length > 0 ? 
+          Math.round((teamsData || []).reduce((sum, t) => sum + (t.member_count || 0), 0) / (teamsData || []).length) : 0,
+        pendingRequests: (requestsData || []).filter(r => r.status === 'pending').length
       };
       setStats(newStats);
 
     } catch (error) {
-      console.error('Erreur lors du chargement des équipes:', error);
+      console.error('Erreur lors du chargement des données:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les données des équipes.",
@@ -141,30 +147,44 @@ export const AdminTeamManager = () => {
   };
 
   useEffect(() => {
-    fetchTeams();
+    fetchData();
   }, []);
 
-  // Filtrer les équipes
+  // Filtrer les équipes et demandes
   useEffect(() => {
-    let filtered = teams;
+    let filteredTeamsData = teams;
+    let filteredRequestsData = teamRequests;
 
     if (searchQuery) {
-      filtered = filtered.filter(team => 
+      filteredTeamsData = filteredTeamsData.filter(team => 
         team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         team.contact_email.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+      filteredRequestsData = filteredRequestsData.filter(request => 
+        request.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        request.contact_email.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(team => team.status === statusFilter);
+      filteredTeamsData = filteredTeamsData.filter(team => team.status === statusFilter);
+      filteredRequestsData = filteredRequestsData.filter(request => request.status === statusFilter);
     }
 
-    setFilteredTeams(filtered);
-  }, [teams, searchQuery, statusFilter]);
+    setFilteredTeams(filteredTeamsData);
+    setFilteredRequests(filteredRequestsData);
+  }, [teams, teamRequests, searchQuery, statusFilter]);
 
   const handleStatusChange = async (teamId: string, newStatus: string) => {
     try {
-      // Mock update - sera remplacé par la vraie requête
+      const { error } = await supabase
+        .from('team_accounts')
+        .update({ status: newStatus })
+        .eq('id', teamId);
+
+      if (error) throw error;
+
       setTeams(prevTeams => 
         prevTeams.map(team => 
           team.id === teamId ? { ...team, status: newStatus as any } : team
@@ -179,6 +199,64 @@ export const AdminTeamManager = () => {
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour le statut.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleApproveRequest = async (requestId: string) => {
+    try {
+      const { error } = await supabase
+        .from('team_requests')
+        .update({ 
+          status: 'approved',
+          reviewed_at: new Date().toISOString()
+        })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Demande approuvée",
+        description: "La demande a été approuvée. Un compte équipe sera créé automatiquement.",
+      });
+
+      // Rafraîchir les données
+      await fetchData();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'approuver la demande.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRejectRequest = async (requestId: string, reason: string) => {
+    try {
+      const { error } = await supabase
+        .from('team_requests')
+        .update({ 
+          status: 'rejected',
+          reviewed_at: new Date().toISOString(),
+          rejection_reason: reason
+        })
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Demande rejetée",
+        description: "La demande a été rejetée avec succès.",
+      });
+
+      // Rafraîchir les données
+      await fetchData();
+      setRejectionReason('');
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de rejeter la demande.",
         variant: "destructive",
       });
     }
@@ -232,7 +310,7 @@ export const AdminTeamManager = () => {
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -253,6 +331,18 @@ export const AdminTeamManager = () => {
                 <p className="text-2xl font-bold text-green-600">{stats.activeTeams}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Demandes en Attente</p>
+                <p className="text-2xl font-bold text-orange-600">{stats.pendingRequests}</p>
+              </div>
+              <Clock className="h-8 w-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
@@ -312,14 +402,21 @@ export const AdminTeamManager = () => {
         </CardContent>
       </Card>
 
-      {/* Tableau des équipes */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            Équipes ({filteredTeams.length})
-          </CardTitle>
-        </CardHeader>
+      {/* Onglets pour équipes et demandes */}
+      <Tabs defaultValue="teams" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="teams">Équipes ({filteredTeams.length})</TabsTrigger>
+          <TabsTrigger value="requests">Demandes ({filteredRequests.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="teams">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Équipes Actives
+              </CardTitle>
+            </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -472,8 +569,8 @@ export const AdminTeamManager = () => {
               </TabsContent>
             </Tabs>
           )}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  };
