@@ -6,9 +6,16 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(amount: number, currency: string = 'CDF'): string {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: currency === 'CDF' ? 'USD' : currency,
-    minimumFractionDigits: 0,
-  }).format(amount).replace('$', 'CDF ');
+  if (currency === 'CDF') {
+    return new Intl.NumberFormat('fr-CD', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount) + ' CDF';
+  } else {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 0,
+    }).format(amount);
+  }
 }
