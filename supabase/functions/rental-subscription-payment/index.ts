@@ -114,7 +114,7 @@ serve(async (req) => {
 
     const transactionId = `RENT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // Create subscription payment record
+    // Create subscription payment record (without subscription_id initially)
     const { data: payment, error: paymentError } = await supabaseServiceRole
       .from('rental_subscription_payments')
       .insert({
@@ -126,6 +126,7 @@ serve(async (req) => {
         phone_number: phoneNumber,
         transaction_id: transactionId,
         status: 'processing',
+        subscription_id: null, // Sera mis à jour après création de l'abonnement
         metadata: {
           plan_name: plan.name,
           vehicle_id: vehicleId,
@@ -179,14 +180,19 @@ serve(async (req) => {
           end_date: endDate.toISOString(),
           last_payment_date: new Date().toISOString(),
           next_payment_date: endDate.toISOString(),
-          auto_renew: autoRenew,
-          subscription_id: payment.id
+          auto_renew: autoRenew
         })
         .select()
         .single();
 
       if (subscriptionError) {
         console.error('Failed to create subscription:', subscriptionError);
+        // Rollback: marquer le paiement comme échoué
+        await supabaseServiceRole
+          .from('rental_subscription_payments')
+          .update({ status: 'failed' })
+          .eq('id', payment.id);
+        
         return new Response(
           JSON.stringify({ error: 'Erreur lors de la création de l\'abonnement' }),
           { 
@@ -195,6 +201,12 @@ serve(async (req) => {
           }
         );
       }
+
+      // Lier le paiement à l'abonnement créé
+      await supabaseServiceRole
+        .from('rental_subscription_payments')
+        .update({ subscription_id: subscription.id })
+        .eq('id', payment.id);
 
       // Log activity
       await supabaseServiceRole

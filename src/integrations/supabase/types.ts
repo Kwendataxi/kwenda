@@ -2786,7 +2786,7 @@ export type Database = {
           phone_number: string | null
           provider: string | null
           status: string
-          subscription_id: string
+          subscription_id: string | null
           transaction_id: string | null
         }
         Insert: {
@@ -2801,7 +2801,7 @@ export type Database = {
           phone_number?: string | null
           provider?: string | null
           status?: string
-          subscription_id: string
+          subscription_id?: string | null
           transaction_id?: string | null
         }
         Update: {
@@ -2816,7 +2816,7 @@ export type Database = {
           phone_number?: string | null
           provider?: string | null
           status?: string
-          subscription_id?: string
+          subscription_id?: string | null
           transaction_id?: string | null
         }
         Relationships: [
@@ -4571,6 +4571,10 @@ export type Database = {
       }
       is_vehicle_subscription_active: {
         Args: { vehicle_id_param: string }
+        Returns: boolean
+      }
+      link_payment_to_subscription: {
+        Args: { payment_id: string; subscription_id: string }
         Returns: boolean
       }
       search_places: {

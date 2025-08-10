@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRentalSubscriptions } from '@/hooks/useRentalSubscriptions';
 import { usePartnerRentals } from '@/hooks/usePartnerRentals';
-import MobileMoneyPayment from '@/components/advanced/MobileMoneyPayment';
+import { ModernPaymentDialog } from './ModernPaymentDialog';
 import { Car, CreditCard, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -50,7 +50,17 @@ export const RentalSubscriptionManager = () => {
     setShowPayment(true);
   };
 
-  const handlePaymentSuccess = (transactionId: string) => {
+  const handlePayment = async (data: { provider: string; phoneNumber: string; autoRenew: boolean }) => {
+    await subscribeToPlan({
+      planId: paymentData.planId,
+      vehicleId: paymentData.vehicleId,
+      provider: data.provider,
+      phoneNumber: data.phoneNumber,
+      autoRenew: data.autoRenew
+    });
+  };
+
+  const handlePaymentClose = () => {
     setShowPayment(false);
     setPaymentData(null);
   };
@@ -326,50 +336,17 @@ export const RentalSubscriptionManager = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Payment Dialog */}
+      {/* Modern Payment Dialog */}
       {showPayment && paymentData && (
-        <Dialog open={showPayment} onOpenChange={setShowPayment}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Paiement de l'abonnement</DialogTitle>
-              <DialogDescription>
-                {paymentData.planName} - {formatCurrency(paymentData.amount, paymentData.currency)}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  Vous allez payer {formatCurrency(paymentData.amount, paymentData.currency)} pour l'abonnement mensuel
-                </p>
-              </div>
-              
-              <Button 
-                onClick={() => {
-                  subscribeToPlan({
-                    planId: paymentData.planId,
-                    vehicleId: paymentData.vehicleId,
-                    provider: 'airtel',
-                    phoneNumber: '+243000000000',
-                    autoRenew
-                  });
-                }}
-                disabled={isSubscribing}
-                className="w-full"
-              >
-                {isSubscribing ? 'Traitement...' : 'Confirmer le paiement'}
-              </Button>
-              
-              <Button 
-                variant="outline"
-                onClick={() => setShowPayment(false)}
-                className="w-full"
-              >
-                Annuler
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <ModernPaymentDialog
+          isOpen={showPayment}
+          onClose={handlePaymentClose}
+          planName={paymentData.planName}
+          amount={paymentData.amount}
+          currency={paymentData.currency}
+          onPayment={handlePayment}
+          isProcessing={isSubscribing}
+        />
       )}
     </div>
   );
