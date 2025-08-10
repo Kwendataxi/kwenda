@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ModernTaxiHome } from './ModernTaxiHome';
-import StepByStepTaxiInterface from './StepByStepTaxiInterface';
+import SimpleTaxiInterface from './SimpleTaxiInterface';
 
 interface ModernTaxiInterfaceProps {
   onBookingRequest: (bookingData: any) => void;
@@ -38,7 +38,7 @@ const ModernTaxiInterface: React.FC<ModernTaxiInterfaceProps> = ({
   }
 
   return (
-      <StepByStepTaxiInterface 
+      <SimpleTaxiInterface 
         onBookingRequest={onBookingRequest}
         initialPickup={initialPickup ? {
           address: initialPickup.address,
