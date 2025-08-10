@@ -225,56 +225,56 @@ export const DriverCreditsManager = () => {
   return (
     <div className="space-y-6">
       {/* Statistics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center">
-              <Users className="w-5 h-5 mr-2 text-blue-600" />
-              Total Chauffeurs
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base sm:text-lg flex items-center">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-600" />
+              <span className="truncate">Total Chauffeurs</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{drivers.length}</p>
-            <p className="text-sm text-muted-foreground">Comptes crédits actifs</p>
+          <CardContent className="pt-0">
+            <p className="text-2xl sm:text-3xl font-bold">{drivers.length}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Comptes crédits actifs</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center">
-              <Wallet className="w-5 h-5 mr-2 text-green-600" />
-              Solde Total
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base sm:text-lg flex items-center">
+              <Wallet className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-600" />
+              <span className="truncate">Solde Total</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{formatCurrency(stats.totalBalance)}</p>
-            <p className="text-sm text-muted-foreground">Tous les chauffeurs</p>
+          <CardContent className="pt-0">
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">{formatCurrency(stats.totalBalance)}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Tous les chauffeurs</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2 text-purple-600" />
-                Total Rechargé
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">{formatCurrency(stats.totalEarned)}</p>
-              <p className="text-sm text-muted-foreground">Recharges cumulées</p>
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base sm:text-lg flex items-center">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-purple-600" />
+              <span className="truncate">Total Rechargé</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">{formatCurrency(stats.totalEarned)}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Recharges cumulées</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center">
-              <AlertTriangle className="w-5 h-5 mr-2 text-red-600" />
-              Soldes Faibles
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base sm:text-lg flex items-center">
+              <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-red-600" />
+              <span className="truncate">Soldes Faibles</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-red-600">{stats.lowBalanceCount}</p>
-            <p className="text-sm text-muted-foreground">Moins de 1000 CDF</p>
+          <CardContent className="pt-0">
+            <p className="text-2xl sm:text-3xl font-bold text-red-600">{stats.lowBalanceCount}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Moins de 1000 CDF</p>
           </CardContent>
         </Card>
       </div>
@@ -292,38 +292,42 @@ export const DriverCreditsManager = () => {
               <CardTitle>Recherche et Filtres</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
-                    placeholder="Rechercher par nom ou téléphone..."
+                    placeholder="Rechercher chauffeur..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
                   />
                 </div>
-                <Select value={filter} onValueChange={setFilter}>
-                  <SelectTrigger className="w-full md:w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les chauffeurs</SelectItem>
-                    <SelectItem value="low_balance">Solde faible</SelectItem>
-                    <SelectItem value="no_balance">Solde nul</SelectItem>
-                    <SelectItem value="active">Actifs</SelectItem>
-                    <SelectItem value="inactive">Inactifs</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    fetchDriverCredits()
-                    fetchTransactions()
-                  }}
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Actualiser
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Select value={filter} onValueChange={setFilter}>
+                    <SelectTrigger className="w-full sm:w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous</SelectItem>
+                      <SelectItem value="low_balance">Solde faible</SelectItem>
+                      <SelectItem value="no_balance">Solde nul</SelectItem>
+                      <SelectItem value="active">Actifs</SelectItem>
+                      <SelectItem value="inactive">Inactifs</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      fetchDriverCredits()
+                      fetchTransactions()
+                    }}
+                    className="w-full sm:w-auto"
+                  >
+                    <RefreshCw className="w-4 h-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Actualiser</span>
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -341,18 +345,18 @@ export const DriverCreditsManager = () => {
                   const balanceStatus = getBalanceStatus(driver.balance)
                   
                   return (
-                    <div key={driver.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
+                    <div key={driver.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 sm:p-4 border rounded-lg">
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
                         <div className={`w-3 h-3 rounded-full ${balanceStatus.color}`} />
-                        <div>
-                          <p className="font-medium">{driver.profiles?.display_name || 'Chauffeur'}</p>
-                          <p className="text-sm text-muted-foreground">{driver.profiles?.phone_number || 'N/A'}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium truncate">{driver.profiles?.display_name || 'Chauffeur'}</p>
+                          <p className="text-sm text-muted-foreground truncate">{driver.profiles?.phone_number || 'N/A'}</p>
                         </div>
                       </div>
                       
-                      <div className="flex items-center space-x-4">
-                        <div className="text-right">
-                          <p className="font-bold">{formatCurrency(driver.balance)}</p>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:space-x-4">
+                        <div className="text-left sm:text-right">
+                          <p className="font-bold text-lg sm:text-base">{formatCurrency(driver.balance)}</p>
                           <p className="text-sm text-muted-foreground">
                             Gagné: {formatCurrency(driver.total_earned)}
                           </p>
@@ -365,6 +369,7 @@ export const DriverCreditsManager = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setSelectedDriver(driver)}
+                                className="flex-1 sm:flex-none"
                               >
                                 <Plus className="w-4 h-4 mr-1" />
                                 Recharger
@@ -376,33 +381,52 @@ export const DriverCreditsManager = () => {
                               </DialogHeader>
                               
                               <div className="space-y-4">
-                                <div>
-                                  <Label>Chauffeur</Label>
-                                  <p className="font-medium">{selectedDriver?.profiles?.display_name || 'Chauffeur'}</p>
+                                <div className="p-3 bg-muted rounded-lg">
+                                  <Label className="text-sm font-medium">Chauffeur</Label>
+                                  <p className="font-medium text-lg">{selectedDriver?.profiles?.display_name || 'Chauffeur'}</p>
                                   <p className="text-sm text-muted-foreground">
-                                    Solde actuel: {formatCurrency(selectedDriver?.balance || 0)}
+                                    Solde actuel: <span className="font-medium">{formatCurrency(selectedDriver?.balance || 0)}</span>
                                   </p>
                                 </div>
                                 
-                                <div>
-                                  <Label htmlFor="amount">Montant à ajouter (CDF)</Label>
+                                <div className="space-y-2">
+                                  <Label htmlFor="amount">Montant (CDF)</Label>
                                   <Input
                                     id="amount"
                                     type="number"
-                                    placeholder="Entrez le montant"
+                                    placeholder="5000"
                                     value={topUpAmount}
                                     onChange={(e) => setTopUpAmount(e.target.value)}
                                     min="100"
                                     step="100"
+                                    className="text-lg"
                                   />
+                                </div>
+                                
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                  <Button 
+                                    variant="outline"
+                                    onClick={() => setTopUpAmount('5000')}
+                                    className="flex-1"
+                                  >
+                                    5,000 CDF
+                                  </Button>
+                                  <Button 
+                                    variant="outline"
+                                    onClick={() => setTopUpAmount('10000')}
+                                    className="flex-1"
+                                  >
+                                    10,000 CDF
+                                  </Button>
                                 </div>
                                 
                                 <Button 
                                   onClick={handleTopUp} 
                                   disabled={loading || !topUpAmount || parseInt(topUpAmount) < 100}
                                   className="w-full"
+                                  size="lg"
                                 >
-                                  {loading ? 'Traitement...' : `Ajouter ${topUpAmount ? formatCurrency(parseInt(topUpAmount)) : ''}`}
+                                  {loading ? 'Traitement...' : `Ajouter ${topUpAmount ? formatCurrency(parseInt(topUpAmount)) : 'Crédits'}`}
                                 </Button>
                               </div>
                             </DialogContent>
@@ -432,28 +456,28 @@ export const DriverCreditsManager = () => {
             <CardContent>
               <div className="space-y-3">
                 {transactions.slice(0, 50).map((transaction) => (
-                  <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center space-x-3">
+                  <div key={transaction.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border rounded-lg">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
                       <div className={`w-2 h-2 rounded-full ${
                         transaction.transaction_type === 'topup' ? 'bg-green-500' : 'bg-red-500'
                       }`} />
-                      <div>
-                        <p className="font-medium">{transaction.profiles?.display_name || 'Chauffeur'}</p>
-                        <p className="text-sm text-muted-foreground">{transaction.description}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{transaction.profiles?.display_name || 'Chauffeur'}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{transaction.description}</p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(transaction.created_at).toLocaleString('fr-FR')}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className={`font-bold ${
+                    <div className="text-left sm:text-right">
+                      <p className={`font-bold text-lg sm:text-base ${
                         transaction.transaction_type === 'topup' ? 'text-green-600' : 'text-red-600'
                       }`}>
                         {transaction.transaction_type === 'topup' ? '+' : '-'}
                         {formatCurrency(transaction.amount)}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Nouveau solde: {formatCurrency(transaction.balance_after)}
+                        Solde: {formatCurrency(transaction.balance_after)}
                       </p>
                     </div>
                   </div>
