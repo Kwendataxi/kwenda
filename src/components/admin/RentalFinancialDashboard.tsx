@@ -1,72 +1,51 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { DollarSign, TrendingUp, Users, Calendar, Car, Target } from 'lucide-react';
+import { useAdminRentalFinancials } from '@/hooks/useAdminRentalFinancials';
 
 export const RentalFinancialDashboard = () => {
   const [timeRange, setTimeRange] = useState('30');
 
-  // Mock data pour les statistiques financières
-  const revenueStats = {
-    totalRevenue: 2450000,
-    activeSubscriptions: 15,
-    totalSubscriptions: 18,
-    conversionRate: 83.3,
-    revenueByCategory: [
-      { name: 'ECO', value: 980000 },
-      { name: 'PREMIUM', value: 857500 },
-      { name: 'FIRST CLASS', value: 490000 },
-      { name: 'UTILITAIRES', value: 122500 }
-    ]
-  };
-
-  // Mock data pour les séries temporelles
-  const timeSeriesData = [
-    { date: '2024-01-01', revenue: 145000, subscriptions: 3 },
-    { date: '2024-01-02', revenue: 200000, subscriptions: 4 },
-    { date: '2024-01-03', revenue: 175000, subscriptions: 2 },
-    { date: '2024-01-04', revenue: 320000, subscriptions: 6 },
-    { date: '2024-01-05', revenue: 280000, subscriptions: 5 }
-  ];
-
-  // Mock data pour les top partenaires
-  const topPartners = [
-    { name: 'Partenaire Premium Auto', revenue: 485000, subscriptions: 8 },
-    { name: 'Congo Fleet Services', revenue: 320000, subscriptions: 5 },
-    { name: 'Kinshasa Transport Plus', revenue: 290000, subscriptions: 4 },
-    { name: 'Eco Vehicles RDC', revenue: 215000, subscriptions: 3 }
-  ];
+  // Données réelles depuis la base de données
+  const { data: financialData, isLoading } = useAdminRentalFinancials(timeRange);
 
   const statCards = [
     {
       title: "Revenus Total",
-      value: `${revenueStats?.totalRevenue?.toLocaleString() || 0} CDF`,
+      value: `${financialData?.totalRevenue?.toLocaleString() || 0} CDF`,
       icon: DollarSign,
       color: "text-green-600"
     },
     {
       title: "Abonnements Actifs",
-      value: revenueStats?.activeSubscriptions || 0,
+      value: financialData?.activeSubscriptions || 0,
       icon: Users,
       color: "text-blue-600"
     },
     {
       title: "Taux de Conversion",
-      value: `${Math.round(revenueStats?.conversionRate || 0)}%`,
+      value: `${Math.round(financialData?.conversionRate || 0)}%`,
       icon: Target,
       color: "text-purple-600"
     },
     {
       title: "Total Souscriptions",
-      value: revenueStats?.totalSubscriptions || 0,
+      value: financialData?.totalSubscriptions || 0,
       icon: TrendingUp,
       color: "text-orange-600"
     }
   ];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#0088fe'];
 
@@ -119,7 +98,7 @@ export const RentalFinancialDashboard = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={timeSeriesData}>
+              <LineChart data={financialData?.timeSeriesData || []}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="date" 
@@ -152,7 +131,7 @@ export const RentalFinancialDashboard = () => {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={revenueStats?.revenueByCategory}
+                  data={financialData?.revenueByCategory || []}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -161,7 +140,7 @@ export const RentalFinancialDashboard = () => {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {revenueStats?.revenueByCategory?.map((entry, index) => (
+                  {financialData?.revenueByCategory?.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -179,16 +158,16 @@ export const RentalFinancialDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {topPartners?.map((partner: any, index) => (
+            {financialData?.topPartners?.map((partner: any, index) => (
               <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
                 <div className="flex items-center gap-3">
                   <Badge variant="outline" className="text-xs">
                     #{index + 1}
                   </Badge>
                   <div>
-                    <p className="font-medium">{partner.name}</p>
+                    <p className="font-medium">{partner.partner_name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {partner.subscriptions} abonnement(s)
+                      {partner.subscriptions} abonnement(s) • {partner.bookings} réservation(s)
                     </p>
                   </div>
                 </div>
@@ -212,7 +191,7 @@ export const RentalFinancialDashboard = () => {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={timeSeriesData}>
+            <BarChart data={financialData?.timeSeriesData || []}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
                 dataKey="date" 

@@ -6,22 +6,14 @@ import { AdminRentalModeration } from './AdminRentalModeration';
 import { RentalSubscriptionManager } from './RentalSubscriptionManager';
 import { VehicleCategoryManager } from './VehicleCategoryManager';
 import { RentalFinancialDashboard } from './RentalFinancialDashboard';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useAdminRentalStats } from '@/hooks/useAdminRentalStats';
 import { BarChart3, Car, Settings, CreditCard, CheckCircle, Clock, AlertCircle, TrendingUp } from 'lucide-react';
 
 export const AdminRentalManager = () => {
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Mock data pour les statistiques
-  const stats = {
-    totalVehicles: 45,
-    pendingModeration: 8,
-    approvedVehicles: 32,
-    activeVehicles: 28,
-    activeSubscriptions: 15,
-    totalCategories: 4
-  };
+  // Données réelles depuis la base de données
+  const { data: stats, isLoading: statsLoading } = useAdminRentalStats();
 
   const statCards = [
     {
@@ -59,8 +51,8 @@ export const AdminRentalManager = () => {
             Administration complète des véhicules de location et abonnements
           </p>
         </div>
-        <Badge variant="outline" className="text-lg px-4 py-2">
-          Admin Location (Prototype)
+        <Badge variant={statsLoading ? "secondary" : "default"} className="text-lg px-4 py-2">
+          {statsLoading ? "Chargement..." : "Admin Location (Live)"}
         </Badge>
       </div>
 
@@ -89,19 +81,25 @@ export const AdminRentalManager = () => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {statCards.map((stat, index) => (
-              <Card key={index} className="relative overflow-hidden">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stat.value}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {statsLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {statCards.map((stat, index) => (
+                <Card key={index} className="relative overflow-hidden">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                    <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stat.value}</div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
