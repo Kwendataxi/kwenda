@@ -1463,11 +1463,15 @@ export type Database = {
           product_id: string
           quantity: number
           ready_for_pickup_at: string | null
+          revenue_status: string | null
           seller_id: string
           status: string
           total_amount: number
           unit_price: number
           updated_at: string
+          vendor_confirmation_status: string | null
+          vendor_confirmed_at: string | null
+          vendor_rejection_reason: string | null
         }
         Insert: {
           buyer_id: string
@@ -1492,11 +1496,15 @@ export type Database = {
           product_id: string
           quantity?: number
           ready_for_pickup_at?: string | null
+          revenue_status?: string | null
           seller_id: string
           status?: string
           total_amount: number
           unit_price: number
           updated_at?: string
+          vendor_confirmation_status?: string | null
+          vendor_confirmed_at?: string | null
+          vendor_rejection_reason?: string | null
         }
         Update: {
           buyer_id?: string
@@ -1521,11 +1529,15 @@ export type Database = {
           product_id?: string
           quantity?: number
           ready_for_pickup_at?: string | null
+          revenue_status?: string | null
           seller_id?: string
           status?: string
           total_amount?: number
           unit_price?: number
           updated_at?: string
+          vendor_confirmation_status?: string | null
+          vendor_confirmed_at?: string | null
+          vendor_rejection_reason?: string | null
         }
         Relationships: [
           {
@@ -4081,6 +4093,99 @@ export type Database = {
           request_id?: string
           validation_type?: string
           validator_id?: string
+        }
+        Relationships: []
+      }
+      vendor_earnings: {
+        Row: {
+          amount: number
+          confirmed_at: string | null
+          created_at: string
+          currency: string
+          earnings_type: string
+          id: string
+          order_id: string
+          paid_at: string | null
+          payment_method: string | null
+          status: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          amount?: number
+          confirmed_at?: string | null
+          created_at?: string
+          currency?: string
+          earnings_type?: string
+          id?: string
+          order_id: string
+          paid_at?: string | null
+          payment_method?: string | null
+          status?: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          amount?: number
+          confirmed_at?: string | null
+          created_at?: string
+          currency?: string
+          earnings_type?: string
+          id?: string
+          order_id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          status?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: []
+      }
+      vendor_notifications: {
+        Row: {
+          acknowledged_at: string | null
+          created_at: string
+          id: string
+          is_acknowledged: boolean
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          notification_type: string
+          order_id: string
+          read_at: string | null
+          sound_played: boolean
+          title: string
+          vendor_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          created_at?: string
+          id?: string
+          is_acknowledged?: boolean
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          order_id: string
+          read_at?: string | null
+          sound_played?: boolean
+          title: string
+          vendor_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          created_at?: string
+          id?: string
+          is_acknowledged?: boolean
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          order_id?: string
+          read_at?: string | null
+          sound_played?: boolean
+          title?: string
+          vendor_id?: string
         }
         Relationships: []
       }
