@@ -4573,6 +4573,30 @@ export type Database = {
         Args: { vehicle_id_param: string }
         Returns: boolean
       }
+      search_places: {
+        Args: {
+          search_query: string
+          user_country_code?: string
+          user_city?: string
+          max_results?: number
+        }
+        Returns: {
+          id: string
+          name: string
+          name_fr: string
+          name_local: string
+          place_type: string
+          category: string
+          country_code: string
+          city: string
+          commune: string
+          latitude: number
+          longitude: number
+          is_popular: boolean
+          search_keywords: string[]
+          relevance_score: number
+        }[]
+      }
     }
     Enums: {
       admin_role:
