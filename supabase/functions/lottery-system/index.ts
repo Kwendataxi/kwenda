@@ -147,8 +147,9 @@ async function drawLottery(body: any, supabase: any) {
     throw new Error(`Tirage non trouvé: ${drawError.message}`);
   }
 
-  if (draw.status !== 'scheduled') {
-    throw new Error('Le tirage n\'est pas programmé');
+  // Permettre les tirages 'scheduled' et 'active' pour les déclenchements manuels
+  if (draw.status !== 'scheduled' && draw.status !== 'active') {
+    throw new Error(`Le tirage ne peut pas être déclenché (statut: ${draw.status})`);
   }
 
   // Marquer le tirage comme actif
@@ -160,10 +161,10 @@ async function drawLottery(body: any, supabase: any) {
     })
     .eq('id', drawId);
 
-  // Récupérer toutes les participations
+  // Récupérer toutes les participations (sans jointure avec profiles)
   const { data: entries, error: entriesError } = await supabase
     .from('lottery_entries')
-    .select('*, profiles!inner(display_name)')
+    .select('*')
     .eq('draw_id', drawId);
 
   if (entriesError) {
