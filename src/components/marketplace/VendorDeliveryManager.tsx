@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, Package, Clock, Truck, Phone, Eye } from 'lucide-react';
+import { MapPin, Package, Clock, Truck, Phone, Eye, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { MarketplaceDriverSearch } from './MarketplaceDriverSearch';
 
 interface VendorOrder {
   id: string;
@@ -31,6 +32,7 @@ export const VendorDeliveryManager = () => {
   const [orders, setOrders] = useState<VendorOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
+  const [searchingDriverFor, setSearchingDriverFor] = useState<string | null>(null);
   const { user } = useAuth();
 
   const loadOrders = async () => {
@@ -95,6 +97,20 @@ export const VendorDeliveryManager = () => {
       console.error('Error updating delivery preference:', error);
       toast.error('Erreur lors de la mise à jour');
     }
+  };
+
+  const handleDriverSearch = (orderId: string) => {
+    setSearchingDriverFor(orderId);
+  };
+
+  const handleDriverSearchClose = () => {
+    setSearchingDriverFor(null);
+  };
+
+  const handleAssignmentComplete = (assignmentId: string) => {
+    toast.success('Livreur assigné avec succès!');
+    loadOrders(); // Recharger les commandes pour voir l'assignation
+    setSearchingDriverFor(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -229,7 +245,7 @@ export const VendorDeliveryManager = () => {
                 </div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {order.status === 'pending' && order.delivery_method === 'pickup' && (
                   <Button
                     variant="outline"
@@ -238,6 +254,17 @@ export const VendorDeliveryManager = () => {
                   >
                     <Truck className="h-4 w-4 mr-1" />
                     Activer livraison Kwenda
+                  </Button>
+                )}
+                
+                {order.status === 'confirmed' && order.delivery_method !== 'pickup' && !order.delivery_assignment && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => handleDriverSearch(order.id)}
+                  >
+                    <Search className="h-4 w-4 mr-1" />
+                    Rechercher livreur
                   </Button>
                 )}
                 
@@ -267,6 +294,18 @@ export const VendorDeliveryManager = () => {
           </Card>
         ))}
       </div>
+
+      {/* Driver Search Modal */}
+      {searchingDriverFor && (
+        <MarketplaceDriverSearch
+          isOpen={!!searchingDriverFor}
+          onClose={handleDriverSearchClose}
+          orderId={searchingDriverFor}
+          pickupLocation="Boutique vendeur" // À améliorer avec la vraie localisation
+          deliveryLocation={orders.find(o => o.id === searchingDriverFor)?.delivery_address || "Adresse de livraison"}
+          onAssignmentComplete={handleAssignmentComplete}
+        />
+      )}
     </div>
   );
 };
