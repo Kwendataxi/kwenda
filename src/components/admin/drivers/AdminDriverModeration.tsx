@@ -13,21 +13,17 @@ interface DriverRequest {
   id: string;
   user_id: string;
   license_number: string;
-  vehicle_make: string;
   vehicle_model: string;
   vehicle_year: number;
   vehicle_plate: string;
+  vehicle_type: string;
   insurance_number: string;
   license_expiry: string;
+  service_type?: string;
   status: string;
   created_at: string;
-  profiles?: {
-    display_name: string;
-    phone_number: string;
-  };
-  auth_users?: {
-    email: string;
-  };
+  validation_level?: string;
+  rejected_reason?: string;
 }
 
 export const AdminDriverModeration = () => {
@@ -61,13 +57,13 @@ export const AdminDriverModeration = () => {
         .insert({
           user_id: request.user_id,
           license_number: request.license_number,
-          vehicle_make: request.vehicle_make,
+          vehicle_make: 'Non spécifié',
           vehicle_model: request.vehicle_model,
           vehicle_year: request.vehicle_year,
           vehicle_plate: request.vehicle_plate,
           insurance_number: request.insurance_number,
           license_expiry: request.license_expiry,
-          insurance_expiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 year from now
+          insurance_expiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           vehicle_class: 'standard',
           service_type: request.service_type || 'taxi',
           verification_status: 'verified',
@@ -217,7 +213,7 @@ export const AdminDriverModeration = () => {
 
                 {/* Vehicle Info */}
                 <div className="bg-muted p-3 rounded-md space-y-1">
-                  <p className="font-medium">{request.vehicle_make} {request.vehicle_model}</p>
+                  <p className="font-medium">{request.vehicle_model} ({request.vehicle_type})</p>
                   <p className="text-sm text-muted-foreground">Année: {request.vehicle_year}</p>
                   <p className="text-sm text-muted-foreground">Plaque: {request.vehicle_plate}</p>
                   <p className="text-sm text-muted-foreground">Permis: {request.license_number}</p>
@@ -258,7 +254,7 @@ export const AdminDriverModeration = () => {
                             <div>
                               <h4 className="font-medium mb-2">Véhicule</h4>
                               <div className="space-y-1 text-sm">
-                                <p><strong>Marque:</strong> {selectedRequest.vehicle_make}</p>
+                                <p><strong>Type:</strong> {selectedRequest.vehicle_type}</p>
                                 <p><strong>Modèle:</strong> {selectedRequest.vehicle_model}</p>
                                 <p><strong>Année:</strong> {selectedRequest.vehicle_year}</p>
                                 <p><strong>Plaque:</strong> {selectedRequest.vehicle_plate}</p>
