@@ -101,6 +101,19 @@ export const useDeliveryOrders = () => {
     if (!user) return false;
 
     try {
+      // Hold funds in escrow first
+      const { data: escrowData, error: escrowError } = await supabase.functions.invoke('delivery-escrow-management', {
+        body: {
+          action: 'hold',
+          orderId: orderId,
+          userId: user.id,
+          amount: paymentData.amount,
+          releaseDelay: 48 // 48 hours auto-release
+        }
+      });
+
+      if (escrowError) throw escrowError;
+
       if (paymentMethod === 'mobile_money') {
         const { data, error } = await supabase.functions.invoke('mobile-money-payment', {
           body: {
@@ -117,6 +130,7 @@ export const useDeliveryOrders = () => {
         
         if (data.success) {
           await updateOrderStatus(orderId, 'paid');
+          toast.success('Paiement effectué. Fonds sécurisés jusqu\'à la livraison.');
           return true;
         }
       } else if (paymentMethod === 'wallet') {
@@ -140,6 +154,7 @@ export const useDeliveryOrders = () => {
           if (error) throw error;
           
           if (data.success) {
+            toast.success('Paiement effectué. Fonds sécurisés jusqu\'à la livraison.');
             return true;
           }
         }
