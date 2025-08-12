@@ -37,6 +37,7 @@ interface TeamAccount {
   name: string;
   description?: string;
   settings?: any;
+  status?: string;
   created_at: string;
   updated_at: string;
 }
@@ -173,11 +174,20 @@ export const AdminTeamManager = () => {
 
   const handleStatusChange = async (teamId: string, newStatus: string) => {
     try {
-      // Note: La table team_accounts n'a pas de colonne status dans le schéma actuel
+      const { error } = await supabase
+        .from('team_accounts')
+        .update({ status: newStatus })
+        .eq('id', teamId);
+
+      if (error) throw error;
+
       toast({
-        title: "Information",
-        description: "La gestion des statuts sera implémentée prochainement.",
+        title: "Statut mis à jour",
+        description: `Le statut de l'équipe a été mis à jour avec succès.`,
       });
+
+      // Rafraîchir les données
+      await fetchData();
     } catch (error) {
       toast({
         title: "Erreur",
@@ -431,7 +441,7 @@ export const AdminTeamManager = () => {
                       0
                     </div>
                   </TableCell>
-                  <TableCell>{getStatusBadge('active')}</TableCell>
+                  <TableCell>{getStatusBadge(team.status || 'active')}</TableCell>
                   <TableCell>
                     <div className="font-medium">{formatCurrency(0)}</div>
                   </TableCell>
@@ -457,7 +467,7 @@ export const AdminTeamManager = () => {
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleStatusChange(team.id, 'suspended')}>
                           <AlertTriangle className="w-4 h-4 mr-2" />
-                          Suspendre (Bientôt disponible)
+                          Suspendre
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
