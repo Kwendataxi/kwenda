@@ -19,12 +19,15 @@ import {
   Search,
   Timer,
   ChevronRight,
-  Truck
+  Truck,
+  Filter
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import EnhancedDriverFilters from './EnhancedDriverFilters';
+import DeliveryDriverChatModal from './DeliveryDriverChatModal';
 
 interface DeliveryDriverProfile {
   user_id: string;
@@ -33,6 +36,7 @@ interface DeliveryDriverProfile {
   vehicle_color: string;
   rating_average: number;
   rating_count: number;
+  total_rides?: number;
   display_name?: string;
   phone_number?: string;
 }
@@ -82,9 +86,19 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
 }) => {
   const [searchState, setSearchState] = useState<'searching' | 'found' | 'none'>('searching');
   const [drivers, setDrivers] = useState<DeliveryDriver[]>([]);
+  const [filteredDrivers, setFilteredDrivers] = useState<DeliveryDriver[]>([]);
   const [selectedDriver, setSelectedDriver] = useState<DeliveryDriver | null>(null);
   const [searchDuration, setSearchDuration] = useState(0);
   const [searchRadius, setSearchRadius] = useState(5);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [filters, setFilters] = useState({
+    vehicleTypes: [] as string[],
+    minRating: 0,
+    maxDistance: 20,
+    maxPrice: 50000,
+    onlyVerified: false
+  });
 
   // Recherche initiale de livreurs
   useEffect(() => {
@@ -106,23 +120,53 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
     return () => clearInterval(interval);
   }, [searchState]);
 
-  // Auto-sélection du livreur le plus proche
+  // Auto-sélection du livreur le plus proche et application des filtres
   useEffect(() => {
-    if (searchState === 'found' && drivers.length > 0 && !selectedDriver) {
-      setSelectedDriver(drivers[0]);
+    if (searchState === 'found' && drivers.length > 0) {
+      // Appliquer les filtres
+      const filtered = drivers.filter(driver => {
+        // Filtre par type de véhicule
+        if (filters.vehicleTypes.length > 0 && !filters.vehicleTypes.includes(driver.vehicle_type)) {
+          return false;
+        }
+        
+        // Filtre par rating
+        if (driver.driver_profile.rating_average < filters.minRating) {
+          return false;
+        }
+        
+        // Filtre par distance
+        if (driver.distance > filters.maxDistance) {
+          return false;
+        }
+        
+        return true;
+      });
+      
+      setFilteredDrivers(filtered);
+      
+      // Auto-sélection du premier livreur filtré
+      if (filtered.length > 0 && !selectedDriver) {
+        setSelectedDriver(filtered[0]);
+      }
     }
-  }, [searchState, drivers, selectedDriver]);
+  }, [searchState, drivers, selectedDriver, filters]);
 
-  const findDeliveryDrivers = async () => {
+  const findDeliveryDrivers = async (manualSearch = false) => {
     try {
       setSearchState('searching');
+      
+      if (manualSearch) {
+        toast.info('Recherche manuelle en cours...');
+      }
       
       const { data, error } = await supabase.functions.invoke('delivery-dispatcher', {
         body: {
           action: 'find_drivers',
           orderId: orderId,
           mode: deliveryMode,
-          radiusKm: searchRadius
+          radiusKm: searchRadius,
+          maxDrivers: 10
         }
       });
 
@@ -133,46 +177,61 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
         return;
       }
 
-      // Simuler quelques livreurs pour la démo
-      setTimeout(() => {
-        const mockDrivers: DeliveryDriver[] = [
-          {
-            driver_id: 'driver_1',
-            distance: 0.8,
-            estimated_arrival: 5,
-            vehicle_type: deliveryMode === 'flash' ? 'moto' : deliveryMode === 'maxicharge' ? 'truck' : 'car',
-            driver_profile: {
-              user_id: 'user_1',
-              vehicle_type: deliveryMode === 'flash' ? 'Moto Honda' : deliveryMode === 'maxicharge' ? 'Camion Isuzu' : 'Toyota Corolla',
-              vehicle_plate: 'KIN-1234',
-              vehicle_color: 'Bleu',
-              rating_average: 4.8,
-              rating_count: 152,
-              display_name: 'Jean-Paul K.',
-              phone_number: '+243900000001'
+      // Utiliser les vraies données ou fallback sur mock
+      const realDrivers = data?.drivers || [];
+      
+      if (realDrivers.length > 0) {
+        console.log(`Trouvé ${realDrivers.length} livreurs réels`);
+        setDrivers(realDrivers);
+        setSearchState('found');
+        toast.success(`${realDrivers.length} livreur${realDrivers.length > 1 ? 's' : ''} trouvé${realDrivers.length > 1 ? 's' : ''}`);
+      } else {
+        // Fallback avec données simulées pour la démo
+        console.log('Aucun livreur réel, utilisation de données simulées');
+        
+        setTimeout(() => {
+          const mockDrivers: DeliveryDriver[] = [
+            {
+              driver_id: 'demo_driver_1',
+              distance: 0.8,
+              estimated_arrival: 5,
+              vehicle_type: deliveryMode === 'flash' ? 'moto' : deliveryMode === 'maxicharge' ? 'truck' : 'car',
+              driver_profile: {
+                user_id: 'demo_user_1',
+                vehicle_type: deliveryMode === 'flash' ? 'Moto Honda' : deliveryMode === 'maxicharge' ? 'Camion Isuzu' : 'Toyota Corolla',
+                vehicle_plate: 'KIN-1234',
+                vehicle_color: 'Bleu',
+                rating_average: 4.8,
+                rating_count: 152,
+                total_rides: 320,
+                display_name: 'Jean-Paul K.',
+                phone_number: '+243900000001'
+              }
+            },
+            {
+              driver_id: 'demo_driver_2',
+              distance: 1.2,
+              estimated_arrival: 8,
+              vehicle_type: deliveryMode === 'flash' ? 'moto' : deliveryMode === 'maxicharge' ? 'truck' : 'car',
+              driver_profile: {
+                user_id: 'demo_user_2',
+                vehicle_type: deliveryMode === 'flash' ? 'Moto Yamaha' : deliveryMode === 'maxicharge' ? 'Camion Toyota' : 'Nissan Almera',
+                vehicle_plate: 'KIN-5678',
+                vehicle_color: 'Rouge',
+                rating_average: 4.6,
+                rating_count: 89,
+                total_rides: 156,
+                display_name: 'Marie T.',
+                phone_number: '+243900000002'
+              }
             }
-          },
-          {
-            driver_id: 'driver_2',
-            distance: 1.2,
-            estimated_arrival: 8,
-            vehicle_type: deliveryMode === 'flash' ? 'moto' : deliveryMode === 'maxicharge' ? 'truck' : 'car',
-            driver_profile: {
-              user_id: 'user_2',
-              vehicle_type: deliveryMode === 'flash' ? 'Moto Yamaha' : deliveryMode === 'maxicharge' ? 'Camion Toyota' : 'Nissan Almera',
-              vehicle_plate: 'KIN-5678',
-              vehicle_color: 'Rouge',
-              rating_average: 4.6,
-              rating_count: 89,
-              display_name: 'Marie T.',
-              phone_number: '+243900000002'
-            }
-          }
-        ];
+          ];
 
-        setDrivers(mockDrivers);
-        setSearchState(mockDrivers.length > 0 ? 'found' : 'none');
-      }, 3000);
+          setDrivers(mockDrivers);
+          setSearchState('found');
+          toast.success(`${mockDrivers.length} livreurs trouvés (démo)`);
+        }, 2500);
+      }
 
     } catch (error) {
       console.error('Erreur invocation delivery-dispatcher:', error);
@@ -189,18 +248,18 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
     if (!selectedDriver) return;
 
     try {
-      // Assigner le livreur à la commande
-      const { error } = await supabase
-        .from('delivery_orders')
-        .update({ 
-          driver_id: selectedDriver.driver_id,
-          status: 'driver_assigned'
-        })
-        .eq('id', orderId);
+      // Utiliser la fonction d'assignation de l'edge function
+      const { data, error } = await supabase.functions.invoke('delivery-dispatcher', {
+        body: {
+          action: 'assign_driver',
+          orderId: orderId,
+          driverId: selectedDriver.driver_id
+        }
+      });
 
-      if (error) {
+      if (error || !data?.success) {
         console.error('Erreur assignation livreur:', error);
-        toast.error('Erreur lors de l\'assignation du livreur');
+        toast.error(data?.error || 'Erreur lors de l\'assignation du livreur');
         return;
       }
 
@@ -215,7 +274,22 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
 
   const handleExpandSearch = () => {
     setSearchRadius(prev => prev + 5);
-    findDeliveryDrivers();
+    findDeliveryDrivers(true);
+  };
+
+  const handleManualSearch = () => {
+    findDeliveryDrivers(true);
+  };
+
+  const handleApplyFilters = () => {
+    // Les filtres sont appliqués automatiquement via useEffect
+    toast.success('Filtres appliqués');
+  };
+
+  const handleContactDriver = () => {
+    if (selectedDriver) {
+      setShowChat(true);
+    }
   };
 
   // État recherche en cours
@@ -313,13 +387,24 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
                   </div>
                 </div>
 
-                <Button 
-                  variant="outline" 
-                  onClick={onCancel}
-                  className="w-full"
-                >
-                  Annuler
-                </Button>
+                <div className="space-y-2">
+                  <Button 
+                    onClick={handleManualSearch}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Search className="w-4 h-4 mr-2" />
+                    Rechercher manuellement
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    onClick={onCancel}
+                    className="w-full text-muted-foreground"
+                  >
+                    Annuler
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -372,13 +457,22 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
                     variant="default"
                   >
                     <Navigation2 className="w-4 h-4 mr-2" />
-                    Élargir la recherche
+                    Élargir la recherche ({searchRadius + 5} km)
                   </Button>
                   
                   <Button 
-                    variant="outline" 
-                    onClick={onBackToForm}
+                    onClick={handleManualSearch}
+                    variant="outline"
                     className="w-full"
+                  >
+                    <Search className="w-4 h-4 mr-2" />
+                    Rechercher à nouveau
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    onClick={onBackToForm}
+                    className="w-full text-muted-foreground"
                   >
                     Modifier ma commande
                   </Button>
@@ -399,7 +493,9 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold">Livreurs disponibles</h1>
-            <p className="text-sm opacity-90">{drivers.length} livreur{drivers.length > 1 ? 's' : ''} trouvé{drivers.length > 1 ? 's' : ''}</p>
+            <p className="text-sm opacity-90">
+              {filteredDrivers.length} sur {drivers.length} livreur{drivers.length > 1 ? 's' : ''}
+            </p>
           </div>
           <Button
             variant="ghost"
@@ -410,12 +506,54 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
             ← Retour
           </Button>
         </div>
+        
+        {/* Barre d'actions */}
+        <div className="px-4 py-2 bg-background/80 backdrop-blur border-b">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(true)}
+              className="flex-1"
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filtrer
+              {(filters.vehicleTypes.length > 0 || filters.minRating > 0 || filters.onlyVerified) && (
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {[
+                    filters.vehicleTypes.length > 0,
+                    filters.minRating > 0,
+                    filters.onlyVerified
+                  ].filter(Boolean).length}
+                </Badge>
+              )}
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleManualSearch}
+            >
+              <Search className="w-4 h-4 mr-2" />
+              Actualiser
+            </Button>
+          </div>
+        </div>
       </div>
 
       <div className="flex-1 p-4 space-y-4 pb-24">
+        {/* Message si filtres actifs */}
+        {filteredDrivers.length < drivers.length && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm text-blue-700">
+              {drivers.length - filteredDrivers.length} livreur{drivers.length - filteredDrivers.length > 1 ? 's' : ''} masqué{drivers.length - filteredDrivers.length > 1 ? 's' : ''} par les filtres
+            </p>
+          </div>
+        )}
+
         {/* Liste des livreurs */}
         <AnimatePresence>
-          {drivers.map((driver, index) => {
+          {filteredDrivers.map((driver, index) => {
             const isSelected = selectedDriver?.driver_id === driver.driver_id;
             const isClosest = index === 0;
             
@@ -474,7 +612,7 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
                         </p>
                         
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-3">
                             <div className="flex items-center">
                               <Star className="w-3 h-3 text-yellow-500 fill-current" />
                               <span className="text-sm ml-1 font-medium">
@@ -483,6 +621,11 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
                               <span className="text-xs text-muted-foreground ml-1">
                                 ({driver.driver_profile.rating_count})
                               </span>
+                            </div>
+                            
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              <Package className="w-3 h-3 mr-1" />
+                              {driver.driver_profile.total_rides || 0} courses
                             </div>
                             <div className="flex items-center text-sm text-muted-foreground">
                               <MapPin className="w-3 h-3 mr-1" />
