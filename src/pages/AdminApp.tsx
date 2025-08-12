@@ -150,20 +150,13 @@ const AdminApp = () => {
 
       <TabsContent value="users" className="space-y-6">
         <PermissionGuard requiredPermissions={['users_read']}>
-          <Tabs defaultValue="users" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="users">Utilisateurs</TabsTrigger>
-              <TabsTrigger value="drivers">Chauffeurs</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="users">
-              <AdvancedUserManagement />
-            </TabsContent>
-            
-            <TabsContent value="drivers">
-              <DriverManagement />
-            </TabsContent>
-          </Tabs>
+          <AdvancedUserManagement />
+        </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="drivers" className="space-y-6">
+        <PermissionGuard requiredPermissions={['users_read']}>
+          <DriverManagement />
         </PermissionGuard>
       </TabsContent>
 
