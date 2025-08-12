@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ResponsiveAdminLayout } from '@/components/admin/ResponsiveAdminLayout';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { PermissionGuard } from '@/components/auth/PermissionGuard';
@@ -12,6 +13,7 @@ import { ADMIN_ROLE_LABELS } from '@/types/roles';
 import { AdminPricingManager } from '@/components/admin/AdminPricingManager';
 import { AdminFiltersBar } from '@/components/admin/AdminFiltersBar';
 import { AdvancedUserManagement } from '@/components/admin/users/AdvancedUserManagement';
+import { DriverManagement } from '@/components/admin/drivers/DriverManagement';
 import UnifiedDispatchMonitor from '@/components/admin/UnifiedDispatchMonitor';
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
@@ -147,7 +149,20 @@ const AdminApp = () => {
 
       <TabsContent value="users" className="space-y-6">
         <PermissionGuard requiredPermissions={['users_read']}>
-          <AdvancedUserManagement />
+          <Tabs defaultValue="users" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="users">Utilisateurs</TabsTrigger>
+              <TabsTrigger value="drivers">Chauffeurs</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="users">
+              <AdvancedUserManagement />
+            </TabsContent>
+            
+            <TabsContent value="drivers">
+              <DriverManagement />
+            </TabsContent>
+          </Tabs>
         </PermissionGuard>
       </TabsContent>
 
