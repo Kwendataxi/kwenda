@@ -22,8 +22,15 @@ interface DriverRequest {
   service_type?: string;
   status: string;
   created_at: string;
+  updated_at: string;
   validation_level?: string;
   rejected_reason?: string;
+  approved_at?: string;
+  validation_comments?: string;
+  validated_by?: string;
+  validation_date?: string;
+  documents?: any;
+  partner_id?: string;
 }
 
 export const AdminDriverModeration = () => {
