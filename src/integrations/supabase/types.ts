@@ -4601,6 +4601,10 @@ export type Database = {
           relevance_score: number
         }[]
       }
+      user_exists: {
+        Args: { user_id_param: string }
+        Returns: boolean
+      }
     }
     Enums: {
       admin_role:
