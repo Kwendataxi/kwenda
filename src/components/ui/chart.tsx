@@ -74,26 +74,27 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null
   }
 
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
-      itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
+  // Generate CSS properties safely without dangerouslySetInnerHTML
+  const cssVarObject: React.CSSProperties = {}
+  
+  Object.entries(THEMES).forEach(([theme, prefix]) => {
+    colorConfig.forEach(([key, itemConfig]) => {
+      const color =
+        itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
+        itemConfig.color
+      if (color) {
+        // Safely sanitize color values and create CSS custom properties
+        const sanitizedColor = String(color).replace(/[<>]/g, '')
+        cssVarObject[`--color-${key}` as any] = sanitizedColor
+      }
+    })
   })
-  .join("\n")}
-}
-`
-          )
-          .join("\n"),
-      }}
+
+  return (
+    <div
+      data-chart={id}
+      style={cssVarObject}
+      className="[&]:has-[data-chart] *"
     />
   )
 }
