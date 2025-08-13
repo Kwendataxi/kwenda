@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useUnifiedDispatcher } from '@/hooks/useUnifiedDispatcher';
-import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
+import { useSimplifiedGeolocation } from '@/hooks/useSimplifiedGeolocation';
+import { useSimplifiedDriverStatus } from '@/hooks/useSimplifiedDriverStatus';
 import { 
   Power, 
   MapPin, 
@@ -24,82 +25,55 @@ interface DriverStatusToggleProps {
 
 const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) => {
   const { 
-    dispatchStatus, 
-    updateDriverStatus, 
     activeOrders,
-    loading 
+    loading: unifiedLoading 
   } = useUnifiedDispatcher();
   
   const { 
-    enhancedData, 
-    startAdaptiveTracking, 
-    stopAdaptiveTracking,
-    error: locationError
-  } = useEnhancedGeolocation({ 
-    enableBackgroundTracking: dispatchStatus.isOnline,
-    adaptiveTracking: true,
-    tripMode: false,
-    securityMode: true
-  });
+    location, 
+    loading: locationLoading,
+    error: locationError,
+    getCurrentPosition,
+    useDefaultPosition
+  } = useSimplifiedGeolocation();
   
-  const latitude = enhancedData?.latitude;
-  const longitude = enhancedData?.longitude;
+  const {
+    status: driverStatus,
+    loading: statusLoading,
+    goOnline,
+    goOffline,
+    setAvailable,
+    updateServiceTypes
+  } = useSimplifiedDriverStatus();
 
   const [updating, setUpdating] = useState(false);
-
-  // Update location in dispatch system with better error handling
-  useEffect(() => {
-    if (latitude && longitude && dispatchStatus.isOnline) {
-      const updateLocation = async () => {
-        const success = await updateDriverStatus({
-          latitude,
-          longitude,
-          currentLocation: { lat: latitude, lng: longitude }
-        });
-        
-        if (!success && !locationError) {
-          console.error('Failed to update driver location');
-        }
-      };
-      
-      updateLocation();
-    }
-  }, [latitude, longitude, dispatchStatus.isOnline, updateDriverStatus, locationError]);
+  const loading = unifiedLoading || locationLoading || statusLoading;
 
   const handleOnlineToggle = async (isOnline: boolean) => {
     setUpdating(true);
     try {
       if (isOnline) {
-        // When going online, start location tracking first
-        startAdaptiveTracking();
+        // Essayer d'obtenir la position GPS
+        let currentLocation = location;
         
-        // Wait for location if needed
-        const coordinates = latitude && longitude 
-          ? { latitude, longitude }
-          : undefined;
-          
-        const success = await updateDriverStatus({ 
-          isOnline,
-          isAvailable: true,
-          latitude: coordinates?.latitude,
-          longitude: coordinates?.longitude
-        });
+        if (!currentLocation) {
+          try {
+            currentLocation = await getCurrentPosition();
+          } catch (err) {
+            // Si échec GPS, utiliser position par défaut
+            currentLocation = await useDefaultPosition();
+          }
+        }
         
+        const success = await goOnline(currentLocation?.latitude, currentLocation?.longitude);
         if (!success) {
           return;
         }
       } else {
-        // When going offline, update status first then stop tracking
-        const success = await updateDriverStatus({ 
-          isOnline,
-          isAvailable: false
-        });
-        
+        const success = await goOffline();
         if (!success) {
           return;
         }
-        
-        stopAdaptiveTracking();
       }
     } finally {
       setUpdating(false);
@@ -113,7 +87,7 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
 
     setUpdating(true);
     try {
-      await updateDriverStatus({ isAvailable });
+      await setAvailable(isAvailable);
     } finally {
       setUpdating(false);
     }
@@ -121,19 +95,19 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
 
   const handleServiceTypeToggle = async (serviceType: string, enabled: boolean) => {
     const newServiceTypes = enabled 
-      ? [...dispatchStatus.serviceTypes, serviceType]
-      : dispatchStatus.serviceTypes.filter(s => s !== serviceType);
+      ? [...driverStatus.serviceTypes, serviceType]
+      : driverStatus.serviceTypes.filter(s => s !== serviceType);
 
     setUpdating(true);
     try {
-      await updateDriverStatus({ serviceTypes: newServiceTypes });
+      await updateServiceTypes(newServiceTypes);
     } finally {
       setUpdating(false);
     }
   };
 
   const getStatusBadge = () => {
-    if (!dispatchStatus.isOnline) {
+    if (!driverStatus.isOnline) {
       return (
         <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border border-muted">
           <div className="w-2 h-2 rounded-full bg-gray-400 mr-1.5"></div>
@@ -151,7 +125,7 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
       );
     }
     
-    if (dispatchStatus.isAvailable) {
+    if (driverStatus.isAvailable) {
       return (
         <Badge variant="default" className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg">
           <div className="w-2 h-2 rounded-full bg-white mr-1.5 animate-pulse"></div>
@@ -181,44 +155,44 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
         {/* Online Status */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {dispatchStatus.isOnline ? (
+            {driverStatus.isOnline ? (
               <Wifi className="h-4 w-4 text-green-500" />
             ) : (
               <WifiOff className="h-4 w-4 text-gray-500" />
             )}
             <span className="text-sm font-medium">
-              {dispatchStatus.isOnline ? 'En ligne' : 'Hors ligne'}
+              {driverStatus.isOnline ? 'En ligne' : 'Hors ligne'}
             </span>
           </div>
           <Switch
-            checked={dispatchStatus.isOnline}
+            checked={driverStatus.isOnline}
             onCheckedChange={handleOnlineToggle}
             disabled={updating || loading}
           />
         </div>
 
         {/* Availability Status (only when online) */}
-        {dispatchStatus.isOnline && (
+        {driverStatus.isOnline && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className={cn(
                 "w-3 h-3 rounded-full",
                 activeOrders.length > 0 
                   ? "bg-blue-500" 
-                  : dispatchStatus.isAvailable 
+                  : driverStatus.isAvailable 
                     ? "bg-green-500" 
                     : "bg-yellow-500"
               )} />
               <span className="text-sm font-medium">
                 {activeOrders.length > 0 
                   ? `En course (${activeOrders.length})`
-                  : dispatchStatus.isAvailable 
+                  : driverStatus.isAvailable 
                     ? 'Disponible pour commandes' 
                     : 'Occupé'}
               </span>
             </div>
             <Switch
-              checked={dispatchStatus.isAvailable}
+              checked={driverStatus.isAvailable}
               onCheckedChange={handleAvailabilityToggle}
               disabled={updating || loading || activeOrders.length > 0}
             />
@@ -226,7 +200,7 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
         )}
 
         {/* Service Types (only when online) */}
-        {dispatchStatus.isOnline && (
+        {driverStatus.isOnline && (
           <div className="space-y-3">
             <div className="text-sm font-medium text-muted-foreground">
               Types de service acceptés :
@@ -239,7 +213,7 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
                   <span className="text-sm">Courses taxi</span>
                 </div>
                 <Switch
-                  checked={dispatchStatus.serviceTypes.includes('taxi')}
+                  checked={driverStatus.serviceTypes.includes('taxi')}
                   onCheckedChange={(checked) => handleServiceTypeToggle('taxi', checked)}
                   disabled={updating || loading}
                 />
@@ -251,7 +225,7 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
                   <span className="text-sm">Livraisons directes</span>
                 </div>
                 <Switch
-                  checked={dispatchStatus.serviceTypes.includes('delivery')}
+                  checked={driverStatus.serviceTypes.includes('delivery')}
                   onCheckedChange={(checked) => handleServiceTypeToggle('delivery', checked)}
                   disabled={updating || loading}
                 />
@@ -263,7 +237,7 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
                   <span className="text-sm">Livraisons marketplace</span>
                 </div>
                 <Switch
-                  checked={dispatchStatus.serviceTypes.includes('marketplace')}
+                  checked={driverStatus.serviceTypes.includes('marketplace')}
                   onCheckedChange={(checked) => handleServiceTypeToggle('marketplace', checked)}
                   disabled={updating || loading}
                 />
@@ -273,20 +247,25 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
         )}
 
         {/* Location Status */}
-        {dispatchStatus.isOnline && (
+        {driverStatus.isOnline && (
           <div className="pt-3 border-t border-border/50">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <MapPin className="h-3 w-3" />
-              {latitude && longitude ? (
-                <span>Position: {latitude.toFixed(6)}, {longitude.toFixed(6)}</span>
+              {location ? (
+                <span>Position: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}</span>
               ) : (
                 <span>Localisation en cours...</span>
               )}
             </div>
-            {latitude && longitude && (
+            {location && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                 <Clock className="h-3 w-3" />
-                <span>Dernière mise à jour: {new Date().toLocaleTimeString('fr-FR')}</span>
+                <span>Dernière mise à jour: {new Date(location.timestamp).toLocaleTimeString('fr-FR')}</span>
+              </div>
+            )}
+            {locationError && (
+              <div className="text-xs text-yellow-600 mt-1">
+                {locationError} - Position par défaut utilisée
               </div>
             )}
           </div>

@@ -18,10 +18,13 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, orderId, mode, radiusKm, maxDrivers, driverId } = await req.json();
+    const { action, order_id, orderId, mode, radiusKm, maxDrivers, driverId } = await req.json();
+    
+    // Support both parameter formats
+    const finalOrderId = order_id || orderId;
 
     if (action === 'find_drivers') {
-      console.log(`Finding drivers for order ${orderId}, mode: ${mode}, radius: ${radiusKm}km`);
+      console.log(`Finding drivers for order ${finalOrderId}, mode: ${mode || 'flex'}, radius: ${radiusKm || 5}km`);
 
       // Get available drivers from driver_locations
       const { data: availableDrivers, error: driversError } = await supabase
@@ -85,9 +88,10 @@ serve(async (req) => {
       });
 
       // Filter by delivery mode requirements
+      const deliveryMode = mode || 'flex';
       const filteredDrivers = deliveryDrivers.filter(driver => {
-        if (mode === 'flash' && driver.vehicle_type !== 'moto') return false;
-        if (mode === 'maxicharge' && driver.vehicle_type !== 'truck') return false;
+        if (deliveryMode === 'flash' && driver.vehicle_type !== 'moto') return false;
+        if (deliveryMode === 'maxicharge' && driver.vehicle_type !== 'truck') return false;
         return true;
       });
 
@@ -96,21 +100,21 @@ serve(async (req) => {
         .sort((a, b) => a.distance - b.distance)
         .slice(0, maxDrivers || 10);
 
-      console.log(`Returning ${sortedDrivers.length} filtered drivers for mode ${mode}`);
+      console.log(`Returning ${sortedDrivers.length} filtered drivers for mode ${deliveryMode}`);
 
       return new Response(
         JSON.stringify({ 
           drivers: sortedDrivers,
           total: sortedDrivers.length,
-          mode: mode,
-          radius: radiusKm
+          mode: deliveryMode,
+          radius: radiusKm || 5
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     if (action === 'assign_driver') {
-      console.log(`Assigning driver ${driverId} to order ${orderId}`);
+      console.log(`Assigning driver ${driverId} to order ${finalOrderId}`);
 
       // Update driver availability
       const { error: updateError } = await supabase
@@ -134,7 +138,7 @@ serve(async (req) => {
           status: 'assigned',
           pickup_time: new Date().toISOString()
         })
-        .eq('id', orderId);
+        .eq('id', finalOrderId);
 
       if (orderError) {
         console.error('Error updating delivery order:', orderError);
@@ -150,14 +154,14 @@ serve(async (req) => {
         );
       }
 
-      console.log(`Successfully assigned driver ${driverId} to order ${orderId}`);
+      console.log(`Successfully assigned driver ${driverId} to order ${finalOrderId}`);
 
       return new Response(
         JSON.stringify({ 
           success: true,
           message: 'Driver assigned successfully',
           driverId: driverId,
-          orderId: orderId
+          orderId: finalOrderId
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );

@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { useUnifiedDispatcher } from '@/hooks/useUnifiedDispatcher';
 import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
 import DriverStatusToggle from './DriverStatusToggle';
+import DriverDiagnostic from './DriverDiagnostic';
+import DriverTestPanel from './DriverTestPanel';
 import { 
   Car,
   Package, 
@@ -78,6 +80,12 @@ const UniversalDriverInterface: React.FC<UniversalDriverInterfaceProps> = ({ cla
     <div className={cn("space-y-4", className)}>
       {/* Driver Status */}
       <DriverStatusToggle />
+      
+      {/* Diagnostic Panel */}
+      <DriverDiagnostic />
+      
+      {/* Test Panel */}
+      <DriverTestPanel />
 
       {/* Pending Notifications */}
       {pendingNotifications.length > 0 && (
