@@ -3431,6 +3431,7 @@ export type Database = {
           name: string
           owner_id: string
           settings: Json | null
+          status: string | null
           updated_at: string
         }
         Insert: {
@@ -3440,6 +3441,7 @@ export type Database = {
           name: string
           owner_id: string
           settings?: Json | null
+          status?: string | null
           updated_at?: string
         }
         Update: {
@@ -3449,6 +3451,7 @@ export type Database = {
           name?: string
           owner_id?: string
           settings?: Json | null
+          status?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -4600,6 +4603,10 @@ export type Database = {
           search_keywords: string[]
           relevance_score: number
         }[]
+      }
+      user_exists: {
+        Args: { user_id_param: string }
+        Returns: boolean
       }
     }
     Enums: {

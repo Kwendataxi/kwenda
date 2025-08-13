@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ResponsiveAdminLayout } from '@/components/admin/ResponsiveAdminLayout';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { PermissionGuard } from '@/components/auth/PermissionGuard';
@@ -12,6 +13,7 @@ import { ADMIN_ROLE_LABELS } from '@/types/roles';
 import { AdminPricingManager } from '@/components/admin/AdminPricingManager';
 import { AdminFiltersBar } from '@/components/admin/AdminFiltersBar';
 import { AdvancedUserManagement } from '@/components/admin/users/AdvancedUserManagement';
+import { DriverManagement } from '@/components/admin/drivers/DriverManagement';
 import UnifiedDispatchMonitor from '@/components/admin/UnifiedDispatchMonitor';
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
@@ -25,6 +27,7 @@ import { PromotionalAdsManager } from '@/components/admin/PromotionalAdsManager'
 import { AdminLotteryDashboard } from '@/components/admin/AdminLotteryDashboard';
 import { AdminRentalManager } from '@/components/admin/AdminRentalManager';
 import { AdminTeamManager } from '@/components/admin/teams/AdminTeamManager';
+import { RoleManagement } from '@/components/admin/roles/RoleManagement';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -151,6 +154,12 @@ const AdminApp = () => {
         </PermissionGuard>
       </TabsContent>
 
+      <TabsContent value="drivers" className="space-y-6">
+        <PermissionGuard requiredPermissions={['users_read']}>
+          <DriverManagement />
+        </PermissionGuard>
+      </TabsContent>
+
       <TabsContent value="teams" className="space-y-6">
         <PermissionGuard requiredPermissions={['users_write']}>
           <AdminTeamManager />
@@ -191,9 +200,15 @@ const AdminApp = () => {
         <PermissionGuard requiredPermissions={['analytics_read']}>
           <AdminLotteryDashboard />
         </PermissionGuard>
-      </TabsContent>
-    </Tabs>
-  );
+       </TabsContent>
+
+       <TabsContent value="roles" className="space-y-6">
+         <PermissionGuard requiredPermissions={['system_admin']}>
+           <RoleManagement />
+         </PermissionGuard>
+       </TabsContent>
+     </Tabs>
+   );
 
   return (
     <ResponsiveAdminLayout

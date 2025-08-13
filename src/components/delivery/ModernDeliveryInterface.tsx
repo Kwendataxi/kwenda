@@ -379,7 +379,7 @@ export const ModernDeliveryInterface: React.FC<ModernDeliveryInterfaceProps> = (
                   Calcul du prix...
                 </div>
               ) : priceInfo ? (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-muted-foreground" />
@@ -403,6 +403,28 @@ export const ModernDeliveryInterface: React.FC<ModernDeliveryInterfaceProps> = (
                       {formatCurrency(priceInfo.price)}
                     </span>
                   </div>
+                  
+                  {/* Bouton de recherche de livreur */}
+                  <div className="border-t pt-3">
+                    <Button 
+                      onClick={handleConfirm}
+                      disabled={submitting || calculating}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {submitting ? (
+                        <>
+                          <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                          Recherche de livreur...
+                        </>
+                      ) : (
+                        <>
+                          <Truck className="w-4 h-4 mr-2" />
+                          Rechercher un livreur
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -410,26 +432,6 @@ export const ModernDeliveryInterface: React.FC<ModernDeliveryInterfaceProps> = (
         )}
       </div>
 
-      {/* Bouton de confirmation */}
-      <div className="p-4 border-t bg-background">
-        <Button
-          onClick={handleConfirm}
-          disabled={!canProceed || submitting || calculating}
-          className="w-full"
-          size="lg"
-        >
-          {submitting ? (
-            'Création en cours...'
-          ) : calculating ? (
-            'Calcul du prix...'
-          ) : canProceed ? (
-            `Commander • ${formatCurrency(priceInfo!.price)}`
-          ) : (
-            'Complétez les informations'
-          )}
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
-      </div>
 
       <ModernBottomNavigation
         activeTab={activeTab}

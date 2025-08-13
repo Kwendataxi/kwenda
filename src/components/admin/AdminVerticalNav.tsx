@@ -43,6 +43,7 @@ const NAV_ITEMS: Array<{
   { id: 'drivers', label: 'Chauffeurs', icon: Car },
   { id: 'users', label: 'Utilisateurs', icon: Users },
   { id: 'teams', label: 'Équipes', icon: Users },
+  { id: 'roles', label: 'Gestion Rôles', icon: Settings },
   { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
   { id: 'lottery', label: 'Tombola', icon: Trophy },
   { id: 'notifications', label: 'Notifications', icon: Bell },

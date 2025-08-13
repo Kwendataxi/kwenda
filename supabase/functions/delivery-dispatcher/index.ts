@@ -1,60 +1,182 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { action, ...params } = await req.json()
+    const { action, order_id, orderId, mode, radiusKm, maxDrivers, driverId } = await req.json();
+    
+    // Support both parameter formats
+    const finalOrderId = order_id || orderId;
 
-    switch (action) {
-      case 'find_drivers':
-        // Mock response for demo
-        const mockDrivers = [{
-          driver_id: 'demo_driver_1',
-          distance: 1.2,
-          estimated_arrival: 8,
+    if (action === 'find_drivers') {
+      console.log(`Finding drivers for order ${finalOrderId}, mode: ${mode || 'flex'}, radius: ${radiusKm || 5}km`);
+
+      // Get available drivers from driver_locations
+      const { data: availableDrivers, error: driversError } = await supabase
+        .from('driver_locations')
+        .select(`
+          driver_id,
+          latitude,
+          longitude,
+          vehicle_class,
+          is_online,
+          is_available
+        `)
+        .eq('is_online', true)
+        .eq('is_available', true);
+
+      if (driversError) {
+        console.error('Error fetching drivers:', driversError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to fetch drivers' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
+
+      console.log(`Found ${availableDrivers?.length || 0} online drivers`);
+
+      // Transform data for delivery driver format
+      const deliveryDrivers = (availableDrivers || []).map((driver, index) => {
+        // Calculate simulated distance (for demo purposes)
+        const baseDistance = 0.5 + (index * 0.3);
+        const distance = Math.round((baseDistance + Math.random() * 1.5) * 10) / 10;
+        
+        // Estimate arrival time based on distance and vehicle type
+        let speedKmh = 25; // default speed
+        if (driver.vehicle_class === 'moto') speedKmh = 35;
+        if (driver.vehicle_class === 'truck') speedKmh = 20;
+        
+        const estimatedArrival = Math.ceil((distance / speedKmh) * 60); // minutes
+        
+        // Map vehicle_class to vehicle_type for frontend compatibility
+        let vehicleType: 'moto' | 'car' | 'truck' = 'car';
+        if (driver.vehicle_class === 'moto') vehicleType = 'moto';
+        if (driver.vehicle_class === 'truck') vehicleType = 'truck';
+
+        return {
+          driver_id: driver.driver_id,
+          distance: distance,
+          estimated_arrival: estimatedArrival,
+          vehicle_type: vehicleType,
           driver_profile: {
-            user_id: 'demo_driver_1',
-            vehicle_type: 'Moto Honda',
-            vehicle_plate: 'KIN-1234',
-            vehicle_color: 'Bleu',
-            rating_average: 4.8,
-            rating_count: 152,
-            display_name: 'Jean-Paul K.',
-            phone_number: '+243900000001'
-          },
-          vehicle_type: 'moto'
-        }]
+            user_id: driver.driver_id,
+            vehicle_type: `${driver.vehicle_class === 'moto' ? 'Moto' : driver.vehicle_class === 'truck' ? 'Camion' : 'Voiture'} ${['Honda', 'Toyota', 'Yamaha', 'Nissan', 'Isuzu'][index % 5]}`,
+            vehicle_plate: `KIN-${1000 + index}${index}`,
+            vehicle_color: ['Blanc', 'Noir', 'Rouge', 'Bleu', 'Gris'][index % 5],
+            rating_average: 4.2 + (Math.random() * 0.8), // 4.2 to 5.0
+            rating_count: 50 + Math.floor(Math.random() * 200),
+            total_rides: 100 + Math.floor(Math.random() * 300),
+            display_name: ['Jean K.', 'Marie T.', 'Paul M.', 'Grace B.', 'David L.'][index % 5],
+            phone_number: `+24390000000${index + 1}`
+          }
+        };
+      });
 
-        return new Response(
-          JSON.stringify({ success: true, drivers: mockDrivers }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
-        )
-      
-      default:
-        return new Response(
-          JSON.stringify({ error: 'Action non reconnue' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
-        )
+      // Filter by delivery mode requirements
+      const deliveryMode = mode || 'flex';
+      const filteredDrivers = deliveryDrivers.filter(driver => {
+        if (deliveryMode === 'flash' && driver.vehicle_type !== 'moto') return false;
+        if (deliveryMode === 'maxicharge' && driver.vehicle_type !== 'truck') return false;
+        return true;
+      });
+
+      // Sort by distance and limit results
+      const sortedDrivers = filteredDrivers
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, maxDrivers || 10);
+
+      console.log(`Returning ${sortedDrivers.length} filtered drivers for mode ${deliveryMode}`);
+
+      return new Response(
+        JSON.stringify({ 
+          drivers: sortedDrivers,
+          total: sortedDrivers.length,
+          mode: deliveryMode,
+          radius: radiusKm || 5
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-  } catch (error) {
+    if (action === 'assign_driver') {
+      console.log(`Assigning driver ${driverId} to order ${finalOrderId}`);
+
+      // Update driver availability
+      const { error: updateError } = await supabase
+        .from('driver_locations')
+        .update({ is_available: false })
+        .eq('driver_id', driverId);
+
+      if (updateError) {
+        console.error('Error updating driver availability:', updateError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to assign driver' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
+
+      // Update delivery order with driver assignment
+      const { error: orderError } = await supabase
+        .from('delivery_orders')
+        .update({ 
+          driver_id: driverId,
+          status: 'assigned',
+          pickup_time: new Date().toISOString()
+        })
+        .eq('id', finalOrderId);
+
+      if (orderError) {
+        console.error('Error updating delivery order:', orderError);
+        // Rollback driver availability
+        await supabase
+          .from('driver_locations')
+          .update({ is_available: true })
+          .eq('driver_id', driverId);
+        
+        return new Response(
+          JSON.stringify({ error: 'Failed to update order' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
+      }
+
+      console.log(`Successfully assigned driver ${driverId} to order ${finalOrderId}`);
+
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          message: 'Driver assigned successfully',
+          driverId: driverId,
+          orderId: finalOrderId
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
-    )
+      JSON.stringify({ error: 'Unknown action' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+    );
+
+  } catch (error) {
+    console.error('Error in delivery-dispatcher:', error);
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+    );
   }
-})
+});

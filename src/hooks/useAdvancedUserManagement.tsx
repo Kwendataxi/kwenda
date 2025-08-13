@@ -85,55 +85,84 @@ export const useAdvancedUserManagement = (): UseAdvancedUserManagementReturn => 
       setLoading(true);
       setError(null);
 
-      let query = supabase
+      // Fetch profiles with auth users data
+      let profileQuery = supabase
         .from('profiles')
         .select(`
-          *
+          user_id,
+          display_name,
+          phone_number,
+          avatar_url,
+          created_at,
+          user_type
         `, { count: 'exact' });
 
-      // Apply filters
+      // Apply search filters
       if (filters.search) {
-        query = query.or(`display_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,phone_number.ilike.%${filters.search}%`);
+        profileQuery = profileQuery.or(`display_name.ilike.%${filters.search}%,phone_number.ilike.%${filters.search}%`);
       }
 
-      // Skip user type filtering for now due to relation complexity
+      // Apply user type filters
+      if (filters.userType !== 'all') {
+        profileQuery = profileQuery.eq('user_type', filters.userType);
+      }
 
       if (filters.dateFrom) {
-        query = query.gte('created_at', filters.dateFrom);
+        profileQuery = profileQuery.gte('created_at', filters.dateFrom);
       }
 
       if (filters.dateTo) {
-        query = query.lte('created_at', filters.dateTo);
+        profileQuery = profileQuery.lte('created_at', filters.dateTo);
       }
 
       // Apply sorting
-      query = query.order(filters.sortBy, { ascending: filters.sortOrder === 'asc' });
+      profileQuery = profileQuery.order(filters.sortBy, { ascending: filters.sortOrder === 'asc' });
 
       // Apply pagination
       const from = (currentPage - 1) * ITEMS_PER_PAGE;
       const to = from + ITEMS_PER_PAGE - 1;
-      query = query.range(from, to);
+      profileQuery = profileQuery.range(from, to);
 
-      const { data, error: fetchError, count } = await query;
+      const { data: profilesData, error: profilesError, count } = await profileQuery;
 
-      if (fetchError) {
-        throw fetchError;
+      if (profilesError) {
+        throw profilesError;
+      }
+
+      // Fetch auth users data for email and connection status
+      const userIds = profilesData?.map(p => p.user_id) || [];
+      let authUsers: any[] = [];
+      
+      if (userIds.length > 0) {
+        const { data: authData } = await supabase.auth.admin.listUsers();
+        authUsers = authData?.users?.filter((u: any) => userIds.includes(u.id)) || [];
       }
 
       // Transform data to match UserProfile interface
-      const transformedUsers: UserProfile[] = (data || []).map((user: any) => ({
-        id: user.user_id,
-        display_name: user.display_name || 'N/A',
-        email: user.email || 'N/A',
-        phone_number: user.phone_number,
-        avatar_url: user.avatar_url,
-        created_at: user.created_at,
-        user_type: user.user_type || 'client',
-        status: 'active',
-        verification_status: 'verified',
-        rating: 4.5,
-        total_orders: Math.floor(Math.random() * 100),
-      }));
+      const transformedUsers: UserProfile[] = (profilesData || []).map((profile: any) => {
+        const authUser = authUsers.find(u => u.id === profile.user_id);
+        const lastSignIn = authUser?.last_sign_in_at;
+        const isOnline = lastSignIn && (new Date().getTime() - new Date(lastSignIn).getTime()) < 15 * 60 * 1000; // 15 minutes
+
+        return {
+          id: profile.user_id,
+          display_name: profile.display_name || 'N/A',
+          email: authUser?.email || 'N/A',
+          phone_number: profile.phone_number,
+          avatar_url: profile.avatar_url,
+          created_at: profile.created_at,
+          user_type: profile.user_type || 'client',
+          status: isOnline ? 'active' : (filters.status === 'active' ? 'inactive' : 'active'),
+          last_activity: lastSignIn,
+          verification_status: authUser?.email_confirmed_at ? 'verified' : 'pending',
+          rating: Math.random() * 2 + 3, // Random rating between 3-5
+          total_orders: Math.floor(Math.random() * 50),
+        };
+      }).filter(user => {
+        if (filters.status === 'all') return true;
+        const isOnline = user.last_activity && (new Date().getTime() - new Date(user.last_activity).getTime()) < 15 * 60 * 1000;
+        return filters.status === 'active' ? isOnline : !isOnline;
+      });
 
       setUsers(transformedUsers);
       setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
@@ -153,17 +182,55 @@ export const useAdvancedUserManagement = (): UseAdvancedUserManagementReturn => 
   // Fetch statistics
   const fetchStats = useCallback(async () => {
     try {
-      // For now, we'll use mock data since the relation is complex
+      // Get total counts by user type
+      const { data: profileStats } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .not('user_type', 'is', null);
+
+      // Get auth users for connection data
+      const { data: authData } = await supabase.auth.admin.listUsers();
+      const authUsers = authData?.users || [];
+
+      // Count active users (connected in last 15 minutes)
+      const now = new Date().getTime();
+      const activeUsers = authUsers.filter(user => {
+        const lastSignIn = user.last_sign_in_at;
+        return lastSignIn && (now - new Date(lastSignIn).getTime()) < 15 * 60 * 1000;
+      });
+
+      // Count new users today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const newUsersToday = authUsers.filter(user => {
+        return new Date(user.created_at) >= today;
+      });
+
+      // Calculate stats by user type
+      const totalUsers = profileStats?.length || 0;
+      const totalClients = profileStats?.filter(p => p.user_type === 'client').length || 0;
+      const totalDrivers = profileStats?.filter(p => p.user_type === 'driver').length || 0;
+      const totalPartners = profileStats?.filter(p => p.user_type === 'partner').length || 0;
+
       setStats({
-        totalUsers: 1250,
-        totalClients: 980,
-        totalDrivers: 185,
-        totalPartners: 85,
-        activeUsers: 1120,
-        newUsersToday: 24,
+        totalUsers,
+        totalClients,
+        totalDrivers,
+        totalPartners,
+        activeUsers: activeUsers.length,
+        newUsersToday: newUsersToday.length,
       });
     } catch (err) {
       console.error('Error fetching stats:', err);
+      // Fallback to default stats
+      setStats({
+        totalUsers: 0,
+        totalClients: 0,
+        totalDrivers: 0,
+        totalPartners: 0,
+        activeUsers: 0,
+        newUsersToday: 0,
+      });
     }
   }, []);
 

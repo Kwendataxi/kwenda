@@ -20,8 +20,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { UserProfile, UserFilters } from '@/hooks/useAdvancedUserManagement';
-import { ArrowUpDown, ArrowUp, ArrowDown, Eye, Edit, MoreHorizontal } from 'lucide-react';
+import { DriverProfile, DriverFilters } from '@/hooks/useDriverManagement';
+import { ArrowUpDown, ArrowUp, ArrowDown, Eye, Edit, MoreHorizontal, Phone, Car } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,32 +31,34 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-interface UserDataTableProps {
-  users: UserProfile[];
+interface DriverDataTableProps {
+  drivers: DriverProfile[];
   loading: boolean;
   error: string | null;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  selectedUsers: string[];
-  onSelectUser: (userId: string, selected: boolean) => void;
+  selectedDrivers: string[];
+  onSelectDriver: (driverId: string, selected: boolean) => void;
   onSelectAll: (selected: boolean) => void;
-  filters: UserFilters;
+  filters: DriverFilters;
   onSortChange: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
+  onUpdateStatus: (driverId: string, status: string) => Promise<void>;
 }
 
-export const UserDataTable: React.FC<UserDataTableProps> = ({
-  users,
+export const DriverDataTable: React.FC<DriverDataTableProps> = ({
+  drivers,
   loading,
   error,
   currentPage,
   totalPages,
   onPageChange,
-  selectedUsers,
-  onSelectUser,
+  selectedDrivers,
+  onSelectDriver,
   onSelectAll,
   filters,
   onSortChange,
+  onUpdateStatus,
 }) => {
   const handleSort = (column: string) => {
     if (filters.sortBy === column) {
@@ -75,31 +77,40 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
       <ArrowDown className="h-4 w-4" />;
   };
 
-  const getStatusColor = (status: string) => {
+  const getOnlineStatusColor = (isOnline?: boolean) => {
+    return isOnline ? 'bg-success text-success-foreground' : 'bg-muted text-muted-foreground';
+  };
+
+  const getOnlineStatusText = (driver: DriverProfile) => {
+    if (driver.is_online) {
+      return driver.is_available ? 'Disponible' : 'Occupé';
+    }
+    return 'Hors ligne';
+  };
+
+  const getVerificationColor = (status: string) => {
     switch (status) {
-      case 'active':
+      case 'verified':
         return 'bg-success text-success-foreground';
-      case 'inactive':
-        return 'bg-muted text-muted-foreground';
-      case 'suspended':
-        return 'bg-destructive text-destructive-foreground';
       case 'pending':
         return 'bg-warning text-warning-foreground';
+      case 'rejected':
+        return 'bg-destructive text-destructive-foreground';
       default:
         return 'bg-muted text-muted-foreground';
     }
   };
 
-  const getUserTypeColor = (userType: string) => {
-    switch (userType) {
-      case 'admin':
-        return 'bg-primary text-primary-foreground';
-      case 'driver':
+  const getServiceTypeColor = (serviceType: string) => {
+    switch (serviceType) {
+      case 'taxi':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'partner':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
-      case 'client':
+      case 'delivery':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'moto':
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
+      case 'bus':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -121,27 +132,29 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
             <TableRow>
               <TableHead className="w-12">
                 <Checkbox
-                  checked={users.length > 0 && selectedUsers.length === users.length}
+                  checked={drivers.length > 0 && selectedDrivers.length === drivers.length}
                   onCheckedChange={onSelectAll}
                 />
               </TableHead>
-              <TableHead>Utilisateur</TableHead>
+              <TableHead>Chauffeur</TableHead>
+              <TableHead>Véhicule</TableHead>
               <TableHead>
                 <Button
                   variant="ghost"
-                  onClick={() => handleSort('user_type')}
+                  onClick={() => handleSort('service_type')}
                   className="h-auto p-0 font-medium"
                 >
-                  Type {getSortIcon('user_type')}
+                  Service {getSortIcon('service_type')}
                 </Button>
               </TableHead>
+              <TableHead>Statut</TableHead>
               <TableHead>
                 <Button
                   variant="ghost"
-                  onClick={() => handleSort('status')}
+                  onClick={() => handleSort('verification_status')}
                   className="h-auto p-0 font-medium"
                 >
-                  Statut {getSortIcon('status')}
+                  Vérification {getSortIcon('verification_status')}
                 </Button>
               </TableHead>
               <TableHead>
@@ -153,7 +166,7 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
                   Inscription {getSortIcon('created_at')}
                 </Button>
               </TableHead>
-              <TableHead>Dernière Connexion</TableHead>
+              <TableHead>Performance</TableHead>
               <TableHead className="w-12">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -172,6 +185,8 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
                       </div>
                     </div>
                   </TableCell>
+                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-20" /></TableCell>
@@ -179,75 +194,99 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
                   <TableCell><Skeleton className="h-8 w-8" /></TableCell>
                 </TableRow>
               ))
-            ) : users.length === 0 ? (
+            ) : drivers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
-                  <p className="text-muted-foreground">Aucun utilisateur trouvé</p>
+                <TableCell colSpan={9} className="text-center py-8">
+                  <p className="text-muted-foreground">Aucun chauffeur trouvé</p>
                 </TableCell>
               </TableRow>
             ) : (
-              users.map((user) => (
-                <TableRow key={user.id}>
+              drivers.map((driver) => (
+                <TableRow key={driver.id}>
                   <TableCell>
                     <Checkbox
-                      checked={selectedUsers.includes(user.id)}
-                      onCheckedChange={(checked) => onSelectUser(user.id, checked as boolean)}
+                      checked={selectedDrivers.includes(driver.id)}
+                      onCheckedChange={(checked) => onSelectDriver(driver.id, checked as boolean)}
                     />
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.avatar_url} />
-                        <AvatarFallback>
-                          {user.display_name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={driver.avatar_url} />
+                          <AvatarFallback>
+                            {driver.display_name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        {driver.is_online && (
+                          <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full border-2 border-background"></div>
+                        )}
+                      </div>
                       <div>
                         <p className="font-medium text-foreground">
-                          {user.display_name}
+                          {driver.display_name}
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          {user.email}
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <span>{driver.email}</span>
+                          {driver.phone_number && (
+                            <>
+                              <span>•</span>
+                              <Phone className="h-3 w-3" />
+                              <span>{driver.phone_number}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Car className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium text-sm">
+                          {driver.vehicle_make} {driver.vehicle_model}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {driver.vehicle_plate}
                         </p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getUserTypeColor(user.user_type)}>
-                      {user.user_type}
+                    <Badge className={getServiceTypeColor(driver.service_type)}>
+                      {driver.service_type}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(user.status)}>
-                      {user.status}
+                    <Badge className={getOnlineStatusColor(driver.is_online)}>
+                      {getOnlineStatusText(driver)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getVerificationColor(driver.verification_status)}>
+                      {driver.verification_status === 'verified' ? 'Vérifié' :
+                       driver.verification_status === 'pending' ? 'En attente' : 'Rejeté'}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <time className="text-sm text-muted-foreground">
-                      {format(new Date(user.created_at), 'dd MMM yyyy', { locale: fr })}
+                      {format(new Date(driver.created_at), 'dd MMM yyyy', { locale: fr })}
                     </time>
+                    {driver.last_activity && (
+                      <p className="text-xs text-muted-foreground">
+                        Dernière activité: {format(new Date(driver.last_activity), 'dd/MM HH:mm', { locale: fr })}
+                      </p>
+                    )}
                   </TableCell>
-                   <TableCell>
-                     {user.last_activity ? (
-                       <div className="text-sm">
-                         <p className="text-foreground">
-                           {format(new Date(user.last_activity), 'dd/MM/yyyy HH:mm', { locale: fr })}
-                         </p>
-                         <div className="flex items-center gap-1 mt-1">
-                           <div className={`h-2 w-2 rounded-full ${
-                             user.last_activity && (new Date().getTime() - new Date(user.last_activity).getTime()) < 15 * 60 * 1000
-                               ? 'bg-green-500' : 'bg-gray-400'
-                           }`}></div>
-                           <span className="text-xs text-muted-foreground">
-                             {user.last_activity && (new Date().getTime() - new Date(user.last_activity).getTime()) < 15 * 60 * 1000
-                               ? 'En ligne' : 'Hors ligne'}
-                           </span>
-                         </div>
-                       </div>
-                     ) : (
-                       <span className="text-sm text-muted-foreground">Jamais connecté</span>
-                     )}
-                   </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      <p className="text-foreground">{driver.total_rides} courses</p>
+                      <div className="flex items-center gap-1">
+                        <span className="text-muted-foreground">⭐</span>
+                        <span className="text-muted-foreground">{driver.rating_average.toFixed(1)}</span>
+                      </div>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -263,6 +302,11 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
                         <DropdownMenuItem>
                           <Edit className="h-4 w-4 mr-2" />
                           Modifier
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => onUpdateStatus(driver.id, driver.is_active ? 'inactive' : 'active')}
+                        >
+                          {driver.is_active ? 'Désactiver' : 'Activer'}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
