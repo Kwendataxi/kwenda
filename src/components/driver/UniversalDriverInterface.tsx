@@ -7,6 +7,9 @@ import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
 import DriverStatusToggle from './DriverStatusToggle';
 import DriverDiagnostic from './DriverDiagnostic';
 import DriverTestPanel from './DriverTestPanel';
+import { DriverMonitoringPanel } from './DriverMonitoringPanel';
+import { DriverOrderSimulator } from './DriverOrderSimulator';
+import { DriverOrderNotifications } from './DriverOrderNotifications';
 import { 
   Car,
   Package, 
@@ -81,8 +84,17 @@ const UniversalDriverInterface: React.FC<UniversalDriverInterfaceProps> = ({ cla
       {/* Driver Status */}
       <DriverStatusToggle />
       
+      {/* Order Notifications */}
+      <DriverOrderNotifications />
+      
       {/* Diagnostic Panel */}
       <DriverDiagnostic />
+      
+      {/* Monitoring Panel */}
+      <DriverMonitoringPanel />
+      
+      {/* Order Simulator */}
+      <DriverOrderSimulator />
       
       {/* Test Panel */}
       <DriverTestPanel />
