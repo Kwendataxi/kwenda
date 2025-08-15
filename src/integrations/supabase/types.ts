@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -4468,50 +4468,50 @@ export type Database = {
         Returns: string
       }
       calculate_distance_km: {
-        Args: { lat1: number; lng1: number; lat2: number; lng2: number }
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
       calculate_rental_price: {
         Args: {
           base_price: number
-          city_name: string
           category_id_param?: string
+          city_name: string
         }
         Returns: number
       }
       calculate_surge_pricing: {
-        Args: { zone_id_param: string; vehicle_class_param: string }
+        Args: { vehicle_class_param: string; zone_id_param: string }
         Returns: number
       }
       calculate_zone_statistics: {
         Args: {
-          zone_id_param: string
           date_param?: string
           hour_param?: number
+          zone_id_param: string
         }
         Returns: undefined
       }
       create_support_ticket: {
         Args: {
-          p_user_id: string
-          p_subject: string
           p_category: string
           p_description: string
-          p_priority?: string
           p_metadata?: Json
+          p_priority?: string
+          p_subject: string
+          p_user_id: string
         }
         Returns: {
-          id: string
-          ticket_number: string
-          user_id: string
-          subject: string
           category: string
+          created_at: string
+          description: string
+          id: string
+          metadata: Json
           priority: string
           status: string
-          description: string
-          metadata: Json
-          created_at: string
+          subject: string
+          ticket_number: string
           updated_at: string
+          user_id: string
         }[]
       }
       generate_driver_code: {
@@ -4541,9 +4541,9 @@ export type Database = {
       get_user_roles: {
         Args: { _user_id: string }
         Returns: {
-          role: Database["public"]["Enums"]["user_role"]
           admin_role: Database["public"]["Enums"]["admin_role"]
           permissions: Database["public"]["Enums"]["permission"][]
+          role: Database["public"]["Enums"]["user_role"]
         }[]
       }
       get_zone_for_coordinates: {
@@ -4552,23 +4552,23 @@ export type Database = {
       }
       get_zone_pricing: {
         Args: {
-          zone_id_param: string
-          vehicle_class_param?: string
           datetime_param?: string
+          vehicle_class_param?: string
+          zone_id_param: string
         }
         Returns: {
           base_price: number
+          maximum_fare: number
+          minimum_fare: number
           price_per_km: number
           price_per_minute: number
           surge_multiplier: number
-          minimum_fare: number
-          maximum_fare: number
         }[]
       }
       has_permission: {
         Args: {
-          _user_id: string
           _permission: Database["public"]["Enums"]["permission"]
+          _user_id: string
         }
         Returns: boolean
       }
@@ -4582,26 +4582,26 @@ export type Database = {
       }
       search_places: {
         Args: {
-          search_query: string
-          user_country_code?: string
-          user_city?: string
           max_results?: number
+          search_query: string
+          user_city?: string
+          user_country_code?: string
         }
         Returns: {
+          category: string
+          city: string
+          commune: string
+          country_code: string
           id: string
+          is_popular: boolean
+          latitude: number
+          longitude: number
           name: string
           name_fr: string
           name_local: string
           place_type: string
-          category: string
-          country_code: string
-          city: string
-          commune: string
-          latitude: number
-          longitude: number
-          is_popular: boolean
-          search_keywords: string[]
           relevance_score: number
+          search_keywords: string[]
         }[]
       }
       user_exists: {
