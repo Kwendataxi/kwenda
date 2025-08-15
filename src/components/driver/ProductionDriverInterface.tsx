@@ -33,6 +33,24 @@ const ProductionDriverInterface: React.FC<ProductionDriverInterfaceProps> = ({ c
     completeOrder
   } = useUnifiedDispatcher();
 
+  // Notification audio
+  const playNotificationSound = () => {
+    try {
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgE=');
+      audio.volume = 0.5;
+      audio.play().catch(e => console.log('Cannot play audio:', e));
+    } catch (error) {
+      console.log('Audio notification failed:', error);
+    }
+  };
+
+  // Effet pour jouer le son quand une nouvelle notification arrive
+  React.useEffect(() => {
+    if (pendingNotifications.length > 0) {
+      playNotificationSound();
+    }
+  }, [pendingNotifications.length]);
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'taxi': return Car;
