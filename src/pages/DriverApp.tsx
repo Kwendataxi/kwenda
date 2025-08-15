@@ -10,9 +10,7 @@ import { DriverCreditManager } from '@/components/driver/DriverCreditManager';
 import { DriverChallenges } from '@/components/driver/DriverChallenges';
 import { DriverCodeManager } from '@/components/driver/DriverCodeManager';
 import { DriverReferrals } from '@/components/driver/DriverReferrals';
-import UnifiedDriverNotifications from '@/components/driver/UnifiedDriverNotifications';
-import DriverStatusToggle from '@/components/driver/DriverStatusToggle';
-import UniversalDriverInterface from '@/components/driver/UniversalDriverInterface';
+import ProductionDriverInterface from '@/components/driver/ProductionDriverInterface';
 
 const DriverApp = () => {
   const { loading } = useDriverServiceType();
@@ -34,7 +32,7 @@ const DriverApp = () => {
       <main className="container mx-auto px-4 pb-20 pt-4">
         {tab === 'rides' && <MobileDriverInterface onNavigateToEarnings={() => setTab('wallet')} onNavigateToCredits={() => setTab('credits')} onNavigateToNavigation={() => {}} />}
         {tab === 'deliveries' && (
-          <UniversalDriverInterface />
+          <ProductionDriverInterface />
         )}
         {tab === 'wallet' && <DriverWalletPanel />}
         {tab === 'credits' && <DriverCreditManager />}
