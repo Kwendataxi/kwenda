@@ -20,10 +20,12 @@ import { VendorDashboard } from './VendorDashboard';
 import { DeliveryCalculator } from './DeliveryCalculator';
 import { OrderTracker } from './OrderTracker';
 import { AdvancedOrderTracker } from './AdvancedOrderTracker';
+import { VerifiedSellerGuard } from './VerifiedSellerGuard';
 
 // Hooks
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
+import { useUserVerification } from '@/hooks/useUserVerification';
 
 interface Product {
   id: string;
@@ -419,23 +421,25 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
           </TabsContent>
 
           <TabsContent value="sell" className="mt-4">
-            <SellProductForm
-              onBack={() => setCurrentTab('shop')}
-              onSubmit={async (formData) => {
-                // Handle product creation with auto-location
-                try {
-                  await handleProductSubmit({
-                    ...formData,
-                    coordinates: coordinates,
-                    location: 'Kinshasa'
-                  });
-                  setCurrentTab('shop');
-                  loadProducts();
-                } catch (error) {
-                  console.error('Error submitting product:', error);
-                }
-              }}
-            />
+            <VerifiedSellerGuard>
+              <SellProductForm
+                onBack={() => setCurrentTab('shop')}
+                onSubmit={async (formData) => {
+                  // Handle product creation with auto-location
+                  try {
+                    await handleProductSubmit({
+                      ...formData,
+                      coordinates: coordinates,
+                      location: 'Kinshasa'
+                    });
+                    setCurrentTab('shop');
+                    loadProducts();
+                  } catch (error) {
+                    console.error('Error submitting product:', error);
+                  }
+                }}
+              />
+            </VerifiedSellerGuard>
           </TabsContent>
 
           <TabsContent value="orders" className="mt-4">

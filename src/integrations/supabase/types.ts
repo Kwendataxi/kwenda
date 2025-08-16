@@ -4034,6 +4034,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_verification: {
+        Row: {
+          created_at: string | null
+          id: string
+          identity_verified: boolean | null
+          phone_verified: boolean | null
+          updated_at: string | null
+          user_id: string
+          verification_documents: Json | null
+          verification_level: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          identity_verified?: boolean | null
+          phone_verified?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          verification_documents?: Json | null
+          verification_level?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          identity_verified?: boolean | null
+          phone_verified?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          verification_documents?: Json | null
+          verification_level?: string | null
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       user_verifications: {
         Row: {
           created_at: string
@@ -4513,6 +4549,19 @@ export type Database = {
           updated_at: string
           user_id: string
         }[]
+      }
+      ensure_user_profile: {
+        Args: { p_user_id: string }
+        Returns: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          phone_number: string | null
+          updated_at: string
+          user_id: string
+          user_type: string | null
+        }
       }
       generate_driver_code: {
         Args: Record<PropertyKey, never>
