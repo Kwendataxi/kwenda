@@ -157,6 +157,57 @@ export type Database = {
         }
         Relationships: []
       }
+      admins: {
+        Row: {
+          admin_level: string | null
+          created_at: string | null
+          department: string | null
+          display_name: string
+          email: string
+          employee_id: string | null
+          hire_date: string | null
+          id: string
+          is_active: boolean | null
+          last_login: string | null
+          permissions: string[] | null
+          phone_number: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_level?: string | null
+          created_at?: string | null
+          department?: string | null
+          display_name: string
+          email: string
+          employee_id?: string | null
+          hire_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login?: string | null
+          permissions?: string[] | null
+          phone_number: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_level?: string | null
+          created_at?: string | null
+          department?: string | null
+          display_name?: string
+          email?: string
+          employee_id?: string | null
+          hire_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login?: string | null
+          permissions?: string[] | null
+          phone_number?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       challenge_rewards: {
         Row: {
           challenge_id: string
@@ -256,6 +307,144 @@ export type Database = {
           target_value?: number
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      chauffeurs: {
+        Row: {
+          bank_account_number: string | null
+          created_at: string | null
+          display_name: string
+          email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          id: string
+          insurance_expiry: string
+          insurance_number: string
+          is_active: boolean | null
+          license_expiry: string
+          license_number: string
+          phone_number: string
+          rating_average: number | null
+          service_areas: string[] | null
+          total_rides: number | null
+          updated_at: string | null
+          user_id: string
+          vehicle_color: string | null
+          vehicle_model: string
+          vehicle_plate: string
+          vehicle_type: string
+          vehicle_year: number
+          verification_status: string | null
+        }
+        Insert: {
+          bank_account_number?: string | null
+          created_at?: string | null
+          display_name: string
+          email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          id?: string
+          insurance_expiry: string
+          insurance_number: string
+          is_active?: boolean | null
+          license_expiry: string
+          license_number: string
+          phone_number: string
+          rating_average?: number | null
+          service_areas?: string[] | null
+          total_rides?: number | null
+          updated_at?: string | null
+          user_id: string
+          vehicle_color?: string | null
+          vehicle_model: string
+          vehicle_plate: string
+          vehicle_type: string
+          vehicle_year: number
+          verification_status?: string | null
+        }
+        Update: {
+          bank_account_number?: string | null
+          created_at?: string | null
+          display_name?: string
+          email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          id?: string
+          insurance_expiry?: string
+          insurance_number?: string
+          is_active?: boolean | null
+          license_expiry?: string
+          license_number?: string
+          phone_number?: string
+          rating_average?: number | null
+          service_areas?: string[] | null
+          total_rides?: number | null
+          updated_at?: string | null
+          user_id?: string
+          vehicle_color?: string | null
+          vehicle_model?: string
+          vehicle_plate?: string
+          vehicle_type?: string
+          vehicle_year?: number
+          verification_status?: string | null
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          address: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          display_name: string
+          email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          gender: string | null
+          id: string
+          is_active: boolean | null
+          phone_number: string
+          preferred_language: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          display_name: string
+          email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          gender?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone_number: string
+          preferred_language?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          display_name?: string
+          email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          gender?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone_number?: string
+          preferred_language?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1703,6 +1892,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      partenaires: {
+        Row: {
+          address: string
+          bank_account_number: string | null
+          business_type: string
+          city: string | null
+          commission_rate: number | null
+          company_name: string
+          company_registration_number: string | null
+          contact_person_name: string | null
+          contact_person_phone: string | null
+          contract_end_date: string | null
+          contract_start_date: string | null
+          country: string | null
+          created_at: string | null
+          display_name: string
+          email: string
+          id: string
+          is_active: boolean | null
+          phone_number: string
+          tax_number: string | null
+          updated_at: string | null
+          user_id: string
+          verification_status: string | null
+        }
+        Insert: {
+          address: string
+          bank_account_number?: string | null
+          business_type: string
+          city?: string | null
+          commission_rate?: number | null
+          company_name: string
+          company_registration_number?: string | null
+          contact_person_name?: string | null
+          contact_person_phone?: string | null
+          contract_end_date?: string | null
+          contract_start_date?: string | null
+          country?: string | null
+          created_at?: string | null
+          display_name: string
+          email: string
+          id?: string
+          is_active?: boolean | null
+          phone_number: string
+          tax_number?: string | null
+          updated_at?: string | null
+          user_id: string
+          verification_status?: string | null
+        }
+        Update: {
+          address?: string
+          bank_account_number?: string | null
+          business_type?: string
+          city?: string | null
+          commission_rate?: number | null
+          company_name?: string
+          company_registration_number?: string | null
+          contact_person_name?: string | null
+          contact_person_phone?: string | null
+          contract_end_date?: string | null
+          contract_start_date?: string | null
+          country?: string | null
+          created_at?: string | null
+          display_name?: string
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          phone_number?: string
+          tax_number?: string | null
+          updated_at?: string | null
+          user_id?: string
+          verification_status?: string | null
+        }
+        Relationships: []
       }
       partner_commission_tracking: {
         Row: {
@@ -3193,6 +3457,36 @@ export type Database = {
         }
         Relationships: []
       }
+      roles: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_name: string
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       service_zones: {
         Row: {
           base_price_multiplier: number
@@ -4586,6 +4880,10 @@ export type Database = {
       get_notification_stats: {
         Args: { admin_id?: string }
         Returns: Json
+      }
+      get_user_role: {
+        Args: { user_id_param: string }
+        Returns: string
       }
       get_user_roles: {
         Args: { _user_id: string }
