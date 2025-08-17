@@ -1,12 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useUnifiedDispatcher } from '@/hooks/useUnifiedDispatcher';
-import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
 import DriverStatusToggle from './DriverStatusToggle';
-import DriverDiagnostic from './DriverDiagnostic';
-import DriverTestPanel from './DriverTestPanel';
 import { 
   Car,
   Package, 
@@ -14,7 +11,6 @@ import {
   CheckCircle,
   XCircle,
   MapPin,
-  Clock,
   Euro,
   Bell,
   AlertCircle
@@ -22,11 +18,11 @@ import {
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-interface UniversalDriverInterfaceProps {
+interface ProductionDriverInterfaceProps {
   className?: string;
 }
 
-const UniversalDriverInterface: React.FC<UniversalDriverInterfaceProps> = ({ className }) => {
+const ProductionDriverInterface: React.FC<ProductionDriverInterfaceProps> = ({ className }) => {
   const { 
     loading,
     dispatchStatus,
@@ -37,7 +33,23 @@ const UniversalDriverInterface: React.FC<UniversalDriverInterfaceProps> = ({ cla
     completeOrder
   } = useUnifiedDispatcher();
 
-  const { enhancedData } = useEnhancedGeolocation();
+  // Notification audio
+  const playNotificationSound = () => {
+    try {
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgELIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcdCD2V2OzGeSgE=');
+      audio.volume = 0.5;
+      audio.play().catch(e => console.log('Cannot play audio:', e));
+    } catch (error) {
+      console.log('Audio notification failed:', error);
+    }
+  };
+
+  // Effet pour jouer le son quand une nouvelle notification arrive
+  React.useEffect(() => {
+    if (pendingNotifications.length > 0) {
+      playNotificationSound();
+    }
+  }, [pendingNotifications.length]);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -50,10 +62,10 @@ const UniversalDriverInterface: React.FC<UniversalDriverInterfaceProps> = ({ cla
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
-      case 'high': return 'bg-red-100 border-red-300 text-red-800';
-      case 'medium': return 'bg-yellow-100 border-yellow-300 text-yellow-800';
-      case 'low': return 'bg-blue-100 border-blue-300 text-blue-800';
-      default: return 'bg-gray-100 border-gray-300 text-gray-800';
+      case 'high': return 'bg-destructive/10 border-destructive/30 text-destructive';
+      case 'medium': return 'bg-warning/10 border-warning/30 text-warning';
+      case 'low': return 'bg-info/10 border-info/30 text-info';
+      default: return 'bg-muted/10 border-muted/30 text-muted-foreground';
     }
   };
 
@@ -80,18 +92,12 @@ const UniversalDriverInterface: React.FC<UniversalDriverInterfaceProps> = ({ cla
     <div className={cn("space-y-4", className)}>
       {/* Driver Status */}
       <DriverStatusToggle />
-      
-      {/* Diagnostic Panel */}
-      <DriverDiagnostic />
-      
-      {/* Test Panel */}
-      <DriverTestPanel />
 
       {/* Pending Notifications */}
       {pendingNotifications.length > 0 && (
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="border-primary/20 bg-primary/5">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-800">
+            <CardTitle className="flex items-center gap-2 text-primary">
               <Bell className="h-5 w-5" />
               Nouvelles commandes ({pendingNotifications.length})
             </CardTitle>
@@ -128,12 +134,6 @@ const UniversalDriverInterface: React.FC<UniversalDriverInterfaceProps> = ({ cla
                           <Euro className="h-3 w-3" />
                           {notification.estimatedPrice.toLocaleString()} CDF
                         </div>
-                        {notification.distance && (
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {notification.distance.toFixed(1)} km
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -165,9 +165,9 @@ const UniversalDriverInterface: React.FC<UniversalDriverInterfaceProps> = ({ cla
 
       {/* Active Orders */}
       {activeOrders.length > 0 && (
-        <Card className="border-green-200 bg-green-50">
+        <Card className="border-success/20 bg-success/5">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-800">
+            <CardTitle className="flex items-center gap-2 text-success">
               <CheckCircle className="h-5 w-5" />
               Commandes en cours ({activeOrders.length})
             </CardTitle>
@@ -178,10 +178,10 @@ const UniversalDriverInterface: React.FC<UniversalDriverInterfaceProps> = ({ cla
               return (
                 <div 
                   key={order.id}
-                  className="p-4 rounded-lg border border-green-300 bg-white"
+                  className="p-4 rounded-lg border border-success/30 bg-card"
                 >
                   <div className="flex items-start gap-3">
-                    <Icon className="h-6 w-6 mt-1 text-green-600" />
+                    <Icon className="h-6 w-6 mt-1 text-success" />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h4 className="font-semibold">
@@ -244,10 +244,10 @@ const UniversalDriverInterface: React.FC<UniversalDriverInterfaceProps> = ({ cla
 
       {/* No Orders State */}
       {!dispatchStatus.isOnline && (
-        <Card className="border-gray-200">
+        <Card className="border-muted/20">
           <CardContent className="p-6 text-center">
-            <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">
+            <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">
               Vous êtes hors ligne. Activez votre statut pour recevoir des commandes.
             </p>
           </CardContent>
@@ -255,10 +255,10 @@ const UniversalDriverInterface: React.FC<UniversalDriverInterfaceProps> = ({ cla
       )}
 
       {dispatchStatus.isOnline && pendingNotifications.length === 0 && activeOrders.length === 0 && (
-        <Card className="border-blue-200">
+        <Card className="border-primary/20">
           <CardContent className="p-6 text-center">
-            <Bell className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-            <p className="text-blue-600">
+            <Bell className="h-12 w-12 text-primary mx-auto mb-4" />
+            <p className="text-primary">
               En attente de commandes... Vous recevrez une notification dès qu'une commande sera disponible.
             </p>
           </CardContent>
@@ -268,4 +268,4 @@ const UniversalDriverInterface: React.FC<UniversalDriverInterfaceProps> = ({ cla
   );
 };
 
-export default UniversalDriverInterface;
+export default ProductionDriverInterface;

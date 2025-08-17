@@ -24,6 +24,7 @@ import CustomerSupport from './CustomerSupport';
 import { DriverUpgrade } from './DriverUpgrade';
 import { TeamAccountManager } from './TeamAccountManager';
 import { UserSettings } from './UserSettings';
+import { AccountStatus } from './AccountStatus';
 
 interface Profile {
   id: string;
@@ -229,8 +230,12 @@ export const UserProfile = () => {
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <p className="text-muted-foreground">Profil non trouvé</p>
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Configuration de votre compte...</p>
+          <p className="text-sm text-muted-foreground">
+            Nous préparons votre profil, veuillez patienter.
+          </p>
         </div>
       </div>
     );
@@ -443,6 +448,11 @@ export const UserProfile = () => {
             </AlertDialogContent>
           </AlertDialog>
         </div>
+      </div>
+
+      {/* Account Status */}
+      <div className="px-4 py-2">
+        <AccountStatus />
       </div>
 
       {/* Profile Options List */}

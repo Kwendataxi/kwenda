@@ -102,79 +102,68 @@ export const useUnifiedDispatcher = () => {
     }
   };
 
-  // Real-time notifications for new orders
+  // Real-time notifications for new orders - CORRIGÉ
   useEffect(() => {
     if (!user || !dispatchStatus.isOnline) return;
 
-    // Channel pour les offres de taxi
-    const taxiChannel = supabase
-      .channel('taxi-offers')
+    console.log('🎧 Démarrage écoute real-time pour:', user.id);
+
+    // Channel unifié pour toutes les notifications chauffeur
+    const driverChannel = supabase
+      .channel(`driver-notifications-${user.id}`)
+      // Écouter les nouvelles demandes de transport (sans filtre driver_id)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
-        table: 'ride_offers',
-        filter: `driver_id=eq.${user.id}`
+        table: 'ride_requests',
+        filter: 'status=eq.pending'
       }, (payload) => {
+        console.log('🚗 Nouvelle demande transport:', payload.new);
         handleNewTaxiOffer(payload.new);
       })
-      .subscribe();
-
-    // Channel pour les livraisons directes
-    const deliveryChannel = supabase
-      .channel('delivery-offers')
+      // Écouter les livraisons directes
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'delivery_orders',
         filter: 'status=eq.pending'
       }, (payload) => {
+        console.log('📦 Nouvelle livraison:', payload.new);
         handleNewDeliveryOffer(payload.new);
       })
-      .subscribe();
-
-    // Channel pour les livraisons marketplace
-    const marketplaceChannel = supabase
-      .channel('marketplace-delivery-offers')
+      // Écouter les assignations marketplace pour ce chauffeur
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'marketplace_delivery_assignments',
-        filter: 'assignment_status=eq.pending'
+        filter: `driver_id=eq.${user.id}`
       }, (payload) => {
+        console.log('🛒 Assignation marketplace:', payload.new);
         handleNewMarketplaceOffer(payload.new);
       })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(taxiChannel);
-      supabase.removeChannel(deliveryChannel);
-      supabase.removeChannel(marketplaceChannel);
+      console.log('🔇 Arrêt écoute real-time');
+      supabase.removeChannel(driverChannel);
     };
   }, [user, dispatchStatus.isOnline]);
 
-  const handleNewTaxiOffer = async (offer: any) => {
-    // Fetch ride request details
-    const { data: rideRequest } = await supabase
-      .from('ride_requests')
-      .select('*')
-      .eq('id', offer.ride_request_id)
-      .single();
+  const handleNewTaxiOffer = async (rideRequest: any) => {
+    // Créer notification directement depuis ride_request
+    const notification: UnifiedOrderNotification = {
+      id: rideRequest.id,
+      type: 'taxi',
+      title: 'Nouvelle course disponible',
+      message: `${rideRequest.pickup_location} → ${rideRequest.destination}`,
+      location: rideRequest.pickup_location,
+      estimatedPrice: rideRequest.surge_price || rideRequest.estimated_price || 0,
+      urgency: 'medium',
+      data: rideRequest,
+      created_at: rideRequest.created_at
+    };
 
-    if (rideRequest) {
-      const notification: UnifiedOrderNotification = {
-        id: offer.id,
-        type: 'taxi',
-        title: 'Nouvelle course disponible',
-        message: `${rideRequest.pickup_location} → ${rideRequest.destination}`,
-        location: rideRequest.pickup_location,
-        estimatedPrice: rideRequest.surge_price || rideRequest.estimated_price || 0,
-        urgency: 'medium',
-        data: { offer, rideRequest },
-        created_at: offer.created_at
-      };
-
-      addNotification(notification);
-    }
+    addNotification(notification);
   };
 
   const handleNewDeliveryOffer = async (delivery: any) => {
@@ -259,7 +248,7 @@ export const useUnifiedDispatcher = () => {
           const { error: taxiError } = await supabase.functions.invoke('ride-dispatcher', {
             body: {
               action: 'assign_driver',
-              rideRequestId: notification.data.rideRequest.id,
+              rideRequestId: notification.data.id,
               driverId: user.id
             }
           });
