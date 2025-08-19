@@ -13,6 +13,7 @@ import ClientApp from "./pages/ClientApp";
 import DriverApp from "./pages/DriverApp";
 import PartnerApp from "./pages/PartnerApp";
 import AdminApp from "./pages/AdminApp";
+import { EscrowPage } from "./pages/EscrowPage";
 
 import NotFound from "./pages/NotFound";
 // Footer Pages
@@ -69,8 +70,13 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminApp />
                 </ProtectedRoute>
-              } />
-              
+               } />
+               <Route path="/escrow" element={
+                 <ProtectedRoute>
+                   <EscrowPage />
+                 </ProtectedRoute>
+               } />
+               
               {/* Footer Pages */}
               <Route path="/support/help-center" element={<HelpCenter />} />
               <Route path="/support/contact" element={<Contact />} />
