@@ -31,48 +31,74 @@ export const useDriverAssignment = () => {
       console.log('🔍 Recherche livreur automatique:', request);
 
       // Étape 1: Rechercher les livreurs disponibles par proximité
-      const { data: availableDrivers, error: driversError } = await supabase
+      const { data: driverLocations, error: locationsError } = await supabase
         .from('driver_locations')
-        .select(`
-          driver_id,
-          latitude,
-          longitude,
-          is_online,
-          is_available,
-          vehicle_class,
-          last_ping,
-          driver_profiles!inner(
-            user_id,
-            verification_status,
-            service_type,
-            rating_average,
-            total_rides,
-            vehicle_make,
-            vehicle_model,
-            profiles!inner(display_name, phone_number)
-          )
-        `)
+        .select('*')
         .eq('is_online', true)
         .eq('is_available', true)
-        .eq('driver_profiles.verification_status', 'verified')
-        .eq('driver_profiles.service_type', 'delivery')
-        .gte('last_ping', new Date(Date.now() - 10 * 60 * 1000).toISOString()) // Actif dans les 10 dernières minutes
+        .gte('last_ping', new Date(Date.now() - 10 * 60 * 1000).toISOString())
         .order('last_ping', { ascending: false });
 
-      if (driversError) {
-        throw driversError;
+      if (locationsError) {
+        throw locationsError;
       }
 
-      if (!availableDrivers || availableDrivers.length === 0) {
+      if (!driverLocations || driverLocations.length === 0) {
         return {
           success: false,
           error: 'Aucun livreur disponible dans votre zone'
         };
       }
 
+      // Étape 2: Récupérer les profils des livreurs
+      const driverIds = driverLocations.map(loc => loc.driver_id);
+      const { data: driverProfiles, error: profilesError } = await supabase
+        .from('driver_profiles')
+        .select('*')
+        .in('user_id', driverIds)
+        .eq('verification_status', 'verified')
+        .eq('service_type', 'delivery');
+
+      if (profilesError) {
+        throw profilesError;
+      }
+
+      // Étape 3: Récupérer les profils utilisateur
+      const { data: userProfiles, error: userProfilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('user_id', driverIds);
+
+      if (userProfilesError) {
+        throw userProfilesError;
+      }
+
+      // Étape 4: Combiner toutes les données
+      const availableDrivers = driverLocations
+        .map(location => {
+          const driverProfile = driverProfiles?.find(p => p.user_id === location.driver_id);
+          const userProfile = userProfiles?.find(p => p.user_id === location.driver_id);
+          if (!driverProfile || !userProfile) return null;
+          return {
+            ...location,
+            driver_profiles: {
+              ...driverProfile,
+              profiles: userProfile
+            }
+          };
+        })
+        .filter(Boolean);
+
+      if (!availableDrivers || availableDrivers.length === 0) {
+        return {
+          success: false,
+          error: 'Aucun livreur compatible dans votre zone'
+        };
+      }
+
       console.log(`📍 ${availableDrivers.length} livreurs trouvés`);
 
-      // Étape 2: Calculer la distance et filtrer par compatibilité
+      // Étape 4: Calculer la distance et filtrer par compatibilité
       const driversWithDistance = availableDrivers
         .map(driver => {
           const distance = calculateDistance(
