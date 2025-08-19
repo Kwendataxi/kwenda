@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDriverServiceType } from '@/hooks/useDriverServiceType';
 import DriverHeader from '@/components/driver/DriverHeader';
 import DriverBottomNavigation from '@/components/driver/DriverBottomNavigation';
@@ -11,11 +11,21 @@ import { DriverChallenges } from '@/components/driver/DriverChallenges';
 import { DriverCodeManager } from '@/components/driver/DriverCodeManager';
 import { DriverReferrals } from '@/components/driver/DriverReferrals';
 import ProductionDriverInterface from '@/components/driver/ProductionDriverInterface';
+import { useAuth } from '@/hooks/useAuth';
 
 const DriverApp = () => {
   const { loading } = useDriverServiceType();
   const [tab, setTab] = useState('deliveries');
   const [moreOpen, setMoreOpen] = useState(false);
+
+  const {user} = useAuth();
+  useEffect(()=>{
+    if(user && user.user_metadata){
+      if(user.user_metadata.role !== "chauffeur"){
+        window.location.href = "/";
+      }
+    }
+  },[user])
 
   if (loading) {
     return (
@@ -24,6 +34,8 @@ const DriverApp = () => {
       </div>
     );
   }
+
+
 
   return (
     <div className="min-h-screen bg-background">

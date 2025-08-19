@@ -4,8 +4,19 @@ import { Play, Star, MapPin, Clock, Car, ArrowRight, Zap, Users } from "lucide-r
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-vtc.jpg";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 const ModernHero = () => {
+  const {user} = useAuth();
+  useEffect(()=>{
+    if(user && user.user_metadata){
+      if(user.user_metadata.role === "simple_user_client"){
+        window.location.href = "/client";
+      }
+    }
+  },[user])
+
   return (
     <section className="relative min-h-screen bg-gradient-to-br from-background via-background to-primary/5 overflow-hidden">
       {/* Enhanced Animated Background Elements */}

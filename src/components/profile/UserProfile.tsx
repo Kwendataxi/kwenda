@@ -62,6 +62,7 @@ export const UserProfile = () => {
     if (user) {
       loadProfile();
       loadUserRating();
+      console.log("===========================================> ",user);
     }
   }, [user]);
 

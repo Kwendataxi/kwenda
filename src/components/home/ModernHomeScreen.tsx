@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ModernHeader } from './ModernHeader';
 import { ServiceGrid } from './ServiceGrid';
 import { UniversalSearchBar } from './UniversalSearchBar';
@@ -8,6 +8,7 @@ import { ModernBottomNavigation } from './ModernBottomNavigation';
 import { HomeTrendsSheet } from './HomeTrendsSheet';
 import { HomeRecentPlacesSheet } from './HomeRecentPlacesSheet';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ModernHomeScreenProps {
   onServiceSelect: (service: string) => void;
@@ -54,6 +55,15 @@ export const ModernHomeScreen = ({
         break;
     }
   };
+
+  const {user} = useAuth();
+    useEffect(()=>{
+      if(user && user.user_metadata){
+        if(user.user_metadata.role !== "simple_user_client"){
+          window.location.href = "/";
+        }
+      }
+  },[user])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-grey-50 to-white">

@@ -40,6 +40,8 @@ export const EnhancedAuth = () => {
     if (user && userRole && !roleLoading) {
       const redirectPath = getRedirectPath(userRole.role);
       navigate(redirectPath);
+
+      console.log(user,userRole);
     }
   }, [user, userRole, roleLoading, navigate, getRedirectPath]);
 
@@ -49,22 +51,39 @@ export const EnhancedAuth = () => {
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: loginForm.email,
         password: loginForm.password
       });
 
       if (error) {
+        console.log(error);
         throw error;
       }
 
-      toast({
-        title: "Connexion réussie !",
-        description: "Redirection en cours...",
-      });
+      // Récupérer l'utilisateur connecté
+      const user = data.user;
+
+      if (user) {
+        const role = user.user_metadata?.role;
+
+        if (role === "chauffeur") {
+          window.location.href = "/chauffeur";
+        } else if (role === "simple_user_client") {
+          window.location.href = "/client";
+        } else {
+          // fallback si rôle non reconnu
+          window.location.href = "/";
+        }
+
+        toast({
+          title: "Connexion réussie !",
+          description: "Redirection en cours...",
+        });
+      }
     } catch (error: any) {
-      console.error('Login error:', error);
-      setError(error.message || 'Erreur lors de la connexion');
+      console.error("Login error:", error);
+      setError(error.message || "Erreur lors de la connexion");
     } finally {
       setLoading(false);
     }

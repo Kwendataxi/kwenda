@@ -36,94 +36,168 @@ export const DriverRegistrationForm = ({ onSuccess, onBack }: DriverRegistration
     emergencyContactPhone: ''
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
     
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Erreur",
-        description: "Les mots de passe ne correspondent pas",
-        variant: "destructive"
-      });
-      return;
-    }
+  //   if (formData.password !== formData.confirmPassword) {
+  //     toast({
+  //       title: "Erreur",
+  //       description: "Les mots de passe ne correspondent pas",
+  //       variant: "destructive"
+  //     });
+  //     return;
+  //   }
 
-    if (formData.password.length < 6) {
-      toast({
-        title: "Erreur",
-        description: "Le mot de passe doit contenir au moins 6 caractères",
-        variant: "destructive"
-      });
-      return;
-    }
+  //   if (formData.password.length < 6) {
+  //     toast({
+  //       title: "Erreur",
+  //       description: "Le mot de passe doit contenir au moins 6 caractères",
+  //       variant: "destructive"
+  //     });
+  //     return;
+  //   }
 
-    setLoading(true);
+  //   setLoading(true);
 
-    try {
-      // Créer le compte utilisateur
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            display_name: formData.displayName,
-            role: 'chauffeur'
-          }
+  //   try {
+  //     // Créer le compte utilisateur
+  //     const { data: authData, error: authError } = await supabase.auth.signUp({
+  //       email: formData.email,
+  //       password: formData.password,
+  //       options: {
+  //         emailRedirectTo: `${window.location.origin}/`,
+  //         data: {
+  //           display_name: formData.displayName,
+  //           role: 'chauffeur'
+  //         }
+  //       }
+  //     });
+
+  //     if (authError) {
+  //       throw authError;
+  //     }
+
+  //     if (authData.user) {
+  //       // Créer le profil chauffeur
+  //       const { error: profileError } = await supabase
+  //         .from('chauffeurs')
+  //         .insert({
+  //           user_id: authData.user.id,
+  //           display_name: formData.displayName,
+  //           phone_number: formData.phoneNumber,
+  //           email: formData.email,
+  //           license_number: formData.licenseNumber,
+  //           license_expiry: formData.licenseExpiry,
+  //           vehicle_type: formData.vehicleType,
+  //           vehicle_plate: formData.vehiclePlate,
+  //           vehicle_model: formData.vehicleModel,
+  //           vehicle_year: parseInt(formData.vehicleYear),
+  //           vehicle_color: formData.vehicleColor,
+  //           insurance_number: formData.insuranceNumber,
+  //           insurance_expiry: formData.insuranceExpiry,
+  //           bank_account_number: formData.bankAccountNumber || null,
+  //           emergency_contact_name: formData.emergencyContactName || null,
+  //           emergency_contact_phone: formData.emergencyContactPhone || null,
+  //           verification_status: 'pending',
+  //           is_active: false
+  //         });
+
+  //       if (profileError) {
+  //         throw profileError;
+  //       }
+
+  //       toast({
+  //         title: "Succès !",
+  //         description: "Votre demande de chauffeur a été soumise. Vous serez contacté pour la vérification.",
+  //       });
+
+  //       onSuccess();
+  //     }
+  //   } catch (error: any) {
+  //     console.error('Registration error:', error);
+  //     toast({
+  //       title: "Erreur",
+  //       description: error.message || "Une erreur est survenue lors de l'inscription",
+  //       variant: "destructive"
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (formData.password !== formData.confirmPassword) {
+    toast({
+      title: "Erreur",
+      description: "Les mots de passe ne correspondent pas",
+      variant: "destructive"
+    });
+    return;
+  }
+
+  if (formData.password.length < 6) {
+    toast({
+      title: "Erreur",
+      description: "Le mot de passe doit contenir au moins 6 caractères",
+      variant: "destructive"
+    });
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: {
+          role: "chauffeur",
+          display_name: formData.displayName,
+          phone_number: formData.phoneNumber,
+          license_number: formData.licenseNumber,
+          license_expiry: formData.licenseExpiry,
+          vehicle_type: formData.vehicleType,
+          vehicle_plate: formData.vehiclePlate,
+          vehicle_model: formData.vehicleModel,
+          vehicle_year: formData.vehicleYear,
+          vehicle_color: formData.vehicleColor,
+          insurance_number: formData.insuranceNumber,
+          insurance_expiry: formData.insuranceExpiry,
+          bank_account_number: formData.bankAccountNumber,
+          emergency_contact_name: formData.emergencyContactName,
+          emergency_contact_phone: formData.emergencyContactPhone
         }
-      });
-
-      if (authError) {
-        throw authError;
       }
+    });
 
-      if (authData.user) {
-        // Créer le profil chauffeur
-        const { error: profileError } = await supabase
-          .from('chauffeurs')
-          .insert({
-            user_id: authData.user.id,
-            display_name: formData.displayName,
-            phone_number: formData.phoneNumber,
-            email: formData.email,
-            license_number: formData.licenseNumber,
-            license_expiry: formData.licenseExpiry,
-            vehicle_type: formData.vehicleType,
-            vehicle_plate: formData.vehiclePlate,
-            vehicle_model: formData.vehicleModel,
-            vehicle_year: parseInt(formData.vehicleYear),
-            vehicle_color: formData.vehicleColor,
-            insurance_number: formData.insuranceNumber,
-            insurance_expiry: formData.insuranceExpiry,
-            bank_account_number: formData.bankAccountNumber || null,
-            emergency_contact_name: formData.emergencyContactName || null,
-            emergency_contact_phone: formData.emergencyContactPhone || null,
-            verification_status: 'pending',
-            is_active: false
-          });
+    console.log("======================================= >",authData)
 
-        if (profileError) {
-          throw profileError;
-        }
-
-        toast({
-          title: "Succès !",
-          description: "Votre demande de chauffeur a été soumise. Vous serez contacté pour la vérification.",
-        });
-
-        onSuccess();
-      }
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de l'inscription",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+    if (authError) {
+      throw authError;
     }
-  };
+
+    if (authData.user) {
+      toast({
+        title: "Succès !",
+        description: "Votre demande de chauffeur a été soumise. Vous serez contacté pour la vérification.",
+      });
+      onSuccess();
+    }
+  } catch (error: any) {
+    console.error("Registration error:", error);
+    toast({
+      title: "Erreur",
+      description: error.message || "Une erreur est survenue lors de l'inscription",
+      variant: "destructive"
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center p-4">

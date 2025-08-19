@@ -132,7 +132,7 @@ export const useRoleBasedAuth = () => {
       case 'partenaire':
         return '/partner';
       case 'chauffeur':
-        return '/driver';
+        return '/chauffeur';
       case 'simple_user_client':
       default:
         return '/';
