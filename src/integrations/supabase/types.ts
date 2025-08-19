@@ -1220,6 +1220,50 @@ export type Database = {
         }
         Relationships: []
       }
+      escrow_notifications: {
+        Row: {
+          created_at: string
+          escrow_transaction_id: string
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          notification_type: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          escrow_transaction_id: string
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          escrow_transaction_id?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escrow_notifications_escrow_transaction_id_fkey"
+            columns: ["escrow_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "escrow_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       escrow_payments: {
         Row: {
           amount: number
@@ -1275,6 +1319,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      escrow_transactions: {
+        Row: {
+          buyer_id: string
+          completed_at: string | null
+          created_at: string
+          currency: string
+          dispute_reason: string | null
+          driver_amount: number | null
+          driver_id: string | null
+          held_at: string
+          id: string
+          order_id: string
+          platform_fee: number
+          released_at: string | null
+          seller_amount: number
+          seller_id: string
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_id: string
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          dispute_reason?: string | null
+          driver_amount?: number | null
+          driver_id?: string | null
+          held_at?: string
+          id?: string
+          order_id: string
+          platform_fee: number
+          released_at?: string | null
+          seller_amount: number
+          seller_id: string
+          status?: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_id?: string
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          dispute_reason?: string | null
+          driver_amount?: number | null
+          driver_id?: string | null
+          held_at?: string
+          id?: string
+          order_id?: string
+          platform_fee?: number
+          released_at?: string | null
+          seller_amount?: number
+          seller_id?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       favorites: {
         Row: {
@@ -4601,6 +4705,60 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawal_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          failure_reason: string | null
+          id: string
+          kwenda_pay_phone: string | null
+          mobile_money_phone: string | null
+          mobile_money_provider: string | null
+          processed_at: string | null
+          status: string
+          transaction_reference: string | null
+          updated_at: string
+          user_id: string
+          user_type: string
+          withdrawal_method: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          failure_reason?: string | null
+          id?: string
+          kwenda_pay_phone?: string | null
+          mobile_money_phone?: string | null
+          mobile_money_provider?: string | null
+          processed_at?: string | null
+          status?: string
+          transaction_reference?: string | null
+          updated_at?: string
+          user_id: string
+          user_type: string
+          withdrawal_method?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          failure_reason?: string | null
+          id?: string
+          kwenda_pay_phone?: string | null
+          mobile_money_phone?: string | null
+          mobile_money_provider?: string | null
+          processed_at?: string | null
+          status?: string
+          transaction_reference?: string | null
+          updated_at?: string
+          user_id?: string
+          user_type?: string
+          withdrawal_method?: string
+        }
+        Relationships: []
+      }
       zone_analytics: {
         Row: {
           active_drivers: number
@@ -4925,6 +5083,10 @@ export type Database = {
       }
       link_payment_to_subscription: {
         Args: { payment_id: string; subscription_id: string }
+        Returns: boolean
+      }
+      process_escrow_release: {
+        Args: { escrow_id: string }
         Returns: boolean
       }
       search_places: {
