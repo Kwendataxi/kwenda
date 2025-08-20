@@ -326,6 +326,7 @@ export type Database = {
           license_number: string
           phone_number: string
           rating_average: number | null
+          role: string | null
           service_areas: string[] | null
           total_rides: number | null
           updated_at: string | null
@@ -352,6 +353,7 @@ export type Database = {
           license_number: string
           phone_number: string
           rating_average?: number | null
+          role?: string | null
           service_areas?: string[] | null
           total_rides?: number | null
           updated_at?: string | null
@@ -378,6 +380,7 @@ export type Database = {
           license_number?: string
           phone_number?: string
           rating_average?: number | null
+          role?: string | null
           service_areas?: string[] | null
           total_rides?: number | null
           updated_at?: string | null
@@ -407,6 +410,7 @@ export type Database = {
           is_active: boolean | null
           phone_number: string
           preferred_language: string | null
+          role: string | null
           updated_at: string | null
           user_id: string
         }
@@ -425,6 +429,7 @@ export type Database = {
           is_active?: boolean | null
           phone_number: string
           preferred_language?: string | null
+          role?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -443,6 +448,7 @@ export type Database = {
           is_active?: boolean | null
           phone_number?: string
           preferred_language?: string | null
+          role?: string | null
           updated_at?: string | null
           user_id?: string
         }
