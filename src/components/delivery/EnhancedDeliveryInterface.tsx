@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useEnhancedDeliveryOrders, DeliveryLocation } from '@/hooks/useEnhancedDeliveryOrders';
+import { EnhancedLocationSearch } from './EnhancedLocationSearch';
 import { 
   ArrowLeft,
   ArrowRight,
@@ -367,19 +368,18 @@ const EnhancedDeliveryInterface = ({ onSubmit, onCancel }: EnhancedDeliveryInter
               <p className="text-muted-foreground">Où récupérer le colis ?</p>
             </div>
 
-            {/* Location Search - À implementer */}
-            <Card className="p-4">
-              <Label className="text-sm font-medium">Adresse de récupération</Label>
-              <Input 
-                placeholder="Rechercher une adresse..."
-                className="mt-2"
-              />
-              {formData.pickup.location && (
-                <div className="mt-2 p-2 bg-green-50 rounded text-sm text-green-700">
-                  ✓ {formData.pickup.location.address}
-                </div>
-              )}
-            </Card>
+            <EnhancedLocationSearch
+              value={formData.pickup.location}
+              onChange={(location) => handleLocationSelect(location, 'pickup')}
+              placeholder="Rechercher l'adresse de récupération..."
+              cityContext={{
+                name: 'Kinshasa',
+                coordinates: [-4.4419, 15.2663],
+                popular: ['Centre-ville', 'Gombe', 'Kinshasa', 'Lemba', 'Matete', 'Ngaliema']
+              }}
+              label="📍 Point de récupération"
+              icon={<Target className="w-6 h-6 text-green-500" />}
+            />
 
             <Card className="p-4 space-y-4">
               <h3 className="font-semibold flex items-center gap-2">
@@ -429,18 +429,18 @@ const EnhancedDeliveryInterface = ({ onSubmit, onCancel }: EnhancedDeliveryInter
               <p className="text-muted-foreground">Où livrer le colis ?</p>
             </div>
 
-            <Card className="p-4">
-              <Label className="text-sm font-medium">Adresse de livraison</Label>
-              <Input 
-                placeholder="Rechercher une adresse..."
-                className="mt-2"
-              />
-              {formData.destination.location && (
-                <div className="mt-2 p-2 bg-blue-50 rounded text-sm text-blue-700">
-                  ✓ {formData.destination.location.address}
-                </div>
-              )}
-            </Card>
+            <EnhancedLocationSearch
+              value={formData.destination.location}
+              onChange={(location) => handleLocationSelect(location, 'destination')}
+              placeholder="Rechercher l'adresse de livraison..."
+              cityContext={{
+                name: 'Kinshasa',
+                coordinates: [-4.4419, 15.2663],
+                popular: ['Centre-ville', 'Gombe', 'Kinshasa', 'Lemba', 'Matete', 'Ngaliema']
+              }}
+              label="🎯 Point de livraison"
+              icon={<MapPin className="w-6 h-6 text-blue-500" />}
+            />
 
             <Card className="p-4 space-y-4">
               <h3 className="font-semibold flex items-center gap-2">

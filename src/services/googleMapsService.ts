@@ -51,32 +51,32 @@ export class GoogleMapsService {
 
   static async searchPlaces(query: string, proximity?: { lng: number; lat: number }): Promise<GeocodeResult[]> {
     try {
-      const apiKey = await this.getApiKey();
-      
-      // Construction de l'URL avec géobiais si proximité fournie
-      let url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}`;
-      
-      if (proximity) {
-        url += `&location=${proximity.lat},${proximity.lng}&radius=50000`;
+      // Utiliser l'edge function pour éviter les problèmes CORS
+      const response = await fetch('https://wddlktajnhwhyquwcdgf.supabase.co/functions/v1/geocode-proxy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZGxrdGFqbmh3aHlxdXdjZGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxNDA1NjUsImV4cCI6MjA2OTcxNjU2NX0.rViBegpawtg1sFwafH_fczlB0oeA8E6V3MtDELcSIiU`
+        },
+        body: JSON.stringify({
+          action: 'search',
+          query,
+          proximity
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
 
-      const response = await fetch(url);
       const data = await response.json();
-
-      if (data.status !== 'OK') {
-        console.warn('Erreur API Google Places:', data.status);
+      
+      if (data.error) {
+        console.warn('Erreur API Google Places:', data.error);
         return this.getFallbackPlaces(query);
       }
 
-      return data.results.map((place: GooglePlaceResult) => ({
-        place_name: place.formatted_address,
-        center: [place.geometry.location.lng, place.geometry.location.lat],
-        place_type: place.types[0] || 'address',
-        properties: {
-          place_id: place.place_id,
-          name: place.name
-        }
-      }));
+      return data.results || this.getFallbackPlaces(query);
     } catch (error) {
       console.error('Erreur lors de la recherche de lieux:', error);
       return this.getFallbackPlaces(query);
@@ -85,17 +85,31 @@ export class GoogleMapsService {
 
   static async reverseGeocode(lng: number, lat: number): Promise<string> {
     try {
-      const apiKey = await this.getApiKey();
-      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
-      
-      const response = await fetch(url);
-      const data = await response.json();
+      const response = await fetch('https://wddlktajnhwhyquwcdgf.supabase.co/functions/v1/geocode-proxy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZGxrdGFqbmh3aHlxdXdjZGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxNDA1NjUsImV4cCI6MjA2OTcxNjU2NX0.rViBegpawtg1sFwafH_fczlB0oeA8E6V3MtDELcSIiU`
+        },
+        body: JSON.stringify({
+          action: 'reverse',
+          lat,
+          lng
+        })
+      });
 
-      if (data.status === 'OK' && data.results.length > 0) {
-        return data.results[0].formatted_address;
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
 
-      return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      const data = await response.json();
+      
+      if (data.error) {
+        console.warn('Erreur géocodage inverse:', data.error);
+        return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      }
+
+      return data.address || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     } catch (error) {
       console.error('Erreur lors du géocodage inverse:', error);
       return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;

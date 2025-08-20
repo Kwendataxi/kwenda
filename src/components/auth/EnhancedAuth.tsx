@@ -68,12 +68,16 @@ export const EnhancedAuth = () => {
         const role = user.user_metadata?.role;
 
         if (role === "chauffeur") {
-          window.location.href = "/chauffeur";
+          navigate("/chauffeur");
         } else if (role === "simple_user_client") {
-          window.location.href = "/client";
+          navigate("/client");
+        } else if (role === "partenaire") {
+          navigate("/partenaire");
+        } else if (role === "admin") {
+          navigate("/admin");
         } else {
           // fallback si rôle non reconnu
-          window.location.href = "/";
+          navigate("/");
         }
 
         toast({
