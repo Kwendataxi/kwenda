@@ -81,7 +81,7 @@ CREATE TABLE public.payment_transactions (
   product_id UUID REFERENCES public.marketplace_products(id),
   amount DECIMAL(10,2) NOT NULL,
   currency TEXT DEFAULT 'CDF',
-  payment_method TEXT NOT NULL CHECK (payment_method IN ('mobile_money', 'cash', 'card')),
+  payment_method TEXT NOT NULL CHECK (payment_method IN ('mobile_money', 'orange_money', 'airtel_money', 'mpesa_money')),
   payment_provider TEXT,
   transaction_id TEXT UNIQUE,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed', 'refunded')),

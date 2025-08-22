@@ -27,6 +27,14 @@ interface TransactionData {
   wallet_id: string;
 }
 
+interface TopUpResult {
+  success: boolean;
+  payment_url?: string;
+  transaction_id?: string;
+  message?: string;
+  provider?: string;
+}
+
 export const useWallet = () => {
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
@@ -89,11 +97,14 @@ export const useWallet = () => {
     }
   };
 
-  const topUpWallet = async (amount: number, provider: string, phone: string) => {
-    if (!user) return false;
+  const topUpWallet = async (amount: number, provider: string, phone: string): Promise<TopUpResult> => {
+    if (!user) return { success: false, message: 'Utilisateur non connecté' };
 
     setLoading(true);
+    
     try {
+      console.log(`🚀 Début topup: ${amount} CDF via ${provider} pour ${phone}`);
+      
       const { data, error } = await supabase.functions.invoke('wallet-topup', {
         body: {
           amount,
@@ -103,20 +114,77 @@ export const useWallet = () => {
         }
       });
 
-      if (error) throw error;
+      console.log('📨 Réponse de la fonction:', data);
+
+      if (error) {
+        console.error('❌ Erreur fonction:', error);
+        throw error;
+      }
 
       if (data.success) {
-        toast.success('Recharge effectuée avec succès');
-        await fetchWallet();
-        await fetchTransactions();
-        return true;
+          console.log("====================================>",data.payment_url,provider);
+        // Gestion spéciale pour Orange Money
+        if (provider === 'orange') {
+          // const ORANGE_CLIENT_ID="BMNAPyLHT5LPgLlgnRqGeesT702eumcF"
+          // const ORANGE_CLIENT_SECRET="z0K8celqENZJiTZG"
+
+          // const ORANGE_CLIENT_ID = Deno.env.get("ORANGE_CLIENT_ID")!;
+          // const ORANGE_CLIENT_SECRET = Deno.env.get("ORANGE_CLIENT_SECRET")!;
+          // // 1. Auth Orange
+          // const tokenRes = await fetch("https://api.orange.com/oauth/v3/token", {
+          //   method: "POST",
+          //   headers: {
+          //     "Authorization": "Basic " + btoa(`${ORANGE_CLIENT_ID}:${ORANGE_CLIENT_SECRET}`),
+          //     "Content-Type": "application/x-www-form-urlencoded",
+          //   },
+          //   body: "grant_type=client_credentials",
+          // });
+
+          // const tokenData = await tokenRes.json();
+          // console.log("connexion orange token ==========> ",tokenData);
+          // if (!tokenRes.ok) throw new Error("Orange Auth failed: " + JSON.stringify(tokenData));
+          // const accessToken = tokenData.access_token;
+
+          console.log('🍊 Redirection Orange Money vers:', data.payment_url);
+          toast.info('Redirection vers Orange Money...');
+          
+          // Ouvrir l'URL de paiement dans un nouvel onglet
+          window.open(data.payment_url, '_blank');
+          
+          return {
+            success: true,
+            payment_url: data.payment_url,
+            transaction_id: data.transaction_id,
+            message: data.message || 'Veuillez compléter le paiement Orange Money',
+            provider: 'orange'
+          };
+        } else {
+          // Autres providers (Airtel, M-Pesa)
+          console.log('✅ Paiement réussi:', data.message);
+          toast.success(data.message || 'Recharge effectuée avec succès');
+          
+          // Rafraîchir les données
+          await fetchWallet();
+          await fetchTransactions();
+          
+          return {
+            success: true,
+            message: data.message
+          };
+        }
       } else {
         throw new Error(data.error || 'Échec de la recharge');
       }
+
     } catch (error: any) {
-      console.error('Top-up error:', error);
-      toast.error(error.message || 'Erreur lors de la recharge');
-      return false;
+      console.error('💥 Erreur topup:', error);
+      const errorMessage = error.message || 'Erreur lors de la recharge';
+      toast.error(errorMessage);
+      
+      return {
+        success: false,
+        message: errorMessage
+      };
     } finally {
       setLoading(false);
     }
@@ -177,6 +245,34 @@ export const useWallet = () => {
     }
   };
 
+  // Fonction pour vérifier le statut d'un paiement Orange Money
+  const checkOrangePaymentStatus = async (transactionId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('payment_transactions')
+        .select('*')
+        .eq('transaction_id', transactionId)
+        .single();
+
+      if (error) throw error;
+
+      if (data.status === 'completed') {
+        toast.success('Paiement Orange Money confirmé');
+        await fetchWallet();
+        await fetchTransactions();
+        return true;
+      } else if (data.status === 'failed') {
+        toast.error('Paiement Orange Money échoué');
+        return false;
+      }
+
+      return false; // Still pending
+    } catch (error: any) {
+      console.error('Error checking payment status:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchWallet();
@@ -196,6 +292,7 @@ export const useWallet = () => {
     fetchWallet,
     fetchTransactions,
     topUpWallet,
-    transferFunds
+    transferFunds,
+    checkOrangePaymentStatus
   };
 };
