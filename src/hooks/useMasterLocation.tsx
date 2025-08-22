@@ -245,6 +245,7 @@ export const useMasterLocation = () => {
   return {
     ...state,
     getCurrentLocation,
+    getCurrentPosition: getCurrentLocation, // Alias for compatibility
     watchLocation,
     stopWatching,
     requestLocationPermission,

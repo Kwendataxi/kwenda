@@ -204,6 +204,9 @@ export const useDriverAssignment = () => {
     error,
     findAvailableDrivers,
     assignDriverToDelivery,
+    assignDriver: assignDriverToDelivery, // Alias for compatibility
+    assignedDriver: null, // Placeholder - implement if needed
+    validationTimer: null, // Placeholder - implement if needed
     searchWithExpandedRadius,
     cancelDriverSearch,
     getAssignmentStatus
