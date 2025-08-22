@@ -40,7 +40,7 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { getCurrentPosition, latitude, longitude } = useGeolocation();
-  const { recentPlaces, searchAndSave } = usePlaces();
+  const { recentPlaces, addRecentPlace } = usePlaces();
   const { toast } = useToast();
   const { estimate } = usePriceEstimator('delivery', 'flash');
   
@@ -99,8 +99,14 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
       if (error) throw error;
 
       // Save locations to recent places
-      await searchAndSave(pickup.address, { lat: pickup.coordinates[1], lng: pickup.coordinates[0] });
-      await searchAndSave(destination.address, { lat: destination.coordinates[1], lng: destination.coordinates[0] });
+      addRecentPlace({ 
+        address: pickup.address, 
+        coordinates: { lat: pickup.coordinates[1], lng: pickup.coordinates[0] }
+      });
+      addRecentPlace({ 
+        address: destination.address, 
+        coordinates: { lat: destination.coordinates[1], lng: destination.coordinates[0] }
+      });
 
       toast({
         title: "Commande créée",

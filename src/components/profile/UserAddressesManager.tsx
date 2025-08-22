@@ -52,7 +52,10 @@ export const UserAddressesManager = () => {
     }
 
     try {
-      await addPlace(formData);
+      await addPlace({ 
+        ...formData, 
+        coordinates: { lat: -4.4419, lng: 15.2663 } 
+      });
       toast({
         title: "Adresse ajoutée",
         description: "Votre adresse a été ajoutée avec succès.",

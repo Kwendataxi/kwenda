@@ -49,7 +49,7 @@ const GenericDeliveryInterface = ({ mode, onSubmit, onCancel }: GenericDeliveryI
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { getCurrentPosition, latitude, longitude } = useGeolocation();
-  const { recentPlaces, searchAndSave } = usePlaces();
+  const { recentPlaces, addRecentPlace } = usePlaces();
   const { toast } = useToast();
   const { estimate, rule } = usePriceEstimator('delivery', mode);
 
@@ -113,8 +113,14 @@ const GenericDeliveryInterface = ({ mode, onSubmit, onCancel }: GenericDeliveryI
 
       if (error) throw error;
 
-      await searchAndSave(pickup.address, { lat: pickup.coordinates[1], lng: pickup.coordinates[0] });
-      await searchAndSave(destination.address, { lat: destination.coordinates[1], lng: destination.coordinates[0] });
+      addRecentPlace({ 
+        address: pickup.address, 
+        coordinates: { lat: pickup.coordinates[1], lng: pickup.coordinates[0] }
+      });
+      addRecentPlace({ 
+        address: destination.address, 
+        coordinates: { lat: destination.coordinates[1], lng: destination.coordinates[0] }
+      });
 
       toast({ title: 'Commande créée', description: `Votre demande de livraison ${mode} a été enregistrée` });
 

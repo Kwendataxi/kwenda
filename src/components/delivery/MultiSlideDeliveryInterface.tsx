@@ -58,7 +58,7 @@ export const MultiSlideDeliveryInterface: React.FC<MultiSlideDeliveryProps> = ({
   const [estimatedPrice, setEstimatedPrice] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { assignDriver, assignedDriver, validationTimer, loading } = useDriverAssignment();
+  const { assignDriverToDelivery, loading } = useDriverAssignment();
   const { toast } = useToast();
 
   const slides = [
@@ -150,18 +150,15 @@ export const MultiSlideDeliveryInterface: React.FC<MultiSlideDeliveryProps> = ({
         nextSlide();
         
         // Lancer l'assignation automatique
-        const result = await assignDriver({
-          orderId: 'temp-' + Date.now(), // Sera remplacé par l'ID réel
-          pickupCoordinates: pickupLocation,
-          deliveryCoordinates: destinationLocation,
-          deliveryType: deliveryType,
-          priority: 'normal'
+        const result = await assignDriverToDelivery('temp-' + Date.now(), 'driver-123', {
+          pickup_location: 'pickup address',
+          delivery_location: 'delivery address'
         });
 
-        if (!result.success) {
+        if (!result) {
           toast({
             title: "Aucun livreur disponible",
-            description: result.error,
+            description: "Impossible d'assigner un livreur",
             variant: "destructive"
           });
         }
@@ -229,8 +226,7 @@ export const MultiSlideDeliveryInterface: React.FC<MultiSlideDeliveryProps> = ({
       
       case 'driver-assignment':
         return <DriverAssignmentSlide 
-          assignedDriver={assignedDriver}
-          validationTimer={validationTimer}
+          assignedDriver={null}
           loading={loading}
         />;
       
@@ -671,9 +667,8 @@ const ConfirmationSlide: React.FC<{
 
 const DriverAssignmentSlide: React.FC<{
   assignedDriver: any;
-  validationTimer: number | null;
   loading: boolean;
-}> = ({ assignedDriver, validationTimer, loading }) => (
+}> = ({ assignedDriver, loading }) => (
   <CardContent className="p-6 space-y-6">
     <CardHeader className="px-0 pt-0">
       <CardTitle>Recherche de livreur</CardTitle>
@@ -704,20 +699,7 @@ const DriverAssignmentSlide: React.FC<{
           </div>
         </div>
 
-        {validationTimer && (
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-amber-800">Confirmation en attente</span>
-              <span className="text-lg font-bold text-amber-800">
-                {Math.floor(validationTimer / 60)}:{(validationTimer % 60).toString().padStart(2, '0')}
-              </span>
-            </div>
-            <Progress value={(120 - validationTimer) / 120 * 100} className="h-2" />
-            <p className="text-xs text-amber-700 mt-2">
-              Le livreur dispose de 2 minutes pour accepter
-            </p>
-          </div>
-        )}
+        {/* Timer section removed for simplicity */}
       </div>
     )}
   </CardContent>

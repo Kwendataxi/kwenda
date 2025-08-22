@@ -33,7 +33,7 @@ export const EnhancedTaxiSearchBar = ({
 }: EnhancedTaxiSearchBarProps) => {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const { searchAndSave, recentPlaces, homePlace, workPlace } = usePlaces();
+  const { addRecentPlace, recentPlaces, homePlace, workPlace } = usePlaces();
   const { getCurrentPosition } = useGeolocation();
   
   const [query, setQuery] = useState('');
@@ -220,7 +220,10 @@ export const EnhancedTaxiSearchBar = ({
   const handleShortcutSelect = async (placeName: string, coordinates?: { lat: number; lng: number }) => {
     try {
       if (user) {
-        await searchAndSave(placeName, coordinates);
+        addRecentPlace({ 
+          address: placeName, 
+          coordinates: coordinates || { lat: -4.4419, lng: 15.2663 }
+        });
       }
       onSearch(placeName, coordinates);
       onTransportSelect();
@@ -239,7 +242,10 @@ export const EnhancedTaxiSearchBar = ({
   const handlePlaceSelect = async (placeName: string, coordinates?: { lat: number; lng: number }) => {
     try {
       if (user) {
-        await searchAndSave(placeName, coordinates);
+        addRecentPlace({ 
+          address: placeName, 
+          coordinates: coordinates || { lat: -4.4419, lng: 15.2663 }
+        });
       }
       onSearch(placeName, coordinates);
       onTransportSelect();
