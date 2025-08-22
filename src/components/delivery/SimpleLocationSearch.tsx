@@ -1,215 +1,222 @@
-import React, { useState, useRef } from 'react';
-import { Search, MapPin, Navigation } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { supabase } from '@/integrations/supabase/client';
-import type { LocationData } from '@/types/location';
+import { 
+  Search, 
+  MapPin, 
+  Navigation, 
+  Clock, 
+  Loader2,
+  ChevronRight
+} from 'lucide-react';
+import { useMasterLocation } from '@/hooks/useMasterLocation';
+import { useToast } from '@/hooks/use-toast';
+
+interface DeliveryLocation {
+  address: string;
+  coordinates: { lat: number; lng: number };
+}
 
 interface SimpleLocationSearchProps {
+  onLocationSelect: (location: DeliveryLocation) => void;
   placeholder?: string;
-  value?: string;
-  onLocationSelect: (location: LocationData) => void;
-  showCurrentLocation?: boolean;
-  className?: string;
+  currentLocation?: DeliveryLocation | null;
 }
 
-interface GeocodeResult {
-  formatted_address: string;
-  geometry: {
-    location: {
-      lat: number;
-      lng: number;
-    };
-  };
-}
-
-const SimpleLocationSearch: React.FC<SimpleLocationSearchProps> = ({
-  placeholder = "Rechercher une adresse...",
-  value = "",
+const SimpleLocationSearch = ({
   onLocationSelect,
-  showCurrentLocation = true,
-  className = ""
-}) => {
-  const [query, setQuery] = useState(value);
-  const [results, setResults] = useState<LocationData[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  placeholder = "Rechercher une adresse...",
+  currentLocation
+}: SimpleLocationSearchProps) => {
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
   
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const { getCurrentPosition, searchLocation } = useMasterLocation();
+  const { toast } = useToast();
 
-  const searchLocation = async (searchQuery: string) => {
-    if (!searchQuery || searchQuery.trim().length < 2) {
-      setResults([]);
-      return;
+  // Recherche avec délai
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
 
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('geocode-proxy', {
-        body: { query: searchQuery }
-      });
+    if (query.length >= 2) {
+      setIsSearching(true);
+      
+      searchTimeoutRef.current = setTimeout(async () => {
+        try {
+          const results = await searchLocation(query);
+          setSuggestions(results);
+        } catch (error) {
+          console.error('Erreur de recherche:', error);
+          setSuggestions([]);
+        } finally {
+          setIsSearching(false);
+        }
+      }, 300);
+    } else {
+      setSuggestions([]);
+      setIsSearching(false);
+    }
 
-      if (error) {
-        console.error('Erreur geocode-proxy:', error);
-        setResults([]);
-        return;
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
       }
+    };
+  }, [query, searchLocation]);
 
-      // Validation stricte des données reçues
-      if (!data || !Array.isArray(data)) {
-        console.warn('Format de données invalide:', data);
-        setResults([]);
-        return;
-      }
-
-      const geocodeResults = data as GeocodeResult[];
-      const locationResults: LocationData[] = geocodeResults
-        .filter(result => 
-          result && 
-          result.formatted_address && 
-          result.geometry?.location?.lat && 
-          result.geometry?.location?.lng
-        )
-        .map((result, index) => ({
-          address: result.formatted_address,
-          lat: result.geometry.location.lat,
-          lng: result.geometry.location.lng,
-          type: 'geocoded' as const,
-          placeId: `geocoded-${index}`
-        }));
-
-      setResults(locationResults.slice(0, 5));
-    } catch (error) {
-      console.error('Erreur recherche:', error);
-      setResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setQuery(newValue);
-    setIsOpen(true);
-
-    // Clear previous timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    // Debounce search
-    timeoutRef.current = setTimeout(() => {
-      searchLocation(newValue);
-    }, 300);
-  };
-
-  const handleLocationSelect = (location: LocationData) => {
+  const handleLocationSelect = (location: DeliveryLocation) => {
     setQuery(location.address);
-    setIsOpen(false);
+    setShowDropdown(false);
     onLocationSelect(location);
+    inputRef.current?.blur();
   };
 
   const handleCurrentLocation = async () => {
     setIsGettingLocation(true);
     try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 300000
-        });
-      });
-
-      const location: LocationData = {
-        address: "Position actuelle",
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-        type: 'current'
+      const position = await getCurrentPosition();
+      
+      const location: DeliveryLocation = {
+        address: position.address,
+        coordinates: {
+          lat: position.lat,
+          lng: position.lng
+        }
       };
-
+      
       handleLocationSelect(location);
+      
+      toast({
+        title: "📍 Position détectée",
+        description: "Votre position actuelle a été définie",
+      });
     } catch (error) {
-      console.error('Erreur position actuelle:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'obtenir votre position",
+        variant: "destructive"
+      });
     } finally {
       setIsGettingLocation(false);
     }
   };
 
-  const handleFocus = () => {
-    setIsOpen(true);
-  };
-
-  const handleBlur = () => {
-    // Delay closing to allow click on results
-    setTimeout(() => setIsOpen(false), 200);
-  };
-
   return (
-    <div className={`relative ${className}`}>
-      {/* Search Input */}
+    <div className="space-y-3">
+      {/* Bouton position actuelle */}
+      <Button
+        onClick={handleCurrentLocation}
+        disabled={isGettingLocation}
+        variant="outline"
+        className="w-full h-12 border-primary/30 hover:bg-primary/5"
+      >
+        {isGettingLocation ? (
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+        ) : (
+          <Navigation className="w-4 h-4 mr-2 text-primary" />
+        )}
+        Utiliser ma position actuelle
+      </Button>
+
+      {/* Champ de recherche */}
       <div className="relative">
-        <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-          <Search className="w-4 h-4 text-muted-foreground" />
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            ref={inputRef}
+            type="text"
+            placeholder={placeholder}
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setShowDropdown(true);
+            }}
+            onFocus={() => setShowDropdown(true)}
+            className="pl-10 pr-4 h-12"
+          />
+          {isSearching && (
+            <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 animate-spin text-primary" />
+          )}
         </div>
-        <Input
-          type="text"
-          placeholder={placeholder}
-          value={query}
-          onChange={handleInputChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          className="pl-10 pr-12"
-        />
-        {showCurrentLocation && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
-            onClick={handleCurrentLocation}
-            disabled={isGettingLocation}
-          >
-            <Navigation className={`w-4 h-4 ${isGettingLocation ? 'animate-pulse' : ''}`} />
-          </Button>
+        
+        {/* Dropdown de suggestions */}
+        {showDropdown && (
+          <>
+            <div 
+              className="fixed inset-0 z-10"
+              onClick={() => setShowDropdown(false)}
+            />
+            <Card className="absolute top-full left-0 right-0 mt-1 bg-white border shadow-lg z-20 max-h-60 overflow-auto">
+              <div className="p-2">
+                {/* Résultats de recherche */}
+                {suggestions.length > 0 && (
+                  <div className="space-y-1">
+                    {suggestions.slice(0, 5).map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleLocationSelect({
+                          address: suggestion.address,
+                          coordinates: {
+                            lat: suggestion.lat,
+                            lng: suggestion.lng
+                          }
+                        })}
+                        className="w-full p-3 text-left hover:bg-muted rounded-lg transition-colors flex items-center gap-3"
+                      >
+                        <MapPin className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate">{suggestion.address}</div>
+                          {suggestion.type && (
+                            <div className="text-xs text-muted-foreground capitalize">{suggestion.type}</div>
+                          )}
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* État vide */}
+                {suggestions.length === 0 && query.length >= 2 && !isSearching && (
+                  <div className="p-4 text-center text-muted-foreground">
+                    <Search className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Aucun résultat pour "{query}"</p>
+                  </div>
+                )}
+
+                {/* Lieux récents fallback */}
+                {suggestions.length === 0 && query.length < 2 && (
+                  <div className="p-3 text-center text-muted-foreground">
+                    <Clock className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Tapez pour rechercher une adresse</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </>
         )}
       </div>
 
-      {/* Results */}
-      {isOpen && (
-        <Card className="absolute top-full left-0 right-0 mt-1 z-50 max-h-80 overflow-y-auto">
-          {isLoading ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
-              Recherche en cours...
+      {/* Adresse sélectionnée */}
+      {currentLocation && (
+        <Card className="p-3 bg-green-50 border-green-200">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+              <MapPin className="w-4 h-4 text-white" />
             </div>
-          ) : results.length > 0 ? (
-            <div className="py-2">
-              {results.map((result, index) => (
-                <button
-                  key={`${result.placeId}-${index}`}
-                  onClick={() => handleLocationSelect(result)}
-                  className="w-full px-4 py-3 text-left hover:bg-muted/50 transition-colors flex items-center gap-3"
-                >
-                  <MapPin className="w-4 h-4 text-muted-foreground" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">
-                      {result.address}
-                    </div>
-                  </div>
-                </button>
-              ))}
+            <div className="flex-1">
+              <p className="text-sm font-medium text-green-800">Adresse sélectionnée</p>
+              <p className="text-xs text-green-600 truncate">{currentLocation.address}</p>
             </div>
-          ) : query.trim().length >= 2 ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              Aucun résultat trouvé
-            </div>
-          ) : (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              Saisissez au moins 2 caractères
-            </div>
-          )}
+          </div>
         </Card>
       )}
     </div>
