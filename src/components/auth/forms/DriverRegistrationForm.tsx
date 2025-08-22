@@ -147,7 +147,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 
   setLoading(true);
-
+  console.log("Payload à envoyé =>",formData);
   try {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email,
@@ -173,8 +173,6 @@ const handleSubmit = async (e: React.FormEvent) => {
         }
       }
     });
-
-    console.log("======================================= >",authData)
 
     if (authError) {
       throw authError;

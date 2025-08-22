@@ -63,6 +63,7 @@ export const ModernHomeScreen = ({
           window.location.href = "/";
         }
       }
+      console.log(user);
   },[user])
 
   return (
