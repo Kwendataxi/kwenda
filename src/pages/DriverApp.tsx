@@ -24,6 +24,7 @@ const DriverApp = () => {
       if(user.user_metadata.role !== "chauffeur"){
         window.location.href = "/";
       }
+      console.log(user);
     }
   },[user])
 

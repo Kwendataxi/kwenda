@@ -13,6 +13,8 @@ const ModernHero = () => {
     if(user && user.user_metadata){
       if(user.user_metadata.role === "simple_user_client"){
         window.location.href = "/client";
+      }else if(user.user_metadata.role === "chauffeur"){
+         window.location.href = "/chauffeur";
       }
     }
   },[user])
