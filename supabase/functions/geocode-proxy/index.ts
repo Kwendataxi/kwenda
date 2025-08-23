@@ -32,8 +32,9 @@ serve(async (req) => {
     console.log(`Searching with Google Places API: ${query} Region: ${region}`);
 
     // Construire l'URL de l'API Google Places
-    const googleUrl = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json');
-    googleUrl.searchParams.set('query', query);
+    // Construire l'URL de l'API Google Geocoding (plus fiable que Places)
+    const googleUrl = new URL('https://maps.googleapis.com/maps/api/geocode/json');
+    googleUrl.searchParams.set('address', query);
     googleUrl.searchParams.set('key', googleApiKey);
     googleUrl.searchParams.set('region', region);
     googleUrl.searchParams.set('language', 'fr');
@@ -54,10 +55,10 @@ serve(async (req) => {
     console.log(`Results found: ${data.results?.length || 0}`);
 
     if (data.status === 'OK') {
-      // Filtrer et formater les résultats
+      // Filtrer et formater les résultats pour Geocoding API
       const formattedResults = data.results.slice(0, 10).map((place: any) => ({
         place_id: place.place_id,
-        name: place.name,
+        name: place.formatted_address.split(',')[0], // Premier segment comme nom
         formatted_address: place.formatted_address,
         geometry: {
           location: {
@@ -66,7 +67,7 @@ serve(async (req) => {
           }
         },
         types: place.types,
-        rating: place.rating || null
+        rating: null
       }));
 
       return new Response(JSON.stringify({

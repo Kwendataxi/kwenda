@@ -139,7 +139,7 @@ const FluidDeliveryInterface = ({ onSubmit, onCancel }: FluidDeliveryInterfacePr
   const [autoLocationDetected, setAutoLocationDetected] = useState(false);
 
   const { toast } = useToast();
-  const { location, getCurrentPosition, searchLocation } = useMasterLocation({ autoDetectLocation: true });
+  const { location, getCurrentPosition, searchLocation, loading: locationLoading } = useMasterLocation({ autoDetectLocation: true });
   const { findAvailableDrivers, assignDriverToDelivery } = useDriverAssignment();
 
   // Auto-détection de géolocalisation avec notification élégante
