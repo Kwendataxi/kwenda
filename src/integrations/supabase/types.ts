@@ -314,17 +314,17 @@ export type Database = {
         Row: {
           bank_account_number: string | null
           created_at: string | null
-          display_name: string
+          display_name: string | null
           email: string
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           id: string
-          insurance_expiry: string
-          insurance_number: string
+          insurance_expiry: string | null
+          insurance_number: string | null
           is_active: boolean | null
-          license_expiry: string
-          license_number: string
-          phone_number: string
+          license_expiry: string | null
+          license_number: string | null
+          phone_number: string | null
           rating_average: number | null
           role: string | null
           service_areas: string[] | null
@@ -332,26 +332,26 @@ export type Database = {
           updated_at: string | null
           user_id: string
           vehicle_color: string | null
-          vehicle_model: string
-          vehicle_plate: string
-          vehicle_type: string
-          vehicle_year: number
+          vehicle_model: string | null
+          vehicle_plate: string | null
+          vehicle_type: string | null
+          vehicle_year: number | null
           verification_status: string | null
         }
         Insert: {
           bank_account_number?: string | null
           created_at?: string | null
-          display_name: string
+          display_name?: string | null
           email: string
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           id?: string
-          insurance_expiry: string
-          insurance_number: string
+          insurance_expiry?: string | null
+          insurance_number?: string | null
           is_active?: boolean | null
-          license_expiry: string
-          license_number: string
-          phone_number: string
+          license_expiry?: string | null
+          license_number?: string | null
+          phone_number?: string | null
           rating_average?: number | null
           role?: string | null
           service_areas?: string[] | null
@@ -359,26 +359,26 @@ export type Database = {
           updated_at?: string | null
           user_id: string
           vehicle_color?: string | null
-          vehicle_model: string
-          vehicle_plate: string
-          vehicle_type: string
-          vehicle_year: number
+          vehicle_model?: string | null
+          vehicle_plate?: string | null
+          vehicle_type?: string | null
+          vehicle_year?: number | null
           verification_status?: string | null
         }
         Update: {
           bank_account_number?: string | null
           created_at?: string | null
-          display_name?: string
+          display_name?: string | null
           email?: string
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           id?: string
-          insurance_expiry?: string
-          insurance_number?: string
+          insurance_expiry?: string | null
+          insurance_number?: string | null
           is_active?: boolean | null
-          license_expiry?: string
-          license_number?: string
-          phone_number?: string
+          license_expiry?: string | null
+          license_number?: string | null
+          phone_number?: string | null
           rating_average?: number | null
           role?: string | null
           service_areas?: string[] | null
@@ -386,10 +386,10 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           vehicle_color?: string | null
-          vehicle_model?: string
-          vehicle_plate?: string
-          vehicle_type?: string
-          vehicle_year?: number
+          vehicle_model?: string | null
+          vehicle_plate?: string | null
+          vehicle_type?: string | null
+          vehicle_year?: number | null
           verification_status?: string | null
         }
         Relationships: []
@@ -783,9 +783,11 @@ export type Database = {
           id: string
           is_available: boolean
           is_online: boolean
+          is_verified: boolean | null
           last_ping: string
           latitude: number
           longitude: number
+          minimum_balance: number | null
           speed: number | null
           updated_at: string
           vehicle_class: string | null
@@ -798,9 +800,11 @@ export type Database = {
           id?: string
           is_available?: boolean
           is_online?: boolean
+          is_verified?: boolean | null
           last_ping?: string
           latitude: number
           longitude: number
+          minimum_balance?: number | null
           speed?: number | null
           updated_at?: string
           vehicle_class?: string | null
@@ -813,9 +817,11 @@ export type Database = {
           id?: string
           is_available?: boolean
           is_online?: boolean
+          is_verified?: boolean | null
           last_ping?: string
           latitude?: number
           longitude?: number
+          minimum_balance?: number | null
           speed?: number | null
           updated_at?: string
           vehicle_class?: string | null
@@ -5094,6 +5100,15 @@ export type Database = {
       process_escrow_release: {
         Args: { escrow_id: string }
         Returns: boolean
+      }
+      process_orange_money_payment: {
+        Args: {
+          p_amount: number
+          p_currency: string
+          p_transaction_ref: string
+          p_user_id: string
+        }
+        Returns: string
       }
       search_places: {
         Args: {
