@@ -239,27 +239,33 @@ class MasterLocationService {
     if (!query.trim()) return [];
 
     try {
-      // Recherche via geocode-proxy
+      // Recherche via geocode-proxy avec fallback intelligent
       const { data, error } = await supabase.functions.invoke('geocode-proxy', {
         body: {
           query: query.trim(),
-          region: currentLocation ? this.getRegionFromLocation(currentLocation) : 'cd'
+          region: currentLocation ? this.getRegionFromLocation(currentLocation) : 'cd',
+          language: 'fr'
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.warn('Geocode-proxy error, using local fallback:', error);
+        return this.searchLocalDatabase(query);
+      }
 
       if (data?.status === 'OK' && data.results) {
-        return data.results.map((result: any, index: number) => ({
+        const formattedResults = data.results.map((result: any, index: number) => ({
           id: result.place_id || `result-${index}`,
-          address: result.formatted_address,
-          lat: result.geometry.location.lat,
-          lng: result.geometry.location.lng,
+          address: result.formatted_address || result.name || query,
+          lat: result.geometry?.location?.lat || -4.3217,
+          lng: result.geometry?.location?.lng || 15.3069,
           type: 'geocoded',
-          title: result.name,
-          subtitle: result.formatted_address,
+          title: result.name || result.formatted_address?.split(',')[0] || query,
+          subtitle: result.formatted_address || result.name || query,
           placeId: result.place_id
         }));
+
+        return formattedResults.length > 0 ? formattedResults : this.searchLocalDatabase(query);
       }
 
       // Fallback avec base de données locale

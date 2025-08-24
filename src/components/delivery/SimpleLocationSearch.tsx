@@ -163,7 +163,7 @@ const SimpleLocationSearch = ({
                       <button
                         key={index}
                         onClick={() => handleLocationSelect({
-                          address: suggestion.address,
+                          address: suggestion.address || suggestion.title || 'Adresse',
                           coordinates: {
                             lat: suggestion.lat,
                             lng: suggestion.lng
@@ -173,7 +173,10 @@ const SimpleLocationSearch = ({
                       >
                         <MapPin className="w-4 h-4 text-green-500 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{suggestion.address}</div>
+                          <div className="font-medium truncate">{suggestion.title || suggestion.address}</div>
+                          {suggestion.subtitle && (
+                            <div className="text-xs text-muted-foreground truncate">{suggestion.subtitle}</div>
+                          )}
                           {suggestion.type && (
                             <div className="text-xs text-muted-foreground capitalize">{suggestion.type}</div>
                           )}

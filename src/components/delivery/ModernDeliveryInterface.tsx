@@ -30,7 +30,8 @@ import {
   Shield,
   Search,
   X,
-  Check
+  Check,
+  Loader2
 } from 'lucide-react';
 
 interface DeliveryLocation {
@@ -142,7 +143,7 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
   const { location, getCurrentPosition, searchLocation, loading: locationLoading } = useMasterLocation({ autoDetectLocation: true });
   const { findAvailableDrivers, assignDriverToDelivery } = useDriverAssignment();
 
-  // Auto-détection de géolocalisation avec notification élégante
+  // Auto-détection de géolocalisation
   useEffect(() => {
     const detectUserLocation = async () => {
       try {
@@ -160,7 +161,6 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
           }));
           setAutoLocationDetected(true);
           
-          // Notification moderne comme dans l'image
           toast({
             title: "📍 Position détectée",
             description: "Votre adresse de départ a été automatiquement définie",
@@ -325,32 +325,42 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
     }
   };
 
+  const getStepProgress = () => {
+    switch (currentStep) {
+      case 'locations': return 33;
+      case 'service': return 66;
+      case 'confirmation': return 100;
+      default: return 0;
+    }
+  };
+
   const LocationStep = () => (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="space-y-8"
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
     >
       {/* Auto-location notification */}
       {autoLocationDetected && (
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3"
+          className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-center gap-3"
         >
-          <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
             <Navigation className="w-5 h-5 text-white" />
           </div>
           <div>
-            <p className="font-medium text-green-800">Position détectée automatiquement</p>
-            <p className="text-sm text-green-600">Votre adresse de départ a été définie</p>
+            <p className="font-medium text-primary">Position détectée automatiquement</p>
+            <p className="text-sm text-muted-foreground">Votre adresse de départ a été définie</p>
           </div>
         </motion.div>
       )}
 
       {/* Pickup Location */}
-      <Card className="p-6">
+      <Card className="p-6 glass-card">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
             <MapPin className="w-5 h-5 text-primary" />
@@ -393,7 +403,7 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
       </Card>
 
       {/* Destination Location */}
-      <Card className="p-6">
+      <Card className="p-6 glass-card">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center">
             <Target className="w-5 h-5 text-secondary" />
@@ -439,9 +449,10 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
 
   const ServiceStep = () => (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      transition={{ duration: 0.3 }}
       className="space-y-6"
     >
       {/* Delivery modes */}
@@ -453,7 +464,7 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
             whileTap={{ scale: 0.98 }}
           >
             <Card 
-              className={`p-6 cursor-pointer transition-all duration-200 ${
+              className={`p-6 cursor-pointer transition-all duration-300 glass-card ${
                 formData.mode === mode.id 
                   ? 'ring-2 ring-primary shadow-lg bg-primary/5' 
                   : 'hover:shadow-md hover:border-primary/30'
@@ -485,7 +496,7 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
       </div>
 
       {/* Package details */}
-      <Card className="p-6">
+      <Card className="p-6 glass-card">
         <h3 className="font-semibold mb-4">Détails du colis</h3>
         <div className="space-y-4">
           <Input
@@ -499,189 +510,217 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
             value={formData.weight || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, weight: parseFloat(e.target.value) || 0 }))}
           />
+          <Textarea
+            placeholder="Instructions spéciales (optionnel)"
+            value={formData.pickup.instructions}
+            onChange={(e) => setFormData(prev => ({
+              ...prev,
+              pickup: { ...prev.pickup, instructions: e.target.value }
+            }))}
+            rows={3}
+          />
         </div>
       </Card>
+
+      {/* Price estimate */}
+      {formData.estimatedPrice > 0 && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="bg-gradient-to-r from-primary/10 to-secondary/10 p-6 rounded-xl border border-primary/20"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Estimation de prix</p>
+              <p className="text-2xl font-bold text-primary">{Math.round(formData.estimatedPrice).toLocaleString()} CDF</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {formData.distance.toFixed(1)} km • {Math.round(formData.duration)} min
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+              <Package className="w-6 h-6 text-primary" />
+            </div>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 
   const ConfirmationStep = () => (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      transition={{ duration: 0.3 }}
       className="space-y-6"
     >
       {/* Order summary */}
-      <Card className="p-6">
-        <h3 className="font-semibold mb-4">Récapitulatif de votre livraison</h3>
-        <div className="space-y-3">
-          <div className="flex justify-between">
-            <span>Service:</span>
-            <span className="font-medium">{deliveryModes.find(m => m.id === formData.mode)?.name}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Distance:</span>
-            <span>{formData.distance.toFixed(1)} km</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Temps estimé:</span>
-            <span>{Math.round(formData.duration)} min</span>
-          </div>
-          <div className="border-t pt-3">
-            <div className="flex justify-between font-semibold text-lg">
-              <span>Prix total:</span>
-              <span className="text-primary">{formData.estimatedPrice.toLocaleString()} CDF</span>
+      <Card className="p-6 glass-card">
+        <h3 className="font-semibold mb-4">Résumé de la commande</h3>
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <MapPin className="w-5 h-5 text-primary mt-0.5" />
+            <div>
+              <p className="text-sm text-muted-foreground">De</p>
+              <p className="font-medium">{formData.pickup.location?.address}</p>
             </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <Target className="w-5 h-5 text-secondary mt-0.5" />
+            <div>
+              <p className="text-sm text-muted-foreground">Vers</p>
+              <p className="font-medium">{formData.destination.location?.address}</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between pt-4 border-t">
+            <div>
+              <p className="font-medium">{deliveryModes.find(m => m.id === formData.mode)?.name}</p>
+              <p className="text-sm text-muted-foreground">{formData.packageType} • {formData.weight}kg</p>
+            </div>
+            <p className="text-xl font-bold text-primary">{Math.round(formData.estimatedPrice).toLocaleString()} CDF</p>
           </div>
         </div>
       </Card>
 
-      {/* Driver search status */}
-      {isSearchingDriver && !assignedDriver && (
-        <Card className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
-              <Search className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h4 className="font-medium">Recherche de livreur en cours...</h4>
-              <p className="text-sm text-muted-foreground">Nous cherchons le meilleur livreur disponible</p>
-            </div>
+      {/* Driver search */}
+      <Card className="p-6 glass-card">
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+            assignedDriver ? 'bg-green-500' : isSearchingDriver ? 'bg-blue-500' : 'bg-gray-500'
+          }`}>
+            {assignedDriver ? (
+              <CheckCircle2 className="w-5 h-5 text-white" />
+            ) : isSearchingDriver ? (
+              <Loader2 className="w-5 h-5 text-white animate-spin" />
+            ) : (
+              <Clock className="w-5 h-5 text-white" />
+            )}
           </div>
-        </Card>
-      )}
+          <div>
+            <h3 className="font-semibold">
+              {assignedDriver ? 'Livreur assigné' : isSearchingDriver ? 'Recherche de livreur...' : 'En attente'}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {assignedDriver 
+                ? `${assignedDriver.driver_profile?.display_name || 'Livreur'} va prendre votre commande`
+                : isSearchingDriver 
+                ? 'Nous cherchons le meilleur livreur pour vous'
+                : 'Recherche en cours'
+              }
+            </p>
+          </div>
+        </div>
 
-      {/* Assigned driver with timer */}
-      {assignedDriver && (
-        <Card className="p-6 border-green-200 bg-green-50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                <User className="w-6 h-6 text-white" />
+        {/* Timer */}
+        {validationTimer > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span>Validation du livreur</span>
+              <span className="font-mono">{Math.floor(validationTimer / 60)}:{(validationTimer % 60).toString().padStart(2, '0')}</span>
+            </div>
+            <Progress value={(120 - validationTimer) / 120 * 100} className="h-2" />
+          </div>
+        )}
+
+        {/* Driver info */}
+        {assignedDriver && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h4 className="font-medium text-green-800">
-                  {assignedDriver.driver_profile?.display_name || 'Livreur assigné'}
-                </h4>
+                <p className="font-medium">{assignedDriver.driver_profile?.display_name || 'Livreur Kwenda'}</p>
                 <p className="text-sm text-green-600">
-                  Arrivée estimée: {assignedDriver.estimated_arrival || '5-10 min'}
+                  ★ {assignedDriver.driver_profile?.rating_average || '4.5'} • {assignedDriver.estimated_arrival || '8'} min
                 </p>
               </div>
             </div>
-            
-            {validationTimer > 0 && (
-              <div className="text-center">
-                <div className="w-16 h-16 relative">
-                  <Progress 
-                    value={(validationTimer / 120) * 100} 
-                    className="w-16 h-16 rounded-full"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xs font-mono">
-                      {Math.floor(validationTimer / 60)}:{String(validationTimer % 60).padStart(2, '0')}
-                    </span>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Validation</p>
-              </div>
-            )}
-          </div>
-        </Card>
-      )}
+          </motion.div>
+        )}
+      </Card>
     </motion.div>
   );
 
-  const getStepProgress = () => {
-    switch (currentStep) {
-      case 'locations': return 33;
-      case 'service': return 66;
-      case 'confirmation': return 100;
-      default: return 0;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5">
-      {/* Header moderne */}
-      <motion.div 
-        className="sticky top-0 z-50 bg-white/90 backdrop-blur-lg border-b"
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ type: "spring", damping: 20 }}
-      >
-        <div className="max-w-md mx-auto p-4">
-          <div className="flex items-center justify-between mb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={currentStep === 'locations' ? onCancel : handlePrevious}
-              className="hover:scale-105 transition-transform"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <div className="text-center">
-              <h1 className="font-bold text-lg">🚚 Livraison Express</h1>
-              <p className="text-xs text-muted-foreground">Kwenda Delivery</p>
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      {/* Header avec glassmorphism */}
+      <div className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-white/20">
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={onCancel}
+                className="rounded-full hover:bg-white/50"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+              <div>
+                <h1 className="font-bold text-lg">Nouvelle livraison</h1>
+                <p className="text-sm text-muted-foreground">
+                  {currentStep === 'locations' && 'Définir les adresses'}
+                  {currentStep === 'service' && 'Choisir le service'}
+                  {currentStep === 'confirmation' && 'Confirmer la commande'}
+                </p>
+              </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={onCancel}>
-              <X className="w-4 h-4" />
-            </Button>
           </div>
           
-          <Progress value={getStepProgress()} className="h-2" />
+          {/* Progress bar animée */}
+          <div className="mt-4">
+            <Progress value={getStepProgress()} className="h-1" />
+          </div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Contenu principal */}
-      <div className="max-w-md mx-auto p-4">
+      {/* Content */}
+      <div className="p-4">
         <AnimatePresence mode="wait">
           {currentStep === 'locations' && <LocationStep key="locations" />}
           {currentStep === 'service' && <ServiceStep key="service" />}
           {currentStep === 'confirmation' && <ConfirmationStep key="confirmation" />}
         </AnimatePresence>
+      </div>
 
-        {/* Navigation buttons */}
-        <motion.div 
-          className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t p-4"
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-        >
-          <div className="max-w-md mx-auto">
-            {currentStep !== 'confirmation' ? (
-              <Button 
-                onClick={handleNext}
-                className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 text-white font-medium"
-                disabled={
-                  (currentStep === 'locations' && (!formData.pickup.location || !formData.destination.location)) ||
-                  (currentStep === 'service' && (!formData.packageType || formData.weight <= 0))
-                }
-              >
-                Continuer
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            ) : (
-              <Button 
-                onClick={handleConfirmOrder}
-                className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 text-white font-medium"
-                disabled={!assignedDriver || isSearchingDriver}
-              >
-                {isSearchingDriver ? (
-                  <>
-                    <Search className="w-4 h-4 mr-2 animate-spin" />
-                    Recherche en cours...
-                  </>
-                ) : assignedDriver ? (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Confirmer la livraison
-                  </>
-                ) : (
-                  'En attente de livreur...'
-                )}
-              </Button>
-            )}
-          </div>
-        </motion.div>
+      {/* Fixed bottom navigation */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 backdrop-blur-lg bg-white/90 border-t border-white/20">
+        <div className="flex gap-3">
+          {currentStep !== 'locations' && (
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              className="flex-1 h-12"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Précédent
+            </Button>
+          )}
+          
+          {currentStep !== 'confirmation' ? (
+            <Button
+              onClick={handleNext}
+              className="flex-1 h-12 bg-gradient-to-r from-primary to-secondary hover:shadow-lg"
+            >
+              Suivant
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handleConfirmOrder}
+              disabled={!assignedDriver}
+              className="flex-1 h-12 bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg"
+            >
+              <Check className="w-4 h-4 mr-2" />
+              Confirmer la commande
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
