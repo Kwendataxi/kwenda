@@ -37,7 +37,9 @@ const SimpleLocationSearch = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
   
-  const { getCurrentPosition, searchLocation, loading: locationLoading } = useMasterLocation();
+  const { getCurrentPosition, searchLocation, loading: locationLoading } = useMasterLocation({
+    autoDetectLocation: false // Éviter la géolocalisation automatique qui cause des bugs
+  });
   const { toast } = useToast();
 
   // Recherche avec délai

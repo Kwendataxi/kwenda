@@ -222,11 +222,15 @@ export const useMasterLocation = (defaultOptions: UseMasterLocationOptions = {})
     });
   }, [toast]);
 
-  // ============ DÉTECTION AUTOMATIQUE ============
+  // ============ DÉTECTION AUTOMATIQUE NON-BLOQUANTE ============
 
   useEffect(() => {
     if (defaultOptions.autoDetectLocation && !location && !loading) {
-      getCurrentPosition();
+      // Géolocalisation silencieuse et non-bloquante
+      getCurrentPosition().catch(() => {
+        // Échec silencieux - ne pas bloquer l'interface
+        console.log('Auto-detection failed, continuing without location');
+      });
     }
   }, [defaultOptions.autoDetectLocation, location, loading, getCurrentPosition]);
 

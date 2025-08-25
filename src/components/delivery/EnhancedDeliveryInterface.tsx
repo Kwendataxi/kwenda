@@ -1,14 +1,14 @@
 import React from 'react';
-import ModernDeliveryInterface from './ModernDeliveryInterface';
+import UltraModernDeliveryInterface from './UltraModernDeliveryInterface';
 
 interface EnhancedDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
 }
 
-// Interface de livraison moderne avec design glassmorphism et animations fluides
+// Interface de livraison ultra-moderne avec design glassmorphism et animations fluides
 const EnhancedDeliveryInterface = ({ onSubmit, onCancel }: EnhancedDeliveryInterfaceProps) => {
-  return <ModernDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
+  return <UltraModernDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
 };
 
 export default EnhancedDeliveryInterface;
