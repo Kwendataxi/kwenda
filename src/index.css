@@ -450,6 +450,15 @@ All colors MUST be HSL.
   @apply backdrop-blur-xl bg-white/80 border-white/30;
 }
 
+/* Glassmorphism effects */
+.glassmorphism {
+  @apply bg-card/80 backdrop-blur-xl border border-border/50 shadow-xl;
+  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
 /* Animations pour les cartes flottantes */
 .card-floating {
   @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
