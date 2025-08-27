@@ -94,7 +94,7 @@ export function usePartnerRentals() {
       const { data, error } = await (supabase as any)
         .from("rental_vehicles")
         .select("*")
-        .eq("partner_id", userId)
+        .eq("partner_user_id", userId)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data || []).map((v: any) => ({
@@ -114,7 +114,7 @@ export function usePartnerRentals() {
       const { data: vehicleIdsData, error: idsErr } = await (supabase as any)
         .from("rental_vehicles")
         .select("id")
-        .eq("partner_id", userId);
+        .eq("partner_user_id", userId);
 
       if (idsErr) throw idsErr;
 
@@ -139,7 +139,7 @@ export function usePartnerRentals() {
       if (!userId) throw new Error("Not authenticated");
       const insert = {
         ...payload,
-        partner_id: userId,
+        partner_user_id: userId,
         features: payload.features || [],
         images: payload.images || [],
       };

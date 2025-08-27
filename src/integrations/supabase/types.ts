@@ -3319,6 +3319,7 @@ export type Database = {
           moderator_id: string | null
           name: string
           partner_id: string | null
+          partner_user_id: string | null
           rejection_reason: string | null
           seats: number
           security_deposit: number
@@ -3354,6 +3355,7 @@ export type Database = {
           moderator_id?: string | null
           name: string
           partner_id?: string | null
+          partner_user_id?: string | null
           rejection_reason?: string | null
           seats?: number
           security_deposit?: number
@@ -3389,6 +3391,7 @@ export type Database = {
           moderator_id?: string | null
           name?: string
           partner_id?: string | null
+          partner_user_id?: string | null
           rejection_reason?: string | null
           seats?: number
           security_deposit?: number

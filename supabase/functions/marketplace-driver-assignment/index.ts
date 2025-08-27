@@ -22,7 +22,11 @@ serve(async (req) => {
 
     switch (action) {
       case 'find_marketplace_drivers':
-        // Rechercher les livreurs disponibles dans la zone
+        const { lat, lng, max_distance = 10, city = 'Kinshasa' } = params;
+        
+        console.log(`Recherche de livreurs près de ${lat}, ${lng} dans un rayon de ${max_distance}km`);
+
+        // Rechercher les livreurs disponibles avec moins de contraintes
         const { data: availableDrivers, error: driversError } = await supabase
           .from('driver_locations')
           .select(`
@@ -31,52 +35,56 @@ serve(async (req) => {
             longitude,
             is_online,
             is_available,
-            driver_profiles!inner(
-              user_id,
-              vehicle_make,
-              vehicle_model,
-              vehicle_plate,
-              vehicle_color,
-              rating_average,
-              rating_count,
-              verification_status,
-              is_active,
-              profiles!inner(display_name, phone_number)
-            ),
-            driver_credits!inner(
-              balance
-            )
+            vehicle_class,
+            is_verified,
+            minimum_balance,
+            last_ping
           `)
           .eq('is_online', true)
           .eq('is_available', true)
-          .eq('driver_profiles.verification_status', 'verified')
-          .eq('driver_profiles.is_active', true)
-          .gte('driver_credits.balance', 500) // Minimum balance pour assignation
-          .limit(10)
+          .eq('is_verified', true)
+          .gte('minimum_balance', 500)
+          .gte('last_ping', new Date(Date.now() - 10 * 60 * 1000).toISOString())
+          .limit(15)
 
         if (driversError) {
           console.error('Error fetching drivers:', driversError)
           throw driversError
         }
 
-        // Transformer les données et calculer les distances (simulation)
-        const formattedDrivers = (availableDrivers || []).map((driver: any, index: number) => ({
-          driver_id: driver.driver_id,
-          distance: 1.2 + (index * 0.3), // Distance simulée
-          estimated_arrival: 8 + (index * 3), // Temps d'arrivée simulé
-          has_sufficient_balance: driver.driver_credits?.balance >= 500,
-          driver_profile: {
-            user_id: driver.driver_profiles.user_id,
-            vehicle_make: driver.driver_profiles.vehicle_make,
-            vehicle_model: driver.driver_profiles.vehicle_model,
-            vehicle_plate: driver.driver_profiles.vehicle_plate,
-            vehicle_color: driver.driver_profiles.vehicle_color,
-            rating_average: driver.driver_profiles.rating_average || 4.5,
-            rating_count: driver.driver_profiles.rating_count || 50,
-            display_name: driver.driver_profiles.profiles?.display_name || 'Livreur Kwenda',
-            phone_number: driver.driver_profiles.profiles?.phone_number || '+243900000000'
+        console.log(`${availableDrivers?.length || 0} chauffeurs trouvés en base`);
+
+        // Fonction pour calculer la distance
+        function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+          const R = 6371; // Rayon de la Terre en km
+          const dLat = (lat2 - lat1) * Math.PI / 180;
+          const dLng = (lng2 - lng1) * Math.PI / 180;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLng/2) * Math.sin(dLng/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          return R * c;
+        }
+
+        // Calculer les vraies distances si coordonnées fournies
+        const formattedDrivers = (availableDrivers || []).map((driver: any, index: number) => {
+          let distance_km = 2 + (index * 0.5); // Distance par défaut
+          
+          if (lat && lng && driver.latitude && driver.longitude) {
+            distance_km = calculateDistance(lat, lng, driver.latitude, driver.longitude);
           }
-        }))
+          
+          return {
+            driver_id: driver.driver_id,
+            distance_km: Math.round(distance_km * 100) / 100,
+            estimated_arrival: Math.max(5, Math.round(distance_km * 3 + 2)),
+            vehicle_class: driver.vehicle_class || 'moto',
+            is_online: driver.is_online,
+            last_ping: driver.last_ping
+          };
+        })
+        .filter(driver => !lat || !lng || driver.distance_km <= max_distance)
+        .sort((a, b) => a.distance_km - b.distance_km)
 
         return new Response(
           JSON.stringify({ 
