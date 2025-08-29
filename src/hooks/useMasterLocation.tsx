@@ -10,7 +10,21 @@ interface LocationState {
   country: string;
 }
 
-export const useMasterLocation = () => {
+interface UseMasterLocationReturn {
+  currentLocation: LocationData | null;
+  isLocationEnabled: boolean;
+  isLoading: boolean;
+  city: string;
+  country: string;
+  getCurrentLocation: () => Promise<LocationData | null>;
+  searchLocation: (query: string) => Promise<any[]>;
+  watchLocation: (callback: (location: LocationData) => void) => number | null;
+  stopWatching: (watchId: number) => void;
+  requestLocationPermission: () => Promise<boolean>;
+  reverseGeocode: (lat: number, lng: number) => Promise<string | null>;
+}
+
+export const useMasterLocation = (): UseMasterLocationReturn => {
   const [state, setState] = useState<LocationState>({
     currentLocation: null,
     isLocationEnabled: false,
@@ -242,10 +256,22 @@ export const useMasterLocation = () => {
     }
   };
 
+  // Fonction de recherche de lieux simplifiée
+  const searchLocation = async (query: string): Promise<any[]> => {
+    // Simuler une recherche avec des résultats de fallback pour Kinshasa
+    const fallbackResults = [
+      { address: `${query}, Gombe, Kinshasa`, lat: -4.3167, lng: 15.3167 },
+      { address: `${query}, Kinshasa Centre`, lat: -4.3217, lng: 15.3069 },
+      { address: `${query}, Lemba, Kinshasa`, lat: -4.3833, lng: 15.2833 }
+    ];
+    
+    return fallbackResults;
+  };
+
   return {
     ...state,
     getCurrentLocation,
-    getCurrentPosition: getCurrentLocation, // Alias for compatibility
+    searchLocation,
     watchLocation,
     stopWatching,
     requestLocationPermission,
