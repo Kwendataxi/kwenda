@@ -171,6 +171,40 @@ All colors MUST be HSL.
     }
   }
 
+  /* Fix scrolling issues globally */
+  html, body {
+    overflow-x: hidden;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+  }
+
+  body {
+    padding-bottom: max(env(safe-area-inset-bottom), 80px);
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* Ensure proper mobile viewport handling */
+  .mobile-safe-layout {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-bottom: max(env(safe-area-inset-bottom), 6rem);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .content-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: max(env(safe-area-inset-bottom), 4rem);
+  }
+
+  /* Fixed bottom elements spacing */
+  .fixed-bottom-element {
+    bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;

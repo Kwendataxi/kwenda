@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon } from 'lucide-react';
+import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,8 +13,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CategoryFilter } from './CategoryFilter';
 import { SearchBar } from './SearchBar';
 import { ModernProductCard } from './ModernProductCard';
-import { ShoppingCart } from './ShoppingCart';
+import { ModernShoppingCart } from './ModernShoppingCart';
 import { FlexibleOrderDialog } from './FlexibleOrderDialog';
+import { ClientEscrowDashboard } from '../escrow/ClientEscrowDashboard';
 import { SellProductForm } from './SellProductForm';
 import { VendorDashboard } from './VendorDashboard';
 import { DeliveryCalculator } from './DeliveryCalculator';
@@ -70,7 +71,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
   const coordinates = enhancedData ? { lat: enhancedData.latitude, lng: enhancedData.longitude } : null;
   
   // State management
-  const [currentTab, setCurrentTab] = useState<'shop' | 'sell' | 'orders' | 'vendor'>('shop');
+  const [currentTab, setCurrentTab] = useState<'shop' | 'sell' | 'orders' | 'escrow' | 'vendor'>('shop');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -353,16 +354,17 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
           </div>
         ) : (
           filteredProducts.map(product => (
-            <ModernProductCard
-              key={product.id}
-              product={{ 
-                ...product, 
-                name: product.title,
-                seller: product.seller.display_name
-              }}
-              onAddToCart={() => addToCart(product)}
-              onViewDetails={() => handleCreateOrder(product)}
-            />
+              <ModernProductCard
+                key={product.id}
+                product={{ 
+                  ...product, 
+                  name: product.title,
+                  seller: product.seller.display_name
+                }}
+                onAddToCart={() => addToCart(product)}
+                onViewDetails={() => handleCreateOrder(product)}
+                userCoordinates={coordinates}
+              />
           ))
         )}
       </div>
@@ -370,23 +372,28 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-background border-b">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 mobile-safe-layout">
+      {/* Modern Header */}
+      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="flex items-center justify-between p-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
+          <Button variant="ghost" size="icon" onClick={onBack} className="touch-manipulation">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-lg font-semibold">Shopping</h1>
+          <div className="text-center">
+            <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Kwenda Shop
+            </h1>
+            <p className="text-xs text-muted-foreground">Marketplace sécurisé</p>
+          </div>
           <Button
             variant="ghost"
             size="icon"
-            className="relative"
+            className="relative touch-manipulation"
             onClick={() => setIsCartOpen(true)}
           >
             <Package className="w-5 h-5" />
             {cartItems.length > 0 && (
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs">
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-primary animate-pulse">
                 {cartItems.length}
               </Badge>
             )}
@@ -395,24 +402,28 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="p-4 content-scrollable">
         <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as any)}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="shop" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-5 bg-muted/50 backdrop-blur-sm">
+            <TabsTrigger value="shop" className="flex items-center gap-1 touch-manipulation">
               <ShoppingBag className="w-4 h-4" />
-              Boutique
+              <span className="hidden sm:inline">Boutique</span>
             </TabsTrigger>
-            <TabsTrigger value="sell" className="flex items-center gap-2">
+            <TabsTrigger value="sell" className="flex items-center gap-1 touch-manipulation">
               <Plus className="w-4 h-4" />
-              Vendre
+              <span className="hidden sm:inline">Vendre</span>
             </TabsTrigger>
-            <TabsTrigger value="orders" className="flex items-center gap-2">
+            <TabsTrigger value="orders" className="flex items-center gap-1 touch-manipulation">
               <CartIcon className="w-4 h-4" />
-              Commandes
+              <span className="hidden sm:inline">Commandes</span>
             </TabsTrigger>
-            <TabsTrigger value="vendor" className="flex items-center gap-2">
+            <TabsTrigger value="escrow" className="flex items-center gap-1 touch-manipulation">
+              <Shield className="w-4 h-4" />
+              <span className="hidden sm:inline">Escrow</span>
+            </TabsTrigger>
+            <TabsTrigger value="vendor" className="flex items-center gap-1 touch-manipulation">
               <Store className="w-4 h-4" />
-              Vendeur
+              <span className="hidden sm:inline">Vendeur</span>
             </TabsTrigger>
           </TabsList>
 
@@ -446,20 +457,24 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
             <AdvancedOrderTracker />
           </TabsContent>
 
+          <TabsContent value="escrow" className="mt-4">
+            <ClientEscrowDashboard />
+          </TabsContent>
+
           <TabsContent value="vendor" className="mt-4">
             <VendorDashboard onProductUpdate={loadProducts} />
           </TabsContent>
         </Tabs>
       </div>
 
-      {/* Shopping Cart */}
-      <ShoppingCart
+      {/* Modern Shopping Cart with Escrow */}
+      <ModernShoppingCart
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cartItems={cartItems}
         onUpdateQuantity={updateCartQuantity}
         onRemoveItem={removeFromCart}
-        onCheckout={handleCheckout}
+        userCoordinates={coordinates}
       />
 
       {/* Order Dialog */}
