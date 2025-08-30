@@ -269,7 +269,11 @@ export const useMasterLocation = (): UseMasterLocationReturn => {
   };
 
   return {
-    ...state,
+    currentLocation: state.currentLocation,
+    isLocationEnabled: state.isLocationEnabled,
+    isLoading: state.isLoading,
+    city: state.city,
+    country: state.country,
     getCurrentLocation,
     searchLocation,
     watchLocation,
