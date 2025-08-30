@@ -124,11 +124,11 @@ const FunctionalDeliveryInterface: React.FC<FunctionalDeliveryInterfaceProps> = 
   // Hooks
   const { toast } = useToast();
   const { 
-    currentLocation, 
+    location: currentLocation, 
     searchLocation, 
-    getCurrentLocation, 
-    isLoading: locationLoading,
-    isLocationEnabled 
+    getCurrentPosition: getCurrentLocation, 
+    loading: locationLoading,
+    hasLocation: isLocationEnabled 
   } = useMasterLocation();
   const { findAvailableDrivers, assignDriverToDelivery, loading: driverLoading } = useDriverAssignment();
 
