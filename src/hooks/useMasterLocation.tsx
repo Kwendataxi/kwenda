@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { LocationData } from '@/types/location';
+import { advancedGeolocation, type GeolocationError } from '@/services/advancedGeolocation';
 
 interface LocationState {
   currentLocation: LocationData | null;
@@ -8,6 +9,7 @@ interface LocationState {
   isLoading: boolean;
   city: string;
   country: string;
+  lastError: GeolocationError | null;
 }
 
 interface UseMasterLocationReturn {
@@ -16,12 +18,15 @@ interface UseMasterLocationReturn {
   isLoading: boolean;
   city: string;
   country: string;
+  lastError: GeolocationError | null;
   getCurrentLocation: () => Promise<LocationData | null>;
   searchLocation: (query: string) => Promise<any[]>;
   watchLocation: (callback: (location: LocationData) => void) => number | null;
   stopWatching: (watchId: number) => void;
   requestLocationPermission: () => Promise<boolean>;
   reverseGeocode: (lat: number, lng: number) => Promise<string | null>;
+  clearCache: () => void;
+  getCacheStats: () => any;
 }
 
 export const useMasterLocation = (): UseMasterLocationReturn => {
@@ -30,14 +35,15 @@ export const useMasterLocation = (): UseMasterLocationReturn => {
     isLocationEnabled: false,
     isLoading: false,
     city: 'Kinshasa',
-    country: 'RDC'
+    country: 'RDC',
+    lastError: null
   });
 
   const { toast } = useToast();
 
   // Vérifier si la géolocalisation est supportée
   useEffect(() => {
-    const isSupported = 'geolocation' in navigator;
+    const isSupported = advancedGeolocation.isGeolocationSupported();
     setState(prev => ({ ...prev, isLocationEnabled: isSupported }));
     
     if (!isSupported) {
@@ -51,42 +57,24 @@ export const useMasterLocation = (): UseMasterLocationReturn => {
       return null;
     }
 
-    setState(prev => ({ ...prev, isLoading: true }));
+    setState(prev => ({ ...prev, isLoading: true, lastError: null }));
 
     try {
-      console.log('📍 Demande de géolocalisation...');
+      console.log('📍 Demande de géolocalisation avancée...');
 
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          resolve,
-          reject,
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 300000 // 5 minutes
-          }
-        );
+      const locationData = await advancedGeolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000, // 5 minutes
+        useCache: true,
+        maxRetries: 3
       });
-
-      const { latitude, longitude, accuracy } = position.coords;
-
-      console.log('✅ Position obtenue:', { latitude, longitude, accuracy });
-
-      // Géocodage inverse pour obtenir l'adresse
-      const address = await reverseGeocode(latitude, longitude);
-
-      const locationData: LocationData = {
-        lat: latitude,
-        lng: longitude,
-        address: address || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
-        type: 'current',
-        accuracy: accuracy || undefined
-      };
 
       setState(prev => ({ 
         ...prev, 
         currentLocation: locationData,
-        isLoading: false 
+        isLoading: false,
+        lastError: null
       }));
 
       toast({
@@ -96,95 +84,33 @@ export const useMasterLocation = (): UseMasterLocationReturn => {
 
       return locationData;
     } catch (error: any) {
-      console.error('❌ Erreur géolocalisation:', error);
+      console.error('❌ Erreur géolocalisation avancée:', error);
       
-      let errorMessage = 'Impossible d\'obtenir votre position';
+      const geolocationError = error as GeolocationError;
       
-      switch (error.code) {
-        case 1: // PERMISSION_DENIED
-          errorMessage = 'Accès à la localisation refusé';
-          break;
-        case 2: // POSITION_UNAVAILABLE
-          errorMessage = 'Position indisponible';
-          break;
-        case 3: // TIMEOUT
-          errorMessage = 'Délai de localisation dépassé';
-          break;
-      }
+      setState(prev => ({ 
+        ...prev, 
+        isLoading: false,
+        lastError: geolocationError
+      }));
 
       toast({
         title: "Géolocalisation échouée",
-        description: errorMessage,
+        description: geolocationError.message,
         variant: "destructive"
       });
 
-      setState(prev => ({ ...prev, isLoading: false }));
       return null;
     }
   };
 
   const reverseGeocode = async (lat: number, lng: number): Promise<string | null> => {
     try {
-      console.log('🔍 Géocodage inverse:', { lat, lng });
-
-      // Utiliser l'edge function geocode-proxy pour éviter les problèmes CORS
-      const response = await fetch('/api/geocode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'reverse',
-          lat,
-          lng
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur géocodage');
-      }
-
-      const data = await response.json();
-      
-      if (data.results && data.results.length > 0) {
-        const address = data.results[0].formatted_address;
-        console.log('✅ Adresse trouvée:', address);
-        return address;
-      }
-
-      // Fallback avec noms de lieux connus pour Kinshasa/RDC
-      return getFallbackAddress(lat, lng);
+      return await advancedGeolocation.reverseGeocodeWithCache(lat, lng);
     } catch (error) {
       console.error('❌ Erreur géocodage inverse:', error);
-      return getFallbackAddress(lat, lng);
+      return null;
     }
-  };
-
-  const getFallbackAddress = (lat: number, lng: number): string => {
-    // Coordonnées approximatives des zones principales de Kinshasa
-    const zones = [
-      { name: 'Gombe', center: [-4.3167, 15.3167], radius: 0.02 },
-      { name: 'Kinshasa Centre', center: [-4.4167, 15.3167], radius: 0.03 },
-      { name: 'Lemba', center: [-4.3833, 15.2833], radius: 0.03 },
-      { name: 'Matete', center: [-4.3833, 15.3333], radius: 0.03 },
-      { name: 'Ngaliema', center: [-4.3667, 15.2667], radius: 0.03 },
-      { name: 'Bandalungwa', center: [-4.3833, 15.3000], radius: 0.02 }
-    ];
-
-    // Trouver la zone la plus proche
-    let closestZone = 'Kinshasa';
-    let minDistance = Infinity;
-
-    zones.forEach(zone => {
-      const distance = Math.sqrt(
-        Math.pow(lat - zone.center[0], 2) + Math.pow(lng - zone.center[1], 2)
-      );
-      
-      if (distance < zone.radius && distance < minDistance) {
-        minDistance = distance;
-        closestZone = zone.name;
-      }
-    });
-
-    return `${closestZone}, Kinshasa, RDC`;
   };
 
   const watchLocation = (callback: (location: LocationData) => void) => {
@@ -193,32 +119,28 @@ export const useMasterLocation = (): UseMasterLocationReturn => {
       return null;
     }
 
-    console.log('👁️ Démarrage du suivi de position...');
+    console.log('👁️ Démarrage du suivi de position avancé...');
 
-    const watchId = navigator.geolocation.watchPosition(
-      async (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        
-        const address = await reverseGeocode(latitude, longitude);
-        
-        const locationData: LocationData = {
-          lat: latitude,
-          lng: longitude,
-          address: address || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
-          type: 'current',
-          accuracy: accuracy || undefined
-        };
-
-        setState(prev => ({ ...prev, currentLocation: locationData }));
-        callback(locationData);
+    const watchId = advancedGeolocation.watchPosition(
+      (location) => {
+        setState(prev => ({ ...prev, currentLocation: location }));
+        callback(location);
       },
       (error) => {
         console.error('❌ Erreur suivi position:', error);
+        setState(prev => ({ ...prev, lastError: error }));
+        
+        toast({
+          title: "Erreur de suivi",
+          description: error.message,
+          variant: "destructive"
+        });
       },
       {
         enableHighAccuracy: true,
         timeout: 5000,
-        maximumAge: 60000 // 1 minute
+        maximumAge: 60000, // 1 minute
+        useCache: true
       }
     );
 
@@ -226,10 +148,7 @@ export const useMasterLocation = (): UseMasterLocationReturn => {
   };
 
   const stopWatching = (watchId: number) => {
-    if (watchId) {
-      navigator.geolocation.clearWatch(watchId);
-      console.log('🛑 Arrêt du suivi de position');
-    }
+    advancedGeolocation.stopWatching(watchId);
   };
 
   const requestLocationPermission = async (): Promise<boolean> => {
@@ -256,16 +175,37 @@ export const useMasterLocation = (): UseMasterLocationReturn => {
     }
   };
 
-  // Fonction de recherche de lieux simplifiée
+  // Fonction de recherche de lieux avec suggestions locales enrichies
   const searchLocation = async (query: string): Promise<any[]> => {
-    // Simuler une recherche avec des résultats de fallback pour Kinshasa
-    const fallbackResults = [
-      { address: `${query}, Gombe, Kinshasa`, lat: -4.3167, lng: 15.3167 },
-      { address: `${query}, Kinshasa Centre`, lat: -4.3217, lng: 15.3069 },
-      { address: `${query}, Lemba, Kinshasa`, lat: -4.3833, lng: 15.2833 }
+    // Base de données enrichie pour Kinshasa et RDC
+    const locations = [
+      // Zones principales de Kinshasa
+      { address: `${query}, Gombe, Kinshasa`, lat: -4.3167, lng: 15.3167, type: 'district' },
+      { address: `${query}, Kinshasa Centre`, lat: -4.3217, lng: 15.3069, type: 'centre' },
+      { address: `${query}, Lemba, Kinshasa`, lat: -4.3833, lng: 15.2833, type: 'district' },
+      { address: `${query}, Matete, Kinshasa`, lat: -4.3833, lng: 15.3333, type: 'district' },
+      { address: `${query}, Ngaliema, Kinshasa`, lat: -4.3667, lng: 15.2667, type: 'district' },
+      { address: `${query}, Bandalungwa, Kinshasa`, lat: -4.3833, lng: 15.3000, type: 'district' },
+      
+      // Lieux populaires
+      { address: `${query}, Boulevard du 30 Juin, Kinshasa`, lat: -4.3208, lng: 15.3069, type: 'landmark' },
+      { address: `${query}, Marché Central, Kinshasa`, lat: -4.3250, lng: 15.3100, type: 'market' },
+      { address: `${query}, Université de Kinshasa`, lat: -4.4333, lng: 15.3000, type: 'university' }
     ];
     
-    return fallbackResults;
+    return locations.slice(0, 5); // Limiter à 5 résultats
+  };
+
+  const clearCache = () => {
+    advancedGeolocation.clearCache();
+    toast({
+      title: "Cache effacé",
+      description: "Toutes les données de localisation ont été supprimées",
+    });
+  };
+
+  const getCacheStats = () => {
+    return advancedGeolocation.getCacheStats();
   };
 
   return {
@@ -274,11 +214,14 @@ export const useMasterLocation = (): UseMasterLocationReturn => {
     isLoading: state.isLoading,
     city: state.city,
     country: state.country,
+    lastError: state.lastError,
     getCurrentLocation,
     searchLocation,
     watchLocation,
     stopWatching,
     requestLocationPermission,
-    reverseGeocode
+    reverseGeocode,
+    clearCache,
+    getCacheStats
   };
 };
