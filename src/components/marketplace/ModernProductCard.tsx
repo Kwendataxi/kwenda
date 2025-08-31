@@ -106,9 +106,9 @@ export const ModernProductCard: React.FC<ModernProductCardProps> = ({
               -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
             </Badge>
           )}
-          <Badge className="bg-gradient-to-r from-accent to-accent-light text-foreground font-medium px-2 py-1 text-xs shadow-lg">
+          <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white font-medium px-2 py-1 text-xs shadow-lg">
             <Shield className="w-3 h-3 mr-1" />
-            Escrow
+            Sécurisé
           </Badge>
         </div>
 
@@ -174,7 +174,7 @@ export const ModernProductCard: React.FC<ModernProductCardProps> = ({
           {/* Delivery Info */}
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <MapPin className="w-3 h-3" />
-            <span>Livraison rapide • Protection escrow</span>
+            <span>Livraison rapide • Paiement sécurisé</span>
           </div>
         </div>
         
@@ -185,7 +185,7 @@ export const ModernProductCard: React.FC<ModernProductCardProps> = ({
           onClick={() => onAddToCart(product)}
         >
           <ShoppingCart className="w-5 h-5 mr-2" />
-          {product.inStock ? 'Ajouter au panier' : 'Indisponible'}
+          {product.inStock ? 'J\'achète' : 'Indisponible'}
         </Button>
       </CardContent>
     </Card>

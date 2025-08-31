@@ -18,6 +18,8 @@ import { FlexibleOrderDialog } from './FlexibleOrderDialog';
 import { ClientEscrowDashboard } from '../escrow/ClientEscrowDashboard';
 import { SellProductForm } from './SellProductForm';
 import { VendorDashboard } from './VendorDashboard';
+import { HorizontalProductScroll } from './HorizontalProductScroll';
+import { WalletBalance } from './WalletBalance';
 import { DeliveryCalculator } from './DeliveryCalculator';
 import { OrderTracker } from './OrderTracker';
 import { AdvancedOrderTracker } from './AdvancedOrderTracker';
@@ -27,6 +29,7 @@ import { VerifiedSellerGuard } from './VerifiedSellerGuard';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
 import { useUserVerification } from '@/hooks/useUserVerification';
+import { useWallet } from '@/hooks/useWallet';
 
 interface Product {
   id: string;
@@ -69,6 +72,9 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
   const { enhancedData } = useEnhancedGeolocation();
   const locationLoading = !enhancedData;
   const coordinates = enhancedData ? { lat: enhancedData.latitude, lng: enhancedData.longitude } : null;
+  const { orders, loading: ordersLoading } = useMarketplaceOrders();
+  const { verification } = useUserVerification();
+  const { wallet } = useWallet();
   
   // State management
   const [currentTab, setCurrentTab] = useState<'shop' | 'sell' | 'orders' | 'escrow' | 'vendor'>('shop');
@@ -301,8 +307,22 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
     });
   };
 
+  // Product filtering and grouping
+  const featuredProducts = filteredProducts.slice(0, 8);
+  const popularProducts = filteredProducts.filter(p => p.rating >= 4.5).slice(0, 6);
+  const nearbyProducts = filteredProducts.filter(p => p.coordinates).slice(0, 6);
+
   const renderShopTab = () => (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Wallet Balance */}
+      {wallet && (
+        <WalletBalance 
+          balance={wallet.balance}
+          currency={wallet.currency}
+          compact
+        />
+      )}
+
       <SearchBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -316,6 +336,29 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
         onCategoryChange={setSelectedCategory}
         productCounts={{}}
       />
+
+      {/* Horizontal Product Sections */}
+      {popularProducts.length > 0 && (
+        <HorizontalProductScroll
+          title="⭐ Populaires"
+          products={popularProducts.map(p => ({ ...p, name: p.title, seller: p.seller.display_name }))}
+           onAddToCart={(product) => addToCart(popularProducts.find(p => p.id === product.id)!)}
+           onViewDetails={() => handleCreateOrder(popularProducts[0])}
+          userCoordinates={coordinates}
+          loading={loading}
+        />
+      )}
+
+      {nearbyProducts.length > 0 && coordinates && (
+        <HorizontalProductScroll
+          title="📍 Près de vous"
+          products={nearbyProducts.map(p => ({ ...p, name: p.title, seller: p.seller.display_name }))}
+          onAddToCart={(product) => addToCart(nearbyProducts.find(p => p.id === product.id)!)}
+          onViewDetails={() => handleCreateOrder(nearbyProducts[0])}
+          userCoordinates={coordinates}
+          loading={loading}
+        />
+      )}
 
       {coordinates && (
         <Card className="p-4">

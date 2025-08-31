@@ -145,6 +145,41 @@ All colors MUST be HSL.
     touch-action: manipulation;
   }
 
+  /* Scrolling behavior */
+  .content-scrollable {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Horizontal scroll container */
+  .horizontal-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .mobile-safe-layout {
+      padding-bottom: env(safe-area-inset-bottom, 1rem) !important;
+    }
+    
+    .content-scrollable {
+      max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 200px);
+    }
+  }
+
 /* Safe area support for mobile devices */
   .safe-area-padding {
     padding-left: env(safe-area-inset-left);
