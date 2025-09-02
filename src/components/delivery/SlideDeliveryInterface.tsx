@@ -332,18 +332,18 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
       animate="center"
       exit="exit"
       transition={slideTransition}
-      className="space-y-6"
+      className="space-y-4 px-1"
     >
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-primary">Quel type de colis ?</h2>
-        <p className="text-muted-foreground">Sélectionnez la taille approximative</p>
+      <div className="text-center space-y-3">
+        <h2 className="text-xl font-bold text-primary">Quel type de colis ?</h2>
+        <p className="text-sm text-muted-foreground">Sélectionnez la taille approximative</p>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-3">
         {[
-          { id: 'small', name: 'Petit colis', subtitle: 'Documents, téléphone, bijoux', icon: Package, size: 'h-8 w-8' },
-          { id: 'medium', name: 'Colis moyen', subtitle: 'Sac, vêtements, nourriture', icon: Package, size: 'h-10 w-10' },
-          { id: 'large', name: 'Gros colis', subtitle: 'Électroménager, meubles', icon: Package, size: 'h-12 w-12' }
+          { id: 'small', name: 'Petit colis', subtitle: 'Documents, téléphone, bijoux', icon: Package, size: 'h-6 w-6' },
+          { id: 'medium', name: 'Colis moyen', subtitle: 'Sac, vêtements, nourriture', icon: Package, size: 'h-7 w-7' },
+          { id: 'large', name: 'Gros colis', subtitle: 'Électroménager, meubles', icon: Package, size: 'h-8 w-8' }
         ].map((type) => (
           <motion.div
             key={type.id}
@@ -351,21 +351,21 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
             whileTap={{ scale: 0.98 }}
           >
             <Card 
-              className={`p-4 cursor-pointer transition-all duration-200 hover:shadow-lg ${
+              className={`p-3 cursor-pointer transition-all duration-200 hover:shadow-md ${
                 formData.packageType === type.id 
                   ? 'ring-2 ring-primary bg-primary/5' 
                   : 'hover:bg-muted/50'
               }`}
               onClick={() => setFormData(prev => ({ ...prev, packageType: type.id as any }))}
             >
-              <div className="flex items-center gap-4">
-                <type.icon className={`${type.size} text-primary`} />
-                <div className="flex-1">
-                  <h3 className="font-semibold">{type.name}</h3>
-                  <p className="text-sm text-muted-foreground">{type.subtitle}</p>
+              <div className="flex items-center gap-3">
+                <type.icon className={`${type.size} text-primary flex-shrink-0`} />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-sm">{type.name}</h3>
+                  <p className="text-xs text-muted-foreground line-clamp-1">{type.subtitle}</p>
                 </div>
                 {formData.packageType === type.id && (
-                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                  <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
                 )}
               </div>
             </Card>
@@ -711,9 +711,9 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
             <Button
               variant="ghost"
               onClick={currentSlide === 0 ? onCancel : prevSlide}
-              className="flex items-center gap-2"
+              className="flex items-center gap-1 text-sm px-2"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-3 w-3" />
               {currentSlide === 0 ? 'Annuler' : 'Retour'}
             </Button>
             
@@ -724,13 +724,13 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
                 variant="ghost"
                 onClick={nextSlide}
                 disabled={!canProceedToSlide[currentSlide as keyof typeof canProceedToSlide]}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1 text-sm px-2"
               >
                 Suivant
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-3 w-3" />
               </Button>
             )}
-            {currentSlide === 3 && <div className="w-16" />}
+            {currentSlide === 3 && <div className="w-12" />}
           </div>
           
           {/* Progress indicator */}
