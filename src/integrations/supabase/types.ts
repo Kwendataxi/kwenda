@@ -5471,6 +5471,16 @@ export type Database = {
         Args: { admin_id?: string }
         Returns: Json
       }
+      get_protected_user_info: {
+        Args: { user_id_param: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          member_since: string
+          user_id: string
+          user_type: string
+        }[]
+      }
       get_safe_user_info: {
         Args: { user_id_param: string }
         Returns: {
