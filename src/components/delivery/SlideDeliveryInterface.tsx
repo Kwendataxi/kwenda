@@ -12,7 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useMasterLocation } from '@/hooks/useMasterLocation';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
-import WeightBasedPackageSelector from './WeightBasedPackageSelector';
+import ServiceSelector from './ServiceSelector';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -36,11 +36,9 @@ interface LocationData {
 }
 
 interface DeliveryFormData {
-  packageType: string;
+  serviceMode: string;
   pickup: LocationData | null;
   destination: LocationData | null;
-  serviceMode: string;
-  packageWeight: number;
 }
 
 interface SlideDeliveryInterfaceProps {
@@ -125,11 +123,9 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(0);
   const [formData, setFormData] = useState<DeliveryFormData>({
-    packageType: '',
-    pickup: null,
-    destination: null,
     serviceMode: 'flex',
-    packageWeight: 0
+    pickup: null,
+    destination: null
   });
   
   const [queries, setQueries] = useState({ pickup: '', destination: '' });
@@ -137,7 +133,7 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
 
   // Fonction pour passer à l'étape suivante
   const nextSlide = () => {
-    if (currentSlide < 3) { // Maintenant 4 étapes: poids, pickup, destination, confirmation
+    if (currentSlide < 3) { // 4 étapes: service, pickup, destination, confirmation
       setDirection(1);
       setCurrentSlide(prev => prev + 1);
     }
@@ -200,7 +196,7 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
   // Détermine si on peut passer à l'étape suivante
   const canProceed = () => {
     switch(currentSlide) {
-      case 0: return formData.packageType !== '' && formData.packageWeight > 0;
+      case 0: return formData.serviceMode !== '';
       case 1: return formData.pickup !== null;
       case 2: return formData.destination !== null;
       case 3: return true; // Page de confirmation
@@ -213,17 +209,17 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
     e.preventDefault();
     
     try {
-      const selectedPackage = packageTypes.find(p => p.id === formData.packageType);
-      const estimatedPrice = selectedPackage?.basePrice || 5000;
+      const selectedService = services.find(s => s.id === formData.serviceMode);
+      const estimatedPrice = selectedService ? parseInt(selectedService.price.replace(/[^\d]/g, '')) : 5000;
       
       const orderData = {
         city: 'Kinshasa',
         pickup: formData.pickup || { address: '', lat: 0, lng: 0 },
         destination: formData.destination || { address: '', lat: 0, lng: 0 },
         mode: formData.serviceMode as 'flash' | 'flex' | 'maxicharge',
-        packageWeight: formData.packageWeight,
-        packageType: formData.packageType as 'small' | 'medium' | 'large',
-        additionalInfo: `Poids: ${formData.packageWeight}kg`,
+        packageWeight: 5, // Valeur par défaut
+        packageType: 'medium' as 'small' | 'medium' | 'large',
+        additionalInfo: `Service: ${selectedService?.label}`,
         estimatedPrice,
         distance: 10,
         duration: 30
@@ -239,19 +235,19 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
   };
 
   // Composants pour chaque étape
-  const PackageSlide = () => (
+  const ServiceSlide = () => (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <Scale className="h-12 w-12 text-primary mx-auto" />
-        <h2 className="text-2xl font-bold">Informations du colis</h2>
-        <p className="text-muted-foreground">Indiquez le poids pour déterminer le service approprié</p>
+        <Truck className="h-12 w-12 text-primary mx-auto" />
+        <h2 className="text-xl sm:text-2xl font-bold">Service de livraison</h2>
+        <p className="text-muted-foreground text-sm sm:text-base">
+          Choisissez le service adapté à vos besoins
+        </p>
       </div>
 
-      <WeightBasedPackageSelector
-        selectedType={formData.packageType}
-        packageWeight={formData.packageWeight}
-        onTypeSelect={(type) => setFormData(prev => ({ ...prev, packageType: type, serviceMode: type }))}
-        onWeightChange={(weight) => setFormData(prev => ({ ...prev, packageWeight: weight }))}
+      <ServiceSelector
+        selectedService={formData.serviceMode}
+        onServiceSelect={(service) => setFormData(prev => ({ ...prev, serviceMode: service }))}
       />
     </div>
   );
@@ -263,19 +259,23 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
     const suggestionList = suggestions[type];
     
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="text-center space-y-2">
           {isPickup ? (
             <>
-              <MapPin className="h-12 w-12 text-primary mx-auto" />
-              <h2 className="text-2xl font-bold">Point de collecte</h2>
-              <p className="text-muted-foreground">Où devons-nous récupérer votre colis ?</p>
+              <MapPin className="h-10 w-10 sm:h-12 sm:w-12 text-primary mx-auto" />
+              <h2 className="text-xl sm:text-2xl font-bold">Point de collecte</h2>
+              <p className="text-muted-foreground text-sm sm:text-base">
+                Où devons-nous récupérer votre colis ?
+              </p>
             </>
           ) : (
             <>
-              <Target className="h-12 w-12 text-primary mx-auto" />
-              <h2 className="text-2xl font-bold">Destination</h2>
-              <p className="text-muted-foreground">Où livrer votre colis ?</p>
+              <Target className="h-10 w-10 sm:h-12 sm:w-12 text-primary mx-auto" />
+              <h2 className="text-xl sm:text-2xl font-bold">Destination</h2>
+              <p className="text-muted-foreground text-sm sm:text-base">
+                Où livrer votre colis ?
+              </p>
             </>
           )}
         </div>
@@ -288,7 +288,7 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
                 placeholder={isPickup ? "Adresse de collecte..." : "Adresse de livraison..."}
                 value={query}
                 onChange={(e) => handleSearch(e.target.value, type)}
-                className="pl-10"
+                className="pl-10 text-sm sm:text-base"
               />
             </div>
             
@@ -313,19 +313,19 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
           <Button
             variant="outline"
             onClick={() => useCurrentLocation(type)}
-            className="w-full"
+            className="w-full text-sm sm:text-base"
           >
             <Navigation2 className="mr-2 h-4 w-4" />
             Utiliser ma position actuelle
           </Button>
 
           {formData[type] && (
-            <div className="p-3 bg-primary/10 rounded-lg">
+            <div className="p-3 sm:p-4 bg-primary/10 rounded-lg">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">Adresse sélectionnée :</span>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-1 break-words">
                 {formData[type]?.address}
               </p>
             </div>
@@ -336,60 +336,51 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
   };
 
   const ConfirmationSlide = () => {
-    const selectedPackage = packageTypes.find(p => p.id === formData.packageType);
     const selectedService = services.find(s => s.id === formData.serviceMode);
     
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="text-center space-y-2">
-          <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto" />
-          <h2 className="text-2xl font-bold">Confirmer la commande</h2>
-          <p className="text-muted-foreground">Vérifiez les détails de votre livraison</p>
+          <CheckCircle2 className="h-10 w-10 sm:h-12 sm:w-12 text-green-600 mx-auto" />
+          <h2 className="text-xl sm:text-2xl font-bold">Confirmer la commande</h2>
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Vérifiez les détails de votre livraison
+          </p>
         </div>
 
         {/* Résumé complet */}
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           <Card>
-            <CardContent className="p-4 space-y-4">
-              <div className="flex items-center gap-3">
-                <Scale className="h-5 w-5 text-primary" />
-                <div>
-                  <h3 className="font-semibold">Colis</h3>
+            <CardContent className="p-4 sm:p-6 space-y-4">
+              <div className="flex items-start gap-3">
+                {selectedService?.icon && <selectedService.icon className="h-5 w-5 text-primary mt-0.5" />}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold">Service de livraison</h3>
                   <p className="text-sm text-muted-foreground">
-                    {selectedPackage?.label} - {formData.packageWeight}kg
+                    {selectedService?.label} - {selectedService?.subtitle}
+                  </p>
+                  <p className="text-sm font-medium text-primary mt-1">
+                    Prix estimé: {selectedService?.price}
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-primary" />
-                <div>
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                <div className="flex-1 min-w-0">
                   <h3 className="font-semibold">Point de collecte</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground break-words">
                     {formData.pickup?.address}
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-3">
-                <Target className="h-5 w-5 text-primary" />
-                <div>
+              <div className="flex items-start gap-3">
+                <Target className="h-5 w-5 text-primary mt-0.5" />
+                <div className="flex-1 min-w-0">
                   <h3 className="font-semibold">Destination</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground break-words">
                     {formData.destination?.address}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                {selectedService?.icon && <selectedService.icon className="h-5 w-5 text-primary" />}
-                <div>
-                  <h3 className="font-semibold">Service de livraison</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedService?.label} - {selectedService?.subtitle}
-                  </p>
-                  <p className="text-sm font-medium text-primary">
-                    Prix estimé: {selectedService?.price}
                   </p>
                 </div>
               </div>
@@ -397,13 +388,15 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
           </Card>
           
           {/* Information sur le véhicule */}
-          <div className="p-4 bg-primary/10 rounded-lg">
-            <div className="flex items-center gap-3">
-              {selectedPackage?.icon && <selectedPackage.icon className="h-5 w-5 text-primary" />}
-              <div>
-                <h4 className="font-medium">Véhicule assigné</h4>
-                <p className="text-sm text-muted-foreground">
-                  {selectedPackage?.vehicleType} - Adapté pour {selectedPackage?.weightRange}
+          <div className="p-3 sm:p-4 bg-primary/10 rounded-lg">
+            <div className="flex items-start gap-3">
+              {selectedService?.icon && <selectedService.icon className="h-5 w-5 text-primary mt-0.5" />}
+              <div className="flex-1">
+                <h4 className="font-medium text-sm sm:text-base">Véhicule assigné</h4>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {selectedService?.label === 'Flash' && 'Moto - Livraison rapide'}
+                  {selectedService?.label === 'Flex' && 'Camionnette - Livraison standard'}
+                  {selectedService?.label === 'MaxiCharge' && 'Camion - Livraison lourde'}
                 </p>
               </div>
             </div>
@@ -414,20 +407,20 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
   };
 
   // Gestion des étapes
-  const slides = [PackageSlide, AddressSlide, AddressSlide, ConfirmationSlide];
+  const slides = [ServiceSlide, AddressSlide, AddressSlide, ConfirmationSlide];
   const CurrentSlide = slides[currentSlide];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center p-2 sm:p-4">
+      <div className="w-full max-w-md lg:max-w-lg">
         {/* Header avec navigation */}
-        <div className="mb-6 space-y-4">
+        <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" onClick={onCancel}>
+            <Button variant="ghost" size="sm" onClick={onCancel} className="text-sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Retour
             </Button>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs sm:text-sm text-muted-foreground">
               Étape {currentSlide + 1} sur 4
             </span>
           </div>
@@ -437,9 +430,9 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
 
         {/* Contenu des slides */}
         <Card className="overflow-hidden">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <form onSubmit={handleSubmit}>
-              <div className="relative h-[500px]">
+              <div className="relative min-h-[400px] sm:min-h-[500px]">
                 <AnimatePresence initial={false} custom={direction}>
                   <motion.div
                     key={currentSlide}
@@ -452,7 +445,7 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
                       x: { type: "spring", stiffness: 300, damping: 30 },
                       opacity: { duration: 0.2 }
                     }}
-                    className="absolute inset-0"
+                    className="absolute inset-0 overflow-y-auto"
                   >
                     <CurrentSlide />
                   </motion.div>
@@ -460,13 +453,13 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
               </div>
 
               {/* Navigation */}
-              <div className="flex gap-3 mt-6">
+              <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6">
                 {currentSlide > 0 && (
                   <Button
                     type="button"
                     variant="outline"
                     onClick={prevSlide}
-                    className="flex-1"
+                    className="flex-1 text-sm sm:text-base"
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Précédent
@@ -477,7 +470,7 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="flex-1"
+                    className="flex-1 text-sm sm:text-base"
                   >
                     {loading ? (
                       <>
@@ -486,7 +479,7 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
                       </>
                     ) : (
                       <>
-                        Confirmer la commande
+                        Confirmer
                         <CheckCircle2 className="ml-2 h-4 w-4" />
                       </>
                     )}
@@ -496,7 +489,7 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
                     type="button"
                     onClick={nextSlide}
                     disabled={!canProceed()}
-                    className="flex-1"
+                    className="flex-1 text-sm sm:text-base"
                   >
                     Suivant
                     <ArrowRight className="ml-2 h-4 w-4" />
