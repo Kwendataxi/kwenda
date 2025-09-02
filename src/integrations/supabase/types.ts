@@ -3849,6 +3849,45 @@ export type Database = {
         }
         Relationships: []
       }
+      sensitive_data_access_logs: {
+        Row: {
+          access_reason: string | null
+          access_type: string
+          accessed_by: string
+          accessed_columns: string[] | null
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          target_record_id: string | null
+          target_table: string
+          user_agent: string | null
+        }
+        Insert: {
+          access_reason?: string | null
+          access_type: string
+          accessed_by: string
+          accessed_columns?: string[] | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          target_record_id?: string | null
+          target_table: string
+          user_agent?: string | null
+        }
+        Update: {
+          access_reason?: string | null
+          access_type?: string
+          accessed_by?: string
+          accessed_columns?: string[] | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          target_record_id?: string | null
+          target_table?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       service_zones: {
         Row: {
           base_price_multiplier: number
@@ -5551,6 +5590,18 @@ export type Database = {
           pickup_lng: number
         }[]
       }
+      get_driver_location_with_audit: {
+        Args: { target_driver_id: string }
+        Returns: {
+          driver_id: string
+          is_available: boolean
+          is_online: boolean
+          last_ping: string
+          latitude: number
+          longitude: number
+          vehicle_class: string
+        }[]
+      }
       get_driver_zones: {
         Args: { zone_radius_km?: number }
         Returns: {
@@ -5592,6 +5643,20 @@ export type Database = {
           member_since: string
           user_id: string
           user_type: string
+        }[]
+      }
+      get_public_chauffeur_info: {
+        Args: { chauffeur_id: string }
+        Returns: {
+          display_name: string
+          id: string
+          is_active: boolean
+          rating_average: number
+          total_rides: number
+          vehicle_color: string
+          vehicle_model: string
+          vehicle_type: string
+          verification_status: string
         }[]
       }
       get_safe_user_info: {
@@ -5705,6 +5770,16 @@ export type Database = {
           p_access_reason?: string
           p_access_type: string
           p_driver_id: string
+        }
+        Returns: undefined
+      }
+      log_sensitive_data_access: {
+        Args: {
+          p_access_reason?: string
+          p_access_type?: string
+          p_accessed_columns?: string[]
+          p_target_record_id?: string
+          p_target_table: string
         }
         Returns: undefined
       }
