@@ -4717,6 +4717,42 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_financial_access_logs: {
+        Row: {
+          access_reason: string | null
+          access_type: string
+          accessed_by: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          sensitive_data_accessed: Json | null
+          target_vendor_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          access_reason?: string | null
+          access_type: string
+          accessed_by: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          sensitive_data_accessed?: Json | null
+          target_vendor_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          access_reason?: string | null
+          access_type?: string
+          accessed_by?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          sensitive_data_accessed?: Json | null
+          target_vendor_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       vendor_notifications: {
         Row: {
           acknowledged_at: string | null
@@ -5224,7 +5260,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      secure_vendor_earnings_view: {
+        Row: {
+          amount: number | null
+          confirmed_at: string | null
+          created_at: string | null
+          currency: string | null
+          earnings_type: string | null
+          id: string | null
+          order_id: string | null
+          paid_at: string | null
+          status: string | null
+          vendor_id: string | null
+        }
+        Insert: {
+          amount?: never
+          confirmed_at?: string | null
+          created_at?: string | null
+          currency?: string | null
+          earnings_type?: string | null
+          id?: string | null
+          order_id?: string | null
+          paid_at?: string | null
+          status?: string | null
+          vendor_id?: string | null
+        }
+        Update: {
+          amount?: never
+          confirmed_at?: string | null
+          created_at?: string | null
+          currency?: string | null
+          earnings_type?: string | null
+          id?: string | null
+          order_id?: string | null
+          paid_at?: string | null
+          status?: string | null
+          vendor_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_delivery_estimate: {
@@ -5330,6 +5404,15 @@ export type Database = {
         Args: { query_text: string }
         Returns: Json
       }
+      get_anonymized_vendor_performance: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avg_monthly_earnings: number
+          avg_orders_per_month: number
+          performance_tier: string
+          vendor_count: number
+        }[]
+      }
       get_delivery_zone_info: {
         Args: { assignment_id_param: string }
         Returns: {
@@ -5365,6 +5448,15 @@ export type Database = {
           zone_center_lng: number
         }[]
       }
+      get_market_benchmark_stats: {
+        Args: { category_filter?: string }
+        Returns: {
+          avg_earnings_per_vendor: number
+          median_order_value: number
+          top_25_percent_threshold: number
+          total_active_vendors: number
+        }[]
+      }
       get_notification_stats: {
         Args: { admin_id?: string }
         Returns: Json
@@ -5379,6 +5471,16 @@ export type Database = {
           admin_role: Database["public"]["Enums"]["admin_role"]
           permissions: Database["public"]["Enums"]["permission"][]
           role: Database["public"]["Enums"]["user_role"]
+        }[]
+      }
+      get_vendor_earnings_summary: {
+        Args: { period_days?: number; vendor_id_param?: string }
+        Returns: {
+          average_order_value: number
+          last_payment_date: string
+          pending_amount: number
+          total_earnings: number
+          total_orders: number
         }[]
       }
       get_zone_for_coordinates: {
