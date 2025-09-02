@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import PerformanceOptimizer from "@/components/performance/PerformanceOptimizer";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -38,6 +39,7 @@ const App = () => (
         <LanguageProvider>
         <TooltipProvider>
           <ChatProvider>
+            <PerformanceOptimizer>
             <Toaster />
             <Sonner />
             <BrowserRouter>
@@ -87,10 +89,11 @@ const App = () => (
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-          </ChatProvider>
-        </TooltipProvider>
+             </Routes>
+           </BrowserRouter>
+            </PerformanceOptimizer>
+           </ChatProvider>
+         </TooltipProvider>
         </LanguageProvider>
       </FavoritesProvider>
     </AuthProvider>

@@ -156,7 +156,7 @@ export const UniversalLocationPicker: React.FC<UniversalLocationPickerProps> = (
   }, [isOpen]);
 
   useEffect(() => {
-    // Recherche avec debounce
+    // Recherche avec debounce optimisée
     if (searchTimeout.current) {
       clearTimeout(searchTimeout.current);
     }
@@ -165,6 +165,7 @@ export const UniversalLocationPicker: React.FC<UniversalLocationPickerProps> = (
       setIsSearching(true);
       searchTimeout.current = setTimeout(async () => {
         try {
+          // Utiliser le service optimisé avec cache et anti-spam
           const results = await searchLocation(query);
           setSearchResults(results.slice(0, finalMaxResults));
         } catch (error) {
@@ -173,7 +174,7 @@ export const UniversalLocationPicker: React.FC<UniversalLocationPickerProps> = (
         } finally {
           setIsSearching(false);
         }
-      }, 300);
+      }, 500); // Augmenté à 500ms pour réduire les requêtes
     } else {
       setSearchResults([]);
       setIsSearching(false);

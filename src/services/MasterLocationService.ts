@@ -34,6 +34,8 @@ interface UseMasterLocationOptions {
 class MasterLocationService {
   private cache = new Map<string, any>();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private requestCache = new Map<string, Promise<any>>();
+  private debounceTimers = new Map<string, NodeJS.Timeout>();
 
   // ============ GÉOLOCALISATION PRINCIPALE ============
 
@@ -250,6 +252,67 @@ class MasterLocationService {
   async searchLocation(query: string, currentLocation?: LocationData): Promise<LocationSearchResult[]> {
     if (!query.trim()) return [];
 
+    const cacheKey = `search_${query.trim()}_${currentLocation ? this.getRegionFromLocation(currentLocation) : 'cd'}`;
+    
+    // Vérifier le cache
+    if (this.cache.has(cacheKey)) {
+      const cached = this.cache.get(cacheKey);
+      if (Date.now() - cached.timestamp < this.CACHE_DURATION) {
+        return cached.data;
+      }
+    }
+
+    // Éviter les requêtes multiples simultanées
+    if (this.requestCache.has(cacheKey)) {
+      return this.requestCache.get(cacheKey);
+    }
+
+    // Debouncing pour éviter trop de requêtes
+    const request = this.debouncedSearch(query, currentLocation, cacheKey);
+    this.requestCache.set(cacheKey, request);
+    
+    try {
+      const result = await request;
+      this.requestCache.delete(cacheKey);
+      return result;
+    } catch (error) {
+      this.requestCache.delete(cacheKey);
+      throw error;
+    }
+  }
+
+  private async debouncedSearch(query: string, currentLocation?: LocationData, cacheKey?: string): Promise<LocationSearchResult[]> {
+    return new Promise(async (resolve) => {
+      // Nettoyer le timer précédent
+      if (this.debounceTimers.has(query)) {
+        clearTimeout(this.debounceTimers.get(query)!);
+      }
+
+      // Créer un nouveau timer
+      const timer = setTimeout(async () => {
+        try {
+          const result = await this.performSearch(query, currentLocation);
+          
+          // Mettre en cache le résultat
+          if (cacheKey) {
+            this.cache.set(cacheKey, {
+              data: result,
+              timestamp: Date.now()
+            });
+          }
+          
+          resolve(result);
+        } catch (error) {
+          console.error('Search error:', error);
+          resolve(this.searchLocalDatabase(query));
+        }
+      }, 300); // Debounce de 300ms
+
+      this.debounceTimers.set(query, timer);
+    });
+  }
+
+  private async performSearch(query: string, currentLocation?: LocationData): Promise<LocationSearchResult[]> {
     try {
       // Recherche via geocode-proxy avec fallback intelligent
       const { data, error } = await supabase.functions.invoke('geocode-proxy', {
