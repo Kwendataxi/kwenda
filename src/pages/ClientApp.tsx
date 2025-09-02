@@ -284,24 +284,26 @@ const ClientApp = () => {
   };
 
   const renderHome = () => (
-    <ModernHomeScreen
-      onServiceSelect={handleServiceSelect}
-      onSearch={handleUniversalSearch}
-      featuredProducts={homeProducts}
-      onProductSelect={(product) => {
-        setServiceType('marketplace');
-        setCurrentView('service');
-      }}
-      onMarketplaceViewAll={handleMarketplaceViewAll}
-      onNavigateToTestData={() => setCurrentView('test-data')}
-    />
+    <div className="pb-24">
+      <ModernHomeScreen
+        onServiceSelect={handleServiceSelect}
+        onSearch={handleUniversalSearch}
+        featuredProducts={homeProducts}
+        onProductSelect={(product) => {
+          setServiceType('marketplace');
+          setCurrentView('service');
+        }}
+        onMarketplaceViewAll={handleMarketplaceViewAll}
+        onNavigateToTestData={() => setCurrentView('test-data')}
+      />
+    </div>
   );
 
   // Remove old booking handler since AdvancedTaxiInterface is self-contained
 
   const renderTransportService = () => {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 pb-24">
         <AdvancedTaxiInterface 
           initialPickup={taxiPrefill.pickup}
           initialDestination={taxiPrefill.destination}
@@ -410,10 +412,12 @@ const ClientApp = () => {
     }
 
     return (
-      <FluidRentalInterface
-        onCancel={() => setCurrentView('home')}
-        onBookingComplete={handleRentalBookingComplete}
-      />
+      <div className="pb-24">
+        <FluidRentalInterface
+          onCancel={() => setCurrentView('home')}
+          onBookingComplete={handleRentalBookingComplete}
+        />
+      </div>
     );
   };
 
@@ -454,10 +458,12 @@ const ClientApp = () => {
       );
     }
     return (
-      <EnhancedDeliveryInterface
-        onSubmit={handleModernDeliverySubmit}
-        onCancel={() => setCurrentView('home')}
-      />
+      <div className="pb-24">
+        <EnhancedDeliveryInterface
+          onSubmit={handleModernDeliverySubmit}
+          onCancel={() => setCurrentView('home')}
+        />
+      </div>
     );
   };
 

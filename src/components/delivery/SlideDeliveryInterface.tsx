@@ -717,11 +717,11 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
   const CurrentSlideComponent = slides[currentSlide];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 p-4">
+    <div className="bg-gradient-to-br from-background via-background/95 to-muted/20 p-4 pb-24 min-h-screen overflow-y-auto">
       <div className="max-w-md mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-3">
             <Button
               variant="ghost"
               onClick={currentSlide === 0 ? onCancel : prevSlide}
@@ -775,7 +775,7 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
           </div>
         </div>
 
-        {/* Slides container */}
+        {/* Slides container - scrollable content */}
         <div className="relative overflow-hidden">
           <AnimatePresence mode="wait" custom={direction}>
             <CurrentSlideComponent />
