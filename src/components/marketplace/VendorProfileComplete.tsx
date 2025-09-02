@@ -97,9 +97,9 @@ export const VendorProfileComplete: React.FC<VendorProfileCompleteProps> = ({
       // Transformer les produits pour correspondre à l'interface
       const transformedProducts: VendorProduct[] = products?.map(p => ({
         id: p.id,
-        name: p.name || 'Produit sans nom',
+        name: p.title || 'Produit sans nom',
         price: p.price,
-        image: typeof p.images === 'string' ? p.images : (Array.isArray(p.images) ? p.images[0] : undefined),
+        image: typeof p.images === 'string' ? p.images : (Array.isArray(p.images) && p.images.length > 0 ? String(p.images[0]) : undefined),
         category: p.category,
         is_available: p.moderation_status === 'approved',
         created_at: p.created_at
