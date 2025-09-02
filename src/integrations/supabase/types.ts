@@ -5260,45 +5260,7 @@ export type Database = {
       }
     }
     Views: {
-      secure_vendor_earnings_view: {
-        Row: {
-          amount: number | null
-          confirmed_at: string | null
-          created_at: string | null
-          currency: string | null
-          earnings_type: string | null
-          id: string | null
-          order_id: string | null
-          paid_at: string | null
-          status: string | null
-          vendor_id: string | null
-        }
-        Insert: {
-          amount?: never
-          confirmed_at?: string | null
-          created_at?: string | null
-          currency?: string | null
-          earnings_type?: string | null
-          id?: string | null
-          order_id?: string | null
-          paid_at?: string | null
-          status?: string | null
-          vendor_id?: string | null
-        }
-        Update: {
-          amount?: never
-          confirmed_at?: string | null
-          created_at?: string | null
-          currency?: string | null
-          earnings_type?: string | null
-          id?: string | null
-          order_id?: string | null
-          paid_at?: string | null
-          status?: string | null
-          vendor_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       calculate_delivery_estimate: {
@@ -5461,6 +5423,25 @@ export type Database = {
         Args: { admin_id?: string }
         Returns: Json
       }
+      get_secure_vendor_earnings: {
+        Args: {
+          limit_records?: number
+          offset_records?: number
+          vendor_filter?: string
+        }
+        Returns: {
+          amount: number
+          confirmed_at: string
+          created_at: string
+          currency: string
+          earnings_type: string
+          id: string
+          order_id: string
+          paid_at: string
+          status: string
+          vendor_id: string
+        }[]
+      }
       get_user_role: {
         Args: { user_id_param: string }
         Returns: string
@@ -5471,6 +5452,17 @@ export type Database = {
           admin_role: Database["public"]["Enums"]["admin_role"]
           permissions: Database["public"]["Enums"]["permission"][]
           role: Database["public"]["Enums"]["user_role"]
+        }[]
+      }
+      get_vendor_dashboard_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          average_order_value: number
+          current_month_earnings: number
+          last_month_earnings: number
+          pending_payments: number
+          top_selling_category: string
+          total_orders_this_month: number
         }[]
       }
       get_vendor_earnings_summary: {
