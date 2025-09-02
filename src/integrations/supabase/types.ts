@@ -5442,6 +5442,16 @@ export type Database = {
           vendor_id: string
         }[]
       }
+      get_secure_vendor_earnings_summary: {
+        Args: { period_days?: number }
+        Returns: {
+          average_order_value: number
+          last_payment_date: string
+          pending_amount: number
+          total_earnings: number
+          total_orders: number
+        }[]
+      }
       get_user_role: {
         Args: { user_id_param: string }
         Returns: string
