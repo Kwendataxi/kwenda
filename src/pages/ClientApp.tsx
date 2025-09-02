@@ -56,7 +56,7 @@ import TripChat from '@/components/transport/TripChat';
 // Delivery components
 import ModernDeliveryOrderInterface from '@/components/delivery/ModernDeliveryOrderInterface';
 import DeliveryTracking from '@/components/delivery/DeliveryTracking';
-import FluidDeliveryInterface from '@/components/delivery/FluidDeliveryInterface';
+import EnhancedDeliveryInterface from '@/components/delivery/EnhancedDeliveryInterface';
 
 // Rental components
 import FluidRentalInterface from '@/components/rental/FluidRentalInterface';
@@ -454,7 +454,7 @@ const ClientApp = () => {
       );
     }
     return (
-      <FluidDeliveryInterface
+      <EnhancedDeliveryInterface
         onSubmit={handleModernDeliverySubmit}
         onCancel={() => setCurrentView('home')}
       />
