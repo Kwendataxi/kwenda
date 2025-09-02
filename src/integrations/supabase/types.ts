@@ -5481,6 +5481,10 @@ export type Database = {
         Args: { target_driver_id: string }
         Returns: boolean
       }
+      cleanup_old_audit_logs: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       create_support_ticket: {
         Args: {
           p_category: string
@@ -5669,6 +5673,15 @@ export type Database = {
           user_type: string
         }[]
       }
+      get_secure_financial_summary: {
+        Args: { user_id_param: string }
+        Returns: {
+          available_balance: number
+          last_transaction_date: string
+          pending_amount: number
+          total_earnings: number
+        }[]
+      }
       get_secure_vendor_earnings: {
         Args: {
           limit_records?: number
@@ -5696,6 +5709,16 @@ export type Database = {
           pending_amount: number
           total_earnings: number
           total_orders: number
+        }[]
+      }
+      get_security_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          admin_access_count: number
+          failed_login_attempts: number
+          financial_access_count: number
+          last_24h_violations: number
+          suspicious_activities: number
         }[]
       }
       get_user_role: {
