@@ -2483,6 +2483,42 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_access_logs: {
+        Row: {
+          access_reason: string | null
+          access_type: string
+          accessed_by: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          sensitive_data_accessed: Json | null
+          target_payment_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          access_reason?: string | null
+          access_type: string
+          accessed_by: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          sensitive_data_accessed?: Json | null
+          target_payment_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          access_reason?: string | null
+          access_type?: string
+          accessed_by?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          sensitive_data_accessed?: Json | null
+          target_payment_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       payment_methods: {
         Row: {
           account_name: string | null
@@ -3291,6 +3327,36 @@ export type Database = {
           id?: string
           is_premium?: boolean | null
           name?: string
+        }
+        Relationships: []
+      }
+      rental_payment_access_logs: {
+        Row: {
+          access_reason: string | null
+          access_type: string
+          accessed_by: string
+          created_at: string
+          id: string
+          sensitive_data_accessed: Json | null
+          target_payment_id: string
+        }
+        Insert: {
+          access_reason?: string | null
+          access_type: string
+          accessed_by: string
+          created_at?: string
+          id?: string
+          sensitive_data_accessed?: Json | null
+          target_payment_id: string
+        }
+        Update: {
+          access_reason?: string | null
+          access_type?: string
+          accessed_by?: string
+          created_at?: string
+          id?: string
+          sensitive_data_accessed?: Json | null
+          target_payment_id?: string
         }
         Relationships: []
       }
