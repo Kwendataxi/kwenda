@@ -5862,6 +5862,10 @@ export type Database = {
           surge_multiplier: number
         }[]
       }
+      has_permission: {
+        Args: { permission_param: string; user_id_param: string }
+        Returns: boolean
+      }
       is_current_user_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
