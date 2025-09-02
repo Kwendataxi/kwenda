@@ -47,7 +47,7 @@ const ReferralSystem: React.FC = () => {
   };
 
   const shareReferralLink = () => {
-    const shareText = `Rejoins-moi sur Kwenda Taxi avec mon code de parrainage ${referralData.userCode} et gagne 2000 FC! 🚗💰`;
+    const shareText = `Rejoins-moi sur Kwenda Taxi avec mon code de parrainage ${referralData.userCode} et gagne 2000 CDF! 🚗💰`;
     
     if (navigator.share) {
       navigator.share({
@@ -77,7 +77,7 @@ const ReferralSystem: React.FC = () => {
       <div className="text-center space-y-2">
         <h1 className="text-2xl md:text-3xl font-bold">Système de Parrainage</h1>
         <p className="text-sm md:text-base text-muted-foreground px-4">
-          Invitez vos amis et gagnez 2000 FC pour chaque utilisateur
+          Invitez vos amis et gagnez 2000 CDF pour chaque utilisateur
         </p>
       </div>
 
@@ -241,7 +241,7 @@ const ReferralSystem: React.FC = () => {
                   {
                     step: 3,
                     title: "Gagnez des récompenses",
-                    description: "Recevez 2000 FC pour chaque ami qui fait sa première course"
+                    description: "Recevez 2000 CDF pour chaque ami qui fait sa première course"
                   }
                 ].map((item) => (
                   <div key={item.step} className="flex items-start space-x-3">
@@ -295,10 +295,10 @@ const ReferralSystem: React.FC = () => {
             <CardContent>
               <div className="space-y-3">
                 {[
-                  { level: 'Bronze', referrals: '1-20', bonus: '2000 FC', active: true, color: 'orange' },
-                  { level: 'Argent', referrals: '21-50', bonus: '3000 FC', active: false, color: 'gray' },
-                  { level: 'Or', referrals: '51-100', bonus: '5000 FC', active: false, color: 'yellow' },
-                  { level: 'Platine', referrals: '100+', bonus: '10000 FC', active: false, color: 'blue' }
+                  { level: 'Bronze', referrals: '1-20', bonus: '2000 CDF', active: true, color: 'orange' },
+                  { level: 'Argent', referrals: '21-50', bonus: '3000 CDF', active: false, color: 'gray' },
+                  { level: 'Or', referrals: '51-100', bonus: '5000 CDF', active: false, color: 'yellow' },
+                  { level: 'Platine', referrals: '100+', bonus: '10000 CDF', active: false, color: 'blue' }
                 ].map((tier, index) => (
                   <div 
                     key={index} 

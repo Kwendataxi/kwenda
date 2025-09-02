@@ -71,27 +71,27 @@ export const ClientEscrowDashboard: React.FC = () => {
     try {
       setLoading(true);
 
-      // Fetch escrow transactions
+      // Fetch escrow transactions via marketplace_orders with escrow_payments
       const { data: escrowData, error: escrowError } = await supabase
-        .from('escrow_transactions')
+        .from('marketplace_orders')
         .select(`
           *,
-          order:marketplace_orders!escrow_transactions_order_id_fkey (
-            product_id,
-            quantity,
-            unit_price,
-            delivery_method,
+          marketplace_products (
+            title,
+            images
+          ),
+          escrow_payments (
+            id,
             status,
-            created_at,
-            confirmed_at,
-            delivered_at,
-            marketplace_products (
-              title,
-              images
-            )
+            amount,
+            currency,
+            held_at,
+            released_at,
+            completed_at
           )
         `)
         .eq('buyer_id', user.id)
+        .not('escrow_payments', 'is', null)
         .order('created_at', { ascending: false });
 
       if (escrowError) throw escrowError;
@@ -104,7 +104,35 @@ export const ClientEscrowDashboard: React.FC = () => {
         .eq('currency', 'CDF')
         .single();
 
-      setEscrowTransactions((escrowData as any[])?.filter(item => item.order) || []);
+      // Transform data to expected format
+      const transformedData = (escrowData as any[])?.map(order => ({
+        id: order.escrow_payments?.[0]?.id || order.id,
+        order_id: order.id,
+        buyer_id: order.buyer_id,
+        seller_id: order.seller_id,
+        driver_id: null,
+        total_amount: order.escrow_payments?.[0]?.amount || order.total_amount,
+        seller_amount: order.escrow_payments?.[0]?.amount || order.total_amount,
+        platform_fee: 0,
+        status: order.escrow_payments?.[0]?.status || 'held',
+        currency: order.escrow_payments?.[0]?.currency || 'CDF',
+        held_at: order.escrow_payments?.[0]?.held_at || order.created_at,
+        released_at: order.escrow_payments?.[0]?.released_at,
+        completed_at: order.escrow_payments?.[0]?.completed_at,
+        order: {
+          product_id: order.product_id,
+          quantity: order.quantity,
+          unit_price: order.unit_price,
+          delivery_method: order.delivery_method,
+          status: order.status,
+          created_at: order.created_at,
+          confirmed_at: order.confirmed_at,
+          delivered_at: order.delivered_at,
+          marketplace_products: order.marketplace_products
+        }
+      })) || [];
+      
+      setEscrowTransactions(transformedData);
       setWalletInfo(walletData ? { ...walletData, pending_withdrawals: 0 } : null);
 
     } catch (error) {
@@ -228,7 +256,7 @@ export const ClientEscrowDashboard: React.FC = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Solde KwendaPay</p>
                 <p className="text-2xl font-bold">
-                  {walletInfo ? `${walletInfo.balance.toLocaleString()} FC` : '0 FC'}
+                  {walletInfo ? `${walletInfo.balance.toLocaleString()} CDF` : '0 CDF'}
                 </p>
               </div>
             </div>
@@ -245,7 +273,7 @@ export const ClientEscrowDashboard: React.FC = () => {
                   {escrowTransactions
                     .filter(t => t.status === 'held')
                     .reduce((sum, t) => sum + t.total_amount, 0)
-                    .toLocaleString()} FC
+                    .toLocaleString()} CDF
                 </p>
               </div>
             </div>
@@ -386,7 +414,7 @@ const EscrowTransactionsList: React.FC<EscrowTransactionsListProps> = ({
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">Montant total</p>
-                  <p className="font-semibold">{transaction.total_amount.toLocaleString()} FC</p>
+                  <p className="font-semibold">{transaction.total_amount.toLocaleString()} CDF</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Date de création</p>

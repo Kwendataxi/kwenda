@@ -310,7 +310,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
           vendorLocation.lat, vendorLocation.lng
         );
         
-        // Calculate delivery fee (base 2000 FC + 500 FC per km)
+        // Calculate delivery fee (base 2000 CDF + 500 CDF per km)
         const deliveryFee = 2000 + (distance * 500);
         
         // Create order for this vendor
@@ -323,7 +323,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
             `${coordinates.lat}, ${coordinates.lng}`,
             coordinates,
             'delivery',
-            `Commande via marketplace - Distance: ${distance.toFixed(1)}km - Frais de livraison: ${deliveryFee.toLocaleString()} FC`
+            `Commande via marketplace - Distance: ${distance.toFixed(1)}km - Frais de livraison: ${deliveryFee.toLocaleString()} CDF`
           );
         }
       }

@@ -166,7 +166,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                 <DollarSign className="h-4 w-4 text-purple-500" />
                 <div>
                   <p className="text-sm text-muted-foreground">Revenus</p>
-                  <p className="text-2xl font-bold">{stats.totalRevenue.toLocaleString()} FC</p>
+                  <p className="text-2xl font-bold">{stats.totalRevenue.toLocaleString()} CDF</p>
                 </div>
               </div>
             </CardContent>
@@ -196,7 +196,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                           Par {product.profiles?.display_name || 'Vendeur inconnu'}
                         </p>
                         <p className="text-sm font-semibold text-primary">
-                          {product.price?.toLocaleString()} FC
+                          {product.price?.toLocaleString()} CDF
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -235,7 +235,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                           Par {order.profiles?.display_name || 'Acheteur inconnu'}
                         </p>
                         <p className="text-sm font-semibold text-primary">
-                          {order.total_amount?.toLocaleString()} FC
+                          {order.total_amount?.toLocaleString()} CDF
                         </p>
                       </div>
                       <Badge variant={

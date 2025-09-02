@@ -345,7 +345,7 @@ export const AdminCreateProductForm: React.FC<AdminCreateProductFormProps> = ({ 
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="price">Prix (FC) *</Label>
+                <Label htmlFor="price">Prix (CDF) *</Label>
                 <Input
                   id="price"
                   type="number"
