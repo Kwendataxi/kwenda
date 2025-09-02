@@ -581,6 +581,36 @@ export type Database = {
           },
         ]
       }
+      delivery_fees: {
+        Row: {
+          base_fee: number
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          service_type: string
+          updated_at: string
+        }
+        Insert: {
+          base_fee?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          service_type?: string
+          updated_at?: string
+        }
+        Update: {
+          base_fee?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          service_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       delivery_orders: {
         Row: {
           actual_price: number | null
@@ -4666,6 +4696,171 @@ export type Database = {
           sound_played?: boolean
           title?: string
           vendor_id?: string
+        }
+        Relationships: []
+      }
+      vendor_subscriptions: {
+        Row: {
+          created_at: string
+          customer_id: string
+          id: string
+          is_active: boolean
+          notification_preferences: Json | null
+          subscribed_at: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          id?: string
+          is_active?: boolean
+          notification_preferences?: Json | null
+          subscribed_at?: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          id?: string
+          is_active?: boolean
+          notification_preferences?: Json | null
+          subscribed_at?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: []
+      }
+      vendor_wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          description: string
+          id: string
+          reference_id: string | null
+          reference_type: string | null
+          status: string
+          transaction_type: string
+          vendor_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          description: string
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          transaction_type: string
+          vendor_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          description?: string
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          transaction_type?: string
+          vendor_id?: string
+          wallet_id?: string
+        }
+        Relationships: []
+      }
+      vendor_wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          last_withdrawal_date: string | null
+          total_earned: number
+          total_withdrawn: number
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          last_withdrawal_date?: string | null
+          total_earned?: number
+          total_withdrawn?: number
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          last_withdrawal_date?: string | null
+          total_earned?: number
+          total_withdrawn?: number
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: []
+      }
+      vendor_withdrawals: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          fees_amount: number
+          id: string
+          net_amount: number
+          phone_number: string
+          processed_at: string | null
+          provider_reference: string | null
+          status: string
+          updated_at: string
+          vendor_id: string
+          wallet_id: string
+          withdrawal_method: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          fees_amount?: number
+          id?: string
+          net_amount: number
+          phone_number: string
+          processed_at?: string | null
+          provider_reference?: string | null
+          status?: string
+          updated_at?: string
+          vendor_id: string
+          wallet_id: string
+          withdrawal_method: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          fees_amount?: number
+          id?: string
+          net_amount?: number
+          phone_number?: string
+          processed_at?: string | null
+          provider_reference?: string | null
+          status?: string
+          updated_at?: string
+          vendor_id?: string
+          wallet_id?: string
+          withdrawal_method?: string
         }
         Relationships: []
       }
