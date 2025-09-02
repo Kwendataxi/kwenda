@@ -14,6 +14,7 @@ import {
   Star,
   Navigation
 } from 'lucide-react';
+import { useDeliveryTracking } from '@/hooks/useDeliveryTracking';
 
 interface DeliveryStatus {
   id: string;
@@ -32,120 +33,69 @@ interface DeliveryTrackingProps {
 }
 
 const DeliveryTracking = ({ orderId, orderData, onBack }: DeliveryTrackingProps) => {
-  const [currentStatusIndex, setCurrentStatusIndex] = useState(1);
-  const [deliveryInfo] = useState({
-    id: orderId,
-    estimatedDelivery: '14:30',
-    driverName: 'Kasongo Mbaya',
-    driverPhone: '+243 812 345 678',
-    driverRating: 4.9,
-    vehicleInfo: 'Moto Honda - KIN 123',
-    packageType: orderData?.mode || 'Flash',
-    cost: orderData?.price ? `${orderData.price.toLocaleString()} FC` : '2,500 FC'
-  });
+  const { 
+    order, 
+    loading, 
+    error, 
+    driverProfile, 
+    recipientProfile, 
+    driverLocation, 
+    statusHistory, 
+    statusLabel, 
+    price, 
+    packageType 
+  } = useDeliveryTracking(orderId);
 
-  const [statusHistory, setStatusHistory] = useState<DeliveryStatus[]>([
-    {
-      id: '1',
-      title: 'Commande confirmée',
-      description: 'Votre demande de livraison a été acceptée',
-      timestamp: '12:30',
-      completed: true,
-      current: false,
-      icon: CheckCircle
-    },
-    {
-      id: '2',
-      title: 'Livreur assigné',
-      description: 'Un livreur se dirige vers le point de retrait',
-      timestamp: '12:45',
-      completed: true,
-      current: true,
-      icon: User
-    },
-    {
-      id: '3',
-      title: 'Colis récupéré',
-      description: 'Le livreur a récupéré votre colis',
-      timestamp: '',
-      completed: false,
-      current: false,
-      icon: Package
-    },
-    {
-      id: '4',
-      title: 'En cours de livraison',
-      description: 'Le colis est en route vers la destination',
-      timestamp: '',
-      completed: false,
-      current: false,
-      icon: Truck
-    },
-    {
-      id: '5',
-      title: 'Livré',
-      description: 'Colis livré avec succès',
-      timestamp: '',
-      completed: false,
-      current: false,
-      icon: CheckCircle
-    }
-  ]);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    // Simulation de la progression de la livraison
-    const intervals = [3000, 5000, 4000, 3000]; // Durées pour chaque étape
-    let currentIndex = 1;
+  if (error || !order) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600">Erreur: {error || 'Commande non trouvée'}</p>
+        <Button onClick={onBack} variant="outline" className="mt-4">
+          Retour
+        </Button>
+      </div>
+    );
+  }
 
-    const progressDelivery = () => {
-      if (currentIndex < statusHistory.length - 1) {
-        setTimeout(() => {
-          setCurrentStatusIndex(currentIndex + 1);
-          setStatusHistory(prev => prev.map((status, index) => {
-            if (index === currentIndex - 1) {
-              return { ...status, current: false, completed: true };
-            }
-            if (index === currentIndex) {
-              return { 
-                ...status, 
-                current: true, 
-                completed: false,
-                timestamp: new Date().toLocaleTimeString('fr-FR', { 
-                  hour: '2-digit', 
-                  minute: '2-digit' 
-                })
-              };
-            }
-            return status;
-          }));
-          currentIndex++;
-          progressDelivery();
-        }, intervals[currentIndex - 1]);
-      } else {
-        // Livraison terminée
-        setTimeout(() => {
-          setStatusHistory(prev => prev.map((status, index) => {
-            if (index === prev.length - 1) {
-              return { 
-                ...status, 
-                current: false, 
-                completed: true,
-                timestamp: new Date().toLocaleTimeString('fr-FR', { 
-                  hour: '2-digit', 
-                  minute: '2-digit' 
-                })
-              };
-            }
-            return status;
-          }));
-        }, 2000);
-      }
-    };
+  // Construire l'historique des statuts avec les données réelles
+  const getStatusSteps = () => {
+    const allSteps = [
+      { key: 'confirmed', title: 'Commande confirmée', description: 'Votre demande de livraison a été acceptée', icon: CheckCircle },
+      { key: 'driver_assigned', title: 'Livreur assigné', description: 'Un livreur se dirige vers le point de retrait', icon: User },
+      { key: 'picked_up', title: 'Colis récupéré', description: 'Le livreur a récupéré votre colis', icon: Package },
+      { key: 'in_transit', title: 'En cours de livraison', description: 'Le colis est en route vers la destination', icon: Truck },
+      { key: 'delivered', title: 'Livré', description: 'Colis livré avec succès', icon: CheckCircle }
+    ];
 
-    progressDelivery();
-  }, []);
+    return allSteps.map((step, index) => {
+      const historyItem = statusHistory.find(h => h.status === step.key);
+      const currentIndex = allSteps.findIndex(s => s.key === order?.status);
+      
+      return {
+        id: step.key,
+        title: step.title,
+        description: step.description,
+        timestamp: historyItem ? new Date(historyItem.changed_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
+        completed: index <= currentIndex && order?.status !== 'pending',
+        current: index === currentIndex,
+        icon: step.icon
+      };
+    });
+  };
 
-  const isDelivered = statusHistory[statusHistory.length - 1]?.completed;
+  const statusSteps = getStatusSteps();
+
+  const isDelivered = order?.status === 'delivered';
+
+  
 
   return (
     <div className="space-y-6">
@@ -154,7 +104,7 @@ const DeliveryTracking = ({ orderId, orderData, onBack }: DeliveryTrackingProps)
           {isDelivered ? 'Livraison terminée !' : 'Suivi de votre livraison'}
         </h2>
         <p className="text-grey-600">
-          Livraison #{orderId.slice(-8)}
+          Livraison #{order.id.slice(-8)} • {packageType}
         </p>
       </div>
 
@@ -167,11 +117,15 @@ const DeliveryTracking = ({ orderId, orderData, onBack }: DeliveryTrackingProps)
                 👨🏿‍💼
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-grey-900">{deliveryInfo.driverName}</h3>
-                <p className="text-sm text-grey-600">{deliveryInfo.vehicleInfo}</p>
+                <h3 className="font-semibold text-grey-900">
+                  {driverProfile?.display_name || 'Chauffeur assigné'}
+                </h3>
+                <p className="text-sm text-grey-600">
+                  {driverProfile?.phone_number || 'Numéro non disponible'}
+                </p>
                 <div className="flex items-center gap-1">
                   <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <span className="text-sm font-medium">{deliveryInfo.driverRating}</span>
+                  <span className="text-sm font-medium">4.8</span>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -202,8 +156,13 @@ const DeliveryTracking = ({ orderId, orderData, onBack }: DeliveryTrackingProps)
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xl font-bold text-primary">{deliveryInfo.estimatedDelivery}</p>
-                <p className="text-sm text-grey-600">{deliveryInfo.cost}</p>
+                <p className="text-xl font-bold text-primary">
+                  {order.delivered_at 
+                    ? new Date(order.delivered_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                    : 'En cours...'
+                  }
+                </p>
+                <p className="text-sm text-grey-600">{price?.toLocaleString()} FC</p>
               </div>
             </div>
           </CardContent>
@@ -217,7 +176,7 @@ const DeliveryTracking = ({ orderId, orderData, onBack }: DeliveryTrackingProps)
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {statusHistory.map((status, index) => (
+            {statusSteps.map((status, index) => (
               <div key={status.id} className="flex items-start gap-4">
                 <div className="flex flex-col items-center">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -229,7 +188,7 @@ const DeliveryTracking = ({ orderId, orderData, onBack }: DeliveryTrackingProps)
                   }`}>
                     <status.icon className="w-5 h-5" />
                   </div>
-                  {index < statusHistory.length - 1 && (
+                  {index < statusSteps.length - 1 && (
                     <div className={`w-0.5 h-8 mt-2 ${
                       status.completed ? 'bg-green-500' : 'bg-grey-200'
                     }`} />
@@ -281,11 +240,16 @@ const DeliveryTracking = ({ orderId, orderData, onBack }: DeliveryTrackingProps)
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-white rounded-lg p-3">
                 <p className="text-sm text-grey-600 mb-1">Reçu par</p>
-                <p className="font-medium">Marie Tshisekedi</p>
+                <p className="font-medium">{order.recipient_signature || 'Non spécifié'}</p>
               </div>
               <div className="bg-white rounded-lg p-3">
                 <p className="text-sm text-grey-600 mb-1">Heure de livraison</p>
-                <p className="font-medium">14:28</p>
+                <p className="font-medium">
+                  {order.delivered_at 
+                    ? new Date(order.delivered_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                    : 'N/A'
+                  }
+                </p>
               </div>
             </div>
             

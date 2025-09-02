@@ -99,13 +99,14 @@ export const useDriverDispatch = () => {
           break;
 
         case 'delivery':
-          const { error: deliveryError } = await supabase
-            .from('delivery_orders')
-            .update({
-              driver_id: user.id,
-              status: 'confirmed'
-            })
-            .eq('id', order.id);
+          // Use the new status manager edge function
+          const { error: deliveryError } = await supabase.functions.invoke('delivery-status-manager', {
+            body: {
+              orderId: order.id,
+              newStatus: 'driver_assigned',
+              driverId: user.id
+            }
+          });
           success = !deliveryError;
           break;
 
@@ -162,13 +163,14 @@ export const useDriverDispatch = () => {
           break;
 
         case 'delivery':
-          const { error: deliveryError } = await supabase
-            .from('delivery_orders')
-            .update({
-              status: 'delivered',
-              delivery_time: new Date().toISOString()
-            })
-            .eq('id', orderId);
+          // Use the new status manager edge function
+          const { error: deliveryError } = await supabase.functions.invoke('delivery-status-manager', {
+            body: {
+              orderId: orderId,
+              newStatus: 'delivered',
+              driverId: user.id
+            }
+          });
           success = !deliveryError;
           break;
 
@@ -224,7 +226,7 @@ export const useDriverDispatch = () => {
           .from('delivery_orders')
           .select('*')
           .eq('driver_id', user.id)
-          .in('status', ['confirmed', 'picked_up', 'in_transit']),
+          .in('status', ['confirmed', 'driver_assigned', 'picked_up', 'in_transit']),
         
         supabase
           .from('marketplace_delivery_assignments')

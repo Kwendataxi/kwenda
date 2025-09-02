@@ -686,21 +686,31 @@ export type Database = {
       delivery_orders: {
         Row: {
           actual_price: number | null
+          cancelled_at: string | null
+          confirmed_at: string | null
           created_at: string
+          delivered_at: string | null
           delivery_coordinates: Json | null
           delivery_location: string
+          delivery_photo_url: string | null
+          delivery_proof: Json | null
           delivery_time: string | null
           delivery_type: string
+          driver_assigned_at: string | null
           driver_id: string | null
+          driver_notes: string | null
           estimated_price: number | null
           id: string
+          in_transit_at: string | null
           loading_assistance: boolean | null
           order_time: string
           package_type: string | null
           package_weight: number | null
+          picked_up_at: string | null
           pickup_coordinates: Json | null
           pickup_location: string
           pickup_time: string | null
+          recipient_signature: string | null
           status: string | null
           updated_at: string
           user_id: string
@@ -708,21 +718,31 @@ export type Database = {
         }
         Insert: {
           actual_price?: number | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
           created_at?: string
+          delivered_at?: string | null
           delivery_coordinates?: Json | null
           delivery_location: string
+          delivery_photo_url?: string | null
+          delivery_proof?: Json | null
           delivery_time?: string | null
           delivery_type: string
+          driver_assigned_at?: string | null
           driver_id?: string | null
+          driver_notes?: string | null
           estimated_price?: number | null
           id?: string
+          in_transit_at?: string | null
           loading_assistance?: boolean | null
           order_time?: string
           package_type?: string | null
           package_weight?: number | null
+          picked_up_at?: string | null
           pickup_coordinates?: Json | null
           pickup_location: string
           pickup_time?: string | null
+          recipient_signature?: string | null
           status?: string | null
           updated_at?: string
           user_id: string
@@ -730,21 +750,31 @@ export type Database = {
         }
         Update: {
           actual_price?: number | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
           created_at?: string
+          delivered_at?: string | null
           delivery_coordinates?: Json | null
           delivery_location?: string
+          delivery_photo_url?: string | null
+          delivery_proof?: Json | null
           delivery_time?: string | null
           delivery_type?: string
+          driver_assigned_at?: string | null
           driver_id?: string | null
+          driver_notes?: string | null
           estimated_price?: number | null
           id?: string
+          in_transit_at?: string | null
           loading_assistance?: boolean | null
           order_time?: string
           package_type?: string | null
           package_weight?: number | null
+          picked_up_at?: string | null
           pickup_coordinates?: Json | null
           pickup_location?: string
           pickup_time?: string | null
+          recipient_signature?: string | null
           status?: string | null
           updated_at?: string
           user_id?: string

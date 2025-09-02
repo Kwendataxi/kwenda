@@ -14,16 +14,38 @@ export interface DeliveryOrder {
   user_id: string;
   driver_id: string | null;
   status: string | null;
-  delivery_type: string; // keep loose to match DB types
+  delivery_type: string;
   pickup_location: string;
   delivery_location: string;
-  pickup_coordinates: any; // JSON from DB
-  delivery_coordinates: any; // JSON from DB
+  pickup_coordinates: any;
+  delivery_coordinates: any;
   estimated_price: number | null;
   actual_price: number | null;
   created_at: string;
-  updated_at: string; // present in DB schema
+  updated_at: string;
   delivery_time: string | null;
+  confirmed_at: string | null;
+  driver_assigned_at: string | null;
+  picked_up_at: string | null;
+  in_transit_at: string | null;
+  delivered_at: string | null;
+  cancelled_at: string | null;
+  delivery_proof: any;
+  driver_notes: string | null;
+  recipient_signature: string | null;
+  delivery_photo_url: string | null;
+}
+
+export interface DeliveryStatusHistory {
+  id: string;
+  delivery_order_id: string;
+  status: string;
+  previous_status: string | null;
+  changed_at: string;
+  changed_by: string | null;
+  notes: string | null;
+  metadata: any;
+  location_coordinates: any;
 }
 
 export interface UserProfileMinimal {
@@ -38,18 +60,21 @@ export const useDeliveryTracking = (orderId: string) => {
   const [driverProfile, setDriverProfile] = useState<UserProfileMinimal | null>(null);
   const [recipientProfile, setRecipientProfile] = useState<UserProfileMinimal | null>(null);
   const [driverLocation, setDriverLocation] = useState<DriverLocation | null>(null);
+  const [statusHistory, setStatusHistory] = useState<DeliveryStatusHistory[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   // Helpers
   const statusLabel = useMemo(() => {
     switch (order?.status) {
       case 'pending':
-        return 'En attente de ramassage';
-      case 'accepted':
+        return 'En attente de confirmation';
+      case 'confirmed':
+        return 'Commande confirmée';
+      case 'driver_assigned':
         return 'Livreur assigné';
       case 'picked_up':
         return 'Colis récupéré';
-      case 'en_route':
+      case 'in_transit':
         return 'En cours de livraison';
       case 'delivered':
         return 'Livré';
@@ -80,6 +105,8 @@ export const useDeliveryTracking = (orderId: string) => {
     const fetchAll = async () => {
       try {
         setLoading(true);
+        
+        // Fetch order with expanded data
         const { data: o, error: oe } = await supabase
           .from('delivery_orders')
           .select('*')
@@ -88,6 +115,17 @@ export const useDeliveryTracking = (orderId: string) => {
         if (oe) throw oe;
         if (!isMounted) return;
         setOrder(o as DeliveryOrder);
+
+        // TODO: Fetch status history once table is in types
+        // const { data: history, error: historyError } = await supabase
+        //   .from('delivery_status_history')
+        //   .select('*')
+        //   .eq('delivery_order_id', orderId)
+        //   .order('changed_at', { ascending: true });
+        // 
+        // if (!historyError && isMounted) {
+        //   setStatusHistory(history || []);
+        // }
 
         // Recipient profile
         const { data: rp } = await supabase
@@ -129,6 +167,10 @@ export const useDeliveryTracking = (orderId: string) => {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'delivery_orders', filter: `id=eq.${orderId}` }, (payload) => {
         setOrder(payload.new as DeliveryOrder);
       })
+      // TODO: Add status history realtime once table is in types
+      // .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'delivery_status_history', filter: `delivery_order_id=eq.${orderId}` }, (payload) => {
+      //   setStatusHistory(prev => [...prev, payload.new as DeliveryStatusHistory]);
+      // })
       .subscribe();
 
     return () => {
@@ -170,6 +212,7 @@ export const useDeliveryTracking = (orderId: string) => {
     driverProfile,
     recipientProfile,
     driverLocation,
+    statusHistory,
     statusLabel,
     price,
     packageType,
