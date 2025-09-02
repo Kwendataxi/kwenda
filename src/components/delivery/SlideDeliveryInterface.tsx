@@ -127,6 +127,7 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
     serviceMode: null,
     pricing: { price: 0, distance: 0, duration: 0 }
   });
+  const [isAutoProgressing, setIsAutoProgressing] = useState(false);
 
   // États de recherche avec debouncing
   const [pickupQuery, setPickupQuery] = useState('');
@@ -145,20 +146,29 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
   const pickupTimeoutRef = useRef<NodeJS.Timeout>();
   const destinationTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Navigation entre slides
-  const nextSlide = () => {
+  // Navigation entre slides avec progression fluide
+  const nextSlide = useCallback(() => {
     if (currentSlide < 3) {
       setDirection(1);
       setCurrentSlide(prev => prev + 1);
     }
-  };
+  }, [currentSlide]);
 
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
     if (currentSlide > 0) {
       setDirection(-1);
       setCurrentSlide(prev => prev - 1);
     }
-  };
+  }, [currentSlide]);
+
+  // Auto-progression moderne
+  const autoProgressToNext = useCallback(() => {
+    setIsAutoProgressing(true);
+    setTimeout(() => {
+      nextSlide();
+      setIsAutoProgressing(false);
+    }, 600); // Délai pour voir l'animation de sélection
+  }, [nextSlide]);
 
   // Géolocalisation optimisée
   const useCurrentLocation = useCallback(async () => {
@@ -280,11 +290,11 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
     calculatePricing();
   }, [calculatePricing]);
 
-  // Validation des étapes
+  // Validation des étapes (corrigée avec index 0-based)
   const canProceedToSlide = useMemo(() => ({
-    1: formData.packageType !== null,
-    2: formData.pickup.location && formData.destination.location,
-    3: formData.serviceMode && formData.pickup.contact.name && formData.destination.contact.name
+    0: formData.packageType !== null,
+    1: formData.pickup.location && formData.destination.location,
+    2: formData.serviceMode && formData.pickup.contact.name && formData.destination.contact.name
   }), [formData]);
 
   // Soumission finale
@@ -351,12 +361,16 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
             whileTap={{ scale: 0.98 }}
           >
             <Card 
-              className={`p-3 cursor-pointer transition-all duration-200 hover:shadow-md ${
+              className={`p-3 cursor-pointer transition-all duration-300 hover:shadow-md transform hover:scale-[1.02] ${
                 formData.packageType === type.id 
-                  ? 'ring-2 ring-primary bg-primary/5' 
+                  ? 'ring-2 ring-primary bg-primary/5 scale-[1.02]' 
                   : 'hover:bg-muted/50'
               }`}
-              onClick={() => setFormData(prev => ({ ...prev, packageType: type.id as any }))}
+              onClick={() => {
+                setFormData(prev => ({ ...prev, packageType: type.id as any }));
+                // Auto-progression fluide après sélection
+                setTimeout(() => autoProgressToNext(), 300);
+              }}
             >
               <div className="flex items-center gap-3">
                 <type.icon className={`${type.size} text-primary flex-shrink-0`} />
@@ -723,11 +737,26 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
               <Button
                 variant="ghost"
                 onClick={nextSlide}
-                disabled={!canProceedToSlide[currentSlide as keyof typeof canProceedToSlide]}
-                className="flex items-center gap-1 text-sm px-2"
+                disabled={!canProceedToSlide[currentSlide as keyof typeof canProceedToSlide] || isAutoProgressing}
+                className={`flex items-center gap-1 text-sm px-2 transition-all ${
+                  isAutoProgressing ? 'opacity-50' : ''
+                }`}
               >
-                Suivant
-                <ArrowRight className="h-3 w-3" />
+                {isAutoProgressing ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 0.6, ease: "linear" }}
+                      className="h-3 w-3 border border-current border-t-transparent rounded-full"
+                    />
+                    Progression...
+                  </>
+                ) : (
+                  <>
+                    Suivant
+                    <ArrowRight className="h-3 w-3" />
+                  </>
+                )}
               </Button>
             )}
             {currentSlide === 3 && <div className="w-12" />}
