@@ -54,14 +54,33 @@ const DeliveryTracking = ({ orderId, orderData, onBack }: DeliveryTrackingProps)
     );
   }
 
-  if (error || !order) {
+  if (error || (!loading && !order)) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600">Erreur: {error || 'Commande non trouvée'}</p>
-        <Button onClick={onBack} variant="outline" className="mt-4">
-          Retour
-        </Button>
-      </div>
+      <Card className="mx-auto max-w-md">
+        <CardContent className="text-center py-12">
+          <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+            <Package className="w-8 h-8 text-red-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-grey-900 mb-2">
+            {error?.includes('Format') ? 'Lien invalide' : 'Commande introuvable'}
+          </h3>
+          <p className="text-grey-600 mb-6">
+            {error?.includes('Format') 
+              ? 'Ce lien de suivi n\'est pas valide. Vérifiez le lien ou contactez l\'expéditeur.'
+              : error || 'Cette commande de livraison n\'existe pas ou n\'est plus accessible.'
+            }
+          </p>
+          <div className="space-y-3">
+            <Button onClick={onBack} className="w-full">
+              Retour à l'accueil
+            </Button>
+            <Button variant="outline" className="w-full">
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Contacter le support
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 

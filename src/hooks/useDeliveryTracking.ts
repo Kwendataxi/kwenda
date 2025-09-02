@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { validateOrderId } from '@/utils/validation';
 
 export interface DriverLocation {
   lat: number;
@@ -63,6 +64,9 @@ export const useDeliveryTracking = (orderId: string) => {
   const [statusHistory, setStatusHistory] = useState<DeliveryStatusHistory[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  // Validate UUID early
+  const validationResult = useMemo(() => validateOrderId(orderId), [orderId]);
+
   // Helpers
   const statusLabel = useMemo(() => {
     switch (order?.status) {
@@ -100,19 +104,33 @@ export const useDeliveryTracking = (orderId: string) => {
 
   // Initial fetch
   useEffect(() => {
+    // Early validation check
+    if (!validationResult.isValid) {
+      setError(validationResult.error || 'ID invalide');
+      setLoading(false);
+      return;
+    }
+
     let isMounted = true;
 
     const fetchAll = async () => {
       try {
         setLoading(true);
+        setError(null);
         
         // Fetch order with expanded data
         const { data: o, error: oe } = await supabase
           .from('delivery_orders')
           .select('*')
           .eq('id', orderId)
-          .single();
+          .maybeSingle();
+        
         if (oe) throw oe;
+        
+        if (!o) {
+          throw new Error('Commande de livraison non trouvée');
+        }
+        
         if (!isMounted) return;
         setOrder(o as DeliveryOrder);
 
@@ -157,11 +175,11 @@ export const useDeliveryTracking = (orderId: string) => {
     return () => {
       isMounted = false;
     };
-  }, [orderId]);
+  }, [orderId, validationResult]);
 
   // Realtime: order updates
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId || !validationResult.isValid) return;
     const channel = supabase
       .channel(`delivery-order-${orderId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'delivery_orders', filter: `id=eq.${orderId}` }, (payload) => {
@@ -176,7 +194,7 @@ export const useDeliveryTracking = (orderId: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [orderId]);
+  }, [orderId, validationResult]);
 
   // Realtime: driver live location
   useEffect(() => {
