@@ -174,18 +174,30 @@ class MasterLocationService {
   private getFallbackAddress(lat: number, lng: number): string {
     // Zones approximatives de Kinshasa basées sur les coordonnées
     const kinshasa = { lat: -4.3217, lng: 15.3069 };
+    const abidjan = { lat: 5.3600, lng: -4.0083 };
     
     if (Math.abs(lat - kinshasa.lat) < 0.5 && Math.abs(lng - kinshasa.lng) < 0.5) {
       const zones = [
-        'Gombe, Kinshasa',
-        'Bandalungwa, Kinshasa', 
-        'Barumbu, Kinshasa',
-        'Kinshasa, République Démocratique du Congo'
+        'Gombe, Kinshasa, RDC',
+        'Bandalungwa, Kinshasa, RDC', 
+        'Barumbu, Kinshasa, RDC',
+        'Lemba, Kinshasa, RDC',
+        'Kintambo, Kinshasa, RDC'
       ];
       return zones[Math.floor(Math.random() * zones.length)];
     }
     
-    return `Position ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    if (Math.abs(lat - abidjan.lat) < 0.5 && Math.abs(lng - abidjan.lng) < 0.5) {
+      const zones = [
+        'Plateau, Abidjan, Côte d\'Ivoire',
+        'Cocody, Abidjan, Côte d\'Ivoire',
+        'Marcory, Abidjan, Côte d\'Ivoire',
+        'Treichville, Abidjan, Côte d\'Ivoire'
+      ];
+      return zones[Math.floor(Math.random() * zones.length)];
+    }
+    
+    return `Lieu à ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
   }
 
   private async getIPLocation(): Promise<LocationData> {

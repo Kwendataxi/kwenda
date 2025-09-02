@@ -1,133 +1,139 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useMasterLocation } from './useMasterLocation';
-import type { LocationData } from '@/types/location';
+import { masterLocationService, type LocationData, type LocationSearchResult } from '@/services/MasterLocationService';
 
-interface LocationState {
-  latitude: number | null;
-  longitude: number | null;
-  accuracy: number | null;
+export interface LocationState {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
   loading: boolean;
-  error: string | null;
+  error: string;
+  isRealGPS: boolean;
   lastKnownPosition: LocationData | null;
-  isGpsRealTime: boolean;
 }
 
-interface UseGeolocationOptions {
-  enableHighAccuracy?: boolean;
-  timeout?: number;
-  maximumAge?: number;
-  watch?: boolean;
-}
-
-export const useGeolocation = (options: UseGeolocationOptions = {}) => {
-  const masterLocation = useMasterLocation();
-
-  const [location, setLocation] = useState<LocationState>({
-    latitude: null,
-    longitude: null,
-    accuracy: null,
+export const useGeolocation = () => {
+  const [state, setState] = useState<LocationState>({
+    latitude: -4.3217,
+    longitude: 15.3069,
+    accuracy: 0,
     loading: false,
-    error: null,
-    lastKnownPosition: null,
-    isGpsRealTime: false
+    error: '',
+    isRealGPS: false,
+    lastKnownPosition: null
   });
 
-  const [watchId, setWatchId] = useState<number | null>(null);
-
-  // Update location state when master location changes
-  useEffect(() => {
-    if (masterLocation.location) {
-      setLocation(prev => ({
-        ...prev,
-        latitude: masterLocation.location.lat,
-        longitude: masterLocation.location.lng,
-        accuracy: masterLocation.accuracy || null,
-        lastKnownPosition: masterLocation.location,
-        loading: false,
-        error: null,
-        isGpsRealTime: true
-      }));
-    }
-  }, [masterLocation.location]);
-
-  // Update loading and error states
-  useEffect(() => {
-    setLocation(prev => ({
-      ...prev,
-      loading: masterLocation.loading,
-      error: masterLocation.error || null
-    }));
-  }, [masterLocation.loading, masterLocation.error]);
-
-  const getCurrentPosition = useCallback(async () => {
+  const getCurrentPosition = useCallback(async (): Promise<LocationData> => {
+    setState(prev => ({ ...prev, loading: true, error: '' }));
+    
     try {
-      const position = await masterLocation.getCurrentPosition();
+      const position = await masterLocationService.getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 300000,
+        fallbackToIP: true,
+        fallbackToDatabase: true,
+        fallbackToDefault: true
+      });
+      
+      setState(prev => ({
+        ...prev,
+        latitude: position.lat,
+        longitude: position.lng,
+        accuracy: position.accuracy || 0,
+        loading: false,
+        isRealGPS: position.type === 'current',
+        lastKnownPosition: position,
+        error: ''
+      }));
+      
       return position;
     } catch (error) {
-      console.error('Error getting current position:', error);
-      throw error;
+      const fallbackPosition = {
+        address: 'Kinshasa, République Démocratique du Congo',
+        lat: -4.3217,
+        lng: 15.3069,
+        type: 'fallback' as const
+      };
+      
+      setState(prev => ({
+        ...prev,
+        latitude: fallbackPosition.lat,
+        longitude: fallbackPosition.lng,
+        accuracy: 0,
+        loading: false,
+        isRealGPS: false,
+        lastKnownPosition: fallbackPosition,
+        error: error instanceof Error ? error.message : 'Erreur de géolocalisation'
+      }));
+      
+      return fallbackPosition;
     }
-  }, [masterLocation.getCurrentPosition]);
-
-  const forceRefreshPosition = useCallback(async () => {
-    return getCurrentPosition();
-  }, [getCurrentPosition]);
-
-  const watchCurrentPosition = useCallback(() => {
-    // This is a simplified implementation
-    // The actual watching is handled by useMasterLocation internally
-    if (options.watch) {
-      getCurrentPosition();
-    }
-  }, [options.watch, getCurrentPosition]);
-
-  // Calculate distance between two points
-  const calculateDistance = useCallback((
-    lat1: number, 
-    lng1: number, 
-    lat2: number, 
-    lng2: number
-  ): number => {
-    const R = 6371; // Earth's radius in km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
   }, []);
 
-  const getDistanceToMainCity = useCallback((): number | null => {
-    if (!location.latitude || !location.longitude) return null;
-    // Kinshasa coordinates
-    return calculateDistance(location.latitude, location.longitude, -4.3217, 15.3069);
-  }, [location.latitude, location.longitude, calculateDistance]);
+  const searchLocation = useCallback(async (query: string): Promise<LocationSearchResult[]> => {
+    if (!query.trim()) return [];
+    
+    try {
+      const results = await masterLocationService.searchLocation(query, state.lastKnownPosition || undefined);
+      return results;
+    } catch (error) {
+      console.error('Search location error:', error);
+      return [];
+    }
+  }, [state.lastKnownPosition]);
+
+  const searchPlaces = useCallback(async (query: string): Promise<LocationSearchResult[]> => {
+    return searchLocation(query);
+  }, [searchLocation]);
+
+  const reverseGeocode = useCallback(async (lat: number, lng: number): Promise<string> => {
+    try {
+      const fallbackService = masterLocationService as any;
+      return await fallbackService.reverseGeocode(lat, lng);
+    } catch (error) {
+      return `Position ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    }
+  }, []);
+
+  const getCurrentLocation = useCallback(() => {
+    getCurrentPosition();
+  }, [getCurrentPosition]);
+
+  const requestLocation = useCallback(() => {
+    getCurrentPosition();
+  }, [getCurrentPosition]);
+
+  const clearError = useCallback(() => {
+    setState(prev => ({ ...prev, error: '' }));
+  }, []);
+
+  const calculateDistance = useCallback((point1: { lat: number; lng: number }, point2: { lat: number; lng: number }): number => {
+    return masterLocationService.calculateDistance(point1, point2);
+  }, []);
+
+  const formatDistance = useCallback((meters: number): string => {
+    return masterLocationService.formatDistance(meters);
+  }, []);
+
+  // Initialiser la position au premier chargement
+  useEffect(() => {
+    getCurrentPosition();
+  }, []);
 
   return {
-    // Direct access properties for backward compatibility
-    latitude: location.latitude,
-    longitude: location.longitude,
-    accuracy: location.accuracy,
-    loading: location.loading,
-    error: location.error,
-    isRealGPS: location.isGpsRealTime,
-    lastKnownPosition: location.lastKnownPosition,
-    
-    // State object
-    location,
-    
-    // Functions
+    ...state,
+    getCurrentLocation,
+    requestLocation,
+    forceRefreshPosition: getCurrentPosition,
+    isLoading: state.loading,
+    searchLocation,
+    searchPlaces,
+    reverseGeocode,
+    clearError,
     getCurrentPosition,
-    forceRefreshPosition,
-    watchCurrentPosition,
     calculateDistance,
-    getDistanceToMainCity,
-    getCurrentCountryMainCity: () => ({ lat: -4.3217, lng: 15.3069, name: 'Kinshasa' }),
-    detectCurrentCity: () => 'Kinshasa',
-    isInMainCity: (getDistanceToMainCity() || 0) < 20,
-    currentCity: 'Kinshasa',
-    currentCountry: 'RDC'
+    formatDistance,
+    currentCountry: 'CD',
+    currentCity: 'Kinshasa'
   };
 };

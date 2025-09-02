@@ -82,11 +82,11 @@ All colors MUST be HSL.
     --shadow-glow: 0 0 40px hsl(357, 79%, 64% / 0.4);
     --shadow-float: 0 20px 40px -10px hsl(357, 79%, 54% / 0.2);
     
-    /* Transitions */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Transitions stables */
+    --transition-smooth: all 0.2s ease-out;
+    --transition-fast: all 0.1s ease-out;
+    --transition-bounce: transform 0.2s ease-out;
+    --transition-spring: transform 0.3s ease-out;
 
     --radius: 0.75rem;
     --radius-sm: 0.5rem;

@@ -34,7 +34,7 @@ export const EnhancedLocationSearch: React.FC<EnhancedLocationSearchProps> = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [isListening, setIsListening] = useState(false);
   
-  const geolocation = useGeolocation({ watch: true });
+  const geolocation = useGeolocation();
   const { toast } = useToast();
 
   // Load recent places and popular places

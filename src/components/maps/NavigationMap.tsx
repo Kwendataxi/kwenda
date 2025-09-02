@@ -31,7 +31,7 @@ export const NavigationMap: React.FC<NavigationMapProps> = ({
   const [navigationActive, setNavigationActive] = useState(false);
   const [currentZone, setCurrentZone] = useState<string | null>(null);
   const { toast } = useToast();
-  const geolocation = useGeolocation({ watch: enableNavigation });
+  const geolocation = useGeolocation();
 
   // Calculate route when origin/destination changes
   useEffect(() => {
