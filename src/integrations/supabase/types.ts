@@ -5683,11 +5683,13 @@ export type Database = {
         }[]
       }
       get_secure_vendor_earnings: {
-        Args: {
-          limit_records?: number
-          offset_records?: number
-          vendor_filter?: string
-        }
+        Args:
+          | {
+              limit_records?: number
+              offset_records?: number
+              vendor_filter?: string
+            }
+          | { vendor_id_param?: string }
         Returns: {
           amount: number
           confirmed_at: string
@@ -5849,6 +5851,15 @@ export type Database = {
           masked_name: string
           user_id: string
           user_type: string
+        }[]
+      }
+      security_monitor_access: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          failed_auth_attempts: number
+          recent_admin_access: number
+          sensitive_data_access: number
+          suspicious_patterns: number
         }[]
       }
       user_exists: {
