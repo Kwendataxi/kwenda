@@ -611,6 +611,39 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_location_access_logs: {
+        Row: {
+          access_reason: string | null
+          access_type: string
+          accessed_by: string
+          assignment_id: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+        }
+        Insert: {
+          access_reason?: string | null
+          access_type: string
+          accessed_by: string
+          assignment_id: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+        }
+        Update: {
+          access_reason?: string | null
+          access_type?: string
+          accessed_by?: string
+          assignment_id?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       delivery_orders: {
         Row: {
           actual_price: number | null
@@ -5296,6 +5329,32 @@ export type Database = {
       geocode_location: {
         Args: { query_text: string }
         Returns: Json
+      }
+      get_delivery_zone_info: {
+        Args: { assignment_id_param: string }
+        Returns: {
+          assignment_id: string
+          delivery_zone: string
+          estimated_distance_km: number
+          estimated_duration_minutes: number
+          order_id: string
+          pickup_zone: string
+          special_requirements: string
+          status: string
+        }[]
+      }
+      get_driver_delivery_coordinates: {
+        Args: { assignment_id_param: string }
+        Returns: {
+          delivery_address: string
+          delivery_contact: string
+          delivery_lat: number
+          delivery_lng: number
+          pickup_address: string
+          pickup_contact: string
+          pickup_lat: number
+          pickup_lng: number
+        }[]
       }
       get_driver_zones: {
         Args: { zone_radius_km?: number }
