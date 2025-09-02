@@ -12,9 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // Components
 import { CategoryFilter } from './CategoryFilter';
 import { SearchBar } from './SearchBar';
-import { ModernProductCard } from './ModernProductCard';
+import { CompactProductCard } from './CompactProductCard';
 import { ModernShoppingCart } from './ModernShoppingCart';
-import { FlexibleOrderDialog } from './FlexibleOrderDialog';
+import { ProductDetailsDialog } from './ProductDetailsDialog';
+import { VendorStoreView } from './VendorStoreView';
 import { ClientEscrowDashboard } from '../escrow/ClientEscrowDashboard';
 import { SellProductForm } from './SellProductForm';
 import { VendorDashboard } from './VendorDashboard';
@@ -48,6 +49,20 @@ interface Product {
   stockCount: number;
   rating: number;
   reviews: number;
+}
+
+interface HorizontalProduct {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  rating: number;
+  reviewCount: number;
+  category: string;
+  seller: string;
+  sellerId: string;
+  isAvailable: boolean;
+  location?: { lat: number; lng: number };
 }
 
 interface CartItem {
@@ -85,7 +100,8 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
+  const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [deliveryInfo, setDeliveryInfo] = useState<any>(null);
   
   // Filters
@@ -244,9 +260,25 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
     setCartItems(cartItems.filter(item => item.id !== productId));
   };
 
-  const handleCreateOrder = (product: Product) => {
-    setSelectedProduct(product);
-    setIsOrderDialogOpen(true);
+  const handleProductSubmit = async (productData: any) => {
+    // Create product in Supabase
+    const { data, error } = await supabase
+      .from('marketplace_products')
+      .insert({
+        title: productData.title,
+        description: productData.description,
+        price: productData.price,
+        category: productData.category,
+        condition: productData.condition || 'new',
+        images: productData.images || [],
+        seller_id: user?.id,
+        location: productData.location,
+        coordinates: productData.coordinates,
+        status: 'active'
+      });
+
+    if (error) throw error;
+    console.log('Product created:', data);
   };
 
   const handleCheckout = async () => {
@@ -338,13 +370,68 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
       />
 
       {/* Horizontal Product Sections */}
+      {featuredProducts.length > 0 && (
+        <HorizontalProductScroll
+          title="✨ Sélection"
+          products={featuredProducts.map(p => ({ 
+            id: p.id,
+            name: p.title, 
+            price: p.price,
+            image: p.image,
+            rating: p.rating,
+            reviewCount: p.reviews,
+            category: p.category,
+            seller: p.seller.display_name,
+            sellerId: p.seller_id,
+            isAvailable: p.inStock,
+            location: p.coordinates
+          })) as HorizontalProduct[]}
+          onAddToCart={(product) => {
+            const originalProduct = featuredProducts.find(p => p.id === product.id);
+            if (originalProduct) addToCart(originalProduct);
+          }}
+          onViewDetails={(product) => {
+            const originalProduct = featuredProducts.find(p => p.id === product.id);
+            if (originalProduct) {
+              setSelectedProduct(originalProduct);
+              setIsProductDetailsOpen(true);
+            }
+          }}
+          onViewSeller={(sellerId) => setSelectedVendorId(sellerId)}
+          userLocation={coordinates}
+          loading={loading}
+        />
+      )}
+
       {popularProducts.length > 0 && (
         <HorizontalProductScroll
           title="⭐ Populaires"
-          products={popularProducts.map(p => ({ ...p, name: p.title, seller: p.seller.display_name }))}
-           onAddToCart={(product) => addToCart(popularProducts.find(p => p.id === product.id)!)}
-           onViewDetails={() => handleCreateOrder(popularProducts[0])}
-          userCoordinates={coordinates}
+          products={popularProducts.map(p => ({ 
+            id: p.id,
+            name: p.title, 
+            price: p.price,
+            image: p.image,
+            rating: p.rating,
+            reviewCount: p.reviews,
+            category: p.category,
+            seller: p.seller.display_name,
+            sellerId: p.seller_id,
+            isAvailable: p.inStock,
+            location: p.coordinates
+          })) as HorizontalProduct[]}
+          onAddToCart={(product) => {
+            const originalProduct = popularProducts.find(p => p.id === product.id);
+            if (originalProduct) addToCart(originalProduct);
+          }}
+          onViewDetails={(product) => {
+            const originalProduct = popularProducts.find(p => p.id === product.id);
+            if (originalProduct) {
+              setSelectedProduct(originalProduct);
+              setIsProductDetailsOpen(true);
+            }
+          }}
+          onViewSeller={(sellerId) => setSelectedVendorId(sellerId)}
+          userLocation={coordinates}
           loading={loading}
         />
       )}
@@ -352,10 +439,32 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
       {nearbyProducts.length > 0 && coordinates && (
         <HorizontalProductScroll
           title="📍 Près de vous"
-          products={nearbyProducts.map(p => ({ ...p, name: p.title, seller: p.seller.display_name }))}
-          onAddToCart={(product) => addToCart(nearbyProducts.find(p => p.id === product.id)!)}
-          onViewDetails={() => handleCreateOrder(nearbyProducts[0])}
-          userCoordinates={coordinates}
+          products={nearbyProducts.map(p => ({ 
+            id: p.id,
+            name: p.title, 
+            price: p.price,
+            image: p.image,
+            rating: p.rating,
+            reviewCount: p.reviews,
+            category: p.category,
+            seller: p.seller.display_name,
+            sellerId: p.seller_id,
+            isAvailable: p.inStock,
+            location: p.coordinates
+          })) as HorizontalProduct[]}
+          onAddToCart={(product) => {
+            const originalProduct = nearbyProducts.find(p => p.id === product.id);
+            if (originalProduct) addToCart(originalProduct);
+          }}
+          onViewDetails={(product) => {
+            const originalProduct = nearbyProducts.find(p => p.id === product.id);
+            if (originalProduct) {
+              setSelectedProduct(originalProduct);
+              setIsProductDetailsOpen(true);
+            }
+          }}
+          onViewSeller={(sellerId) => setSelectedVendorId(sellerId)}
+          userLocation={coordinates}
           loading={loading}
         />
       )}
@@ -372,16 +481,15 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
         </Card>
       )}
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-5">
         {loading ? (
-          Array.from({ length: 8 }).map((_, index) => (
-            <Card key={index} className="overflow-hidden animate-pulse">
+          Array.from({ length: 15 }).map((_, index) => (
+            <Card key={index} className="overflow-hidden animate-pulse max-w-[160px]">
               <div className="aspect-square bg-muted"></div>
-              <div className="p-4 space-y-3">
-                <div className="h-4 bg-muted rounded"></div>
-                <div className="h-3 bg-muted rounded w-3/4"></div>
-                <div className="h-4 bg-muted rounded w-1/2"></div>
-                <div className="h-9 bg-muted rounded"></div>
+              <div className="p-2 space-y-2">
+                <div className="h-3 bg-muted rounded"></div>
+                <div className="h-2 bg-muted rounded w-3/4"></div>
+                <div className="h-3 bg-muted rounded w-1/2"></div>
               </div>
             </Card>
           ))
@@ -397,17 +505,29 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
           </div>
         ) : (
           filteredProducts.map(product => (
-              <ModernProductCard
-                key={product.id}
-                product={{ 
-                  ...product, 
-                  name: product.title,
-                  seller: product.seller.display_name
-                }}
-                onAddToCart={() => addToCart(product)}
-                onViewDetails={() => handleCreateOrder(product)}
-                userCoordinates={coordinates}
-              />
+            <CompactProductCard
+              key={product.id}
+              product={{ 
+                id: product.id,
+                name: product.title,
+                price: product.price,
+                image: product.image,
+                rating: product.rating,
+                reviewCount: product.reviews,
+                category: product.category,
+                seller: product.seller.display_name,
+                sellerId: product.seller_id,
+                isAvailable: product.inStock,
+                location: product.coordinates
+              }}
+              onAddToCart={() => addToCart(product)}
+              onViewDetails={() => {
+                setSelectedProduct(product);
+                setIsProductDetailsOpen(true);
+              }}
+              onViewSeller={(sellerId) => setSelectedVendorId(sellerId)}
+              userLocation={coordinates}
+            />
           ))
         )}
       </div>
@@ -478,7 +598,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
             <VerifiedSellerGuard>
               <SellProductForm
                 onBack={() => setCurrentTab('shop')}
-                onSubmit={async (formData) => {
+                  onSubmit={async (formData) => {
                   // Handle product creation with auto-location
                   try {
                     await handleProductSubmit({
@@ -520,46 +640,57 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
         userCoordinates={coordinates}
       />
 
-      {/* Order Dialog */}
+      {/* Product Details Dialog */}
       {selectedProduct && (
-        <FlexibleOrderDialog
-          product={selectedProduct}
-          isOpen={isOrderDialogOpen}
+        <ProductDetailsDialog
+          product={{
+            id: selectedProduct.id,
+            name: selectedProduct.title,
+            price: selectedProduct.price,
+            image: selectedProduct.image,
+            rating: selectedProduct.rating,
+            reviewCount: selectedProduct.reviews,
+            category: selectedProduct.category,
+            seller: selectedProduct.seller.display_name,
+            sellerId: selectedProduct.seller_id,
+            isAvailable: selectedProduct.inStock,
+            description: selectedProduct.description,
+            location: selectedProduct.coordinates
+          }}
+          isOpen={isProductDetailsOpen}
           onClose={() => {
-            setIsOrderDialogOpen(false);
+            setIsProductDetailsOpen(false);
             setSelectedProduct(null);
           }}
-          onSuccess={() => {
-            setIsOrderDialogOpen(false);
-            setSelectedProduct(null);
-            setCurrentTab('orders');
+          onAddToCart={(product) => {
+            if (selectedProduct) addToCart(selectedProduct);
           }}
-          onCreateOrder={async (orderData) => {
-            await ordersHook.createOrderFlexible(orderData);
+          onViewSeller={(sellerId) => setSelectedVendorId(sellerId)}
+          userLocation={coordinates}
+        />
+      )}
+
+      {/* Vendor Store View */}
+      {selectedVendorId && (
+        <VendorStoreView
+          vendorId={selectedVendorId}
+          onClose={() => setSelectedVendorId(null)}
+          onAddToCart={(product) => {
+            // Find the original product and add to cart
+            const originalProduct = products.find(p => p.id === product.id);
+            if (originalProduct) addToCart(originalProduct);
           }}
+          onViewDetails={(product) => {
+            const originalProduct = products.find(p => p.id === product.id);
+            if (originalProduct) {
+              setSelectedProduct(originalProduct);
+              setIsProductDetailsOpen(true);
+              setSelectedVendorId(null);
+            }
+          }}
+          userLocation={coordinates}
         />
       )}
     </div>
   );
 };
-
-async function handleProductSubmit(productData: any) {
-  // Create product in Supabase
-  const { data, error } = await supabase
-    .from('marketplace_products')
-    .insert({
-      title: productData.title,
-      description: productData.description,
-      price: productData.price,
-      category: productData.category,
-      condition: productData.condition || 'new',
-      images: productData.images || [],
-      seller_id: (await supabase.auth.getUser()).data.user?.id,
-      location: productData.location,
-      coordinates: productData.coordinates,
-      status: 'active'
-    });
-
-  if (error) throw error;
-  console.log('Product created:', data);
-}

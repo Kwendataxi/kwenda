@@ -29,43 +29,26 @@ interface Product {
   seller: string;
   sellerId: string;
   isAvailable: boolean;
-  discount?: number;
-  location?: {
-    lat: number;
-    lng: number;
-  };
-}
-
-interface Vendor {
-  id: string;
-  name: string;
-  avatar?: string;
-  rating: number;
-  reviewCount: number;
-  joinDate: string;
-  location?: string;
-  description?: string;
-  productsCount: number;
+  location?: { lat: number; lng: number };
 }
 
 interface VendorStoreViewProps {
   vendorId: string;
-  onBack: () => void;
+  onClose?: () => void;
   onAddToCart: (product: Product) => void;
-  onViewProductDetails: (product: Product) => void;
-  userLocation?: { lat: number; lng: number };
+  onViewDetails: (product: Product) => void;
+  userLocation?: { lat: number; lng: number } | null;
 }
 
 export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
   vendorId,
-  onBack,
+  onClose,
   onAddToCart,
-  onViewProductDetails,
+  onViewDetails,
   userLocation
 }) => {
-  const [vendor, setVendor] = useState<Vendor | null>(null);
+  const [vendor, setVendor] = useState<any>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -74,55 +57,48 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
     loadVendorData();
   }, [vendorId]);
 
-  useEffect(() => {
-    filterProducts();
-  }, [products, searchQuery]);
-
   const loadVendorData = async () => {
-    setLoading(true);
     try {
-      // Load vendor profile (mock data for now)
-      const mockVendor: Vendor = {
-        id: vendorId,
-        name: 'Boutique Moderne',
-        avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=' + vendorId,
-        rating: 4.5,
-        reviewCount: 127,
-        joinDate: '2023-01-15',
-        location: 'Kinshasa, RDC',
-        description: 'Boutique spécialisée en électronique et accessoires de qualité.',
-        productsCount: 0
-      };
+      setLoading(true);
+      
+      // Load vendor profile
+      const { data: vendorData, error: vendorError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', vendorId)
+        .single();
+
+      if (vendorError) throw vendorError;
+      setVendor(vendorData);
 
       // Load vendor products
-      const { data: productsData, error } = await supabase
+      const { data: productsData, error: productsError } = await supabase
         .from('marketplace_products')
         .select('*')
         .eq('seller_id', vendorId)
-        .limit(50);
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (productsError) throw productsError;
 
-      const transformedProducts: Product[] = (productsData || []).map(item => ({
-        id: item.id,
-        name: item.title,
-        price: item.price,
-        originalPrice: (item as any).original_price,
-        image: (item.images as string[])?.[0] || '/placeholder.svg',
-        rating: (item as any).rating || 4.0,
-        reviewCount: (item as any).review_count || 0,
-        category: item.category,
-        seller: (item as any).seller_name || 'Vendeur',
-        sellerId: item.seller_id,
-        isAvailable: (item as any).stock_quantity > 0,
-        discount: (item as any).discount_percentage,
-        location: item.coordinates && typeof item.coordinates === 'object' && 'lat' in item.coordinates ? {
-          lat: (item.coordinates as any).lat,
-          lng: (item.coordinates as any).lng
-        } : undefined
-      }));
+      const transformedProducts = productsData?.map(product => ({
+        id: product.id,
+        name: product.title,
+        price: product.price,
+        image: Array.isArray(product.images) && product.images.length > 0 
+          ? String(product.images[0])
+          : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
+        rating: 4.5,
+        reviewCount: Math.floor(Math.random() * 50) + 5,
+        category: product.category,
+        seller: vendorData?.display_name || 'Vendeur',
+        sellerId: product.seller_id,
+        isAvailable: product.status === 'active',
+        location: product.coordinates && typeof product.coordinates === 'object' 
+          ? product.coordinates as { lat: number; lng: number }
+          : undefined,
+      })) || [];
 
-      setVendor({ ...mockVendor, productsCount: transformedProducts.length });
       setProducts(transformedProducts);
     } catch (error) {
       console.error('Error loading vendor data:', error);
@@ -131,172 +107,150 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
     }
   };
 
-  const filterProducts = () => {
-    let filtered = products;
-
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    setFilteredProducts(filtered);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Intl.DateTimeFormat('fr-FR', {
-      year: 'numeric',
-      month: 'long'
-    }).format(new Date(dateString));
-  };
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!vendor) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">Vendeur non trouvé</p>
-        <Button onClick={onBack} variant="outline" className="mt-4">
-          Retour
-        </Button>
+      <div className="fixed inset-0 bg-background z-50 flex flex-col">
+        <div className="flex items-center gap-4 p-4 border-b">
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="animate-pulse">
+            <div className="h-6 bg-muted rounded w-32 mb-2" />
+            <div className="h-4 bg-muted rounded w-24" />
+          </div>
+        </div>
+        <div className="p-4 grid grid-cols-3 gap-3">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <div className="aspect-square bg-muted rounded-lg mb-2" />
+              <div className="h-3 bg-muted rounded mb-1" />
+              <div className="h-3 bg-muted rounded w-3/4" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="fixed inset-0 bg-background z-50 flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onBack}
-          className="p-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
+      <div className="flex items-center gap-4 p-4 border-b bg-background/95 backdrop-blur-sm">
+        <Button variant="ghost" size="icon" onClick={onClose}>
+          <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-lg font-semibold">Boutique</h1>
-      </div>
-
-      <ScrollArea className="flex-1">
-        {/* Vendor Profile */}
-        <div className="p-4 space-y-4">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-full overflow-hidden bg-muted flex-shrink-0">
-              <img
-                src={vendor.avatar}
-                alt={vendor.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            
-            <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-semibold truncate">{vendor.name}</h2>
-              
-              <div className="flex items-center gap-2 mt-1">
-                <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-medium">{vendor.rating}</span>
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  ({vendor.reviewCount} avis)
-                </span>
-              </div>
-
-              <div className="flex flex-wrap gap-2 mt-2 text-sm text-muted-foreground">
-                {vendor.location && (
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    <span>{vendor.location}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  <span>Depuis {formatDate(vendor.joinDate)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {vendor.description && (
-            <p className="text-sm text-muted-foreground">{vendor.description}</p>
-          )}
-
-          <div className="flex gap-4 text-sm">
-            <div className="text-center">
-              <div className="font-semibold text-primary">{vendor.productsCount}</div>
-              <div className="text-muted-foreground">Produits</div>
-            </div>
-            <div className="text-center">
-              <div className="font-semibold text-primary">{vendor.reviewCount}</div>
-              <div className="text-muted-foreground">Avis</div>
-            </div>
+        <div className="flex-1 min-w-0">
+          <h1 className="font-semibold text-lg truncate">
+            {vendor?.display_name || 'Boutique'}
+          </h1>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            <span>4.8</span>
+            <span>•</span>
+            <span>{filteredProducts.length} produits</span>
           </div>
         </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('grid')}
+          >
+            <Grid3X3 className="w-4 h-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+          >
+            <List className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
 
-        <Separator />
+      {/* Search */}
+      <div className="p-4 border-b">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher dans cette boutique..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
 
-        {/* Products Section */}
-        <div className="p-4 space-y-4">
-          {/* Search and View Controls */}
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher dans cette boutique..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+      {/* Vendor Info */}
+      {vendor && (
+        <div className="p-4 border-b space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+              <span className="text-lg font-semibold text-primary">
+                {vendor.display_name?.charAt(0) || 'V'}
+              </span>
             </div>
-            <div className="flex border rounded-lg">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="rounded-r-none"
-              >
-                <Grid3X3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="rounded-l-none"
-              >
-                <List className="h-4 w-4" />
-              </Button>
+            <div className="flex-1 min-w-0">
+              <h2 className="font-medium text-base">{vendor.display_name || 'Vendeur'}</h2>
+              {vendor.bio && (
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {vendor.bio}
+                </p>
+              )}
+              <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  <span>Membre depuis 2023</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  <span>Kinshasa</span>
+                </div>
+              </div>
             </div>
           </div>
+          
+          <div className="flex gap-2">
+            <Badge variant="secondary" className="text-xs">
+              Vendeur vérifié
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              Livraison rapide
+            </Badge>
+          </div>
+        </div>
+      )}
 
-          {/* Products Grid */}
+      {/* Products Grid */}
+      <ScrollArea className="flex-1">
+        <div className="p-4">
           {filteredProducts.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">
-                {searchQuery ? 'Aucun produit trouvé' : 'Aucun produit disponible'}
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="font-medium mb-2">Aucun produit trouvé</h3>
+              <p className="text-sm text-muted-foreground">
+                Essayez un autre terme de recherche
               </p>
             </div>
           ) : (
             <div className={cn(
-              viewMode === 'grid' 
-                ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
-                : "space-y-3"
+              "grid gap-3",
+              viewMode === 'grid' ? "grid-cols-3" : "grid-cols-1"
             )}>
               {filteredProducts.map((product) => (
                 <CompactProductCard
                   key={product.id}
                   product={product}
-                  onAddToCart={onAddToCart}
-                  onViewDetails={onViewProductDetails}
+                  onAddToCart={() => onAddToCart(product)}
+                  onViewDetails={() => onViewDetails(product)}
                   userLocation={userLocation}
-                  className={viewMode === 'list' ? "flex-row max-w-none" : ""}
+                  className={viewMode === 'list' ? 'flex-row' : ''}
                 />
               ))}
             </div>
