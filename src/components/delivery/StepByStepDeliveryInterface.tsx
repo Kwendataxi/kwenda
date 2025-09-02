@@ -12,7 +12,7 @@ import { EnhancedLocationSearch } from '@/components/delivery/EnhancedLocationSe
 import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
 import { useEnhancedDeliveryOrders, DeliveryLocation, DeliveryOrderData } from '@/hooks/useEnhancedDeliveryOrders';
 import { GoogleMapsService } from '@/services/googleMapsService';
-import FunctionalDeliveryInterface from './FunctionalDeliveryInterface';
+import SlideDeliveryInterface from './SlideDeliveryInterface';
 import { 
   ArrowLeft,
   ArrowRight,
@@ -51,8 +51,8 @@ interface StepByStepDeliveryInterfaceProps {
 type DeliveryStep = 'city' | 'pickup' | 'destination' | 'mode' | 'confirmation';
 
 const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryInterfaceProps) => {
-  // Rediriger vers la nouvelle interface fonctionnelle
-  return <FunctionalDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
+  // Rediriger vers la nouvelle interface moderne avec slides
+  return <SlideDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
 };
 
 export default StepByStepDeliveryInterface;
