@@ -5817,9 +5817,9 @@ export type Database = {
       get_user_roles: {
         Args: { _user_id: string }
         Returns: {
-          admin_role: Database["public"]["Enums"]["admin_role"]
-          permissions: Database["public"]["Enums"]["permission"][]
-          role: Database["public"]["Enums"]["user_role"]
+          admin_role: string
+          permissions: string[]
+          role: string
         }[]
       }
       get_vendor_dashboard_data: {
@@ -5862,11 +5862,8 @@ export type Database = {
           surge_multiplier: number
         }[]
       }
-      has_permission: {
-        Args: {
-          _permission: Database["public"]["Enums"]["permission"]
-          _user_id: string
-        }
+      is_current_user_admin: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       is_super_admin: {
