@@ -1,0 +1,531 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from '@/integrations/supabase/client';
+import { Wallet, TrendingUp, Clock, CheckCircle, AlertCircle, ArrowUpRight, Shield, Eye, Download } from 'lucide-react';
+import { WithdrawalDialog } from './WithdrawalDialog';
+import { DeliveryConfirmationDialog } from './DeliveryConfirmationDialog';
+import { VaultTransactionDetails } from './VaultTransactionDetails';
+import { VaultStats } from './VaultStats';
+
+interface SecureTransaction {
+  id: string;
+  order_id: string;
+  buyer_id: string;
+  seller_id: string;
+  driver_id?: string;
+  total_amount: number;
+  seller_amount: number;
+  driver_amount?: number;
+  platform_fee: number;
+  currency: string;
+  status: string;
+  held_at: string;
+  released_at?: string;
+  completed_at?: string;
+  created_at: string;
+  timeout_date?: string;
+}
+
+interface WalletInfo {
+  balance: number;
+  currency: string;
+  pending_withdrawals: number;
+  total_earned: number;
+  total_withdrawn: number;
+}
+
+export const SecureVaultDashboard: React.FC = () => {
+  const [transactions, setTransactions] = useState<SecureTransaction[]>([]);
+  const [walletInfo, setWalletInfo] = useState<WalletInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showWithdrawal, setShowWithdrawal] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadVaultData();
+    loadWalletInfo();
+  }, []);
+
+  const loadVaultData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('escrow_transactions')
+        .select('*')
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id},driver_id.eq.${user.id}`)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTransactions(data || []);
+    } catch (error: any) {
+      console.error('Erreur chargement coffre:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les données du coffre sécurisé",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const loadWalletInfo = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Charger le portefeuille
+      const { data: wallet, error: walletError } = await supabase
+        .from('user_wallets')
+        .select('balance, currency')
+        .eq('user_id', user.id)
+        .eq('currency', 'CDF')
+        .single();
+
+      // Charger les retraits en attente
+      const { data: withdrawals, error: withdrawalError } = await supabase
+        .from('withdrawal_requests')
+        .select('amount')
+        .eq('user_id', user.id)
+        .eq('status', 'pending');
+
+      // Calculer les statistiques
+      const { data: transactions, error: transactionError } = await supabase
+        .from('wallet_transactions')
+        .select('amount, transaction_type')
+        .eq('user_id', user.id);
+
+      if (walletError && walletError.code !== 'PGRST116') {
+        throw walletError;
+      }
+
+      const pendingAmount = withdrawals?.reduce((sum, w) => sum + w.amount, 0) || 0;
+      const totalEarned = transactions?.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0) || 0;
+      const totalWithdrawn = transactions?.filter(t => t.transaction_type === 'withdrawal').reduce((sum, t) => sum + Math.abs(t.amount), 0) || 0;
+
+      setWalletInfo({
+        balance: wallet?.balance || 0,
+        currency: wallet?.currency || 'CDF',
+        pending_withdrawals: pendingAmount,
+        total_earned: totalEarned,
+        total_withdrawn: totalWithdrawn
+      });
+    } catch (error: any) {
+      console.error('Erreur chargement portefeuille:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, any> = {
+      'held': { variant: 'secondary', label: 'Sécurisé', icon: Shield },
+      'completed': { variant: 'default', label: 'Libéré', icon: CheckCircle },
+      'disputed': { variant: 'destructive', label: 'Litige', icon: AlertCircle },
+      'refunded': { variant: 'outline', label: 'Remboursé', icon: ArrowUpRight },
+      'timeout': { variant: 'destructive', label: 'Expiré', icon: Clock }
+    };
+
+    const config = variants[status] || { variant: 'secondary', label: status, icon: Shield };
+    const Icon = config.icon;
+
+    return (
+      <Badge variant={config.variant} className="flex items-center gap-1">
+        <Icon className="h-3 w-3" />
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const getUserRole = (transaction: SecureTransaction, userId: string) => {
+    if (transaction.buyer_id === userId) return 'buyer';
+    if (transaction.seller_id === userId) return 'seller';
+    if (transaction.driver_id === userId) return 'driver';
+    return 'unknown';
+  };
+
+  const handleConfirmDelivery = async (transactionId: string, confirmationData: any) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('secure-vault-management', {
+        body: {
+          action: 'confirm_delivery',
+          escrowId: transactionId,
+          confirmationData
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "✅ Livraison confirmée",
+        description: "Les fonds ont été libérés avec succès dans vos portefeuilles KwendaPay"
+      });
+
+      loadVaultData();
+      loadWalletInfo();
+      setShowConfirmation(false);
+    } catch (error: any) {
+      console.error('Erreur confirmation:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Erreur lors de la confirmation",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const exportTransactions = () => {
+    const csv = transactions.map(t => ({
+      Date: new Date(t.created_at).toLocaleDateString(),
+      Type: t.status,
+      Montant: t.total_amount,
+      Statut: t.status
+    }));
+    
+    // Simple CSV export
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Date,Type,Montant,Statut\n"
+      + csv.map(row => Object.values(row).join(",")).join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "coffre-securise.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Statistiques du coffre */}
+      <VaultStats walletInfo={walletInfo} />
+
+      {/* En-tête avec portefeuille */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Solde disponible</CardTitle>
+            <Wallet className="h-4 w-4 text-success" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-success">
+              {walletInfo?.balance.toLocaleString()} {walletInfo?.currency}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Prêt pour retrait immédiat
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Retraits en cours</CardTitle>
+            <TrendingUp className="h-4 w-4 text-warning" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-warning">
+              {walletInfo?.pending_withdrawals.toLocaleString()} {walletInfo?.currency}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              En traitement sécurisé
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total gagné</CardTitle>
+            <CheckCircle className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {walletInfo?.total_earned.toLocaleString()} {walletInfo?.currency}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Gains totaux sécurisés
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Actions rapides</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button 
+              onClick={() => setShowWithdrawal(true)}
+              className="w-full"
+              disabled={!walletInfo?.balance || walletInfo.balance <= 0}
+            >
+              💰 Retirer
+            </Button>
+            <Button 
+              onClick={exportTransactions}
+              variant="outline"
+              size="sm"
+              className="w-full"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Exporter
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Onglets des transactions */}
+      <Tabs defaultValue="all" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="all">Toutes</TabsTrigger>
+          <TabsTrigger value="held">🔒 Sécurisées</TabsTrigger>
+          <TabsTrigger value="completed">✅ Libérées</TabsTrigger>
+          <TabsTrigger value="pending">⏳ En attente</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all" className="space-y-4">
+          <SecureTransactionsList 
+            transactions={transactions}
+            onConfirmDelivery={(transactionId) => {
+              setSelectedTransaction(transactionId);
+              setShowConfirmation(true);
+            }}
+            onViewDetails={(transactionId) => {
+              setSelectedTransaction(transactionId);
+              setShowDetails(true);
+            }}
+            getStatusBadge={getStatusBadge}
+            getUserRole={getUserRole}
+          />
+        </TabsContent>
+
+        <TabsContent value="held" className="space-y-4">
+          <SecureTransactionsList 
+            transactions={transactions.filter(t => t.status === 'held')}
+            onConfirmDelivery={(transactionId) => {
+              setSelectedTransaction(transactionId);
+              setShowConfirmation(true);
+            }}
+            onViewDetails={(transactionId) => {
+              setSelectedTransaction(transactionId);
+              setShowDetails(true);
+            }}
+            getStatusBadge={getStatusBadge}
+            getUserRole={getUserRole}
+          />
+        </TabsContent>
+
+        <TabsContent value="completed" className="space-y-4">
+          <SecureTransactionsList 
+            transactions={transactions.filter(t => t.status === 'completed')}
+            onConfirmDelivery={() => {}}
+            onViewDetails={(transactionId) => {
+              setSelectedTransaction(transactionId);
+              setShowDetails(true);
+            }}
+            getStatusBadge={getStatusBadge}
+            getUserRole={getUserRole}
+          />
+        </TabsContent>
+
+        <TabsContent value="pending" className="space-y-4">
+          <SecureTransactionsList 
+            transactions={transactions.filter(t => ['held', 'pending'].includes(t.status))}
+            onConfirmDelivery={(transactionId) => {
+              setSelectedTransaction(transactionId);
+              setShowConfirmation(true);
+            }}
+            onViewDetails={(transactionId) => {
+              setSelectedTransaction(transactionId);
+              setShowDetails(true);
+            }}
+            getStatusBadge={getStatusBadge}
+            getUserRole={getUserRole}
+          />
+        </TabsContent>
+      </Tabs>
+
+      {/* Dialogues */}
+      <WithdrawalDialog 
+        open={showWithdrawal}
+        onOpenChange={setShowWithdrawal}
+        availableBalance={walletInfo?.balance || 0}
+        onSuccess={() => {
+          loadWalletInfo();
+          setShowWithdrawal(false);
+        }}
+      />
+
+      {selectedTransaction && (
+        <>
+          <DeliveryConfirmationDialog 
+            open={showConfirmation}
+            onOpenChange={setShowConfirmation}
+            transactionId={selectedTransaction}
+            onConfirm={handleConfirmDelivery}
+          />
+          
+          <VaultTransactionDetails 
+            open={showDetails}
+            onOpenChange={setShowDetails}
+            transactionId={selectedTransaction}
+          />
+        </>
+      )}
+    </div>
+  );
+};
+
+interface SecureTransactionsListProps {
+  transactions: SecureTransaction[];
+  onConfirmDelivery: (transactionId: string) => void;
+  onViewDetails: (transactionId: string) => void;
+  getStatusBadge: (status: string) => JSX.Element;
+  getUserRole: (transaction: SecureTransaction, userId: string) => string;
+}
+
+const SecureTransactionsList: React.FC<SecureTransactionsListProps> = ({
+  transactions,
+  onConfirmDelivery,
+  onViewDetails,
+  getStatusBadge,
+  getUserRole
+}) => {
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    getCurrentUser();
+  }, []);
+
+  if (!currentUserId) return null;
+
+  return (
+    <div className="space-y-4">
+      {transactions.map((transaction) => {
+        const userRole = getUserRole(transaction, currentUserId);
+        const canConfirm = userRole === 'buyer' && transaction.status === 'held';
+        const timeoutDate = transaction.timeout_date ? new Date(transaction.timeout_date) : null;
+        const isNearTimeout = timeoutDate && timeoutDate.getTime() - Date.now() < 24 * 60 * 60 * 1000; // 24h
+
+        return (
+          <Card key={transaction.id} className={`relative ${isNearTimeout ? 'border-warning' : ''}`}>
+            {isNearTimeout && (
+              <div className="absolute top-2 right-2">
+                <Badge variant="destructive" className="text-xs">
+                  <Clock className="h-3 w-3 mr-1" />
+                  Expire bientôt
+                </Badge>
+              </div>
+            )}
+            
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  Coffre #{transaction.order_id.slice(-8)}
+                </CardTitle>
+                {getStatusBadge(transaction.status)}
+              </div>
+              <CardDescription>
+                Rôle: {userRole === 'buyer' ? '🛍️ Acheteur' : userRole === 'seller' ? '🏪 Vendeur' : '🚚 Livreur'} • 
+                Sécurisé le {new Date(transaction.created_at).toLocaleDateString()}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <p className="text-sm text-muted-foreground">Montant sécurisé</p>
+                  <p className="font-semibold text-lg">{transaction.total_amount.toLocaleString()} {transaction.currency}</p>
+                </div>
+                
+                {userRole === 'seller' && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Votre gain (80%)</p>
+                    <p className="font-semibold text-success">
+                      {transaction.seller_amount.toLocaleString()} {transaction.currency}
+                    </p>
+                  </div>
+                )}
+                
+                {userRole === 'driver' && transaction.driver_amount && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Frais livraison (15%)</p>
+                    <p className="font-semibold text-primary">
+                      {transaction.driver_amount.toLocaleString()} {transaction.currency}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2 mt-4 pt-4 border-t">
+                <Button 
+                  onClick={() => onViewDetails(transaction.id)}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  Détails
+                </Button>
+                
+                {canConfirm && (
+                  <Button 
+                    onClick={() => onConfirmDelivery(transaction.id)}
+                    className="flex-1"
+                  >
+                    🔓 Libérer les fonds
+                  </Button>
+                )}
+              </div>
+
+              {transaction.completed_at && (
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-sm text-success flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    Fonds libérés le {new Date(transaction.completed_at).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+
+              {timeoutDate && transaction.status === 'held' && (
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-sm text-warning flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Libération automatique le {timeoutDate.toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+
+      {transactions.length === 0 && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center h-32">
+            <Shield className="h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-muted-foreground">Aucune transaction sécurisée trouvée</p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};

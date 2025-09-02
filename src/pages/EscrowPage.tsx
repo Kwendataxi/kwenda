@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from 'lucide-react';
-import { EscrowDashboard } from '@/components/escrow/EscrowDashboard';
+import { SecureVaultDashboard } from '@/components/secure-vault/SecureVaultDashboard';
 
 export const EscrowPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,15 +22,15 @@ export const EscrowPage: React.FC = () => {
             Accueil
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Gestion Escrow</h1>
+            <h1 className="text-2xl font-bold">Coffre sécurisé KwendaPay</h1>
             <p className="text-muted-foreground">
-              Suivi des paiements et gestion des retraits
+              Gestion sécurisée des paiements et retraits
             </p>
           </div>
         </div>
 
         {/* Dashboard principal */}
-        <EscrowDashboard />
+        <SecureVaultDashboard />
       </div>
     </div>
   );
