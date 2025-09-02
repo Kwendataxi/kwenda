@@ -5869,6 +5869,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_vehicle_subscription_active: {
         Args: { vehicle_id_param: string }
         Returns: boolean

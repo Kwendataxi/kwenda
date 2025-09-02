@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { MapPin, Truck, Clock, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,9 +21,9 @@ export const DeliveryCalculator: React.FC<DeliveryCalculatorProps> = ({
   vendorLocation,
   onDeliveryCalculated
 }) => {
-  const { enhancedData } = useEnhancedGeolocation();
-  const locationLoading = !enhancedData;
-  const coordinates = enhancedData ? { lat: enhancedData.latitude, lng: enhancedData.longitude } : null;
+  const geolocation = useGeolocation();
+  const locationLoading = geolocation.loading;
+  const coordinates = geolocation.latitude && geolocation.longitude ? { lat: geolocation.latitude, lng: geolocation.longitude } : null;
   const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
   const [calculating, setCalculating] = useState(false);
 

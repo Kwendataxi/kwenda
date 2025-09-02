@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { MapPin, Package, CreditCard, Minus, Plus, Wallet, Smartphone, Navigation, Shield } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import MobileMoneyPayment from '@/components/advanced/MobileMoneyPayment';
@@ -53,8 +53,8 @@ export const FlexibleOrderDialog: React.FC<FlexibleOrderDialogProps> = ({
 }) => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const geolocation = useEnhancedGeolocation();
-  const geoLoading = !geolocation.enhancedData;
+  const geolocation = useGeolocation();
+  const geoLoading = geolocation.loading;
   
   const [step, setStep] = useState<'details' | 'payment' | 'mobile_money'>('details');
   const [quantity, setQuantity] = useState(1);

@@ -28,7 +28,7 @@ import { VerifiedSellerGuard } from './VerifiedSellerGuard';
 
 // Hooks
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
-import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { useUserVerification } from '@/hooks/useUserVerification';
 import { useWallet } from '@/hooks/useWallet';
 
@@ -84,9 +84,9 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
   const { user } = useAuth();
   const { toast } = useToast();
   const { t, formatCurrency } = useLanguage();
-  const { enhancedData } = useEnhancedGeolocation();
-  const locationLoading = !enhancedData;
-  const coordinates = enhancedData ? { lat: enhancedData.latitude, lng: enhancedData.longitude } : null;
+  const geolocation = useGeolocation();
+  const locationLoading = geolocation.loading;
+  const coordinates = geolocation.latitude && geolocation.longitude ? { lat: geolocation.latitude, lng: geolocation.longitude } : null;
   const { orders, loading: ordersLoading } = useMarketplaceOrders();
   const { verification } = useUserVerification();
   const { wallet } = useWallet();

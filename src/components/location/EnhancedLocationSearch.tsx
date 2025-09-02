@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useEnhancedGeolocation } from '@/hooks/useEnhancedGeolocation';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { GoogleMapsService, GeocodeResult } from '@/services/googleMapsService';
 import { ZoneService, PopularPlace } from '@/services/zoneService';
 import { useToast } from '@/hooks/use-toast';
@@ -34,10 +34,7 @@ export const EnhancedLocationSearch: React.FC<EnhancedLocationSearchProps> = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [isListening, setIsListening] = useState(false);
   
-  const geolocation = useEnhancedGeolocation({ 
-    geofencing: true,
-    adaptiveTracking: false 
-  });
+  const geolocation = useGeolocation({ watch: true });
   const { toast } = useToast();
 
   // Load recent places and popular places
