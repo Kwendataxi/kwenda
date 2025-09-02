@@ -1,38 +1,22 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import { useMasterLocation } from '@/hooks/useMasterLocation';
 import { 
   ArrowLeft,
-  ArrowRight,
   MapPin, 
   Target,
-  Bike,
-  Car,
-  Truck,
   CheckCircle2,
-  Clock,
   Package,
   Zap,
-  Navigation,
+  Truck,
   Search,
-  Loader2,
-  Plus,
-  Minus,
-  User,
-  Phone
+  Loader2
 } from 'lucide-react';
-
-// Types optimisés
-interface SlideProps {
-  isActive: boolean;
-  direction: number;
-}
 
 interface LocationData {
   address: string;
@@ -42,16 +26,9 @@ interface LocationData {
 
 interface DeliveryFormData {
   packageType: 'small' | 'medium' | 'large';
-  pickup: {
-    location: LocationData | null;
-    contact: { name: string; phone: string };
-  };
-  destination: {
-    location: LocationData | null;
-    contact: { name: string; phone: string };
-  };
+  pickup: { location: LocationData | null; name: string; phone: string };
+  destination: { location: LocationData | null; name: string; phone: string };
   serviceMode: 'flash' | 'flex' | 'maxicharge' | null;
-  pricing: { price: number; distance: number; duration: number };
 }
 
 interface SlideDeliveryInterfaceProps {
@@ -59,118 +36,52 @@ interface SlideDeliveryInterfaceProps {
   onCancel: () => void;
 }
 
-// Configuration des services
-const deliveryServices = [
-  {
-    id: 'flash' as const,
-    name: 'Kwenda Flash',
-    subtitle: 'Express - 30-45 min',
-    icon: Zap,
-    color: 'from-orange-500 to-red-500',
-    basePrice: 5000,
-    pricePerKm: 500,
-    description: 'Livraison ultra-rapide par moto'
-  },
-  {
-    id: 'flex' as const,
-    name: 'Kwenda Flex', 
-    subtitle: 'Standard - 1-2h',
-    icon: Package,
-    color: 'from-blue-500 to-purple-500',
-    basePrice: 3000,
-    pricePerKm: 300,
-    description: 'Solution économique et fiable'
-  },
-  {
-    id: 'maxicharge' as const,
-    name: 'Kwenda MaxiCharge',
-    subtitle: 'Gros colis - 2-4h',
-    icon: Truck,
-    color: 'from-green-500 to-teal-500',
-    basePrice: 8000,
-    pricePerKm: 800,
-    description: 'Pour vos gros volumes'
-  }
+const packageTypes = [
+  { id: 'small', icon: Package, label: 'Petit' },
+  { id: 'medium', icon: Package, label: 'Moyen' },
+  { id: 'large', icon: Package, label: 'Gros' }
 ];
 
-// Animations optimisées - Transition simple
-const slideTransition = {
-  duration: 0.3
-};
+const services = [
+  { id: 'flash', icon: Zap, label: 'Flash', subtitle: '30min', price: 5000 },
+  { id: 'flex', icon: Package, label: 'Flex', subtitle: '1-2h', price: 3000 },
+  { id: 'maxicharge', icon: Truck, label: 'MaxiCharge', subtitle: '2-4h', price: 8000 }
+];
 
 const slideVariants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 300 : -300,
-    opacity: 0,
-    scale: 0.95
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-    scale: 1
-  },
-  exit: (direction: number) => ({
-    x: direction < 0 ? 300 : -300,
-    opacity: 0,
-    scale: 0.95
-  })
+  enter: (direction: number) => ({ x: direction > 0 ? 100 : -100, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (direction: number) => ({ x: direction < 0 ? 100 : -100, opacity: 0 })
 };
 
 const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmit, onCancel }) => {
-  // États principaux
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(0);
   const [formData, setFormData] = useState<DeliveryFormData>({
     packageType: 'medium',
-    pickup: { location: null, contact: { name: '', phone: '' } },
-    destination: { location: null, contact: { name: '', phone: '' } },
-    serviceMode: null,
-    pricing: { price: 0, distance: 0, duration: 0 }
+    pickup: { location: null, name: '', phone: '' },
+    destination: { location: null, name: '', phone: '' },
+    serviceMode: null
   });
-  const [isAutoProgressing, setIsAutoProgressing] = useState(false);
+  const [queries, setQueries] = useState({ pickup: '', destination: '' });
+  const [suggestions, setSuggestions] = useState<{ pickup: LocationData[]; destination: LocationData[] }>({ pickup: [], destination: [] });
 
-  // États de recherche avec debouncing
-  const [pickupQuery, setPickupQuery] = useState('');
-  const [destinationQuery, setDestinationQuery] = useState('');
-  const [pickupSuggestions, setPickupSuggestions] = useState<LocationData[]>([]);
-  const [destinationSuggestions, setDestinationSuggestions] = useState<LocationData[]>([]);
-  const [showPickupSuggestions, setShowPickupSuggestions] = useState(false);
-  const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
-
-  // Hooks
   const { toast } = useToast();
   const { searchLocation, getCurrentPosition, loading: locationLoading } = useMasterLocation();
-  const { calculateDeliveryPrice, createDeliveryOrder, submitting } = useEnhancedDeliveryOrders();
+  const { createDeliveryOrder, submitting } = useEnhancedDeliveryOrders();
 
-  // Refs pour optimisation
-  const pickupTimeoutRef = useRef<NodeJS.Timeout>();
-  const destinationTimeoutRef = useRef<NodeJS.Timeout>();
-
-  // Navigation entre slides avec progression fluide
-  const nextSlide = useCallback(() => {
-    if (currentSlide < 3) {
+  const nextSlide = () => {
+    if (currentSlide < 2) {
       setDirection(1);
       setCurrentSlide(prev => prev + 1);
     }
-  }, [currentSlide]);
+  };
 
-  const prevSlide = useCallback(() => {
-    if (currentSlide > 0) {
-      setDirection(-1);
-      setCurrentSlide(prev => prev - 1);
-    }
-  }, [currentSlide]);
+  const prevSlide = () => {
+    setDirection(-1);
+    setCurrentSlide(prev => prev - 1);
+  };
 
-  // Auto-progression moderne
-  const autoProgressToNext = useCallback(() => {
-    setIsAutoProgressing(true);
-    setTimeout(() => {
-      nextSlide();
-      setIsAutoProgressing(false);
-    }, 600); // Délai pour voir l'animation de sélection
-  }, [nextSlide]);
-
-  // Géolocalisation optimisée
   const useCurrentLocation = useCallback(async () => {
     try {
       const position = await getCurrentPosition();
@@ -180,18 +91,9 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
           lat: position.lat,
           lng: position.lng
         };
-        
-        setFormData(prev => ({
-          ...prev,
-          pickup: { ...prev.pickup, location }
-        }));
-        
-        setPickupQuery(position.address);
-        
-        toast({
-          title: "Position détectée",
-          description: `📍 ${position.address.substring(0, 50)}...`
-        });
+        setFormData(prev => ({ ...prev, pickup: { ...prev.pickup, location } }));
+        setQueries(prev => ({ ...prev, pickup: position.address }));
+        toast({ title: "Position détectée", description: `📍 ${position.address.substring(0, 30)}...` });
       }
     } catch (error) {
       toast({
@@ -202,102 +104,35 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
     }
   }, [getCurrentPosition, toast]);
 
-  // Recherche d'adresses avec debouncing
-  const handlePickupSearch = useCallback(async (query: string) => {
-    setPickupQuery(query);
+  const handleSearch = useCallback(async (query: string, type: 'pickup' | 'destination') => {
+    setQueries(prev => ({ ...prev, [type]: query }));
     
-    if (pickupTimeoutRef.current) {
-      clearTimeout(pickupTimeoutRef.current);
-    }
-
     if (query.length < 2) {
-      setPickupSuggestions([]);
-      setShowPickupSuggestions(false);
+      setSuggestions(prev => ({ ...prev, [type]: [] }));
       return;
     }
-
-    pickupTimeoutRef.current = setTimeout(async () => {
-      try {
-        const results = await searchLocation(query);
-        setPickupSuggestions(results);
-        setShowPickupSuggestions(results.length > 0);
-      } catch (error) {
-        // Fallback avec suggestions locales
-        const fallbackResults = [
-          { address: `${query}, Gombe, Kinshasa`, lat: -4.3167, lng: 15.3167 },
-          { address: `${query}, Kinshasa Centre`, lat: -4.3217, lng: 15.3069 },
-          { address: `${query}, Lemba, Kinshasa`, lat: -4.3833, lng: 15.2833 }
-        ];
-        setPickupSuggestions(fallbackResults);
-        setShowPickupSuggestions(true);
-      }
-    }, 400);
-  }, [searchLocation]);
-
-  const handleDestinationSearch = useCallback(async (query: string) => {
-    setDestinationQuery(query);
-    
-    if (destinationTimeoutRef.current) {
-      clearTimeout(destinationTimeoutRef.current);
-    }
-
-    if (query.length < 2) {
-      setDestinationSuggestions([]);
-      setShowDestinationSuggestions(false);
-      return;
-    }
-
-    destinationTimeoutRef.current = setTimeout(async () => {
-      try {
-        const results = await searchLocation(query);
-        setDestinationSuggestions(results);
-        setShowDestinationSuggestions(results.length > 0);
-      } catch (error) {
-        // Fallback avec suggestions locales
-        const fallbackResults = [
-          { address: `${query}, Gombe, Kinshasa`, lat: -4.3167, lng: 15.3167 },
-          { address: `${query}, Kinshasa Centre`, lat: -4.3217, lng: 15.3069 },
-          { address: `${query}, Lemba, Kinshasa`, lat: -4.3833, lng: 15.2833 }
-        ];
-        setDestinationSuggestions(fallbackResults);
-        setShowDestinationSuggestions(true);
-      }
-    }, 400);
-  }, [searchLocation]);
-
-  // Calcul automatique des prix
-  const calculatePricing = useCallback(async () => {
-    if (!formData.pickup.location || !formData.destination.location || !formData.serviceMode) return;
 
     try {
-      const pricing = await calculateDeliveryPrice(
-        formData.pickup.location,
-        formData.destination.location,
-        formData.serviceMode
-      );
-      
-      setFormData(prev => ({
-        ...prev,
-        pricing
-      }));
+      const results = await searchLocation(query);
+      setSuggestions(prev => ({ ...prev, [type]: results }));
     } catch (error) {
-      console.error('Erreur calcul prix:', error);
+      const fallback = [
+        { address: `${query}, Gombe, Kinshasa`, lat: -4.3167, lng: 15.3167 },
+        { address: `${query}, Centre-ville`, lat: -4.3217, lng: 15.3069 }
+      ];
+      setSuggestions(prev => ({ ...prev, [type]: fallback }));
     }
-  }, [formData.pickup.location, formData.destination.location, formData.serviceMode, calculateDeliveryPrice]);
+  }, [searchLocation]);
 
-  // Effet pour recalculer les prix
-  React.useEffect(() => {
-    calculatePricing();
-  }, [calculatePricing]);
+  const selectLocation = (location: LocationData, type: 'pickup' | 'destination') => {
+    setFormData(prev => ({ 
+      ...prev, 
+      [type]: { ...prev[type], location } 
+    }));
+    setQueries(prev => ({ ...prev, [type]: location.address }));
+    setSuggestions(prev => ({ ...prev, [type]: [] }));
+  };
 
-  // Validation des étapes (corrigée avec index 0-based)
-  const canProceedToSlide = useMemo(() => ({
-    0: formData.packageType !== null,
-    1: formData.pickup.location && formData.destination.location,
-    2: formData.serviceMode && formData.pickup.contact.name && formData.destination.contact.name
-  }), [formData]);
-
-  // Soumission finale
   const handleSubmit = async () => {
     if (!formData.pickup.location || !formData.destination.location || !formData.serviceMode) {
       toast({
@@ -314,257 +149,180 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
         pickup: formData.pickup.location,
         destination: formData.destination.location,
         mode: formData.serviceMode,
-        estimatedPrice: formData.pricing.price,
-        distance: formData.pricing.distance,
-        duration: formData.pricing.duration
+        estimatedPrice: services.find(s => s.id === formData.serviceMode)?.price || 0,
+        distance: 5,
+        duration: 30
       };
 
       const orderId = await createDeliveryOrder(orderData);
-      
       toast({
         title: "Commande créée !",
         description: "Recherche d'un chauffeur en cours...",
       });
-      
       onSubmit({ ...orderData, id: orderId });
     } catch (error) {
       console.error('Erreur création commande:', error);
     }
   };
 
-  // Slides components
-  const PackageTypeSlide = () => (
+  const canProceed = () => {
+    if (currentSlide === 0) return true;
+    if (currentSlide === 1) return formData.pickup.location && formData.destination.location;
+    return formData.serviceMode;
+  };
+
+  // Slide 1: Type de colis
+  const PackageSlide = () => (
     <motion.div
-      key="package-type"
+      key="package"
       custom={direction}
       variants={slideVariants}
       initial="enter"
       animate="center"
       exit="exit"
-      transition={slideTransition}
-      className="space-y-4 px-1"
+      transition={{ duration: 0.2 }}
+      className="space-y-4"
     >
-      <div className="text-center space-y-3">
-        <h2 className="text-xl font-bold text-primary">Quel type de colis ?</h2>
-        <p className="text-sm text-muted-foreground">Sélectionnez la taille approximative</p>
-      </div>
-
-      <div className="grid gap-3">
-        {[
-          { id: 'small', name: 'Petit colis', subtitle: 'Documents, téléphone, bijoux', icon: Package, size: 'h-6 w-6' },
-          { id: 'medium', name: 'Colis moyen', subtitle: 'Sac, vêtements, nourriture', icon: Package, size: 'h-7 w-7' },
-          { id: 'large', name: 'Gros colis', subtitle: 'Électroménager, meubles', icon: Package, size: 'h-8 w-8' }
-        ].map((type) => (
-          <motion.div
+      <h2 className="text-lg font-bold text-center">Type de colis</h2>
+      <div className="grid grid-cols-3 gap-2">
+        {packageTypes.map((type) => (
+          <Card
             key={type.id}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className={`p-3 cursor-pointer text-center h-20 flex flex-col justify-center ${
+              formData.packageType === type.id ? 'ring-2 ring-primary bg-primary/10' : ''
+            }`}
+            onClick={() => {
+              setFormData(prev => ({ ...prev, packageType: type.id as any }));
+              setTimeout(nextSlide, 200);
+            }}
           >
-            <Card 
-              className={`p-3 cursor-pointer transition-all duration-300 hover:shadow-md transform hover:scale-[1.02] ${
-                formData.packageType === type.id 
-                  ? 'ring-2 ring-primary bg-primary/5 scale-[1.02]' 
-                  : 'hover:bg-muted/50'
-              }`}
-              onClick={() => {
-                setFormData(prev => ({ ...prev, packageType: type.id as any }));
-                // Auto-progression fluide après sélection
-                setTimeout(() => autoProgressToNext(), 300);
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <type.icon className={`${type.size} text-primary flex-shrink-0`} />
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-sm">{type.name}</h3>
-                  <p className="text-xs text-muted-foreground line-clamp-1">{type.subtitle}</p>
-                </div>
-                {formData.packageType === type.id && (
-                  <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
-                )}
-              </div>
-            </Card>
-          </motion.div>
+            <type.icon className="h-6 w-6 mx-auto mb-1" />
+            <span className="text-xs font-medium">{type.label}</span>
+          </Card>
         ))}
       </div>
     </motion.div>
   );
 
-  const AddressesSlide = () => (
+  // Slide 2: Adresses
+  const AddressSlide = () => (
     <motion.div
-      key="addresses"
+      key="address"
       custom={direction}
       variants={slideVariants}
       initial="enter"
       animate="center"
       exit="exit"
-      transition={slideTransition}
-      className="space-y-6"
+      transition={{ duration: 0.2 }}
+      className="space-y-4"
     >
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-primary">Adresses</h2>
-        <p className="text-muted-foreground">Où récupérer et livrer ?</p>
-      </div>
-
-      {/* Point de collecte */}
-      <div className="space-y-4">
+      <h2 className="text-lg font-bold text-center">Adresses</h2>
+      
+      {/* Pickup */}
+      <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold">Point de collecte</h3>
+          <MapPin className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">Récupérer</span>
         </div>
-
+        
         <Button
           variant="outline"
           onClick={useCurrentLocation}
           disabled={locationLoading}
-          className="w-full h-12 justify-start gap-3"
+          className="w-full h-10 text-xs"
         >
-          {locationLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Target className="h-4 w-4 text-primary" />
-          )}
-          Ma position actuelle
+          {locationLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Target className="h-4 w-4" />}
+          Ma position
         </Button>
 
         <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Ou saisir une adresse..."
-            value={pickupQuery}
-            onChange={(e) => handlePickupSearch(e.target.value)}
-            className="pl-10 h-12"
+            placeholder="Adresse de récupération"
+            value={queries.pickup}
+            onChange={(e) => handleSearch(e.target.value, 'pickup')}
+            className="pl-8 h-9 text-sm"
           />
-          
-          {showPickupSuggestions && pickupSuggestions.length > 0 && (
-            <Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto">
-              <div className="p-2">
-                {pickupSuggestions.map((suggestion, index) => (
-                  <div
-                    key={index}
-                    className="p-3 hover:bg-muted rounded-md cursor-pointer"
-                    onClick={() => {
-                      setFormData(prev => ({
-                        ...prev,
-                        pickup: { ...prev.pickup, location: suggestion }
-                      }));
-                      setPickupQuery(suggestion.address);
-                      setShowPickupSuggestions(false);
-                    }}
-                  >
-                    <p className="font-medium text-sm">{suggestion.address}</p>
-                  </div>
-                ))}
-              </div>
+          {suggestions.pickup.length > 0 && (
+            <Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-32 overflow-y-auto">
+              {suggestions.pickup.map((suggestion, index) => (
+                <div
+                  key={index}
+                  className="p-2 hover:bg-muted cursor-pointer text-sm"
+                  onClick={() => selectLocation(suggestion, 'pickup')}
+                >
+                  {suggestion.address.substring(0, 40)}...
+                </div>
+              ))}
             </Card>
           )}
         </div>
-
-        {/* Contact pickup */}
-        <div className="grid grid-cols-2 gap-3">
+        
+        <div className="grid grid-cols-2 gap-2">
           <Input
-            placeholder="Nom contact"
-            value={formData.pickup.contact.name}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              pickup: { ...prev.pickup, contact: { ...prev.pickup.contact, name: e.target.value } }
-            }))}
+            placeholder="Nom"
+            value={formData.pickup.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, pickup: { ...prev.pickup, name: e.target.value } }))}
+            className="h-8 text-sm"
           />
           <Input
             placeholder="Téléphone"
-            value={formData.pickup.contact.phone}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              pickup: { ...prev.pickup, contact: { ...prev.pickup.contact, phone: e.target.value } }
-            }))}
+            value={formData.pickup.phone}
+            onChange={(e) => setFormData(prev => ({ ...prev, pickup: { ...prev.pickup, phone: e.target.value } }))}
+            className="h-8 text-sm"
           />
         </div>
-
-        {formData.pickup.location && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <p className="text-sm font-medium text-green-800">
-                📍 {formData.pickup.location.address.substring(0, 50)}...
-              </p>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Point de livraison */}
-      <div className="space-y-4">
+      {/* Destination */}
+      <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Navigation className="h-5 w-5 text-secondary" />
-          <h3 className="font-semibold">Point de livraison</h3>
+          <Target className="h-4 w-4 text-secondary" />
+          <span className="text-sm font-medium">Livrer</span>
         </div>
-
+        
         <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Adresse de livraison..."
-            value={destinationQuery}
-            onChange={(e) => handleDestinationSearch(e.target.value)}
-            className="pl-10 h-12"
+            placeholder="Adresse de livraison"
+            value={queries.destination}
+            onChange={(e) => handleSearch(e.target.value, 'destination')}
+            className="pl-8 h-9 text-sm"
           />
-          
-          {showDestinationSuggestions && destinationSuggestions.length > 0 && (
-            <Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto">
-              <div className="p-2">
-                {destinationSuggestions.map((suggestion, index) => (
-                  <div
-                    key={index}
-                    className="p-3 hover:bg-muted rounded-md cursor-pointer"
-                    onClick={() => {
-                      setFormData(prev => ({
-                        ...prev,
-                        destination: { ...prev.destination, location: suggestion }
-                      }));
-                      setDestinationQuery(suggestion.address);
-                      setShowDestinationSuggestions(false);
-                    }}
-                  >
-                    <p className="font-medium text-sm">{suggestion.address}</p>
-                  </div>
-                ))}
-              </div>
+          {suggestions.destination.length > 0 && (
+            <Card className="absolute top-full left-0 right-0 z-50 mt-1 max-h-32 overflow-y-auto">
+              {suggestions.destination.map((suggestion, index) => (
+                <div
+                  key={index}
+                  className="p-2 hover:bg-muted cursor-pointer text-sm"
+                  onClick={() => selectLocation(suggestion, 'destination')}
+                >
+                  {suggestion.address.substring(0, 40)}...
+                </div>
+              ))}
             </Card>
           )}
         </div>
-
-        {/* Contact destination */}
-        <div className="grid grid-cols-2 gap-3">
+        
+        <div className="grid grid-cols-2 gap-2">
           <Input
-            placeholder="Nom destinataire"
-            value={formData.destination.contact.name}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              destination: { ...prev.destination, contact: { ...prev.destination.contact, name: e.target.value } }
-            }))}
+            placeholder="Nom"
+            value={formData.destination.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, destination: { ...prev.destination, name: e.target.value } }))}
+            className="h-8 text-sm"
           />
           <Input
             placeholder="Téléphone"
-            value={formData.destination.contact.phone}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              destination: { ...prev.destination, contact: { ...prev.destination.contact, phone: e.target.value } }
-            }))}
+            value={formData.destination.phone}
+            onChange={(e) => setFormData(prev => ({ ...prev, destination: { ...prev.destination, phone: e.target.value } }))}
+            className="h-8 text-sm"
           />
         </div>
-
-        {formData.destination.location && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-blue-600" />
-              <p className="text-sm font-medium text-blue-800">
-                📍 {formData.destination.location.address.substring(0, 50)}...
-              </p>
-            </div>
-          </div>
-        )}
       </div>
     </motion.div>
   );
 
+  // Slide 3: Service + Confirmation
   const ServiceSlide = () => (
     <motion.div
       key="service"
@@ -573,213 +331,101 @@ const SlideDeliveryInterface: React.FC<SlideDeliveryInterfaceProps> = ({ onSubmi
       initial="enter"
       animate="center"
       exit="exit"
-      transition={slideTransition}
-      className="space-y-6"
+      transition={{ duration: 0.2 }}
+      className="space-y-4"
     >
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-primary">Mode de livraison</h2>
-        <p className="text-muted-foreground">Choisissez votre vitesse</p>
-      </div>
-
-      <div className="space-y-4">
-        {deliveryServices.map((service) => (
-          <motion.div
+      <h2 className="text-lg font-bold text-center">Service</h2>
+      
+      <div className="space-y-2">
+        {services.map((service) => (
+          <Card
             key={service.id}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className={`p-3 cursor-pointer ${
+              formData.serviceMode === service.id ? 'ring-2 ring-primary bg-primary/10' : ''
+            }`}
+            onClick={() => setFormData(prev => ({ ...prev, serviceMode: service.id as any }))}
           >
-            <Card 
-              className={`p-4 cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                formData.serviceMode === service.id 
-                  ? 'ring-2 ring-primary bg-primary/5' 
-                  : 'hover:bg-muted/50'
-              }`}
-              onClick={() => setFormData(prev => ({ ...prev, serviceMode: service.id }))}
-            >
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-lg bg-gradient-to-r ${service.color}`}>
-                  <service.icon className="h-6 w-6 text-white" />
+            <div className="flex items-center gap-3">
+              <service.icon className="h-5 w-5" />
+              <div className="flex-1">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-sm">{service.label}</span>
+                  <span className="text-sm font-bold">{service.price} CDF</span>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold">{service.name}</h3>
-                  <p className="text-sm text-muted-foreground">{service.subtitle}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{service.description}</p>
-                </div>
-                <div className="text-right">
-                  {formData.pricing.price > 0 && formData.serviceMode === service.id && (
-                    <p className="font-bold text-primary">{formData.pricing.price} CDF</p>
-                  )}
-                  {formData.serviceMode === service.id && (
-                    <CheckCircle2 className="h-5 w-5 text-primary mt-1" />
-                  )}
-                </div>
+                <span className="text-xs text-muted-foreground">{service.subtitle}</span>
               </div>
-            </Card>
-          </motion.div>
+              {formData.serviceMode === service.id && (
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+              )}
+            </div>
+          </Card>
         ))}
       </div>
 
-      {formData.pricing.distance > 0 && (
-        <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-          <h4 className="font-semibold">Détails du trajet</h4>
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <p className="text-muted-foreground">Distance</p>
-              <p className="font-medium">{formData.pricing.distance.toFixed(1)} km</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Durée</p>
-              <p className="font-medium">{formData.pricing.duration} min</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Prix</p>
-              <p className="font-bold text-primary">{formData.pricing.price} CDF</p>
-            </div>
+      {/* Résumé */}
+      {formData.pickup.location && formData.destination.location && (
+        <Card className="p-3 bg-muted/50">
+          <div className="text-xs space-y-1">
+            <div><strong>De:</strong> {formData.pickup.location.address.substring(0, 30)}...</div>
+            <div><strong>À:</strong> {formData.destination.location.address.substring(0, 30)}...</div>
+            <div><strong>Type:</strong> {packageTypes.find(p => p.id === formData.packageType)?.label}</div>
           </div>
-        </div>
+        </Card>
       )}
     </motion.div>
   );
 
-  const ConfirmationSlide = () => (
-    <motion.div
-      key="confirmation"
-      custom={direction}
-      variants={slideVariants}
-      initial="enter"
-      animate="center"
-      exit="exit"
-      transition={slideTransition}
-      className="space-y-6"
-    >
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-primary">Confirmation</h2>
-        <p className="text-muted-foreground">Vérifiez les détails</p>
-      </div>
-
-      <Card className="p-4 space-y-4">
-        <div className="space-y-3">
-          <div className="flex items-start gap-3">
-            <MapPin className="h-5 w-5 text-primary mt-0.5" />
-            <div>
-              <p className="font-medium">Collecte</p>
-              <p className="text-sm text-muted-foreground">{formData.pickup.location?.address}</p>
-              <p className="text-xs text-muted-foreground">{formData.pickup.contact.name} - {formData.pickup.contact.phone}</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <Navigation className="h-5 w-5 text-secondary mt-0.5" />
-            <div>
-              <p className="font-medium">Livraison</p>
-              <p className="text-sm text-muted-foreground">{formData.destination.location?.address}</p>
-              <p className="text-xs text-muted-foreground">{formData.destination.contact.name} - {formData.destination.contact.phone}</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <Package className="h-5 w-5 text-accent mt-0.5" />
-            <div>
-              <p className="font-medium">Service</p>
-              <p className="text-sm text-muted-foreground">
-                {deliveryServices.find(s => s.id === formData.serviceMode)?.name}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="border-t pt-4">
-          <div className="flex justify-between items-center">
-            <p className="font-semibold">Total à payer</p>
-            <p className="text-2xl font-bold text-primary">{formData.pricing.price} CDF</p>
-          </div>
-        </div>
-      </Card>
-
-      <Button 
-        onClick={handleSubmit}
-        disabled={submitting}
-        className="w-full h-12 text-lg"
-      >
-        {submitting ? (
-          <>
-            <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            Création en cours...
-          </>
-        ) : (
-          'Confirmer la commande'
-        )}
-      </Button>
-    </motion.div>
-  );
-
-  const slides = [PackageTypeSlide, AddressesSlide, ServiceSlide, ConfirmationSlide];
-  const CurrentSlideComponent = slides[currentSlide];
+  const slides = [PackageSlide, AddressSlide, ServiceSlide];
+  const CurrentSlide = slides[currentSlide];
 
   return (
-    <div className="bg-gradient-to-br from-background via-background/95 to-muted/20 p-4 pb-24 min-h-screen overflow-y-auto">
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-3">
-            <Button
-              variant="ghost"
-              onClick={currentSlide === 0 ? onCancel : prevSlide}
-              className="flex items-center gap-1 text-sm px-2"
-            >
-              <ArrowLeft className="h-3 w-3" />
-              {currentSlide === 0 ? 'Annuler' : 'Retour'}
-            </Button>
-            
-            <h1 className="text-lg font-bold">Kwenda Livraison</h1>
-            
-            {currentSlide < 3 && (
-              <Button
-                variant="ghost"
-                onClick={nextSlide}
-                disabled={!canProceedToSlide[currentSlide as keyof typeof canProceedToSlide] || isAutoProgressing}
-                className={`flex items-center gap-1 text-sm px-2 transition-all ${
-                  isAutoProgressing ? 'opacity-50' : ''
-                }`}
-              >
-                {isAutoProgressing ? (
-                  <>
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 0.6, ease: "linear" }}
-                      className="h-3 w-3 border border-current border-t-transparent rounded-full"
-                    />
-                    Progression...
-                  </>
-                ) : (
-                  <>
-                    Suivant
-                    <ArrowRight className="h-3 w-3" />
-                  </>
-                )}
-              </Button>
-            )}
-            {currentSlide === 3 && <div className="w-12" />}
+    <div className="bg-background p-4 pb-24 max-h-screen overflow-y-auto">
+      <div className="max-w-sm mx-auto">
+        {/* Header compact */}
+        <div className="flex items-center justify-between mb-4">
+          <Button variant="ghost" size="sm" onClick={currentSlide === 0 ? onCancel : prevSlide}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="text-sm font-medium">
+            Étape {currentSlide + 1}/3
           </div>
-          
-          {/* Progress indicator */}
-          <div className="flex gap-2">
-            {[0, 1, 2, 3].map((index) => (
-              <div
-                key={index}
-                className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
-                  index <= currentSlide ? 'bg-primary' : 'bg-muted'
-                }`}
-              />
-            ))}
-          </div>
+          <div className="w-8" />
         </div>
 
-        {/* Slides container - scrollable content */}
+        {/* Progress bar */}
+        <div className="w-full bg-muted rounded-full h-1 mb-6">
+          <div 
+            className="bg-primary h-1 rounded-full transition-all duration-300"
+            style={{ width: `${((currentSlide + 1) / 3) * 100}%` }}
+          />
+        </div>
+
+        {/* Slide content */}
         <div className="relative overflow-hidden">
           <AnimatePresence mode="wait" custom={direction}>
-            <CurrentSlideComponent />
+            <CurrentSlide />
           </AnimatePresence>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex gap-2 mt-6">
+          {currentSlide < 2 ? (
+            <Button 
+              onClick={nextSlide} 
+              disabled={!canProceed()}
+              className="flex-1"
+            >
+              Suivant
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleSubmit} 
+              disabled={submitting || !canProceed()}
+              className="flex-1"
+            >
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Commander'}
+            </Button>
+          )}
         </div>
       </div>
     </div>
