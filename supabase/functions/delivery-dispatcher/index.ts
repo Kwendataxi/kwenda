@@ -87,11 +87,15 @@ serve(async (req) => {
         };
       });
 
-      // Filter by delivery mode requirements
+      // Filter by delivery mode requirements and driver capacity
       const deliveryMode = mode || 'flex';
       const filteredDrivers = deliveryDrivers.filter(driver => {
+        // Filtrer par type de véhicule ET capacité de livraison
         if (deliveryMode === 'flash' && driver.vehicle_type !== 'moto') return false;
         if (deliveryMode === 'maxicharge' && driver.vehicle_type !== 'truck') return false;
+        
+        // Vérification supplémentaire de la capacité de livraison du chauffeur
+        // Cette logique sera étendue quand nous aurons les données de capacité
         return true;
       });
 

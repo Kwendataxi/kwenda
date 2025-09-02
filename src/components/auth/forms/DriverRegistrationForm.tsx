@@ -33,7 +33,8 @@ export const DriverRegistrationForm = ({ onSuccess, onBack }: DriverRegistration
     insuranceExpiry: '',
     bankAccountNumber: '',
     emergencyContactName: '',
-    emergencyContactPhone: ''
+    emergencyContactPhone: '',
+    deliveryCapacity: ''
   });
 
   // const handleSubmit = async (e: React.FormEvent) => {
@@ -169,7 +170,8 @@ const handleSubmit = async (e: React.FormEvent) => {
           insurance_expiry: formData.insuranceExpiry,
           bank_account_number: formData.bankAccountNumber,
           emergency_contact_name: formData.emergencyContactName,
-          emergency_contact_phone: formData.emergencyContactPhone
+          emergency_contact_phone: formData.emergencyContactPhone,
+          delivery_capacity: formData.deliveryCapacity
         }
       }
     });
@@ -308,6 +310,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       <SelectItem value="taxi">Taxi</SelectItem>
                       <SelectItem value="moto">Moto</SelectItem>
                       <SelectItem value="camionnette">Camionnette</SelectItem>
+                      <SelectItem value="truck">Camion</SelectItem>
                       <SelectItem value="voiture">Voiture personnelle</SelectItem>
                     </SelectContent>
                   </Select>
@@ -353,6 +356,36 @@ const handleSubmit = async (e: React.FormEvent) => {
                     onChange={(e) => setFormData({ ...formData, vehicleColor: e.target.value })}
                   />
                 </div>
+              </div>
+              
+              {/* Capacité de livraison */}
+              <div className="space-y-2">
+                <Label htmlFor="deliveryCapacity">Capacité de livraison *</Label>
+                <Select value={formData.deliveryCapacity} onValueChange={(value) => setFormData({ ...formData, deliveryCapacity: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner votre capacité" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="flash">
+                      <div className="flex flex-col">
+                        <span className="font-medium">Flash (Moto)</span>
+                        <span className="text-xs text-muted-foreground">Colis de 1 à 5 kg</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="flex">
+                      <div className="flex flex-col">
+                        <span className="font-medium">Flex (Camionnette)</span>
+                        <span className="text-xs text-muted-foreground">Colis de 6 à 50 kg</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="maxicharge">
+                      <div className="flex flex-col">
+                        <span className="font-medium">MaxiCharge (Camion)</span>
+                        <span className="text-xs text-muted-foreground">Colis de plus de 50 kg</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

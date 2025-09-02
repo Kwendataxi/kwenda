@@ -350,6 +350,7 @@ export type Database = {
         Row: {
           bank_account_number: string | null
           created_at: string | null
+          delivery_capacity: string | null
           display_name: string | null
           email: string
           emergency_contact_name: string | null
@@ -377,6 +378,7 @@ export type Database = {
         Insert: {
           bank_account_number?: string | null
           created_at?: string | null
+          delivery_capacity?: string | null
           display_name?: string | null
           email: string
           emergency_contact_name?: string | null
@@ -404,6 +406,7 @@ export type Database = {
         Update: {
           bank_account_number?: string | null
           created_at?: string | null
+          delivery_capacity?: string | null
           display_name?: string | null
           email?: string
           emergency_contact_name?: string | null
@@ -694,6 +697,7 @@ export type Database = {
           loading_assistance: boolean | null
           order_time: string
           package_type: string | null
+          package_weight: number | null
           pickup_coordinates: Json | null
           pickup_location: string
           pickup_time: string | null
@@ -715,6 +719,7 @@ export type Database = {
           loading_assistance?: boolean | null
           order_time?: string
           package_type?: string | null
+          package_weight?: number | null
           pickup_coordinates?: Json | null
           pickup_location: string
           pickup_time?: string | null
@@ -736,6 +741,7 @@ export type Database = {
           loading_assistance?: boolean | null
           order_time?: string
           package_type?: string | null
+          package_weight?: number | null
           pickup_coordinates?: Json | null
           pickup_location?: string
           pickup_time?: string | null
@@ -963,6 +969,7 @@ export type Database = {
       driver_profiles: {
         Row: {
           created_at: string
+          delivery_capacity: string | null
           documents: Json | null
           id: string
           insurance_expiry: string
@@ -989,6 +996,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          delivery_capacity?: string | null
           documents?: Json | null
           id?: string
           insurance_expiry: string
@@ -1015,6 +1023,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          delivery_capacity?: string | null
           documents?: Json | null
           id?: string
           insurance_expiry?: string

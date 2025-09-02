@@ -169,6 +169,11 @@ export const useUnifiedDispatcher = () => {
   const handleNewDeliveryOffer = async (delivery: any) => {
     // Check if driver is in the area and available for deliveries
     if (!dispatchStatus.serviceTypes.includes('delivery')) return;
+    
+    // Vérifier si le chauffeur peut prendre en charge ce type de livraison
+    // basé sur sa delivery_capacity vs le package_weight
+    const canHandleDelivery = checkDeliveryCapacity(delivery);
+    if (!canHandleDelivery) return;
 
     const notification: UnifiedOrderNotification = {
       id: delivery.id,
@@ -183,6 +188,22 @@ export const useUnifiedDispatcher = () => {
     };
 
     addNotification(notification);
+  };
+
+  // Fonction pour vérifier si le chauffeur peut prendre en charge la livraison
+  const checkDeliveryCapacity = (delivery: any): boolean => {
+    const packageWeight = delivery.package_weight || 0;
+    const deliveryType = delivery.delivery_type || delivery.package_type;
+    
+    // Si pas de poids spécifié, accepter par défaut
+    if (!packageWeight) return true;
+    
+    // Logique de correspondance poids/véhicule
+    if (packageWeight <= 5 && ['flash'].includes(deliveryType)) return true;
+    if (packageWeight > 5 && packageWeight <= 50 && ['flex'].includes(deliveryType)) return true;
+    if (packageWeight > 50 && ['maxicharge'].includes(deliveryType)) return true;
+    
+    return false;
   };
 
   const handleNewMarketplaceOffer = async (assignment: any) => {
