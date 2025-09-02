@@ -53,6 +53,42 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_access_logs: {
+        Row: {
+          access_reason: string | null
+          access_type: string
+          accessed_by: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          sensitive_data_accessed: Json | null
+          target_admin_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          access_reason?: string | null
+          access_type: string
+          accessed_by: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          sensitive_data_accessed?: Json | null
+          target_admin_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          access_reason?: string | null
+          access_type?: string
+          accessed_by?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          sensitive_data_accessed?: Json | null
+          target_admin_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       admin_notification_templates: {
         Row: {
           content_template: string
@@ -5536,6 +5572,17 @@ export type Database = {
       get_notification_stats: {
         Args: { admin_id?: string }
         Returns: Json
+      }
+      get_protected_admin_info: {
+        Args: { admin_id_param: string }
+        Returns: {
+          admin_level: string
+          created_at: string
+          department: string
+          display_name: string
+          is_active: boolean
+          user_id: string
+        }[]
       }
       get_protected_user_info: {
         Args: { user_id_param: string }
