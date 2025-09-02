@@ -2793,12 +2793,15 @@ export type Database = {
       places_database: {
         Row: {
           accuracy: number | null
+          address_components: Json | null
+          aliases: string[] | null
           category: string
           city: string
           commune: string | null
           country_code: string
           created_at: string
           district: string | null
+          hierarchy_level: number | null
           id: string
           is_active: boolean
           is_popular: boolean
@@ -2808,18 +2811,28 @@ export type Database = {
           name: string
           name_fr: string
           name_local: string | null
+          opening_hours: Json | null
+          parent_id: string | null
+          phone_number: string | null
           place_type: string
+          popularity_score: number | null
           search_keywords: string[] | null
+          search_vector: unknown | null
+          services: string[] | null
           updated_at: string
+          website: string | null
         }
         Insert: {
           accuracy?: number | null
+          address_components?: Json | null
+          aliases?: string[] | null
           category?: string
           city?: string
           commune?: string | null
           country_code?: string
           created_at?: string
           district?: string | null
+          hierarchy_level?: number | null
           id?: string
           is_active?: boolean
           is_popular?: boolean
@@ -2829,18 +2842,28 @@ export type Database = {
           name: string
           name_fr: string
           name_local?: string | null
+          opening_hours?: Json | null
+          parent_id?: string | null
+          phone_number?: string | null
           place_type?: string
+          popularity_score?: number | null
           search_keywords?: string[] | null
+          search_vector?: unknown | null
+          services?: string[] | null
           updated_at?: string
+          website?: string | null
         }
         Update: {
           accuracy?: number | null
+          address_components?: Json | null
+          aliases?: string[] | null
           category?: string
           city?: string
           commune?: string | null
           country_code?: string
           created_at?: string
           district?: string | null
+          hierarchy_level?: number | null
           id?: string
           is_active?: boolean
           is_popular?: boolean
@@ -2850,11 +2873,26 @@ export type Database = {
           name?: string
           name_fr?: string
           name_local?: string | null
+          opening_hours?: Json | null
+          parent_id?: string | null
+          phone_number?: string | null
           place_type?: string
+          popularity_score?: number | null
           search_keywords?: string[] | null
+          search_vector?: unknown | null
+          services?: string[] | null
           updated_at?: string
+          website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "places_database_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "places_database"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pricing_rules: {
         Row: {
@@ -5904,6 +5942,38 @@ export type Database = {
       has_permission: {
         Args: { permission_param: string; user_id_param: string }
         Returns: boolean
+      }
+      intelligent_places_search: {
+        Args: {
+          max_results?: number
+          min_hierarchy_level?: number
+          search_query: string
+          user_city?: string
+          user_country_code?: string
+          user_lat?: number
+          user_lng?: number
+        }
+        Returns: {
+          address_components: Json
+          aliases: string[]
+          category: string
+          city: string
+          commune: string
+          country_code: string
+          distance_km: number
+          hierarchy_level: number
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          name_fr: string
+          name_local: string
+          phone_number: string
+          place_type: string
+          popularity_score: number
+          relevance_score: number
+          website: string
+        }[]
       }
       is_current_user_admin: {
         Args: Record<PropertyKey, never>
