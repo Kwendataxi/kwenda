@@ -804,6 +804,39 @@ export type Database = {
           },
         ]
       }
+      driver_location_access_logs: {
+        Row: {
+          access_reason: string | null
+          access_type: string
+          accessed_by: string
+          created_at: string | null
+          driver_id: string
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+        }
+        Insert: {
+          access_reason?: string | null
+          access_type: string
+          accessed_by: string
+          created_at?: string | null
+          driver_id: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+        }
+        Update: {
+          access_reason?: string | null
+          access_type?: string
+          accessed_by?: string
+          created_at?: string | null
+          driver_id?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       driver_locations: {
         Row: {
           accuracy: number | null
@@ -5225,6 +5258,21 @@ export type Database = {
           user_type: string | null
         }
       }
+      find_nearby_drivers: {
+        Args: {
+          max_distance_km?: number
+          pickup_lat: number
+          pickup_lng: number
+          vehicle_class_filter?: string
+        }
+        Returns: {
+          distance_km: number
+          driver_id: string
+          estimated_arrival_minutes: number
+          rating_average: number
+          vehicle_class: string
+        }[]
+      }
       generate_driver_code: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -5244,6 +5292,15 @@ export type Database = {
       geocode_location: {
         Args: { query_text: string }
         Returns: Json
+      }
+      get_driver_zones: {
+        Args: { zone_radius_km?: number }
+        Returns: {
+          average_wait_time_minutes: number
+          driver_count: number
+          zone_center_lat: number
+          zone_center_lng: number
+        }[]
       }
       get_notification_stats: {
         Args: { admin_id?: string }
@@ -5294,6 +5351,14 @@ export type Database = {
       link_payment_to_subscription: {
         Args: { payment_id: string; subscription_id: string }
         Returns: boolean
+      }
+      log_driver_location_access: {
+        Args: {
+          p_access_reason?: string
+          p_access_type: string
+          p_driver_id: string
+        }
+        Returns: undefined
       }
       process_escrow_release: {
         Args: { escrow_id: string }
