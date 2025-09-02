@@ -2759,12 +2759,51 @@ export type Database = {
           },
         ]
       }
+      profile_access_logs: {
+        Row: {
+          access_reason: string | null
+          access_type: string
+          accessed_by: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          sensitive_data_accessed: Json | null
+          target_user_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          access_reason?: string | null
+          access_type: string
+          accessed_by: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          sensitive_data_accessed?: Json | null
+          target_user_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          access_reason?: string | null
+          access_type?: string
+          accessed_by?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          sensitive_data_accessed?: Json | null
+          target_user_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           display_name: string | null
           id: string
+          is_public: boolean | null
+          last_seen: string | null
           phone_number: string | null
           updated_at: string
           user_id: string
@@ -2772,9 +2811,12 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          is_public?: boolean | null
+          last_seen?: string | null
           phone_number?: string | null
           updated_at?: string
           user_id: string
@@ -2782,9 +2824,12 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          is_public?: boolean | null
+          last_seen?: string | null
           phone_number?: string | null
           updated_at?: string
           user_id?: string
@@ -5322,9 +5367,12 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           display_name: string | null
           id: string
+          is_public: boolean | null
+          last_seen: string | null
           phone_number: string | null
           updated_at: string
           user_id: string
@@ -5422,6 +5470,16 @@ export type Database = {
       get_notification_stats: {
         Args: { admin_id?: string }
         Returns: Json
+      }
+      get_safe_user_info: {
+        Args: { user_id_param: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          member_since: string
+          user_id: string
+          user_type: string
+        }[]
       }
       get_secure_vendor_earnings: {
         Args: {
@@ -5562,6 +5620,14 @@ export type Database = {
           place_type: string
           relevance_score: number
           search_keywords: string[]
+        }[]
+      }
+      search_users_protected: {
+        Args: { limit_results?: number; search_term: string }
+        Returns: {
+          masked_name: string
+          user_id: string
+          user_type: string
         }[]
       }
       user_exists: {
