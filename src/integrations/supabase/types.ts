@@ -2007,6 +2007,93 @@ export type Database = {
         }
         Relationships: []
       }
+      merchant_accounts: {
+        Row: {
+          balance: number
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          pending_withdrawals: number
+          total_earned: number
+          total_withdrawn: number
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          pending_withdrawals?: number
+          total_earned?: number
+          total_withdrawn?: number
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          pending_withdrawals?: number
+          total_earned?: number
+          total_withdrawn?: number
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: []
+      }
+      merchant_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at: string
+          currency: string
+          description: string
+          id: string
+          merchant_account_id: string
+          reference_id: string | null
+          reference_type: string | null
+          status: string
+          transaction_type: string
+          vendor_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at?: string
+          currency?: string
+          description: string
+          id?: string
+          merchant_account_id: string
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          transaction_type: string
+          vendor_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          currency?: string
+          description?: string
+          id?: string
+          merchant_account_id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          transaction_type?: string
+          vendor_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           attachments: Json | null

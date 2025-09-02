@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Wallet, ArrowDownRight, ArrowUpRight, CreditCard, Phone, TrendingUp, Clock, DollarSign } from 'lucide-react';
-import { useVendorWallet } from '@/hooks/useVendorWallet';
+import { useMerchantAccount } from '@/hooks/useMerchantAccount';
 
 interface WithdrawalFormData {
   amount: string;
@@ -17,7 +17,7 @@ interface WithdrawalFormData {
 }
 
 export const VendorWalletDashboard: React.FC = () => {
-  const { wallet, transactions, loading, withdrawing, requestWithdrawal, formatAmount } = useVendorWallet();
+  const { merchantAccount, transactions, loading, withdrawing, requestWithdrawal, formatAmount } = useMerchantAccount();
   const [withdrawalForm, setWithdrawalForm] = useState<WithdrawalFormData>({
     amount: '',
     withdrawal_method: '',
@@ -92,8 +92,8 @@ export const VendorWalletDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Kwenda Marchand</h1>
-          <p className="text-muted-foreground">Gérez vos gains et retraits</p>
+          <h1 className="text-3xl font-bold">Compte Marchand</h1>
+          <p className="text-muted-foreground">Gérez vos gains de vente et vos retraits</p>
         </div>
         <Dialog open={isWithdrawDialogOpen} onOpenChange={setIsWithdrawDialogOpen}>
           <DialogTrigger asChild>
@@ -117,7 +117,7 @@ export const VendorWalletDashboard: React.FC = () => {
                   onChange={(e) => setWithdrawalForm(prev => ({ ...prev, amount: e.target.value }))}
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  Solde disponible: {wallet ? formatAmount(wallet.balance) : '0 CDF'}
+                  Solde disponible: {formatAmount(merchantAccount?.balance || 0)} CDF
                 </p>
               </div>
               
@@ -158,7 +158,7 @@ export const VendorWalletDashboard: React.FC = () => {
               
               <Button 
                 onClick={handleWithdrawal}
-                disabled={withdrawing || !withdrawalForm.amount || !withdrawalForm.withdrawal_method || !withdrawalForm.phone_number}
+                disabled={withdrawing || !withdrawalForm.amount || !withdrawalForm.withdrawal_method || !withdrawalForm.phone_number || !merchantAccount?.balance || merchantAccount.balance <= 0}
                 className="w-full"
               >
                 {withdrawing ? 'Traitement...' : 'Confirmer le retrait'}
@@ -177,7 +177,10 @@ export const VendorWalletDashboard: React.FC = () => {
               <span className="text-sm font-medium text-muted-foreground">Solde disponible</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              {wallet ? formatAmount(wallet.balance) : '0 CDF'}
+              {formatAmount(merchantAccount?.balance || 0)} CDF
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Compte marchand - retirable
             </p>
           </CardContent>
         </Card>
@@ -189,7 +192,7 @@ export const VendorWalletDashboard: React.FC = () => {
               <span className="text-sm font-medium text-muted-foreground">Total gagné</span>
             </div>
             <p className="text-2xl font-bold mt-2">
-              {wallet ? formatAmount(wallet.total_earned) : '0 CDF'}
+              {formatAmount(merchantAccount?.total_earned || 0)} CDF
             </p>
           </CardContent>
         </Card>
@@ -201,7 +204,7 @@ export const VendorWalletDashboard: React.FC = () => {
               <span className="text-sm font-medium text-muted-foreground">Total retiré</span>
             </div>
             <p className="text-2xl font-bold mt-2">
-              {wallet ? formatAmount(wallet.total_withdrawn) : '0 CDF'}
+              {formatAmount(merchantAccount?.total_withdrawn || 0)} CDF
             </p>
           </CardContent>
         </Card>

@@ -6,10 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { Wallet, TrendingUp, Clock, CheckCircle, AlertCircle, ArrowUpRight, Shield, Eye, Download } from 'lucide-react';
-import { WithdrawalDialog } from './WithdrawalDialog';
 import { DeliveryConfirmationDialog } from './DeliveryConfirmationDialog';
 import { VaultTransactionDetails } from './VaultTransactionDetails';
-import { VaultStats } from './VaultStats';
 
 interface SecureTransaction {
   id: string;
@@ -213,77 +211,43 @@ export const SecureVaultDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Statistiques du coffre */}
-      <VaultStats walletInfo={walletInfo} />
-
-      {/* En-tête avec portefeuille */}
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* Résumé simple */}
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Solde disponible</CardTitle>
-            <Wallet className="h-4 w-4 text-success" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-success">
-              {walletInfo?.balance.toLocaleString()} {walletInfo?.currency}
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-success/10 rounded-lg">
+                <Wallet className="h-6 w-6 text-success" />
+              </div>
+              <div>
+                <h4 className="font-medium">Solde KwendaPay</h4>
+                <p className="text-2xl font-bold text-success">
+                  {walletInfo?.balance.toLocaleString()} {walletInfo?.currency || 'CDF'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Solde de consultation
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Prêt pour retrait immédiat
-            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Retraits en cours</CardTitle>
-            <TrendingUp className="h-4 w-4 text-warning" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-warning">
-              {walletInfo?.pending_withdrawals.toLocaleString()} {walletInfo?.currency}
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-primary/10 rounded-lg">
+                <Shield className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h4 className="font-medium">Transactions sécurisées</h4>
+                <p className="text-2xl font-bold text-primary">
+                  {transactions.filter(t => t.status === 'held').length}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  En attente de confirmation
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              En traitement sécurisé
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total gagné</CardTitle>
-            <CheckCircle className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {walletInfo?.total_earned.toLocaleString()} {walletInfo?.currency}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Gains totaux sécurisés
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Actions rapides</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Button 
-              onClick={() => setShowWithdrawal(true)}
-              className="w-full"
-              disabled={!walletInfo?.balance || walletInfo.balance <= 0}
-            >
-              💰 Retirer
-            </Button>
-            <Button 
-              onClick={exportTransactions}
-              variant="outline"
-              size="sm"
-              className="w-full"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Exporter
-            </Button>
           </CardContent>
         </Card>
       </div>
@@ -360,16 +324,6 @@ export const SecureVaultDashboard: React.FC = () => {
       </Tabs>
 
       {/* Dialogues */}
-      <WithdrawalDialog 
-        open={showWithdrawal}
-        onOpenChange={setShowWithdrawal}
-        availableBalance={walletInfo?.balance || 0}
-        onSuccess={() => {
-          loadWalletInfo();
-          setShowWithdrawal(false);
-        }}
-      />
-
       {selectedTransaction && (
         <>
           <DeliveryConfirmationDialog 
