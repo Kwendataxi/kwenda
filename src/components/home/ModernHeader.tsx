@@ -39,23 +39,19 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
   useEffect(() => {
     geolocation.getCurrentPosition();
 
-    const stopWatch = geolocation.watchCurrentPosition?.();
-
     // Auto-stop the watch after 30s or when accuracy is good enough
     const timer = setTimeout(() => {
-      stopWatch && stopWatch();
+      // Timer cleanup
     }, 30000);
 
     const interval = setInterval(() => {
       if (geolocation.isRealGPS && geolocation.accuracy !== null && geolocation.accuracy <= 60) {
-        stopWatch && stopWatch();
         clearTimeout(timer);
         clearInterval(interval);
       }
     }, 2000);
 
     return () => {
-      stopWatch && stopWatch();
       clearTimeout(timer);
       clearInterval(interval);
     };

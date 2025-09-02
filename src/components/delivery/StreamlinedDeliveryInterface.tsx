@@ -129,23 +129,19 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
       let position = await getCurrentPosition();
       
       // Validation de la position obtenue
-      if (!position?.coords || 
-          position.coords.latitude === 0 || 
-          position.coords.longitude === 0 ||
-          Math.abs(position.coords.latitude) < 0.01 ||
-          Math.abs(position.coords.longitude) < 0.01) {
+      if (!position?.lat || !position?.lng || 
+          position.lat === 0 || 
+          position.lng === 0 ||
+          Math.abs(position.lat) < 0.01 ||
+          Math.abs(position.lng) < 0.01) {
         
         // Utiliser les coordonnées de Kinshasa par défaut
         position = {
-          coords: {
-            ...defaultKinshasa,
-            accuracy: 1000,
-            altitudeAccuracy: null,
-            altitude: null,
-            speed: null,
-            heading: null
-          },
-          timestamp: Date.now()
+          lat: defaultKinshasa.latitude,
+          lng: defaultKinshasa.longitude,
+          accuracy: 1000,
+          address: 'Kinshasa, RDC',
+          type: 'fallback'
         };
         
         toast({
@@ -155,14 +151,14 @@ const StreamlinedDeliveryInterface = ({ onSubmit, onCancel }: StreamlinedDeliver
         });
       }
 
-      if (position?.coords) {
+      if (position?.lat && position?.lng) {
         const address = await GeocodingService.reverseGeocode(
-          position.coords.longitude,
-          position.coords.latitude
+          position.lng,
+          position.lat
         );
         const location = {
           address: address || 'Ma position actuelle',
-          coordinates: [position.coords.longitude, position.coords.latitude] as [number, number]
+          coordinates: [position.lng, position.lat] as [number, number]
         };
         setPickup(location);
         setPickupSearch(location.address);

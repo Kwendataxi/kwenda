@@ -121,14 +121,14 @@ const OneClickDeliveryInterface = ({ onSubmit, onCancel }: OneClickDeliveryInter
     setIsLoading(true);
     try {
       const position = await getCurrentPosition();
-      if (position?.coords) {
+      if (position?.lat && position?.lng) {
         const address = await GeocodingService.reverseGeocode(
-          position.coords.longitude,
-          position.coords.latitude
+          position.lng,
+          position.lat
         );
         const location = {
           address: address || 'Ma position actuelle',
-          coordinates: [position.coords.longitude, position.coords.latitude] as [number, number]
+          coordinates: [position.lng, position.lat] as [number, number]
         };
         setPickup(location);
         setPickupSearch(location.address);

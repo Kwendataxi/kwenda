@@ -50,7 +50,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 // Transport components
-import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
+import { AdvancedTaxiInterface } from '@/components/transport/AdvancedTaxiInterface';
 import TripChat from '@/components/transport/TripChat';
 
 // Delivery components
@@ -94,7 +94,7 @@ import { UnifiedActivityScreen } from '@/components/activity/UnifiedActivityScre
 
 interface Location {
   address: string;
-  coordinates: [number, number];
+  coordinates: { lat: number; lng: number };
   type?: 'home' | 'work' | 'other' | 'recent' | 'favorite';
 }
 
@@ -140,8 +140,8 @@ const ClientApp = () => {
 
   // Prefill for taxi when coming from home search
   type TaxiPrefill = {
-    pickup?: { address: string; coordinates?: { lat: number; lng: number } };
-    destination?: { address: string; coordinates?: { lat: number; lng: number } };
+    pickup?: Location;
+    destination?: Location;
   };
   const [taxiPrefill, setTaxiPrefill] = useState<TaxiPrefill>({});
 
@@ -271,7 +271,10 @@ const ClientApp = () => {
     setServiceType('transport');
     setCurrentView('service');
     setTaxiPrefill({
-      destination: { address: query, coordinates }
+      destination: { 
+        address: query, 
+        coordinates: coordinates || { lat: 0, lng: 0 }
+      }
     });
   };
 
@@ -299,8 +302,7 @@ const ClientApp = () => {
   const renderTransportService = () => {
     return (
       <div className="space-y-4">
-        <ModernTaxiInterface 
-          onBookingRequest={() => {}}
+        <AdvancedTaxiInterface 
           initialPickup={taxiPrefill.pickup}
           initialDestination={taxiPrefill.destination}
         />

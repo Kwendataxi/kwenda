@@ -69,10 +69,10 @@ export const AdvancedTaxiInterface = ({ initialPickup, initialDestination }: Adv
       if (initialDestination && !pickup) {
         try {
           const pos = await getCurrentPosition();
-          if (pos?.coords) {
+          if (pos?.lat && pos?.lng) {
             setPickup({
               address: 'Ma position actuelle',
-              coordinates: { lat: pos.coords.latitude, lng: pos.coords.longitude }
+              coordinates: { lat: pos.lat, lng: pos.lng }
             });
           }
         } catch {}

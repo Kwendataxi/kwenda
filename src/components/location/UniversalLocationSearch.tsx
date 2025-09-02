@@ -126,15 +126,15 @@ export const UniversalLocationSearch = ({
       const position = await getCurrentPosition();
       if (position) {
         const address = await GeocodingService.reverseGeocode(
-          position.coords.longitude, 
-          position.coords.latitude
+          position.lng, 
+          position.lat
         );
         
         const location: Location = {
           address,
           coordinates: { 
-            lat: position.coords.latitude, 
-            lng: position.coords.longitude 
+            lat: position.lat, 
+            lng: position.lng 
           },
           type: 'current'
         };

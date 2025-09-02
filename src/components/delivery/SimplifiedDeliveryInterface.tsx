@@ -86,11 +86,11 @@ const SimplifiedDeliveryInterface: React.FC<SimplifiedDeliveryInterfaceProps> = 
     getCurrentPosition()
       .then(async (position) => {
         try {
-        const address = await GoogleMapsService.reverseGeocode(position.coords.longitude, position.coords.latitude);
+        const address = await GoogleMapsService.reverseGeocode(position.lng, position.lat);
         setPickup({
           address,
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
+          lat: position.lat,
+          lng: position.lng
         });
           setPickupSearch(address);
         } catch (error) {

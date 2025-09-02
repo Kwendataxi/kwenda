@@ -72,13 +72,12 @@ export const FlexibleOrderDialog: React.FC<FlexibleOrderDialogProps> = ({
   // Get current location for delivery
   const handleGetCurrentLocation = async () => {
     try {
-      if (geolocation.enhancedData) {
-        const location = geolocation.enhancedData;
+      if (geolocation.latitude && geolocation.longitude) {
         setDeliveryCoordinates({
-          lat: location.latitude,
-          lng: location.longitude
+          lat: geolocation.latitude,
+          lng: geolocation.longitude
         });
-        setDeliveryAddress(`${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`);
+        setDeliveryAddress(`${geolocation.latitude.toFixed(6)}, ${geolocation.longitude.toFixed(6)}`);
         toast({
           title: "Position capturée",
           description: "Votre position a été enregistrée pour la livraison",

@@ -83,8 +83,8 @@ const YangoStyleDeliveryInterface = ({ onSubmit, onCancel }: YangoStyleDeliveryI
     (async () => {
       try {
         const position = await getCurrentPosition();
-        if (position?.coords) {
-          const addr = await GeocodingService.reverseGeocode(position.coords.longitude, position.coords.latitude);
+        if (position?.lat && position?.lng) {
+          const addr = await GeocodingService.reverseGeocode(position.lng, position.lat);
           if (addr) {
             const parts = addr.split(',');
             setRegionLabel(parts.slice(-2).join(', ').trim());
@@ -148,14 +148,14 @@ const YangoStyleDeliveryInterface = ({ onSubmit, onCancel }: YangoStyleDeliveryI
   const handleCurrentLocation = async () => {
     try {
       const position = await getCurrentPosition();
-      if (position?.coords) {
+      if (position?.lat && position?.lng) {
         const address = await GeocodingService.reverseGeocode(
-          position.coords.longitude, 
-          position.coords.latitude
+          position.lng, 
+          position.lat
         );
         setPickup({
           address: address || 'Ma position actuelle',
-          coordinates: [position.coords.longitude, position.coords.latitude]
+          coordinates: [position.lng, position.lat]
         });
         setPickupSearch(address || 'Ma position actuelle');
       }

@@ -49,15 +49,9 @@ export const EnhancedLocationSearch: React.FC<EnhancedLocationSearchProps> = ({
       }
     }
 
-    // Load popular places based on current zone
-    if (geolocation.currentZone) {
-      const zonePopular = ZoneService.getPopularPlacesInZone(geolocation.currentZone.id);
-      setPopularPlaces(zonePopular);
-    } else {
-      // Show general popular places for Kinshasa
-      setPopularPlaces(ZoneService.getAllPopularPlaces().slice(0, 8));
-    }
-  }, [geolocation.currentZone]);
+    // Show general popular places for Kinshasa
+    setPopularPlaces(ZoneService.getAllPopularPlaces().slice(0, 8));
+  }, []);
 
   // Debounced search with zone biasing
   useEffect(() => {
@@ -91,11 +85,9 @@ export const EnhancedLocationSearch: React.FC<EnhancedLocationSearchProps> = ({
       // First search popular places
       const popularMatches = ZoneService.searchPopularPlaces(searchQuery, 3);
       
-      // Get proximity bias from current location or zone
+      // Get proximity bias from current location
       const proximity = geolocation.latitude && geolocation.longitude 
         ? { lat: geolocation.latitude, lng: geolocation.longitude }
-        : geolocation.currentZone 
-        ? { lat: geolocation.currentZone.center[1], lng: geolocation.currentZone.center[0] }
         : undefined;
       
       // Search with Google Maps API
@@ -182,7 +174,7 @@ export const EnhancedLocationSearch: React.FC<EnhancedLocationSearchProps> = ({
           lat: geolocation.latitude,
           lng: geolocation.longitude,
           address,
-          zone: geolocation.currentZone?.name
+          zone: undefined
         });
         setQuery(address);
       }
@@ -274,22 +266,7 @@ export const EnhancedLocationSearch: React.FC<EnhancedLocationSearchProps> = ({
         </div>
       </div>
 
-      {/* Current zone info */}
-      {showZoneInfo && geolocation.currentZone && (
-        <div className="mt-2 flex items-center gap-2">
-          <Badge variant="outline" className="text-xs">
-            <MapPin className="h-3 w-3 mr-1" />
-            {geolocation.currentZone.name}
-          </Badge>
-          
-          {geolocation.currentZone.surgeMultiplier > 1 && (
-            <Badge variant="destructive" className="text-xs">
-              <Zap className="h-3 w-3 mr-1" />
-              {geolocation.currentZone.surgeMultiplier}x
-            </Badge>
-          )}
-        </div>
-      )}
+      {/* Current zone info - removed for now */}
 
       {/* Results dropdown */}
       {showDropdown && (
@@ -299,7 +276,7 @@ export const EnhancedLocationSearch: React.FC<EnhancedLocationSearchProps> = ({
             <div className="p-2">
               <div className="flex items-center gap-2 px-2 py-1 text-sm text-muted-foreground">
                 <Star className="h-4 w-4" />
-                Lieux populaires {geolocation.currentZone ? `à ${geolocation.currentZone.name}` : ''}
+                Lieux populaires
               </div>
               {popularPlaces.slice(0, 4).map((place) => (
                 <Button

@@ -51,7 +51,7 @@ const LocationInput = ({
           const results = await GooglePlacesService.searchPlaces(
             searchQuery,
             lastKnownPosition
-              ? { lng: lastKnownPosition.longitude, lat: lastKnownPosition.latitude }
+              ? { lng: lastKnownPosition.lng, lat: lastKnownPosition.lat }
               : undefined
           );
           setSuggestions(results);
@@ -98,15 +98,15 @@ const LocationInput = ({
       if (position) {
         // Reverse geocode to get address
         const address = await GooglePlacesService.reverseGeocode(
-          position.coords.longitude,
-          position.coords.latitude
+          position.lng,
+          position.lat
         );
         
         const location: Location = {
           address,
           coordinates: {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lat: position.lat,
+            lng: position.lng
           },
           type: 'search'
         };

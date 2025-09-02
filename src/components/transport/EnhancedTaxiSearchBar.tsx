@@ -164,8 +164,8 @@ export const EnhancedTaxiSearchBar = ({
       let proximity: { lng: number; lat: number } | undefined = undefined;
       try {
         const pos = await getCurrentPosition();
-        if (pos?.coords) {
-          proximity = { lng: pos.coords.longitude, lat: pos.coords.latitude };
+        if (pos?.lat && pos?.lng) {
+          proximity = { lng: pos.lng, lat: pos.lat };
         }
       } catch {}
 
@@ -273,7 +273,7 @@ export const EnhancedTaxiSearchBar = ({
     try {
       const position = await getCurrentPosition();
       const address = `Ma position actuelle`;
-      const coordinates = { lat: position.coords.latitude, lng: position.coords.longitude };
+      const coordinates = { lat: position.lat, lng: position.lng };
       await handleShortcutSelect(address, coordinates);
     } catch (error) {
       console.error('Erreur géolocalisation:', error);

@@ -173,11 +173,11 @@ const FlashDeliveryInterface = ({ onSubmit, onCancel }: FlashDeliveryInterfacePr
   const handleCurrentLocation = async () => {
     try {
       const position = await getCurrentPosition();
-      if (position && position.coords) {
-        const address = await GeocodingService.reverseGeocode(position.coords.longitude, position.coords.latitude);
+      if (position && position.lat && position.lng) {
+        const address = await GeocodingService.reverseGeocode(position.lng, position.lat);
         setPickup({
           address: address || "Ma position actuelle",
-          coordinates: [position.coords.longitude, position.coords.latitude]
+          coordinates: [position.lng, position.lat]
         });
         setPickupSearch(address || "Ma position actuelle");
       }

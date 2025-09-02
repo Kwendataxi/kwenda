@@ -46,7 +46,7 @@ const LiveTracking: React.FC<LiveTrackingProps> = ({
   const [estimatedArrival, setEstimatedArrival] = useState<Date | null>(null);
   
   const { toast } = useToast();
-  const geolocation = useGeolocation({ watchPosition: true });
+  const geolocation = useGeolocation({ watch: true });
   const { 
     trackingData, 
     connected, 

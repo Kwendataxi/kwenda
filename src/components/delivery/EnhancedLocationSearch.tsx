@@ -113,15 +113,15 @@ export const EnhancedLocationSearch = ({
     try {
       const position = await getCurrentPosition();
       const address = await GoogleMapsService.reverseGeocode(
-        position.coords.longitude, 
-        position.coords.latitude
+        position.lng, 
+        position.lat
       );
       
       const location: Location = {
         address: address || 'Ma position actuelle',
         coordinates: {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
+          lat: position.lat,
+          lng: position.lng
         },
         type: 'current'
       };
