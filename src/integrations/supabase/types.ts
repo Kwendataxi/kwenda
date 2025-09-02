@@ -5222,6 +5222,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      check_driver_location_access: {
+        Args: { target_driver_id: string }
+        Returns: boolean
+      }
       create_support_ticket: {
         Args: {
           p_category: string
