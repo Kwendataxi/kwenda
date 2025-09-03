@@ -309,32 +309,47 @@ export const UserProfile = () => {
   ];
 
   const renderModalContent = () => {
-    switch (activeOption) {
-      case 'wallet':
-        return <KwendaPayWallet />;
-      case 'referral':
-        return <ReferralSystem />;
-      case 'history':
-        return <ActivityHistory />;
-      case 'addresses':
-        return <UserAddressesManager />;
-      case 'support':
-        return <CustomerSupport />;
-      case 'security':
-        return <UserVerification />;
-      case 'driver':
-        return <DriverUpgrade />;
-      case 'team':
-        return <TeamAccountManager />;
-      case 'settings':
-        return <UserSettings />;
-      default:
-        return (
-          <div className="p-6">
-            <h3 className="text-lg font-semibold mb-4 capitalize">{activeOption}</h3>
-            <p className="text-muted-foreground">Fonctionnalité en développement...</p>
-          </div>
-        );
+    try {
+      switch (activeOption) {
+        case 'wallet':
+          return <KwendaPayWallet />;
+        case 'referral':
+          return <ReferralSystem />;
+        case 'history':
+          return <ActivityHistory />;
+        case 'addresses':
+          return <UserAddressesManager />;
+        case 'support':
+          return <CustomerSupport />;
+        case 'security':
+          return <UserVerification />;
+        case 'driver':
+          return <DriverUpgrade />;
+        case 'team':
+          return <TeamAccountManager />;
+        case 'settings':
+          return <UserSettings />;
+        default:
+          return (
+            <div className="p-6">
+              <h3 className="text-lg font-semibold mb-4 capitalize">{activeOption}</h3>
+              <p className="text-muted-foreground">Fonctionnalité en développement...</p>
+            </div>
+          );
+      }
+    } catch (error) {
+      console.error('Error rendering modal content:', error);
+      return (
+        <div className="p-6 text-center">
+          <p className="text-muted-foreground mb-4">Une erreur s'est produite lors du chargement.</p>
+          <button 
+            onClick={() => setShowModal(false)}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+          >
+            Fermer
+          </button>
+        </div>
+      );
     }
   };
 

@@ -41,7 +41,20 @@ export const useUserVerification = () => {
         .maybeSingle();
 
       if (verificationError) {
-        throw verificationError;
+        console.error('Verification fetch error:', verificationError);
+        // Gestion gracieuse - continuer avec des valeurs par défaut
+        setVerification({
+          id: crypto.randomUUID(),
+          user_id: user.id,
+          phone_verified: false,
+          identity_verified: false,
+          verification_level: 'none',
+          verification_documents: [],
+          verified_at: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+        return;
       }
 
       // Si aucun enregistrement de vérification n'existe, en créer un
@@ -56,7 +69,20 @@ export const useUserVerification = () => {
           .single();
 
         if (createError) {
-          throw createError;
+          console.error('Verification creation error:', createError);
+          // Utiliser des valeurs par défaut si la création échoue
+          setVerification({
+            id: crypto.randomUUID(),
+            user_id: user.id,
+            phone_verified: false,
+            identity_verified: false,
+            verification_level: 'none',
+            verification_documents: [],
+            verified_at: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+          return;
         }
 
         setVerification(newVerification as UserVerification);
@@ -65,7 +91,19 @@ export const useUserVerification = () => {
       }
     } catch (err) {
       console.error('Error fetching verification status:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : 'Erreur de connexion');
+      // Utiliser des valeurs par défaut même en cas d'erreur
+      setVerification({
+        id: crypto.randomUUID(),
+        user_id: user.id,
+        phone_verified: false,
+        identity_verified: false,
+        verification_level: 'none',
+        verification_documents: [],
+        verified_at: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
     } finally {
       setLoading(false);
     }
