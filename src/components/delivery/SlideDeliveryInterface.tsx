@@ -15,6 +15,12 @@ import DynamicPriceCalculator from './DynamicPriceCalculator';
 import { RealTimeLocationSearch } from '@/components/location/RealTimeLocationSearch';
 import { UnifiedLocation } from '@/types/locationAdapter';
 import { 
+  isValidLocation, 
+  secureLocation, 
+  unifiedToLocationData,
+  type ValidatedLocation 
+} from '@/utils/locationValidation';
+import { 
   ArrowLeft, 
   ArrowRight, 
   Package, 
@@ -150,10 +156,24 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
     }
   };
 
-  // Gestion de la sélection de localisation
+  // Gestion sécurisée de la sélection de localisation
   const handleLocationSelect = (location: UnifiedLocation, type: 'pickup' | 'destination') => {
-    setFormData(prev => ({ ...prev, [type]: location }));
-    setLocationValues(prev => ({ ...prev, [type]: location.address }));
+    console.log(`Sélection ${type}:`, location);
+    
+    // Conversion et sécurisation immédiate
+    const securedLocation = secureLocation(unifiedToLocationData(location));
+    
+    setFormData(prev => ({ ...prev, [type]: securedLocation }));
+    setLocationValues(prev => ({ ...prev, [type]: securedLocation.address }));
+    
+    // Validation immédiate et feedback utilisateur
+    if (!isValidLocation(securedLocation)) {
+      toast({
+        title: "Attention",
+        description: "Coordonnées corrigées automatiquement",
+        variant: "default"
+      });
+    }
   };
 
   // Détermine si on peut passer à l'étape suivante
@@ -175,12 +195,15 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
       const selectedService = services.find(s => s.id === formData.serviceMode);
       const estimatedPrice = dynamicPrice || selectedService?.basePrice || 5000;
       
-      // Validation stricte des coordonnées pour éviter l'erreur "Cannot read properties of undefined"
-      if (!formData.pickup?.lat || !formData.pickup?.lng || 
-          !formData.destination?.lat || !formData.destination?.lng) {
+      // Validation ultra-sécurisée des coordonnées
+      const securePickup = formData.pickup ? secureLocation(formData.pickup) : null;
+      const secureDestination = formData.destination ? secureLocation(formData.destination) : null;
+      
+      if (!securePickup || !secureDestination || 
+          !isValidLocation(securePickup) || !isValidLocation(secureDestination)) {
         toast({
-          title: "Adresses manquantes",
-          description: "Veuillez sélectionner les points de collecte et de livraison",
+          title: "Adresses invalides",
+          description: "Veuillez sélectionner des adresses valides pour la collecte et la livraison",
           variant: "destructive"
         });
         return;
@@ -189,14 +212,14 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
       const orderData = {
         city: 'Kinshasa', // TODO: Intégrer la détection de ville
         pickup: {
-          address: formData.pickup.address,
-          lat: Number(formData.pickup.lat),
-          lng: Number(formData.pickup.lng)
+          address: securePickup.address,
+          lat: securePickup.lat,
+          lng: securePickup.lng
         },
         destination: {
-          address: formData.destination.address,
-          lat: Number(formData.destination.lat),
-          lng: Number(formData.destination.lng)
+          address: secureDestination.address,
+          lat: secureDestination.lat,
+          lng: secureDestination.lng
         },
         mode: formData.serviceMode as 'flash' | 'flex' | 'maxicharge',
         packageWeight: 5,
@@ -317,10 +340,10 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
           </p>
         </div>
 
-        {/* Calcul dynamique du prix */}
+        {/* Calcul dynamique du prix sécurisé */}
         <DynamicPriceCalculator
-          pickup={formData.pickup}
-          destination={formData.destination}
+          pickup={formData.pickup ? unifiedToLocationData(formData.pickup) : null}
+          destination={formData.destination ? unifiedToLocationData(formData.destination) : null}
           serviceType={formData.serviceMode as 'flash' | 'flex' | 'maxicharge'}
           onPriceCalculated={(price) => setDynamicPrice(price)}
         />

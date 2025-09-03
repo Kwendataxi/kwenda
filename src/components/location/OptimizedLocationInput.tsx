@@ -1,398 +1,262 @@
 /**
- * Composant de saisie de localisation optimisé pour la livraison
- * Interface stabilisée, performante et focalisée sur l'UX mobile
+ * Composant de saisie de localisation simplifié et optimisé
+ * Résout les problèmes de fluidité et de performance
  */
 
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { Search, MapPin, Loader2, Navigation2, X, Clock, Star } from 'lucide-react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { MapPin, Search, Navigation, Loader2, Check, AlertTriangle } from 'lucide-react';
 import { useIntelligentAddressSearch } from '@/hooks/useIntelligentAddressSearch';
-import { useUnifiedLocation } from '@/hooks/useUnifiedLocation';
+import { intelligentToUnified, type UnifiedLocation } from '@/types/locationAdapter';
+import { isValidLocation, secureLocation } from '@/utils/locationValidation';
 import { cn } from '@/lib/utils';
-import type { IntelligentSearchResult } from '@/services/IntelligentAddressSearch';
 
 interface OptimizedLocationInputProps {
   placeholder?: string;
   value?: string;
-  onLocationSelect: (location: { address: string; lat: number; lng: number }) => void;
-  showCurrentLocation?: boolean;
-  context?: 'pickup' | 'delivery' | 'general';
-  autoFocus?: boolean;
+  onLocationSelect: (location: UnifiedLocation) => void;
   className?: string;
+  showCurrentLocation?: boolean;
+  autoFocus?: boolean;
+  error?: string;
 }
 
 export const OptimizedLocationInput: React.FC<OptimizedLocationInputProps> = ({
   placeholder = "Rechercher une adresse...",
   value = '',
   onLocationSelect,
+  className,
   showCurrentLocation = true,
-  context = 'general',
   autoFocus = false,
-  className
+  error
 }) => {
-  // États optimisés avec useCallback pour éviter les re-renders
-  const [query, setQuery] = useState(value);
+  const [inputValue, setInputValue] = useState(value);
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<UnifiedLocation | null>(null);
   
-  // Refs stables
   const inputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
-
-  // Hooks optimisés
-  const {
-    location: currentLocation,
-    getCurrentPosition,
-    loading: locationLoading
-  } = useUnifiedLocation();
-
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  
   const {
     results,
     isSearching,
-    popularPlaces,
-    recentSearches,
-    search
+    search,
+    clearResults
   } = useIntelligentAddressSearch({
-    city: 'Kinshasa',
-    maxResults: 6,
-    autoSearchOnMount: true
+    city: 'Kinshasa'
   });
 
-  // Configuration contextuelle stabilisée
-  const contextConfig = useMemo(() => ({
-    pickup: { 
-      placeholder: "Adresse de collecte",
-      icon: MapPin,
-      priority: 'precision'
-    },
-    delivery: { 
-      placeholder: "Adresse de livraison", 
-      icon: Navigation2,
-      priority: 'popular'
-    },
-    general: { 
-      placeholder: "Rechercher une adresse", 
-      icon: Search,
-      priority: 'balanced'
-    }
-  }), []);
-
-  const config = contextConfig[context];
-  const effectivePlaceholder = placeholder || config.placeholder;
-
-  // Effet pour auto-focus stabilisé
-  useEffect(() => {
-    if (autoFocus && inputRef.current && !isOpen) {
-      const timer = setTimeout(() => inputRef.current?.focus(), 100);
-      return () => clearTimeout(timer);
-    }
-  }, [autoFocus, isOpen]);
-
-  // Synchronisation de la valeur externe
-  useEffect(() => {
-    if (value !== query) {
-      setQuery(value);
-    }
-  }, [value]);
-
-  // Gestionnaire de recherche avec debounce optimisé
-  const handleSearch = useCallback((searchQuery: string) => {
-    setQuery(searchQuery);
-    
+  // Debounced search
+  const debouncedSearch = useCallback((query: string) => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
-
-    if (searchQuery.trim().length >= 2) {
-      debounceRef.current = setTimeout(() => {
-        search(searchQuery);
-      }, 400); // Debounce plus long pour réduire les requêtes
-    } else if (searchQuery.trim().length === 0) {
-      // Afficher les lieux populaires par défaut
-      search('');
-    }
-  }, [search]);
-
-  // Gestion de la sélection avec useCallback
-  const handleLocationSelect = useCallback((result: IntelligentSearchResult | 'current') => {
-    if (result === 'current') {
-      // Position actuelle
-      getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 10000
-      }).then(position => {
-        setQuery('Position actuelle');
-        onLocationSelect({
-          address: position.address || 'Position actuelle',
-          lat: position.lat,
-          lng: position.lng
-        });
+    
+    debounceRef.current = setTimeout(() => {
+      if (query.trim().length >= 2) {
+        search(query);
+        setIsOpen(true);
+      } else {
+        clearResults();
         setIsOpen(false);
-      }).catch(console.error);
-      return;
-    }
-
-    // Lieu sélectionné
-    setQuery(result.name);
-    onLocationSelect({
-      address: result.name,
-      lat: result.lat,
-      lng: result.lng
-    });
-    setIsOpen(false);
-    setSelectedIndex(-1);
-  }, [getCurrentPosition, onLocationSelect]);
-
-  // Navigation au clavier optimisée
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (!isOpen) return;
-
-    const allItems = [
-      ...(showCurrentLocation && currentLocation ? ['current'] : []),
-      ...results,
-      ...popularPlaces.slice(0, 3)
-    ];
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev => Math.min(prev + 1, allItems.length - 1));
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev => Math.max(prev - 1, -1));
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (selectedIndex >= 0 && allItems[selectedIndex]) {
-          handleLocationSelect(allItems[selectedIndex] as any);
-        }
-        break;
-      case 'Escape':
-        setIsOpen(false);
-        setSelectedIndex(-1);
-        break;
-    }
-  }, [isOpen, results, popularPlaces, selectedIndex, showCurrentLocation, currentLocation, handleLocationSelect]);
-
-  // Fermeture sur clic extérieur
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        setSelectedIndex(-1);
       }
-    };
+    }, 300);
+  }, [search, clearResults]);
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isOpen]);
+  // Handle input change
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    setSelectedLocation(null);
+    debouncedSearch(newValue);
+  }, [debouncedSearch]);
 
-  // Icône de catégorie
-  const getCategoryIcon = useCallback((category: string) => {
-    const icons: Record<string, string> = {
-      transport: '🚌',
-      commercial: '🏪', 
-      education: '🎓',
-      health: '🏥',
-      government: '🏛️',
-      general: '📍'
-    };
-    return icons[category] || '📍';
-  }, []);
+  // Handle location selection
+  const handleLocationSelect = useCallback((result: any) => {
+    const unified = intelligentToUnified(result);
+    const secured = secureLocation(unified);
+    
+    setSelectedLocation(secured);
+    setInputValue(secured.address);
+    setIsOpen(false);
+    clearResults();
+    
+    onLocationSelect(secured);
+  }, [onLocationSelect, clearResults]);
 
-  // Affichage des suggestions optimisé
-  const renderSuggestions = useMemo(() => {
-    if (!isOpen) return null;
-
-    const suggestions = [];
-    let currentIndex = 0;
-
-    // Position actuelle
-    if (showCurrentLocation && currentLocation) {
-      suggestions.push(
-        <div
-          key="current"
-          onClick={() => handleLocationSelect('current')}
-          className={cn(
-            "flex items-center gap-3 p-3 cursor-pointer transition-colors",
-            selectedIndex === currentIndex ? "bg-primary/10" : "hover:bg-gray-50"
-          )}
-        >
-          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-            <Navigation2 className="w-4 h-4 text-primary" />
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-gray-900">Position actuelle</p>
-            <p className="text-sm text-gray-600">GPS • Précision optimale</p>
-          </div>
-          <Badge variant="default" className="text-xs">GPS</Badge>
-        </div>
-      );
-      currentIndex++;
-    }
-
-    // Résultats de recherche
-    if (results.length > 0) {
-      results.forEach((result) => {
-        suggestions.push(
-          <div
-            key={result.id}
-            onClick={() => handleLocationSelect(result)}
-            className={cn(
-              "flex items-center gap-3 p-3 cursor-pointer transition-colors",
-              selectedIndex === currentIndex ? "bg-primary/10" : "hover:bg-gray-50"
-            )}
-          >
-            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm">
-              {getCategoryIcon(result.category)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-900 truncate">{result.name}</p>
-              {result.subtitle && (
-                <p className="text-sm text-gray-600 truncate">{result.subtitle}</p>
-              )}
-            </div>
-            {result.badge && (
-              <Badge variant="secondary" className="text-xs">{result.badge}</Badge>
-            )}
-            {result.popularity_score > 70 && (
-              <Star className="w-4 h-4 text-yellow-500 fill-current" />
-            )}
-          </div>
+  // Get current location
+  const handleGetCurrentLocation = useCallback(async () => {
+    setIsGettingLocation(true);
+    
+    try {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+            
+            // Mock reverse geocoding - in real app, call geocoding service
+            const currentLocation: UnifiedLocation = {
+              address: `Position actuelle (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
+              lat: latitude,
+              lng: longitude,
+              type: 'current',
+              name: 'Position actuelle',
+              coordinates: { lat: latitude, lng: longitude }
+            };
+            
+            handleLocationSelect(currentLocation);
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
+            // Fallback to Kinshasa center
+            const fallbackLocation: UnifiedLocation = {
+              address: 'Kinshasa, République Démocratique du Congo',
+              lat: -4.3217,
+              lng: 15.3069,
+              type: 'fallback',
+              name: 'Kinshasa (position par défaut)',
+              coordinates: { lat: -4.3217, lng: 15.3069 }
+            };
+            
+            handleLocationSelect(fallbackLocation);
+          },
+          { timeout: 10000, enableHighAccuracy: true }
         );
-        currentIndex++;
-      });
+      }
+    } catch (error) {
+      console.error('Location access error:', error);
+    } finally {
+      setIsGettingLocation(false);
     }
+  }, [handleLocationSelect]);
 
-    // Lieux populaires si pas de recherche
-    else if (query.trim().length === 0 && popularPlaces.length > 0) {
-      popularPlaces.slice(0, 3).forEach((place) => {
-        suggestions.push(
-          <div
-            key={place.id}
-            onClick={() => handleLocationSelect(place)}
-            className={cn(
-              "flex items-center gap-3 p-3 cursor-pointer transition-colors",
-              selectedIndex === currentIndex ? "bg-primary/10" : "hover:bg-gray-50"
-            )}
-          >
-            <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-sm">
-              <Star className="w-4 h-4 text-yellow-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-900 truncate">{place.name}</p>
-              <p className="text-sm text-gray-600 truncate">Lieu populaire</p>
-            </div>
-            <Badge variant="outline" className="text-xs">Populaire</Badge>
-          </div>
-        );
-        currentIndex++;
-      });
+  // Auto focus
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
     }
+  }, [autoFocus]);
 
-    return suggestions;
-  }, [
-    isOpen, 
-    showCurrentLocation, 
-    currentLocation, 
-    results, 
-    query, 
-    popularPlaces, 
-    selectedIndex, 
-    handleLocationSelect, 
-    getCategoryIcon
-  ]);
+  // Sync with external value
+  useEffect(() => {
+    if (value !== inputValue && !selectedLocation) {
+      setInputValue(value);
+    }
+  }, [value, inputValue, selectedLocation]);
+
+  const hasValidSelection = selectedLocation && isValidLocation(selectedLocation);
 
   return (
-    <div ref={containerRef} className={cn("relative w-full", className)}>
-      {/* Champ de saisie */}
-      <Card className="border-2 border-gray-200 focus-within:border-primary/50 transition-colors">
-        <CardContent className="p-0">
-          <div className="flex items-center">
-            <div className="p-3">
-              <config.icon className="w-5 h-5 text-gray-400" />
-            </div>
-            
-            <Input
-              ref={inputRef}
-              value={query}
-              onChange={(e) => handleSearch(e.target.value)}
-              onFocus={() => setIsOpen(true)}
-              onKeyDown={handleKeyDown}
-              placeholder={effectivePlaceholder}
-              className="border-0 focus-visible:ring-0 text-base bg-transparent"
-            />
-            
-            {/* Actions de droite */}
-            <div className="flex items-center gap-1 p-2">
-              {query && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setQuery('');
-                    handleSearch('');
-                    inputRef.current?.focus();
-                  }}
-                  className="w-8 h-8 p-0"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
+    <div className={cn("relative w-full", className)}>
+      <Card className={cn(
+        "overflow-hidden transition-colors",
+        error && "border-destructive",
+        hasValidSelection && "border-green-500"
+      )}>
+        <CardContent className="p-3">
+          <div className="flex gap-2">
+            {/* Input field */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                ref={inputRef}
+                value={inputValue}
+                onChange={handleInputChange}
+                onFocus={() => {
+                  if (results.length > 0) setIsOpen(true);
+                }}
+                placeholder={placeholder}
+                className={cn(
+                  "pl-10 pr-4",
+                  hasValidSelection && "text-green-700 bg-green-50",
+                  error && "border-destructive focus:border-destructive"
+                )}
+              />
               
-              {(isSearching || locationLoading) && (
-                <div className="w-8 h-8 flex items-center justify-center">
-                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                </div>
-              )}
+              {/* Status indicators */}
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                {isSearching && (
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                )}
+                {hasValidSelection && (
+                  <Check className="h-4 w-4 text-green-600" />
+                )}
+                {error && !hasValidSelection && (
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                )}
+              </div>
             </div>
+
+            {/* Current location button */}
+            {showCurrentLocation && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleGetCurrentLocation}
+                disabled={isGettingLocation}
+                className="shrink-0"
+              >
+                {isGettingLocation ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Navigation className="h-4 w-4" />
+                )}
+              </Button>
+            )}
           </div>
+
+          {/* Error message */}
+          {error && (
+            <div className="mt-2 text-sm text-destructive flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              {error}
+            </div>
+          )}
+
+          {/* Valid selection indicator */}
+          {hasValidSelection && (
+            <div className="mt-2 text-sm text-green-700 flex items-center gap-1">
+              <Check className="h-3 w-3" />
+              Adresse valide sélectionnée
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Dropdown de suggestions */}
-      {isOpen && (
-        <Card className="absolute top-full left-0 right-0 z-50 mt-2 max-h-80 overflow-hidden border-2 border-gray-200 shadow-lg">
-          <CardContent className="p-0">
-            {isSearching ? (
-              <div className="p-4 text-center">
-                <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-primary" />
-                <p className="text-sm text-gray-600">Recherche en cours...</p>
+      {/* Results dropdown */}
+      {isOpen && results.length > 0 && (
+        <Card className="absolute top-full left-0 right-0 mt-1 z-50 max-h-64 overflow-auto border shadow-lg">
+          <div className="py-1">
+            {results.slice(0, 5).map((result, index) => (
+              <div
+                key={result.id}
+                onClick={() => handleLocationSelect(result)}
+                className="flex items-center space-x-3 px-4 py-3 cursor-pointer hover:bg-accent transition-colors"
+              >
+                <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{result.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {result.commune}, {result.city}
+                  </p>
+                </div>
+
+                {result.category && (
+                  <Badge variant="outline" className="text-xs shrink-0">
+                    {result.category}
+                  </Badge>
+                )}
               </div>
-            ) : renderSuggestions && renderSuggestions.length > 0 ? (
-              <div className="max-h-80 overflow-y-auto">
-                {renderSuggestions}
-              </div>
-            ) : query.trim().length >= 2 ? (
-              <div className="p-4 text-center">
-                <MapPin className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">
-                  Aucun résultat pour "{query}"
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Essayez un quartier ou lieu connu
-                </p>
-              </div>
-            ) : (
-              <div className="p-4 text-center">
-                <Search className="w-6 h-6 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">
-                  Commencez à taper pour rechercher
-                </p>
-              </div>
-            )}
-          </CardContent>
+            ))}
+          </div>
         </Card>
       )}
     </div>
   );
 };
-
-export default OptimizedLocationInput;
