@@ -285,7 +285,7 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder={isPickup ? "Adresse de collecte..." : "Adresse de livraison..."}
+                placeholder={isPickup ? "Rechercher lieu de collecte (Kinshasa, Lubumbashi, Kolwezi)..." : "Rechercher lieu de livraison..."}
                 value={query}
                 onChange={(e) => handleSearch(e.target.value, type)}
                 className="pl-10 text-sm sm:text-base border-2 border-gray-200 focus:border-primary/50 transition-colors"
