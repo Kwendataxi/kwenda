@@ -5842,7 +5842,7 @@ export type Database = {
         Returns: string
       }
       calculate_delivery_price: {
-        Args: { p_city?: string; p_distance_km: number; p_service_type: string }
+        Args: { p_city: string; p_distance_km: number; p_service_type: string }
         Returns: Json
       }
       calculate_distance_km: {

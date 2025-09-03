@@ -56,7 +56,7 @@ export const useEnhancedDeliveryOrders = () => {
         const { data: priceData, error } = await supabase.rpc('calculate_delivery_price', {
           p_service_type: mode,
           p_distance_km: distanceKm,
-          p_city: 'Kinshasa' // Récupérer la ville depuis le contexte utilisateur
+          p_city: 'Kinshasa' // TODO: Récupérer la ville depuis le contexte utilisateur
         });
 
         if (error) throw error;
