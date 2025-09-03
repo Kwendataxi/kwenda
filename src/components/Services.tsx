@@ -1,56 +1,59 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Car, Bike, Truck, Crown, Users, Clock } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Services = () => {
+  const { t } = useLanguage();
+  
   const services = [
     {
       icon: <Car className="w-8 h-8" />,
-      title: "VTC Standard",
-      description: "Véhicules confortables et écologiques pour vos déplacements quotidiens.",
-      price: "À partir de 500 FCFA",
-      features: ["Véhicules récents", "Climatisation", "Chauffeur professionnel"],
+      title: t('services.vtc_standard'),
+      description: t('services.vtc_standard_desc'),
+      price: t('services.vtc_standard_price'),
+      features: [t('services.vtc_standard_feat1'), t('services.vtc_standard_feat2'), t('services.vtc_standard_feat3')],
       color: "border-primary/20 hover:border-primary/40"
     },
     {
       icon: <Crown className="w-8 h-8" />,
-      title: "VTC Luxe",
-      description: "Limousines et véhicules haut de gamme pour vos événements spéciaux.",
-      price: "À partir de 2000 FCFA",
-      features: ["Véhicules de luxe", "Service premium", "Conciergerie"],
+      title: t('services.vtc_luxe'),
+      description: t('services.vtc_luxe_desc'),
+      price: t('services.vtc_luxe_price'),
+      features: [t('services.vtc_luxe_feat1'), t('services.vtc_luxe_feat2'), t('services.vtc_luxe_feat3')],
       color: "border-accent/20 hover:border-accent/40",
       popular: true
     },
     {
       icon: <Users className="w-8 h-8" />,
-      title: "Trajets Partagés",
-      description: "Économisez en partageant votre trajet avec d'autres passagers.",
-      price: "À partir de 300 FCFA",
-      features: ["Tarifs réduits", "Écologique", "Réservation flexible"],
+      title: t('services.shared_rides'),
+      description: t('services.shared_rides_desc'),
+      price: t('services.shared_rides_price'),
+      features: [t('services.shared_rides_feat1'), t('services.shared_rides_feat2'), t('services.shared_rides_feat3')],
       color: "border-secondary/20 hover:border-secondary/40"
     },
     {
       icon: <Bike className="w-8 h-8" />,
-      title: "Livraison Moto",
-      description: "Service de livraison rapide en moto pour vos colis et documents.",
-      price: "À partir de 1000 FCFA",
-      features: ["Livraison express", "Suivi en temps réel", "Sécurisé"],
+      title: t('services.moto_delivery'),
+      description: t('services.moto_delivery_desc'),
+      price: t('services.moto_delivery_price'),
+      features: [t('services.moto_delivery_feat1'), t('services.moto_delivery_feat2'), t('services.moto_delivery_feat3')],
       color: "border-primary/20 hover:border-primary/40"
     },
     {
       icon: <Truck className="w-8 h-8" />,
-      title: "Véhicules Utilitaires",
-      description: "Transport de marchandises et déménagements avec nos utilitaires.",
-      price: "À partir de 5000 FCFA",
-      features: ["Véhicules spacieux", "Aide au chargement", "Assurance"],
+      title: t('services.utility_vehicles'),
+      description: t('services.utility_vehicles_desc'),
+      price: t('services.utility_vehicles_price'),
+      features: [t('services.utility_vehicles_feat1'), t('services.utility_vehicles_feat2'), t('services.utility_vehicles_feat3')],
       color: "border-secondary/20 hover:border-secondary/40"
     },
     {
       icon: <Clock className="w-8 h-8" />,
-      title: "Réservation Avancée",
-      description: "Planifiez vos trajets à l'avance pour vos rendez-vous importants.",
-      price: "Sans supplément",
-      features: ["Garantie horaire", "Confirmation SMS", "Priorité"],
+      title: t('services.advance_booking'),
+      description: t('services.advance_booking_desc'),
+      price: t('services.advance_booking_price'),
+      features: [t('services.advance_booking_feat1'), t('services.advance_booking_feat2'), t('services.advance_booking_feat3')],
       color: "border-accent/20 hover:border-accent/40"
     }
   ];
@@ -60,10 +63,10 @@ const Services = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold mb-4">
-            Nos <span className="text-primary">Services</span>
+            {t('services.title')}
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Une gamme complète de services de transport adaptés à tous vos besoins en Côte d'Ivoire.
+            {t('services.subtitle')}
           </p>
         </div>
 
@@ -76,7 +79,7 @@ const Services = () => {
               {service.popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                   <span className="bg-gradient-primary text-white px-4 py-1 rounded-full text-sm font-semibold">
-                    ⭐ Populaire
+                    {t('services.popular')}
                   </span>
                 </div>
               )}
@@ -107,7 +110,7 @@ const Services = () => {
                   className="w-full group-hover:scale-105 transition-transform" 
                   variant={service.popular ? "hero" : "outline"}
                 >
-                  Réserver maintenant
+                  {t('services.book_now')}
                 </Button>
               </CardContent>
             </Card>
@@ -118,17 +121,17 @@ const Services = () => {
         <div className="mt-20 text-center">
           <div className="bg-gradient-to-r from-muted/50 to-background border rounded-3xl p-12">
             <h3 className="text-3xl font-bold mb-4">
-              Prêt à transformer votre expérience de transport ?
+              {t('services.cta_title')}
             </h3>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Rejoignez des milliers d'utilisateurs qui font confiance à NTA TECH VTC pour leurs déplacements quotidiens.
+              {t('services.cta_subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="lg" className="text-lg px-8 py-6">
-                Télécharger l'App
+                {t('services.download_app')}
               </Button>
               <Button variant="outline" size="lg" className="text-lg px-8 py-6">
-                Devenir Chauffeur Partenaire
+                {t('services.become_driver_partner')}
               </Button>
             </div>
           </div>

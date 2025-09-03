@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Play, Star, MapPin, Clock } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import heroImage from "@/assets/hero-vtc.jpg";
 
 const Hero = () => {
+  const { t } = useLanguage();
+  
   return (
     <section className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted overflow-hidden">
       {/* Background Pattern */}
@@ -17,53 +20,52 @@ const Hero = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-medium text-primary">
                 <Star className="w-4 h-4 fill-current" />
-                <span>Innovation & Excellence</span>
+                <span>{t('hero.innovation_excellence')}</span>
                 <Star className="w-4 h-4 fill-current" />
               </div>
               
               <h1 className="text-5xl lg:text-6xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent leading-tight">
-                Kwenda
-                <span className="block text-primary">Taxi</span>
+                {t('hero.kwenda_taxi')}
               </h1>
               
               <p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
-                Transport intelligent pour Kinshasa. Moto-taxi, taxi voiture, livraison et marketplace - tout en une seule application adaptée à la RDC.
+                {t('hero.tagline')}
               </p>
             </div>
 
             <div className="flex flex-wrap gap-6 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="w-4 h-4 text-primary" />
-                <span>Kinshasa, Congo RDC</span>
+                <span>{t('hero.location')}</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="w-4 h-4 text-secondary" />
-                <span>Disponible 24h/24</span>
+                <span>{t('hero.available_24_7')}</span>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Button variant="hero" size="lg" className="text-lg px-8 py-6">
-                Commencer maintenant
+                {t('hero.start_now')}
               </Button>
               <Button variant="outline" size="lg" className="text-lg px-8 py-6 group">
                 <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                Voir la démo
+                {t('hero.view_demo')}
               </Button>
             </div>
 
             <div className="flex items-center gap-8 pt-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary">4+</div>
-                <div className="text-sm text-muted-foreground">Types Transport</div>
+                <div className="text-sm text-muted-foreground">{t('hero.transport_types')}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-secondary">24/7</div>
-                <div className="text-sm text-muted-foreground">Service Client</div>
+                <div className="text-sm text-muted-foreground">{t('hero.customer_service')}</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-accent">100%</div>
-                <div className="text-sm text-muted-foreground">KwendaPay</div>
+                <div className="text-sm text-muted-foreground">{t('hero.kwenda_pay')}</div>
               </div>
             </div>
           </div>
@@ -73,13 +75,13 @@ const Hero = () => {
             <div className="relative z-10">
               <img 
                 src={heroImage} 
-                alt="Kwenda Taxi - Transport intelligent à Kinshasa"
+                alt={t('hero.alt_text')}
                 className="w-full h-auto rounded-2xl shadow-2xl"
               />
               
               {/* Floating Badge */}
               <div className="absolute -top-4 -right-4 bg-gradient-success text-white px-4 py-2 rounded-full shadow-lg text-sm font-semibold">
-                🇨🇩 Made in RDC
+                {t('hero.made_in_rdc')}
               </div>
             </div>
             
