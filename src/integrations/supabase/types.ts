@@ -1349,6 +1349,39 @@ export type Database = {
           },
         ]
       }
+      edge_function_performance: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          execution_time_ms: number
+          function_name: string
+          id: string
+          request_id: string | null
+          status_code: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms: number
+          function_name: string
+          id?: string
+          request_id?: string | null
+          status_code?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number
+          function_name?: string
+          id?: string
+          request_id?: string | null
+          status_code?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       enhanced_support_tickets: {
         Row: {
           assigned_to: string | null
@@ -5852,6 +5885,17 @@ export type Database = {
           zone_center_lng: number
         }[]
       }
+      get_edge_function_performance_stats: {
+        Args: { p_function_name?: string; p_hours_back?: number }
+        Returns: {
+          avg_execution_time_ms: number
+          error_rate: number
+          function_name: string
+          p95_execution_time_ms: number
+          success_rate: number
+          total_calls: number
+        }[]
+      }
       get_market_benchmark_stats: {
         Args: { category_filter?: string }
         Returns: {
@@ -6079,6 +6123,17 @@ export type Database = {
           p_driver_id: string
         }
         Returns: undefined
+      }
+      log_edge_function_performance: {
+        Args: {
+          p_error_message?: string
+          p_execution_time_ms: number
+          p_function_name: string
+          p_request_id?: string
+          p_status_code?: number
+          p_user_id?: string
+        }
+        Returns: string
       }
       log_sensitive_data_access: {
         Args: {
