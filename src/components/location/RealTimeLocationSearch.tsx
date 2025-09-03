@@ -58,7 +58,7 @@ export const RealTimeLocationSearch: React.FC<RealTimeLocationSearchProps> = ({
   });
 
   // États locaux pour la gestion multi-villes
-  const availableCities = ['Kinshasa', 'Lubumbashi', 'Kolwezi'];
+  const availableCities = ['Kinshasa', 'Lubumbashi', 'Kolwezi', 'Abidjan'];
   
   const detectCityFromLocation = useCallback(() => {
     // Simulation de détection géographique

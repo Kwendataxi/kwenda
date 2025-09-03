@@ -53,10 +53,13 @@ const DeliveryTrackingPage = () => {
       return;
     }
 
-    // Validation UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(trackingId.trim())) {
-      toast.error('Format d\'ID invalide. Veuillez utiliser un ID UUID valide.');
+    // Validation format flexible pour compatibilité
+    const trimmedId = trackingId.trim();
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(trimmedId);
+    const isLegacyFormat = /^KWT[A-Z0-9]{6}$/i.test(trimmedId);
+    
+    if (!isUUID && !isLegacyFormat) {
+      toast.error('Format d\'ID invalide. Utilisez un ID UUID ou format KWT (ex: KWTABC123).');
       return;
     }
 

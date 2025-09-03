@@ -85,6 +85,7 @@ import { TestDataGenerator } from '@/components/testing/TestDataGenerator';
 import { useViewTransition } from '@/hooks/useViewTransition';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useAuth } from '@/hooks/useAuth';
+import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import { LotteryDashboard } from '@/components/lottery/LotteryDashboard';
 import { useLotteryTickets } from '@/hooks/useLotteryTickets';
 import { useLotteryNotifications } from '@/hooks/useLotteryNotifications';
@@ -161,6 +162,7 @@ const ClientApp = () => {
 
   // Chat and order hooks
   const ordersHook = useMarketplaceOrders();
+  const { createDeliveryOrder } = useEnhancedDeliveryOrders();
   
   // Lottery hooks
   const lotteryTickets = useLotteryTickets();
@@ -324,20 +326,29 @@ const ClientApp = () => {
 
   // Delivery handlers
   const handleModernDeliverySubmit = async (data: any) => {
-    // Generate delivery ID and start tracking
-    const newDeliveryId = 'KWT' + Math.random().toString(36).substr(2, 6).toUpperCase();
-    setDeliveryId(newDeliveryId);
-    setDeliveryStep('tracking');
-    
-    // Attribuer des tickets pour la livraison
-    await lotteryTickets.awardDeliveryTickets(newDeliveryId);
-    
-    toast({
-      title: "Livraison confirmée",
-      description: `Votre colis sera récupéré dans 15 minutes`,
-    });
-    
-    console.log('Livraison créée:', { id: newDeliveryId, ...data });
+    try {
+      console.log('=== Création de commande de livraison ===', data);
+      
+      // Utiliser le hook pour créer une vraie commande avec UUID
+      const orderId = await createDeliveryOrder(data);
+      console.log('Commande créée avec ID:', orderId);
+      
+      // Définir l'ID réel pour le tracking
+      setDeliveryId(orderId);
+      setDeliveryStep('tracking');
+      
+      // Attribuer des tickets pour la livraison
+      await lotteryTickets.awardDeliveryTickets(orderId);
+      
+      toast({
+        title: "Livraison confirmée",
+        description: `Votre colis sera récupéré dans 15 minutes`,
+      });
+      
+      console.log('Livraison créée:', { id: orderId, ...data });
+    } catch (error) {
+      console.error('Erreur création livraison:', error);
+    }
   };
 
   const handleDeliveryComplete = () => {
