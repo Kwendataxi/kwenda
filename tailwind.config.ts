@@ -42,11 +42,26 @@ export default {
 					glow: 'hsl(var(--primary-glow))',
 					light: 'hsl(var(--primary-light))'
 				},
-				// Congo Theme Colors
-				'congo-green': "hsl(var(--congo-green))",
-				'congo-yellow': "hsl(var(--congo-yellow))",
-				'congo-red': "hsl(var(--congo-red))",
-				'congo-blue': "hsl(var(--congo-blue))",
+				// Congo Theme Colors - Variables complètes
+				congo: {
+					green: 'hsl(var(--congo-green))',
+					yellow: 'hsl(var(--congo-yellow))',
+					red: 'hsl(var(--congo-red))',
+					blue: 'hsl(var(--congo-blue))'
+				},
+				// Semantic colors using Congo palette
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
+				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))'
+				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
 					foreground: 'hsl(var(--secondary-foreground))',
@@ -106,7 +121,10 @@ export default {
 				'gradient-primary': 'var(--gradient-primary)',
 				'gradient-hero': 'var(--gradient-hero)',
 				'gradient-success': 'var(--gradient-success)',
-				'gradient-card': 'var(--gradient-card)'
+				'gradient-card': 'var(--gradient-card)',
+				'gradient-congo-flag': 'var(--gradient-congo-flag)',
+				'gradient-congo-modern': 'var(--gradient-congo-modern)',
+				'gradient-congo-subtle': 'var(--gradient-congo-subtle)'
 			},
 			boxShadow: {
 				'xs': 'var(--shadow-xs)',
@@ -171,6 +189,19 @@ export default {
 					'50%': { 
 						boxShadow: '0 0 40px hsl(var(--primary) / 0.6), 0 0 60px hsl(var(--primary) / 0.4)' 
 					}
+				},
+				'congo-gradient': {
+					'0%': { backgroundPosition: '0% 50%' },
+					'50%': { backgroundPosition: '100% 50%' },
+					'100%': { backgroundPosition: '0% 50%' }
+				},
+				'congo-pulse': {
+					'0%, 100%': { 
+						boxShadow: '0 0 20px hsl(var(--congo-red) / 0.3), 0 0 40px hsl(var(--congo-yellow) / 0.2)' 
+					},
+					'50%': { 
+						boxShadow: '0 0 40px hsl(var(--congo-red) / 0.5), 0 0 60px hsl(var(--congo-yellow) / 0.4)' 
+					}
 				}
 			},
 			animation: {
@@ -179,7 +210,9 @@ export default {
 				'float': 'float 3s ease-in-out infinite',
 				'fade-up': 'fade-up 0.3s ease-out',
 				'scale-fade': 'scale-fade 0.2s ease-out',
-				'pulse-glow': 'pulse-glow 2s ease-in-out infinite'
+				'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+				'congo-gradient': 'congo-gradient 4s ease-in-out infinite',
+				'congo-pulse': 'congo-pulse 3s ease-in-out infinite'
 			}
 		}
 	},

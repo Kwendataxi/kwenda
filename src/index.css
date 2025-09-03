@@ -12,15 +12,15 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Kwenda Taxi Congo Design System */
+    /* Kwenda Taxi Congo Design System - Couleurs harmonieuses */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 220 13% 13%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 13% 13%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 220 13% 13%;
 
     /* Primary: Rouge Kwenda #ec2027 */
     --primary: 357 79% 54%;
@@ -30,16 +30,30 @@ All colors MUST be HSL.
 
     /* Secondary: Or Congo #f2a216 */
     --secondary: 42 89% 52%;
-    --secondary-foreground: 222.2 84% 4.9%;
+    --secondary-foreground: 220 13% 13%;
     --secondary-light: 42 89% 62%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
     /* Accent: Or Congo */
     --accent: 42 89% 52%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent-foreground: 220 13% 13%;
     --accent-light: 42 89% 62%;
+
+    /* Congo Flag Colors - Variables manquantes */
+    --congo-blue: 220 100% 40%;
+    --congo-red: 357 79% 54%;
+    --congo-yellow: 42 89% 52%;
+    --congo-green: 142 76% 36%;
+
+    /* Success/Warning/Info semantic colors using Congo palette */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 42 89% 52%;
+    --warning-foreground: 220 13% 13%;
+    --info: 220 100% 40%;
+    --info-foreground: 0 0% 100%;
 
     /* Greys modernes */
     --grey-50: 240 9% 97%;
@@ -66,11 +80,14 @@ All colors MUST be HSL.
     --safe-area-left: env(safe-area-inset-left, 0px);
     --safe-area-right: env(safe-area-inset-right, 0px);
 
-    /* Design system extensions */
+    /* Design system extensions - Congo gradients */
     --gradient-primary: linear-gradient(135deg, hsl(357, 79%, 54%), hsl(357, 79%, 64%));
     --gradient-hero: linear-gradient(135deg, hsl(357, 79%, 54%) 0%, hsl(42, 89%, 52%) 100%);
     --gradient-success: linear-gradient(135deg, hsl(142, 76%, 36%) 0%, hsl(142, 76%, 46%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(210, 40%, 98%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(220, 14%, 98%) 100%);
+    --gradient-congo-flag: linear-gradient(135deg, hsl(220, 100%, 40%) 0%, hsl(42, 89%, 52%) 50%, hsl(357, 79%, 54%) 100%);
+    --gradient-congo-modern: linear-gradient(45deg, hsl(357, 79%, 54%), hsl(42, 89%, 52%), hsl(142, 76%, 36%), hsl(220, 100%, 40%));
+    --gradient-congo-subtle: linear-gradient(180deg, hsl(357, 79%, 54% / 0.1) 0%, hsl(42, 89%, 52% / 0.1) 100%);
     
     /* Shadows modernes */
     --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
@@ -241,41 +258,84 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark Mode Congo Design System */
+    --background: 220 13% 9%;
+    --foreground: 220 14% 96%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 220 13% 11%;
+    --card-foreground: 220 14% 96%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 220 13% 11%;
+    --popover-foreground: 220 14% 96%;
 
     --primary: 357 79% 54%;
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 220 14% 96%;
+    --primary-glow: 357 79% 64%;
+    --primary-light: 357 79% 74%;
 
     --secondary: 42 89% 52%;
-    --secondary-foreground: 222.2 84% 4.9%;
+    --secondary-foreground: 220 13% 9%;
+    --secondary-light: 42 89% 62%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 220 13% 15%;
+    --muted-foreground: 220 9% 63%;
 
     --accent: 42 89% 52%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent-foreground: 220 13% 9%;
+    --accent-light: 42 89% 62%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    /* Congo Flag Colors - Dark variants */
+    --congo-blue: 220 100% 50%;
+    --congo-red: 357 79% 54%;
+    --congo-yellow: 42 89% 58%;
+    --congo-green: 142 76% 40%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    /* Success/Warning/Info semantic colors for dark mode */
+    --success: 142 76% 40%;
+    --success-foreground: 220 14% 96%;
+    --warning: 42 89% 58%;
+    --warning-foreground: 220 13% 9%;
+    --info: 220 100% 50%;
+    --info-foreground: 220 14% 96%;
+
+    /* Greys for dark mode */
+    --grey-50: 220 13% 91%;
+    --grey-100: 220 13% 82%;
+    --grey-200: 220 13% 73%;
+    --grey-300: 220 13% 64%;
+    --grey-400: 220 13% 46%;
+    --grey-500: 220 13% 36%;
+    --grey-600: 220 13% 27%;
+    --grey-700: 220 13% 18%;
+    --grey-800: 220 13% 11%;
+    --grey-900: 220 13% 9%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 220 14% 96%;
+
+    --border: 220 13% 18%;
+    --input: 220 13% 18%;
     --ring: 357 79% 54%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Dark mode gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(357, 79%, 54%), hsl(357, 79%, 64%));
+    --gradient-hero: linear-gradient(135deg, hsl(357, 79%, 54%) 0%, hsl(42, 89%, 52%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(142, 76%, 40%) 0%, hsl(142, 76%, 50%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(220, 13%, 11%) 0%, hsl(220, 13%, 13%) 100%);
+
+    /* Dark shadows with Congo colors */
+    --shadow-elegant: 0 10px 30px -10px hsl(357, 79%, 54% / 0.4);
+    --shadow-glow: 0 0 40px hsl(357, 79%, 64% / 0.5);
+    --shadow-float: 0 20px 40px -10px hsl(357, 79%, 54% / 0.3);
+
+    --sidebar-background: 220 13% 7%;
+    --sidebar-foreground: 220 14% 96%;
+    --sidebar-primary: 357 79% 54%;
+    --sidebar-primary-foreground: 220 14% 96%;
+    --sidebar-accent: 220 13% 15%;
+    --sidebar-accent-foreground: 220 14% 96%;
+    --sidebar-border: 220 13% 18%;
+    --sidebar-ring: 357 79% 54%;
   }
 }
 
@@ -531,4 +591,61 @@ All colors MUST be HSL.
 /* Animations pour les cartes flottantes */
 .card-floating {
   @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+}
+
+/* Congo Theme Utility Classes */
+.text-congo-red { color: hsl(var(--congo-red)); }
+.text-congo-yellow { color: hsl(var(--congo-yellow)); }
+.text-congo-green { color: hsl(var(--congo-green)); }
+.text-congo-blue { color: hsl(var(--congo-blue)); }
+
+.bg-congo-red { background-color: hsl(var(--congo-red)); }
+.bg-congo-yellow { background-color: hsl(var(--congo-yellow)); }
+.bg-congo-green { background-color: hsl(var(--congo-green)); }
+.bg-congo-blue { background-color: hsl(var(--congo-blue)); }
+
+/* Congo gradient backgrounds */
+.bg-congo-flag { background: var(--gradient-congo-flag); }
+.bg-congo-modern { 
+  background: var(--gradient-congo-modern);
+  background-size: 400% 400%;
+  animation: congo-gradient 4s ease-in-out infinite;
+}
+.bg-congo-subtle { background: var(--gradient-congo-subtle); }
+
+/* Congo themed buttons */
+.btn-congo {
+  @apply btn-modern text-white;
+  background-color: hsl(var(--congo-red));
+  box-shadow: var(--shadow-elegant);
+}
+.btn-congo:hover {
+  background-color: hsl(var(--congo-yellow));
+  color: hsl(var(--foreground));
+  animation: congo-pulse 2s ease-in-out infinite;
+}
+
+/* Congo themed cards */
+.card-congo {
+  @apply card-modern;
+  background: var(--gradient-congo-subtle);
+  border: 1px solid hsl(var(--congo-yellow) / 0.2);
+}
+
+/* Professional status indicators using Congo colors */
+.status-success { 
+  background-color: hsl(var(--congo-green)); 
+  color: white; 
+}
+.status-warning { 
+  background-color: hsl(var(--congo-yellow)); 
+  color: hsl(var(--foreground)); 
+}
+.status-info { 
+  background-color: hsl(var(--congo-blue)); 
+  color: white; 
+}
+.status-error { 
+  background-color: hsl(var(--congo-red)); 
+  color: white; 
 }
