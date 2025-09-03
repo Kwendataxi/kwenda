@@ -3,7 +3,7 @@ import { MapPin, Search, Clock, Home, Building2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { GooglePlacesService } from '@/services/googlePlacesService';
+import { useIntelligentAddressSearch } from '@/hooks/useIntelligentAddressSearch';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { usePlaces } from '@/hooks/usePlaces';
 import { LocationErrorHandler } from './LocationErrorHandler';

@@ -185,21 +185,31 @@ class IntelligentAddressSearchService {
       const cityConfig = this.CITY_CONFIGS[city as keyof typeof this.CITY_CONFIGS];
       if (!cityConfig) return [];
 
-      const searchQuery = `${query}, ${city}, RDC`;
-      const results = await unifiedLocationService.searchLocation(searchQuery);
+      // Utiliser le proxy Supabase pour éviter les erreurs CORS
+      const { data, error } = await supabase.functions.invoke('geocode-proxy', {
+        body: { 
+          query: `${query}, ${city}`, 
+          latitude: cityConfig.center.lat, 
+          longitude: cityConfig.center.lng 
+        }
+      });
+
+      if (error) throw error;
+
+      const results = data?.results || [];
       
-      return results.slice(0, max_results).map((result, index) => ({
+      return results.slice(0, max_results).map((result: any, index: number) => ({
         id: `google_${Date.now()}_${index}`,
-        name: result.address,
+        name: result.formatted_address || result.name || query,
         category: 'location',
         city,
-        lat: result.lat,
-        lng: result.lng,
+        lat: result.geometry?.location?.lat || cityConfig.center.lat,
+        lng: result.geometry?.location?.lng || cityConfig.center.lng,
         hierarchy_level: 5,
         popularity_score: 0,
         relevance_score: Math.max(50 - index * 5, 10),
         type: 'google' as const,
-        badge: 'Google',
+        badge: 'Google Maps',
         subtitle: `${city}, République Démocratique du Congo`
       }));
     } catch (error) {

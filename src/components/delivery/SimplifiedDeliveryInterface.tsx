@@ -223,13 +223,20 @@ const SimplifiedDeliveryInterface: React.FC<SimplifiedDeliveryInterfaceProps> = 
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
               <span className="text-sm font-medium text-muted-foreground">Point de récupération</span>
             </div>
-            <IntelligentLocationSearch
+            <IntelligentAddressSearch
               placeholder="Adresse de récupération"
-              onLocationSelect={(loc) => {
+              onLocationSelect={(result) => {
+                const loc = {
+                  address: result.name,
+                  lat: result.lat,
+                  lng: result.lng
+                };
                 setPickup(loc);
                 setPickupSearch(loc.address);
               }}
-              className="w-full"
+              city="Kinshasa"
+              country_code="CD"
+              showCurrentLocation={true}
             />
           </div>
 
@@ -239,13 +246,20 @@ const SimplifiedDeliveryInterface: React.FC<SimplifiedDeliveryInterfaceProps> = 
               <div className="w-3 h-3 rounded-full bg-red-500"></div>
               <span className="text-sm font-medium text-muted-foreground">Destination</span>
             </div>
-            <IntelligentLocationSearch
+            <IntelligentAddressSearch
               placeholder="Adresse de livraison"
-              onLocationSelect={(loc) => {
+              onLocationSelect={(result) => {
+                const loc = {
+                  address: result.name,
+                  lat: result.lat,
+                  lng: result.lng
+                };
                 setDestination(loc);
                 setDestinationSearch(loc.address);
               }}
-              className="w-full"
+              city="Kinshasa"
+              country_code="CD"
+              showCurrentLocation={true}
             />
           </div>
 
