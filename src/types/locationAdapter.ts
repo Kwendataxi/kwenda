@@ -3,7 +3,7 @@
  * Unifie IntelligentSearchResult, LocationData et autres interfaces Location
  */
 
-import { IntelligentSearchResult } from '@/services/IntelligentAddressSearch';
+import type { IntelligentSearchResult } from '@/services/IntelligentAddressSearch';
 import { LocationData } from '@/types/location';
 
 // Interface commune pour tous les types de localisation
