@@ -9,6 +9,7 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { GoogleMapsService } from '@/services/googleMapsService';
 import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
 import { IntelligentLocationSearch } from '@/components/maps/IntelligentLocationSearch';
+import { IntelligentAddressSearch } from '@/components/location/IntelligentAddressSearch';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 
 interface Location {
