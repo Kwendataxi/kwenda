@@ -288,7 +288,7 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
                 placeholder={isPickup ? "Adresse de collecte..." : "Adresse de livraison..."}
                 value={query}
                 onChange={(e) => handleSearch(e.target.value, type)}
-                className="pl-10 text-sm sm:text-base"
+                className="pl-10 text-sm sm:text-base border-2 border-gray-200 focus:border-primary/50 transition-colors"
               />
             </div>
             

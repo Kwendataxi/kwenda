@@ -1592,6 +1592,75 @@ export type Database = {
           },
         ]
       }
+      intelligent_places: {
+        Row: {
+          avenue: string | null
+          category: string
+          city: string
+          commune: string | null
+          created_at: string | null
+          hierarchy_level: number | null
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          latitude: number | null
+          longitude: number | null
+          metadata: Json | null
+          name: string
+          name_alternatives: string[] | null
+          numero: string | null
+          popularity_score: number | null
+          quartier: string | null
+          search_vector: unknown | null
+          subcategory: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avenue?: string | null
+          category?: string
+          city?: string
+          commune?: string | null
+          created_at?: string | null
+          hierarchy_level?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          metadata?: Json | null
+          name: string
+          name_alternatives?: string[] | null
+          numero?: string | null
+          popularity_score?: number | null
+          quartier?: string | null
+          search_vector?: unknown | null
+          subcategory?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avenue?: string | null
+          category?: string
+          city?: string
+          commune?: string | null
+          created_at?: string | null
+          hierarchy_level?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          metadata?: Json | null
+          name?: string
+          name_alternatives?: string[] | null
+          numero?: string | null
+          popularity_score?: number | null
+          quartier?: string | null
+          search_vector?: unknown | null
+          subcategory?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       lottery_draws: {
         Row: {
           created_at: string
@@ -5621,6 +5690,10 @@ export type Database = {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
+      calculate_distance_meters: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
+        Returns: number
+      }
       calculate_rental_price: {
         Args: {
           base_price: number
@@ -5944,15 +6017,24 @@ export type Database = {
         Returns: boolean
       }
       intelligent_places_search: {
-        Args: {
-          max_results?: number
-          min_hierarchy_level?: number
-          search_query: string
-          user_city?: string
-          user_country_code?: string
-          user_lat?: number
-          user_lng?: number
-        }
+        Args:
+          | {
+              include_nearby?: boolean
+              max_results?: number
+              search_city?: string
+              search_query?: string
+              user_latitude?: number
+              user_longitude?: number
+            }
+          | {
+              max_results?: number
+              min_hierarchy_level?: number
+              search_query: string
+              user_city?: string
+              user_country_code?: string
+              user_lat?: number
+              user_lng?: number
+            }
         Returns: {
           aliases: string[]
           category: string

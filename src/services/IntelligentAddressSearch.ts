@@ -219,26 +219,56 @@ class IntelligentAddressSearchService {
   }
 
   /**
-   * Suggestions populaires par défaut
+   * Suggestions populaires par défaut avec nouvelle fonction RPC
    */
   private async getPopularPlaces(options: SearchOptions = {}): Promise<IntelligentSearchResult[]> {
     const { city = 'Kinshasa', max_results = 6 } = options;
     
     try {
-      const { data, error } = await supabase
-        .from('places_database')
-        .select('*')
-        .eq('city', city)
-        .eq('is_popular', true)
-        .eq('is_active', true)
-        .order('popularity_score', { ascending: false })
-        .limit(max_results);
+      console.log('🌟 Fetching popular places for:', city);
+      
+      // Utiliser la nouvelle fonction RPC sans paramètre de recherche pour les lieux populaires
+      const { data, error } = await supabase.rpc('intelligent_places_search', {
+        search_query: '',
+        search_city: city,
+        user_latitude: null,
+        user_longitude: null,
+        max_results,
+        include_nearby: false
+      });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Popular places fetch error:', error);
+        return this.getFallbackPopularPlaces(city);
+      }
 
-      return (data || []).map(this.transformDatabaseResult);
+      if (!data || data.length === 0) {
+        console.log('📭 No popular places in enhanced database, using fallback');
+        return this.getFallbackPopularPlaces(city);
+      }
+
+      console.log(`✅ Found ${data.length} popular places`);
+      
+      // Transformer avec le nouveau format enrichi
+      return data.map((place: any) => ({
+        id: place.id || crypto.randomUUID(),
+        name: place.name,
+        category: place.category || 'general',
+        city: place.city,
+        commune: place.commune || '',
+        quartier: place.quartier || '',
+        avenue: place.avenue || '',
+        lat: place.latitude,
+        lng: place.longitude,
+        hierarchy_level: place.hierarchy_level || 3,
+        popularity_score: place.popularity_score || 0,
+        relevance_score: place.relevance_score || 0,
+        type: 'database' as const,
+        badge: place.badge || 'Populaire',
+        subtitle: place.subtitle || place.formatted_address || `${place.commune || place.city}`
+      }));
     } catch (error) {
-      console.error('Popular places error:', error);
+      console.error('Popular places exception:', error);
       return this.getFallbackPopularPlaces(city);
     }
   }
