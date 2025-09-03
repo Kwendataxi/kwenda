@@ -234,8 +234,6 @@ const SimplifiedDeliveryInterface: React.FC<SimplifiedDeliveryInterfaceProps> = 
                 setPickup(loc);
                 setPickupSearch(loc.address);
               }}
-              city="Kinshasa"
-              country_code="CD"
               showCurrentLocation={true}
             />
           </div>
@@ -257,8 +255,6 @@ const SimplifiedDeliveryInterface: React.FC<SimplifiedDeliveryInterfaceProps> = 
                 setDestination(loc);
                 setDestinationSearch(loc.address);
               }}
-              city="Kinshasa"
-              country_code="CD"
               showCurrentLocation={true}
             />
           </div>

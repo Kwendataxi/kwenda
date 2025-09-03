@@ -5954,7 +5954,6 @@ export type Database = {
           user_lng?: number
         }
         Returns: {
-          address_components: Json
           aliases: string[]
           category: string
           city: string
@@ -5963,16 +5962,16 @@ export type Database = {
           distance_km: number
           hierarchy_level: number
           id: string
+          is_popular: boolean
           latitude: number
           longitude: number
           name: string
           name_fr: string
           name_local: string
-          phone_number: string
           place_type: string
           popularity_score: number
           relevance_score: number
-          website: string
+          search_keywords: string[]
         }[]
       }
       is_current_user_admin: {
