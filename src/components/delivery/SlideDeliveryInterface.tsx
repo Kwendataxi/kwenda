@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useMasterLocation } from '@/hooks/useMasterLocation';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import ServiceSelector from './ServiceSelector';
+import DynamicPriceCalculator from './DynamicPriceCalculator';
 import { RealTimeLocationSearch } from '@/components/location/RealTimeLocationSearch';
 import { UnifiedLocation } from '@/types/locationAdapter';
 import { 
@@ -79,31 +80,34 @@ const packageTypes = [
   }
 ];
 
-// Services disponibles - automatiquement déterminés par le poids
+// Services disponibles avec prix "À partir de"
 const services = [
   { 
     id: 'flash', 
     icon: Bike, 
     label: 'Flash', 
     subtitle: 'Livraison express en moto',
-    price: '5 000 CDF',
-    weightLimit: '1-5 kg'
+    price: 'À partir de 5 000 CDF',
+    weightLimit: '1-5 kg',
+    basePrice: 5000
   },
   { 
     id: 'flex', 
     icon: Car, 
     label: 'Flex', 
     subtitle: 'Livraison standard en camionnette',
-    price: '7 000 CDF',
-    weightLimit: '6-50 kg'
+    price: 'À partir de 7 000 CDF',
+    weightLimit: '6-50 kg',
+    basePrice: 7000
   },
   { 
     id: 'maxicharge', 
     icon: Truck, 
     label: 'MaxiCharge', 
     subtitle: 'Livraison lourde en camion',
-    price: '12 000 CDF',
-    weightLimit: '50+ kg'
+    price: 'À partir de 12 000 CDF',
+    weightLimit: '50+ kg',
+    basePrice: 12000
   }
 ];
 
@@ -127,7 +131,8 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
     destination: null
   });
   
-  const [locationValues, setLocationValues] = useState({ pickup: '', destination: '' });
+const [locationValues, setLocationValues] = useState({ pickup: '', destination: '' });
+  const [dynamicPrice, setDynamicPrice] = useState<number | null>(null);
 
   // Fonction pour passer à l'étape suivante
   const nextSlide = () => {
@@ -168,14 +173,33 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
     
     try {
       const selectedService = services.find(s => s.id === formData.serviceMode);
-      const estimatedPrice = selectedService ? parseInt(selectedService.price.replace(/[^\d]/g, '')) : 5000;
+      const estimatedPrice = dynamicPrice || selectedService?.basePrice || 5000;
       
+      // Validation stricte des coordonnées pour éviter l'erreur "Cannot read properties of undefined"
+      if (!formData.pickup?.lat || !formData.pickup?.lng || 
+          !formData.destination?.lat || !formData.destination?.lng) {
+        toast({
+          title: "Adresses manquantes",
+          description: "Veuillez sélectionner les points de collecte et de livraison",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const orderData = {
-        city: 'Kinshasa',
-        pickup: formData.pickup || { address: '', lat: 0, lng: 0 },
-        destination: formData.destination || { address: '', lat: 0, lng: 0 },
+        city: 'Kinshasa', // TODO: Intégrer la détection de ville
+        pickup: {
+          address: formData.pickup.address,
+          lat: Number(formData.pickup.lat),
+          lng: Number(formData.pickup.lng)
+        },
+        destination: {
+          address: formData.destination.address,
+          lat: Number(formData.destination.lat),
+          lng: Number(formData.destination.lng)
+        },
         mode: formData.serviceMode as 'flash' | 'flex' | 'maxicharge',
-        packageWeight: 5, // Valeur par défaut
+        packageWeight: 5,
         packageType: 'medium' as 'small' | 'medium' | 'large',
         additionalInfo: `Service: ${selectedService?.label}`,
         estimatedPrice,
@@ -293,6 +317,14 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
           </p>
         </div>
 
+        {/* Calcul dynamique du prix */}
+        <DynamicPriceCalculator
+          pickup={formData.pickup}
+          destination={formData.destination}
+          serviceType={formData.serviceMode as 'flash' | 'flex' | 'maxicharge'}
+          onPriceCalculated={(price) => setDynamicPrice(price)}
+        />
+
         {/* Résumé complet */}
         <div className="space-y-3 sm:space-y-4">
           <Card>
@@ -304,9 +336,9 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
                   <p className="text-sm text-muted-foreground">
                     {selectedService?.label} - {selectedService?.subtitle}
                   </p>
-                  <p className="text-sm font-medium text-primary mt-1">
-                    Prix estimé: {selectedService?.price}
-                  </p>
+                  <Badge variant="outline" className="mt-2">
+                    {selectedService?.weightLimit}
+                  </Badge>
                 </div>
               </div>
               
