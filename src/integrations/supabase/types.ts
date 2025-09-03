@@ -782,6 +782,98 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_pricing_config: {
+        Row: {
+          base_price: number
+          city: string
+          created_at: string | null
+          created_by: string | null
+          currency: string
+          id: string
+          is_active: boolean
+          maximum_fare: number | null
+          minimum_fare: number
+          price_per_km: number
+          service_type: string
+          surge_multiplier: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_price?: number
+          city?: string
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string
+          id?: string
+          is_active?: boolean
+          maximum_fare?: number | null
+          minimum_fare?: number
+          price_per_km?: number
+          service_type: string
+          surge_multiplier?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_price?: number
+          city?: string
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string
+          id?: string
+          is_active?: boolean
+          maximum_fare?: number | null
+          minimum_fare?: number
+          price_per_km?: number
+          service_type?: string
+          surge_multiplier?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      delivery_status_history: {
+        Row: {
+          changed_at: string | null
+          changed_by: string | null
+          delivery_order_id: string
+          id: string
+          location_coordinates: Json | null
+          metadata: Json | null
+          notes: string | null
+          previous_status: string | null
+          status: string
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by?: string | null
+          delivery_order_id: string
+          id?: string
+          location_coordinates?: Json | null
+          metadata?: Json | null
+          notes?: string | null
+          previous_status?: string | null
+          status: string
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string | null
+          delivery_order_id?: string
+          id?: string
+          location_coordinates?: Json | null
+          metadata?: Json | null
+          notes?: string | null
+          previous_status?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_status_history_delivery_order_id_fkey"
+            columns: ["delivery_order_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_challenges: {
         Row: {
           challenge_id: string
@@ -5748,6 +5840,10 @@ export type Database = {
       calculate_delivery_estimate: {
         Args: { order_id_param: string }
         Returns: string
+      }
+      calculate_delivery_price: {
+        Args: { p_city?: string; p_distance_km: number; p_service_type: string }
+        Returns: Json
       }
       calculate_distance_km: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }

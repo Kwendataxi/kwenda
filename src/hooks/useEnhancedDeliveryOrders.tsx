@@ -51,7 +51,32 @@ export const useEnhancedDeliveryOrders = () => {
       
       console.log('Distance calculée:', distanceKm, 'km');
 
-      // Tarifs réalistes pour l'Afrique (CDF)
+      // Utiliser la nouvelle fonction de calcul dynamique
+      try {
+        const { data: priceData, error } = await supabase.rpc('calculate_delivery_price', {
+          p_service_type: mode,
+          p_distance_km: distanceKm,
+          p_city: 'Kinshasa' // Récupérer la ville depuis le contexte utilisateur
+        });
+
+        if (error) throw error;
+
+        const estimatedDuration = distanceKm * 3; // 3 minutes par km en moyenne
+
+        const result = {
+          price: (priceData as any)?.calculated_price || 5000,
+          distance: Math.round(distanceKm * 1000) / 1000,
+          duration: Math.round(estimatedDuration)
+        };
+        
+        console.log('Calcul prix dynamique terminé:', result);
+        return result;
+      } catch (dbError) {
+        console.error('Erreur calcul prix dynamique:', dbError);
+        // Fallback to old calculation
+      }
+
+      // Tarifs réalistes pour l'Afrique (CDF) - Fallback
       const tarifs = {
         flash: { base: 5000, perKm: 500, speedFactor: 1.5 },    // Ultra rapide moto
         flex: { base: 3000, perKm: 300, speedFactor: 1.0 },     // Standard voiture  
