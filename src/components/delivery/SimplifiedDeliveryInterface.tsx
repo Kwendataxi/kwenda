@@ -8,8 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { GoogleMapsService } from '@/services/googleMapsService';
 import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
-import { IntelligentLocationSearch } from '@/components/maps/IntelligentLocationSearch';
-import { IntelligentAddressSearch } from '@/components/location/IntelligentAddressSearch';
+import { AdaptedIntelligentSearch } from '@/components/location/AdaptedIntelligentSearch';
+import { unifiedToSimpleLocation } from '@/types/locationAdapter';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 
 interface Location {
@@ -224,18 +224,15 @@ const SimplifiedDeliveryInterface: React.FC<SimplifiedDeliveryInterfaceProps> = 
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
               <span className="text-sm font-medium text-muted-foreground">Point de récupération</span>
             </div>
-            <IntelligentAddressSearch
+            <AdaptedIntelligentSearch
               placeholder="Adresse de récupération"
-              onLocationSelect={(result) => {
-                const loc = {
-                  address: result.name,
-                  lat: result.lat,
-                  lng: result.lng
-                };
+              onLocationSelect={(unified) => {
+                const loc = unifiedToSimpleLocation(unified);
                 setPickup(loc);
                 setPickupSearch(loc.address);
               }}
               showCurrentLocation={true}
+              showPopularPlaces={true}
             />
           </div>
 
@@ -245,18 +242,15 @@ const SimplifiedDeliveryInterface: React.FC<SimplifiedDeliveryInterfaceProps> = 
               <div className="w-3 h-3 rounded-full bg-red-500"></div>
               <span className="text-sm font-medium text-muted-foreground">Destination</span>
             </div>
-            <IntelligentAddressSearch
+            <AdaptedIntelligentSearch
               placeholder="Adresse de livraison"
-              onLocationSelect={(result) => {
-                const loc = {
-                  address: result.name,
-                  lat: result.lat,
-                  lng: result.lng
-                };
+              onLocationSelect={(unified) => {
+                const loc = unifiedToSimpleLocation(unified);
                 setDestination(loc);
                 setDestinationSearch(loc.address);
               }}
               showCurrentLocation={true}
+              showPopularPlaces={true}
             />
           </div>
 
