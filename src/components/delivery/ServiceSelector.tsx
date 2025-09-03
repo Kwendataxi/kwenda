@@ -57,79 +57,80 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
   onServiceSelect
 }) => {
   return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:gap-4">
-        {serviceOptions.map((option) => {
-          const Icon = option.icon;
-          const isSelected = selectedService === option.id;
-          
-          return (
-            <motion.div
-              key={option.id}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full"
+    <div className="space-y-3">
+      {serviceOptions.map((option) => {
+        const Icon = option.icon;
+        const isSelected = selectedService === option.id;
+        
+        return (
+          <motion.div
+            key={option.id}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="w-full"
+          >
+            <Card 
+              className={`cursor-pointer border-2 transition-all duration-300 ease-out ${
+                isSelected 
+                  ? 'border-primary bg-primary/5 shadow-md' 
+                  : 'border-border hover:border-primary/40 hover:shadow-sm'
+              }`}
+              onClick={() => onServiceSelect(option.id)}
             >
-              <Card 
-                className={`cursor-pointer transition-all w-full ${
-                  isSelected 
-                    ? 'ring-2 ring-primary bg-primary/5 border-primary' 
-                    : 'hover:shadow-md hover:border-primary/20'
-                }`}
-                onClick={() => onServiceSelect(option.id)}
-              >
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                    {/* Icône et info principale */}
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className={`p-3 rounded-xl flex-shrink-0 ${
-                        isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                      }`}>
-                        <Icon className="h-6 w-6" />
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2.5 rounded-lg flex-shrink-0 transition-colors duration-200 ${
+                    isSelected 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-foreground">{option.label}</h3>
+                        <p className="text-sm text-muted-foreground">{option.description}</p>
                       </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <h3 className="font-bold text-lg">{option.label}</h3>
-                          <Badge variant="outline" className="text-xs">
-                            {option.vehicleType}
-                          </Badge>
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-primary">
+                          {option.basePrice.toLocaleString()} CDF
                         </div>
-                        
-                        <p className="text-sm text-muted-foreground mb-3">
-                          {option.description}
-                        </p>
-                        
-                        {/* Features */}
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {option.features.map((feature, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {feature}
-                            </Badge>
-                          ))}
-                        </div>
-                        
-                        <div className="text-sm font-semibold text-primary">
-                          À partir de {option.basePrice.toLocaleString()} CDF
-                        </div>
+                        <Badge variant="secondary" className="text-xs mt-1">
+                          {option.vehicleType}
+                        </Badge>
                       </div>
                     </div>
                     
-                    {/* Indicateur de sélection */}
-                    {isSelected && (
-                      <div className="flex-shrink-0">
-                        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                          <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                        </div>
-                      </div>
-                    )}
+                    <div className="flex gap-1 mt-2">
+                      {option.features.slice(0, 2).map((feature, index) => (
+                        <Badge key={index} variant="outline" className="text-xs px-2 py-0.5">
+                          {feature}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </div>
+                  
+                  {isSelected && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      className="flex-shrink-0"
+                    >
+                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                        <div className="w-2 h-2 rounded-full bg-white" />
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        );
+      })}
     </div>
   );
 };

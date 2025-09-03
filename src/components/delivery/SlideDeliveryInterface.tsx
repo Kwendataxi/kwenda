@@ -6,13 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useMasterLocation } from '@/hooks/useMasterLocation';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import ServiceSelector from './ServiceSelector';
+import { RealTimeLocationSearch } from '@/components/location/RealTimeLocationSearch';
+import { UnifiedLocation } from '@/types/locationAdapter';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -24,7 +24,6 @@ import {
   Truck, 
   CheckCircle2, 
   Scale,
-  Search,
   Loader2,
   Navigation2
 } from 'lucide-react';
@@ -37,8 +36,8 @@ interface LocationData {
 
 interface DeliveryFormData {
   serviceMode: string;
-  pickup: LocationData | null;
-  destination: LocationData | null;
+  pickup: UnifiedLocation | null;
+  destination: UnifiedLocation | null;
 }
 
 interface SlideDeliveryInterfaceProps {
@@ -128,8 +127,7 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
     destination: null
   });
   
-  const [queries, setQueries] = useState({ pickup: '', destination: '' });
-  const [suggestions, setSuggestions] = useState({ pickup: [], destination: [] });
+  const [locationValues, setLocationValues] = useState({ pickup: '', destination: '' });
 
   // Fonction pour passer à l'étape suivante
   const nextSlide = () => {
@@ -147,50 +145,10 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
     }
   };
 
-  // Géolocalisation actuelle
-  const useCurrentLocation = async (type: 'pickup' | 'destination') => {
-    try {
-      const location = { address: "Position actuelle", lat: -4.3217, lng: 15.3069 };
-      if (location) {
-        setFormData(prev => ({
-          ...prev,
-          [type]: {
-            address: location.address,
-            lat: location.lat,
-            lng: location.lng
-          }
-        }));
-      }
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible d'obtenir votre position",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Recherche d'adresses
-  const handleSearch = async (query: string, type: 'pickup' | 'destination') => {
-    setQueries(prev => ({ ...prev, [type]: query }));
-    
-    if (query.length > 2) {
-      try {
-        const results = []; // Placeholder pour la recherche
-        setSuggestions(prev => ({ ...prev, [type]: results }));
-      } catch (error) {
-        console.error('Erreur de recherche:', error);
-      }
-    } else {
-      setSuggestions(prev => ({ ...prev, [type]: [] }));
-    }
-  };
-
-  // Sélection d'une adresse
-  const selectLocation = (location: LocationData, type: 'pickup' | 'destination') => {
+  // Gestion de la sélection de localisation
+  const handleLocationSelect = (location: UnifiedLocation, type: 'pickup' | 'destination') => {
     setFormData(prev => ({ ...prev, [type]: location }));
-    setQueries(prev => ({ ...prev, [type]: location.address }));
-    setSuggestions(prev => ({ ...prev, [type]: [] }));
+    setLocationValues(prev => ({ ...prev, [type]: location.address }));
   };
 
   // Détermine si on peut passer à l'étape suivante
@@ -255,80 +213,67 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
   const AddressSlide = () => {
     const isPickup = currentSlide === 1;
     const type = isPickup ? 'pickup' : 'destination';
-    const query = queries[type];
-    const suggestionList = suggestions[type];
     
     return (
-      <div className="space-y-4 sm:space-y-6">
-        <div className="text-center space-y-2">
+      <div className="space-y-6">
+        <div className="text-center space-y-3">
           {isPickup ? (
             <>
-              <MapPin className="h-10 w-10 sm:h-12 sm:w-12 text-primary mx-auto" />
-              <h2 className="text-xl sm:text-2xl font-bold">Point de collecte</h2>
-              <p className="text-muted-foreground text-sm sm:text-base">
-                Où devons-nous récupérer votre colis ?
-              </p>
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                <MapPin className="h-8 w-8 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">Point de collecte</h2>
+                <p className="text-muted-foreground">Où devons-nous récupérer votre colis ?</p>
+              </div>
             </>
           ) : (
             <>
-              <Target className="h-10 w-10 sm:h-12 sm:w-12 text-primary mx-auto" />
-              <h2 className="text-xl sm:text-2xl font-bold">Destination</h2>
-              <p className="text-muted-foreground text-sm sm:text-base">
-                Où livrer votre colis ?
-              </p>
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                <Target className="h-8 w-8 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">Destination</h2>
+                <p className="text-muted-foreground">Où livrer votre colis ?</p>
+              </div>
             </>
           )}
         </div>
 
         <div className="space-y-4">
-          <div className="relative">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder={isPickup ? "Rechercher lieu de collecte (Kinshasa, Lubumbashi, Kolwezi)..." : "Rechercher lieu de livraison..."}
-                value={query}
-                onChange={(e) => handleSearch(e.target.value, type)}
-                className="pl-10 text-sm sm:text-base border-2 border-gray-200 focus:border-primary/50 transition-colors"
-              />
-            </div>
-            
-            {suggestionList.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
-                {suggestionList.map((location: LocationData, index: number) => (
-                  <div
-                    key={index}
-                    className="p-3 hover:bg-muted cursor-pointer border-b last:border-b-0"
-                    onClick={() => selectLocation(location, type)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{location.address}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <Button
-            variant="outline"
-            onClick={() => useCurrentLocation(type)}
-            className="w-full text-sm sm:text-base"
-          >
-            <Navigation2 className="mr-2 h-4 w-4" />
-            Utiliser ma position actuelle
-          </Button>
+          <RealTimeLocationSearch
+            placeholder={isPickup ? 
+              "Rechercher lieu de collecte..." : 
+              "Rechercher lieu de livraison..."
+            }
+            onLocationSelect={(location) => handleLocationSelect(location, type)}
+            value={locationValues[type]}
+            showCurrentLocation={true}
+            showCitySelector={true}
+            autoFocus={true}
+          />
 
           {formData[type] && (
-            <div className="p-3 sm:p-4 bg-primary/10 rounded-lg">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">Adresse sélectionnée :</span>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-primary/10 rounded-lg border border-primary/20"
+            >
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <div>
+                  <span className="text-sm font-medium text-foreground">Adresse sélectionnée</span>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {formData[type]?.address}
+                  </p>
+                  {formData[type]?.subtitle && (
+                    <p className="text-xs text-muted-foreground">
+                      {formData[type]?.subtitle}
+                    </p>
+                  )}
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground mt-1 break-words">
-                {formData[type]?.address}
-              </p>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>
