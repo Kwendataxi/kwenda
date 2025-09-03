@@ -4384,6 +4384,36 @@ export type Database = {
         }
         Relationships: []
       }
+      system_performance_metrics: {
+        Row: {
+          id: string
+          metadata: Json | null
+          metric_name: string
+          metric_type: string
+          metric_value: number
+          recorded_at: string | null
+          unit: string | null
+        }
+        Insert: {
+          id?: string
+          metadata?: Json | null
+          metric_name: string
+          metric_type: string
+          metric_value: number
+          recorded_at?: string | null
+          unit?: string | null
+        }
+        Update: {
+          id?: string
+          metadata?: Json | null
+          metric_name?: string
+          metric_type?: string
+          metric_value?: number
+          recorded_at?: string | null
+          unit?: string | null
+        }
+        Relationships: []
+      }
       team_accounts: {
         Row: {
           created_at: string
@@ -5909,6 +5939,18 @@ export type Database = {
         Args: { admin_id?: string }
         Returns: Json
       }
+      get_performance_trends: {
+        Args: { p_hours_back?: number; p_metric_type?: string }
+        Returns: {
+          avg_value: number
+          data_points: number
+          max_value: number
+          metric_name: string
+          metric_type: string
+          min_value: number
+          trend_direction: string
+        }[]
+      }
       get_protected_admin_info: {
         Args: { admin_id_param: string }
         Returns: {
@@ -6155,6 +6197,16 @@ export type Database = {
           p_currency: string
           p_transaction_ref: string
           p_user_id: string
+        }
+        Returns: string
+      }
+      record_performance_metric: {
+        Args: {
+          p_metadata?: Json
+          p_metric_name: string
+          p_metric_type: string
+          p_metric_value: number
+          p_unit?: string
         }
         Returns: string
       }
