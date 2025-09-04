@@ -44,8 +44,8 @@ export const DriverHeader: React.FC<DriverHeaderProps> = ({ serviceType }) => {
               <Icon className="h-5 w-5" />
             </span>
             <div>
-              <h1 className="text-base font-semibold leading-none">Espace Chauffeur : {userMe?.email ?? "Inconnu"}</h1>
-              <p className="text-xs text-muted-foreground">Moderne, fluide et simple d'utilisation</p>
+              <h1 className="text-base font-semibold leading-none">Kwenda Pro</h1>
+              <p className="text-xs text-muted-foreground">Application moderne pour chauffeurs professionnels</p>
               <button
                 onClick={handleSignOut}
                 disabled={isLoggingOut}

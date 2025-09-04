@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -54,6 +54,37 @@ export const useSimplifiedDriverStatus = () => {
     }
   }, [user, status.isOnline, status.isAvailable, status.vehicleClass]);
 
+  // Charger le statut initial depuis la base de données
+  useEffect(() => {
+    const loadInitialStatus = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('driver_locations')
+          .select('*')
+          .eq('driver_id', user.id)
+          .single();
+
+        if (data && !error) {
+          setStatus(prev => ({
+            ...prev,
+            isOnline: data.is_online,
+            isAvailable: data.is_available,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            vehicleClass: data.vehicle_class || 'standard',
+            lastUpdate: new Date(data.updated_at)
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading initial status:', error);
+      }
+    };
+
+    loadInitialStatus();
+  }, [user]);
+
   const updateStatus = useCallback(async (newStatus: Partial<DriverStatus>) => {
     if (!user) {
       toast.error('Utilisateur non connecté');
@@ -65,27 +96,35 @@ export const useSimplifiedDriverStatus = () => {
     try {
       const updatedStatus = { ...status, ...newStatus, lastUpdate: new Date() };
       
-      // Si on a une position, mettre à jour la location
-      if (updatedStatus.latitude && updatedStatus.longitude) {
-        const locationSuccess = await updateDriverLocation(updatedStatus.latitude, updatedStatus.longitude);
-        if (!locationSuccess) {
-          toast.warning('Position mise à jour partiellement');
-        }
-      } else if (updatedStatus.isOnline) {
-        // Si on va en ligne sans position, utiliser une position par défaut
-        const defaultLat = -4.3217;
-        const defaultLng = 15.3069;
-        const locationSuccess = await updateDriverLocation(defaultLat, defaultLng);
-        if (locationSuccess) {
-          updatedStatus.latitude = defaultLat;
-          updatedStatus.longitude = defaultLng;
-        }
+      // Mettre à jour dans driver_locations
+      const { error } = await supabase
+        .from('driver_locations')
+        .upsert({
+          driver_id: user.id,
+          latitude: updatedStatus.latitude || -4.3217, // Kinshasa par défaut
+          longitude: updatedStatus.longitude || 15.3069,
+          is_online: updatedStatus.isOnline,
+          is_available: updatedStatus.isAvailable,
+          vehicle_class: updatedStatus.vehicleClass,
+          last_ping: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_verified: true
+        }, {
+          onConflict: 'driver_id'
+        });
+
+      if (error) {
+        console.error('Error updating driver status:', error);
+        toast.error('Erreur lors de la mise à jour du statut');
+        return false;
       }
 
       setStatus(updatedStatus);
       
       if (updatedStatus.isOnline) {
-        toast.success('Statut chauffeur mis à jour');
+        toast.success('Vous êtes maintenant en ligne');
+      } else {
+        toast.success('Vous êtes maintenant hors ligne');
       }
       
       return true;
@@ -96,7 +135,7 @@ export const useSimplifiedDriverStatus = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, status, updateDriverLocation]);
+  }, [user, status]);
 
   const goOnline = useCallback(async (latitude?: number, longitude?: number) => {
     return updateStatus({
