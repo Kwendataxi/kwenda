@@ -5881,6 +5881,10 @@ export type Database = {
       }
     }
     Functions: {
+      anonymize_old_location_data: {
+        Args: { days_old?: number }
+        Returns: number
+      }
       calculate_delivery_estimate: {
         Args: { order_id_param: string }
         Returns: string
@@ -5979,6 +5983,22 @@ export type Database = {
           distance_km: number
           driver_id: string
           estimated_arrival_minutes: number
+          rating_average: number
+          vehicle_class: string
+        }[]
+      }
+      find_nearby_drivers_secure: {
+        Args: {
+          max_distance_km?: number
+          user_lat: number
+          user_lng: number
+          vehicle_class_filter?: string
+        }
+        Returns: {
+          distance_km: number
+          driver_id: string
+          estimated_arrival_minutes: number
+          is_available: boolean
           rating_average: number
           vehicle_class: string
         }[]
