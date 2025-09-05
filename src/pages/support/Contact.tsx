@@ -15,7 +15,7 @@ const Contact = () => {
       icon: <Phone className="w-6 h-6" />,
       title: "Téléphone",
       description: "Appelez-nous directement",
-      value: "08 58 04 04 00",
+      value: "+243 858 040 400",
       available: "24h/24, 7j/7",
       color: "bg-primary/10 text-primary"
     },
@@ -39,7 +39,7 @@ const Contact = () => {
       icon: <HeadphonesIcon className="w-6 h-6" />,
       title: "Support WhatsApp",
       description: "Via WhatsApp Business",
-      value: "08 58 04 04 00",
+      value: "+243 858 040 400",
       available: "Lun-Dim 6h-22h",
       color: "bg-primary-glow/10 text-primary-glow"
     }
@@ -89,7 +89,7 @@ const Contact = () => {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Téléphone</label>
-                <Input placeholder="08 58 04 04 00" />
+                <Input placeholder="+243 858 040 400" />
               </div>
 
               <div className="space-y-2">

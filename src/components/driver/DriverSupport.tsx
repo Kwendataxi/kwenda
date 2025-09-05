@@ -60,7 +60,7 @@ const DriverSupport = () => {
       type: "phone",
       title: "Urgence Chauffeurs",
       description: "Pour les urgences en course",
-      contact: "+243 XX XXX XXXX",
+      contact: "+243 858 040 400",
       availability: "24h/24, 7j/7",
       icon: Phone,
       urgent: true
@@ -69,7 +69,7 @@ const DriverSupport = () => {
       type: "whatsapp",
       title: "Support WhatsApp",
       description: "Réponse rapide pour chauffeurs",
-      contact: "+243 XX XXX XXXX",
+      contact: "+243 858 040 400",
       availability: "6h - 22h",
       icon: MessageCircle,
       urgent: false

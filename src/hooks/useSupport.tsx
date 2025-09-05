@@ -75,7 +75,7 @@ export const useSupport = () => {
   const contactEmergency = () => {
     toast({
       title: "Support d'urgence",
-      description: "Numéro d'urgence: +243 900 000 000",
+      description: "Numéro Kwenda: +243 858 040 400",
     });
   };
 

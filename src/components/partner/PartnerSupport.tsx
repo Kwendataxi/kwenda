@@ -63,7 +63,7 @@ const PartnerSupport = () => {
       type: "phone",
       title: "Support Partenaires",
       description: "Ligne dédiée aux partenaires",
-      contact: "+243 XX XXX XXXX",
+      contact: "+243 858 040 400",
       availability: "Lun-Ven 8h-18h",
       icon: Phone,
       priority: true
@@ -72,7 +72,7 @@ const PartnerSupport = () => {
       type: "whatsapp",
       title: "WhatsApp Business",
       description: "Support rapide partenaires",
-      contact: "+243 XX XXX XXXX",
+      contact: "+243 858 040 400",
       availability: "7j/7 9h-21h",
       icon: MessageCircle,
       priority: false
