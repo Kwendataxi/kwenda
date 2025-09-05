@@ -66,9 +66,12 @@ export const useEnhancedDeliveryOrders = () => {
         
         console.log('✅ RPC Result:', pricingResult);
         
-        if (pricingResult && typeof pricingResult.calculated_price === 'number') {
+        // Type assertion for RPC result
+        const result = pricingResult as { calculated_price: number } | null;
+        
+        if (result && typeof result.calculated_price === 'number') {
           return {
-            price: Math.round(pricingResult.calculated_price),
+            price: Math.round(result.calculated_price),
             distance: Number(distance.toFixed(2)),
             duration: Math.round(distance * 2.5) // Estimation: 2.5 min/km
           };
