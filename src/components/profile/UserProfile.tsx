@@ -20,6 +20,7 @@ import { UserStatistics } from './UserStatistics';
 import { ActivityHistory } from './ActivityHistory';
 import { KwendaPayWallet } from '../wallet/KwendaPayWallet';
 import { ReferralPanel } from './ReferralPanel';
+import { PromoCodePanel } from './PromoCodePanel';
 import { UserAddressesManager } from './UserAddressesManager';
 import CustomerSupport from './CustomerSupport';
 import { DriverUpgrade } from './DriverUpgrade';
@@ -283,6 +284,8 @@ export const UserProfile = () => {
           return <KwendaPayWallet />;
         case 'referral':
           return <ReferralPanel open={true} onClose={() => setActiveOption(null)} />;
+        case 'promocode':
+          return <PromoCodePanel open={true} onClose={() => setActiveOption(null)} />;
         case 'history':
           return <ActivityHistory />;
         case 'addresses':
@@ -325,6 +328,7 @@ export const UserProfile = () => {
     const optionMap: Record<string, string> = {
       'wallet': 'KwendaPay Wallet',
       'referral': 'Réductions et cadeaux',
+      'promocode': 'Codes promotionnels',
       'history': 'Historique des activités',
       'addresses': 'Mes adresses',
       'support': 'Assistance client',
