@@ -25,7 +25,7 @@ import CustomerSupport from './CustomerSupport';
 import { DriverUpgrade } from './DriverUpgrade';
 import { TeamAccountManager } from './TeamAccountManager';
 import { UserSettings } from './UserSettings';
-import { AccountStatus } from './AccountStatus';
+
 import { ModernProfileHeader } from './ModernProfileHeader';
 import { ProfileActionButtons } from './ProfileActionButtons';
 
@@ -247,20 +247,6 @@ export const UserProfile = () => {
 
   const profileOptions = [
     {
-      id: 'wallet',
-      icon: Wallet,
-      title: 'Modes de paiement',
-      subtitle: 'Wallet Kwenda Pay',
-      hasArrow: true
-    },
-    {
-      id: 'referral',
-      icon: Gift,
-      title: 'Réductions et cadeaux',
-      subtitle: 'Code promo et parrainage',
-      hasArrow: true
-    },
-    {
       id: 'history',
       icon: Clock,
       title: 'Historique',
@@ -279,27 +265,6 @@ export const UserProfile = () => {
       icon: Headphones,
       title: 'Assistance',
       subtitle: 'Support client',
-      hasArrow: true
-    },
-    {
-      id: 'security',
-      icon: Shield,
-      title: 'Sécurité',
-      subtitle: 'Vérification et confidentialité',
-      hasArrow: true
-    },
-    {
-      id: 'driver',
-      icon: Car,
-      title: 'Travailler comme conducteur',
-      subtitle: 'Upgrade votre compte',
-      hasArrow: true
-    },
-    {
-      id: 'team',
-      icon: Users,
-      title: 'Un compte pour votre équipe',
-      subtitle: 'Compte entreprise',
       hasArrow: true
     },
     {
@@ -443,11 +408,6 @@ export const UserProfile = () => {
       {/* Profile Action Buttons */}
       <div className="px-4 py-4">
         <ProfileActionButtons onQuickAction={handleQuickAction} />
-      </div>
-
-      {/* Account Status */}
-      <div className="px-4 py-2">
-        <AccountStatus />
       </div>
 
       {/* Profile Options List */}

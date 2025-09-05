@@ -23,13 +23,6 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
       label: 'Boost',
       variant: 'vibrant' as const,
       description: 'Priorité course'
-    },
-    {
-      id: 'rewards',
-      icon: Gift,
-      label: 'Récompenses',
-      variant: 'glow' as const,
-      description: 'Mes cadeaux'
     }
   ];
 
@@ -67,7 +60,7 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
       </div>
 
       {/* Quick Action Grid */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {quickActions.map((action) => (
           <CongoButton
             key={action.id}
