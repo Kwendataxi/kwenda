@@ -47,20 +47,32 @@ const DynamicPriceCalculator = ({
     maxicharge: 12000
   };
 
-  // Calculate price when locations change avec validation sécurisée
+  // Calculate price when locations change avec validation ultra-sécurisée
   useEffect(() => {
     const calculatePrice = async () => {
       // Validation stricte pour éviter "Cannot read properties of undefined"
-      if (!pickup || !destination) {
+      if (!pickup || !destination || !pickup.lat || !pickup.lng || !destination.lat || !destination.lng) {
         setCalculatedPrice(null);
         setDistance(null);
         setDuration(null);
         return;
       }
 
-      // Sécurisation des locations avant calcul
+      // Double sécurisation des locations avant calcul
       const securePickup = secureLocation(pickup);
       const secureDestination = secureLocation(destination);
+
+      // Validation finale avant de procéder
+      if (!securePickup || !secureDestination || 
+          typeof securePickup.lat !== 'number' || typeof securePickup.lng !== 'number' ||
+          typeof secureDestination.lat !== 'number' || typeof secureDestination.lng !== 'number') {
+        console.error('Coordonnées invalides détectées:', { pickup, destination });
+        setCalculatedPrice(basePrices[serviceType] || 5000);
+        setDistance(0);
+        setDuration(30);
+        setError('Positions invalides, prix estimé');
+        return;
+      }
 
       console.log('Calcul prix livraison démarré:', {
         pickup: securePickup,

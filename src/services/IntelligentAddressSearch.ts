@@ -38,6 +38,8 @@ export interface SearchOptions {
   min_hierarchy_level?: number;
   include_google_fallback?: boolean;
   cache_duration?: number;
+  prioritizeCurrentCity?: boolean;
+  includeGoogleFallback?: boolean;
 }
 
 class IntelligentAddressSearchService {
@@ -142,7 +144,7 @@ class IntelligentAddressSearchService {
   }
 
   /**
-   * Recherche dans la base de données enrichie
+   * Recherche dans la base de données enrichie avec priorisation par ville
    */
   private async searchInDatabase(
     query: string,
@@ -154,19 +156,48 @@ class IntelligentAddressSearchService {
     min_hierarchy_level: number = 1
   ): Promise<IntelligentSearchResult[]> {
     try {
-      const { data, error } = await supabase.rpc('intelligent_places_search', {
+      console.log(`🔍 Recherche prioritaire pour ${city}:`, query);
+      
+      // Recherche prioritaire dans la ville de l'utilisateur
+      const { data: cityResults, error: cityError } = await supabase.rpc('intelligent_places_search', {
         search_query: query,
-        user_country_code: country_code,
-        user_city: city,
-        user_lat: user_lat || null,
-        user_lng: user_lng || null,
-        max_results,
-        min_hierarchy_level
+        search_city: city,
+        user_latitude: user_lat || null,
+        user_longitude: user_lng || null,
+        max_results: Math.ceil(max_results * 0.7), // 70% des résultats de la ville
+        include_nearby: true
       });
 
-      if (error) throw error;
-
-      return (data || []).map(this.transformDatabaseResult);
+      if (cityError) throw cityError;
+      
+      let allResults = (cityResults || []).map(this.transformDatabaseResult);
+      
+      // Si pas assez de résultats, chercher dans les autres villes
+      if (allResults.length < max_results) {
+        const otherCities = Object.keys(this.CITY_CONFIGS).filter(c => c !== city);
+        
+        for (const otherCity of otherCities) {
+          if (allResults.length >= max_results) break;
+          
+          const { data: otherResults } = await supabase.rpc('intelligent_places_search', {
+            search_query: query,
+            search_city: otherCity,
+            user_latitude: null,
+            user_longitude: null,
+            max_results: max_results - allResults.length,
+            include_nearby: false
+          });
+          
+          if (otherResults && otherResults.length > 0) {
+            const transformedOther = otherResults.map(this.transformDatabaseResult);
+            allResults = [...allResults, ...transformedOther];
+          }
+        }
+      }
+      
+      console.log(`✅ Trouvé ${allResults.length} résultats (${cityResults?.length || 0} dans ${city})`);
+      return allResults.slice(0, max_results);
+      
     } catch (error) {
       console.error('Database search error:', error);
       return [];

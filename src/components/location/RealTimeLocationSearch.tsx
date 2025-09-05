@@ -54,6 +54,8 @@ export const RealTimeLocationSearch: React.FC<RealTimeLocationSearchProps> = ({
     clearResults
   } = useIntelligentAddressSearch({
     city: currentCity,
+    maxResults: 8, // Limiter pour améliorer les performances
+    debounceMs: 200, // Réduire le délai pour plus de réactivité
     autoSearchOnMount: true
   });
 
@@ -84,18 +86,22 @@ export const RealTimeLocationSearch: React.FC<RealTimeLocationSearchProps> = ({
     return iconMap[category] || '📍';
   };
 
-  // Gestion de la recherche avec debounce optimisé
+  // Gestion de la recherche avec debounce optimisé et recherche intelligente
   const handleSearch = useCallback((query: string) => {
     setInputValue(query);
     if (query.trim().length > 0) {
-      search(query);
+      // Recherche immédiate pour les caractères courts dans la ville actuelle
+      search(query, { 
+        city: currentCity,
+        include_google_fallback: query.length > 3 
+      });
       setIsOpen(true);
     } else {
       clearResults();
-      setIsOpen(false);
+      setIsOpen(true); // Garder ouvert pour montrer les suggestions populaires
     }
     setSelectedIndex(-1);
-  }, [search, clearResults]);
+  }, [search, clearResults, currentCity]);
 
   // Gestion de la sélection
   const handleLocationSelect = useCallback((result: any) => {
