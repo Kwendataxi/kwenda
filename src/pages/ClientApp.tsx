@@ -685,10 +685,6 @@ const ClientApp = () => {
         favoritesCount={0} // TODO: Connect to favorites count
       />
       
-      {/* Lottery Ticket Floater - Omniprésent et discret */}
-      <LotteryTicketFloater 
-        onOpenLottery={() => setIsLotteryOpen(true)}
-      />
         
       {/* Lottery Dashboard Modal */}
       {isLotteryOpen && (

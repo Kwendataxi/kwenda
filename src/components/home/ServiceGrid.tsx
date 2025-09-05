@@ -1,11 +1,19 @@
 import { Car, Truck, ShoppingBag, Zap } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import NotificationBadge from '@/components/notifications/NotificationBadge';
 
 interface ServiceGridProps {
   onServiceSelect: (service: string) => void;
+  serviceNotifications?: {
+    transport: number;
+    delivery: number;
+    marketplace: number;
+    lottery: number;
+    rental: number;
+  };
 }
 
-export const ServiceGrid = ({ onServiceSelect }: ServiceGridProps) => {
+export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGridProps) => {
   const { t } = useLanguage();
   
   // Services principaux avec designs améliorés
@@ -52,19 +60,35 @@ export const ServiceGrid = ({ onServiceSelect }: ServiceGridProps) => {
       <div className="grid grid-cols-4 gap-4 justify-items-center">
         {mainServices.map((service) => {
           const Icon = service.icon;
+          const notificationCount = serviceNotifications?.[service.id as keyof typeof serviceNotifications] || 0;
+          
           return (
             <div key={service.id} className="flex flex-col items-center">
-              <button
-                onClick={() => onServiceSelect(service.id)}
-                className={`
-                  w-16 h-16 bg-gradient-to-br ${service.gradient} 
-                  rounded-xl flex items-center justify-center text-white 
-                  transition-all duration-200 hover:scale-105 active:scale-95
-                  shadow-md hover:shadow-lg
-                `}
-              >
-                <Icon className="h-7 w-7" />
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => onServiceSelect(service.id)}
+                  className={`
+                    w-16 h-16 bg-gradient-to-br ${service.gradient} 
+                    rounded-xl flex items-center justify-center text-white 
+                    transition-all duration-200 hover:scale-105 active:scale-95
+                    shadow-md hover:shadow-lg
+                  `}
+                >
+                  <Icon className="h-7 w-7" />
+                </button>
+                
+                {/* Badge de notification */}
+                {notificationCount > 0 && (
+                  <div className="absolute -top-1 -right-1">
+                    <NotificationBadge 
+                      count={notificationCount}
+                      variant="destructive"
+                      size="sm"
+                      pulse={true}
+                    />
+                  </div>
+                )}
+              </div>
               <span className="text-xs font-medium text-foreground mt-2 text-center line-clamp-2">{service.name}</span>
             </div>
           );

@@ -9,6 +9,7 @@ import { HomeTrendsSheet } from './HomeTrendsSheet';
 import { HomeRecentPlacesSheet } from './HomeRecentPlacesSheet';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useAuth } from '@/hooks/useAuth';
+import { useServiceNotifications } from '@/hooks/useServiceNotifications';
 
 interface ModernHomeScreenProps {
   onServiceSelect: (service: string) => void;
@@ -33,6 +34,7 @@ export const ModernHomeScreen = ({
   const [trendsOpen, setTrendsOpen] = useState(false);
   const [placesOpen, setPlacesOpen] = useState(false);
   const { unreadCount } = useRealtimeNotifications();
+  const serviceNotifications = useServiceNotifications();
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -71,7 +73,10 @@ export const ModernHomeScreen = ({
       <ModernHeader />
       
       <div className="space-y-4 pb-24">
-        <ServiceGrid onServiceSelect={onServiceSelect} />
+        <ServiceGrid 
+          onServiceSelect={onServiceSelect} 
+          serviceNotifications={serviceNotifications}
+        />
         
         <UniversalSearchBar 
           onSearch={onSearch}
