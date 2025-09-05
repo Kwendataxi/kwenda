@@ -13,6 +13,7 @@ import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import ServiceSelector from './ServiceSelector';
 import DynamicPriceCalculator from './DynamicPriceCalculator';
 import { ModernLocationSearch } from '@/components/location/ModernLocationSearch';
+import CitySelector from './CitySelector';
 import { UnifiedLocation } from '@/types/locationAdapter';
 import { 
   isValidLocation, 
@@ -45,6 +46,7 @@ interface DeliveryFormData {
   serviceMode: string;
   pickup: UnifiedLocation | null;
   destination: UnifiedLocation | null;
+  selectedCity: string;
 }
 
 interface SlideDeliveryInterfaceProps {
@@ -134,7 +136,8 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
   const [formData, setFormData] = useState<DeliveryFormData>({
     serviceMode: 'flex',
     pickup: null,
-    destination: null
+    destination: null,
+    selectedCity: 'Kinshasa'
   });
   
 const [locationValues, setLocationValues] = useState({ pickup: '', destination: '' });
@@ -142,7 +145,7 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
 
   // Fonction pour passer à l'étape suivante
   const nextSlide = () => {
-    if (currentSlide < 3) { // 4 étapes: service, pickup, destination, confirmation
+    if (currentSlide < 4) { // 5 étapes: ville, service, pickup, destination, confirmation
       setDirection(1);
       setCurrentSlide(prev => prev + 1);
     }
@@ -171,9 +174,9 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
         return;
       }
       
-      // Conversion et sécurisation avec double validation
+      // Conversion et sécurisation avec ville sélectionnée
       const locationData = unifiedToLocationData(location);
-      const securedLocation = secureLocation(locationData, 'Kinshasa');
+      const securedLocation = secureLocation(locationData, formData.selectedCity);
       
       // Validation que les coordonnées existent
       if (!securedLocation || !securedLocation.lat || !securedLocation.lng) {
@@ -216,10 +219,11 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
   // Détermine si on peut passer à l'étape suivante
   const canProceed = () => {
     switch(currentSlide) {
-      case 0: return formData.serviceMode !== '';
-      case 1: return formData.pickup !== null;
-      case 2: return formData.destination !== null;
-      case 3: return true; // Page de confirmation
+      case 0: return formData.selectedCity !== '';
+      case 1: return formData.serviceMode !== '';
+      case 2: return formData.pickup !== null;
+      case 3: return formData.destination !== null;
+      case 4: return true; // Page de confirmation
       default: return false;
     }
   };
@@ -247,7 +251,7 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
       }
 
       const orderData = {
-        city: 'Kinshasa', // TODO: Intégrer la détection de ville
+        city: formData.selectedCity,
         pickup: {
           address: securePickup.address,
           lat: securePickup.lat,
@@ -277,6 +281,31 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
   };
 
   // Composants pour chaque étape
+  const CitySlide = () => (
+    <div className="space-y-6">
+      <div className="text-center space-y-2">
+        <MapPin className="h-12 w-12 text-primary mx-auto" />
+        <h2 className="text-xl sm:text-2xl font-bold">Votre ville</h2>
+        <p className="text-muted-foreground text-sm sm:text-base">
+          Sélectionnez votre ville pour des résultats optimisés
+        </p>
+      </div>
+
+      <CitySelector
+        selectedCity={formData.selectedCity}
+        onCityChange={(city) => {
+          const previousCity = formData.selectedCity;
+          setFormData(prev => ({ ...prev, selectedCity: city }));
+          // Réinitialiser les adresses si changement de ville
+          if (previousCity !== city) {
+            setFormData(prev => ({ ...prev, pickup: null, destination: null }));
+            setLocationValues({ pickup: '', destination: '' });
+          }
+        }}
+      />
+    </div>
+  );
+
   const ServiceSlide = () => (
     <div className="space-y-6">
       <div className="text-center space-y-2">
@@ -295,7 +324,7 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
   );
 
   const AddressSlide = () => {
-    const isPickup = currentSlide === 1;
+    const isPickup = currentSlide === 2;
     const type = isPickup ? 'pickup' : 'destination';
     
     return (
@@ -444,7 +473,7 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
   };
 
   // Gestion des étapes
-  const slides = [ServiceSlide, AddressSlide, AddressSlide, ConfirmationSlide];
+  const slides = [CitySlide, ServiceSlide, AddressSlide, AddressSlide, ConfirmationSlide];
   const CurrentSlide = slides[currentSlide];
 
   return (
@@ -458,11 +487,11 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
               Retour
             </Button>
             <span className="text-xs sm:text-sm text-muted-foreground">
-              Étape {currentSlide + 1} sur 4
+              Étape {currentSlide + 1} sur 5
             </span>
           </div>
           
-          <Progress value={(currentSlide + 1) * 25} className="w-full" />
+          <Progress value={(currentSlide + 1) * 20} className="w-full" />
         </div>
 
         {/* Contenu des slides */}

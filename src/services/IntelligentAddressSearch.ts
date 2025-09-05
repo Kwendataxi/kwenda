@@ -100,21 +100,33 @@ class IntelligentAddressSearchService {
       user_lng,
       max_results = 10,
       min_hierarchy_level = 1,
-      include_google_fallback = false
+      include_google_fallback = true // Activé par défaut pour plus de résultats
     } = options;
 
-    // 1. Recherche dans la base de données locale
-    const dbResults = await this.searchInDatabase(
-      query, city, country_code, user_lat, user_lng, max_results, min_hierarchy_level
-    );
-
-    // 2. Si pas assez de résultats et Google fallback activé
-    if (dbResults.length < max_results && include_google_fallback) {
-      const googleResults = await this.searchWithGoogleFallback(query, city, max_results - dbResults.length);
-      return [...dbResults, ...googleResults];
+    // 1. Recherche dans toutes les villes configurées
+    let allResults: IntelligentSearchResult[] = [];
+    
+    // Rechercher dans toutes les villes du projet
+    const citiesToSearch = ['Kinshasa', 'Lubumbashi', 'Kolwezi'];
+    
+    for (const searchCity of citiesToSearch) {
+      const cityResults = await this.searchInDatabase(
+        query, searchCity, country_code, user_lat, user_lng, 
+        Math.ceil(max_results / citiesToSearch.length), min_hierarchy_level
+      );
+      allResults = [...allResults, ...cityResults];
     }
 
-    return dbResults;
+    // 2. Si pas assez de résultats et Google fallback activé
+    if (allResults.length < max_results && include_google_fallback) {
+      const googleResults = await this.searchWithGoogleFallback(query, city, max_results - allResults.length);
+      allResults = [...allResults, ...googleResults];
+    }
+
+    // 3. Trier par pertinence et limiter
+    return allResults
+      .sort((a, b) => b.relevance_score - a.relevance_score)
+      .slice(0, max_results);
   }
 
   /**
@@ -215,7 +227,7 @@ class IntelligentAddressSearchService {
   }
 
   /**
-   * Lieux populaires de fallback hardcodés
+   * Lieux populaires de fallback hardcodés pour toutes les villes
    */
   private getFallbackPopularPlaces(city: string): IntelligentSearchResult[] {
     const fallbackPlaces = {
@@ -228,6 +240,26 @@ class IntelligentAddressSearchService {
         { name: 'Grand Marché', lat: -4.3250, lng: 15.3100, commune: 'Kinshasa', category: 'shopping' },
         { name: 'Hôpital Général', lat: -4.3200, lng: 15.3150, commune: 'Gombe', category: 'hospital' },
         { name: 'Bandalungwa', lat: -4.3833, lng: 15.3000, commune: 'Bandalungwa', category: 'residential' }
+      ],
+      'Lubumbashi': [
+        { name: 'Aéroport International Luano', lat: -11.5913, lng: 27.5309, commune: 'Annexe', category: 'transport' },
+        { name: 'Centre-ville Lubumbashi', lat: -11.6792, lng: 27.4716, commune: 'Lubumbashi', category: 'center' },
+        { name: 'Université de Lubumbashi', lat: -11.6567, lng: 27.4794, commune: 'Lubumbashi', category: 'education' },
+        { name: 'Marché Kasumbalesa', lat: -11.6850, lng: 27.4800, commune: 'Kampemba', category: 'shopping' },
+        { name: 'Hôpital Sendwe', lat: -11.6700, lng: 27.4750, commune: 'Kenya', category: 'hospital' },
+        { name: 'Stade TP Mazembe', lat: -11.6900, lng: 27.4650, commune: 'Kamalondo', category: 'sports' },
+        { name: 'Gecamines', lat: -11.6600, lng: 27.4900, commune: 'Katuba', category: 'business' },
+        { name: 'Ruashi', lat: -11.6200, lng: 27.3900, commune: 'Ruashi', category: 'residential' }
+      ],
+      'Kolwezi': [
+        { name: 'Aéroport de Kolwezi', lat: -10.7680, lng: 25.5053, commune: 'Dilala', category: 'transport' },
+        { name: 'Centre-ville Kolwezi', lat: -10.7147, lng: 25.4665, commune: 'Kolwezi', category: 'center' },
+        { name: 'Hôpital Général Kolwezi', lat: -10.7200, lng: 25.4700, commune: 'Kolwezi', category: 'hospital' },
+        { name: 'Marché Central Kolwezi', lat: -10.7100, lng: 25.4600, commune: 'Kolwezi', category: 'shopping' },
+        { name: 'Mutoshi Mining', lat: -10.7500, lng: 25.4200, commune: 'Mutoshi', category: 'business' },
+        { name: 'Manika', lat: -10.6800, lng: 25.5000, commune: 'Manika', category: 'residential' },
+        { name: 'Stade de Kolwezi', lat: -10.7180, lng: 25.4620, commune: 'Kolwezi', category: 'sports' },
+        { name: 'Dilala', lat: -10.7300, lng: 25.4800, commune: 'Dilala', category: 'residential' }
       ]
     };
 

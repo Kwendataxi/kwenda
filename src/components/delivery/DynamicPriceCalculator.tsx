@@ -37,15 +37,24 @@ const DynamicPriceCalculator: React.FC<DynamicPriceCalculatorProps> = ({
       setCalculating(true);
       setError(null);
 
+      // Ajouter un timeout de sécurité pour éviter les calculs infinis
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout: Calcul trop long')), 10000)
+      );
+
       try {
-        const securePickup = secureLocation(pickup);
-        const secureDestination = secureLocation(destination);
+        const calculationPromise = (async () => {
+          const securePickup = secureLocation(pickup);
+          const secureDestination = secureLocation(destination);
 
-        if (!isValidLocation(securePickup) || !isValidLocation(secureDestination)) {
-          throw new Error('Coordonnées invalides pour le calcul du prix');
-        }
+          if (!isValidLocation(securePickup) || !isValidLocation(secureDestination)) {
+            throw new Error('Coordonnées invalides pour le calcul du prix');
+          }
 
-        const result = calculateBasePrice(securePickup, secureDestination, serviceType);
+          return calculateBasePrice(securePickup, secureDestination, serviceType);
+        })();
+
+        const result = await Promise.race([calculationPromise, timeoutPromise]) as any;
         setPriceDetails(result);
         onPriceCalculated(result.price);
 
@@ -53,13 +62,27 @@ const DynamicPriceCalculator: React.FC<DynamicPriceCalculatorProps> = ({
         console.error('Erreur calcul prix:', err);
         setError(err.message || 'Erreur de calcul du prix');
         
-        const fallbackPrices = {
+        // Prix de base selon la ville (Kinshasa par défaut)
+        const cityMultipliers = {
+          'Kinshasa': 1.0,
+          'Lubumbashi': 1.2, // +20% pour conditions minières
+          'Kolwezi': 1.1, // +10% ville minière
+          'Abidjan': 1.0 // Prix de base
+        };
+        
+        const basePrices = {
           flash: 5000,
           flex: 7000,
           maxicharge: 12000
         };
         
-        const fallbackPrice = fallbackPrices[serviceType];
+        const city = pickup?.address?.includes('Lubumbashi') ? 'Lubumbashi' :
+                    pickup?.address?.includes('Kolwezi') ? 'Kolwezi' :
+                    pickup?.address?.includes('Abidjan') ? 'Abidjan' : 'Kinshasa';
+        
+        const multiplier = cityMultipliers[city as keyof typeof cityMultipliers] || 1.0;
+        const fallbackPrice = Math.round(basePrices[serviceType] * multiplier);
+        
         setPriceDetails({
           price: fallbackPrice,
           distance: 0,
@@ -71,7 +94,7 @@ const DynamicPriceCalculator: React.FC<DynamicPriceCalculatorProps> = ({
       }
     };
 
-    const timeout = setTimeout(calculatePrice, 300);
+    const timeout = setTimeout(calculatePrice, 500);
     return () => clearTimeout(timeout);
   }, [pickup, destination, serviceType, onPriceCalculated]);
 

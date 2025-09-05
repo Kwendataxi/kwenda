@@ -62,7 +62,7 @@ export const ModernLocationSearch: React.FC<ModernLocationSearchProps> = ({
     addToHistory,
     clearResults
   } = useIntelligentAddressSearch({
-    city: 'Kinshasa',
+    city: 'Kinshasa', // Par défaut, pourrait être dynamique selon le contexte
     maxResults: 6,
     debounceMs: 150,
     autoSearchOnMount: true

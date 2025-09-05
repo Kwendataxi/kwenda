@@ -155,7 +155,10 @@ export const useIntelligentAddressSearch = ({
           ...customOptions
         };
 
-        const searchResults = await intelligentAddressSearch.search(query, searchOptions);
+        const searchResults = await intelligentAddressSearch.search(query, {
+          ...searchOptions,
+          city: currentCity // Utiliser la ville courante dynamiquement
+        });
         setResults(searchResults);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Erreur de recherche';
