@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Plus, Zap, Gift, CreditCard, Bell, Settings, Star } from 'lucide-react';
 import CongoButton from '@/components/ui/CongoButton';
 import { cn } from '@/lib/utils';
+import { useOrderNotifications } from '@/hooks/useOrderNotifications';
+import { useVIPStatus } from '@/hooks/useVIPStatus';
+import { useToast } from '@/hooks/use-toast';
+import { NotificationPanel } from '@/components/notifications/NotificationPanel';
+import NotificationBadge from '@/components/notifications/NotificationBadge';
 
 interface ProfileActionButtonsProps {
   onQuickAction?: (action: string) => void;
@@ -9,20 +14,50 @@ interface ProfileActionButtonsProps {
 }
 
 export const ProfileActionButtons = ({ onQuickAction, className }: ProfileActionButtonsProps) => {
+  const { toast } = useToast();
+  const { unreadCount } = useOrderNotifications();
+  const { vipStatus, loading: vipLoading } = useVIPStatus();
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const handleRecharge = () => {
+    toast({
+      title: "Recharge KwendaPay",
+      description: "Redirection vers le système de paiement...",
+    });
+    onQuickAction?.('recharge');
+  };
+
+  const handleBoost = () => {
+    toast({
+      title: "Mode Boost activé",
+      description: "Vos courses auront la priorité pendant 1h",
+    });
+    onQuickAction?.('boost');
+  };
+
+  const handleWallet = () => {
+    toast({
+      title: "KwendaPay",
+      description: "Ouverture de votre portefeuille...",
+    });
+    onQuickAction?.('wallet');
+  };
   const quickActions = [
     {
       id: 'recharge',
       icon: Plus,
       label: 'Recharger',
       variant: 'electric' as const,
-      description: 'Ajouter des fonds'
+      description: 'Ajouter des fonds',
+      action: handleRecharge
     },
     {
       id: 'boost',
       icon: Zap,
       label: 'Boost',
       variant: 'vibrant' as const,
-      description: 'Priorité course'
+      description: 'Priorité course',
+      action: handleBoost
     }
   ];
 
@@ -31,7 +66,8 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
     icon: CreditCard,
     label: 'KwendaPay',
     variant: 'congo' as const,
-    description: 'Mon portefeuille'
+    description: 'Mon portefeuille',
+    action: handleWallet
   };
 
   return (
@@ -41,7 +77,7 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
         <CongoButton
           variant={primaryAction.variant}
           size="lg"
-          onClick={() => onQuickAction?.(primaryAction.id)}
+          onClick={primaryAction.action}
           className="w-full group relative overflow-hidden"
         >
           <div className="flex items-center gap-3">
@@ -66,7 +102,7 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
             key={action.id}
             variant={action.variant}
             size="md"
-            onClick={() => onQuickAction?.(action.id)}
+            onClick={action.action}
             className="flex-col h-20 group relative overflow-hidden"
           >
             <action.icon className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" />
@@ -81,12 +117,14 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
       {/* Secondary Actions Row */}
       <div className="flex gap-2">
         <button
-          onClick={() => onQuickAction?.('notifications')}
-          className="flex-1 flex items-center gap-2 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors group"
+          onClick={() => setShowNotifications(true)}
+          className="flex-1 flex items-center gap-2 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors group relative"
         >
           <Bell className="h-4 w-4 text-congo-yellow group-hover:text-congo-yellow-electric transition-colors" />
           <span className="text-sm font-medium">Notifications</span>
-          <div className="ml-auto w-2 h-2 bg-congo-red rounded-full animate-pulse" />
+          <div className="ml-auto">
+            <NotificationBadge count={unreadCount} />
+          </div>
         </button>
 
         <button
@@ -98,23 +136,56 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
       </div>
 
       {/* VIP Status Indicator */}
-      <div className="glassmorphism rounded-lg p-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-gradient-to-br from-congo-yellow/20 to-congo-red/20">
-            <Star className="h-4 w-4 text-congo-yellow" />
-          </div>
-          <div className="flex-1">
-            <div className="text-sm font-medium">Statut VIP</div>
-            <div className="text-xs text-muted-foreground">3 courses pour passer Gold</div>
-          </div>
-          <div className="text-right">
-            <div className="text-xs text-congo-yellow font-medium">Silver</div>
-            <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
-              <div className="h-full w-3/4 bg-gradient-to-r from-congo-yellow to-congo-red rounded-full" />
+      {!vipLoading && (
+        <div className="glassmorphism rounded-lg p-3">
+          <div className="flex items-center gap-3">
+            <div 
+              className="p-2 rounded-lg"
+              style={{ backgroundColor: `${vipStatus.currentLevel.color}20` }}
+            >
+              <Star 
+                className="h-4 w-4" 
+                style={{ color: vipStatus.currentLevel.color }}
+              />
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-medium flex items-center gap-2">
+                Statut VIP
+                <span className="text-lg">{vipStatus.currentLevel.icon}</span>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {vipStatus.nextLevel 
+                  ? `${vipStatus.ridesUntilNext} courses pour passer ${vipStatus.nextLevel.name}`
+                  : 'Niveau maximum atteint !'
+                }
+              </div>
+            </div>
+            <div className="text-right">
+              <div 
+                className="text-xs font-medium mb-1"
+                style={{ color: vipStatus.currentLevel.color }}
+              >
+                {vipStatus.currentLevel.name}
+              </div>
+              <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r rounded-full transition-all duration-500"
+                  style={{ 
+                    width: `${vipStatus.progressPercentage}%`,
+                    background: `linear-gradient(90deg, ${vipStatus.currentLevel.color}, ${vipStatus.nextLevel?.color || vipStatus.currentLevel.color})`
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Notification Panel */}
+      <NotificationPanel 
+        isOpen={showNotifications} 
+        onClose={() => setShowNotifications(false)} 
+      />
     </div>
   );
 };
