@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from 'lucide-react';
 import { SecureVaultDashboard } from '@/components/secure-vault/SecureVaultDashboard';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const EscrowPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-background">
@@ -19,12 +21,12 @@ export const EscrowPage: React.FC = () => {
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Accueil
+            {t('escrow.back_home')}
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Coffre sécurisé KwendaPay</h1>
+            <h1 className="text-2xl font-bold">{t('escrow.title')}</h1>
             <p className="text-muted-foreground">
-              Gestion sécurisée des paiements et retraits
+              {t('escrow.subtitle')}
             </p>
           </div>
         </div>

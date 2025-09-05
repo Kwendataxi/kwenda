@@ -10,12 +10,14 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Phone, Mail, MessageCircle, Send, Ticket, Star, Clock, CheckCircle, AlertCircle } from "lucide-react";
 
 const CustomerSupport = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useLanguage();
   
   // Form state
   const [subject, setSubject] = useState("");
@@ -173,28 +175,28 @@ const CustomerSupport = () => {
   const contactMethods = [
     {
       type: "phone",
-      title: "Téléphone",
-      description: "Support téléphonique",
-      contact: "+243 858 040 400",
-      availability: "Lun-Ven 8h-18h",
+      title: t('support.phone'),
+      description: t('support.phone_desc'),
+      contact: t('support.contact_phone'),
+      availability: t('support.availability_phone'),
       icon: Phone,
       available: true
     },
     {
       type: "email",
-      title: "Email",
-      description: "Support par email",
-      contact: "contact@kwendataxi.com",
-      availability: "Réponse sous 24h",
+      title: t('support.email'),
+      description: t('support.email_desc'),
+      contact: t('support.contact_email'),
+      availability: t('support.availability_email'),
       icon: Mail,
       available: true
     },
     {
       type: "chat",
-      title: "Chat en direct",
-      description: "Support instantané",
-      contact: "Disponible maintenant",
-      availability: "24h/24",
+      title: t('support.chat'),
+      description: t('support.chat_desc'),
+      contact: t('support.contact_chat'),
+      availability: t('support.availability_chat'),
       icon: MessageCircle,
       available: false
     }
@@ -203,24 +205,24 @@ const CustomerSupport = () => {
   // FAQ items
   const faqItems = [
     {
-      question: "Comment puis-je annuler ma course ?",
-      answer: "Vous pouvez annuler votre course dans l'application jusqu'à 5 minutes après la réservation sans frais. Après ce délai, des frais d'annulation peuvent s'appliquer."
+      question: t('faq.cancel_trip'),
+      answer: t('faq.cancel_trip_answer')
     },
     {
-      question: "Comment fonctionne le paiement ?",
-      answer: "Kwenda accepte les paiements via Mobile Money (Airtel, Orange, M-Pesa) et le portefeuille Kwenda Pay. Le paiement est automatique à la fin de chaque course."
+      question: t('faq.payment'),
+      answer: t('faq.payment_answer')
     },
     {
-      question: "Que faire si j'oublie quelque chose dans le véhicule ?",
-      answer: "Contactez immédiatement le support via l'application. Nous vous mettrons en contact avec le chauffeur pour récupérer vos affaires."
+      question: t('faq.lost_item'),
+      answer: t('faq.lost_item_answer')
     },
     {
-      question: "Comment puis-je devenir chauffeur Kwenda ?",
-      answer: "Visitez la section 'Travailler comme conducteur' dans votre profil pour débuter le processus d'inscription. Vous devrez fournir vos documents et passer une vérification."
+      question: t('faq.become_driver'),
+      answer: t('faq.become_driver_answer')
     },
     {
-      question: "Mes données sont-elles sécurisées ?",
-      answer: "Oui, nous utilisons un chiffrement de niveau bancaire pour protéger vos données personnelles et financières. Vos informations ne sont jamais partagées avec des tiers sans votre consentement."
+      question: t('faq.data_security'),
+      answer: t('faq.data_security_answer')
     }
   ];
 
@@ -261,15 +263,15 @@ const CustomerSupport = () => {
           <MessageCircle className="w-6 h-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold">Support Client</h1>
-          <p className="text-muted-foreground">Nous sommes là pour vous aider</p>
+          <h1 className="text-2xl font-bold">{t('support.title')}</h1>
+          <p className="text-muted-foreground">{t('support.subtitle')}</p>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Contact Methods */}
         <div className="lg:col-span-3">
-          <h2 className="text-lg font-semibold mb-4">Nous contacter</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('support.contact_us')}</h2>
           <div className="grid gap-4 md:grid-cols-3">
             {contactMethods.map((method, index) => {
               const IconComponent = method.icon;
@@ -286,7 +288,7 @@ const CustomerSupport = () => {
                         <p className="font-mono text-sm text-primary">{method.contact}</p>
                         <p className="text-xs text-muted-foreground">{method.availability}</p>
                         {!method.available && (
-                          <Badge variant="secondary" className="mt-2 text-xs">Bientôt disponible</Badge>
+                          <Badge variant="secondary" className="mt-2 text-xs">{t('support.available_soon')}</Badge>
                         )}
                       </div>
                     </div>
