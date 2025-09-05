@@ -8,7 +8,7 @@ import ModernFooter from '@/components/landing/ModernFooter';
 import CongoColorShowcase from '@/components/demo/CongoColorShowcase';
 import { DarkModeShowcase } from '@/components/demo/DarkModeShowcase';
 
-import { HeaderThemeToggle } from '@/components/navigation/HeaderThemeToggle';
+
 
 
 const Index = () => {
@@ -26,7 +26,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      <HeaderThemeToggle />
+      
       <ModernHero />
       <InteractiveServicesGrid />
       
