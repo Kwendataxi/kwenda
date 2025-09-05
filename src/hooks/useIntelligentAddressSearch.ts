@@ -151,7 +151,7 @@ export const useIntelligentAddressSearch = ({
           max_results: maxResults,
           min_hierarchy_level: minHierarchyLevel,
           include_google_fallback: includeGoogleFallback,
-          cache_duration: cacheResults ? 5 * 60 * 1000 : 0,
+          
           ...customOptions
         };
 
