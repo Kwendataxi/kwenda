@@ -174,8 +174,8 @@ export const SecureVaultDashboard: React.FC = () => {
     } catch (error: any) {
       console.error('Erreur confirmation:', error);
       toast({
-        title: "Erreur",
-        description: error.message || "Erreur lors de la confirmation",
+        title: t('escrow.error_title'),
+        description: error.message || t('escrow.error_confirmation'),
         variant: "destructive"
       });
     }
@@ -478,7 +478,7 @@ const SecureTransactionsList: React.FC<SecureTransactionsListProps> = ({
         <Card>
           <CardContent className="flex flex-col items-center justify-center h-32">
             <Shield className="h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">Aucune transaction sécurisée trouvée</p>
+            <p className="text-muted-foreground">{t('escrow.no_transactions')}</p>
           </CardContent>
         </Card>
       )}
