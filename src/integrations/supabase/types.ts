@@ -6343,7 +6343,7 @@ export type Database = {
         Returns: string
       }
       get_user_roles: {
-        Args: { _user_id: string }
+        Args: { p_user_id: string }
         Returns: {
           admin_role: string
           permissions: string[]
