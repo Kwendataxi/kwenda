@@ -35,97 +35,64 @@ export const useEnhancedDeliveryOrders = () => {
     mode: 'flash' | 'flex' | 'maxicharge'
   ): Promise<{ price: number; distance: number; duration: number }> => {
     try {
-      console.log('Calculating delivery price for mode:', mode);
+      console.log('🔢 Calculating price for:', { pickup, destination, mode });
       
-      // TIMEOUT PROTECTION - 5 secondes maximum
-      const calculatePriceWithTimeout = async () => {
-        const pricingPromise = supabase
-          .from('pricing_configs')
-          .select('*')
-          .eq('service_type', mode)
-          .eq('city', 'Kinshasa')
-          .eq('active', true)
-          .single();
-
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 5000)
-        );
-
-        return Promise.race([pricingPromise, timeoutPromise]);
-      };
-
-      let pricingConfig = null;
-      let configError = null;
-
-      try {
-        const result = await calculatePriceWithTimeout();
-        pricingConfig = (result as any).data;
-        configError = (result as any).error;
-      } catch (timeoutError) {
-        console.log('Database timeout, using fallback pricing immediately');
-        configError = timeoutError;
+      // Valider les coordonnées d'abord
+      if (!pickup?.lat || !pickup?.lng || !destination?.lat || !destination?.lng) {
+        throw new Error('Coordonnées invalides');
       }
-
-      // Calculate distance using Haversine formula
-      const R = 6371; // Earth radius in km
-      const dLat = (destination.lat - pickup.lat) * Math.PI / 180;
-      const dLng = (destination.lng - pickup.lng) * Math.PI / 180;
       
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(pickup.lat * Math.PI / 180) * Math.cos(destination.lat * Math.PI / 180) *
-                Math.sin(dLng/2) * Math.sin(dLng/2);
+      // Calculer la distance réelle
+      const { calculateDistance } = await import('@/utils/locationValidation');
+      const distance = calculateDistance(pickup.lat, pickup.lng, destination.lat, destination.lng);
+      console.log('📏 Distance calculated:', distance, 'km');
       
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      const distance = R * c;
-
-      const duration = distance / 30 * 60; // 30 km/h average speed
+      // Utiliser la fonction RPC unifiée avec timeout
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout: Price calculation took too long')), 5000)
+      );
       
-      let calculatedPrice: number;
-
-      if (!configError && pricingConfig) {
-        // Use database pricing
-        calculatedPrice = Math.max(
-          pricingConfig.base_price + (distance * pricingConfig.price_per_km),
-          pricingConfig.minimum_fare
-        );
-        console.log('Using database pricing config:', pricingConfig);
-      } else {
-        // Fallback to hardcoded pricing
-        console.log('Using fallback pricing. Config error:', configError?.message);
-        const tariffs = {
-          flash: { base: 5000, perKm: 500, minFare: 4000 },
-          flex: { base: 3000, perKm: 300, minFare: 2500 },
-          maxicharge: { base: 8000, perKm: 800, minFare: 6000 }
-        };
-
-        const tariff = tariffs[mode];
-        calculatedPrice = Math.max(
-          tariff.base + (distance * tariff.perKm),
-          tariff.minFare
-        );
-      }
-
-      const result = {
-        price: Math.round(calculatedPrice),
-        distance: Math.round(distance * 100) / 100,
-        duration: Math.round(duration)
-      };
-
-      console.log('Price calculation result:', result);
+      const pricePromise = (async () => {
+        const { data: pricingResult, error: pricingError } = await supabase.rpc('calculate_delivery_price', {
+          service_type_param: mode,
+          distance_km_param: distance,
+          city_param: 'Kinshasa'
+        });
+        
+        if (pricingError) {
+          console.warn('🚨 RPC Error:', pricingError);
+          throw pricingError;
+        }
+        
+        console.log('✅ RPC Result:', pricingResult);
+        
+        if (pricingResult && typeof pricingResult.calculated_price === 'number') {
+          return {
+            price: Math.round(pricingResult.calculated_price),
+            distance: Number(distance.toFixed(2)),
+            duration: Math.round(distance * 2.5) // Estimation: 2.5 min/km
+          };
+        }
+        
+        throw new Error('Invalid pricing result');
+      })();
+      
+      const result = await Promise.race([pricePromise, timeoutPromise]);
+      console.log('🎯 Final pricing result:', result);
       return result;
-
-    } catch (error) {
-      console.error('Error calculating delivery price:', error);
       
-      // Emergency fallback with fixed prices
-      const emergencyPrices = {
+    } catch (error: any) {
+      console.error('❌ Price calculation error:', error);
+      
+      // Fallback vers tarifs de base si erreur
+      const fallbackPrices = {
         flash: 7000,
         flex: 4500,
         maxicharge: 10000
       };
-
+      
       return {
-        price: emergencyPrices[mode],
+        price: fallbackPrices[mode],
         distance: 5,
         duration: 30
       };

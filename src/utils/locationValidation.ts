@@ -47,14 +47,7 @@ export function isValidLocation(location: any): location is ValidatedLocation {
  */
 export function secureLocation(location: any, city: string = 'Kinshasa'): ValidatedLocation {
   if (!location) {
-    const defaultCoords = DEFAULT_COORDINATES[city as keyof typeof DEFAULT_COORDINATES] || DEFAULT_COORDINATES.Kinshasa;
-    return {
-      address: `Position par défaut - ${city}`,
-      lat: defaultCoords.lat,
-      lng: defaultCoords.lng,
-      type: 'fallback',
-      coordinates: defaultCoords
-    };
+    throw new Error(`Veuillez sélectionner une adresse valide sur la carte`);
   }
 
   // Si location valide, retourner telle quelle
@@ -65,21 +58,37 @@ export function secureLocation(location: any, city: string = 'Kinshasa'): Valida
     };
   }
 
-  // Réparer location invalide
-  const defaultCoords = DEFAULT_COORDINATES[city as keyof typeof DEFAULT_COORDINATES] || DEFAULT_COORDINATES.Kinshasa;
+  // IMPORTANT: Ne plus accepter automatiquement les coordonnées par défaut
+  // Forcer l'utilisateur à sélectionner une vraie adresse
+  if (!location?.lat || !location?.lng || isNaN(location.lat) || isNaN(location.lng)) {
+    console.error('🚨 Coordonnées invalides:', location);
+    throw new Error(`Coordonnées invalides. Veuillez sélectionner une adresse sur la carte.`);
+  }
   
+  // Si la location a des coordonnées valides mais pas d'adresse
+  if (location.lat && location.lng && !location.address) {
+    return {
+      address: 'Adresse sélectionnée sur la carte',
+      lat: location.lat,
+      lng: location.lng,
+      type: location?.type || 'geocoded',
+      placeId: location?.placeId,
+      name: location?.name,
+      subtitle: location?.subtitle,
+      coordinates: { lat: location.lat, lng: location.lng }
+    };
+  }
+  
+  // Réparer location avec coordonnées mais données manquantes
   return {
-    address: location.address || `Position corrigée - ${city}`,
-    lat: typeof location.lat === 'number' && !isNaN(location.lat) ? location.lat : defaultCoords.lat,
-    lng: typeof location.lng === 'number' && !isNaN(location.lng) ? location.lng : defaultCoords.lng,
-    type: location.type || 'fallback',
+    address: location.address || 'Adresse sélectionnée',
+    lat: location.lat,
+    lng: location.lng,
+    type: location.type || 'geocoded',
     placeId: location.placeId,
     name: location.name,
     subtitle: location.subtitle,
-    coordinates: {
-      lat: typeof location.lat === 'number' && !isNaN(location.lat) ? location.lat : defaultCoords.lat,
-      lng: typeof location.lng === 'number' && !isNaN(location.lng) ? location.lng : defaultCoords.lng
-    }
+    coordinates: { lat: location.lat, lng: location.lng }
   };
 }
 

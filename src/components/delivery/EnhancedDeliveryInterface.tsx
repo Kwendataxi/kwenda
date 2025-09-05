@@ -6,8 +6,10 @@ interface EnhancedDeliveryInterfaceProps {
   onCancel: () => void;
 }
 
-// Interface de livraison moderne épurée - Sans confusion ni redondances
+// DEPRECATED: Use SimpleDeliveryInterface directly instead
+// Cette interface sera supprimée dans une prochaine version
 const EnhancedDeliveryInterface = ({ onSubmit, onCancel }: EnhancedDeliveryInterfaceProps) => {
+  console.warn('⚠️ EnhancedDeliveryInterface is deprecated. Use SimpleDeliveryInterface directly.');
   return <SimpleDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
 };
 
