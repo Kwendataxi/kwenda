@@ -481,7 +481,7 @@ const ClientApp = () => {
   // Marketplace now handled by EnhancedMarketplaceInterface
 
   const renderProfile = () => (
-    <div className="min-h-screen bg-background pb-24 safe-area-inset">
+    <div className="min-h-screen bg-background content-with-bottom-nav-scrollable safe-area-inset">
       <div className="flex items-center gap-4 p-4 mb-4">
         <Button
           variant="ghost"
@@ -504,7 +504,7 @@ const ClientApp = () => {
   );
 
   const renderPayment = () => (
-    <div className="min-h-screen bg-background pb-24 safe-area-inset">
+    <div className="min-h-screen bg-background content-with-bottom-nav-scrollable safe-area-inset">
       <div className="p-4">
         <div className="flex items-center gap-4 mb-6">
           <Button
@@ -552,7 +552,7 @@ const ClientApp = () => {
 
   return (
     <ChatProvider>
-      <div className={`relative ${optimizations.reducedAnimations ? 'reduce-animations' : ''} ${optimizations.cacheEnabled ? 'memory-efficient' : ''}`}>
+      <div className={`relative content-with-bottom-nav ${optimizations.reducedAnimations ? 'reduce-animations' : ''} ${optimizations.cacheEnabled ? 'memory-efficient' : ''}`}>
         {/* Connection Indicator - Hidden */}
         {/* <ConnectionIndicator /> */}
         
@@ -576,7 +576,7 @@ const ClientApp = () => {
           switch (serviceType) {
             case 'transport':
               return (
-                <div className="min-h-screen bg-background pb-20">
+                <div className="min-h-screen bg-background content-with-bottom-nav-scrollable">
                   <div className="p-4">
                     <div className="flex items-center gap-4 mb-6">
                       <Button
@@ -642,7 +642,7 @@ const ClientApp = () => {
           case 'lottery':
           case 'tombola':
             return (
-              <div className="min-h-screen bg-background">
+              <div className="min-h-screen bg-background content-with-bottom-nav-scrollable">
                 <div className="p-4">
                   <div className="flex items-center gap-4 mb-6">
                     <Button

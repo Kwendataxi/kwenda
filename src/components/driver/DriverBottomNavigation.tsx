@@ -22,9 +22,9 @@ export const DriverBottomNavigation: React.FC<DriverBottomNavigationProps> = ({
     );
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50">
+    <nav className="fixed bottom-0 left-0 right-0 z-[100]">
       <div className="mx-auto max-w-screen-sm px-4 pb-[env(safe-area-inset-bottom)]">
-        <div className="bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60 border rounded-2xl shadow-lg grid grid-cols-3">
+        <div className="bg-background/95 backdrop-blur-xl border border-border/60 rounded-2xl shadow-lg grid grid-cols-3 transition-all duration-300">
           <button className={itemCls(activeTab === 'rides')} onClick={() => onTabChange('rides')} aria-label="Courses">
             <Car className="h-5 w-5" />
             <span className="text-xs">Courses</span>

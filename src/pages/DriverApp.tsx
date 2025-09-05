@@ -39,10 +39,10 @@ const DriverApp = () => {
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background content-with-bottom-nav">
       <DriverHeader serviceType="delivery" />
       
-      <main className="container mx-auto px-4 pb-20 pt-4">
+      <main className="container mx-auto px-4 content-with-bottom-nav-scrollable pt-4">
         {tab === 'rides' && <MobileDriverInterface onNavigateToEarnings={() => setTab('wallet')} onNavigateToCredits={() => setTab('credits')} onNavigateToNavigation={() => {}} />}
         {tab === 'deliveries' && (
           <ProductionDriverInterface />

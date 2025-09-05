@@ -44,7 +44,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border/40 backdrop-blur-md">
+    <div className="fixed bottom-0 left-0 right-0 z-[100] bg-background/95 border-t border-border/60 backdrop-blur-xl transition-all duration-300">
       <div className="flex items-center justify-around px-4 py-2 max-w-md mx-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;

@@ -277,6 +277,18 @@ All colors MUST be HSL.
     bottom: max(env(safe-area-inset-bottom), 1rem);
   }
 
+  /* Global class for content spacing with fixed bottom navigation */
+  .content-with-bottom-nav {
+    padding-bottom: max(env(safe-area-inset-bottom), 5rem);
+    min-height: calc(100vh - max(env(safe-area-inset-bottom), 5rem));
+  }
+
+  .content-with-bottom-nav-scrollable {
+    max-height: calc(100vh - max(env(safe-area-inset-bottom), 5rem) - 2rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .dark {
     /* Dark Mode Congo Design System */
     --background: 220 13% 9%;

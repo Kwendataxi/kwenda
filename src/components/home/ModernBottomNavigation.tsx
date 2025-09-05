@@ -38,12 +38,12 @@ export const ModernBottomNavigation = ({
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
+    <div className="fixed bottom-0 left-0 right-0 z-[100]">
       {/* Background avec effet de flou */}
       <div 
-        className="bg-white/95 backdrop-blur-xl border-t border-grey-200"
+        className="bg-background/95 backdrop-blur-xl border-t border-border/60 transition-all duration-300"
         style={{ 
-          boxShadow: '0 -4px 20px -4px hsl(0 0% 0% / 0.1)' 
+          boxShadow: '0 -4px 20px -4px hsl(var(--primary) / 0.1)' 
         }}
       >
         <div className="px-4 py-2">
@@ -109,7 +109,7 @@ export const ModernBottomNavigation = ({
         </div>
         
         {/* Indicateur de zone sécurisée */}
-        <div className="h-safe-area-inset-bottom" />
+        <div className="h-[env(safe-area-inset-bottom,0px)]" />
       </div>
     </div>
   );

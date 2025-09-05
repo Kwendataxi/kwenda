@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Star, Shield, Phone, Mail, User, FileText, Wallet, UserCheck, Edit2, Check, X, ChevronRight, Settings, Car, Users, MapPin, Clock, Gift, Headphones, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { MobileProfileModal } from './MobileProfileModal';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
 import { UserVerification } from './UserVerification';
 import { UserRatings } from './UserRatings';
@@ -353,8 +354,23 @@ export const UserProfile = () => {
     }
   };
 
+  const getOptionTitle = (option: string) => {
+    const optionMap: Record<string, string> = {
+      'wallet': 'KwendaPay Wallet',
+      'referral': 'Réductions et cadeaux',
+      'history': 'Historique des activités',
+      'addresses': 'Mes adresses',
+      'support': 'Assistance client',
+      'security': 'Sécurité et vérification',
+      'driver': 'Devenir conducteur',
+      'team': 'Compte équipe',
+      'settings': 'Paramètres'
+    };
+    return optionMap[option] || option;
+  };
+
   return (
-    <div className="max-w-md mx-auto bg-background min-h-screen">
+    <div className="max-w-md mx-auto bg-background min-h-screen content-with-bottom-nav">
       {/* Compact Profile Header */}
       <div className="bg-card border-b px-6 py-8">
         <div className="flex items-center gap-4">
@@ -498,12 +514,14 @@ export const UserProfile = () => {
         })}
       </div>
 
-      {/* Modal for detailed views */}
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          {renderModalContent()}
-        </DialogContent>
-      </Dialog>
+      {/* Mobile-friendly Modal for detailed views */}
+      <MobileProfileModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={getOptionTitle(activeOption)}
+      >
+        {renderModalContent()}
+      </MobileProfileModal>
     </div>
   );
 };
