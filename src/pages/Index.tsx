@@ -9,7 +9,7 @@ import CongoColorShowcase from '@/components/demo/CongoColorShowcase';
 import { DarkModeShowcase } from '@/components/demo/DarkModeShowcase';
 
 import { HeaderThemeToggle } from '@/components/navigation/HeaderThemeToggle';
-import { ThemeToggleSection } from '@/components/landing/ThemeToggleSection';
+
 
 const Index = () => {
   // Temporary Congo color demo - remove in production
@@ -29,7 +29,7 @@ const Index = () => {
       <HeaderThemeToggle />
       <ModernHero />
       <InteractiveServicesGrid />
-      <ThemeToggleSection />
+      
       <AdvancedFeatures />
       <CTASection />
       <ModernFooter />
