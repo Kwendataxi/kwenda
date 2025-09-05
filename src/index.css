@@ -397,6 +397,20 @@ All colors MUST be HSL.
     @apply bg-card border-0 rounded-xl;
     box-shadow: var(--shadow-float);
   }
+
+  /* Glassmorphism moderne Congo */
+  .glassmorphism {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  }
+
+  .dark .glassmorphism {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  }
   
   /* Boutons modernes */
   .btn-modern {

@@ -1,14 +1,14 @@
 import React from 'react';
-import SlideDeliveryInterface from './SlideDeliveryInterface';
+import SimpleDeliveryInterface from './SimpleDeliveryInterface';
 
 interface EnhancedDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
 }
 
-// Interface de livraison moderne avec slides fluides - Sans tremblements
+// Interface de livraison moderne épurée - Sans confusion ni redondances
 const EnhancedDeliveryInterface = ({ onSubmit, onCancel }: EnhancedDeliveryInterfaceProps) => {
-  return <SlideDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
+  return <SimpleDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
 };
 
 export default EnhancedDeliveryInterface;
