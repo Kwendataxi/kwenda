@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { Check } from 'lucide-react';
 import SoftServiceCard from './SoftServiceCard';
 
 interface DeliveryService {
@@ -35,14 +36,11 @@ const HorizontalServiceSelector: React.FC<HorizontalServiceSelectorProps> = ({
 }) => {
   return (
     <div className={cn("w-full", className)}>
-      {/* Section title */}
-      <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+      {/* Section title - Simplifié */}
+      <div className="mb-4 text-center">
+        <h2 className="text-xl font-bold text-foreground">
           Choisissez votre service
         </h2>
-        <p className="text-muted-foreground mt-2">
-          Sélectionnez le service qui correspond à vos besoins
-        </p>
       </div>
 
       {/* Horizontal scroll container */}
@@ -52,7 +50,7 @@ const HorizontalServiceSelector: React.FC<HorizontalServiceSelectorProps> = ({
         <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
         
         {/* Services container */}
-        <div className="flex gap-4 pb-4 px-4 overflow-x-auto scrollbar-hide horizontal-scroll">
+        <div className="flex gap-3 pb-4 px-2 overflow-x-auto scrollbar-hide horizontal-scroll">
           {services.map((service) => (
             <SoftServiceCard
               key={service.id}
@@ -72,30 +70,23 @@ const HorizontalServiceSelector: React.FC<HorizontalServiceSelectorProps> = ({
         </div>
       </div>
 
-      {/* Selected service summary */}
+      {/* Selected service summary - Ultra simplifié */}
       {selectedService && (
-        <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 animate-fade-up">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-              <span className="font-medium text-foreground">
-                {selectedService.name} sélectionné
-              </span>
-            </div>
+        <div className="mt-4 p-3 rounded-xl bg-gradient-to-r from-primary/10 to-secondary/10 animate-fade-up">
+          <div className="flex items-center justify-center gap-2">
+            <Check className="w-4 h-4 text-primary animate-bounce" />
+            <span className="font-semibold text-foreground">
+              {selectedService.name.replace('Kwenda ', '')} prêt !
+            </span>
             {pricing[selectedService.id] && !loadingPricing && (
-              <div className="text-right">
-                <div className="font-bold text-primary">
-                  {new Intl.NumberFormat('fr-CD', {
-                    style: 'currency',
-                    currency: 'CDF',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                  }).format(pricing[selectedService.id].price)}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Estimation finale
-                </div>
-              </div>
+              <span className="font-bold text-primary">
+                {new Intl.NumberFormat('fr-CD', {
+                  style: 'currency',
+                  currency: 'CDF',
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0
+                }).format(pricing[selectedService.id].price)}
+              </span>
             )}
           </div>
         </div>

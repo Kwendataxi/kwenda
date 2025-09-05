@@ -42,29 +42,29 @@ const deliveryServices: DeliveryService[] = [
   {
     id: 'flash',
     name: 'Kwenda Flash',
-    subtitle: 'Livraison express',
-    description: 'Livraison ultra-rapide par moto-taxi pour vos urgences',
+    subtitle: 'Express',
+    description: 'Rapide et urgent',
     icon: Zap,
-    features: ['Livraison en moins de 1h', 'Suivi temps réel', 'Priorité maximale'],
+    features: ['Urgent'],
     estimatedTime: '30-60 min'
   },
   {
     id: 'flex',
     name: 'Kwenda Flex',
-    subtitle: 'Livraison standard',
-    description: 'Service équilibré entre rapidité et économie',
+    subtitle: 'Standard',
+    description: 'Équilibré',
     icon: Package,
-    features: ['Livraison en 2-4h', 'Tarif avantageux', 'Service fiable'],
-    estimatedTime: '2-4 heures'
+    features: ['Normal'],
+    estimatedTime: '2-4h'
   },
   {
     id: 'maxicharge',
     name: 'Kwenda MaxiCharge',
     subtitle: 'Gros colis',
-    description: 'Pour vos colis volumineux et objets lourds',
+    description: 'Volumineux',
     icon: Truck,
-    features: ['Jusqu\'à 50kg', 'Véhicule adapté', 'Aide au chargement'],
-    estimatedTime: '3-6 heures'
+    features: ['Gros'],
+    estimatedTime: '3-6h'
   }
 ];
 
@@ -155,21 +155,17 @@ export const ServiceSelectionStep: React.FC<ServiceSelectionStepProps> = ({
             <div className="w-24" />
           </div>
           
-          {/* Soft route display */}
-          <div className="glassmorphism rounded-2xl p-6 border border-border/30">
-            <div className="flex items-center justify-center gap-4 text-sm">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-3 h-3 bg-primary rounded-full shadow-sm shadow-primary/50" />
-                <span className="truncate font-medium text-foreground">{pickup.address}</span>
+          {/* Route display simplifié */}
+          <div className="glassmorphism rounded-xl p-4 border border-border/20">
+            <div className="flex items-center justify-center gap-3 text-sm">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div className="w-2 h-2 bg-primary rounded-full" />
+                <span className="truncate text-foreground">{pickup.address}</span>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <div className="w-8 h-px bg-gradient-to-r from-primary/50 to-secondary/50" />
-                <ArrowRight className="h-4 w-4" />
-                <div className="w-8 h-px bg-gradient-to-r from-secondary/50 to-primary/50" />
-              </div>
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-3 h-3 bg-secondary rounded-full shadow-sm shadow-secondary/50" />
-                <span className="truncate font-medium text-foreground">{destination.address}</span>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <div className="w-2 h-2 bg-secondary rounded-full" />
+                <span className="truncate text-foreground">{destination.address}</span>
               </div>
             </div>
           </div>
@@ -185,33 +181,32 @@ export const ServiceSelectionStep: React.FC<ServiceSelectionStepProps> = ({
           className="mb-8"
         />
 
-        {/* Soft Continue Button */}
+        {/* Continue Button simplifié */}
         <div className="flex justify-center">
           <Button
             onClick={handleServiceSelect}
             disabled={!selectedService || loadingPricing}
             size="lg"
-            className="h-16 px-12 text-lg font-semibold rounded-2xl
-                      bg-gradient-to-r from-primary via-primary/95 to-primary/90 
-                      hover:from-primary/90 hover:via-primary/85 hover:to-primary/80
-                      disabled:from-grey-300 disabled:to-grey-400
+            className="h-14 px-8 text-lg font-bold rounded-xl
+                      bg-gradient-to-r from-primary to-primary/90 
+                      hover:from-primary/90 hover:to-primary/80
+                      disabled:opacity-50
                       transition-all duration-300 transform
-                      hover:scale-[1.02] active:scale-[0.98]
-                      shadow-glow hover:shadow-xl
-                      border border-primary/20"
+                      hover:scale-105 active:scale-95
+                      shadow-lg hover:shadow-xl"
           >
             {loadingPricing ? (
-              <div className="flex items-center gap-3">
-                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                <span>Calcul des prix...</span>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                <span>Calcul...</span>
               </div>
             ) : selectedService ? (
-              <div className="flex items-center gap-3">
-                <span>Confirmer {selectedService.name}</span>
-                <ArrowRight className="h-5 w-5" />
+              <div className="flex items-center gap-2">
+                <span>Confirmer</span>
+                <ArrowRight className="h-4 w-4" />
               </div>
             ) : (
-              'Sélectionnez un service'
+              'Choisir un service'
             )}
           </Button>
         </div>

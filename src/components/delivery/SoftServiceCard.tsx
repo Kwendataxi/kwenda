@@ -40,14 +40,10 @@ const SoftServiceCard: React.FC<SoftServiceCardProps> = ({
 
   const getServiceGradient = (serviceId: string) => {
     switch (serviceId) {
-      case 'flash':
-        return 'from-congo-red/20 via-primary/10 to-transparent';
-      case 'flex': 
-        return 'from-congo-yellow/20 via-secondary/10 to-transparent';
-      case 'maxicharge':
-        return 'from-congo-blue/20 via-info/10 to-transparent';
-      default:
-        return 'from-primary/20 via-primary/10 to-transparent';
+      case 'flash': return 'from-congo-red/20 to-congo-red/5';
+      case 'flex': return 'from-congo-yellow/20 to-congo-yellow/5';
+      case 'maxicharge': return 'from-congo-blue/20 to-congo-blue/5';
+      default: return 'from-primary/20 to-primary/5';
     }
   };
 
@@ -60,27 +56,36 @@ const SoftServiceCard: React.FC<SoftServiceCardProps> = ({
     }
   };
 
+  const getServiceEmoji = (serviceId: string) => {
+    switch (serviceId) {
+      case 'flash': return '⚡';
+      case 'flex': return '📦';
+      case 'maxicharge': return '🚛';
+      default: return '📦';
+    }
+  };
+
   return (
     <div 
       className={cn(
-        "relative flex-shrink-0 w-72 h-48 cursor-pointer transition-all duration-300",
-        "rounded-2xl border backdrop-blur-xl overflow-hidden",
-        "hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]",
+        "relative flex-shrink-0 w-48 h-32 cursor-pointer transition-all duration-300",
+        "rounded-2xl backdrop-blur-xl overflow-hidden group",
+        "hover:scale-105 active:scale-95",
         isSelected 
-          ? "border-primary/40 shadow-glow bg-gradient-to-br from-card/90 to-card/70" 
-          : "border-border/20 hover:border-primary/30 bg-gradient-to-br from-card/60 to-card/40"
+          ? "ring-2 ring-primary shadow-glow bg-gradient-to-br from-card/95 to-card/85" 
+          : "hover:shadow-lg bg-gradient-to-br from-card/70 to-card/50"
       )}
       onClick={onSelect}
     >
       {/* Gradient overlay */}
       <div className={cn(
-        "absolute inset-0 bg-gradient-to-br opacity-50",
+        "absolute inset-0 bg-gradient-to-br",
         getServiceGradient(id)
       )} />
       
       {/* Selection indicator */}
       {isSelected && (
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute -top-1 -right-1 z-10">
           <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center animate-scale-fade">
             <Check className="w-4 h-4 text-primary-foreground" />
           </div>
@@ -88,76 +93,52 @@ const SoftServiceCard: React.FC<SoftServiceCardProps> = ({
       )}
 
       {/* Content */}
-      <div className="relative z-10 p-6 h-full flex flex-col justify-between">
-        {/* Header */}
-        <div className="flex items-start gap-4">
-          <div className={cn(
-            "p-3 rounded-xl bg-background/20 backdrop-blur-sm border border-background/30",
-            getIconColor(id)
-          )}>
-            <ServiceIcon className="w-6 h-6" />
+      <div className="relative z-10 p-4 h-full flex flex-col justify-between">
+        {/* Header avec icône et nom seulement */}
+        <div className="flex items-center gap-3">
+          <div className="text-2xl">
+            {getServiceEmoji(id)}
           </div>
-          
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-lg text-foreground truncate">
-              {name}
+            <h3 className="font-bold text-base text-foreground truncate">
+              {name.replace('Kwenda ', '')}
             </h3>
-            <p className="text-sm text-muted-foreground">
-              {subtitle}
-            </p>
           </div>
         </div>
 
-        {/* Time badge */}
-        <div className="flex items-center gap-2 mb-4">
-          <div className="bg-background/30 backdrop-blur-sm rounded-full px-3 py-1.5 border border-background/20">
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">
-                {estimatedTime}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Price section */}
+        {/* Prix et temps - Information essentielle seulement */}
         <div className="flex items-end justify-between">
           {isLoading ? (
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse" />
-              <span className="text-sm text-muted-foreground">Calcul...</span>
+              <div className="w-3 h-3 bg-primary/60 rounded-full animate-bounce" />
+              <span className="text-xs text-muted-foreground">...</span>
             </div>
           ) : price ? (
-            <div>
-              <div className="text-2xl font-bold text-foreground">
+            <div className="flex flex-col">
+              <div className="text-lg font-bold text-foreground">
                 {formatPrice(price)}
               </div>
-              {distance && duration && (
-                <div className="text-xs text-muted-foreground">
-                  {distance.toFixed(1)} km • {Math.round(duration)} min
-                </div>
-              )}
+              <div className="text-xs text-muted-foreground flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {estimatedTime}
+              </div>
             </div>
           ) : (
-            <div className="text-sm text-destructive">
-              Prix indisponible
+            <div className="text-xs text-destructive">
+              Indisponible
             </div>
           )}
 
           {isSelected && (
-            <div className="text-primary animate-fade-in">
-              <ArrowRight className="w-5 h-5" />
+            <div className="text-primary animate-bounce">
+              <ArrowRight className="w-4 h-4" />
             </div>
           )}
         </div>
       </div>
 
-      {/* Glassmorphism overlay on hover */}
-      <div className={cn(
-        "absolute inset-0 bg-gradient-to-br from-background/10 to-transparent",
-        "opacity-0 transition-opacity duration-300",
-        "hover:opacity-100"
-      )} />
+      {/* Glassmorphism hover effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
     </div>
   );
 };

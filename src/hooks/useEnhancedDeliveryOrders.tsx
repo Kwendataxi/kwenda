@@ -34,11 +34,20 @@ export const useEnhancedDeliveryOrders = () => {
     destination: LocationData,
     mode: 'flash' | 'flex' | 'maxicharge'
   ): Promise<{ price: number; distance: number; duration: number }> => {
-    console.log('Calcul prix livraison démarré:', { pickup, destination, mode });
-    
     try {
-      // Calculer la distance entre les points (formule haversine)
-      const R = 6371; // Rayon de la Terre en km
+      console.log('Calculating delivery price for mode:', mode);
+      
+      // Try to get pricing config from database first
+      const { data: pricingConfig, error: configError } = await supabase
+        .from('pricing_configs')
+        .select('*')
+        .eq('service_type', mode)
+        .eq('city', 'Kinshasa')
+        .eq('active', true)
+        .single();
+
+      // Calculate distance using Haversine formula
+      const R = 6371; // Earth radius in km
       const dLat = (destination.lat - pickup.lat) * Math.PI / 180;
       const dLng = (destination.lng - pickup.lng) * Math.PI / 180;
       
@@ -47,69 +56,59 @@ export const useEnhancedDeliveryOrders = () => {
                 Math.sin(dLng/2) * Math.sin(dLng/2);
       
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      const distanceKm = R * c;
+      const distance = R * c;
+
+      const duration = distance / 30 * 60; // 30 km/h average speed
       
-      console.log('Distance calculée:', distanceKm, 'km');
+      let calculatedPrice: number;
 
-      // Utiliser la nouvelle fonction de calcul dynamique
-      try {
-        const { data: priceData, error } = await supabase.rpc('calculate_delivery_price', {
-          p_service_type: mode,
-          p_distance_km: distanceKm,
-          p_city: 'Kinshasa' // TODO: Récupérer la ville depuis le contexte utilisateur
-        });
-
-        if (error) throw error;
-
-        const estimatedDuration = distanceKm * 3; // 3 minutes par km en moyenne
-
-        const result = {
-          price: (priceData as any)?.calculated_price || 5000,
-          distance: Math.round(distanceKm * 1000) / 1000,
-          duration: Math.round(estimatedDuration)
+      if (!configError && pricingConfig) {
+        // Use database pricing
+        calculatedPrice = Math.max(
+          pricingConfig.base_price + (distance * pricingConfig.price_per_km),
+          pricingConfig.minimum_fare
+        );
+        console.log('Using database pricing config:', pricingConfig);
+      } else {
+        // Fallback to hardcoded pricing
+        console.log('Using fallback pricing. Config error:', configError?.message);
+        const tariffs = {
+          flash: { base: 5000, perKm: 500, minFare: 4000 },
+          flex: { base: 3000, perKm: 300, minFare: 2500 },
+          maxicharge: { base: 8000, perKm: 800, minFare: 6000 }
         };
-        
-        console.log('Calcul prix dynamique terminé:', result);
-        return result;
-      } catch (dbError) {
-        console.error('Erreur calcul prix dynamique:', dbError);
-        // Fallback to old calculation
+
+        const tariff = tariffs[mode];
+        calculatedPrice = Math.max(
+          tariff.base + (distance * tariff.perKm),
+          tariff.minFare
+        );
       }
 
-      // Tarifs réalistes pour l'Afrique (CDF) - Fallback
-      const tarifs = {
-        flash: { base: 5000, perKm: 500, speedFactor: 1.5 },    // Ultra rapide moto
-        flex: { base: 3000, perKm: 300, speedFactor: 1.0 },     // Standard voiture  
-        maxicharge: { base: 8000, perKm: 800, speedFactor: 0.7 } // Gros colis camion
-      } as const;
-
-      const tarif = tarifs[mode];
-      const prix = Math.round(tarif.base + (distanceKm * tarif.perKm));
-      
-      // Calcul du temps selon le mode et la distance (trafic Kinshasa/Abidjan)
-      const vitesseMoyenne = mode === 'flash' ? 25 : mode === 'flex' ? 20 : 15; // km/h
-      const dureeMinutes = Math.max(15, Math.round((distanceKm / vitesseMoyenne) * 60));
-
       const result = {
-        price: prix,
-        distance: Math.round(distanceKm * 1000) / 1000, // Arrondi à 3 décimales
-        duration: dureeMinutes
+        price: Math.round(calculatedPrice),
+        distance: Math.round(distance * 100) / 100,
+        duration: Math.round(duration)
       };
-      
-      console.log('Calcul prix livraison terminé:', result);
+
+      console.log('Price calculation result:', result);
       return result;
+
     } catch (error) {
-      console.error('Erreur calcul prix livraison:', error);
+      console.error('Error calculating delivery price:', error);
       
-      // Prix de secours réalistes
-      const fallback = {
-        price: mode === 'flash' ? 8000 : mode === 'flex' ? 5000 : 12000,
-        distance: 5,
-        duration: mode === 'flash' ? 25 : mode === 'flex' ? 35 : 45
+      // Emergency fallback with fixed prices
+      const emergencyPrices = {
+        flash: 7000,
+        flex: 4500,
+        maxicharge: 10000
       };
-      
-      console.log('Utilisation prix fallback:', fallback);
-      return fallback;
+
+      return {
+        price: emergencyPrices[mode],
+        distance: 5,
+        duration: 30
+      };
     }
   };
 

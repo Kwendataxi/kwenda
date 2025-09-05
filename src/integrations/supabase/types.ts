@@ -3124,6 +3124,51 @@ export type Database = {
           },
         ]
       }
+      pricing_configs: {
+        Row: {
+          active: boolean
+          base_price: number
+          city: string
+          created_at: string
+          currency: string
+          id: string
+          maximum_fare: number | null
+          minimum_fare: number
+          price_per_km: number
+          service_type: string
+          surge_multiplier: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          base_price?: number
+          city?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          maximum_fare?: number | null
+          minimum_fare?: number
+          price_per_km?: number
+          service_type: string
+          surge_multiplier?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          base_price?: number
+          city?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          maximum_fare?: number | null
+          minimum_fare?: number
+          price_per_km?: number
+          service_type?: string
+          surge_multiplier?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pricing_rules: {
         Row: {
           base_price: number
