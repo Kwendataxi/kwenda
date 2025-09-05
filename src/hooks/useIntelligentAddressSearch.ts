@@ -1,11 +1,25 @@
 /**
  * Hook pour utiliser le système de recherche d'adresses intelligent temps réel
- * Optimisé pour Kinshasa, Lubumbashi et Kolwezi
+ * Maintenant unifié avec LocationService
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { intelligentAddressSearch, type IntelligentSearchResult, type SearchOptions } from '@/services/IntelligentAddressSearch';
+import { LocationService, type LocationSearchResult } from '@/services/LocationService';
 import { useUnifiedLocation } from './useUnifiedLocation';
+
+// Types redéfinis localement pour compatibilité
+export interface IntelligentSearchResult {
+  id: string;
+  name: string;
+  subtitle: string;
+  lat: number;
+  lng: number;
+  type: 'google' | 'database' | 'search';
+  city: string;
+  commune: string;
+  category: string;
+  confidence: number;
+}
 
 interface UseIntelligentAddressSearchProps {
   city?: string;
@@ -16,26 +30,27 @@ interface UseIntelligentAddressSearchProps {
   autoSearchOnMount?: boolean;
   enableVoiceSearch?: boolean;
   cacheResults?: boolean;
-  autoDetectCity?: boolean; // Nouvelle option pour détection automatique de ville
-  realtimeSearch?: boolean; // Nouvelle option pour recherche temps réel
-  debounceMs?: number; // Délai de debounce personnalisable
+  autoDetectCity?: boolean;
+  realtimeSearch?: boolean;
+  debounceMs?: number;
 }
 
 interface UseIntelligentAddressSearchReturn {
   results: IntelligentSearchResult[];
-  isSearching: boolean;
-  error: string | null;
   recentSearches: IntelligentSearchResult[];
   popularPlaces: IntelligentSearchResult[];
+  isSearching: boolean;
+  hasHistory: boolean;
   currentCity: string;
-  availableCities: string[];
-  search: (query: string, options?: SearchOptions) => Promise<void>;
+  location: any;
+  error: string | null;
+  search: (query: string, options?: any) => Promise<void>;
   searchWithLocation: (query: string) => Promise<void>;
   getPopularPlaces: () => Promise<void>;
+  addToHistory: (result: IntelligentSearchResult) => void;
+  setCity: (city: string) => void;
   clearResults: () => void;
   clearCache: () => void;
-  addToHistory: (result: IntelligentSearchResult) => Promise<void>;
-  setCity: (city: string) => void;
   detectCityFromLocation: () => Promise<void>;
 }
 
@@ -48,49 +63,52 @@ export const useIntelligentAddressSearch = ({
   autoSearchOnMount = false,
   enableVoiceSearch = false,
   cacheResults = true,
-  autoDetectCity = true,
+  autoDetectCity = false,
   realtimeSearch = true,
-  debounceMs = 150
+  debounceMs = 300
 }: UseIntelligentAddressSearchProps = {}): UseIntelligentAddressSearchReturn => {
-  
+
+  // États
   const [results, setResults] = useState<IntelligentSearchResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<IntelligentSearchResult[]>([]);
   const [popularPlaces, setPopularPlaces] = useState<IntelligentSearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [currentCity, setCurrentCity] = useState(city);
-  
+
+  // Hooks et refs
   const { location } = useUnifiedLocation();
-  const debounceRef = useRef<NodeJS.Timeout>();
-  
-  // Villes disponibles avec coordonnées pour détection automatique
-  const availableCities = ['Kinshasa', 'Lubumbashi', 'Kolwezi'];
-  const cityCoordinates = {
-    'Kinshasa': { lat: -4.3217, lng: 15.3069 },
-    'Lubumbashi': { lat: -11.6594, lng: 27.4794 },
-    'Kolwezi': { lat: -10.7147, lng: 25.4615 }
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const abortControllerRef = useRef<AbortController>();
+
+  // Villes disponibles avec leurs coordonnées
+  const availableCities = {
+    'Kinshasa': { lat: -4.4419, lng: 15.2663 },
+    'Lubumbashi': { lat: -11.6792, lng: 27.4894 },
+    'Kolwezi': { lat: -10.7069, lng: 25.4664 },
+    'Abidjan': { lat: 5.3600, lng: -4.0083 }
   };
 
-  // Fonction pour calculer la distance entre deux points
+  // Helper pour calculer la distance
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-    const R = 6371; // Rayon de la Terre en km
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLng = (lng2 - lng1) * Math.PI / 180;
     const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLng/2) * Math.sin(dLng/2);
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
   };
 
-  // Détection automatique de la ville basée sur la géolocalisation
+  // Détection automatique de la ville basée sur la localisation
   const detectCityFromLocation = useCallback(async () => {
-    if (!location?.lat || !location?.lng || !autoDetectCity) return;
+    if (!location?.lat || !location?.lng) return;
 
     let closestCity = 'Kinshasa';
     let minDistance = Infinity;
 
-    Object.entries(cityCoordinates).forEach(([cityName, coords]) => {
+    Object.entries(availableCities).forEach(([cityName, coords]) => {
       const distance = calculateDistance(location.lat, location.lng, coords.lat, coords.lng);
       if (distance < minDistance) {
         minDistance = distance;
@@ -98,67 +116,55 @@ export const useIntelligentAddressSearch = ({
       }
     });
 
-    // Changer de ville seulement si on est proche (< 100km)
-    if (minDistance < 100 && closestCity !== currentCity) {
+    if (closestCity !== currentCity) {
       setCurrentCity(closestCity);
     }
-  }, [location, autoDetectCity, currentCity]);
+  }, [location, currentCity]);
 
-  // Fonction de recherche avec debounce optimisé
-  const search = useCallback(async (query: string, customOptions?: SearchOptions) => {
+  // Fonction de recherche avec debouncing
+  const search = useCallback(async (query: string, customOptions: any = {}) => {
     if (!query.trim()) {
       setResults([]);
       return;
     }
 
-    // Clear previous debounce
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
+    // Annuler la recherche précédente
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
 
-    // Recherche immédiate pour les requêtes très courtes (lieux populaires)
-    if (query.length === 1 && realtimeSearch) {
-      setIsSearching(true);
-      try {
-        const popularResults = await intelligentAddressSearch.search('', {
-          city: currentCity,
-          country_code,
-          max_results: 3
-        });
-        const filteredPopular = popularResults.filter(place => 
-          place.name.toLowerCase().startsWith(query.toLowerCase())
-        );
-        setResults(filteredPopular);
-      } catch (err) {
-        console.error('Error searching popular places:', err);
-      } finally {
-        setIsSearching(false);
-      }
-      return;
-    }
+    // Créer nouveau controller
+    abortControllerRef.current = new AbortController();
 
-    // Debounce pour les requêtes plus longues
-    debounceRef.current = setTimeout(async () => {
+    // Debouncing
+    searchTimeoutRef.current = setTimeout(async () => {
       setIsSearching(true);
       setError(null);
 
       try {
-        const searchOptions: SearchOptions = {
+        // Recherche unifiée via LocationService
+        const results = await LocationService.searchLocation(query, location, {
           city: currentCity,
-          country_code,
-          user_lat: location?.lat,
-          user_lng: location?.lng,
-          max_results: maxResults,
-          min_hierarchy_level: minHierarchyLevel,
-          include_google_fallback: includeGoogleFallback,
-          
-          ...customOptions
-        };
-
-        const searchResults = await intelligentAddressSearch.search(query, {
-          ...searchOptions,
-          city: currentCity // Utiliser la ville courante dynamiquement
+          maxResults
         });
+        
+        // Conversion au format attendu
+        const searchResults: IntelligentSearchResult[] = results.map(result => ({
+          id: result.id,
+          name: result.address,
+          subtitle: result.subtitle || '',
+          lat: result.lat,
+          lng: result.lng,
+          type: 'search' as const,
+          city: currentCity,
+          commune: result.subtitle?.split(',')[0] || '',
+          category: 'lieu',
+          confidence: result.confidence || 0.8
+        }));
+
         setResults(searchResults);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Erreur de recherche';
@@ -168,7 +174,7 @@ export const useIntelligentAddressSearch = ({
         setIsSearching(false);
       }
     }, debounceMs);
-  }, [currentCity, country_code, location, maxResults, minHierarchyLevel, includeGoogleFallback, cacheResults, realtimeSearch, debounceMs]);
+  }, [currentCity, location, maxResults, debounceMs]);
 
   // Recherche avec localisation automatique
   const searchWithLocation = useCallback(async (query: string) => {
@@ -178,125 +184,145 @@ export const useIntelligentAddressSearch = ({
     });
   }, [search, location]);
 
-  // Récupération des lieux populaires par ville
+  // Récupérer les lieux populaires
   const getPopularPlaces = useCallback(async () => {
-    setIsSearching(true);
-    setError(null);
-
     try {
-      const popular = await intelligentAddressSearch.search('', {
+      setIsSearching(true);
+      
+      // Utiliser getNearbyPlaces avec une position par défaut si pas de localisation
+      const defaultLocation = availableCities[currentCity as keyof typeof availableCities];
+      const lat = location?.lat || defaultLocation.lat;
+      const lng = location?.lng || defaultLocation.lng;
+      
+      const places = await LocationService.getNearbyPlaces(lat, lng, 50); // 50km radius
+      
+      const popularResults: IntelligentSearchResult[] = places.map(place => ({
+        id: place.id,
+        name: place.address,
+        subtitle: place.subtitle || '',
+        lat: place.lat,
+        lng: place.lng,
+        type: 'database' as const,
         city: currentCity,
-        country_code,
-        user_lat: location?.lat,
-        user_lng: location?.lng,
-        max_results: 6
-      });
-      
-      setPopularPlaces(popular);
-      
-      // Si pas de résultats actuels, afficher les populaires
-      if (results.length === 0) {
-        setResults(popular);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des lieux populaires';
-      setError(errorMessage);
+        commune: place.subtitle?.split(',')[0] || '',
+        category: 'lieu populaire',
+        confidence: place.confidence || 0.9
+      }));
+
+      setPopularPlaces(popularResults);
+    } catch (error) {
+      console.error('Erreur récupération lieux populaires:', error);
+      setError('Impossible de charger les lieux populaires');
     } finally {
       setIsSearching(false);
     }
-  }, [currentCity, country_code, location, results.length]);
+  }, [currentCity, location]);
 
-  // Ajout à l'historique avec cache local
-  const addToHistory = useCallback(async (result: IntelligentSearchResult) => {
-    try {
-      await intelligentAddressSearch.saveSearchToHistory(result);
+  // Ajouter à l'historique
+  const addToHistory = useCallback((result: IntelligentSearchResult) => {
+    setRecentSearches(prev => {
+      const filtered = prev.filter(item => item.id !== result.id);
+      const newHistory = [result, ...filtered].slice(0, 5);
       
-      // Mettre à jour l'historique local
-      setRecentSearches(prev => {
-        const filtered = prev.filter(item => item.id !== result.id);
-        return [result, ...filtered].slice(0, 5); // Garder seulement les 5 derniers
-      });
-
-      // Cache local pour chaque ville
-      const cacheKey = `recent_searches_${currentCity}`;
-      const cached = JSON.parse(localStorage.getItem(cacheKey) || '[]');
-      const newCached = [result, ...cached.filter((item: any) => item.id !== result.id)].slice(0, 10);
-      localStorage.setItem(cacheKey, JSON.stringify(newCached));
-    } catch (err) {
-      console.error('Erreur lors de la sauvegarde dans l\'historique:', err);
-    }
+      // Sauvegarder dans localStorage
+      try {
+        localStorage.setItem(`search-history-${currentCity}`, JSON.stringify(newHistory));
+      } catch (error) {
+        console.warn('Impossible de sauvegarder l\'historique:', error);
+      }
+      
+      return newHistory;
+    });
   }, [currentCity]);
 
-  // Fonction pour changer de ville manuellement
+  // Définir une nouvelle ville
   const setCity = useCallback((newCity: string) => {
-    if (availableCities.includes(newCity)) {
-      setCurrentCity(newCity);
-      setResults([]);
-      setError(null);
-    }
-  }, [availableCities]);
+    setCurrentCity(newCity);
+    setResults([]);
+    getPopularPlaces();
+  }, [getPopularPlaces]);
 
-  // Vider les résultats
+  // Nettoyer les résultats
   const clearResults = useCallback(() => {
     setResults([]);
-    setError(null);
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
   }, []);
 
-  // Vider le cache
+  // Nettoyer le cache
   const clearCache = useCallback(() => {
-    intelligentAddressSearch.clearCache();
-    // Vider aussi le cache local
-    availableCities.forEach(cityName => {
-      localStorage.removeItem(`recent_searches_${cityName}`);
-    });
-  }, [availableCities]);
+    LocationService.clearCache();
+    setResults([]);
+    setRecentSearches([]);
+    setPopularPlaces([]);
+    
+    // Nettoyer localStorage
+    try {
+      Object.keys(availableCities).forEach(cityName => {
+        localStorage.removeItem(`search-history-${cityName}`);
+      });
+    } catch (error) {
+      console.warn('Impossible de nettoyer le cache local:', error);
+    }
+  }, []);
 
-  // Auto-détection de ville au montage
+  // Effet : Détection automatique de ville
   useEffect(() => {
     if (autoDetectCity && location) {
       detectCityFromLocation();
     }
-  }, [detectCityFromLocation, autoDetectCity, location]);
+  }, [autoDetectCity, location, detectCityFromLocation]);
 
-  // Récupération des lieux populaires au montage ou changement de ville
+  // Effet : Charger les lieux populaires au montage
   useEffect(() => {
-    if (autoSearchOnMount || currentCity !== city) {
-      getPopularPlaces();
+    getPopularPlaces();
+  }, [currentCity]);
+
+  // Effet : Charger l'historique local
+  useEffect(() => {
+    try {
+      const savedHistory = localStorage.getItem(`search-history-${currentCity}`);
+      if (savedHistory) {
+        const history = JSON.parse(savedHistory);
+        setRecentSearches(history);
+      }
+    } catch (error) {
+      console.warn('Impossible de charger l\'historique:', error);
     }
+  }, [currentCity]);
 
-    // Charger l'historique local
-    const cacheKey = `recent_searches_${currentCity}`;
-    const cached = JSON.parse(localStorage.getItem(cacheKey) || '[]');
-    setRecentSearches(cached);
-  }, [autoSearchOnMount, currentCity, city, getPopularPlaces]);
-
-  // Cleanup
+  // Nettoyage à la fermeture
   useEffect(() => {
     return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
   }, []);
 
   return {
     results,
-    isSearching,
-    error,
     recentSearches,
     popularPlaces,
+    isSearching,
+    hasHistory: recentSearches.length > 0,
     currentCity,
-    availableCities,
+    location,
+    error,
     search,
     searchWithLocation,
     getPopularPlaces,
-    clearResults,
-    clearCache,
     addToHistory,
     setCity,
+    clearResults,
+    clearCache,
     detectCityFromLocation
   };
 };
