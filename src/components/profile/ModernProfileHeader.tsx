@@ -32,15 +32,6 @@ export const ModernProfileHeader = ({
   onEditPhone,
   className
 }: ModernProfileHeaderProps) => {
-  const getUserTypeVariant = (userType: string) => {
-    switch (userType) {
-      case 'driver': return 'congo-electric';
-      case 'partner': return 'congo-vibrant';
-      case 'premium': return 'congo-glow';
-      default: return 'secondary';
-    }
-  };
-
   const getUserTypeLabel = (userType: string) => {
     switch (userType) {
       case 'driver': return 'Conducteur';
@@ -51,119 +42,74 @@ export const ModernProfileHeader = ({
   };
 
   return (
-    <div className={cn("relative overflow-hidden", className)}>
-      {/* Background with Congo gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-congo-red/10 via-congo-yellow/5 to-congo-blue/10" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-      
-      {/* Animated background particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-4 -right-4 w-24 h-24 bg-congo-yellow/10 rounded-full blur-xl animate-pulse" />
-        <div className="absolute top-1/2 -left-4 w-16 h-16 bg-congo-red/10 rounded-full blur-lg animate-pulse delay-1000" />
-        <div className="absolute bottom-0 right-1/3 w-20 h-20 bg-congo-blue/10 rounded-full blur-xl animate-pulse delay-500" />
-      </div>
-
-      <div className="relative p-6 pt-8">
-        <div className="flex items-start gap-4">
-          {/* Avatar with glow effect */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-congo-red via-congo-yellow to-congo-blue rounded-full p-0.5 animate-pulse">
-              <div className="bg-background rounded-full p-1">
-                <Avatar className="w-20 h-20 border-2 border-white/20">
-                  <AvatarImage src={profile.avatar_url || ''} className="object-cover" />
-                  <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-congo-red to-congo-yellow text-white">
-                    {profile.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-            </div>
-            
-            {/* Status indicator */}
-            <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-congo-green rounded-full border-2 border-background flex items-center justify-center">
-              <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-            </div>
-          </div>
-
-          <div className="flex-1 min-w-0">
-            {/* Name with edit button */}
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-2xl font-bold text-foreground truncate">
-                {profile.display_name || user?.email?.split('@')[0] || 'Utilisateur'}
-              </h1>
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                onClick={onEditName}
-                className="p-1 h-auto text-muted-foreground hover:text-foreground"
-              >
-                <Edit2 className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Phone with edit button */}
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-muted-foreground">
-                {profile.phone_number || "Ajouter un numéro"}
-              </span>
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                onClick={onEditPhone}
-                className="p-1 h-auto text-muted-foreground hover:text-foreground"
-              >
-                <Edit2 className="h-3 w-3" />
-              </Button>
-            </div>
-
-            {/* Badges and Stats */}
-            <div className="flex flex-wrap gap-2">
-              {/* User Type Badge */}
-              <Badge 
-                variant="secondary" 
-                className={cn(
-                  "glassmorphism border-0 text-white font-medium",
-                  getUserTypeVariant(profile.user_type) === 'congo-electric' && "bg-congo-red",
-                  getUserTypeVariant(profile.user_type) === 'congo-vibrant' && "bg-congo-yellow text-foreground",
-                  getUserTypeVariant(profile.user_type) === 'congo-glow' && "bg-congo-blue",
-                  getUserTypeVariant(profile.user_type) === 'secondary' && "bg-secondary text-secondary-foreground"
-                )}
-              >
-                <Shield className="h-3 w-3 mr-1" />
-                {getUserTypeLabel(profile.user_type)}
-              </Badge>
-
-              {/* Rating Badge */}
-              {rating && rating.total_ratings > 0 && (
-                <Badge variant="outline" className="glassmorphism border-congo-yellow/30 text-congo-yellow">
-                  <Star className="h-3 w-3 mr-1 fill-current" />
-                  {rating.rating} ({rating.total_ratings})
-                </Badge>
-              )}
-
-              {/* Activity Badge */}
-              <Badge variant="outline" className="glassmorphism border-congo-green/30 text-congo-green">
-                <Zap className="h-3 w-3 mr-1" />
-                Actif
-              </Badge>
-            </div>
-          </div>
+    <div className={cn("relative p-6 bg-gradient-to-br from-background to-accent/5 border-b border-border/50", className)}>
+      <div className="flex items-center gap-4">
+        {/* Avatar simple et élégant */}
+        <div className="relative">
+          <Avatar className="w-16 h-16 border-2 border-primary/20">
+            <AvatarImage src={profile.avatar_url || ''} className="object-cover" />
+            <AvatarFallback className="text-lg font-semibold bg-primary/10 text-primary">
+              {profile.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          
+          {/* Indicateur de statut simple */}
+          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-background" />
         </div>
 
-        {/* Progress bar for profile completion */}
-        <div className="mt-6 pt-4 border-t border-border/50">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Profil complété</span>
-            <span className="text-sm font-medium text-congo-yellow">
-              {profile.display_name && profile.phone_number ? '90%' : '60%'}
-            </span>
+        <div className="flex-1 min-w-0">
+          {/* Nom avec bouton d'édition discret */}
+          <div className="flex items-center gap-2 mb-2">
+            <h1 className="text-xl font-bold text-foreground truncate">
+              {profile.display_name || user?.email?.split('@')[0] || 'Utilisateur'}
+            </h1>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              onClick={onEditName}
+              className="p-1 h-6 w-6 text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Edit2 className="h-3 w-3" />
+            </Button>
           </div>
-          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-            <div 
-              className={cn(
-                "h-full bg-gradient-to-r from-congo-red via-congo-yellow to-congo-green rounded-full transition-all duration-1000",
-                profile.display_name && profile.phone_number ? "w-[90%]" : "w-[60%]"
-              )}
-            />
+
+          {/* Informations secondaires */}
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-sm text-muted-foreground">
+              {profile.phone_number || "Ajouter un numéro"}
+            </span>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              onClick={onEditPhone}
+              className="p-1 h-5 w-5 text-muted-foreground hover:text-primary opacity-60 hover:opacity-100 transition-opacity"
+            >
+              <Edit2 className="h-2.5 w-2.5" />
+            </Button>
+          </div>
+
+          {/* Badges simplifiés */}
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs font-medium">
+              {getUserTypeLabel(profile.user_type)}
+            </Badge>
+
+            {/* Rating proéminent */}
+            {rating && rating.total_ratings > 0 && (
+              <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded-full">
+                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                <span className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+                  {rating.rating}
+                </span>
+                <span className="text-xs text-amber-600 dark:text-amber-400">
+                  ({rating.total_ratings})
+                </span>
+              </div>
+            )}
+
+            <Badge variant="outline" className="text-xs border-green-200 dark:border-green-800 text-green-700 dark:text-green-300">
+              Actif
+            </Badge>
           </div>
         </div>
       </div>
