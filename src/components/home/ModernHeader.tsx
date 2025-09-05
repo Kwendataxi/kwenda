@@ -10,6 +10,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { GooglePlacesService } from '@/services/googlePlacesService';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 interface ModernHeaderProps {}
 
@@ -126,13 +127,8 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
 
   return (
     <div className="relative overflow-hidden">
-      {/* Fond moderne avec gradient subtil */}
-      <div 
-        className="px-6 py-4 pt-12 relative z-10"
-        style={{
-          background: 'linear-gradient(135deg, hsl(0, 0%, 100%) 0%, hsl(210, 40%, 98%) 100%)'
-        }}
-      >
+      {/* Fond moderne avec gradient adaptatif */}
+      <div className="px-6 py-4 pt-12 relative z-10 bg-gradient-to-br from-background via-background/95 to-accent/5 dark:from-background dark:via-background/90 dark:to-accent/10">
 
         {/* Structure en 2 colonnes améliorée */}
         <div className="flex items-center justify-between">
@@ -165,11 +161,12 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
           
           {/* Actions à droite */}
           <div className="flex items-center gap-3">
+            <ThemeToggle variant="icon" size="md" className="glassmorphism hover:bg-accent/20" />
             <LanguageSelector />
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-3 bg-white rounded-xl hover:bg-grey-50 transition-all duration-200 shadow-sm border border-grey-100 hover:scale-105 active:scale-95"
+                className="relative p-3 glassmorphism hover:bg-accent/20 transition-all duration-200 hover:scale-105 active:scale-95"
               >
                 <Bell className="h-5 w-5 text-foreground" />
                 {unreadCount > 0 && (
@@ -187,7 +184,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
 
       {/* Panel de notifications */}
       {showNotifications && (
-        <div className="absolute top-full left-0 right-0 z-50 bg-white shadow-xl border-t animate-slide-in-down">
+        <div className="absolute top-full left-0 right-0 z-50 bg-background/95 backdrop-blur-md shadow-xl border-t border-border animate-slide-in-down">
           <div className="max-h-96 overflow-y-auto">
             <NotificationCenter />
           </div>
