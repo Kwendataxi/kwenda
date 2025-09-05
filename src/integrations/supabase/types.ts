@@ -1824,6 +1824,7 @@ export type Database = {
           category: string
           city: string
           commune: string | null
+          country_code: string | null
           created_at: string | null
           hierarchy_level: number | null
           id: string
@@ -1846,6 +1847,7 @@ export type Database = {
           category?: string
           city?: string
           commune?: string | null
+          country_code?: string | null
           created_at?: string | null
           hierarchy_level?: number | null
           id?: string
@@ -1868,6 +1870,7 @@ export type Database = {
           category?: string
           city?: string
           commune?: string | null
+          country_code?: string | null
           created_at?: string | null
           hierarchy_level?: number | null
           id?: string
