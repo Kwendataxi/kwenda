@@ -6395,7 +6395,7 @@ export type Database = {
         Returns: boolean
       }
       has_permission: {
-        Args: { permission_param: string; user_id_param: string }
+        Args: { p_permission: string; p_user_id: string }
         Returns: boolean
       }
       has_user_role: {
