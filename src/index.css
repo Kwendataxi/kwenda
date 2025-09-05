@@ -488,6 +488,52 @@ All colors MUST be HSL.
     -webkit-backdrop-filter: blur(32px);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
+
+  /* Enhanced glassmorphism with theme transitions */
+  .glassmorphism {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark .glassmorphism {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Congo Ambient Overlay Styles - THEME COMPATIBLE */
+  .congo-ambient-overlay {
+    opacity: 0.08;
+    transition: opacity 1s ease-out;
+  }
+
+  .congo-ambient-overlay.theme-dark {
+    background: radial-gradient(circle at 30% 30%, hsl(357, 88%, 65% / 0.15) 0%, transparent 50%), 
+                radial-gradient(circle at 70% 70%, hsl(42, 98%, 72% / 0.12) 0%, transparent 50%);
+  }
+
+  .congo-ambient-overlay.theme-light {
+    background: radial-gradient(circle at 30% 30%, hsl(357, 85%, 50% / 0.08) 0%, transparent 50%), 
+                radial-gradient(circle at 70% 70%, hsl(42, 95%, 55% / 0.06) 0%, transparent 50%);
+  }
+
+  .congo-ambient-overlay.mode-sunset {
+    opacity: 0.15;
+  }
+
+  .congo-ambient-overlay.mode-night {
+    opacity: 0.12;
+  }
+
+  /* Temporal Theme Mode Classes */
+  .theme-mode-sunset {
+    --temporal-glow: hsl(35, 85%, 60%);
+  }
+
+  .theme-mode-night {
+    --temporal-glow: hsl(220, 85%, 70%);
+  }
+
+  .theme-mode-day {
+    --temporal-glow: hsl(42, 95%, 65%);
+  }
   
   /* Boutons modernes */
   .btn-modern {

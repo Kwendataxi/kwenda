@@ -9,7 +9,12 @@ type ThemeMode = 'day' | 'sunset' | 'night';
 
 const DynamicTheme: React.FC<DynamicThemeProps> = ({ children }) => {
   const [themeMode, setThemeMode] = useState<ThemeMode>('day');
-  const { theme, systemTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const { theme, systemTheme, resolvedTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const updateTheme = () => {
@@ -39,62 +44,37 @@ const DynamicTheme: React.FC<DynamicThemeProps> = ({ children }) => {
   }, [themeMode]);
 
   useEffect(() => {
-    const root = document.documentElement;
-    const resolvedTheme = theme === 'system' ? systemTheme : theme;
-    const isDark = resolvedTheme === 'dark';
+    if (!mounted) return;
     
-    // Apply temporal theme adjustments that work with both light and dark modes
-    switch (themeMode) {
-      case 'sunset':
-        if (isDark) {
-          root.style.setProperty('--background', '35 25% 8%');
-          root.style.setProperty('--congo-red', '357 90% 65%');
-          root.style.setProperty('--congo-yellow', '42 100% 70%');
-        } else {
-          root.style.setProperty('--background', '35 25% 96%');
-          root.style.setProperty('--congo-red', '357 90% 55%');
-          root.style.setProperty('--congo-yellow', '42 100% 60%');
-        }
-        break;
-      case 'night':
-        if (isDark) {
-          root.style.setProperty('--congo-red', '357 85% 70%');
-          root.style.setProperty('--congo-yellow', '42 95% 75%');
-        } else {
-          root.style.setProperty('--congo-red', '357 85% 60%');
-          root.style.setProperty('--congo-yellow', '42 95% 65%');
-        }
-        break;
-      default: // day
-        if (isDark) {
-          root.style.setProperty('--background', '220 13% 9%');
-          root.style.setProperty('--congo-red', '357 85% 60%');
-          root.style.setProperty('--congo-yellow', '42 95% 65%');
-        } else {
-          root.style.setProperty('--background', '45 15% 97%');
-          root.style.setProperty('--congo-red', '357 85% 50%');
-          root.style.setProperty('--congo-yellow', '42 95% 55%');
-        }
+    const root = document.documentElement;
+    const currentTheme = resolvedTheme || theme;
+    const isDark = currentTheme === 'dark';
+    
+    // Add theme-mode class for CSS-based styling instead of direct manipulation
+    root.className = root.className.replace(/\btheme-mode-\w+\b/g, '');
+    root.classList.add(`theme-mode-${themeMode}`);
+    
+    // Only apply essential tweaks that work with CSS system
+    if (themeMode === 'sunset') {
+      root.style.setProperty('--temporal-accent', isDark ? '35 25% 8%' : '35 25% 96%');
+    } else if (themeMode === 'night') {
+      root.style.setProperty('--temporal-accent', isDark ? '220 35% 6%' : '220 15% 92%');
+    } else {
+      root.style.removeProperty('--temporal-accent');
     }
-  }, [themeMode, theme, systemTheme]);
+  }, [themeMode, resolvedTheme, theme, mounted]);
+
+  // Don't render until mounted to avoid hydration issues
+  if (!mounted) {
+    return <div className="relative">{children}</div>;
+  }
 
   return (
     <div className="relative">
       {children}
-      {/* Congo-inspired ambient overlay with theme awareness */}
+      {/* Congo-inspired ambient overlay with improved theme awareness */}
       <div 
-        className={`fixed inset-0 pointer-events-none z-0 transition-all duration-1000 ${
-          themeMode === 'sunset' ? 'opacity-20' : 'opacity-10'
-        }`}
-        style={{
-          background: theme === 'dark' || (theme === 'system' && systemTheme === 'dark')
-            ? themeMode === 'night' 
-              ? 'radial-gradient(circle at 20% 20%, hsl(357, 85%, 60% / 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, hsl(42, 95%, 65% / 0.12) 0%, transparent 50%)'
-              : 'radial-gradient(circle at 30% 30%, hsl(357, 85%, 60% / 0.08) 0%, transparent 50%), radial-gradient(circle at 70% 70%, hsl(42, 95%, 65% / 0.06) 0%, transparent 50%)'
-            : themeMode === 'night' 
-              ? 'radial-gradient(circle at 20% 20%, hsl(357, 85%, 50% / 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, hsl(42, 95%, 55% / 0.1) 0%, transparent 50%)'
-              : 'radial-gradient(circle at 30% 30%, hsl(357, 85%, 50% / 0.05) 0%, transparent 50%), radial-gradient(circle at 70% 70%, hsl(42, 95%, 55% / 0.05) 0%, transparent 50%)'
-        }}
+        className={`fixed inset-0 pointer-events-none z-0 transition-all duration-1000 congo-ambient-overlay theme-${resolvedTheme || theme} mode-${themeMode}`}
       />
     </div>
   );
