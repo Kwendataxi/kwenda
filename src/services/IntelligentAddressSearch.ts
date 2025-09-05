@@ -163,7 +163,6 @@ class IntelligentAddressSearchService {
         .from('intelligent_places')
         .select('*')
         .eq('city', city)
-        .eq('is_active', true)
         .or(`name.ilike.%${query}%,commune.ilike.%${query}%,quartier.ilike.%${query}%,avenue.ilike.%${query}%`)
         .order('popularity_score', { ascending: false })
         .limit(Math.ceil(max_results * 0.7));
@@ -183,7 +182,6 @@ class IntelligentAddressSearchService {
             .from('intelligent_places')
             .select('*')
             .eq('city', otherCity)
-            .eq('is_active', true)
             .or(`name.ilike.%${query}%,commune.ilike.%${query}%,quartier.ilike.%${query}%`)
             .order('popularity_score', { ascending: false })
             .limit(max_results - allResults.length);
@@ -263,7 +261,6 @@ class IntelligentAddressSearchService {
         .from('intelligent_places')
         .select('*')
         .eq('city', city)
-        .eq('is_active', true)
         .gte('popularity_score', 50)
         .order('popularity_score', { ascending: false })
         .limit(max_results);

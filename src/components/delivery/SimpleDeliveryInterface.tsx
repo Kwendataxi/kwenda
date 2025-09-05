@@ -111,11 +111,27 @@ const SimpleDeliveryInterface: React.FC<SimpleDeliveryInterfaceProps> = ({
   };
 
   const canProceed = () => {
-    return deliveryData.pickup.location && 
-           deliveryData.destination.location && 
-           deliveryData.pickup.contact.name && 
-           deliveryData.pickup.contact.phone &&
-           deliveryData.destination.contact.name;
+    const hasPickup = !!(
+      deliveryData.pickup.location?.coordinates?.lat &&
+      deliveryData.pickup.location?.coordinates?.lng &&
+      deliveryData.pickup.contact.name?.trim() &&
+      deliveryData.pickup.contact.phone?.trim()
+    );
+    
+    const hasDestination = !!(
+      deliveryData.destination.location?.coordinates?.lat &&
+      deliveryData.destination.location?.coordinates?.lng &&
+      deliveryData.destination.contact.name?.trim()
+    );
+    
+    console.log('📋 Validation:', { 
+      hasPickup, 
+      hasDestination, 
+      pickup: deliveryData.pickup, 
+      destination: deliveryData.destination 
+    });
+    
+    return hasPickup && hasDestination;
   };
 
   const handleAddressesSubmit = () => {
@@ -243,6 +259,7 @@ const SimpleDeliveryInterface: React.FC<SimpleDeliveryInterfaceProps> = ({
                 autoFocus={true}
                 placeholder="Adresse de collecte..."
                 showCurrentLocation={true}
+                value={deliveryData.pickup.location?.address || ''}
               />
 
               {/* Contact collecte */}
@@ -294,6 +311,7 @@ const SimpleDeliveryInterface: React.FC<SimpleDeliveryInterfaceProps> = ({
                 onLocationSelect={handleDestinationLocationSelect}
                 showCurrentLocation={false}
                 placeholder="Adresse de livraison..."
+                value={deliveryData.destination.location?.address || ''}
               />
 
               {/* Contact destination */}

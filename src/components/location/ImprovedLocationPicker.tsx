@@ -52,11 +52,13 @@ export const ImprovedLocationPicker: React.FC<ImprovedLocationPickerProps> = ({
     }
   };
 
-  // Auto-focus si demandé
+  // Auto-focus si demandé et charger suggestions populaires
   useEffect(() => {
     if (autoFocus && inputRef.current) {
       inputRef.current.focus();
     }
+    // Charger les suggestions populaires au démarrage
+    setSuggestions(getLocalSuggestions(''));
   }, [autoFocus]);
 
   // Fermer les suggestions en cliquant dehors
@@ -110,9 +112,12 @@ export const ImprovedLocationPicker: React.FC<ImprovedLocationPickerProps> = ({
   const handleSearch = async (searchQuery: string) => {
     setQuery(searchQuery);
     
+    // Toujours afficher les suggestions, même si query vide
+    setShowSuggestions(true);
+    
     if (!searchQuery.trim()) {
-      setSuggestions([]);
-      setShowSuggestions(false);
+      // Afficher les lieux populaires par défaut
+      setSuggestions(getLocalSuggestions(''));
       return;
     }
 
@@ -126,14 +131,20 @@ export const ImprovedLocationPicker: React.FC<ImprovedLocationPickerProps> = ({
 
     debounceRef.current = setTimeout(async () => {
       try {
-        // Recherche intelligente
-        const results = await intelligentAddressSearch.search(searchQuery, {
-          city: 'Kinshasa',
-          max_results: 6,
-          include_google_fallback: true
-        });
+        let results: IntelligentSearchResult[] = [];
+        
+        try {
+          // Recherche intelligente
+          results = await intelligentAddressSearch.search(searchQuery, {
+            city: 'Kinshasa',
+            max_results: 4,
+            include_google_fallback: false // Désactiver Google pour éviter les erreurs réseau
+          });
+        } catch (error) {
+          console.error('Erreur recherche intelligente:', error);
+        }
 
-        // Ajouter quelques suggestions codées localement si peu de résultats
+        // Toujours ajouter des suggestions locales
         const localSuggestions = getLocalSuggestions(searchQuery);
         const allSuggestions = [...results, ...localSuggestions].slice(0, 6);
         
@@ -150,15 +161,42 @@ export const ImprovedLocationPicker: React.FC<ImprovedLocationPickerProps> = ({
   // Suggestions locales de fallback
   const getLocalSuggestions = (query: string): IntelligentSearchResult[] => {
     const localPlaces = [
-      { name: 'Gombe, Kinshasa', lat: -4.3167, lng: 15.3167, commune: 'Gombe' },
-      { name: 'Lemba, Kinshasa', lat: -4.3833, lng: 15.2833, commune: 'Lemba' },
+      { name: 'Aéroport International Ndjili', lat: -4.3851, lng: 15.4446, commune: 'Ndjili' },
+      { name: 'Centre-ville Gombe', lat: -4.3167, lng: 15.3167, commune: 'Gombe' },
+      { name: 'Marché Central', lat: -4.3217, lng: 15.3069, commune: 'Kinshasa' },
+      { name: 'Université de Kinshasa', lat: -4.4333, lng: 15.3000, commune: 'Lemba' },
+      { name: 'Stade des Martyrs', lat: -4.3333, lng: 15.3167, commune: 'Lingwala' },
+      { name: 'Bandalungwa, Kinshasa', lat: -4.3833, lng: 15.3000, commune: 'Bandalungwa' },
       { name: 'Matete, Kinshasa', lat: -4.3833, lng: 15.3333, commune: 'Matete' },
       { name: 'Ngaliema, Kinshasa', lat: -4.3667, lng: 15.2667, commune: 'Ngaliema' },
-      { name: 'Bandalungwa, Kinshasa', lat: -4.3833, lng: 15.3000, commune: 'Bandalungwa' }
+      { name: 'Lemba, Kinshasa', lat: -4.3833, lng: 15.2833, commune: 'Lemba' },
+      { name: 'Kintambo, Kinshasa', lat: -4.3000, lng: 15.2833, commune: 'Kintambo' }
     ];
 
+    // Si pas de query, retourner les lieux populaires
+    if (!query.trim()) {
+      return localPlaces.slice(0, 6).map((place, index) => ({
+        id: `popular_${index}`,
+        name: place.name,
+        category: 'location',
+        city: 'Kinshasa',
+        commune: place.commune,
+        lat: place.lat,
+        lng: place.lng,
+        hierarchy_level: 3,
+        popularity_score: 80 - index * 10,
+        relevance_score: 80 - index * 10,
+        type: 'popular' as const,
+        badge: 'Populaire',
+        subtitle: `${place.commune}, Kinshasa`
+      }));
+    }
+
     return localPlaces
-      .filter(place => place.name.toLowerCase().includes(query.toLowerCase()))
+      .filter(place => 
+        place.name.toLowerCase().includes(query.toLowerCase()) ||
+        place.commune.toLowerCase().includes(query.toLowerCase())
+      )
       .map((place, index) => ({
         id: `local_${index}`,
         name: place.name,
@@ -167,9 +205,9 @@ export const ImprovedLocationPicker: React.FC<ImprovedLocationPickerProps> = ({
         commune: place.commune,
         lat: place.lat,
         lng: place.lng,
-        hierarchy_level: 2,
-        popularity_score: 50,
-        relevance_score: 60,
+        hierarchy_level: 3,
+        popularity_score: 70 - index * 5,
+        relevance_score: 70 - index * 5,
         type: 'popular' as const,
         badge: 'Local',
         subtitle: `${place.commune}, Kinshasa`
@@ -246,7 +284,7 @@ export const ImprovedLocationPicker: React.FC<ImprovedLocationPickerProps> = ({
       )}
 
       {/* Suggestions */}
-      {showSuggestions && (suggestions.length > 0 || isSearching) && (
+      {showSuggestions && (
         <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-lg shadow-lg max-h-64 overflow-y-auto">
           {isSearching && (
             <div className="p-4 text-center text-muted-foreground">
@@ -277,9 +315,9 @@ export const ImprovedLocationPicker: React.FC<ImprovedLocationPickerProps> = ({
             </button>
           ))}
           
-          {!isSearching && suggestions.length === 0 && query && (
+          {!isSearching && suggestions.length === 0 && (
             <div className="p-4 text-center text-muted-foreground">
-              Aucun résultat trouvé pour "{query}"
+              {query ? `Aucun résultat trouvé pour "${query}"` : 'Chargement des suggestions...'}
             </div>
           )}
         </div>
