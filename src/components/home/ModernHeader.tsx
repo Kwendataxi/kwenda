@@ -15,7 +15,20 @@ interface ModernHeaderProps {}
 
 export const ModernHeader = ({}: ModernHeaderProps) => {
   const { user } = useAuth();
-  const { t, language } = useLanguage();
+  
+  // Safely access language context with fallback
+  let t: (key: string) => string;
+  let language: string;
+  
+  try {
+    const languageContext = useLanguage();
+    t = languageContext.t;
+    language = languageContext.language;
+  } catch (error) {
+    // Fallback when LanguageProvider is not available
+    t = (key: string) => key;
+    language = 'fr';
+  }
   const [showNotifications, setShowNotifications] = useState(false);
   const geolocation = useGeolocation();
   const [currentAddress, setCurrentAddress] = useState(t('city.kinshasa') + ', RD Congo');
