@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
+import HorizontalServiceSelector from './HorizontalServiceSelector';
 import { 
   ArrowLeft,
   ArrowRight,
   Zap,
   Truck,
-  Package,
-  Clock,
-  DollarSign,
-  CheckCircle2
+  Package
 } from 'lucide-react';
 
 interface DeliveryLocation {
@@ -118,6 +114,10 @@ export const ServiceSelectionStep: React.FC<ServiceSelectionStepProps> = ({
     }
   };
 
+  const handleServiceCardSelect = (service: DeliveryService) => {
+    setSelectedService(service);
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-CD', {
       style: 'currency',
@@ -128,142 +128,93 @@ export const ServiceSelectionStep: React.FC<ServiceSelectionStepProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 p-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/98 to-background/95 p-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Soft Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
             <Button
               variant="ghost"
               onClick={onBack}
-              className="flex items-center gap-2 hover:bg-primary/10"
+              className="flex items-center gap-2 h-12 px-4 rounded-xl
+                        bg-card/50 backdrop-blur-sm border border-border/20
+                        hover:bg-card/70 hover:border-primary/30 
+                        transition-all duration-300"
             >
               <ArrowLeft className="h-4 w-4" />
-              Retour
+              <span className="font-medium">Retour</span>
             </Button>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Choisir le service
-            </h1>
-            <div className="w-16" />
+            <div className="text-center">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
+                Service de Livraison
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Choisissez le service adapté à vos besoins
+              </p>
+            </div>
+            <div className="w-24" />
           </div>
           
-          <div className="bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/20">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 bg-primary rounded-full" />
-                <span className="truncate">{pickup.address}</span>
+          {/* Soft route display */}
+          <div className="glassmorphism rounded-2xl p-6 border border-border/30">
+            <div className="flex items-center justify-center gap-4 text-sm">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-3 h-3 bg-primary rounded-full shadow-sm shadow-primary/50" />
+                <span className="truncate font-medium text-foreground">{pickup.address}</span>
               </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 bg-secondary rounded-full" />
-                <span className="truncate">{destination.address}</span>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="w-8 h-px bg-gradient-to-r from-primary/50 to-secondary/50" />
+                <ArrowRight className="h-4 w-4" />
+                <div className="w-8 h-px bg-gradient-to-r from-secondary/50 to-primary/50" />
+              </div>
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-3 h-3 bg-secondary rounded-full shadow-sm shadow-secondary/50" />
+                <span className="truncate font-medium text-foreground">{destination.address}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Services Cards */}
-        <div className="space-y-4 mb-6">
-          {deliveryServices.map((service) => {
-            const ServiceIcon = service.icon;
-            const servicePricing = pricing[service.id];
-            const isSelected = selectedService?.id === service.id;
-            
-            return (
-              <Card
-                key={service.id}
-                className={`cursor-pointer transition-all duration-300 border-2 hover:shadow-lg
-                  ${isSelected 
-                    ? 'border-primary bg-primary/5 shadow-md scale-[1.02]' 
-                    : 'border-border/20 hover:border-primary/30 bg-card/50 backdrop-blur-sm'
-                  }`}
-                onClick={() => setSelectedService(service)}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-3 rounded-xl ${
-                        isSelected ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary'
-                      }`}>
-                        <ServiceIcon className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">{service.name}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{service.subtitle}</p>
-                      </div>
-                    </div>
-                    
-                    {isSelected && (
-                      <CheckCircle2 className="h-6 w-6 text-primary animate-fade-in" />
-                    )}
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  <p className="text-sm text-muted-foreground mb-4">{service.description}</p>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">{service.estimatedTime}</span>
-                      </div>
-                      <div className="space-y-1">
-                        {service.features.map((feature, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {feature}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col items-end justify-center">
-                      {loadingPricing ? (
-                        <div className="text-sm text-muted-foreground">Calcul...</div>
-                      ) : servicePricing ? (
-                        <div className="text-right">
-                          <div className="flex items-center gap-1 text-2xl font-bold text-primary">
-                            <DollarSign className="h-5 w-5" />
-                            {formatPrice(servicePricing.price)}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {servicePricing.distance.toFixed(1)} km • {Math.round(servicePricing.duration)} min
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-sm text-destructive">Prix indisponible</div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+        {/* Horizontal Services Selector */}
+        <HorizontalServiceSelector
+          services={deliveryServices}
+          selectedService={selectedService}
+          pricing={pricing}
+          loadingPricing={loadingPricing}
+          onServiceSelect={handleServiceCardSelect}
+          className="mb-8"
+        />
 
-        {/* Continue Button */}
-        <Button
-          onClick={handleServiceSelect}
-          disabled={!selectedService || loadingPricing}
-          className="w-full h-14 text-base font-medium rounded-xl
-                    bg-gradient-to-r from-primary to-primary/90 
-                    hover:from-primary/90 hover:to-primary
-                    disabled:from-grey-300 disabled:to-grey-400
-                    transition-all duration-300 transform
-                    hover:scale-[1.02] active:scale-[0.98]
-                    shadow-lg hover:shadow-xl"
-        >
-          {loadingPricing ? (
-            'Calcul des prix...'
-          ) : selectedService ? (
-            <>
-              Confirmer {selectedService.name}
-              <ArrowRight className="h-5 w-5 ml-2" />
-            </>
-          ) : (
-            'Sélectionnez un service'
-          )}
-        </Button>
+        {/* Soft Continue Button */}
+        <div className="flex justify-center">
+          <Button
+            onClick={handleServiceSelect}
+            disabled={!selectedService || loadingPricing}
+            size="lg"
+            className="h-16 px-12 text-lg font-semibold rounded-2xl
+                      bg-gradient-to-r from-primary via-primary/95 to-primary/90 
+                      hover:from-primary/90 hover:via-primary/85 hover:to-primary/80
+                      disabled:from-grey-300 disabled:to-grey-400
+                      transition-all duration-300 transform
+                      hover:scale-[1.02] active:scale-[0.98]
+                      shadow-glow hover:shadow-xl
+                      border border-primary/20"
+          >
+            {loadingPricing ? (
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                <span>Calcul des prix...</span>
+              </div>
+            ) : selectedService ? (
+              <div className="flex items-center gap-3">
+                <span>Confirmer {selectedService.name}</span>
+                <ArrowRight className="h-5 w-5" />
+              </div>
+            ) : (
+              'Sélectionnez un service'
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
