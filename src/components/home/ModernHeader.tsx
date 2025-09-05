@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Bell, MapPin, Battery, Wifi, WifiOff, Signal, RefreshCw, Navigation } from 'lucide-react';
-import NotificationCenter from '@/components/advanced/NotificationCenter';
+import { MapPin, Battery, Wifi, WifiOff, Signal, RefreshCw, Navigation } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { useProfile } from '@/hooks/useProfile';
-import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+
 import { GooglePlacesService } from '@/services/googlePlacesService';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
@@ -30,7 +29,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
     t = (key: string) => key;
     language = 'fr';
   }
-  const [showNotifications, setShowNotifications] = useState(false);
+  
   const geolocation = useGeolocation();
   const [currentAddress, setCurrentAddress] = useState(t('city.kinshasa') + ', RD Congo');
   const [geocodingLoading, setGeocodingLoading] = useState(false);
@@ -39,8 +38,6 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
   const [isCharging, setIsCharging] = useState(false);
   const { displayName, loading: profileLoading } = useProfile();
   
-  // Real-time notifications
-  const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotifications } = useRealtimeNotifications();
   
   // Dynamic greeting based on time
   const getGreeting = () => {
@@ -163,33 +160,10 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
           <div className="flex items-center gap-3">
             <ThemeToggle variant="icon" size="md" className="glassmorphism hover:bg-accent/20" />
             <LanguageSelector />
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-3 glassmorphism hover:bg-accent/20 transition-all duration-200 hover:scale-105 active:scale-95"
-              >
-                <Bell className="h-5 w-5 text-foreground" />
-                {unreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 min-h-5 min-w-5 bg-destructive rounded-full flex items-center justify-center">
-                    <span className="text-xs font-bold text-destructive-foreground px-1">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  </div>
-                )}
-              </button>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Panel de notifications */}
-      {showNotifications && (
-        <div className="absolute top-full left-0 right-0 z-50 bg-background/95 backdrop-blur-md shadow-xl border-t border-border animate-slide-in-down">
-          <div className="max-h-96 overflow-y-auto">
-            <NotificationCenter />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
