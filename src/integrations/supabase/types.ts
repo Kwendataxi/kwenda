@@ -6107,6 +6107,10 @@ export type Database = {
           vendor_count: number
         }[]
       }
+      get_current_user_admin_status: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -6340,6 +6344,10 @@ export type Database = {
           price_per_minute: number
           surge_multiplier: number
         }[]
+      }
+      has_admin_permission: {
+        Args: { permission_name: string }
+        Returns: boolean
       }
       has_permission: {
         Args: { permission_param: string; user_id_param: string }
