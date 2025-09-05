@@ -25,8 +25,8 @@ const ModernFooter = () => {
       links: [
         { name: "Devenir Chauffeur", href: "/partners/devenir-chauffeur", icon: <Users className="w-4 h-4" /> },
         { name: "Louer mon Véhicule", href: "/partners/louer-vehicule", icon: <Car className="w-4 h-4" /> },
-        { name: "Devenir Livreur", href: "/auth", icon: <Package className="w-4 h-4" /> },
-        { name: "Vendre en ligne", href: "/marketplace", icon: <Store className="w-4 h-4" /> },
+        { name: "Devenir Livreur", href: "/partners/devenir-livreur", icon: <Package className="w-4 h-4" /> },
+        { name: "Vendre en ligne", href: "/partners/vendre-en-ligne", icon: <Store className="w-4 h-4" /> },
         { name: "Programme Partenaire", href: "/partner", icon: <Users className="w-4 h-4" /> }
       ]
     },
@@ -36,7 +36,7 @@ const ModernFooter = () => {
         { name: "Centre d'aide", href: "/support/help-center", icon: <Phone className="w-4 h-4" /> },
         { name: "Nous contacter", href: "/support/contact", icon: <Mail className="w-4 h-4" /> },
         { name: "FAQ", href: "/support/faq", icon: <Heart className="w-4 h-4" /> },
-        { name: "Signaler un problème", href: "/support/contact", icon: <Phone className="w-4 h-4" /> },
+        { name: "Signaler un problème", href: "/support/signaler-probleme", icon: <Phone className="w-4 h-4" /> },
         { name: "Sécurité", href: "/support/help-center", icon: <Phone className="w-4 h-4" /> }
       ]
     },

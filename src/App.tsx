@@ -32,7 +32,10 @@ import LivraisonExpress from "./pages/services/LivraisonExpress";
 import LocationVehicules from "./pages/services/LocationVehicules";
 import KwendaTombola from "./pages/services/KwendaTombola";
 import DevenirChauffeur from "./pages/partners/DevenirChauffeur";
-import LouerVehicule from "./pages/partners/LouerVehicule";
+import DevenirLivreur from "./pages/partners/DevenirLivreur";
+import VendreEnLigne from "./pages/partners/VendreEnLigne";
+import SignalerProbleme from "./pages/support/SignalerProbleme";
+import Expansion from "./pages/locations/Expansion";
 import { ChatProvider } from "@/components/chat/ChatProvider";
 import Onboarding from "./pages/Onboarding";
 import { OnboardingRedirect } from "@/components/onboarding/OnboardingRedirect";
@@ -108,6 +111,14 @@ const App = () => (
               {/* Partners Pages */}
               <Route path="/partners/devenir-chauffeur" element={<DevenirChauffeur />} />
               <Route path="/partners/louer-vehicule" element={<LouerVehicule />} />
+              <Route path="/partners/devenir-livreur" element={<DevenirLivreur />} />
+              <Route path="/partners/vendre-en-ligne" element={<VendreEnLigne />} />
+              
+              {/* Support Pages */}
+              <Route path="/support/signaler-probleme" element={<SignalerProbleme />} />
+              
+              {/* Locations Pages */}
+              <Route path="/locations/expansion" element={<Expansion />} />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
