@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Zap, Gift, CreditCard, Bell, Settings, Star } from 'lucide-react';
+import { Tag, HelpCircle, Gift, CreditCard, Bell, Settings, Star } from 'lucide-react';
 import CongoButton from '@/components/ui/CongoButton';
 import { cn } from '@/lib/utils';
 import { useOrderNotifications } from '@/hooks/useOrderNotifications';
@@ -7,6 +7,9 @@ import { useVIPStatus } from '@/hooks/useVIPStatus';
 import { useToast } from '@/hooks/use-toast';
 import { NotificationPanel } from '@/components/notifications/NotificationPanel';
 import NotificationBadge from '@/components/notifications/NotificationBadge';
+import { ReferralPanel } from './ReferralPanel';
+import { PromoCodePanel } from './PromoCodePanel';
+import { SupportPanel } from './SupportPanel';
 
 interface ProfileActionButtonsProps {
   onQuickAction?: (action: string) => void;
@@ -18,21 +21,23 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
   const { unreadCount } = useOrderNotifications();
   const { vipStatus, loading: vipLoading } = useVIPStatus();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showReferral, setShowReferral] = useState(false);
+  const [showPromoCode, setShowPromoCode] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
 
-  const handleRecharge = () => {
-    toast({
-      title: "Recharge KwendaPay",
-      description: "Redirection vers le système de paiement...",
-    });
-    onQuickAction?.('recharge');
+  const handleReferral = () => {
+    setShowReferral(true);
+    onQuickAction?.('referral');
   };
 
-  const handleBoost = () => {
-    toast({
-      title: "Mode Boost activé",
-      description: "Vos courses auront la priorité pendant 1h",
-    });
-    onQuickAction?.('boost');
+  const handlePromoCode = () => {
+    setShowPromoCode(true);
+    onQuickAction?.('promocode');
+  };
+
+  const handleSupport = () => {
+    setShowSupport(true);
+    onQuickAction?.('support');
   };
 
   const handleWallet = () => {
@@ -44,20 +49,28 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
   };
   const quickActions = [
     {
-      id: 'recharge',
-      icon: Plus,
-      label: 'Recharger',
+      id: 'referral',
+      icon: Gift,
+      label: 'Parrainage',
       variant: 'electric' as const,
-      description: 'Ajouter des fonds',
-      action: handleRecharge
+      description: 'Inviter des amis',
+      action: handleReferral
     },
     {
-      id: 'boost',
-      icon: Zap,
-      label: 'Boost',
+      id: 'promocode',
+      icon: Tag,
+      label: 'Promos',
       variant: 'vibrant' as const,
-      description: 'Priorité course',
-      action: handleBoost
+      description: 'Codes promo',
+      action: handlePromoCode
+    },
+    {
+      id: 'support',
+      icon: HelpCircle,
+      label: 'Support',
+      variant: 'glow' as const,
+      description: 'Aide & assistance',
+      action: handleSupport
     }
   ];
 
@@ -96,17 +109,17 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
       </div>
 
       {/* Quick Action Grid */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-2">
         {quickActions.map((action) => (
           <CongoButton
             key={action.id}
             variant={action.variant}
-            size="md"
+            size="sm"
             onClick={action.action}
-            className="flex-col h-20 group relative overflow-hidden"
+            className="flex-col h-18 group relative overflow-hidden text-center p-2"
           >
-            <action.icon className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-medium">{action.label}</span>
+            <action.icon className="h-4 w-4 mb-1 group-hover:scale-110 transition-transform mx-auto" />
+            <span className="text-xs font-medium leading-tight">{action.label}</span>
             
             {/* Hover glow effect */}
             <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
@@ -181,10 +194,25 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
         </div>
       )}
 
-      {/* Notification Panel */}
+      {/* Panels */}
       <NotificationPanel 
         isOpen={showNotifications} 
         onClose={() => setShowNotifications(false)} 
+      />
+      
+      <ReferralPanel 
+        open={showReferral} 
+        onClose={() => setShowReferral(false)} 
+      />
+      
+      <PromoCodePanel 
+        open={showPromoCode} 
+        onClose={() => setShowPromoCode(false)} 
+      />
+      
+      <SupportPanel 
+        open={showSupport} 
+        onClose={() => setShowSupport(false)} 
       />
     </div>
   );
