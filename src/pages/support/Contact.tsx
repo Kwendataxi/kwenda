@@ -15,7 +15,7 @@ const Contact = () => {
       icon: <Phone className="w-6 h-6" />,
       title: "Téléphone",
       description: "Appelez-nous directement",
-      value: "+243 XXX XXX XXX",
+      value: "08 58 04 04 00",
       available: "24h/24, 7j/7",
       color: "bg-primary/10 text-primary"
     },
@@ -23,7 +23,7 @@ const Contact = () => {
       icon: <Mail className="w-6 h-6" />,
       title: "Email",
       description: "Écrivez-nous vos questions",
-      value: "support@kwenda.cd",
+      value: "contact@kwendataxi.com",
       available: "Réponse sous 2h",
       color: "bg-secondary/10 text-secondary"
     },
@@ -39,7 +39,7 @@ const Contact = () => {
       icon: <HeadphonesIcon className="w-6 h-6" />,
       title: "Support WhatsApp",
       description: "Via WhatsApp Business",
-      value: "+243 XXX XXX XXX",
+      value: "08 58 04 04 00",
       available: "Lun-Dim 6h-22h",
       color: "bg-primary-glow/10 text-primary-glow"
     }
@@ -89,7 +89,7 @@ const Contact = () => {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Téléphone</label>
-                <Input placeholder="+243 XXX XXX XXX" />
+                <Input placeholder="08 58 04 04 00" />
               </div>
 
               <div className="space-y-2">
@@ -186,7 +186,16 @@ const Contact = () => {
                       rel="noopener noreferrer"
                       className="text-primary hover:underline"
                     >
-                      ICON SARL
+                      ICON
+                    </a>
+                    {" • Propulsé par "}
+                    <a 
+                      href="https://itec-sarlu.com" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      ITEC
                     </a>
                   </p>
                 </div>

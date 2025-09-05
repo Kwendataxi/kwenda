@@ -13,18 +13,18 @@ const ModernFooter = () => {
     {
       title: "Services",
       links: [
-        { name: "Transport VTC", href: "/auth", icon: <Car className="w-4 h-4" /> },
-        { name: "Livraison Express", href: "/auth", icon: <Package className="w-4 h-4" /> },
-        { name: "Location Véhicules", href: "/auth", icon: <Car className="w-4 h-4" /> },
+        { name: "Transport VTC", href: "/services/transport-vtc", icon: <Car className="w-4 h-4" /> },
+        { name: "Livraison Express", href: "/services/livraison-express", icon: <Package className="w-4 h-4" /> },
+        { name: "Location Véhicules", href: "/services/location-vehicules", icon: <Car className="w-4 h-4" /> },
         { name: "Marketplace", href: "/marketplace", icon: <Store className="w-4 h-4" /> },
-        { name: "Kwenda Tombola", href: "/auth", icon: <Heart className="w-4 h-4" /> }
+        { name: "Kwenda Tombola", href: "/services/kwenda-tombola", icon: <Heart className="w-4 h-4" /> }
       ]
     },
     {
       title: "Partenaires",
       links: [
-        { name: "Devenir Chauffeur", href: "/auth", icon: <Users className="w-4 h-4" /> },
-        { name: "Louer mon Véhicule", href: "/auth", icon: <Car className="w-4 h-4" /> },
+        { name: "Devenir Chauffeur", href: "/partners/devenir-chauffeur", icon: <Users className="w-4 h-4" /> },
+        { name: "Louer mon Véhicule", href: "/partners/louer-vehicule", icon: <Car className="w-4 h-4" /> },
         { name: "Devenir Livreur", href: "/auth", icon: <Package className="w-4 h-4" /> },
         { name: "Vendre en ligne", href: "/marketplace", icon: <Store className="w-4 h-4" /> },
         { name: "Programme Partenaire", href: "/partner", icon: <Users className="w-4 h-4" /> }
@@ -35,7 +35,7 @@ const ModernFooter = () => {
       links: [
         { name: "Centre d'aide", href: "/support/help-center", icon: <Phone className="w-4 h-4" /> },
         { name: "Nous contacter", href: "/support/contact", icon: <Mail className="w-4 h-4" /> },
-        { name: "FAQ", href: "/support/help-center", icon: <Heart className="w-4 h-4" /> },
+        { name: "FAQ", href: "/support/faq", icon: <Heart className="w-4 h-4" /> },
         { name: "Signaler un problème", href: "/support/contact", icon: <Phone className="w-4 h-4" /> },
         { name: "Sécurité", href: "/support/help-center", icon: <Phone className="w-4 h-4" /> }
       ]
@@ -123,7 +123,7 @@ const ModernFooter = () => {
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <Phone className="w-4 h-4 text-accent" />
-                <span>+243 XXX XXX XXX</span>
+                <span>08 58 04 04 00</span>
               </div>
             </div>
 
@@ -198,7 +198,11 @@ const ModernFooter = () => {
             <p className="text-xs text-muted-foreground">
               Version 1.0.0 • Développé par{" "}
               <a href="https://icon-sarl.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                ICON SARL
+                ICON
+              </a>
+              {" • Propulsé par "}
+              <a href="https://itec-sarlu.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                ITEC
               </a>
             </p>
           </div>
