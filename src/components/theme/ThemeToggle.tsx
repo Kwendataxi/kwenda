@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useThemeSync } from '@/hooks/useThemeSync';
+import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 
 interface ThemeToggleProps {
@@ -21,7 +21,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
   size = 'md',
   className 
 }) => {
-  const { theme, setTheme } = useThemeSync();
+  const { theme, setTheme } = useTheme();
 
   const iconSizes = {
     sm: 'h-4 w-4',

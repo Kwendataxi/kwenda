@@ -100,6 +100,30 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Congo flag colors from design system
+				'congo-blue': 'hsl(var(--congo-blue))',
+				'congo-red': 'hsl(var(--congo-red))',
+				'congo-yellow': 'hsl(var(--congo-yellow))',
+				'congo-green': 'hsl(var(--congo-green))',
+				
+				// Congo electric variants
+				'congo-red-electric': 'hsl(var(--congo-red-electric))',
+				'congo-yellow-electric': 'hsl(var(--congo-yellow-electric))',
+				'congo-green-electric': 'hsl(var(--congo-green-electric))',
+				'congo-blue-electric': 'hsl(var(--congo-blue-electric))',
+				
+				// Congo vibrant variants
+				'congo-red-vibrant': 'hsl(var(--congo-red-vibrant))',
+				'congo-yellow-vibrant': 'hsl(var(--congo-yellow-vibrant))',
+				'congo-green-vibrant': 'hsl(var(--congo-green-vibrant))',
+				'congo-blue-vibrant': 'hsl(var(--congo-blue-vibrant))',
+				
+				// Congo glow variants
+				'congo-red-glow': 'hsl(var(--congo-red-glow))',
+				'congo-yellow-glow': 'hsl(var(--congo-yellow-glow))',
+				'congo-green-glow': 'hsl(var(--congo-green-glow))',
+				'congo-blue-glow': 'hsl(var(--congo-blue-glow))',
+
 				grey: {
 					50: 'hsl(var(--grey-50))',
 					100: 'hsl(var(--grey-100))',
