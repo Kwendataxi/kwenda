@@ -6,6 +6,7 @@ import TestimonialsSection from '@/components/landing/TestimonialsSection';
 import CTASection from '@/components/landing/CTASection';
 import ModernFooter from '@/components/landing/ModernFooter';
 import CongoColorShowcase from '@/components/demo/CongoColorShowcase';
+import { TestFixMessage } from '@/components/navigation/TestFixMessage';
 
 const Index = () => {
   // Temporary Congo color demo - remove in production
@@ -17,6 +18,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
+      <TestFixMessage />
       <ModernHero />
       <InteractiveServicesGrid />
       <AdvancedFeatures />
