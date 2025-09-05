@@ -38,15 +38,15 @@ export const ModernBottomNavigation = ({
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100]">
-      {/* Background avec effet de flou */}
+    <div className="fixed bottom-0 left-0 right-0 z-[100] p-4">
+      {/* Navigation flottante avec effet glassmorphism */}
       <div 
-        className="bg-background/95 backdrop-blur-xl border-t border-border/60 transition-all duration-300"
+        className="mx-auto max-w-md bg-background/90 backdrop-blur-2xl border border-border/40 rounded-3xl transition-all duration-300 shadow-2xl"
         style={{ 
-          boxShadow: '0 -4px 20px -4px hsl(var(--primary) / 0.1)' 
+          boxShadow: '0 8px 32px -8px hsl(var(--primary) / 0.2), 0 0 0 1px hsl(var(--border) / 0.1), inset 0 1px 0 hsl(var(--background) / 0.1)' 
         }}
       >
-        <div className="px-4 py-2">
+        <div className="px-2 py-2">
           <div className="flex items-center justify-around">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -57,11 +57,11 @@ export const ModernBottomNavigation = ({
                   key={tab.id}
                   onClick={() => onTabChange(tab.id)}
                   className={`
-                    relative flex flex-col items-center justify-center py-3 px-4 rounded-2xl
-                    transition-all duration-300 min-w-[60px]
+                    relative flex flex-col items-center justify-center py-3 px-3 rounded-2xl
+                    transition-all duration-300 min-w-[64px]
                     ${isActive 
-                      ? 'bg-gradient-to-br from-primary/10 to-primary/5 scale-110' 
-                      : 'hover:bg-grey-50 active:scale-95'
+                      ? 'bg-gradient-to-br from-primary/15 to-primary/8 scale-105 shadow-lg shadow-primary/20' 
+                      : 'hover:bg-muted/50 active:scale-95'
                     }
                   `}
                 >
@@ -109,7 +109,7 @@ export const ModernBottomNavigation = ({
         </div>
         
         {/* Indicateur de zone sécurisée */}
-        <div className="h-[env(safe-area-inset-bottom,0px)]" />
+        <div className="h-[env(safe-area-inset-bottom,8px)]" />
       </div>
     </div>
   );

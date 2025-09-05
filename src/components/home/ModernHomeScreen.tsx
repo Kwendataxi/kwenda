@@ -72,7 +72,7 @@ export const ModernHomeScreen = ({
     <div className="min-h-screen bg-gradient-to-br from-grey-50 to-white">
       <ModernHeader />
       
-      <div className="space-y-4 pb-24">
+      <div className="space-y-4 pb-32">
         <ServiceGrid 
           onServiceSelect={onServiceSelect} 
           serviceNotifications={serviceNotifications}
