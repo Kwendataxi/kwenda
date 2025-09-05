@@ -101,7 +101,7 @@ const DynamicMeshBackground: React.FC<DynamicMeshBackgroundProps> = ({
         const fadeColor = point.color.replace(')', ', 0)').replace('hsl(', 'hsla(');
 
         orbGradient.addColorStop(0, baseColor);
-        orbGradient.addColorStop(0.6, point.color.replace(')', `, ${point.intensity * 0.3})`).replace('hsl(', 'hsla(');
+        orbGradient.addColorStop(0.6, point.color.replace(')', `, ${point.intensity * 0.3})`).replace('hsl(', 'hsla('));
         orbGradient.addColorStop(1, fadeColor);
 
         ctx.save();
