@@ -224,17 +224,13 @@ class LocationServiceClass {
   /**
    * Position depuis la base de données locale
    */
-  private async getDatabasePosition(): Promise<LocationData> {
+   private async getDatabasePosition(): Promise<LocationData> {
     try {
-      const response = await fetch('/api/fallback-position');
-      if (!response.ok) {
-        throw new Error('Fallback position API failed');
-      }
-      const data = await response.json();
+      // Fallback position sans API call pour éviter la récursion
       return {
-        address: data.address || 'Kinshasa Centre, Kinshasa, RDC',
-        lat: data.lat || -4.4419,
-        lng: data.lng || 15.2663,
+        address: 'Kinshasa Centre, Kinshasa, RDC',
+        lat: -4.4419,
+        lng: 15.2663,
         type: 'database'
       };
     } catch (error) {
