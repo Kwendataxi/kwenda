@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { useReferrals } from '@/hooks/useReferrals';
 import { Gift, Copy, Share2, Users, Coins, Trophy, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CongoButton, CongoCard, CongoBadge, CongoGradient } from '@/components/ui/CongoComponents';
 
 interface ReferralPanelProps {
   open: boolean;
@@ -38,65 +39,67 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
 
         <div className="space-y-6">
           {/* Code de parrainage */}
-          <Card className="bg-gradient-congo-subtle border-congo-green/20">
-            <CardHeader>
-              <CardTitle className="text-lg text-foreground">Votre Code de Parrainage</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-background/80 rounded-lg border-2 border-dashed border-congo-green/40">
-                <span className="text-xl sm:text-2xl font-bold text-congo-green tracking-wider text-center sm:text-left">
-                  {loading ? '...' : referralCode}
-                </span>
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={copyReferralCode}
-                    disabled={loading}
-                    className="flex-1 sm:flex-none border-congo-green/40 hover:bg-congo-green/10 hover:border-congo-green"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={shareReferralCode}
-                    disabled={loading}
-                    className="flex-1 sm:flex-none bg-congo-green hover:bg-congo-green/90 text-white"
-                  >
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Partager
-                  </Button>
+          <CongoGradient variant="subtle" className="rounded-xl border border-congo-green/20">
+            <Card className="bg-transparent border-0">
+              <CardHeader>
+                <CardTitle className="text-lg text-foreground">Votre Code de Parrainage</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 glassmorphism-soft rounded-lg border-2 border-dashed border-congo-green/40">
+                  <span className="text-xl sm:text-2xl font-bold text-congo-green tracking-wider text-center sm:text-left">
+                    {loading ? '...' : referralCode}
+                  </span>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <CongoButton
+                      variant="success"
+                      size="sm"
+                      onClick={copyReferralCode}
+                      disabled={loading}
+                      className="flex-1 sm:flex-none"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </CongoButton>
+                    <CongoButton
+                      variant="success"
+                      size="sm"
+                      onClick={shareReferralCode}
+                      disabled={loading}
+                      className="flex-1 sm:flex-none"
+                    >
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Partager
+                    </CongoButton>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </CongoGradient>
 
           {/* Statistiques */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Card className="text-center bg-gradient-congo-subtle border-congo-blue/20">
+            <CongoCard variant="info" className="text-center">
               <CardContent className="pt-6 pb-4">
                 <Users className="h-8 w-8 mx-auto mb-2 text-congo-blue" />
-                <div className="text-2xl font-bold text-foreground">{stats.totalReferred}</div>
-                <p className="text-sm text-muted-foreground">Parrainés</p>
+                <div className="text-2xl font-bold text-white">{stats.totalReferred}</div>
+                <p className="text-sm text-white/80">Parrainés</p>
               </CardContent>
-            </Card>
+            </CongoCard>
             
-            <Card className="text-center bg-gradient-congo-subtle border-congo-yellow/20">
+            <CongoCard variant="warning" className="text-center">
               <CardContent className="pt-6 pb-4">
                 <Coins className="h-8 w-8 mx-auto mb-2 text-congo-yellow" />
-                <div className="text-2xl font-bold text-foreground">{stats.totalEarned} CDF</div>
-                <p className="text-sm text-muted-foreground">Gains Totaux</p>
+                <div className="text-2xl font-bold text-grey-900">{stats.totalEarned} CDF</div>
+                <p className="text-sm text-grey-800">Gains Totaux</p>
               </CardContent>
-            </Card>
+            </CongoCard>
             
-            <Card className="text-center bg-gradient-congo-subtle border-congo-red/20">
+            <CongoCard variant="default" className="text-center">
               <CardContent className="pt-6 pb-4">
                 <TrendingUp className="h-8 w-8 mx-auto mb-2 text-congo-red" />
-                <div className="text-2xl font-bold text-foreground">{stats.pendingRewards}</div>
-                <p className="text-sm text-muted-foreground">En Attente</p>
+                <div className="text-2xl font-bold text-white">{stats.pendingRewards}</div>
+                <p className="text-sm text-white/80">En Attente</p>
               </CardContent>
-            </Card>
+            </CongoCard>
           </div>
 
           {/* Niveau actuel */}
@@ -107,12 +110,9 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
                   <Trophy className="h-5 w-5 text-congo-yellow" />
                   Niveau Actuel
                 </CardTitle>
-                <Badge 
-                  variant="secondary" 
-                  className="bg-congo-green text-white"
-                >
+                <CongoBadge variant="success">
                   {stats.currentTier.toUpperCase()}
-                </Badge>
+                </CongoBadge>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">

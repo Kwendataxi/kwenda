@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePromoCode } from '@/hooks/usePromoCode';
 import { Tag, Percent, Gift, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { CongoButton, CongoCard, CongoBadge, CongoGradient } from '@/components/ui/CongoComponents';
 
 interface PromoCodePanelProps {
   open: boolean;
@@ -91,31 +92,34 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
           </TabsList>
 
           <TabsContent value="available" className="space-y-4">
-            <Card className="bg-gradient-congo-subtle border-congo-yellow/20">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2 text-foreground">
-                  <Percent className="h-5 w-5 text-congo-yellow" />
-                  Entrer un code promo
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Input
-                    placeholder="Entrez votre code promo"
-                    value={newCode}
-                    onChange={(e) => setNewCode(e.target.value.toUpperCase())}
-                    className="flex-1 border-congo-yellow/40 focus:border-congo-yellow"
-                  />
-                  <Button 
-                    onClick={handleValidateCode}
-                    disabled={!newCode.trim() || validating}
-                    className="bg-congo-yellow hover:bg-congo-yellow/90 text-white w-full sm:w-auto"
-                  >
-                    {validating ? 'Vérification...' : 'Valider'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <CongoGradient variant="subtle" className="rounded-xl border border-congo-yellow/20">
+              <Card className="bg-transparent border-0">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+                    <Percent className="h-5 w-5 text-congo-yellow" />
+                    Entrer un code promo
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Input
+                      placeholder="Entrez votre code promo"
+                      value={newCode}
+                      onChange={(e) => setNewCode(e.target.value.toUpperCase())}
+                      className="flex-1 glassmorphism-soft border-congo-yellow/40 focus:border-congo-yellow"
+                    />
+                    <CongoButton 
+                      onClick={handleValidateCode}
+                      disabled={!newCode.trim() || validating}
+                      variant="warning"
+                      className="w-full sm:w-auto"
+                    >
+                      {validating ? 'Vérification...' : 'Valider'}
+                    </CongoButton>
+                  </div>
+                </CardContent>
+              </Card>
+            </CongoGradient>
 
             <div className="space-y-3">
               {availableCodes.length === 0 ? (
@@ -130,22 +134,22 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
                 </Card>
               ) : (
                 availableCodes.map((code) => (
-                    <Card key={code.id} className="overflow-hidden bg-gradient-congo-subtle border-congo-yellow/20">
+                    <CongoCard key={code.id} variant="warning" className="overflow-hidden">
                       <CardContent className="p-4">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                           <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <Badge variant="secondary" className="font-mono">
+                            <CongoBadge variant="warning" size="sm" className="font-mono">
                               {code.code}
-                            </Badge>
-                            <Badge variant="outline" className="text-congo-yellow border-congo-yellow/40">
+                            </CongoBadge>
+                            <CongoBadge variant="warning" size="sm">
                               {getDiscountText(code)}
-                            </Badge>
+                            </CongoBadge>
                           </div>
-                          <p className="text-sm text-muted-foreground mb-2">
+                          <p className="text-sm text-grey-700 mb-2">
                             {code.description}
                           </p>
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-4 text-xs text-grey-600">
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
                               Expire le {new Date(code.valid_until).toLocaleDateString()}
@@ -157,17 +161,17 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
                             )}
                           </div>
                         </div>
-                        <Button 
-                          variant="outline" 
+                        <CongoButton 
+                          variant="warning"
                           size="sm"
                           onClick={() => setNewCode(code.code)}
-                          className="border-congo-yellow/40 hover:bg-congo-yellow/10 hover:border-congo-yellow w-full sm:w-auto"
+                          className="w-full sm:w-auto mt-3"
                         >
                           Utiliser
-                        </Button>
+                        </CongoButton>
                       </div>
                     </CardContent>
-                  </Card>
+                  </CongoCard>
                 ))
               )}
             </div>

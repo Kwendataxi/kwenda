@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   ExternalLink
 } from 'lucide-react';
+import { CongoButton, CongoCard, CongoBadge, CongoGradient } from '@/components/ui/CongoComponents';
 
 interface SupportPanelProps {
   open: boolean;
@@ -111,30 +112,30 @@ export const SupportPanel: React.FC<SupportPanelProps> = ({ open, onClose }) => 
           <TabsContent value="help" className="space-y-4">
             {/* Actions rapides */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Card className="bg-gradient-congo-subtle border-congo-blue/20 hover:shadow-md transition-shadow cursor-pointer" onClick={openFAQ}>
+              <CongoCard variant="info" className="hover:shadow-md transition-shadow cursor-pointer" onClick={openFAQ}>
                 <CardContent className="pt-6 pb-4">
                   <div className="flex items-center gap-3">
                     <FileText className="h-8 w-8 text-congo-blue" />
                     <div className="flex-1">
-                      <h3 className="font-medium text-foreground">FAQ</h3>
-                      <p className="text-sm text-muted-foreground">Questions fréquentes</p>
+                      <h3 className="font-medium text-white">FAQ</h3>
+                      <p className="text-sm text-white/80">Questions fréquentes</p>
                     </div>
                     <ExternalLink className="h-4 w-4 text-congo-blue" />
                   </div>
                 </CardContent>
-              </Card>
+              </CongoCard>
 
-              <Card className="bg-gradient-congo-subtle border-congo-red/20 hover:shadow-md transition-shadow cursor-pointer" onClick={contactEmergency}>
+              <CongoCard variant="default" className="hover:shadow-md transition-shadow cursor-pointer" onClick={contactEmergency}>
                 <CardContent className="pt-6 pb-4">
                   <div className="flex items-center gap-3">
                     <Phone className="h-8 w-8 text-congo-red" />
                     <div className="flex-1">
-                      <h3 className="font-medium text-foreground">Urgence</h3>
-                      <p className="text-sm text-muted-foreground">Support immédiat</p>
+                      <h3 className="font-medium text-white">Urgence</h3>
+                      <p className="text-sm text-white/80">Support immédiat</p>
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </CongoCard>
             </div>
 
             {/* Statistiques support */}
@@ -238,13 +239,14 @@ export const SupportPanel: React.FC<SupportPanelProps> = ({ open, onClose }) => 
                   />
                 </div>
 
-                <Button 
+                <CongoButton 
                   onClick={handleSubmitTicket}
                   disabled={loading || !ticketForm.type || !ticketForm.subject || !ticketForm.description}
-                  className="w-full bg-congo-blue hover:bg-congo-blue/90 text-white"
+                  variant="info"
+                  className="w-full"
                 >
                   {loading ? 'Envoi en cours...' : 'Envoyer le ticket'}
-                </Button>
+                </CongoButton>
               </CardContent>
             </Card>
           </TabsContent>
