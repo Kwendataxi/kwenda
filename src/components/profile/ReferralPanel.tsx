@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +35,9 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
             <Gift className="h-5 w-5 text-congo-green" />
             Système de Parrainage
           </DialogTitle>
+          <DialogDescription>
+            Partagez votre code de parrainage et gagnez des récompenses pour chaque utilisateur invité.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

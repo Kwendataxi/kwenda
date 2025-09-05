@@ -11,7 +11,7 @@ import { ConnectionIndicator, OptimizedImage, ProgressiveLoader, useDataCompress
 import CongoVehicleSelection from '@/components/transport/CongoVehicleSelection';
 import SimplifiedInterface from '@/components/ui/SimplifiedInterface';
 import MobileMoneyPayment from '@/components/advanced/MobileMoneyPayment';
-import ReferralSystem from '@/components/advanced/ReferralSystem';
+import { ReferralPanel } from '@/components/profile/ReferralPanel';
 import NotificationCenter from '@/components/advanced/NotificationCenter';
 import OfflineMode from '@/components/advanced/OfflineMode';
 import SecurityVerification from '@/components/advanced/SecurityVerification';
@@ -621,7 +621,7 @@ const ClientApp = () => {
           case 'notifications':
             return <NotificationCenter />;
           case 'referral':
-            return <ReferralSystem />;
+            return <ReferralPanel open={true} onClose={() => setCurrentView('home')} />;
           case 'offline':
             return <OfflineMode />;
           case 'security':

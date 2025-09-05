@@ -19,7 +19,7 @@ import { UserRatings } from './UserRatings';
 import { UserStatistics } from './UserStatistics';
 import { ActivityHistory } from './ActivityHistory';
 import { KwendaPayWallet } from '../wallet/KwendaPayWallet';
-import ReferralSystem from '../advanced/ReferralSystem';
+import { ReferralPanel } from './ReferralPanel';
 import { UserAddressesManager } from './UserAddressesManager';
 import CustomerSupport from './CustomerSupport';
 import { DriverUpgrade } from './DriverUpgrade';
@@ -282,7 +282,7 @@ export const UserProfile = () => {
         case 'wallet':
           return <KwendaPayWallet />;
         case 'referral':
-          return <ReferralSystem />;
+          return <ReferralPanel open={true} onClose={() => setActiveOption(null)} />;
         case 'history':
           return <ActivityHistory />;
         case 'addresses':
