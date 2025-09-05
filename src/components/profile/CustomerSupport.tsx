@@ -90,8 +90,8 @@ const CustomerSupport = () => {
   const handleSubmitTicket = async () => {
     if (!user) {
       toast({
-        title: "Erreur",
-        description: "Vous devez être connecté pour créer un ticket",
+        title: t('system.error'),
+        description: t('support.error_login_required'),
         variant: "destructive",
       });
       return;
@@ -99,8 +99,8 @@ const CustomerSupport = () => {
 
     if (!subject.trim() || !category || !description.trim()) {
       toast({
-        title: "Erreur",
-        description: "Veuillez remplir tous les champs obligatoires",
+        title: t('system.error'),
+        description: t('support.error_required_fields'),
         variant: "destructive",
       });
       return;
@@ -121,8 +121,8 @@ const CustomerSupport = () => {
       if (error) throw error;
 
       toast({
-        title: "Ticket créé",
-        description: `Votre ticket #${data[0]?.ticket_number} a été créé avec succès`,
+        title: t('support.ticket_created'),
+        description: t('support.ticket_created_desc').replace('{0}', data[0]?.ticket_number),
         variant: "default",
       });
 
@@ -135,8 +135,8 @@ const CustomerSupport = () => {
     } catch (error) {
       console.error('Error creating ticket:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de créer le ticket",
+        title: t('system.error'),
+        description: t('support.error_create_ticket'),
         variant: "destructive",
       });
     } finally {
@@ -164,8 +164,8 @@ const CustomerSupport = () => {
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible d'envoyer le message",
+        title: t('system.error'),
+        description: t('support.error_send_message'),
         variant: "destructive",
       });
     }
@@ -305,57 +305,57 @@ const CustomerSupport = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Ticket className="w-5 h-5" />
-                Créer un Ticket de Support
+                {t('support.create_ticket')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Catégorie *</label>
+                  <label className="text-sm font-medium">{t('support.category_required')}</label>
                   <Select value={category} onValueChange={setCategory}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionnez une catégorie" />
+                      <SelectValue placeholder={t('support.select_category')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="transport">Transport</SelectItem>
-                      <SelectItem value="paiement">Paiement</SelectItem>
-                      <SelectItem value="compte">Compte</SelectItem>
-                      <SelectItem value="livraison">Livraison</SelectItem>
-                      <SelectItem value="marketplace">Marketplace</SelectItem>
-                      <SelectItem value="technique">Technique</SelectItem>
-                      <SelectItem value="autre">Autre</SelectItem>
+                      <SelectItem value="transport">{t('support.category_transport')}</SelectItem>
+                      <SelectItem value="paiement">{t('support.category_payment')}</SelectItem>
+                      <SelectItem value="compte">{t('support.category_account')}</SelectItem>
+                      <SelectItem value="livraison">{t('support.category_delivery')}</SelectItem>
+                      <SelectItem value="marketplace">{t('support.category_marketplace')}</SelectItem>
+                      <SelectItem value="technique">{t('support.category_technical')}</SelectItem>
+                      <SelectItem value="autre">{t('support.category_other')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Priorité</label>
+                  <label className="text-sm font-medium">{t('support.priority')}</label>
                   <Select value={priority} onValueChange={setPriority}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">Faible</SelectItem>
-                      <SelectItem value="medium">Moyenne</SelectItem>
-                      <SelectItem value="high">Élevée</SelectItem>
+                      <SelectItem value="low">{t('support.priority_low')}</SelectItem>
+                      <SelectItem value="medium">{t('support.priority_medium')}</SelectItem>
+                      <SelectItem value="high">{t('support.priority_high')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Sujet *</label>
+                <label className="text-sm font-medium">{t('support.subject_required')}</label>
                 <Input
-                  placeholder="Décrivez brièvement votre problème"
+                  placeholder={t('support.subject_placeholder')}
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Description détaillée *</label>
+                <label className="text-sm font-medium">{t('support.description_required')}</label>
                 <Textarea
-                  placeholder="Décrivez votre problème en détail..."
+                  placeholder={t('support.description_placeholder')}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
@@ -368,7 +368,7 @@ const CustomerSupport = () => {
                 className="w-full"
               >
                 <Send className="w-4 h-4 mr-2" />
-                {isSubmitting ? "Envoi en cours..." : "Envoyer le Ticket"}
+                {isSubmitting ? t('support.sending') : t('support.send_ticket')}
               </Button>
             </CardContent>
           </Card>

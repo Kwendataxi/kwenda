@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Wallet, TrendingUp, Clock, CheckCircle, AlertCircle, ArrowUpRight, Shield, Eye, Download } from 'lucide-react';
 import { DeliveryConfirmationDialog } from './DeliveryConfirmationDialog';
@@ -45,6 +46,7 @@ export const SecureVaultDashboard: React.FC = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadVaultData();
@@ -67,8 +69,8 @@ export const SecureVaultDashboard: React.FC = () => {
     } catch (error: any) {
       console.error('Erreur chargement coffre:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de charger les données du coffre sécurisé",
+        title: t('escrow.error_title'),
+        description: t('escrow.error_load_vault'),
         variant: "destructive"
       });
     }
@@ -124,11 +126,11 @@ export const SecureVaultDashboard: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
-      'held': { variant: 'secondary', label: 'Sécurisé', icon: Shield },
-      'completed': { variant: 'default', label: 'Libéré', icon: CheckCircle },
-      'disputed': { variant: 'destructive', label: 'Litige', icon: AlertCircle },
-      'refunded': { variant: 'outline', label: 'Remboursé', icon: ArrowUpRight },
-      'timeout': { variant: 'destructive', label: 'Expiré', icon: Clock }
+      'held': { variant: 'secondary', label: t('escrow.status_held'), icon: Shield },
+      'completed': { variant: 'default', label: t('escrow.status_completed'), icon: CheckCircle },
+      'disputed': { variant: 'destructive', label: t('escrow.status_disputed'), icon: AlertCircle },
+      'refunded': { variant: 'outline', label: t('escrow.status_refunded'), icon: ArrowUpRight },
+      'timeout': { variant: 'destructive', label: t('escrow.status_timeout'), icon: Clock }
     };
 
     const config = variants[status] || { variant: 'secondary', label: status, icon: Shield };
@@ -162,8 +164,8 @@ export const SecureVaultDashboard: React.FC = () => {
       if (error) throw error;
 
       toast({
-        title: "✅ Livraison confirmée",
-        description: "Les fonds ont été libérés avec succès dans vos portefeuilles KwendaPay"
+        title: t('escrow.delivery_confirmed'),
+        description: t('escrow.delivery_confirmed_desc')
       });
 
       loadVaultData();
@@ -220,12 +222,12 @@ export const SecureVaultDashboard: React.FC = () => {
                 <Wallet className="h-6 w-6 text-success" />
               </div>
               <div>
-                <h4 className="font-medium">Solde KwendaPay</h4>
+                <h4 className="font-medium">{t('escrow.balance')}</h4>
                 <p className="text-2xl font-bold text-success">
                   {walletInfo?.balance.toLocaleString()} {walletInfo?.currency || 'CDF'}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Solde de consultation
+                  {t('escrow.consultation_balance')}
                 </p>
               </div>
             </div>
@@ -239,12 +241,12 @@ export const SecureVaultDashboard: React.FC = () => {
                 <Shield className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h4 className="font-medium">Transactions sécurisées</h4>
+                <h4 className="font-medium">{t('escrow.secure_transactions')}</h4>
                 <p className="text-2xl font-bold text-primary">
                   {transactions.filter(t => t.status === 'held').length}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  En attente de confirmation
+                  {t('escrow.pending_confirmation')}
                 </p>
               </div>
             </div>
@@ -255,10 +257,10 @@ export const SecureVaultDashboard: React.FC = () => {
       {/* Onglets des transactions */}
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="all">Toutes</TabsTrigger>
-          <TabsTrigger value="held">🔒 Sécurisées</TabsTrigger>
-          <TabsTrigger value="completed">✅ Libérées</TabsTrigger>
-          <TabsTrigger value="pending">⏳ En attente</TabsTrigger>
+          <TabsTrigger value="all">{t('escrow.all_tabs')}</TabsTrigger>
+          <TabsTrigger value="held">{t('escrow.secured_tabs')}</TabsTrigger>
+          <TabsTrigger value="completed">{t('escrow.released_tabs')}</TabsTrigger>
+          <TabsTrigger value="pending">{t('escrow.pending_tabs')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
