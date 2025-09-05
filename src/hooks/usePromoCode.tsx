@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 
@@ -16,6 +16,8 @@ interface PromoCode {
 
 export const usePromoCode = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [availableCodes, setAvailableCodes] = useState<PromoCode[]>([]);
+  const [userUsage, setUserUsage] = useState<any[]>([]);
   const { toast } = useToast();
 
   const validatePromoCode = async (code: string, orderAmount: number, serviceType: string) => {
@@ -119,9 +121,131 @@ export const usePromoCode = () => {
     }
   };
 
+  const fetchAvailableCodes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('promo_codes')
+        .select('*')
+        .eq('is_active', true)
+        .gte('valid_until', new Date().toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAvailableCodes((data || []).map(code => ({
+        ...code,
+        discount_type: code.discount_type as 'percentage' | 'fixed_amount' | 'free_delivery'
+      })));
+    } catch (error) {
+      console.error('Erreur lors de la récupération des codes promo:', error);
+    }
+  };
+
+  const fetchUserUsage = async () => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+
+      const { data, error } = await supabase
+        .from('promo_code_usage')
+        .select(`
+          *,
+          promo_codes (
+            code,
+            title,
+            discount_value
+          )
+        `)
+        .eq('user_id', user.user.id)
+        .order('used_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setUserUsage(data || []);
+    } catch (error) {
+      console.error('Erreur lors de la récupération de l\'historique:', error);
+    }
+  };
+
+  const getPersonalizedCodes = async () => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return [];
+
+      // Get user statistics to generate personalized codes
+      const { data: orders } = await supabase
+        .from('transport_bookings')
+        .select('actual_price, created_at')
+        .eq('user_id', user.user.id)
+        .eq('status', 'completed');
+
+      const totalOrders = orders?.length || 0;
+      const totalSpent = orders?.reduce((sum, order) => sum + (order.actual_price || 0), 0) || 0;
+
+      const personalizedCodes: PromoCode[] = [];
+
+      // First-time user bonus
+      if (totalOrders === 0) {
+        personalizedCodes.push({
+          id: 'first-ride',
+          code: 'PREMIERE',
+          title: 'Première course gratuite',
+          description: 'Réduction de 50% sur votre première course (max 5000 CDF)',
+          discount_type: 'percentage',
+          discount_value: 50,
+          min_order_amount: 0,
+          max_discount_amount: 5000,
+          applicable_services: ['transport']
+        });
+      }
+
+      // Loyal customer bonus
+      if (totalOrders >= 10) {
+        personalizedCodes.push({
+          id: 'loyal-customer',
+          code: 'FIDELE10',
+          title: 'Client fidèle',
+          description: 'Réduction de 20% pour nos clients fidèles',
+          discount_type: 'percentage',
+          discount_value: 20,
+          min_order_amount: 3000,
+          max_discount_amount: 8000,
+          applicable_services: ['transport', 'delivery']
+        });
+      }
+
+      // High spender bonus
+      if (totalSpent >= 50000) {
+        personalizedCodes.push({
+          id: 'vip-member',
+          code: 'VIP2024',
+          title: 'Membre VIP',
+          description: 'Livraison gratuite pour nos membres VIP',
+          discount_type: 'free_delivery',
+          discount_value: 0,
+          min_order_amount: 0,
+          applicable_services: ['delivery', 'marketplace']
+        });
+      }
+
+      return personalizedCodes;
+    } catch (error) {
+      console.error('Erreur lors de la génération des codes personnalisés:', error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    fetchAvailableCodes();
+    fetchUserUsage();
+  }, []);
+
   return {
     validatePromoCode,
     applyPromoCode,
+    fetchAvailableCodes,
+    getPersonalizedCodes,
+    availableCodes,
+    userUsage,
     isLoading,
   };
 };
