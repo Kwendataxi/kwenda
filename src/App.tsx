@@ -32,6 +32,7 @@ import LivraisonExpress from "./pages/services/LivraisonExpress";
 import LocationVehicules from "./pages/services/LocationVehicules";
 import KwendaTombola from "./pages/services/KwendaTombola";
 import DevenirChauffeur from "./pages/partners/DevenirChauffeur";
+import LouerVehicule from "./pages/partners/LouerVehicule";
 import DevenirLivreur from "./pages/partners/DevenirLivreur";
 import VendreEnLigne from "./pages/partners/VendreEnLigne";
 import SignalerProbleme from "./pages/support/SignalerProbleme";
