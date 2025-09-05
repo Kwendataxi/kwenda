@@ -226,24 +226,15 @@ class LocationServiceClass {
    */
   private async getDatabasePosition(): Promise<LocationData> {
     try {
-      // Utilisation simplifiée pour éviter les erreurs TypeScript
-      const dbResponse = await supabase
-        .from('intelligent_places')
-        .select('name, latitude, longitude, city, commune')
-        .eq('is_popular', true)
-        .eq('city', 'Kinshasa')
-        .order('popularity_score', { ascending: false })
-        .limit(1);
-
-      if (dbResponse.error || !dbResponse.data || dbResponse.data.length === 0) {
-        throw new Error('No data found');
+      const response = await fetch('/api/fallback-position');
+      if (!response.ok) {
+        throw new Error('Fallback position API failed');
       }
-
-      const place = dbResponse.data[0];
+      const data = await response.json();
       return {
-        address: `${place.name}, ${place.commune}, ${place.city}`,
-        lat: place.latitude,
-        lng: place.longitude,
+        address: data.address || 'Kinshasa Centre, Kinshasa, RDC',
+        lat: data.lat || -4.4419,
+        lng: data.lng || 15.2663,
         type: 'database'
       };
     } catch (error) {

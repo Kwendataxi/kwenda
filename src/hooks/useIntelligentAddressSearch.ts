@@ -14,7 +14,7 @@ export interface IntelligentSearchResult {
   subtitle: string;
   lat: number;
   lng: number;
-  type: 'google' | 'database' | 'search';
+  type: 'database' | 'search' | 'google' | 'popular' | 'recent';
   city: string;
   commune: string;
   category: string;

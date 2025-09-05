@@ -187,17 +187,18 @@ export const ImprovedLocationPicker: React.FC<ImprovedLocationPickerProps> = ({
       return localPlaces.slice(0, 8).map((place, index) => ({
         id: `popular_${index}`,
         name: place.name,
-        category: place.category || 'location',
-        city: 'Kinshasa',
-        commune: place.commune,
+        subtitle: `${place.commune}, Kinshasa`,
         lat: place.lat,
         lng: place.lng,
+        type: 'popular' as const,
+        city: 'Kinshasa',
+        commune: place.commune,
+        category: place.category || 'location',
+        confidence: (90 - index * 5) / 100,
         hierarchy_level: 3,
         popularity_score: 90 - index * 5,
         relevance_score: 90 - index * 5,
-        type: 'popular' as const,
-        badge: 'Populaire',
-        subtitle: `${place.commune}, Kinshasa`
+        badge: 'Populaire'
       }));
     }
 
@@ -210,17 +211,18 @@ export const ImprovedLocationPicker: React.FC<ImprovedLocationPickerProps> = ({
       .map((place, index) => ({
         id: `local_${index}`,
         name: place.name,
-        category: place.category || 'location',
-        city: 'Kinshasa',
-        commune: place.commune,
+        subtitle: `${place.commune}, Kinshasa`,
         lat: place.lat,
         lng: place.lng,
+        type: 'popular' as const,
+        city: 'Kinshasa',
+        commune: place.commune,
+        category: place.category || 'location',
+        confidence: (75 - index * 5) / 100,
         hierarchy_level: 2,
         popularity_score: 75 - index * 5,
         relevance_score: 85 - index * 5,
-        type: 'popular' as const,
-        badge: 'Local',
-        subtitle: `${place.commune}, Kinshasa`
+        badge: 'Local'
       }));
   };
 

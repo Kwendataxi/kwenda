@@ -9,16 +9,18 @@ import { createClient } from '@supabase/supabase-js';
 export interface IntelligentSearchResult {
   id: string;
   name: string;
-  category: string;
-  city: string;
-  commune?: string;
+  subtitle: string;
   lat: number;
   lng: number;
-  hierarchy_level: number;
-  popularity_score: number;
-  relevance_score: number;
-  type: 'database' | 'google' | 'popular' | 'recent';
-  subtitle?: string;
+  type: 'database' | 'search' | 'google' | 'popular' | 'recent';
+  city: string;
+  commune: string;
+  category: string;
+  confidence: number;
+  // Propriétés optionnelles pour compatibilité
+  hierarchy_level?: number;
+  popularity_score?: number;
+  relevance_score?: number;
   badge?: string;
 }
 
@@ -275,16 +277,17 @@ class IntelligentAddressSearchService {
     return places.map((place, index) => ({
       id: `fallback_${index}`,
       name: place.name,
-      category: place.category,
-      city: city,
-      commune: place.commune,
+      subtitle: `${place.commune}, ${city}`,
       lat: place.lat,
       lng: place.lng,
+      type: 'popular' as const,
+      city: city,
+      commune: place.commune,
+      category: place.category,
+      confidence: (90 - index * 5) / 100,
       hierarchy_level: 3,
       popularity_score: 90 - index * 5,
       relevance_score: 90 - index * 5,
-      type: 'popular' as const,
-      subtitle: `${place.commune}, ${city}`,
       badge: 'Populaire'
     }));
   }
@@ -296,16 +299,17 @@ class IntelligentAddressSearchService {
     return {
       id: item.id || item.place_id || `db_${Date.now()}_${Math.random()}`,
       name: item.name || 'Lieu sans nom',
-      category: item.category || 'location',
-      city: item.city || 'Kinshasa',
-      commune: item.commune || '',
+      subtitle: `${item.commune || ''}, ${item.city || 'Kinshasa'}`.replace(/^,\s*/, ''),
       lat: item.latitude || item.lat || 0,
       lng: item.longitude || item.lng || 0,
+      type: 'database' as const,
+      city: item.city || 'Kinshasa',
+      commune: item.commune || '',
+      category: item.category || 'location',
+      confidence: (item.relevance_score || 50) / 100,
       hierarchy_level: item.hierarchy_level || 1,
       popularity_score: item.popularity_score || 0,
       relevance_score: item.relevance_score || 50,
-      type: 'database' as const,
-      subtitle: `${item.commune || ''}, ${item.city || 'Kinshasa'}`.replace(/^,\s*/, ''),
       badge: this.getBadgeForHierarchy(item.hierarchy_level || 1)
     };
   };

@@ -207,16 +207,18 @@ export const IntelligentAddressSearch: React.FC<IntelligentAddressSearchProps> =
       const currentLocationResult: IntelligentSearchResult = {
         id: 'current_location',
         name: 'Position actuelle',
-        category: 'current',
-        city,
+        subtitle: position.address || 'Votre position actuelle',
         lat: position.lat,
         lng: position.lng,
+        type: 'database',
+        city,
+        commune: '',
+        category: 'current',
+        confidence: 1.0,
         hierarchy_level: 5,
         popularity_score: 100,
         relevance_score: 100,
-        type: 'database',
-        badge: 'GPS',
-        subtitle: position.address || 'Votre position actuelle'
+        badge: 'GPS'
       };
       
       handleSelectLocation(currentLocationResult);

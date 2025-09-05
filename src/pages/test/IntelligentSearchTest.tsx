@@ -136,11 +136,7 @@ export default function IntelligentSearchTest() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <IntelligentAddressSearch
-          onLocationSelect={(location) => handleLocationSelect({
-            ...location,
-            subtitle: location.subtitle || '',
-            confidence: 0.8
-          })}
+          onLocationSelect={handleLocationSelect}
                     city={currentCity}
                     country_code="CD"
                     placeholder={`Rechercher à ${currentCity}...`}
