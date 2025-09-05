@@ -46,6 +46,7 @@ import Demo from "./pages/demo/Demo";
 import ProgrammePartenaire from "./pages/partner/ProgrammePartenaire";
 import CarteCouverture from "./pages/locations/CarteCouverture";
 import Marketplace from "./pages/marketplace/Marketplace";
+import AuthSystemTest from "./pages/test/AuthSystemTest";
 import { ChatProvider } from "@/components/chat/ChatProvider";
 import Onboarding from "./pages/Onboarding";
 import { OnboardingRedirect } from "@/components/onboarding/OnboardingRedirect";
@@ -151,6 +152,9 @@ const App = () => (
               <Route path="/partner" element={<ProgrammePartenaire />} />
               <Route path="/locations/coverage-map" element={<CarteCouverture />} />
               <Route path="/marketplace" element={<Marketplace />} />
+              
+              {/* Test Routes */}
+              <Route path="/test/auth-system" element={<AuthSystemTest />} />
               
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

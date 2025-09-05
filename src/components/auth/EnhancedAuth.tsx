@@ -13,7 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { AuthStatusChecker } from './AuthStatusChecker';
 
 type AuthStep = 'login' | 'role-selection' | 'registration';
 
@@ -247,10 +248,14 @@ export const EnhancedAuth = () => {
             </TabsContent>
           </Tabs>
 
-          <div className="mt-6 text-center">
-            <Button variant="link" onClick={() => navigate('/')}>
-              Retour à l'accueil
-            </Button>
+          <div className="mt-6 space-y-4">
+            <AuthStatusChecker compact />
+            
+            <div className="text-center">
+              <Button variant="link" onClick={() => navigate('/')}>
+                Retour à l'accueil
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
