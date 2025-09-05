@@ -201,9 +201,9 @@ const FAQ = () => {
               </Link>
             </Button>
             <Button variant="outline" asChild>
-              <a href="tel:0858040400" className="flex items-center gap-2">
+              <a href="tel:+243858040400" className="flex items-center gap-2">
                 <Phone className="w-4 h-4" />
-                08 58 04 04 00
+                +243 858 040 400
               </a>
             </Button>
             <Button variant="outline" asChild>
@@ -303,7 +303,7 @@ const FAQ = () => {
                     Appelez-nous directement
                   </p>
                   <Button asChild variant="outline">
-                    <a href="tel:0858040400">08 58 04 04 00</a>
+                    <a href="tel:+243858040400">+243 858 040 400</a>
                   </Button>
                 </CardContent>
               </Card>

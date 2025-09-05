@@ -112,7 +112,7 @@ const SignalerProbleme = () => {
                 <Link to="/auth">Signaler via l'app</Link>
               </Button>
               <Button variant="outline" asChild>
-                <a href="tel:0858040400">Appeler maintenant</a>
+                <a href="tel:+243858040400">Appeler maintenant</a>
               </Button>
             </div>
           </div>
@@ -126,7 +126,7 @@ const SignalerProbleme = () => {
             <Shield className="w-6 h-6" />
             <p className="font-semibold">
               En cas d'urgence ou de danger immédiat, appelez le{" "}
-              <a href="tel:0858040400" className="underline font-bold">08 58 04 04 00</a>
+              <a href="tel:+243858040400" className="underline font-bold">+243 858 040 400</a>
             </p>
           </div>
         </div>
@@ -404,7 +404,7 @@ const SignalerProbleme = () => {
                   08 58 04 04 00
                 </p>
                 <Button variant="outline" asChild>
-                  <a href="tel:0858040400">Appeler</a>
+                  <a href="tel:+243858040400">Appeler</a>
                 </Button>
               </CardContent>
             </Card>
@@ -424,7 +424,7 @@ const SignalerProbleme = () => {
               <Link to="/auth">Signaler un problème</Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-red-500">
-              <a href="tel:0858040400">Appel d'urgence</a>
+              <a href="tel:+243858040400">Appel d'urgence</a>
             </Button>
           </div>
         </div>
