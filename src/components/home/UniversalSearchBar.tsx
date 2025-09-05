@@ -2,6 +2,7 @@ import { UniversalSearchInterface } from '@/components/search/UniversalSearchInt
 import { useUniversalSearch } from '@/hooks/useUniversalSearch';
 import { locationSearchProvider, getPopularSuggestions } from '@/services/searchProviders';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePlaces } from '@/hooks/usePlaces';
 import type { SearchResult } from '@/components/search/UniversalSearchInterface';
 
 interface UniversalSearchBarProps {
@@ -16,6 +17,7 @@ export const UniversalSearchBar = ({
   placeholder = "Où allez-vous ?" 
 }: UniversalSearchBarProps) => {
   const { t } = useLanguage();
+  const { addLocationFromSearch } = usePlaces();
 
   const searchConfig = {
     type: 'location' as const,
@@ -39,6 +41,10 @@ export const UniversalSearchBar = ({
 
   const handleSearchResult = (result: SearchResult) => {
     saveToHistory(result);
+    // Sauvegarder automatiquement dans les lieux récents
+    if (result.coordinates) {
+      addLocationFromSearch(result.title, result.coordinates, result.title);
+    }
     onSearch(result.title, result.coordinates);
     onTransportSelect();
   };

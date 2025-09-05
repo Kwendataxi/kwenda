@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
+import { unifiedLocationService } from '@/services/unifiedLocationService';
 
 interface Place {
   id: string;
@@ -16,8 +17,8 @@ interface Place {
 export const usePlaces = () => {
   const [recentPlaces, setRecentPlaces] = useState<Place[]>([]);
   const [favoritePlaces, setFavoritePlaces] = useState<Place[]>([]);
-  const [homePlace, setHomePlace] = useState<Place | null>(null);
-  const [workPlace, setWorkPlace] = useState<Place | null>(null);
+  const [homePlace, setHomePlaceState] = useState<Place | null>(null);
+  const [workPlace, setWorkPlaceState] = useState<Place | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
@@ -40,12 +41,12 @@ export const usePlaces = () => {
         // Récupérer les places spéciales
         const homeData = localStorage.getItem(`kwenda_home_place_${user?.id || 'anonymous'}`);
         if (homeData) {
-          setHomePlace(JSON.parse(homeData));
+          setHomePlaceState(JSON.parse(homeData));
         }
 
         const workData = localStorage.getItem(`kwenda_work_place_${user?.id || 'anonymous'}`);
         if (workData) {
-          setWorkPlace(JSON.parse(workData));
+          setWorkPlaceState(JSON.parse(workData));
         }
       } catch (error) {
         console.error('Erreur lors du chargement des places:', error);
@@ -121,6 +122,75 @@ export const usePlaces = () => {
     localStorage.removeItem(`kwenda_recent_places_${user?.id || 'anonymous'}`);
   }, [user]);
 
+  const addLocationFromSearch = useCallback((address: string, coordinates?: { lat: number; lng: number }, name?: string) => {
+    if (!address.trim()) return;
+    
+    const newPlace = {
+      name: name || address,
+      address,
+      coordinates: coordinates || { lat: -4.4419, lng: 15.2663 }, // Kinshasa par défaut
+    };
+    
+    addRecentPlace(newPlace);
+  }, [addRecentPlace]);
+
+  const addCurrentLocation = useCallback(async () => {
+    try {
+      const location = await unifiedLocationService.getCurrentPosition();
+      const newPlace = {
+        name: 'Ma position actuelle',
+        address: location.address,
+        coordinates: { lat: location.lat, lng: location.lng },
+      };
+      addRecentPlace(newPlace);
+    } catch (error) {
+      console.error('Erreur lors de la récupération de la position:', error);
+    }
+  }, [addRecentPlace]);
+
+  const setHomePlace = useCallback((place: Omit<Place, 'id' | 'createdAt' | 'type'>) => {
+    const homePlace: Place = {
+      ...place,
+      id: 'home_place',
+      type: 'home',
+      createdAt: new Date(),
+    };
+    
+    localStorage.setItem(
+      `kwenda_home_place_${user?.id || 'anonymous'}`, 
+      JSON.stringify(homePlace)
+    );
+    
+    setHomePlaceState(homePlace);
+  }, [user]);
+
+  const setWorkPlace = useCallback((place: Omit<Place, 'id' | 'createdAt' | 'type'>) => {
+    const workPlace: Place = {
+      ...place,
+      id: 'work_place',
+      type: 'work',
+      createdAt: new Date(),
+    };
+    
+    localStorage.setItem(
+      `kwenda_work_place_${user?.id || 'anonymous'}`, 
+      JSON.stringify(workPlace)
+    );
+    
+    setWorkPlaceState(workPlace);
+  }, [user]);
+
+  const removeRecentPlace = useCallback((placeId: string) => {
+    setRecentPlaces(prev => {
+      const updated = prev.filter(p => p.id !== placeId);
+      localStorage.setItem(
+        `kwenda_recent_places_${user?.id || 'anonymous'}`, 
+        JSON.stringify(updated)
+      );
+      return updated;
+    });
+  }, [user]);
+
   const searchAndSave = useCallback(async (query: string) => {
     // Mock search functionality - replace with real implementation
     return [];
@@ -158,7 +228,12 @@ export const usePlaces = () => {
     addRecentPlace,
     addFavoritePlace,
     removeFavoritePlace,
+    removeRecentPlace,
     clearRecentPlaces,
+    addLocationFromSearch,
+    addCurrentLocation,
+    setHomePlace,
+    setWorkPlace,
     searchAndSave,
     markAsUsed,
     addPlace,
