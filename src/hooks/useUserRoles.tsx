@@ -37,9 +37,9 @@ export const useUserRoles = (): UseUserRolesReturn => {
       setLoading(true);
       setError(null);
 
-      // Appeler la fonction PostgreSQL pour obtenir les rôles et permissions
+      // Appeler la fonction PostgreSQL sécurisée pour obtenir les rôles et permissions
       const { data, error: rolesError } = await supabase.rpc('get_user_roles', {
-        _user_id: user.id
+        p_user_id: user.id
       });
 
       if (rolesError) {

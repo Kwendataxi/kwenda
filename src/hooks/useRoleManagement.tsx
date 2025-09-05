@@ -110,8 +110,8 @@ export const useRoleManagement = (): UseRoleManagementReturn => {
       setError(null);
 
       const { data, error: permissionError } = await supabase.rpc('has_permission', {
-        user_id_param: userId,
-        permission_param: permission
+        p_user_id: userId,
+        p_permission: permission
       });
 
       if (permissionError) {

@@ -6010,7 +6010,11 @@ export type Database = {
         Returns: string
       }
       calculate_delivery_price: {
-        Args: { p_city?: string; p_distance_km: number; p_service_type: string }
+        Args: {
+          city_param?: string
+          distance_km_param: number
+          service_type_param: string
+        }
         Returns: Json
       }
       calculate_distance_km: {
@@ -6507,13 +6511,20 @@ export type Database = {
         Returns: undefined
       }
       log_sensitive_data_access: {
-        Args: {
-          p_access_reason?: string
-          p_access_type?: string
-          p_accessed_columns?: string[]
-          p_target_record_id?: string
-          p_target_table: string
-        }
+        Args:
+          | {
+              p_access_reason?: string
+              p_access_type?: string
+              p_accessed_columns?: string[]
+              p_target_record_id?: string
+              p_target_table: string
+            }
+          | {
+              p_accessed_user_id?: string
+              p_metadata?: Json
+              p_operation: string
+              p_table_name: string
+            }
         Returns: undefined
       }
       process_escrow_release: {
