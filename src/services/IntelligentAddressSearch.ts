@@ -158,15 +158,15 @@ class IntelligentAddressSearchService {
     try {
       console.log(`🔍 Recherche prioritaire pour ${city}:`, query);
       
-      // Recherche prioritaire dans la ville de l'utilisateur
-      const { data: cityResults, error: cityError } = await supabase.rpc('intelligent_places_search', {
-        search_query: query,
-        search_city: city,
-        user_latitude: user_lat || null,
-        user_longitude: user_lng || null,
-        max_results: Math.ceil(max_results * 0.7), // 70% des résultats de la ville
-        include_nearby: true
-      });
+      // Recherche directe dans la table intelligent_places
+      const { data: cityResults, error: cityError } = await supabase
+        .from('intelligent_places')
+        .select('*')
+        .eq('city', city)
+        .eq('is_active', true)
+        .or(`name.ilike.%${query}%,commune.ilike.%${query}%,quartier.ilike.%${query}%,avenue.ilike.%${query}%`)
+        .order('popularity_score', { ascending: false })
+        .limit(Math.ceil(max_results * 0.7));
 
       if (cityError) throw cityError;
       
@@ -179,14 +179,14 @@ class IntelligentAddressSearchService {
         for (const otherCity of otherCities) {
           if (allResults.length >= max_results) break;
           
-          const { data: otherResults } = await supabase.rpc('intelligent_places_search', {
-            search_query: query,
-            search_city: otherCity,
-            user_latitude: null,
-            user_longitude: null,
-            max_results: max_results - allResults.length,
-            include_nearby: false
-          });
+          const { data: otherResults } = await supabase
+            .from('intelligent_places')
+            .select('*')
+            .eq('city', otherCity)
+            .eq('is_active', true)
+            .or(`name.ilike.%${query}%,commune.ilike.%${query}%,quartier.ilike.%${query}%`)
+            .order('popularity_score', { ascending: false })
+            .limit(max_results - allResults.length);
           
           if (otherResults && otherResults.length > 0) {
             const transformedOther = otherResults.map(this.transformDatabaseResult);
@@ -258,15 +258,15 @@ class IntelligentAddressSearchService {
     try {
       console.log('🌟 Fetching popular places for:', city);
       
-      // Utiliser la nouvelle fonction RPC sans paramètre de recherche pour les lieux populaires
-      const { data, error } = await supabase.rpc('intelligent_places_search', {
-        search_query: '',
-        search_city: city,
-        user_latitude: null,
-        user_longitude: null,
-        max_results,
-        include_nearby: false
-      });
+      // Récupérer les lieux populaires directement
+      const { data, error } = await supabase
+        .from('intelligent_places')
+        .select('*')
+        .eq('city', city)
+        .eq('is_active', true)
+        .gte('popularity_score', 50)
+        .order('popularity_score', { ascending: false })
+        .limit(max_results);
 
       if (error) {
         console.error('Popular places fetch error:', error);
@@ -280,7 +280,7 @@ class IntelligentAddressSearchService {
 
       console.log(`✅ Found ${data.length} popular places`);
       
-      // Transformer avec le nouveau format enrichi
+      // Transformer avec le nouveau format
       return data.map((place: any) => ({
         id: place.id || crypto.randomUUID(),
         name: place.name,
@@ -293,10 +293,10 @@ class IntelligentAddressSearchService {
         lng: place.longitude,
         hierarchy_level: place.hierarchy_level || 3,
         popularity_score: place.popularity_score || 0,
-        relevance_score: place.relevance_score || 0,
+        relevance_score: place.popularity_score || 0,
         type: 'database' as const,
-        badge: place.badge || 'Populaire',
-        subtitle: place.subtitle || place.formatted_address || `${place.commune || place.city}`
+        badge: 'Populaire',
+        subtitle: `${place.commune || place.city}`
       }));
     } catch (error) {
       console.error('Popular places exception:', error);
@@ -353,31 +353,24 @@ class IntelligentAddressSearchService {
   /**
    * Transformation des résultats de base de données
    */
-  private transformDatabaseResult = (item: any): IntelligentSearchResult => {
+   private transformDatabaseResult = (item: any): IntelligentSearchResult => {
     const badge = this.getHierarchyBadge(item.hierarchy_level);
     const subtitle = this.buildSubtitle(item);
 
     return {
       id: item.id,
       name: item.name,
-      name_fr: item.name_fr,
-      name_local: item.name_local,
       category: item.category || 'location',
       city: item.city,
       commune: item.commune,
-      lat: parseFloat(item.latitude),
-      lng: parseFloat(item.longitude),
-      hierarchy_level: item.hierarchy_level,
-      popularity_score: item.popularity_score,
-      relevance_score: parseFloat(item.relevance_score),
-      distance_km: item.distance_km ? parseFloat(item.distance_km) : undefined,
+      lat: parseFloat(item.latitude || 0),
+      lng: parseFloat(item.longitude || 0),
+      hierarchy_level: item.hierarchy_level || 3,
+      popularity_score: item.popularity_score || 0,
+      relevance_score: item.popularity_score || 0,
       type: 'database',
       badge,
-      subtitle,
-      aliases: item.aliases,
-      address_components: item.address_components,
-      phone_number: item.phone_number,
-      website: item.website
+      subtitle
     };
   };
 

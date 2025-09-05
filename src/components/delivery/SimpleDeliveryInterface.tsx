@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { CleanLocationPicker } from '@/components/location/CleanLocationPicker';
+import { ImprovedLocationPicker } from '@/components/location/ImprovedLocationPicker';
 import { ServiceSelectionStep } from './ServiceSelectionStep';
 import { OrderConfirmationStep } from './OrderConfirmationStep';
 import { 
@@ -237,10 +237,12 @@ const SimpleDeliveryInterface: React.FC<SimpleDeliveryInterfaceProps> = ({
                 Point de collecte *
               </label>
               
-              <CleanLocationPicker
+              <ImprovedLocationPicker
                 type="pickup"
                 onLocationSelect={handlePickupLocationSelect}
                 autoFocus={true}
+                placeholder="Adresse de collecte..."
+                showCurrentLocation={true}
               />
 
               {/* Contact collecte */}
@@ -287,10 +289,11 @@ const SimpleDeliveryInterface: React.FC<SimpleDeliveryInterfaceProps> = ({
                 Point de livraison *
               </label>
               
-              <CleanLocationPicker
+              <ImprovedLocationPicker
                 type="destination"
                 onLocationSelect={handleDestinationLocationSelect}
                 showCurrentLocation={false}
+                placeholder="Adresse de livraison..."
               />
 
               {/* Contact destination */}
