@@ -159,7 +159,7 @@ export const IntelligentOrderReceiver: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-sm">Auto-accept (score >90)</span>
+              <span className="text-sm">Auto-accept (score {'>'}90)</span>
               <Switch
                 checked={autoAcceptHighScore}
                 onCheckedChange={setAutoAcceptHighScore}
