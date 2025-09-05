@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { CleanLocationPicker } from '@/components/location/CleanLocationPicker';
+import { ServiceSelectionStep } from './ServiceSelectionStep';
+import { OrderConfirmationStep } from './OrderConfirmationStep';
 import { 
   ArrowLeft,
   ArrowRight,
@@ -36,19 +38,41 @@ interface DeliveryData {
   };
 }
 
+interface DeliveryService {
+  id: 'flash' | 'flex' | 'maxicharge';
+  name: string;
+  subtitle: string;
+  description: string;
+  icon: any;
+  features: string[];
+  estimatedTime: string;
+}
+
+interface DeliveryPricing {
+  price: number;
+  distance: number;
+  duration: number;
+}
+
 interface SimpleDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
 }
 
+type DeliveryStep = 'addresses' | 'service' | 'confirmation' | 'created';
+
 const SimpleDeliveryInterface: React.FC<SimpleDeliveryInterfaceProps> = ({ 
   onSubmit, 
   onCancel 
 }) => {
+  const [currentStep, setCurrentStep] = useState<DeliveryStep>('addresses');
   const [deliveryData, setDeliveryData] = useState<DeliveryData>({
     pickup: { location: null, contact: { name: '', phone: '' } },
     destination: { location: null, contact: { name: '', phone: '' } }
   });
+  const [selectedService, setSelectedService] = useState<DeliveryService | null>(null);
+  const [selectedPricing, setSelectedPricing] = useState<DeliveryPricing | null>(null);
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
   const { toast } = useToast();
 
@@ -94,9 +118,9 @@ const SimpleDeliveryInterface: React.FC<SimpleDeliveryInterfaceProps> = ({
            deliveryData.destination.contact.name;
   };
 
-  const handleSubmit = () => {
+  const handleAddressesSubmit = () => {
     if (canProceed()) {
-      onSubmit(deliveryData);
+      setCurrentStep('service');
     } else {
       toast({
         title: "Informations manquantes",
@@ -106,6 +130,70 @@ const SimpleDeliveryInterface: React.FC<SimpleDeliveryInterfaceProps> = ({
     }
   };
 
+  const handleServiceSelect = (service: DeliveryService, pricing: DeliveryPricing) => {
+    setSelectedService(service);
+    setSelectedPricing(pricing);
+    setCurrentStep('confirmation');
+  };
+
+  const handleOrderConfirm = (orderId: string) => {
+    setCreatedOrderId(orderId);
+    setCurrentStep('created');
+    onSubmit({ orderId, ...deliveryData, service: selectedService, pricing: selectedPricing });
+  };
+
+  // Rendu conditionnel selon l'étape
+  if (currentStep === 'service' && deliveryData.pickup.location && deliveryData.destination.location) {
+    return (
+      <ServiceSelectionStep
+        pickup={deliveryData.pickup.location}
+        destination={deliveryData.destination.location}
+        onServiceSelect={handleServiceSelect}
+        onBack={() => setCurrentStep('addresses')}
+      />
+    );
+  }
+
+  if (currentStep === 'confirmation' && selectedService && selectedPricing) {
+    return (
+      <OrderConfirmationStep
+        pickup={deliveryData.pickup}
+        destination={deliveryData.destination}
+        service={selectedService}
+        pricing={selectedPricing}
+        onBack={() => setCurrentStep('service')}
+        onConfirm={handleOrderConfirm}
+      />
+    );
+  }
+
+  if (currentStep === 'created' && createdOrderId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 p-4 flex items-center justify-center">
+        <Card className="glassmorphism border-0 shadow-xl max-w-md w-full text-center">
+          <CardContent className="pt-8 pb-6">
+            <div className="mb-6">
+              <div className="h-16 w-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ArrowRight className="h-8 w-8 text-success" />
+              </div>
+              <h2 className="text-2xl font-bold text-success mb-2">Commande créée !</h2>
+              <p className="text-muted-foreground">
+                Votre livraison {selectedService?.name} a été confirmée
+              </p>
+            </div>
+            <Button 
+              onClick={onCancel} 
+              className="w-full h-12 rounded-xl"
+            >
+              Retour à l'accueil
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Étape par défaut : saisie des adresses
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 p-4">
       <div className="max-w-2xl mx-auto">
@@ -126,9 +214,9 @@ const SimpleDeliveryInterface: React.FC<SimpleDeliveryInterfaceProps> = ({
             <div className="w-16" />
           </div>
           
-          <Progress value={50} className="w-full h-2" />
+          <Progress value={33} className="w-full h-2" />
           <p className="text-sm text-muted-foreground mt-2 text-center">
-            Configuration des adresses
+            Étape 1/3 : Configuration des adresses
           </p>
         </div>
 
@@ -245,7 +333,7 @@ const SimpleDeliveryInterface: React.FC<SimpleDeliveryInterfaceProps> = ({
             {/* Bouton continuer moderne */}
             <div className="pt-6">
               <Button
-                onClick={handleSubmit}
+                onClick={handleAddressesSubmit}
                 disabled={!canProceed()}
                 className="w-full h-14 text-base font-medium rounded-xl
                           bg-gradient-to-r from-primary to-primary/90 
