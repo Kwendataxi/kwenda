@@ -175,7 +175,7 @@ const CustomerSupport = () => {
       type: "phone",
       title: "Téléphone",
       description: "Support téléphonique",
-      contact: "+243 XX XXX XXXX",
+      contact: "+243 858 040 400",
       availability: "Lun-Ven 8h-18h",
       icon: Phone,
       available: true
@@ -184,7 +184,7 @@ const CustomerSupport = () => {
       type: "email",
       title: "Email",
       description: "Support par email",
-      contact: "support@kwenda.app",
+      contact: "contact@kwendataxi.com",
       availability: "Réponse sous 24h",
       icon: Mail,
       available: true

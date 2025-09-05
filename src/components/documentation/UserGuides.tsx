@@ -494,7 +494,7 @@ export const UserGuides: React.FC = () => {
                 <div className="flex gap-4">
                   <Button variant="outline" size="sm">
                     <Phone className="h-4 w-4 mr-2" />
-                    +243 XX XXX XXXX
+                    +243 858 040 400
                   </Button>
                   <Button variant="outline" size="sm">
                     <MessageCircle className="h-4 w-4 mr-2" />
