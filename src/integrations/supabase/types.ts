@@ -4243,6 +4243,48 @@ export type Database = {
         }
         Relationships: []
       }
+      security_audit_logs: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          resource_id: string | null
+          resource_type: string
+          success: boolean | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          success?: boolean | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          success?: boolean | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       sensitive_data_access_logs: {
         Row: {
           access_reason: string | null
@@ -6032,6 +6074,10 @@ export type Database = {
           vendor_count: number
         }[]
       }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_delivery_zone_info: {
         Args: { assignment_id_param: string }
         Returns: {
@@ -6266,6 +6312,10 @@ export type Database = {
         Args: { permission_param: string; user_id_param: string }
         Returns: boolean
       }
+      has_user_role: {
+        Args: { check_role: string }
+        Returns: boolean
+      }
       intelligent_places_search: {
         Args:
           | {
@@ -6348,6 +6398,17 @@ export type Database = {
           search_lat?: number
           search_lng?: number
           search_radius?: number
+        }
+        Returns: undefined
+      }
+      log_security_event: {
+        Args: {
+          p_action_type: string
+          p_error_message?: string
+          p_metadata?: Json
+          p_resource_id?: string
+          p_resource_type: string
+          p_success?: boolean
         }
         Returns: undefined
       }
