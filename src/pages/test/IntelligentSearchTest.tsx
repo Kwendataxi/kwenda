@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { IntelligentAddressSearch } from '@/components/location/IntelligentAddressSearch';
 import { useIntelligentAddressSearch } from '@/hooks/useIntelligentAddressSearch';
-import { type IntelligentSearchResult } from '@/services/IntelligentAddressSearch';
+import { type IntelligentSearchResult } from '@/hooks/useIntelligentAddressSearch';
 import { Search, MapPin, Clock, Star, Navigation2 } from 'lucide-react';
 
 export default function IntelligentSearchTest() {
@@ -36,7 +36,11 @@ export default function IntelligentSearchTest() {
 
   const handleLocationSelect = async (location: IntelligentSearchResult) => {
     setSelectedLocation(location);
-    await addToHistory(location);
+    await addToHistory({
+      ...location,
+      subtitle: location.subtitle || '',
+      confidence: location.confidence || 0.8
+    });
   };
 
   const handleManualSearch = async (query: string) => {
@@ -132,7 +136,11 @@ export default function IntelligentSearchTest() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <IntelligentAddressSearch
-                    onLocationSelect={handleLocationSelect}
+          onLocationSelect={(location) => handleLocationSelect({
+            ...location,
+            subtitle: location.subtitle || '',
+            confidence: 0.8
+          })}
                     city={currentCity}
                     country_code="CD"
                     placeholder={`Rechercher à ${currentCity}...`}
@@ -274,7 +282,12 @@ export default function IntelligentSearchTest() {
                         <div
                           key={result.id}
                           className="flex items-center gap-3 p-3 border border-grey-200 rounded-lg hover:bg-grey-50 cursor-pointer transition-colors"
-                          onClick={() => handleLocationSelect(result)}
+                          onClick={() => handleLocationSelect({
+                            ...result,
+                            hierarchy_level: result.hierarchy_level || 3,
+                            popularity_score: result.popularity_score || 70,
+                            relevance_score: result.relevance_score || 0.8
+                          })}
                         >
                           <div className="text-lg">
                             {result.category === 'transport' ? '🚌' :

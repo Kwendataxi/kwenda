@@ -184,7 +184,7 @@ export const IntelligentLocationSearch: React.FC<LocationSearchProps> = ({
                       <span className="text-xs text-muted-foreground truncate">{result.subtitle}</span>
                     )}
                   </div>
-                  {result.badge && (
+                  {'badge' in result && result.badge && (
                     <span className="ml-auto text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
                       {result.badge}
                     </span>

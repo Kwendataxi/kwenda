@@ -340,7 +340,7 @@ export const RealTimeLocationSearch: React.FC<RealTimeLocationSearchProps> = ({
                               ✓ Vérifié
                             </Badge>
                           )}
-                          {'popularity_score' in result && result.popularity_score > 80 && (
+                          {'popularity_score' in result && typeof result.popularity_score === 'number' && result.popularity_score > 80 && (
                             <Star className="h-3 w-3 text-yellow-500 fill-current" />
                           )}
                         </>

@@ -226,21 +226,24 @@ class LocationServiceClass {
    */
   private async getDatabasePosition(): Promise<LocationData> {
     try {
-      const { data, error } = await supabase
+      // Utilisation simplifiée pour éviter les erreurs TypeScript
+      const dbResponse = await supabase
         .from('intelligent_places')
         .select('name, latitude, longitude, city, commune')
         .eq('is_popular', true)
         .eq('city', 'Kinshasa')
         .order('popularity_score', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
 
-      if (error || !data) throw error;
+      if (dbResponse.error || !dbResponse.data || dbResponse.data.length === 0) {
+        throw new Error('No data found');
+      }
 
+      const place = dbResponse.data[0];
       return {
-        address: `${data.name}, ${data.commune}, ${data.city}`,
-        lat: data.latitude,
-        lng: data.longitude,
+        address: `${place.name}, ${place.commune}, ${place.city}`,
+        lat: place.latitude,
+        lng: place.longitude,
         type: 'database'
       };
     } catch (error) {

@@ -19,6 +19,11 @@ export interface IntelligentSearchResult {
   commune: string;
   category: string;
   confidence: number;
+  // Propriétés optionnelles pour compatibilité
+  hierarchy_level?: number;
+  popularity_score?: number;
+  relevance_score?: number;
+  badge?: string;
 }
 
 interface UseIntelligentAddressSearchProps {
@@ -162,7 +167,12 @@ export const useIntelligentAddressSearch = ({
           city: currentCity,
           commune: result.subtitle?.split(',')[0] || '',
           category: 'lieu',
-          confidence: result.confidence || 0.8
+          confidence: result.confidence || 0.8,
+          // Propriétés optionnelles
+          hierarchy_level: 3,
+          popularity_score: Math.round((result.confidence || 0.8) * 100),
+          relevance_score: result.confidence || 0.8,
+          badge: result.confidence && result.confidence > 0.9 ? 'Pertinent' : undefined
         }));
 
         setResults(searchResults);
@@ -206,7 +216,12 @@ export const useIntelligentAddressSearch = ({
         city: currentCity,
         commune: place.subtitle?.split(',')[0] || '',
         category: 'lieu populaire',
-        confidence: place.confidence || 0.9
+        confidence: place.confidence || 0.9,
+        // Propriétés optionnelles
+        hierarchy_level: 4,
+        popularity_score: Math.round((place.confidence || 0.9) * 100),
+        relevance_score: place.confidence || 0.9,
+        badge: 'Populaire'
       }));
 
       setPopularPlaces(popularResults);
