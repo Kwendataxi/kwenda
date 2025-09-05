@@ -8,14 +8,23 @@ export const ScrollToTop = () => {
     // Respect user's motion preferences
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     
-    // Small delay to ensure page content is loaded
+    // Immediate scroll for instant feedback
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'auto'
+    });
+    
+    // Enhanced delay and smooth scroll for better UX
     const timeoutId = setTimeout(() => {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: prefersReducedMotion ? 'auto' : 'smooth'
-      });
-    }, 50);
+      if (!prefersReducedMotion) {
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
 
     return () => clearTimeout(timeoutId);
   }, [pathname]);

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Gift, Star, Trophy, Coins, Clock, Users, ArrowRight } from 'lucide-react';
 import { ModernHeader } from "@/components/home/ModernHeader";
 import ModernFooter from "@/components/landing/ModernFooter";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { Link } from 'react-router-dom';
 
 const KwendaTombola = () => {
@@ -82,8 +83,9 @@ const KwendaTombola = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <ModernHeader />
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <ModernHeader />
       
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-br from-yellow-500/10 to-orange-500/10">
@@ -294,8 +296,9 @@ const KwendaTombola = () => {
         </div>
       </section>
 
-      <ModernFooter />
-    </div>
+        <ModernFooter />
+      </div>
+    </PageTransition>
   );
 };
 

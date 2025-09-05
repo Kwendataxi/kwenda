@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Car, Users, Calendar, Shield, Clock, Star, ArrowRight } from 'lucide-react';
 import { ModernHeader } from "@/components/home/ModernHeader";
 import ModernFooter from "@/components/landing/ModernFooter";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { Link } from 'react-router-dom';
 
 const LocationVehicules = () => {
@@ -56,8 +57,9 @@ const LocationVehicules = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <ModernHeader />
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <ModernHeader />
       
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-br from-accent/10 to-primary-glow/10">
@@ -250,8 +252,9 @@ const LocationVehicules = () => {
         </div>
       </section>
 
-      <ModernFooter />
-    </div>
+        <ModernFooter />
+      </div>
+    </PageTransition>
   );
 };
 

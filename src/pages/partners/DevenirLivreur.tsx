@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Package, DollarSign, Calendar, Users, CheckCircle, Clock, ArrowRight } from 'lucide-react';
 import { ModernHeader } from "@/components/home/ModernHeader";
 import ModernFooter from "@/components/landing/ModernFooter";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { Link } from 'react-router-dom';
 
 const DevenirLivreur = () => {
@@ -62,8 +63,9 @@ const DevenirLivreur = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <ModernHeader />
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <ModernHeader />
       
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-br from-secondary/10 to-accent/10">
@@ -295,8 +297,9 @@ const DevenirLivreur = () => {
         </div>
       </section>
 
-      <ModernFooter />
-    </div>
+        <ModernFooter />
+      </div>
+    </PageTransition>
   );
 };
 

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Car, DollarSign, Shield, Users, CheckCircle, TrendingUp, ArrowRight } from 'lucide-react';
 import { ModernHeader } from "@/components/home/ModernHeader";
 import ModernFooter from "@/components/landing/ModernFooter";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { Link } from 'react-router-dom';
 
 const LouerVehicule = () => {
@@ -65,8 +66,9 @@ const LouerVehicule = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <ModernHeader />
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <ModernHeader />
       
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-br from-accent/10 to-primary-glow/10">
@@ -374,8 +376,9 @@ const LouerVehicule = () => {
         </div>
       </section>
 
-      <ModernFooter />
-    </div>
+        <ModernFooter />
+      </div>
+    </PageTransition>
   );
 };
 

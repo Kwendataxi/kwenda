@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Package, Truck, Clock, Shield, MapPin, Star, ArrowRight } from 'lucide-react';
 import { ModernHeader } from "@/components/home/ModernHeader";
 import ModernFooter from "@/components/landing/ModernFooter";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { Link } from 'react-router-dom';
 
 const LivraisonExpress = () => {
@@ -59,8 +60,9 @@ const LivraisonExpress = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <ModernHeader />
+    <PageTransition>
+      <div className="min-h-screen bg-background">
+        <ModernHeader />
       
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-br from-secondary/10 to-accent/10">
@@ -204,8 +206,9 @@ const LivraisonExpress = () => {
         </div>
       </section>
 
-      <ModernFooter />
-    </div>
+        <ModernFooter />
+      </div>
+    </PageTransition>
   );
 };
 
