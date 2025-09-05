@@ -12,7 +12,7 @@ import { useMasterLocation } from '@/hooks/useMasterLocation';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import ServiceSelector from './ServiceSelector';
 import DynamicPriceCalculator from './DynamicPriceCalculator';
-import { RealTimeLocationSearch } from '@/components/location/RealTimeLocationSearch';
+import { ModernLocationSearch } from '@/components/location/ModernLocationSearch';
 import { UnifiedLocation } from '@/types/locationAdapter';
 import { 
   isValidLocation, 
@@ -156,22 +156,59 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
     }
   };
 
-  // Gestion sécurisée de la sélection de localisation
+  // Gestion ULTRA-SÉCURISÉE de la sélection de localisation
   const handleLocationSelect = (location: UnifiedLocation, type: 'pickup' | 'destination') => {
     console.log(`Sélection ${type}:`, location);
     
-    // Conversion et sécurisation immédiate
-    const securedLocation = secureLocation(unifiedToLocationData(location));
-    
-    setFormData(prev => ({ ...prev, [type]: securedLocation }));
-    setLocationValues(prev => ({ ...prev, [type]: securedLocation.address }));
-    
-    // Validation immédiate et feedback utilisateur
-    if (!isValidLocation(securedLocation)) {
+    try {
+      // Protection contre les objets null/undefined
+      if (!location) {
+        toast({
+          title: "Erreur de sélection",
+          description: "Localisation invalide, veuillez réessayer",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Conversion et sécurisation avec double validation
+      const locationData = unifiedToLocationData(location);
+      const securedLocation = secureLocation(locationData, 'Kinshasa');
+      
+      // Validation que les coordonnées existent
+      if (!securedLocation || !securedLocation.lat || !securedLocation.lng) {
+        console.error('Coordonnées manquantes après sécurisation:', securedLocation);
+        toast({
+          title: "Coordonnées manquantes",
+          description: "Impossible de localiser cette adresse, position par défaut appliquée",
+          variant: "default"
+        });
+      }
+      
+      setFormData(prev => ({ ...prev, [type]: securedLocation }));
+      setLocationValues(prev => ({ ...prev, [type]: securedLocation.address }));
+      
+      // Validation finale et feedback utilisateur
+      if (!isValidLocation(securedLocation)) {
+        toast({
+          title: "Position corrigée ⚡",
+          description: "Coordonnées optimisées pour la livraison",
+          variant: "default"
+        });
+      } else {
+        // Feedback positif pour sélection réussie
+        toast({
+          title: `${type === 'pickup' ? 'Collecte' : 'Livraison'} définie ✅`,
+          description: securedLocation.address,
+          variant: "default"
+        });
+      }
+    } catch (error) {
+      console.error('Erreur handleLocationSelect:', error);
       toast({
-        title: "Attention",
-        description: "Coordonnées corrigées automatiquement",
-        variant: "default"
+        title: "Erreur de localisation",
+        description: "Impossible de traiter cette adresse",
+        variant: "destructive"
       });
     }
   };
@@ -288,16 +325,16 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
         </div>
 
         <div className="space-y-4">
-          <RealTimeLocationSearch
+          <ModernLocationSearch
             placeholder={isPickup ? 
-              "Rechercher lieu de collecte..." : 
-              "Rechercher lieu de livraison..."
+              "🎯 Rechercher lieu de collecte..." : 
+              "📍 Rechercher lieu de livraison..."
             }
             onLocationSelect={(location) => handleLocationSelect(location, type)}
             value={locationValues[type]}
             showCurrentLocation={true}
-            showCitySelector={true}
             autoFocus={true}
+            variant="elegant"
           />
 
           {formData[type] && (

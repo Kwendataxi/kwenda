@@ -103,30 +103,55 @@ export const RealTimeLocationSearch: React.FC<RealTimeLocationSearchProps> = ({
     setSelectedIndex(-1);
   }, [search, clearResults, currentCity]);
 
-  // Gestion de la sélection
+  // Gestion de la sélection SÉCURISÉE
   const handleLocationSelect = useCallback((result: any) => {
-    const unified = intelligentToUnified(result);
-    setInputValue(unified.address);
-    setIsOpen(false);
-    addToHistory(result);
-    onLocationSelect(unified);
+    try {
+      const unified = intelligentToUnified(result);
+      setInputValue(unified.address);
+      setIsOpen(false);
+      setSelectedIndex(-1);
+      addToHistory(result);
+      onLocationSelect(unified);
+      
+      // Blur input pour éviter focus persistant
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.blur();
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Erreur sélection location:', error);
+    }
   }, [onLocationSelect, addToHistory]);
 
-  // Navigation clavier
+  // Navigation clavier AMÉLIORÉE - Sans bugs
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!isOpen) return; // Éviter les actions si fermé
+    
     const totalResults = results.length + (showCurrentLocation ? 1 : 0);
+    
+    if (totalResults === 0) return; // Éviter division par zéro
     
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => (prev + 1) % totalResults);
+        e.stopPropagation();
+        setSelectedIndex(prev => {
+          const newIndex = prev < totalResults - 1 ? prev + 1 : 0;
+          return newIndex;
+        });
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex(prev => prev <= 0 ? totalResults - 1 : prev - 1);
+        e.stopPropagation();
+        setSelectedIndex(prev => {
+          const newIndex = prev > 0 ? prev - 1 : totalResults - 1;
+          return newIndex;
+        });
         break;
       case 'Enter':
         e.preventDefault();
+        e.stopPropagation();
         if (selectedIndex >= 0 && selectedIndex < totalResults) {
           if (selectedIndex === 0 && showCurrentLocation) {
             // Géolocalisation actuelle
@@ -137,14 +162,26 @@ export const RealTimeLocationSearch: React.FC<RealTimeLocationSearchProps> = ({
               handleLocationSelect(results[resultIndex]);
             }
           }
+        } else if (results.length > 0) {
+          // Si aucun index sélectionné, prendre le premier résultat
+          handleLocationSelect(results[0]);
         }
         break;
       case 'Escape':
+        e.preventDefault();
+        setIsOpen(false);
+        setSelectedIndex(-1);
+        if (inputRef.current) {
+          inputRef.current.blur();
+        }
+        break;
+      case 'Tab':
+        // Permettre navigation Tab normale
         setIsOpen(false);
         setSelectedIndex(-1);
         break;
     }
-  }, [results, selectedIndex, showCurrentLocation, handleLocationSelect, detectCityFromLocation]);
+  }, [results, selectedIndex, showCurrentLocation, handleLocationSelect, detectCityFromLocation, isOpen]);
 
   // Clic en dehors pour fermer
   useEffect(() => {
@@ -165,12 +202,18 @@ export const RealTimeLocationSearch: React.FC<RealTimeLocationSearchProps> = ({
     }
   }, [autoFocus]);
 
-  // Synchronisation avec value externe
+  // Synchronisation avec value externe AMÉLIORÉE
   useEffect(() => {
     if (value !== inputValue) {
       setInputValue(value);
+      // Reset état quand value change de l'extérieur
+      if (value === '') {
+        setIsOpen(false);
+        setSelectedIndex(-1);
+        clearResults();
+      }
     }
-  }, [value]);
+  }, [value, inputValue, clearResults]);
 
   const allResults = [
     ...(showCurrentLocation ? [{ 

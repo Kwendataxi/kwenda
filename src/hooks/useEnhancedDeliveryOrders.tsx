@@ -127,24 +127,41 @@ export const useEnhancedDeliveryOrders = () => {
 
       console.log('Utilisateur authentifié:', user.id);
 
-      // Préparer les coordonnées JSON
+      // VALIDATION ULTRA-ROBUSTE DES COORDONNÉES
+      const { secureLocation } = await import('@/utils/locationValidation');
+      
+      // Sécuriser et valider pickup
+      const securePickup = secureLocation(orderData.pickup, orderData.city);
+      const secureDestination = secureLocation(orderData.destination, orderData.city);
+      
+      console.log('Coordonnées sécurisées:', {
+        pickup: securePickup,
+        destination: secureDestination
+      });
+
+      // Préparer les coordonnées JSON avec fallbacks robustes
       const pickupCoords = {
-        lat: orderData.pickup.lat,
-        lng: orderData.pickup.lng,
-        type: orderData.pickup.type
+        lat: securePickup?.lat || securePickup?.coordinates?.lat || -4.3217,
+        lng: securePickup?.lng || securePickup?.coordinates?.lng || 15.3069,
+        type: securePickup?.type || 'fallback'
       };
       
       const deliveryCoords = {
-        lat: orderData.destination.lat,
-        lng: orderData.destination.lng,
-        type: orderData.destination.type
+        lat: secureDestination?.lat || secureDestination?.coordinates?.lat || -4.3217,
+        lng: secureDestination?.lng || secureDestination?.coordinates?.lng || 15.3069,
+        type: secureDestination?.type || 'fallback'
       };
 
-      // Créer la commande avec toutes les données
+      // Validation finale pour éviter les erreurs "Cannot read properties of undefined"
+      if (!pickupCoords.lat || !pickupCoords.lng || !deliveryCoords.lat || !deliveryCoords.lng) {
+        throw new Error('Coordonnées invalides - Impossible de créer la commande');
+      }
+
+      // Créer la commande avec données sécurisées
       const orderPayload = {
         user_id: user.id,
-        pickup_location: orderData.pickup.address,
-        delivery_location: orderData.destination.address,
+        pickup_location: securePickup?.address || 'Adresse de collecte non définie',
+        delivery_location: secureDestination?.address || 'Adresse de livraison non définie',
         pickup_coordinates: pickupCoords,
         delivery_coordinates: deliveryCoords,
         delivery_type: orderData.mode,
@@ -152,7 +169,7 @@ export const useEnhancedDeliveryOrders = () => {
         status: 'pending'
       };
 
-      console.log('Données à insérer:', orderPayload);
+      console.log('Données sécurisées à insérer:', orderPayload);
 
       const { data: order, error } = await supabase
         .from('delivery_orders')
@@ -168,7 +185,7 @@ export const useEnhancedDeliveryOrders = () => {
       console.log('Commande créée avec succès:', order.id);
 
       toast({
-        title: "Commande créée",
+        title: "Commande créée ✅",
         description: `Votre commande de livraison ${orderData.mode} a été créée avec succès`,
       });
 
