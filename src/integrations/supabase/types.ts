@@ -1786,6 +1786,42 @@ export type Database = {
         }
         Relationships: []
       }
+      location_access_audit: {
+        Row: {
+          access_type: string
+          accessed_by: string | null
+          created_at: string | null
+          drivers_found: number | null
+          id: string
+          ip_address: unknown | null
+          search_coordinates: Json | null
+          search_radius_km: number | null
+          user_agent: string | null
+        }
+        Insert: {
+          access_type: string
+          accessed_by?: string | null
+          created_at?: string | null
+          drivers_found?: number | null
+          id?: string
+          ip_address?: unknown | null
+          search_coordinates?: Json | null
+          search_radius_km?: number | null
+          user_agent?: string | null
+        }
+        Update: {
+          access_type?: string
+          accessed_by?: string | null
+          created_at?: string | null
+          drivers_found?: number | null
+          id?: string
+          ip_address?: unknown | null
+          search_coordinates?: Json | null
+          search_radius_km?: number | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       lottery_draws: {
         Row: {
           created_at: string
@@ -5834,7 +5870,15 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      available_drivers_summary: {
+        Row: {
+          avg_rating: number | null
+          city: string | null
+          total_available_drivers: number | null
+          vehicle_class: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_delivery_estimate: {
@@ -5875,6 +5919,10 @@ export type Database = {
       }
       check_driver_location_access: {
         Args: { target_driver_id: string }
+        Returns: boolean
+      }
+      check_location_search_rate_limit: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       cleanup_old_audit_logs: {
@@ -6272,6 +6320,16 @@ export type Database = {
           p_user_id?: string
         }
         Returns: string
+      }
+      log_location_access: {
+        Args: {
+          access_type_param: string
+          drivers_found_count?: number
+          search_lat?: number
+          search_lng?: number
+          search_radius?: number
+        }
+        Returns: undefined
       }
       log_sensitive_data_access: {
         Args: {
