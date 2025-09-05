@@ -5,6 +5,7 @@ import BrandLogo from "@/components/brand/BrandLogo";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t } = useLanguage();
 
   const navItems = [
     { label: "Accueil", href: "#accueil" },
