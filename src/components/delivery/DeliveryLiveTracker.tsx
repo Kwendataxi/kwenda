@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Phone, MapPin, Package, Clock, User2 } from 'lucide-react';
 import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
 import { useDeliveryTracking } from '@/hooks/useDeliveryTracking';
+import DriverRequestManager from './DriverRequestManager';
 
 interface DeliveryLiveTrackerProps {
   orderId: string;
@@ -30,6 +31,11 @@ const formatDateTime = (iso?: string | null) => {
 
 export default function DeliveryLiveTracker({ orderId, orderData, onBack }: DeliveryLiveTrackerProps) {
   const { order, statusLabel, price, packageType, driverProfile, recipientProfile, driverLocation } = useDeliveryTracking(orderId);
+
+  const handleDriverAssigned = (driverId: string) => {
+    console.log('🚗 Chauffeur assigné:', driverId);
+    // Le hook useDeliveryTracking se mettra à jour automatiquement via realtime
+  };
 
   const pickup = useMemo(() => {
     const c = (order?.pickup_coordinates as any) || orderData?.pickup;
@@ -111,16 +117,30 @@ export default function DeliveryLiveTracker({ orderId, orderData, onBack }: Deli
                   <AvatarFallback>DR</AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="font-semibold">{driverProfile?.display_name || 'Livreur en approche'}</div>
-                  <div className="text-sm text-muted-foreground">{order?.delivery_type?.toString()?.toUpperCase()} • {order?.status || '—'}</div>
+                  <div className="font-semibold">
+                    {driverProfile?.display_name || (order?.driver_id ? 'Livreur assigné' : 'Recherche de livreur...')}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {order?.delivery_type?.toString()?.toUpperCase()} • 
+                    {(driverProfile as any)?.rating ? ` ⭐ ${((driverProfile as any).rating).toFixed(1)} • ` : ' '}
+                    {statusLabel}
+                  </div>
                 </div>
               </div>
-              {driverProfile?.phone_number && (
+              {driverProfile?.phone_number ? (
                 <Button asChild size="sm" variant="outline">
                   <a href={`tel:${driverProfile.phone_number}`}>
                     <Phone className="w-4 h-4 mr-1" /> Appeler
                   </a>
                 </Button>
+              ) : order?.status === 'pending' ? (
+                <Badge variant="outline" className="text-orange-600">
+                  Recherche...
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-gray-500">
+                  Non disponible
+                </Badge>
               )}
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -150,6 +170,19 @@ export default function DeliveryLiveTracker({ orderId, orderData, onBack }: Deli
           </CardContent>
         </Card>
       </div>
+
+      {/* Gestionnaire de demandes de chauffeur */}
+      {order && (
+        <div className="p-4">
+          <DriverRequestManager
+            orderId={orderId}
+            orderStatus={order.status || 'pending'}
+            pickupCoordinates={pickup || { lat: -4.3217, lng: 15.3069 }}
+            estimatedPrice={price || 5000}
+            onDriverAssigned={handleDriverAssigned}
+          />
+        </div>
+      )}
 
       {/* Footer actions */}
       <div className="p-4">

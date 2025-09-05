@@ -53,6 +53,7 @@ export interface UserProfileMinimal {
   display_name?: string | null;
   phone_number?: string | null;
   avatar_url?: string | null;
+  rating?: number | null;
 }
 
 export const useDeliveryTracking = (orderId: string) => {
@@ -145,23 +146,57 @@ export const useDeliveryTracking = (orderId: string) => {
         //   setStatusHistory(history || []);
         // }
 
-        // Recipient profile
+        // Recipient profile depuis clients
         const { data: rp } = await supabase
-          .from('profiles')
-          .select('display_name, phone_number, avatar_url')
+          .from('clients')
+          .select('display_name, phone_number')
           .eq('user_id', (o as any).user_id)
           .maybeSingle();
-        if (isMounted) setRecipientProfile(rp as UserProfileMinimal);
+        if (isMounted) setRecipientProfile({
+          display_name: rp?.display_name,
+          phone_number: rp?.phone_number,
+          avatar_url: null
+        } as UserProfileMinimal);
 
-        // Driver profile + phone
+        // Driver profile + phone avec chauffeurs et clients
         if ((o as any).driver_id) {
           const driverId = (o as any).driver_id as string;
-          const { data: dp } = await supabase
-            .from('profiles')
-            .select('display_name, phone_number, avatar_url')
+          
+          // Chercher d'abord dans les chauffeurs, puis dans les clients
+          let driverData = null;
+          
+          const { data: chauffeurData } = await supabase
+            .from('chauffeurs')
+            .select('display_name, phone_number, rating_average')
             .eq('user_id', driverId)
             .maybeSingle();
-          if (isMounted) setDriverProfile(dp as UserProfileMinimal);
+            
+          if (chauffeurData) {
+            driverData = {
+              display_name: chauffeurData.display_name,
+              phone_number: chauffeurData.phone_number,
+              avatar_url: null,
+              rating: chauffeurData.rating_average
+            };
+          } else {
+            // Fallback sur clients
+            const { data: clientData } = await supabase
+              .from('clients')
+              .select('display_name, phone_number')
+              .eq('user_id', driverId)
+              .maybeSingle();
+              
+            if (clientData) {
+              driverData = {
+                display_name: clientData.display_name,
+                phone_number: clientData.phone_number,
+                avatar_url: null,
+                rating: null
+              };
+            }
+          }
+          
+          if (isMounted && driverData) setDriverProfile(driverData as UserProfileMinimal);
         }
       } catch (e: any) {
         console.error('Delivery tracking init error:', e);
