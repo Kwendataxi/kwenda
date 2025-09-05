@@ -12,6 +12,9 @@ interface PromoCode {
   min_order_amount: number;
   max_discount_amount?: number;
   applicable_services: string[];
+  valid_until: string;
+  usage_limit: number;
+  user_limit: number;
 }
 
 export const usePromoCode = () => {
@@ -194,7 +197,10 @@ export const usePromoCode = () => {
           discount_value: 50,
           min_order_amount: 0,
           max_discount_amount: 5000,
-          applicable_services: ['transport']
+          applicable_services: ['transport'],
+          valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          usage_limit: 1,
+          user_limit: 1
         });
       }
 
@@ -209,7 +215,10 @@ export const usePromoCode = () => {
           discount_value: 20,
           min_order_amount: 3000,
           max_discount_amount: 8000,
-          applicable_services: ['transport', 'delivery']
+          applicable_services: ['transport', 'delivery'],
+          valid_until: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+          usage_limit: 5,
+          user_limit: 1
         });
       }
 
@@ -223,7 +232,10 @@ export const usePromoCode = () => {
           discount_type: 'free_delivery',
           discount_value: 0,
           min_order_amount: 0,
-          applicable_services: ['delivery', 'marketplace']
+          applicable_services: ['delivery', 'marketplace'],
+          valid_until: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
+          usage_limit: 10,
+          user_limit: 3
         });
       }
 
