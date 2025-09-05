@@ -5367,6 +5367,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_loyalty_points: {
+        Row: {
+          created_at: string
+          current_points: number
+          id: string
+          loyalty_level: string
+          total_earned_points: number
+          total_spent_points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_points?: number
+          id?: string
+          loyalty_level?: string
+          total_earned_points?: number
+          total_spent_points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_points?: number
+          id?: string
+          loyalty_level?: string
+          total_earned_points?: number
+          total_spent_points?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_notification_preferences: {
         Row: {
           chat_messages: boolean
@@ -5595,6 +5628,54 @@ export type Database = {
           rated_user_id?: string
           rater_user_id?: string
           rating?: number
+        }
+        Relationships: []
+      }
+      user_rewards: {
+        Row: {
+          claimed_at: string | null
+          created_at: string
+          description: string
+          expires_at: string | null
+          id: string
+          is_claimed: boolean
+          points_required: number | null
+          promo_code_id: string | null
+          reward_type: string
+          reward_value: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          created_at?: string
+          description: string
+          expires_at?: string | null
+          id?: string
+          is_claimed?: boolean
+          points_required?: number | null
+          promo_code_id?: string | null
+          reward_type: string
+          reward_value?: number
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          created_at?: string
+          description?: string
+          expires_at?: string | null
+          id?: string
+          is_claimed?: boolean
+          points_required?: number | null
+          promo_code_id?: string | null
+          reward_type?: string
+          reward_value?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -6497,6 +6578,10 @@ export type Database = {
       calculate_surge_pricing: {
         Args: { vehicle_class_param: string; zone_id_param: string }
         Returns: number
+      }
+      calculate_user_loyalty_points: {
+        Args: { p_user_id: string }
+        Returns: Json
       }
       calculate_zone_statistics: {
         Args: {

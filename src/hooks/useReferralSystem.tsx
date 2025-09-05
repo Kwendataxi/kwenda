@@ -22,26 +22,31 @@ export const useReferralSystem = () => {
 
   // Récupérer le code de parrainage de l'utilisateur
   useEffect(() => {
-    if (user) {
-      fetchUserReferralCode();
-      fetchUserReferrals();
-    }
-  }, [user]);
+    fetchUserReferralCode();
+    fetchUserReferrals();
+  }, []);
 
   const fetchUserReferralCode = async () => {
     try {
-      const { data } = await supabase
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+
+      // Chercher le code de parrainage existant
+      const { data: existingCode } = await supabase
         .from('referral_system')
         .select('referral_code')
-        .eq('referrer_id', user?.id)
-        .limit(1)
+        .eq('referrer_id', user.user.id)
+        .eq('status', 'active')
         .single();
 
-      if (data) {
-        setUserReferralCode(data.referral_code);
+      if (existingCode) {
+        setUserReferralCode(existingCode.referral_code);
       } else {
-        // Créer un code de parrainage si l'utilisateur n'en a pas
-        await createReferralCode();
+        // Créer un nouveau code de parrainage
+        const newCode = await createReferralCode();
+        if (newCode) {
+          setUserReferralCode(newCode);
+        }
       }
     } catch (error) {
       console.error('Erreur lors de la récupération du code de parrainage:', error);
@@ -50,27 +55,63 @@ export const useReferralSystem = () => {
 
   const createReferralCode = async () => {
     try {
-      // Appeler la fonction pour générer un code unique
-      const { data: codeData } = await supabase.rpc('generate_referral_code');
-      
-      if (codeData) {
-        setUserReferralCode(codeData);
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return null;
+
+      // Générer un code unique
+      const referralCode = `KWENDA${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+      // Créer une entrée dans referral_system
+      const { data, error } = await supabase
+        .from('referral_system')
+        .insert({
+          referrer_id: user.user.id,
+          referee_id: user.user.id, // Sera mis à jour quand quelqu'un utilise le code
+          referral_code: referralCode,
+          status: 'active',
+          referrer_reward_amount: 5000,
+          referee_reward_amount: 3000,
+          currency: 'CDF'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Erreur lors de la création du code de parrainage:', error);
+        return null;
       }
+
+      return referralCode;
     } catch (error) {
-      console.error('Erreur lors de la création du code de parrainage:', error);
+      console.error('Erreur lors de la création du code:', error);
+      return null;
     }
   };
 
   const fetchUserReferrals = async () => {
     try {
-      const { data } = await supabase
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+
+      // Récupérer tous les parrainages où l'utilisateur est le parrain
+      const { data: referrals } = await supabase
         .from('referral_system')
         .select('*')
-        .eq('referrer_id', user?.id)
+        .eq('referrer_id', user.user.id)
         .order('created_at', { ascending: false });
 
-      if (data) {
-        setReferrals(data);
+      if (referrals) {
+        const processedReferrals: ReferralData[] = referrals.map((ref: any) => ({
+          id: ref.id,
+          referral_code: ref.referral_code,
+          status: ref.status,
+          referrer_reward_amount: ref.referrer_reward_amount,
+          referee_reward_amount: ref.referee_reward_amount,
+          created_at: ref.created_at,
+          completed_at: ref.completed_at
+        }));
+
+        setReferrals(processedReferrals);
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des parrainages:', error);
@@ -78,57 +119,72 @@ export const useReferralSystem = () => {
   };
 
   const useReferralCode = async (referralCode: string) => {
-    if (!user) return { success: false, message: 'Vous devez être connecté' };
-
-    setIsLoading(true);
     try {
-      // Vérifier si le code existe et n'est pas celui de l'utilisateur
-      const { data: referrerData, error: referrerError } = await supabase
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return { success: false, message: 'Utilisateur non connecté' };
+
+      setIsLoading(true);
+
+      // Vérifier si le code de parrainage existe et est valide
+      const { data: existingReferral } = await supabase
         .from('referral_system')
-        .select('referrer_id')
+        .select('referrer_id, referee_id')
         .eq('referral_code', referralCode.toUpperCase())
+        .eq('status', 'active')
         .single();
 
-      if (referrerError || !referrerData) {
+      if (!existingReferral) {
         return { success: false, message: 'Code de parrainage invalide' };
       }
 
-      if (referrerData.referrer_id === user.id) {
+      if (existingReferral.referrer_id === user.user.id) {
         return { success: false, message: 'Vous ne pouvez pas utiliser votre propre code' };
       }
 
-      // Vérifier si l'utilisateur n'a pas déjà été parrainé
-      const { data: existingReferral } = await supabase
+      // Vérifier si l'utilisateur a déjà utilisé un code de parrainage
+      const { data: existingUse } = await supabase
         .from('referral_system')
-        .select('*')
-        .eq('referee_id', user.id)
+        .select('id')
+        .eq('referee_id', user.user.id)
+        .eq('status', 'completed')
         .single();
 
-      if (existingReferral) {
-        return { success: false, message: 'Vous avez déjà été parrainé' };
+      if (existingUse) {
+        return { success: false, message: 'Vous avez déjà utilisé un code de parrainage' };
       }
 
-      // Créer l'entrée de parrainage
-      const { error: insertError } = await supabase
+      // Créer un nouvel enregistrement pour ce parrainage
+      const { error } = await supabase
         .from('referral_system')
         .insert({
-          referrer_id: referrerData.referrer_id,
-          referee_id: user.id,
+          referrer_id: existingReferral.referrer_id,
+          referee_id: user.user.id,
           referral_code: referralCode.toUpperCase(),
-          status: 'pending'
+          status: 'completed',
+          referrer_reward_amount: 5000,
+          referee_reward_amount: 3000,
+          currency: 'CDF',
+          completed_at: new Date().toISOString(),
+          rewarded_at: new Date().toISOString()
         });
 
-      if (insertError) throw insertError;
+      if (error) {
+        console.error('Erreur lors de l\'utilisation du code:', error);
+        return { success: false, message: 'Erreur lors de l\'application du code' };
+      }
+
+      // Actualiser la liste des parrainages
+      await fetchUserReferrals();
 
       toast({
         title: "Code de parrainage appliqué !",
-        description: "Vous recevrez vos récompenses après votre première commande.",
+        description: "Vous avez reçu 3000 CDF de bonus !",
       });
 
-      return { success: true, message: 'Code de parrainage appliqué avec succès' };
-    } catch (error: any) {
+      return { success: true, message: 'Code de parrainage appliqué avec succès ! Vous avez reçu 3000 CDF.' };
+    } catch (error) {
       console.error('Erreur lors de l\'utilisation du code de parrainage:', error);
-      return { success: false, message: 'Erreur lors de l\'application du code' };
+      return { success: false, message: 'Erreur inattendue' };
     } finally {
       setIsLoading(false);
     }

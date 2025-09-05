@@ -174,69 +174,84 @@ export const usePromoCode = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return [];
 
-      // Get user statistics to generate personalized codes
-      const { data: orders } = await supabase
-        .from('transport_bookings')
-        .select('actual_price, created_at')
-        .eq('user_id', user.user.id)
-        .eq('status', 'completed');
+      // Chercher d'abord les codes personnalisés existants dans la DB
+      const { data: existingCodes } = await supabase
+        .from('promo_codes')
+        .select('*')
+        .eq('created_by', user.user.id)
+        .eq('is_active', true)
+        .gte('valid_until', new Date().toISOString());
 
-      const totalOrders = orders?.length || 0;
-      const totalSpent = orders?.reduce((sum, order) => sum + (order.actual_price || 0), 0) || 0;
+      if (existingCodes && existingCodes.length > 0) {
+        return existingCodes.map(code => ({
+          id: code.id,
+          code: code.code,
+          title: code.title,
+          description: code.description,
+          discount_type: code.discount_type as 'percentage' | 'fixed_amount' | 'free_delivery',
+          discount_value: code.discount_value,
+          min_order_amount: code.min_order_amount,
+          max_discount_amount: code.max_discount_amount,
+          applicable_services: code.applicable_services,
+          usage_limit: code.usage_limit,
+          user_limit: code.user_limit,
+          valid_until: code.valid_until
+        }));
+      }
 
+      // Utiliser la fonction pour calculer les statistiques utilisateur
+      const { data: loyaltyData } = await supabase.rpc('calculate_user_loyalty_points', {
+        p_user_id: user.user.id
+      });
+
+      if (!loyaltyData) return [];
+
+      const data = loyaltyData as any;
+      const totalSpent = data.total_spent || 0;
+      const totalOrders = data.total_orders || 0;
+
+      // Générer des codes personnalisés basés sur l'activité
       const personalizedCodes: PromoCode[] = [];
 
-      // First-time user bonus
+      // Bonus première commande
       if (totalOrders === 0) {
-        personalizedCodes.push({
-          id: 'first-ride',
-          code: 'PREMIERE',
-          title: 'Première course gratuite',
-          description: 'Réduction de 50% sur votre première course (max 5000 CDF)',
-          discount_type: 'percentage',
-          discount_value: 50,
-          min_order_amount: 0,
-          max_discount_amount: 5000,
-          applicable_services: ['transport'],
-          valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          usage_limit: 1,
-          user_limit: 1
-        });
-      }
-
-      // Loyal customer bonus
-      if (totalOrders >= 10) {
-        personalizedCodes.push({
-          id: 'loyal-customer',
-          code: 'FIDELE10',
-          title: 'Client fidèle',
-          description: 'Réduction de 20% pour nos clients fidèles',
-          discount_type: 'percentage',
+        const firstTimeCode = {
+          code: 'PREMIERE20',
+          title: 'Première course',
+          description: '20% de réduction sur votre première course',
+          discount_type: 'percentage' as const,
           discount_value: 20,
-          min_order_amount: 3000,
-          max_discount_amount: 8000,
-          applicable_services: ['transport', 'delivery'],
-          valid_until: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
-          usage_limit: 5,
-          user_limit: 1
-        });
-      }
+          min_order_amount: 2000,
+          applicable_services: ['transport'],
+          usage_limit: 1,
+          user_limit: 1,
+          valid_until: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          is_active: true,
+          created_by: user.user.id
+        };
 
-      // High spender bonus
-      if (totalSpent >= 50000) {
-        personalizedCodes.push({
-          id: 'vip-member',
-          code: 'VIP2024',
-          title: 'Membre VIP',
-          description: 'Livraison gratuite pour nos membres VIP',
-          discount_type: 'free_delivery',
-          discount_value: 0,
-          min_order_amount: 0,
-          applicable_services: ['delivery', 'marketplace'],
-          valid_until: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
-          usage_limit: 10,
-          user_limit: 3
-        });
+        // Créer le code dans la DB
+        const { data: newCode, error } = await supabase
+          .from('promo_codes')
+          .insert(firstTimeCode)
+          .select()
+          .single();
+
+        if (!error && newCode) {
+          personalizedCodes.push({
+            id: newCode.id,
+            code: firstTimeCode.code,
+            title: firstTimeCode.title,
+            description: firstTimeCode.description,
+            discount_type: firstTimeCode.discount_type,
+            discount_value: firstTimeCode.discount_value,
+            min_order_amount: firstTimeCode.min_order_amount,
+            applicable_services: firstTimeCode.applicable_services,
+            usage_limit: firstTimeCode.usage_limit,
+            user_limit: firstTimeCode.user_limit,
+            valid_until: firstTimeCode.valid_until
+          });
+        }
       }
 
       return personalizedCodes;
