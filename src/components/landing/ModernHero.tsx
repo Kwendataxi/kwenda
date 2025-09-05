@@ -20,15 +20,16 @@ const ModernHero = () => {
   },[user])
 
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-background via-background to-primary/5 overflow-hidden">
+    <section className="relative min-h-screen bg-gradient-congo-vibrant overflow-hidden">
       {/* Enhanced Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-float"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-secondary/10 rounded-full blur-lg animate-float" style={{animationDelay: '1s'}}></div>
-        <div className="absolute bottom-40 left-1/4 w-40 h-40 bg-accent/10 rounded-full blur-2xl animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 right-1/3 w-20 h-20 bg-primary-glow/5 rounded-full blur-lg animate-pulse" style={{animationDelay: '0.5s'}}></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_80%,hsl(var(--primary))_0%,transparent_50%)] opacity-5"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,hsl(var(--secondary))_0%,transparent_40%)] opacity-5"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-congo-red/30 rounded-full blur-xl animate-congo-pulse"></div>
+        <div className="absolute top-40 right-20 w-24 h-24 bg-congo-yellow/40 rounded-full blur-lg animate-congo-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute bottom-40 left-1/4 w-40 h-40 bg-congo-green/25 rounded-full blur-2xl animate-congo-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 right-1/3 w-20 h-20 bg-congo-blue/20 rounded-full blur-lg animate-congo-pulse" style={{animationDelay: '0.5s'}}></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_80%,hsl(var(--congo-red))_0%,transparent_50%)] opacity-20"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,hsl(var(--congo-yellow))_0%,transparent_40%)] opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-congo-glow opacity-40"></div>
       </div>
       
       <div className="container-section py-8 sm:py-12 lg:py-20 relative z-10">
@@ -100,21 +101,23 @@ const ModernHero = () => {
               <Link to="/auth" className="flex-1">
                 <Button 
                   size="lg" 
-                  className="w-full text-body-lg px-8 py-6 bg-gradient-to-r from-primary via-primary-glow to-primary hover:shadow-glow transition-all duration-500 group min-h-[56px] rounded-xl interactive-scale animate-glow-pulse"
+                  className="w-full text-body-lg px-8 py-6 bg-congo-red hover:bg-congo-red/90 text-white hover:shadow-congo transition-all duration-500 group min-h-[56px] rounded-xl animate-congo-pulse border-2 border-congo-yellow/30"
                 >
                   <Car className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
                   Commencer maintenant
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="flex-1 sm:flex-initial text-body-lg px-8 py-6 border-primary/30 hover:bg-primary/5 group min-h-[56px] rounded-xl glass interactive-scale"
-              >
-                <Play className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
-                Voir la démo
-              </Button>
+              <Link to="/demo" className="flex-1 sm:flex-initial">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="w-full text-body-lg px-8 py-6 border-congo-yellow border-2 hover:bg-congo-yellow/20 text-congo-yellow group min-h-[56px] rounded-xl backdrop-blur-sm bg-white/10"
+                >
+                  <Play className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
+                  Voir la démo
+                </Button>
+              </Link>
             </div>
 
             {/* Social Proof */}
