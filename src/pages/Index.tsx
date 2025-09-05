@@ -7,22 +7,31 @@ import CTASection from '@/components/landing/CTASection';
 import ModernFooter from '@/components/landing/ModernFooter';
 import CongoColorShowcase from '@/components/demo/CongoColorShowcase';
 import { TestFixMessage } from '@/components/navigation/TestFixMessage';
+import { HeaderThemeToggle } from '@/components/navigation/HeaderThemeToggle';
+import { ThemeToggleSection } from '@/components/landing/ThemeToggleSection';
 
 const Index = () => {
   // Temporary Congo color demo - remove in production
   const showCongoDemo = window.location.search.includes('congo-demo');
+  const showDarkModeDemo = window.location.search.includes('dark-mode-demo');
   
   if (showCongoDemo) {
     return <CongoColorShowcase />;
   }
 
+  if (showDarkModeDemo) {
+    const { DarkModeShowcase } = require('@/components/demo/DarkModeShowcase');
+    return <DarkModeShowcase />;
+  }
+
   return (
     <div className="min-h-screen">
+      <HeaderThemeToggle />
       <TestFixMessage />
       <ModernHero />
       <InteractiveServicesGrid />
+      <ThemeToggleSection />
       <AdvancedFeatures />
-      <TestimonialsSection />
       <CTASection />
       <ModernFooter />
     </div>

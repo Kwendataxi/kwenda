@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/hooks/useAuth";
 import { FavoritesProvider } from "@/components/marketplace/FavoritesManager";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import DynamicTheme from "@/components/theme/DynamicTheme";
 import ParticleBackground from "@/components/theme/ParticleBackground";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -48,25 +49,29 @@ import Onboarding from "./pages/Onboarding";
 import { OnboardingRedirect } from "@/components/onboarding/OnboardingRedirect";
 import { StartupExperience } from "@/components/splash/StartupExperience";
 import { ScrollToTop } from "@/components/navigation/ScrollToTop";
+import { ThemeNotification } from "@/components/theme/ThemeNotification";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <FavoritesProvider>
-        <LanguageProvider>
-        <TooltipProvider>
-          <ChatProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <FavoritesProvider>
+          <LanguageProvider>
+          <TooltipProvider>
+            <ChatProvider>
             <DynamicTheme>
               <ParticleBackground />
+              <ThemeNotification />
               <PerformanceOptimizer>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <ScrollToTop />
-                <StartupExperience />
-            <Routes>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <ScrollToTop />
+                  <StartupExperience />
+                  <OnboardingRedirect>
+                    <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/auth" element={
@@ -135,18 +140,20 @@ const App = () => (
               <Route path="/locations/coverage-map" element={<CarteCouverture />} />
               <Route path="/marketplace" element={<Marketplace />} />
               
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-               </Routes>
-             </BrowserRouter>
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </OnboardingRedirect>
+                </BrowserRouter>
               </PerformanceOptimizer>
             </DynamicTheme>
            </ChatProvider>
          </TooltipProvider>
         </LanguageProvider>
-      </FavoritesProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+       </FavoritesProvider>
+     </AuthProvider>
+    </ThemeProvider>
+   </QueryClientProvider>
 );
 
 export default App;
