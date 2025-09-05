@@ -37,6 +37,10 @@ import DevenirLivreur from "./pages/partners/DevenirLivreur";
 import VendreEnLigne from "./pages/partners/VendreEnLigne";
 import SignalerProbleme from "./pages/support/SignalerProbleme";
 import Expansion from "./pages/locations/Expansion";
+import Demo from "./pages/demo/Demo";
+import ProgrammePartenaire from "./pages/partner/ProgrammePartenaire";
+import CarteCouverture from "./pages/locations/CarteCouverture";
+import Marketplace from "./pages/marketplace/Marketplace";
 import { ChatProvider } from "@/components/chat/ChatProvider";
 import Onboarding from "./pages/Onboarding";
 import { OnboardingRedirect } from "@/components/onboarding/OnboardingRedirect";
@@ -120,6 +124,12 @@ const App = () => (
               
               {/* Locations Pages */}
               <Route path="/locations/expansion" element={<Expansion />} />
+              
+              {/* New Pages */}
+              <Route path="/demo" element={<Demo />} />
+              <Route path="/partner" element={<ProgrammePartenaire />} />
+              <Route path="/locations/coverage-map" element={<CarteCouverture />} />
+              <Route path="/marketplace" element={<Marketplace />} />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
