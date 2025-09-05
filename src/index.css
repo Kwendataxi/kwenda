@@ -12,15 +12,15 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Kwenda Taxi Congo Design System - Couleurs harmonieuses */
-    --background: 0 0% 100%;
-    --foreground: 220 13% 13%;
+    /* Kwenda Taxi Congo Design System - Plus chaleureux et vibrant */
+    --background: 45 15% 97%;
+    --foreground: 220 15% 8%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 13% 13%;
+    --card: 45 25% 95%;
+    --card-foreground: 220 15% 8%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 13%;
+    --popover: 45 25% 95%;
+    --popover-foreground: 220 15% 8%;
 
     /* Primary: Rouge Kwenda #ec2027 */
     --primary: 357 79% 54%;
@@ -33,19 +33,19 @@ All colors MUST be HSL.
     --secondary-foreground: 220 13% 13%;
     --secondary-light: 42 89% 62%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 220 14% 92%;
+    --muted-foreground: 220 12% 35%;
 
     /* Accent: Or Congo */
     --accent: 42 89% 52%;
     --accent-foreground: 220 13% 13%;
     --accent-light: 42 89% 62%;
 
-    /* Congo Flag Colors - Variables manquantes */
-    --congo-blue: 220 100% 40%;
-    --congo-red: 357 79% 54%;
-    --congo-yellow: 42 89% 52%;
-    --congo-green: 142 76% 36%;
+    /* Congo Flag Colors - Plus vibrants et saturés */
+    --congo-blue: 220 100% 45%;
+    --congo-red: 357 85% 50%;
+    --congo-yellow: 42 95% 55%;
+    --congo-green: 142 80% 40%;
 
     /* Success/Warning/Info semantic colors using Congo palette */
     --success: 142 76% 36%;
@@ -80,24 +80,27 @@ All colors MUST be HSL.
     --safe-area-left: env(safe-area-inset-left, 0px);
     --safe-area-right: env(safe-area-inset-right, 0px);
 
-    /* Design system extensions - Congo gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(357, 79%, 54%), hsl(357, 79%, 64%));
-    --gradient-hero: linear-gradient(135deg, hsl(357, 79%, 54%) 0%, hsl(42, 89%, 52%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(142, 76%, 36%) 0%, hsl(142, 76%, 46%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(220, 14%, 98%) 100%);
-    --gradient-congo-flag: linear-gradient(135deg, hsl(220, 100%, 40%) 0%, hsl(42, 89%, 52%) 50%, hsl(357, 79%, 54%) 100%);
-    --gradient-congo-modern: linear-gradient(45deg, hsl(357, 79%, 54%), hsl(42, 89%, 52%), hsl(142, 76%, 36%), hsl(220, 100%, 40%));
-    --gradient-congo-subtle: linear-gradient(180deg, hsl(357, 79%, 54% / 0.1) 0%, hsl(42, 89%, 52% / 0.1) 100%);
+    /* Design system extensions - Congo gradients plus dynamiques */
+    --gradient-primary: linear-gradient(135deg, hsl(357, 85%, 50%), hsl(357, 85%, 60%));
+    --gradient-hero: linear-gradient(135deg, hsl(357, 85%, 50%) 0%, hsl(42, 95%, 55%) 50%, hsl(142, 80%, 40%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(142, 80%, 40%) 0%, hsl(142, 80%, 50%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(45, 25%, 95%) 0%, hsl(45, 15%, 92%) 100%);
+    --gradient-congo-flag: linear-gradient(135deg, hsl(220, 100%, 45%) 0%, hsl(42, 95%, 55%) 50%, hsl(357, 85%, 50%) 100%);
+    --gradient-congo-modern: linear-gradient(45deg, hsl(357, 85%, 50%), hsl(42, 95%, 55%), hsl(142, 80%, 40%), hsl(220, 100%, 45%));
+    --gradient-congo-subtle: linear-gradient(180deg, hsl(357, 85%, 50% / 0.15) 0%, hsl(42, 95%, 55% / 0.15) 100%);
+    --gradient-congo-vibrant: linear-gradient(45deg, hsl(357, 85%, 50% / 0.8), hsl(42, 95%, 55% / 0.8), hsl(142, 80%, 40% / 0.8));
+    --gradient-congo-glow: radial-gradient(circle at center, hsl(357, 85%, 50% / 0.3) 0%, transparent 70%);
     
-    /* Shadows modernes */
-    --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
-    --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
-    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1), 0 8px 10px -6px hsl(0 0% 0% / 0.1);
-    --shadow-elegant: 0 10px 30px -10px hsl(357, 79%, 54% / 0.3);
-    --shadow-glow: 0 0 40px hsl(357, 79%, 64% / 0.4);
-    --shadow-float: 0 20px 40px -10px hsl(357, 79%, 54% / 0.2);
+    /* Shadows colorées Congo */
+    --shadow-xs: 0 1px 2px 0 hsl(357 85% 50% / 0.08);
+    --shadow-sm: 0 1px 3px 0 hsl(357 85% 50% / 0.12), 0 1px 2px -1px hsl(42 95% 55% / 0.1);
+    --shadow-md: 0 4px 6px -1px hsl(357 85% 50% / 0.15), 0 2px 4px -2px hsl(42 95% 55% / 0.12);
+    --shadow-lg: 0 10px 15px -3px hsl(357 85% 50% / 0.18), 0 4px 6px -4px hsl(42 95% 55% / 0.15);
+    --shadow-xl: 0 20px 25px -5px hsl(357 85% 50% / 0.2), 0 8px 10px -6px hsl(42 95% 55% / 0.18);
+    --shadow-elegant: 0 10px 30px -10px hsl(357, 85%, 50% / 0.4);
+    --shadow-glow: 0 0 40px hsl(357, 85%, 50% / 0.6), 0 0 20px hsl(42, 95%, 55% / 0.3);
+    --shadow-float: 0 20px 40px -10px hsl(357, 85%, 50% / 0.3), 0 0 20px hsl(42, 95%, 55% / 0.2);
+    --shadow-congo: 0 0 30px hsl(357, 85%, 50% / 0.25), 0 0 60px hsl(42, 95%, 55% / 0.15);
     
     /* Transitions stables */
     --transition-smooth: all 0.2s ease-out;

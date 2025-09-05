@@ -212,7 +212,10 @@ export default {
 				'scale-fade': 'scale-fade 0.2s ease-out',
 				'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
 				'congo-gradient': 'congo-gradient 4s ease-in-out infinite',
-				'congo-pulse': 'congo-pulse 3s ease-in-out infinite'
+				'congo-pulse': 'congo-pulse 3s ease-in-out infinite',
+				'congo-wave': 'congo-wave 6s ease-in-out infinite',
+				'shimmer': 'shimmer 2s ease-in-out infinite',
+				'bounce-subtle': 'bounce-subtle 2s ease-in-out infinite'
 			}
 		}
 	},

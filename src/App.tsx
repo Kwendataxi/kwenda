@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/hooks/useAuth";
 import { FavoritesProvider } from "@/components/marketplace/FavoritesManager";
+import DynamicTheme from "@/components/theme/DynamicTheme";
+import ParticleBackground from "@/components/theme/ParticleBackground";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -56,12 +58,14 @@ const App = () => (
         <LanguageProvider>
         <TooltipProvider>
           <ChatProvider>
-            <PerformanceOptimizer>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <ScrollToTop />
-              <StartupExperience />
+            <DynamicTheme>
+              <ParticleBackground />
+              <PerformanceOptimizer>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <ScrollToTop />
+                <StartupExperience />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/onboarding" element={<Onboarding />} />
@@ -133,9 +137,10 @@ const App = () => (
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
-             </Routes>
-           </BrowserRouter>
-            </PerformanceOptimizer>
+               </Routes>
+             </BrowserRouter>
+              </PerformanceOptimizer>
+            </DynamicTheme>
            </ChatProvider>
          </TooltipProvider>
         </LanguageProvider>
