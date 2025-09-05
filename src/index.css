@@ -290,84 +290,114 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Dark Mode Congo Design System */
-    --background: 220 13% 9%;
-    --foreground: 220 14% 96%;
+    /* Dark Mode Congo Design System - ENHANCED */
+    --background: 220 25% 7%;
+    --foreground: 42 15% 95%;
 
-    --card: 220 13% 11%;
-    --card-foreground: 220 14% 96%;
+    --card: 220 20% 10%;
+    --card-foreground: 42 15% 95%;
 
-    --popover: 220 13% 11%;
-    --popover-foreground: 220 14% 96%;
+    --popover: 220 20% 10%;
+    --popover-foreground: 42 15% 95%;
 
-    --primary: 357 79% 54%;
-    --primary-foreground: 220 14% 96%;
-    --primary-glow: 357 79% 64%;
-    --primary-light: 357 79% 74%;
+    --primary: 357 95% 65%;
+    --primary-foreground: 220 25% 7%;
+    --primary-glow: 357 95% 75%;
+    --primary-light: 357 95% 85%;
 
-    --secondary: 42 89% 52%;
-    --secondary-foreground: 220 13% 9%;
-    --secondary-light: 42 89% 62%;
+    --secondary: 42 100% 65%;
+    --secondary-foreground: 220 25% 7%;
+    --secondary-light: 42 100% 75%;
 
-    --muted: 220 13% 15%;
-    --muted-foreground: 220 9% 63%;
+    --muted: 220 20% 12%;
+    --muted-foreground: 220 15% 70%;
 
-    --accent: 42 89% 52%;
-    --accent-foreground: 220 13% 9%;
-    --accent-light: 42 89% 62%;
+    --accent: 42 100% 65%;
+    --accent-foreground: 220 25% 7%;
+    --accent-light: 42 100% 75%;
 
-    /* Congo Flag Colors - Dark variants */
-    --congo-blue: 220 100% 50%;
-    --congo-red: 357 79% 54%;
-    --congo-yellow: 42 89% 58%;
-    --congo-green: 142 76% 40%;
+    /* Congo Flag Colors - Enhanced Dark variants */
+    --congo-blue: 220 100% 70%;
+    --congo-red: 357 95% 65%;
+    --congo-yellow: 42 100% 70%;
+    --congo-green: 142 85% 55%;
+    
+    /* Congo Electric Dark variants */
+    --congo-red-electric: 357 100% 75%;
+    --congo-yellow-electric: 42 100% 80%;
+    --congo-green-electric: 142 90% 65%;
+    --congo-blue-electric: 220 100% 75%;
+    
+    /* Congo Vibrant Dark variants */
+    --congo-red-vibrant: 357 95% 70%;
+    --congo-yellow-vibrant: 42 98% 75%;
+    --congo-green-vibrant: 142 82% 60%;
+    --congo-blue-vibrant: 220 100% 65%;
+    
+    /* Congo Glow Dark variants */
+    --congo-red-glow: 357 90% 80%;
+    --congo-yellow-glow: 42 95% 85%;
+    --congo-green-glow: 142 80% 75%;
+    --congo-blue-glow: 220 90% 80%;
 
     /* Success/Warning/Info semantic colors for dark mode */
-    --success: 142 76% 40%;
-    --success-foreground: 220 14% 96%;
-    --warning: 42 89% 58%;
-    --warning-foreground: 220 13% 9%;
-    --info: 220 100% 50%;
-    --info-foreground: 220 14% 96%;
+    --success: 142 85% 55%;
+    --success-foreground: 220 25% 7%;
+    --warning: 42 100% 70%;
+    --warning-foreground: 220 25% 7%;
+    --info: 220 100% 70%;
+    --info-foreground: 220 25% 7%;
 
-    /* Greys for dark mode */
-    --grey-50: 220 13% 91%;
-    --grey-100: 220 13% 82%;
-    --grey-200: 220 13% 73%;
-    --grey-300: 220 13% 64%;
-    --grey-400: 220 13% 46%;
-    --grey-500: 220 13% 36%;
-    --grey-600: 220 13% 27%;
-    --grey-700: 220 13% 18%;
-    --grey-800: 220 13% 11%;
-    --grey-900: 220 13% 9%;
+    /* Enhanced Greys for dark mode */
+    --grey-50: 220 15% 90%;
+    --grey-100: 220 15% 80%;
+    --grey-200: 220 15% 70%;
+    --grey-300: 220 15% 60%;
+    --grey-400: 220 15% 45%;
+    --grey-500: 220 15% 35%;
+    --grey-600: 220 15% 25%;
+    --grey-700: 220 15% 15%;
+    --grey-800: 220 20% 10%;
+    --grey-900: 220 25% 7%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 220 14% 96%;
+    --destructive: 0 95% 70%;
+    --destructive-foreground: 220 25% 7%;
 
-    --border: 220 13% 18%;
-    --input: 220 13% 18%;
-    --ring: 357 79% 54%;
+    --border: 220 20% 15%;
+    --input: 220 20% 12%;
+    --ring: 357 95% 65%;
 
-    /* Dark mode gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(357, 79%, 54%), hsl(357, 79%, 64%));
-    --gradient-hero: linear-gradient(135deg, hsl(357, 79%, 54%) 0%, hsl(42, 89%, 52%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(142, 76%, 40%) 0%, hsl(142, 76%, 50%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(220, 13%, 11%) 0%, hsl(220, 13%, 13%) 100%);
+    /* Enhanced Dark mode gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(357, 95%, 65%), hsl(357, 95%, 75%));
+    --gradient-hero: linear-gradient(135deg, hsl(357, 95%, 65%) 0%, hsl(42, 100%, 65%) 25%, hsl(142, 85%, 55%) 75%, hsl(220, 100%, 70%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(142, 85%, 55%) 0%, hsl(142, 85%, 65%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(220, 20%, 10%) 0%, hsl(220, 20%, 12%) 100%);
+    --gradient-congo-flag: linear-gradient(135deg, hsl(220, 100%, 70%) 0%, hsl(42, 100%, 70%) 33%, hsl(357, 95%, 65%) 66%, hsl(142, 85%, 55%) 100%);
+    --gradient-congo-electric: linear-gradient(135deg, hsl(var(--congo-red-electric)), hsl(var(--congo-yellow-electric)), hsl(var(--congo-green-electric)), hsl(var(--congo-blue-electric)));
+    --gradient-congo-vibrant: linear-gradient(45deg, hsl(var(--congo-red-vibrant)), hsl(var(--congo-yellow-vibrant)), hsl(var(--congo-green-vibrant)), hsl(var(--congo-blue-vibrant)));
+    --gradient-congo-radial: radial-gradient(circle at center, hsl(var(--congo-red) / 0.6), hsl(var(--congo-yellow) / 0.5), hsl(var(--congo-green) / 0.4), transparent);
+    --gradient-congo-mesh: conic-gradient(from 0deg at 50% 50%, hsl(var(--congo-red)), hsl(var(--congo-yellow)), hsl(var(--congo-green)), hsl(var(--congo-blue)), hsl(var(--congo-red)));
+    --gradient-congo-glow: linear-gradient(135deg, hsl(var(--congo-red-glow) / 0.6), hsl(var(--congo-yellow-glow) / 0.5), hsl(var(--congo-blue-glow) / 0.4));
+    --gradient-congo-subtle: linear-gradient(180deg, hsl(357, 95%, 65% / 0.25) 0%, hsl(42, 100%, 70% / 0.25) 100%);
 
-    /* Dark shadows with Congo colors */
-    --shadow-elegant: 0 10px 30px -10px hsl(357, 79%, 54% / 0.4);
-    --shadow-glow: 0 0 40px hsl(357, 79%, 64% / 0.5);
-    --shadow-float: 0 20px 40px -10px hsl(357, 79%, 54% / 0.3);
+    /* Enhanced Dark shadows with Congo colors */
+    --shadow-elegant: 0 15px 40px -15px hsl(357, 95%, 65% / 0.6);
+    --shadow-glow: 0 0 50px hsl(357, 95%, 75% / 0.7), 0 0 25px hsl(42, 100%, 70% / 0.5);
+    --shadow-float: 0 25px 50px -15px hsl(357, 95%, 65% / 0.5);
+    --shadow-congo: 0 0 40px hsl(357, 95%, 65% / 0.5), 0 0 80px hsl(42, 100%, 70% / 0.3);
+    --shadow-congo-intense: 0 15px 50px -15px hsl(var(--congo-red-electric) / 0.7);
+    --shadow-congo-vibrant: 0 8px 30px -8px hsl(var(--congo-yellow-vibrant) / 0.6);
+    --shadow-congo-glow: 0 0 80px hsl(var(--congo-blue-glow) / 0.5);
+    --shadow-congo-multi: 0 10px 35px -8px hsl(var(--congo-red) / 0.4), 0 20px 70px -15px hsl(var(--congo-yellow) / 0.3), 0 30px 100px -20px hsl(var(--congo-blue) / 0.2);
 
-    --sidebar-background: 220 13% 7%;
-    --sidebar-foreground: 220 14% 96%;
-    --sidebar-primary: 357 79% 54%;
-    --sidebar-primary-foreground: 220 14% 96%;
-    --sidebar-accent: 220 13% 15%;
-    --sidebar-accent-foreground: 220 14% 96%;
-    --sidebar-border: 220 13% 18%;
-    --sidebar-ring: 357 79% 54%;
+    --sidebar-background: 220 25% 6%;
+    --sidebar-foreground: 42 15% 95%;
+    --sidebar-primary: 357 95% 65%;
+    --sidebar-primary-foreground: 220 25% 7%;
+    --sidebar-accent: 220 20% 12%;
+    --sidebar-accent-foreground: 42 15% 95%;
+    --sidebar-border: 220 20% 15%;
+    --sidebar-ring: 357 95% 65%;
   }
 }
 

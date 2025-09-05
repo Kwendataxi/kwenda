@@ -69,42 +69,49 @@ export const ModernHomeScreen = ({
   },[user])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-grey-50 to-white">
-      <ModernHeader />
-      
-      <div className="space-y-4 pb-32">
-        <ServiceGrid 
-          onServiceSelect={onServiceSelect} 
-          serviceNotifications={serviceNotifications}
-        />
-        
-        <UniversalSearchBar 
-          onSearch={onSearch}
-          onTransportSelect={() => onServiceSelect('transport')}
-        />
-        
-        <RecentPlaces 
-          onPlaceSelect={(placeName, coordinates) => {
-            onSearch(placeName, coordinates);
-            onServiceSelect('transport');
-          }}
-          onViewAll={() => setPlacesOpen(true)}
-        />
-        
-        <MarketplacePreview
-          featuredProducts={featuredProducts}
-          onProductSelect={onProductSelect}
-          onViewAll={() => setTrendsOpen(true)}
-        />
-        
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/30 relative overflow-hidden">
+      {/* Dynamic background effects */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-congo-red/5 via-transparent to-congo-yellow/5 animate-pulse" />
+        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-congo-blue/5 via-transparent to-congo-green/5 animate-pulse delay-1000" />
       </div>
+      
+      <div className="relative z-10">
+        <ModernHeader />
+        
+        <div className="space-y-6 pb-32">
+          <ServiceGrid 
+            onServiceSelect={onServiceSelect} 
+            serviceNotifications={serviceNotifications}
+          />
+          
+          <UniversalSearchBar 
+            onSearch={onSearch}
+            onTransportSelect={() => onServiceSelect('transport')}
+          />
+          
+          <RecentPlaces 
+            onPlaceSelect={(placeName, coordinates) => {
+              onSearch(placeName, coordinates);
+              onServiceSelect('transport');
+            }}
+            onViewAll={() => setPlacesOpen(true)}
+          />
+          
+          <MarketplacePreview
+            featuredProducts={featuredProducts}
+            onProductSelect={onProductSelect}
+            onViewAll={() => setTrendsOpen(true)}
+          />
+        </div>
 
-      <ModernBottomNavigation
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        notificationCount={3}
-        favoritesCount={5}
-      />
+        <ModernBottomNavigation
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          notificationCount={3}
+          favoritesCount={5}
+        />
+      </div>
     </div>
   );
 };

@@ -26,6 +26,8 @@ import { DriverUpgrade } from './DriverUpgrade';
 import { TeamAccountManager } from './TeamAccountManager';
 import { UserSettings } from './UserSettings';
 import { AccountStatus } from './AccountStatus';
+import { ModernProfileHeader } from './ModernProfileHeader';
+import { ProfileActionButtons } from './ProfileActionButtons';
 
 interface Profile {
   id: string;
@@ -369,117 +371,78 @@ export const UserProfile = () => {
     return optionMap[option] || option;
   };
 
+  const handleQuickAction = (action: string) => {
+    handleOptionClick(action);
+  };
+
   return (
     <div className="max-w-md mx-auto bg-background min-h-screen content-with-bottom-nav">
-      {/* Compact Profile Header */}
-      <div className="bg-card border-b px-6 py-8">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Avatar className="w-16 h-16">
-              <AvatarImage src={profile.avatar_url || ''} className="object-cover" />
-              <AvatarFallback className="text-lg font-semibold bg-primary/10 text-primary">
-                {profile.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <ProfilePictureUpload
-              onUploadComplete={handleAvatarUpdate}
+      {/* Modern Profile Header */}
+      <ModernProfileHeader
+        profile={profile}
+        user={user}
+        rating={rating}
+        onEditName={() => {
+          setEditedDisplayName(profile.display_name || '');
+          setIsEditingName(true);
+        }}
+        onEditPhone={() => {
+          setEditedPhone(profile.phone_number || '');
+          setIsEditingPhone(true);
+        }}
+      />
+
+      {/* Edit Name Modal */}
+      {isEditingName && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card rounded-xl p-6 w-full max-w-sm glassmorphism">
+            <h3 className="text-lg font-semibold mb-4">Modifier le nom</h3>
+            <Input
+              value={editedDisplayName}
+              onChange={(e) => setEditedDisplayName(e.target.value)}
+              placeholder="Votre nom"
+              className="mb-4"
             />
-          </div>
-          
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              {isEditingName ? (
-                <div className="flex gap-2 w-full">
-                  <Input
-                    value={editedDisplayName}
-                    onChange={(e) => setEditedDisplayName(e.target.value)}
-                    className="text-lg font-semibold flex-1"
-                    placeholder="Votre nom"
-                  />
-                  <Button size="sm" onClick={handleNameSave}>
-                    <Check className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={handleNameCancel}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <h1 className="text-xl font-semibold">{profile.display_name || user?.email}</h1>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    onClick={() => {
-                      setEditedDisplayName(profile.display_name || '');
-                      setIsEditingName(true);
-                    }}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            </div>
-            
-            {isEditingPhone ? (
-              <div className="flex gap-2">
-                <Input
-                  value={editedPhone}
-                  onChange={(e) => setEditedPhone(e.target.value)}
-                  placeholder="Numéro de téléphone"
-                  className="text-sm"
-                />
-                <Button size="sm" onClick={handlePhoneSave}>
-                  <Check className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant="outline" onClick={handlePhoneCancel}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {profile.phone_number || "Ajouter un numéro"}
-                </span>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  onClick={() => {
-                    setEditedPhone(profile.phone_number || '');
-                    setIsEditingPhone(true);
-                  }}
-                >
-                  <Edit2 className="h-3 w-3" />
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        {/* Logout Button */}
-        <div className="mt-6 pt-4 border-t border-border">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" className="w-full flex items-center gap-2 text-destructive hover:text-destructive">
-                <LogOut className="h-4 w-4" />
-                Se déconnecter
+            <div className="flex gap-2">
+              <Button onClick={handleNameSave} className="flex-1">
+                <Check className="h-4 w-4 mr-2" />
+                Sauvegarder
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Confirmer la déconnexion</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Êtes-vous sûr de vouloir vous déconnecter de votre compte Kwenda Taxi ?
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
-                  Se déconnecter
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+              <Button variant="outline" onClick={handleNameCancel}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Edit Phone Modal */}
+      {isEditingPhone && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card rounded-xl p-6 w-full max-w-sm glassmorphism">
+            <h3 className="text-lg font-semibold mb-4">Modifier le téléphone</h3>
+            <Input
+              value={editedPhone}
+              onChange={(e) => setEditedPhone(e.target.value)}
+              placeholder="Numéro de téléphone"
+              className="mb-4"
+            />
+            <div className="flex gap-2">
+              <Button onClick={handlePhoneSave} className="flex-1">
+                <Check className="h-4 w-4 mr-2" />
+                Sauvegarder
+              </Button>
+              <Button variant="outline" onClick={handlePhoneCancel}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Action Buttons */}
+      <div className="px-4 py-4">
+        <ProfileActionButtons onQuickAction={handleQuickAction} />
       </div>
 
       {/* Account Status */}
@@ -488,30 +451,54 @@ export const UserProfile = () => {
       </div>
 
       {/* Profile Options List */}
-      <div className="px-4 py-2">
+      <div className="px-4 py-2 space-y-2">
         {profileOptions.map((option) => {
           const IconComponent = option.icon;
           return (
             <button
               key={option.id}
               onClick={() => handleOptionClick(option.id)}
-              className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors rounded-lg"
+              className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-all duration-200 rounded-xl group glassmorphism-soft hover:glassmorphism"
             >
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <IconComponent className="h-5 w-5 text-primary" />
+              <div className="bg-gradient-to-br from-congo-red/10 to-congo-yellow/10 p-3 rounded-xl group-hover:from-congo-red/20 group-hover:to-congo-yellow/20 transition-all duration-200">
+                <IconComponent className="h-5 w-5 text-congo-red group-hover:text-congo-red-electric transition-colors" />
               </div>
-              
               <div className="flex-1 text-left">
-                <h3 className="font-medium text-foreground">{option.title}</h3>
-                <p className="text-sm text-muted-foreground">{option.subtitle}</p>
+                <div className="font-semibold text-foreground group-hover:text-congo-red transition-colors">{option.title}</div>
+                <div className="text-sm text-muted-foreground">{option.subtitle}</div>
               </div>
-              
               {option.hasArrow && (
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-congo-yellow transition-all duration-200 group-hover:translate-x-1" />
               )}
             </button>
           );
         })}
+      </div>
+
+      {/* Logout Section */}
+      <div className="px-4 py-4 mt-6">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" className="w-full flex items-center gap-3 text-destructive hover:text-destructive glassmorphism-soft hover:glassmorphism border-destructive/20 hover:border-destructive/40">
+              <LogOut className="h-4 w-4" />
+              Se déconnecter
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="glassmorphism">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmer la déconnexion</AlertDialogTitle>
+              <AlertDialogDescription>
+                Êtes-vous sûr de vouloir vous déconnecter de votre compte Kwenda Taxi ?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
+                Se déconnecter
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {/* Mobile-friendly Modal for detailed views */}
@@ -519,6 +506,7 @@ export const UserProfile = () => {
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         title={getOptionTitle(activeOption)}
+        className="glassmorphism"
       >
         {renderModalContent()}
       </MobileProfileModal>
