@@ -3,7 +3,7 @@ import { useTheme } from 'next-themes';
 import { useAuth } from '@/hooks/useAuth';
 
 export const useThemeSync = () => {
-  const { theme, setTheme, systemTheme } = useTheme();
+  const { theme, setTheme, systemTheme, resolvedTheme } = useTheme();
   const { user } = useAuth();
 
   // Charger les préférences de thème depuis localStorage pour l'utilisateur connecté
@@ -34,17 +34,39 @@ export const useThemeSync = () => {
     saveThemePreference();
   }, [user, theme]);
 
-  // Appliquer les classes CSS nécessaires
+  // Appliquer les classes CSS de manière synchrone et stable
   useEffect(() => {
     const root = document.documentElement;
-    const resolvedTheme = theme === 'system' ? systemTheme : theme;
     
+    // Désactiver temporairement les transitions pendant le changement de thème
+    const disableTransitions = () => {
+      const css = document.createElement('style');
+      css.textContent = '*, *::before, *::after { transition: none !important; }';
+      document.head.appendChild(css);
+      
+      return () => {
+        // Forcer un reflow avant de supprimer les styles
+        document.body.offsetHeight;
+        document.head.removeChild(css);
+      };
+    };
+
+    const enableTransitions = disableTransitions();
+    
+    // Appliquer immédiatement la classe de thème
     if (resolvedTheme === 'dark') {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
-  }, [theme, systemTheme]);
+    
+    // Réactiver les transitions après un délai minimal
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        enableTransitions();
+      });
+    });
+  }, [resolvedTheme]);
 
-  return { theme, setTheme, systemTheme };
+  return { theme, setTheme, systemTheme, resolvedTheme };
 };

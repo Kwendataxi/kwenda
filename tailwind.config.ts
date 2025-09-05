@@ -42,12 +42,24 @@ export default {
 					glow: 'hsl(var(--primary-glow))',
 					light: 'hsl(var(--primary-light))'
 				},
-				// Congo Theme Colors - Variables complètes
+				// Congo Theme Colors - Variables complètes avec variants
 				congo: {
-					green: 'hsl(var(--congo-green))',
-					yellow: 'hsl(var(--congo-yellow))',
 					red: 'hsl(var(--congo-red))',
-					blue: 'hsl(var(--congo-blue))'
+					'red-electric': 'hsl(var(--congo-red-electric))',
+					'red-vibrant': 'hsl(var(--congo-red-vibrant))',
+					'red-glow': 'hsl(var(--congo-red-glow))',
+					yellow: 'hsl(var(--congo-yellow))',
+					'yellow-electric': 'hsl(var(--congo-yellow-electric))',
+					'yellow-vibrant': 'hsl(var(--congo-yellow-vibrant))',
+					'yellow-glow': 'hsl(var(--congo-yellow-glow))',
+					green: 'hsl(var(--congo-green))',
+					'green-electric': 'hsl(var(--congo-green-electric))',
+					'green-vibrant': 'hsl(var(--congo-green-vibrant))',
+					'green-glow': 'hsl(var(--congo-green-glow))',
+					blue: 'hsl(var(--congo-blue))',
+					'blue-electric': 'hsl(var(--congo-blue-electric))',
+					'blue-vibrant': 'hsl(var(--congo-blue-vibrant))',
+					'blue-glow': 'hsl(var(--congo-blue-glow))'
 				},
 				// Semantic colors using Congo palette
 				success: {

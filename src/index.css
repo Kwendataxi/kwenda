@@ -290,63 +290,63 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Dark Mode Congo Design System - ENHANCED */
-    --background: 220 25% 5%;
-    --foreground: 42 25% 96%;
+    /* Dark Mode Congo Design System - OPTIMIZED & CLEAN */
+    --background: 220 35% 4%;
+    --foreground: 42 15% 98%;
 
-    --card: 220 25% 8%;
-    --card-foreground: 42 25% 96%;
+    --card: 220 30% 7%;
+    --card-foreground: 42 15% 96%;
 
-    --popover: 220 25% 8%;
-    --popover-foreground: 42 25% 96%;
+    --popover: 220 30% 7%;
+    --popover-foreground: 42 15% 96%;
 
-    --primary: 357 85% 62%;
+    --primary: 357 88% 65%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 357 90% 70%;
-    --primary-light: 357 95% 75%;
+    --primary-glow: 357 92% 72%;
+    --primary-light: 357 95% 78%;
 
-    --secondary: 42 95% 65%;
-    --secondary-foreground: 220 25% 5%;
-    --secondary-light: 42 100% 72%;
+    --secondary: 42 98% 68%;
+    --secondary-foreground: 220 35% 8%;
+    --secondary-light: 42 100% 75%;
 
-    --muted: 220 25% 10%;
-    --muted-foreground: 220 15% 75%;
+    --muted: 220 30% 12%;
+    --muted-foreground: 220 15% 78%;
 
-    --accent: 42 95% 65%;
-    --accent-foreground: 220 25% 5%;
-    --accent-light: 42 100% 72%;
+    --accent: 42 98% 68%;
+    --accent-foreground: 220 35% 8%;
+    --accent-light: 42 100% 75%;
 
-    /* Congo Flag Colors - Optimized Dark variants */
-    --congo-blue: 220 95% 68%;
-    --congo-red: 357 85% 62%;
-    --congo-yellow: 42 95% 68%;
-    --congo-green: 142 80% 52%;
+    /* Congo Flag Colors - Perfectly Balanced Dark Mode */
+    --congo-blue: 220 98% 72%;
+    --congo-red: 357 88% 65%;
+    --congo-yellow: 42 98% 72%;
+    --congo-green: 142 85% 58%;
     
-    /* Congo Electric Dark variants */
-    --congo-red-electric: 357 90% 70%;
-    --congo-yellow-electric: 42 100% 75%;
-    --congo-green-electric: 142 85% 60%;
-    --congo-blue-electric: 220 100% 72%;
+    /* Congo Electric Dark variants - High Contrast */
+    --congo-red-electric: 357 92% 72%;
+    --congo-yellow-electric: 42 100% 78%;
+    --congo-green-electric: 142 88% 65%;
+    --congo-blue-electric: 220 100% 76%;
     
-    /* Congo Vibrant Dark variants */
-    --congo-red-vibrant: 357 85% 65%;
-    --congo-yellow-vibrant: 42 95% 70%;
-    --congo-green-vibrant: 142 82% 55%;
-    --congo-blue-vibrant: 220 95% 70%;
+    /* Congo Vibrant Dark variants - Perfect Visibility */
+    --congo-red-vibrant: 357 88% 68%;
+    --congo-yellow-vibrant: 42 98% 74%;
+    --congo-green-vibrant: 142 85% 62%;
+    --congo-blue-vibrant: 220 98% 74%;
     
-    /* Congo Glow Dark variants */
-    --congo-red-glow: 357 80% 75%;
-    --congo-yellow-glow: 42 90% 80%;
-    --congo-green-glow: 142 75% 70%;
-    --congo-blue-glow: 220 85% 78%;
+    /* Congo Glow Dark variants - Enhanced Luminosity */
+    --congo-red-glow: 357 85% 78%;
+    --congo-yellow-glow: 42 95% 82%;
+    --congo-green-glow: 142 80% 72%;
+    --congo-blue-glow: 220 90% 80%;
 
-    /* Success/Warning/Info semantic colors for dark mode */
-    --success: 142 85% 55%;
-    --success-foreground: 220 25% 7%;
-    --warning: 42 100% 70%;
-    --warning-foreground: 220 25% 7%;
-    --info: 220 100% 70%;
-    --info-foreground: 220 25% 7%;
+    /* Success/Warning/Info semantic colors - High Contrast Dark */
+    --success: 142 88% 58%;
+    --success-foreground: 0 0% 100%;
+    --warning: 42 100% 75%;
+    --warning-foreground: 220 35% 8%;
+    --info: 220 100% 75%;
+    --info-foreground: 220 35% 8%;
 
     /* Enhanced Greys for dark mode */
     --grey-50: 220 15% 90%;
@@ -363,9 +363,9 @@ All colors MUST be HSL.
     --destructive: 0 85% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 25% 18%;
-    --input: 220 25% 12%;
-    --ring: 357 85% 62%;
+    --border: 220 30% 20%;
+    --input: 220 30% 15%;
+    --ring: 357 88% 65%;
 
     /* Enhanced Dark mode gradients */
     --gradient-primary: linear-gradient(135deg, hsl(357, 95%, 65%), hsl(357, 95%, 75%));
@@ -440,49 +440,53 @@ All colors MUST be HSL.
     box-shadow: var(--shadow-float);
   }
 
-  /* Glassmorphism moderne Congo */
+  /* Glassmorphism moderne Congo - STABLE */
   .glassmorphism {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37), 
-                0 2px 8px 0 rgba(31, 38, 135, 0.2);
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.25), 
+                0 2px 8px rgba(31, 38, 135, 0.1);
   }
 
   .dark .glassmorphism {
-    background: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5),
-                0 4px 12px 0 rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    background: rgba(15, 15, 20, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6),
+                0 4px 12px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
-  /* Glassmorphism variants */
+  /* Glassmorphism variants - ENHANCED STABILITY */
   .glassmorphism-soft {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
   }
 
   .dark .glassmorphism-soft {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(10, 10, 15, 0.5);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
   }
 
   .glassmorphism-intense {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.28);
   }
 
   .dark .glassmorphism-intense {
-    background: rgba(0, 0, 0, 0.45);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(20, 20, 25, 0.8);
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   /* Boutons modernes */
@@ -526,68 +530,107 @@ All colors MUST be HSL.
     background: var(--gradient-congo-glow);
   }
 
-  /* Congo button styles */
+  /* Congo button styles - ENHANCED DARK MODE */
   .btn-congo {
-    @apply bg-congo-red text-white hover:bg-congo-red/90 transition-all duration-200;
+    background: hsl(var(--congo-red));
+    @apply text-white font-semibold transition-all duration-200;
+    @apply hover:scale-105 active:scale-95;
     box-shadow: var(--shadow-congo);
+  }
+
+  .btn-congo:hover {
+    background: hsl(var(--congo-red-vibrant));
+    box-shadow: var(--shadow-congo-intense);
   }
 
   .btn-congo-electric {
     background: var(--gradient-congo-electric);
-    @apply text-white transition-all duration-200;
+    @apply text-white font-semibold transition-all duration-200;
+    @apply hover:scale-105 active:scale-95;
     box-shadow: var(--shadow-congo-intense);
   }
 
   .btn-congo-vibrant {
     background: var(--gradient-congo-vibrant);
-    @apply text-white transition-all duration-200;
+    @apply text-white font-semibold transition-all duration-200;
+    @apply hover:scale-105 active:scale-95;
     box-shadow: var(--shadow-congo-vibrant);
   }
 
   .btn-congo-glow {
-    @apply bg-congo-blue text-white transition-all duration-200;
+    background: hsl(var(--congo-blue));
+    @apply text-white font-semibold transition-all duration-200;
+    @apply hover:scale-105 active:scale-95;
     box-shadow: var(--shadow-congo-glow);
   }
 
-  /* Congo card styles */
+  .btn-congo-glow:hover {
+    background: hsl(var(--congo-blue-vibrant));
+  }
+
+  /* Congo card styles - ENHANCED DARK MODE */
   .card-congo {
-    @apply bg-card border border-congo-red/20;
     background: linear-gradient(145deg, hsl(var(--card)), hsl(var(--muted)));
+    @apply border transition-all duration-300;
+    border-color: hsl(var(--congo-red) / 0.25);
     box-shadow: var(--shadow-congo);
+  }
+
+  .dark .card-congo {
+    background: linear-gradient(145deg, hsl(var(--card)), hsl(var(--muted)));
+    border-color: hsl(var(--congo-red) / 0.4);
+    box-shadow: var(--shadow-congo-multi);
   }
 
   .card-congo-electric {
     background: var(--gradient-congo-electric);
-    @apply text-white border-0;
+    @apply text-white border-0 transition-all duration-300;
     box-shadow: var(--shadow-congo-intense);
   }
 
   .congo-glow {
+    @apply transition-all duration-300;
     box-shadow: var(--shadow-congo-glow);
   }
 
   .congo-vibrant {
     background: var(--gradient-congo-vibrant);
-    @apply text-white;
+    @apply text-white transition-all duration-300;
   }
 
-  /* Mode sombre adjustments for cards and components */
+  /* Mode sombre adjustments - PERFECT VISIBILITY */
   .dark .congo-gradient {
-    opacity: 0.9;
+    opacity: 1;
+    filter: brightness(1.1) contrast(1.05);
   }
 
   .dark .congo-gradient-subtle {
-    opacity: 0.8;
+    opacity: 0.95;
+    filter: brightness(1.2);
   }
 
-  .dark .glassmorphism-soft {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  .dark .btn-congo {
+    background: hsl(var(--congo-red));
+    @apply text-white;
+    box-shadow: var(--shadow-congo-multi);
   }
 
-  .dark .card-congo {
-    background: linear-gradient(145deg, hsl(var(--card)), hsl(var(--muted)));
-    border-color: hsl(var(--congo-red) / 0.3);
+  .dark .btn-congo:hover {
+    background: hsl(var(--congo-red-vibrant));
+    box-shadow: var(--shadow-congo-intense);
+  }
+
+  .dark .btn-congo-electric {
+    filter: brightness(1.1);
+  }
+
+  .dark .btn-congo-vibrant {
+    filter: brightness(1.05);
+  }
+
+  .dark .btn-congo-glow {
+    background: hsl(var(--congo-blue));
+    box-shadow: var(--shadow-congo-glow);
   }
 
   /* Hide scrollbar while keeping functionality */

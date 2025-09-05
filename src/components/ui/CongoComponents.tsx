@@ -1,9 +1,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
-// Congo Button Component
+// =================== CONGO BUTTON ===================
 interface CongoButtonProps {
   children: React.ReactNode;
   variant?: 'default' | 'electric' | 'vibrant' | 'glow' | 'success' | 'warning' | 'info';
@@ -11,27 +12,29 @@ interface CongoButtonProps {
   className?: string;
   onClick?: () => void;
   disabled?: boolean;
+  asChild?: boolean;
   type?: 'button' | 'submit' | 'reset';
 }
 
-export const CongoButton: React.FC<CongoButtonProps> = ({
+const CongoButton: React.FC<CongoButtonProps> = ({
   children,
   variant = 'default',
   size = 'md',
   className,
   onClick,
   disabled = false,
+  asChild = false,
   type = 'button',
   ...props
 }) => {
   const variants = {
-    default: 'bg-congo-red hover:bg-congo-red/90 text-white shadow-congo',
-    electric: 'congo-gradient-electric text-white shadow-congo-intense',
-    vibrant: 'congo-gradient-vibrant text-white shadow-congo-vibrant',
-    glow: 'bg-congo-blue hover:bg-congo-blue/90 text-white shadow-congo-glow',
-    success: 'bg-congo-green hover:bg-congo-green/90 text-white shadow-elegant',
-    warning: 'bg-congo-yellow hover:bg-congo-yellow/90 text-grey-900 shadow-elegant',
-    info: 'bg-congo-blue hover:bg-congo-blue/90 text-white shadow-elegant'
+    default: 'btn-congo',
+    electric: 'btn-congo-electric',
+    vibrant: 'btn-congo-vibrant',
+    glow: 'btn-congo-glow',
+    success: 'bg-success text-success-foreground hover:bg-success/90 shadow-lg',
+    warning: 'bg-warning text-warning-foreground hover:bg-warning/90 shadow-lg',
+    info: 'bg-info text-info-foreground hover:bg-info/90 shadow-lg'
   };
 
   const sizes = {
@@ -42,15 +45,16 @@ export const CongoButton: React.FC<CongoButtonProps> = ({
 
   return (
     <Button
-      type={type}
+      asChild={asChild}
       className={cn(
-        'font-medium transition-all duration-300 border-0',
+        'font-semibold transition-all duration-200 active:scale-95',
         variants[variant],
         sizes[size],
         className
       )}
       onClick={onClick}
       disabled={disabled}
+      type={type}
       {...props}
     >
       {children}
@@ -58,15 +62,15 @@ export const CongoButton: React.FC<CongoButtonProps> = ({
   );
 };
 
-// Congo Card Component
+// =================== CONGO CARD ===================
 interface CongoCardProps {
   children: React.ReactNode;
-  variant?: 'default' | 'electric' | 'vibrant' | 'glow' | 'success' | 'warning' | 'info';
+  variant?: 'default' | 'electric' | 'vibrant' | 'glow' | 'glassmorphism' | 'success' | 'warning' | 'info';
   className?: string;
   onClick?: () => void;
 }
 
-export const CongoCard: React.FC<CongoCardProps> = ({
+const CongoCard: React.FC<CongoCardProps> = ({
   children,
   variant = 'default',
   className,
@@ -74,20 +78,22 @@ export const CongoCard: React.FC<CongoCardProps> = ({
   ...props
 }) => {
   const variants = {
-    default: 'bg-card border border-congo-red/20 shadow-congo',
-    electric: 'congo-gradient-electric text-white border-0 shadow-congo-intense',
-    vibrant: 'congo-gradient-vibrant text-white border-0 shadow-congo-vibrant',
-    glow: 'bg-card border border-congo-blue/30 shadow-congo-glow',
-    success: 'bg-card border border-congo-green/30 shadow-elegant',
-    warning: 'bg-card border border-congo-yellow/30 shadow-elegant',
-    info: 'bg-card border border-congo-blue/30 shadow-elegant'
+    default: 'card-congo',
+    electric: 'card-congo-electric',
+    vibrant: 'congo-vibrant card-modern',
+    glow: 'congo-glow card-modern',
+    glassmorphism: 'glassmorphism rounded-xl p-6',
+    success: 'bg-success/10 border-success/30 text-success-foreground',
+    warning: 'bg-warning/10 border-warning/30 text-warning-foreground',
+    info: 'bg-info/10 border-info/30 text-info-foreground'
   };
 
   return (
     <Card
       className={cn(
-        'p-6 rounded-xl transition-all duration-300 cursor-pointer hover:scale-[1.02]',
+        'p-6 transition-all duration-300 cursor-pointer',
         variants[variant],
+        onClick && 'hover:scale-[1.02] active:scale-[0.98]',
         className
       )}
       onClick={onClick}
@@ -98,7 +104,7 @@ export const CongoCard: React.FC<CongoCardProps> = ({
   );
 };
 
-// Congo Badge Component
+// =================== CONGO BADGE ===================
 interface CongoBadgeProps {
   children: React.ReactNode;
   variant?: 'default' | 'electric' | 'vibrant' | 'glow' | 'success' | 'warning' | 'info';
@@ -106,7 +112,7 @@ interface CongoBadgeProps {
   className?: string;
 }
 
-export const CongoBadge: React.FC<CongoBadgeProps> = ({
+const CongoBadge: React.FC<CongoBadgeProps> = ({
   children,
   variant = 'default',
   size = 'md',
@@ -114,25 +120,25 @@ export const CongoBadge: React.FC<CongoBadgeProps> = ({
   ...props
 }) => {
   const variants = {
-    default: 'bg-congo-red/10 text-congo-red border border-congo-red/20',
+    default: 'bg-congo-red text-white border-congo-red/20',
     electric: 'congo-gradient-electric text-white border-0',
     vibrant: 'congo-gradient-vibrant text-white border-0',
-    glow: 'bg-congo-blue/10 text-congo-blue border border-congo-blue/20',
-    success: 'bg-congo-green/10 text-congo-green border border-congo-green/20',
-    warning: 'bg-congo-yellow/10 text-congo-yellow border border-congo-yellow/20',
-    info: 'bg-congo-blue/10 text-congo-blue border border-congo-blue/20'
+    glow: 'bg-congo-blue text-white border-congo-blue/20 congo-glow',
+    success: 'bg-success text-success-foreground border-success/20',
+    warning: 'bg-warning text-warning-foreground border-warning/20',
+    info: 'bg-info text-info-foreground border-info/20'
   };
 
   const sizes = {
-    sm: 'px-2 py-1 text-xs rounded-md',
-    md: 'px-3 py-1.5 text-sm rounded-lg',
-    lg: 'px-4 py-2 text-base rounded-xl'
+    sm: 'px-2 py-1 text-xs',
+    md: 'px-3 py-1.5 text-sm',
+    lg: 'px-4 py-2 text-base'
   };
 
   return (
-    <span
+    <Badge
       className={cn(
-        'inline-flex items-center justify-center font-medium',
+        'font-semibold transition-all duration-200',
         variants[variant],
         sizes[size],
         className
@@ -140,18 +146,18 @@ export const CongoBadge: React.FC<CongoBadgeProps> = ({
       {...props}
     >
       {children}
-    </span>
+    </Badge>
   );
 };
 
-// Congo Gradient Background Component
+// =================== CONGO GRADIENT ===================
 interface CongoGradientProps {
   children: React.ReactNode;
   variant?: 'default' | 'electric' | 'vibrant' | 'glow' | 'subtle' | 'mesh';
   className?: string;
 }
 
-export const CongoGradient: React.FC<CongoGradientProps> = ({
+const CongoGradient: React.FC<CongoGradientProps> = ({
   children,
   variant = 'default',
   className,
@@ -163,13 +169,13 @@ export const CongoGradient: React.FC<CongoGradientProps> = ({
     vibrant: 'congo-gradient-vibrant',
     glow: 'congo-gradient-glow',
     subtle: 'congo-gradient-subtle',
-    mesh: 'bg-gradient-congo-mesh'
+    mesh: 'bg-gradient-to-br from-congo-red via-congo-yellow to-congo-blue'
   };
 
   return (
     <div
       className={cn(
-        'relative overflow-hidden',
+        'p-6 rounded-xl transition-all duration-300',
         variants[variant],
         className
       )}
@@ -179,3 +185,5 @@ export const CongoGradient: React.FC<CongoGradientProps> = ({
     </div>
   );
 };
+
+export { CongoButton, CongoCard, CongoBadge, CongoGradient };

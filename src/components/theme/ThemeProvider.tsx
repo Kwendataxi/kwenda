@@ -7,9 +7,10 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
       attribute="class"
       defaultTheme="system"
       enableSystem
-      disableTransitionOnChange={false}
-      storageKey="kwenda-theme"
+      disableTransitionOnChange={true}
+      storageKey="kwenda-theme-global"
       themes={['light', 'dark', 'system']}
+      forcedTheme={undefined}
       {...props}
     >
       {children}
