@@ -7,7 +7,7 @@ import CTASection from '@/components/landing/CTASection';
 import ModernFooter from '@/components/landing/ModernFooter';
 import CongoColorShowcase from '@/components/demo/CongoColorShowcase';
 import { DarkModeShowcase } from '@/components/demo/DarkModeShowcase';
-import { TestFixMessage } from '@/components/navigation/TestFixMessage';
+
 import { HeaderThemeToggle } from '@/components/navigation/HeaderThemeToggle';
 import { ThemeToggleSection } from '@/components/landing/ThemeToggleSection';
 
@@ -27,7 +27,6 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       <HeaderThemeToggle />
-      <TestFixMessage />
       <ModernHero />
       <InteractiveServicesGrid />
       <ThemeToggleSection />

@@ -15,7 +15,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({ size = 64, className, alt 
       width={size}
       height={size}
       alt={alt || "Kwenda Taxi Congo — logo"}
-      className={clsx("rounded-2xl object-contain shadow", className)}
+      className={clsx("rounded-2xl object-contain shadow-congo-glow transition-all duration-300 hover:shadow-congo-intense hover:scale-105", className)}
       loading="eager"
     />
   );
