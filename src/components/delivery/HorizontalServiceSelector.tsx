@@ -36,10 +36,10 @@ const HorizontalServiceSelector: React.FC<HorizontalServiceSelectorProps> = ({
 }) => {
   return (
     <div className={cn("w-full", className)}>
-      {/* Section title - Simplifié */}
+      {/* Section title - Ultra simplifié */}
       <div className="mb-4 text-center">
         <h2 className="text-xl font-bold text-foreground">
-          Choisissez votre service
+          Services
         </h2>
       </div>
 

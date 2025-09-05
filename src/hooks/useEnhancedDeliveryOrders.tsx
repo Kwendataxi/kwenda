@@ -37,14 +37,34 @@ export const useEnhancedDeliveryOrders = () => {
     try {
       console.log('Calculating delivery price for mode:', mode);
       
-      // Try to get pricing config from database first
-      const { data: pricingConfig, error: configError } = await supabase
-        .from('pricing_configs')
-        .select('*')
-        .eq('service_type', mode)
-        .eq('city', 'Kinshasa')
-        .eq('active', true)
-        .single();
+      // TIMEOUT PROTECTION - 5 secondes maximum
+      const calculatePriceWithTimeout = async () => {
+        const pricingPromise = supabase
+          .from('pricing_configs')
+          .select('*')
+          .eq('service_type', mode)
+          .eq('city', 'Kinshasa')
+          .eq('active', true)
+          .single();
+
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        );
+
+        return Promise.race([pricingPromise, timeoutPromise]);
+      };
+
+      let pricingConfig = null;
+      let configError = null;
+
+      try {
+        const result = await calculatePriceWithTimeout();
+        pricingConfig = (result as any).data;
+        configError = (result as any).error;
+      } catch (timeoutError) {
+        console.log('Database timeout, using fallback pricing immediately');
+        configError = timeoutError;
+      }
 
       // Calculate distance using Haversine formula
       const R = 6371; // Earth radius in km

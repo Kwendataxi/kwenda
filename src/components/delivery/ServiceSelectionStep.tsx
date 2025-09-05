@@ -80,24 +80,55 @@ export const ServiceSelectionStep: React.FC<ServiceSelectionStepProps> = ({
   
   const { calculateDeliveryPrice } = useEnhancedDeliveryOrders();
 
-  // Calculer les prix pour tous les services
+  // Calcul parallèle des prix avec timeout robuste
   useEffect(() => {
     const calculateAllPrices = async () => {
       setLoadingPricing(true);
       const pricingResults: Record<string, DeliveryPricing> = {};
 
       try {
-        for (const service of deliveryServices) {
-          const result = await calculateDeliveryPrice(
+        // Calculer tous les prix EN PARALLÈLE avec timeout individuel
+        const pricePromises = deliveryServices.map(async (service) => {
+          const timeoutPromise = new Promise<DeliveryPricing>((_, reject) => 
+            setTimeout(() => reject(new Error(`Timeout for ${service.id}`)), 3000)
+          );
+
+          const calculationPromise = calculateDeliveryPrice(
             { address: pickup.address, lat: pickup.coordinates.lat, lng: pickup.coordinates.lng },
             { address: destination.address, lat: destination.coordinates.lat, lng: destination.coordinates.lng },
             service.id
           );
-          pricingResults[service.id] = result;
-        }
+
+          try {
+            const result = await Promise.race([calculationPromise, timeoutPromise]);
+            return { serviceId: service.id, result };
+          } catch (error) {
+            // Fallback immédiat en cas d'échec
+            const fallbackPrices = {
+              flash: { price: 7000, distance: 5, duration: 30 },
+              flex: { price: 4500, distance: 5, duration: 30 },
+              maxicharge: { price: 10000, distance: 5, duration: 30 }
+            };
+            console.log(`Using fallback for ${service.id}:`, error);
+            return { serviceId: service.id, result: fallbackPrices[service.id] };
+          }
+        });
+
+        const results = await Promise.all(pricePromises);
+        results.forEach(({ serviceId, result }) => {
+          pricingResults[serviceId] = result;
+        });
+
         setPricing(pricingResults);
       } catch (error) {
         console.error('Error calculating prices:', error);
+        // Fallback global si tout échoue
+        const fallbackPrices = {
+          flash: { price: 7000, distance: 5, duration: 30 },
+          flex: { price: 4500, distance: 5, duration: 30 },
+          maxicharge: { price: 10000, distance: 5, duration: 30 }
+        };
+        setPricing(fallbackPrices);
       } finally {
         setLoadingPricing(false);
       }
@@ -146,11 +177,8 @@ export const ServiceSelectionStep: React.FC<ServiceSelectionStepProps> = ({
             </Button>
             <div className="text-center">
               <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
-                Service de Livraison
+                Livraison
               </h1>
-              <p className="text-muted-foreground mt-1">
-                Choisissez le service adapté à vos besoins
-              </p>
             </div>
             <div className="w-24" />
           </div>
