@@ -2,16 +2,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Phone } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t } = useLanguage();
 
   const navItems = [
-    { label: "Accueil", href: "#accueil" },
-    { label: "Services", href: "#services" },
-    { label: "Avantages", href: "#avantages" },
-    { label: "Contact", href: "#contact" }
+    { label: t('nav.home'), href: "#accueil" },
+    { label: t('nav.services'), href: "#services" },
+    { label: t('nav.about'), href: "#avantages" },
+    { label: t('nav.contact'), href: "#contact" }
   ];
 
   return (
@@ -39,16 +40,16 @@ const Header = () => {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-2">
             <Button asChild variant="outline" size="sm">
-              <a href="/client">Client</a>
+              <a href="/client">{t('nav.client')}</a>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <a href="/chauffeur">Chauffeur</a>
+              <a href="/chauffeur">{t('nav.driver')}</a>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <a href="/admin">Admin</a>
+              <a href="/admin">{t('nav.admin')}</a>
             </Button>
             <Button variant="hero" size="sm">
-              Télécharger l'App
+              {t('nav.download_app')}
             </Button>
           </div>
 
@@ -81,7 +82,7 @@ const Header = () => {
                   <span>+225 XX XX XX XX</span>
                 </div>
                 <Button variant="hero" size="sm" className="w-full">
-                  Télécharger l'App
+                  {t('nav.download_app')}
                 </Button>
               </div>
             </nav>
