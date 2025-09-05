@@ -66,6 +66,11 @@ const translations = {
     'home.work_label': 'Bureau',
     'home.remove_place': 'Supprimer ce lieu',
     'home.search.placeholder': 'Où voulez-vous aller ?',
+    'home.services.taxi': 'Transport',
+    'home.services.delivery': 'Livraison',
+    'home.services.shopping': 'Shopping',
+    'home.services.rental': 'Location',
+    'home.services.lottery': 'Tombola',
     
     // Toast messages
     'toast.place_removed': 'Lieu supprimé',
@@ -225,6 +230,11 @@ const translations = {
     'home.work_label': 'Work',
     'home.remove_place': 'Remove this place',
     'home.search.placeholder': 'Where do you want to go?',
+    'home.services.taxi': 'Transport',
+    'home.services.delivery': 'Delivery',
+    'home.services.shopping': 'Shopping',
+    'home.services.rental': 'Rental',
+    'home.services.lottery': 'Lottery',
     
     // Toast messages
     'toast.place_removed': 'Place Removed',

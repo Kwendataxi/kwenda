@@ -34,7 +34,7 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
     },
     {
       id: 'rental',
-      name: 'Location',
+      name: t('home.services.rental'),
       icon: Car,
       gradient: 'from-green-500 to-green-600',
       available: true
@@ -48,7 +48,7 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
     },
     {
       id: 'lottery',
-      name: 'Tombola',
+      name: t('home.services.lottery'),
       icon: Zap,
       gradient: 'from-purple-500 to-pink-500',
       available: true
