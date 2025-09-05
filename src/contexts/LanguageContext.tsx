@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export type Language = 'fr' | 'en' | 'kg' | 'lua' | 'sw';
 
-// MINIMAL WORKING TRANSLATIONS - NO DUPLICATES
+// TRADUCTIONS COMPLÈTES - SYSTÈME MULTILINGUE COMPLET
 const translations = {
   fr: {
     // Navigation
@@ -21,6 +21,16 @@ const translations = {
     'common.success': 'Succès',
     'common.cancel': 'Annuler',
     'common.confirm': 'Confirmer',
+    'common.save': 'Enregistrer',
+    'common.edit': 'Modifier',
+    'common.delete': 'Supprimer',
+    'common.view_all': 'Voir tout',
+    'common.add': 'Ajouter',
+    'common.remove': 'Retirer',
+    'common.close': 'Fermer',
+    'common.back': 'Retour',
+    'common.next': 'Suivant',
+    'common.previous': 'Précédent',
     
     // Auth
     'auth.login': 'Connexion',
@@ -28,25 +38,100 @@ const translations = {
     'auth.email': 'Email',
     'auth.password': 'Mot de passe',
     'auth.continue': 'Continuer',
+    'auth.logout': 'Déconnexion',
+    'auth.forgot_password': 'Mot de passe oublié',
+    'auth.reset_password': 'Réinitialiser le mot de passe',
+    'auth.confirm_password': 'Confirmer le mot de passe',
+    'auth.create_account': 'Créer un compte',
     
     // Role Selection
     'role.client': 'Client',
     'role.driver': 'Chauffeur',
     'role.partner': 'Partenaire', 
     'role.admin': 'Administrateur',
+    'role.select': 'Choisir un rôle',
+    'role.client_desc': 'Commandez des courses et livraisons',
+    'role.driver_desc': 'Devenez chauffeur partenaire',
+    'role.partner_desc': 'Gérez votre flotte de véhicules',
     
-    // Basic support
+    // Home/Recent Places
+    'home.recent_places': 'Lieux récents',
+    'home.no_recent_places': 'Aucun lieu récent trouvé',
+    'home.recent_places_help': 'Vos dernières destinations apparaîtront ici',
+    'home.add_current_location': 'Ajouter ma position',
+    'home.use_current_location': 'Utiliser ma position actuelle',
+    'home.set_as_home': 'Définir comme domicile',
+    'home.set_as_work': 'Définir comme bureau',
+    'home.home_label': 'Domicile',
+    'home.work_label': 'Bureau',
+    'home.remove_place': 'Supprimer ce lieu',
+    
+    // Toast messages
+    'toast.place_removed': 'Lieu supprimé',
+    'toast.place_removed_desc': 'Le lieu a été retiré de vos lieux récents',
+    'toast.location_added': 'Position ajoutée',
+    'toast.location_added_desc': 'Votre position actuelle a été ajoutée aux lieux récents',
+    'toast.location_error': 'Erreur',
+    'toast.location_error_desc': 'Impossible d\'obtenir votre position actuelle',
+    'toast.home_set': 'Domicile défini',
+    'toast.home_set_desc': '{0} est maintenant votre domicile',
+    'toast.work_set': 'Bureau défini',
+    'toast.work_set_desc': '{0} est maintenant votre bureau',
+    
+    // Hero Section
+    'hero.title': 'Transport et Livraison en RDC',
+    'hero.subtitle': 'Votre solution complète de mobilité urbaine',
+    'hero.description': 'Des courses VTC aux livraisons express, découvrez Kwenda - l\'application qui révolutionne le transport en République Démocratique du Congo.',
+    'hero.cta_start': 'Commencer maintenant',
+    'hero.cta_demo': 'Voir la démo',
+    'hero.stats.cities': 'Villes actives',
+    'hero.stats.available': 'Disponible 24h/7j',
+    'hero.stats.payment': 'Paiement sécurisé',
+    'hero.stats.support': 'Support client',
+    
+    // Services
+    'services.title': 'Nos Services',
+    'services.subtitle': 'Solutions complètes pour tous vos besoins de mobilité',
+    'services.vtc.title': 'VTC & Transport',
+    'services.vtc.description': 'Courses privées et partagées',
+    'services.delivery.title': 'Livraison Express',
+    'services.delivery.description': 'Livraisons rapides et sécurisées',
+    'services.marketplace.title': 'Marketplace',
+    'services.marketplace.description': 'Boutique en ligne intégrée',
+    'services.rental.title': 'Location de véhicules',
+    'services.rental.description': 'Louez des véhicules facilement',
+    
+    // Features
+    'features.title': 'Fonctionnalités Avancées',
+    'features.subtitle': 'Une expérience utilisateur exceptionnelle',
+    'features.realtime.title': 'Suivi en temps réel',
+    'features.realtime.description': 'Suivez vos courses et livraisons en direct',
+    'features.payment.title': 'Paiements sécurisés',
+    'features.payment.description': 'Multiple options de paiement local',
+    'features.multilingual.title': 'Multilingue',
+    'features.multilingual.description': 'Interface en français et langues locales',
+    'features.support.title': 'Support 24/7',
+    'features.support.description': 'Assistance client disponible en permanence',
+    
+    // Support
     'support.title': 'Support Client',
     'support.subtitle': 'Nous sommes là pour vous aider',
+    'support.contact': 'Nous contacter',
+    'support.faq': 'FAQ',
+    'support.help': 'Centre d\'aide',
     
-    // Basic escrow
+    // Escrow
     'escrow.title': 'Coffre-fort Sécurisé',
     'escrow.no_transactions': 'Aucune transaction sécurisée',
+    'escrow.description': 'Vos paiements sont protégés',
     
     // System
     'system.loading': 'Chargement...',
     'system.error': 'Erreur',
-    'system.success': 'Succès'
+    'system.success': 'Succès',
+    'system.error_occurred': 'Une erreur s\'est produite',
+    'system.try_again': 'Réessayer',
+    'system.no_data': 'Aucune donnée disponible'
   },
   
   en: {
@@ -64,6 +149,16 @@ const translations = {
     'common.success': 'Success',
     'common.cancel': 'Cancel',
     'common.confirm': 'Confirm',
+    'common.save': 'Save',
+    'common.edit': 'Edit',
+    'common.delete': 'Delete',
+    'common.view_all': 'View All',
+    'common.add': 'Add',
+    'common.remove': 'Remove',
+    'common.close': 'Close',
+    'common.back': 'Back',
+    'common.next': 'Next',
+    'common.previous': 'Previous',
     
     // Auth
     'auth.login': 'Login',
@@ -71,25 +166,100 @@ const translations = {
     'auth.email': 'Email',
     'auth.password': 'Password',
     'auth.continue': 'Continue',
+    'auth.logout': 'Logout',
+    'auth.forgot_password': 'Forgot Password',
+    'auth.reset_password': 'Reset Password',
+    'auth.confirm_password': 'Confirm Password',
+    'auth.create_account': 'Create Account',
     
     // Role Selection
     'role.client': 'Client',
     'role.driver': 'Driver',
     'role.partner': 'Partner',
     'role.admin': 'Administrator',
+    'role.select': 'Select Role',
+    'role.client_desc': 'Order rides and deliveries',
+    'role.driver_desc': 'Become a partner driver',
+    'role.partner_desc': 'Manage your vehicle fleet',
     
-    // Basic support
+    // Home/Recent Places
+    'home.recent_places': 'Recent Places',
+    'home.no_recent_places': 'No recent places found',
+    'home.recent_places_help': 'Your recent destinations will appear here',
+    'home.add_current_location': 'Add My Location',
+    'home.use_current_location': 'Use my current location',
+    'home.set_as_home': 'Set as Home',
+    'home.set_as_work': 'Set as Work',
+    'home.home_label': 'Home',
+    'home.work_label': 'Work',
+    'home.remove_place': 'Remove this place',
+    
+    // Toast messages
+    'toast.place_removed': 'Place Removed',
+    'toast.place_removed_desc': 'The place has been removed from your recent places',
+    'toast.location_added': 'Location Added',
+    'toast.location_added_desc': 'Your current location has been added to recent places',
+    'toast.location_error': 'Error',
+    'toast.location_error_desc': 'Unable to get your current location',
+    'toast.home_set': 'Home Set',
+    'toast.home_set_desc': '{0} is now your home',
+    'toast.work_set': 'Work Set',
+    'toast.work_set_desc': '{0} is now your work',
+    
+    // Hero Section
+    'hero.title': 'Transport and Delivery in DRC',
+    'hero.subtitle': 'Your complete urban mobility solution',
+    'hero.description': 'From VTC rides to express deliveries, discover Kwenda - the app revolutionizing transport in the Democratic Republic of Congo.',
+    'hero.cta_start': 'Get Started',
+    'hero.cta_demo': 'View Demo',
+    'hero.stats.cities': 'Active Cities',
+    'hero.stats.available': 'Available 24/7',
+    'hero.stats.payment': 'Secure Payment',
+    'hero.stats.support': 'Customer Support',
+    
+    // Services
+    'services.title': 'Our Services',
+    'services.subtitle': 'Complete solutions for all your mobility needs',
+    'services.vtc.title': 'VTC & Transport',
+    'services.vtc.description': 'Private and shared rides',
+    'services.delivery.title': 'Express Delivery',
+    'services.delivery.description': 'Fast and secure deliveries',
+    'services.marketplace.title': 'Marketplace',
+    'services.marketplace.description': 'Integrated online store',
+    'services.rental.title': 'Vehicle Rental',
+    'services.rental.description': 'Rent vehicles easily',
+    
+    // Features
+    'features.title': 'Advanced Features',
+    'features.subtitle': 'An exceptional user experience',
+    'features.realtime.title': 'Real-time Tracking',
+    'features.realtime.description': 'Track your rides and deliveries live',
+    'features.payment.title': 'Secure Payments',
+    'features.payment.description': 'Multiple local payment options',
+    'features.multilingual.title': 'Multilingual',
+    'features.multilingual.description': 'Interface in French and local languages',
+    'features.support.title': '24/7 Support',
+    'features.support.description': 'Customer assistance available around the clock',
+    
+    // Support
     'support.title': 'Customer Support',
     'support.subtitle': 'We are here to help you',
+    'support.contact': 'Contact Us',
+    'support.faq': 'FAQ',
+    'support.help': 'Help Center',
     
-    // Basic escrow
+    // Escrow
     'escrow.title': 'Secure Vault',
     'escrow.no_transactions': 'No secure transactions',
+    'escrow.description': 'Your payments are protected',
     
     // System
     'system.loading': 'Loading...',
     'system.error': 'Error',
-    'system.success': 'Success'
+    'system.success': 'Success',
+    'system.error_occurred': 'An error occurred',
+    'system.try_again': 'Try Again',
+    'system.no_data': 'No data available'
   },
   
   kg: {

@@ -49,8 +49,8 @@ export const RecentPlaces = ({ onPlaceSelect, onViewAll }: RecentPlacesProps) =>
     e.stopPropagation();
     removeRecentPlace(placeId);
     toast({
-      title: "Lieu supprimé",
-      description: "Le lieu a été retiré de vos lieux récents",
+      title: t('toast.place_removed'),
+      description: t('toast.place_removed_desc'),
     });
   };
 
@@ -58,13 +58,13 @@ export const RecentPlaces = ({ onPlaceSelect, onViewAll }: RecentPlacesProps) =>
     try {
       await addCurrentLocation();
       toast({
-        title: "Position ajoutée",
-        description: "Votre position actuelle a été ajoutée aux lieux récents",
+        title: t('toast.location_added'),
+        description: t('toast.location_added_desc'),
       });
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible d'obtenir votre position actuelle",
+        title: t('toast.location_error'),
+        description: t('toast.location_error_desc'),
         variant: "destructive"
       });
     }
@@ -77,8 +77,8 @@ export const RecentPlaces = ({ onPlaceSelect, onViewAll }: RecentPlacesProps) =>
       coordinates: place.coordinates
     });
     toast({
-      title: "Domicile défini",
-      description: `${place.name} est maintenant votre domicile`,
+      title: t('toast.home_set'),
+      description: t('toast.home_set_desc', { 0: place.name }),
     });
   };
 
@@ -89,8 +89,8 @@ export const RecentPlaces = ({ onPlaceSelect, onViewAll }: RecentPlacesProps) =>
       coordinates: place.coordinates
     });
     toast({
-      title: "Bureau défini",
-      description: `${place.name} est maintenant votre bureau`,
+      title: t('toast.work_set'),
+      description: t('toast.work_set_desc', { 0: place.name }),
     });
   };
 
@@ -108,11 +108,11 @@ export const RecentPlaces = ({ onPlaceSelect, onViewAll }: RecentPlacesProps) =>
     return (
       <div className="px-4 mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-heading-md text-foreground">Lieux récents</h3>
+          <h3 className="text-heading-md text-foreground">{t('home.recent_places')}</h3>
         </div>
         <div className="text-center p-8 text-muted-foreground">
           <MapPin className="h-8 w-8 mx-auto mb-3 opacity-50" />
-          <p>Aucun lieu récent trouvé</p>
+          <p>{t('home.no_recent_places')}</p>
           <p className="text-sm mt-1 mb-4">{t('home.recent_places_help')}</p>
           <Button 
             onClick={handleAddCurrentLocation}
@@ -121,7 +121,7 @@ export const RecentPlaces = ({ onPlaceSelect, onViewAll }: RecentPlacesProps) =>
             className="flex items-center gap-2"
           >
             <Navigation className="h-4 w-4" />
-            Ajouter ma position
+            {t('home.add_current_location')}
           </Button>
         </div>
       </div>
@@ -136,9 +136,9 @@ export const RecentPlaces = ({ onPlaceSelect, onViewAll }: RecentPlacesProps) =>
           <button
             onClick={onViewAll}
             className="text-sm text-primary hover:underline"
-            aria-label="Voir tous les lieux"
+            aria-label={t('common.view_all')}
           >
-            Voir tout
+            {t('common.view_all')}
           </button>
         )}
       </div>
@@ -162,12 +162,12 @@ export const RecentPlaces = ({ onPlaceSelect, onViewAll }: RecentPlacesProps) =>
                   <h3 className="font-medium text-foreground truncate">{place.name}</h3>
                   {place.place_type === 'home' && (
                     <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded font-medium">
-                      Domicile
+                      {t('home.home_label')}
                     </span>
                   )}
                   {place.place_type === 'work' && (
                     <span className="px-2 py-0.5 bg-secondary/10 text-secondary text-xs rounded font-medium">
-                      Bureau
+                      {t('home.work_label')}
                     </span>
                   )}
                 </div>
@@ -188,7 +188,7 @@ export const RecentPlaces = ({ onPlaceSelect, onViewAll }: RecentPlacesProps) =>
                         handleSetAsHome(place);
                       }}
                       className="h-7 w-7 p-0 hover:bg-primary/10"
-                      title="Définir comme domicile"
+                      title={t('home.set_as_home')}
                     >
                       <Home className="h-3 w-3" />
                     </Button>
@@ -200,7 +200,7 @@ export const RecentPlaces = ({ onPlaceSelect, onViewAll }: RecentPlacesProps) =>
                         handleSetAsWork(place);
                       }}
                       className="h-7 w-7 p-0 hover:bg-secondary/10"
-                      title="Définir comme bureau"
+                      title={t('home.set_as_work')}
                     >
                       <Building className="h-3 w-3" />
                     </Button>
@@ -209,7 +209,7 @@ export const RecentPlaces = ({ onPlaceSelect, onViewAll }: RecentPlacesProps) =>
                       size="sm"
                       onClick={(e) => handleRemovePlace(e, place.id)}
                       className="h-7 w-7 p-0 hover:bg-destructive/10 text-destructive"
-                      title="Supprimer"
+                      title={t('home.remove_place')}
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -232,8 +232,8 @@ export const RecentPlaces = ({ onPlaceSelect, onViewAll }: RecentPlacesProps) =>
                 <Plus className="h-4 w-4 text-primary" />
               </div>
               <div className="flex-1 text-left">
-                <h3 className="font-medium text-foreground">Ajouter ma position</h3>
-                <p className="text-sm text-muted-foreground">Utiliser ma position actuelle</p>
+                <h3 className="font-medium text-foreground">{t('home.add_current_location')}</h3>
+                <p className="text-sm text-muted-foreground">{t('home.use_current_location')}</p>
               </div>
             </div>
           </Button>
