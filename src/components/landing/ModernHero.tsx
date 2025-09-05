@@ -5,10 +5,13 @@ import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-vtc.jpg";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect } from "react";
 
 const ModernHero = () => {
-  const {user} = useAuth();
+  const { user } = useAuth();
+  const { t } = useLanguage();
+  
   useEffect(()=>{
     if(user && user.user_metadata){
       if(user.user_metadata.role === "simple_user_client"){
@@ -43,9 +46,9 @@ const ModernHero = () => {
               </div>
               <div className="space-y-2">
                 <h1 className="text-display-md bg-gradient-to-r from-foreground via-primary to-secondary bg-clip-text text-transparent animate-gradient">
-                  Kwenda Taxi
+                  {t('hero.kwenda_taxi')}
                 </h1>
-                <p className="text-muted-foreground text-body-md">🇨🇩 Made in Congo RDC</p>
+                <p className="text-muted-foreground text-body-md">{t('hero.made_in_rdc')}</p>
               </div>
             </div>
 
@@ -53,22 +56,17 @@ const ModernHero = () => {
               <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-3 sm:gap-4 text-primary stagger-2">
                 <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current animate-pulse" />
                 <Badge variant="outline" className="border-primary/30 text-primary text-sm px-4 py-2 bg-primary/5 animate-glow-pulse">
-                  #1 Transport App Kinshasa
+                  {t('hero.innovation_excellence')}
                 </Badge>
                 <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-current animate-pulse" style={{animationDelay: '0.5s'}} />
               </div>
               
               <h2 className="text-display-lg leading-tight text-center lg:text-left stagger-3">
-                L'Application <span className="text-primary animate-gradient bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent">Tout-en-Un</span>
-                <br />
-                <span className="bg-gradient-to-r from-secondary via-accent to-primary bg-clip-text text-transparent animate-gradient">
-                  pour le Congo RDC
-                </span>
+                {t('hero.tagline')}
               </h2>
               
               <p className="text-body-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto lg:mx-0 text-center lg:text-left stagger-4">
-                Transport VTC, Livraison Express, Location de Véhicules, Marketplace et Tombola - 
-                Disponible à Kinshasa, Lubumbashi et Kolwezi. Une seule application pour tout le Congo RDC.
+                {t('hero.tagline')}
               </p>
             </div>
 
@@ -76,23 +74,23 @@ const ModernHero = () => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 stagger-5">
               <div className="glass rounded-xl p-4 text-center group hover:bg-primary/5 transition-all duration-300 interactive-scale">
                 <MapPin className="w-6 h-6 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <div className="text-heading-sm">3 Villes</div>
-                <div className="text-caption text-muted-foreground">Kinshasa • Lubumbashi • Kolwezi</div>
+                <div className="text-heading-sm">{t('features.stats_cities')}</div>
+                <div className="text-caption text-muted-foreground">{t('hero.location')}</div>
               </div>
               <div className="glass rounded-xl p-4 text-center group hover:bg-secondary/5 transition-all duration-300 interactive-scale">
                 <Clock className="w-6 h-6 text-secondary mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <div className="text-heading-sm">24h/24</div>
-                <div className="text-caption text-muted-foreground">Service continu</div>
+                <div className="text-heading-sm">{t('hero.available_24_7')}</div>
+                <div className="text-caption text-muted-foreground">{t('features.stats_support')}</div>
               </div>
               <div className="glass rounded-xl p-4 text-center group hover:bg-accent/5 transition-all duration-300 interactive-scale">
                 <Zap className="w-6 h-6 text-accent mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <div className="text-heading-sm">KwendaPay</div>
-                <div className="text-caption text-muted-foreground">Paiements</div>
+                <div className="text-heading-sm">{t('hero.kwenda_pay')}</div>
+                <div className="text-caption text-muted-foreground">{t('payment.method')}</div>
               </div>
               <div className="glass rounded-xl p-4 text-center group hover:bg-primary/5 transition-all duration-300 interactive-scale">
                 <Users className="w-6 h-6 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                <div className="text-heading-sm">Communauté</div>
-                <div className="text-caption text-muted-foreground">Active</div>
+                <div className="text-heading-sm">{t('hero.customer_service')}</div>
+                <div className="text-caption text-muted-foreground">{t('features.stats_support')}</div>
               </div>
             </div>
 
@@ -104,7 +102,7 @@ const ModernHero = () => {
                   className="w-full text-body-lg px-8 py-6 bg-congo-red hover:bg-congo-red/90 text-white hover:shadow-congo transition-all duration-500 group min-h-[56px] rounded-xl animate-congo-pulse border-2 border-congo-yellow/30"
                 >
                   <Car className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
-                  Commencer maintenant
+                  {t('hero.start_now')}
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
@@ -115,7 +113,7 @@ const ModernHero = () => {
                   className="w-full text-body-lg px-8 py-6 border-congo-yellow border-2 hover:bg-congo-yellow/20 text-congo-yellow group min-h-[56px] rounded-xl backdrop-blur-sm bg-white/10"
                 >
                   <Play className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
-                  Voir la démo
+                  {t('hero.view_demo')}
                 </Button>
               </Link>
             </div>
@@ -124,19 +122,19 @@ const ModernHero = () => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8 border-t border-border/30">
               <div className="text-center group">
                 <div className="text-heading-lg text-primary font-bold group-hover:scale-110 transition-transform">5+</div>
-                <div className="text-caption text-muted-foreground">Services Intégrés</div>
+                <div className="text-caption text-muted-foreground">{t('hero.transport_types')}</div>
               </div>
               <div className="text-center group">
                 <div className="text-heading-lg text-secondary font-bold group-hover:scale-110 transition-transform">24/7</div>
-                <div className="text-caption text-muted-foreground">Support Client</div>
+                <div className="text-caption text-muted-foreground">{t('hero.customer_service')}</div>
               </div>
               <div className="text-center group">
                 <div className="text-heading-lg text-accent font-bold group-hover:scale-110 transition-transform">100%</div>
-                <div className="text-caption text-muted-foreground">Sécurisé</div>
+                <div className="text-caption text-muted-foreground">{t('features.maximum_security')}</div>
               </div>
               <div className="text-center group">
                 <div className="text-heading-lg text-primary font-bold group-hover:scale-110 transition-transform animate-float">🇨🇩</div>
-                <div className="text-caption text-muted-foreground">Made in Congo</div>
+                <div className="text-caption text-muted-foreground">{t('hero.made_in_rdc')}</div>
               </div>
             </div>
           </div>
@@ -147,7 +145,7 @@ const ModernHero = () => {
               <div className="relative overflow-hidden rounded-3xl shadow-elegant transform hover:rotate-0 lg:rotate-1 transition-all duration-700 hover:shadow-glow interactive-scale">
                 <img 
                   src={heroImage} 
-                  alt="Kwenda Taxi - Interface moderne de transport intelligent à Kinshasa"
+                  alt={t('hero.alt_text')}
                   className="w-full h-auto object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-primary/20 group-hover:from-black/20 transition-all duration-500"></div>
@@ -158,11 +156,11 @@ const ModernHero = () => {
               
               {/* Enhanced Floating Elements */}
               <div className="hidden sm:block absolute -top-6 -right-6 bg-gradient-to-r from-secondary to-accent text-white px-6 py-3 rounded-full shadow-glow text-sm font-semibold animate-float glass border border-white/20">
-                🚀 Nouveau !
+                🚀 {t('marketplace.new_badge')}
               </div>
               
               <div className="hidden sm:block absolute -bottom-6 -left-6 bg-gradient-to-r from-primary to-primary-glow text-white px-6 py-3 rounded-full shadow-glow text-sm font-semibold animate-float glass border border-white/20" style={{animationDelay: '1s'}}>
-                🎲 + Tombola gratuite
+                🎲 + {t('lottery.free_lottery')}
               </div>
               
               {/* Side floating element */}
