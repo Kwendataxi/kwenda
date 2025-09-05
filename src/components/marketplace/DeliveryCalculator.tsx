@@ -4,6 +4,8 @@ import { MapPin, Truck, Clock, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { secureLocation, isValidLocation, calculateDistance } from '@/utils/locationValidation';
+import { toast } from 'sonner';
 
 interface DeliveryCalculatorProps {
   vendorLocation?: { lat: number; lng: number };
@@ -23,21 +25,18 @@ export const DeliveryCalculator: React.FC<DeliveryCalculatorProps> = ({
 }) => {
   const geolocation = useGeolocation();
   const locationLoading = geolocation.loading;
-  const coordinates = geolocation.latitude && geolocation.longitude ? { lat: geolocation.latitude, lng: geolocation.longitude } : null;
+  
+  // Sécurisation des coordonnées
+  const userLocation = geolocation.latitude && geolocation.longitude ? 
+    secureLocation({ lat: geolocation.latitude, lng: geolocation.longitude, address: 'Position actuelle' }) : null;
+  const secureVendorLocation = vendorLocation ? secureLocation(vendorLocation) : null;
+  
   const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
   const [calculating, setCalculating] = useState(false);
 
-  // Calculate distance between two points using Haversine formula
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371; // Earth's radius in km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
+  // Utiliser la fonction sécurisée de calcul de distance
+  const calculateDeliveryDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    return calculateDistance(lat1, lon1, lat2, lon2);
   };
 
   // Determine delivery zone based on distance
@@ -71,23 +70,29 @@ export const DeliveryCalculator: React.FC<DeliveryCalculatorProps> = ({
   };
 
   useEffect(() => {
-    if (coordinates && vendorLocation && !calculating) {
+    if (userLocation && secureVendorLocation && !calculating) {
       calculateDelivery();
     }
-  }, [coordinates, vendorLocation]);
+  }, [userLocation, secureVendorLocation]);
 
   const calculateDelivery = async () => {
-    if (!coordinates || !vendorLocation) return;
+    if (!userLocation || !secureVendorLocation) return;
 
     setCalculating(true);
     
     try {
-      // Calculate straight-line distance
-      const distance = calculateDistance(
-        coordinates.lat,
-        coordinates.lng,
-        vendorLocation.lat,
-        vendorLocation.lng
+      // Validation des coordonnées avant calcul
+      if (!isValidLocation(userLocation) || !isValidLocation(secureVendorLocation)) {
+        toast.error('Coordonnées invalides pour le calcul de livraison');
+        return;
+      }
+
+      // Calculate straight-line distance avec validation
+      const distance = calculateDeliveryDistance(
+        userLocation.lat,
+        userLocation.lng,
+        secureVendorLocation.lat,
+        secureVendorLocation.lng
       );
 
       // Determine zone and costs
@@ -124,20 +129,23 @@ export const DeliveryCalculator: React.FC<DeliveryCalculatorProps> = ({
     );
   }
 
-  if (!coordinates) {
+  if (!userLocation) {
     return (
       <Card>
         <CardContent className="p-4">
           <div className="text-center text-sm text-muted-foreground">
             <MapPin className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p>Activez la géolocalisation pour calculer la livraison</p>
+            <Button onClick={() => geolocation.getCurrentPosition()} className="mt-2" size="sm">
+              Actualiser position
+            </Button>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  if (!vendorLocation) {
+  if (!secureVendorLocation) {
     return (
       <Card>
         <CardContent className="p-4">

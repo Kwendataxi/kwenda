@@ -14,7 +14,8 @@ import {
   Phone,
   MessageSquare
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { useDriverDeliveryActions } from '@/hooks/useDriverDeliveryActions';
+import { secureLocation, isValidLocation } from '@/utils/locationValidation';
 import { toast } from 'sonner';
 
 interface DeliveryOrder {
@@ -35,62 +36,34 @@ interface DriverDeliveryActionsProps {
 }
 
 const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, onStatusUpdate }) => {
-  const [loading, setLoading] = useState(false);
   const [notes, setNotes] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [deliveryPhoto, setDeliveryPhoto] = useState<File | null>(null);
+  
+  // Utiliser le hook optimisé pour les actions livreur
+  const {
+    loading,
+    confirmPickup,
+    startDelivery,
+    completeDelivery,
+    getStatusLabel
+  } = useDriverDeliveryActions();
 
-  const updateStatus = async (newStatus: string, additionalData: any = {}) => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke('delivery-status-manager', {
-        body: {
-          orderId: order.id,
-          newStatus,
-          driverId: (await supabase.auth.getUser()).data.user?.id,
-          driverNotes: notes || undefined,
-          locationCoordinates: await getCurrentLocation(),
-          ...additionalData
-        }
-      });
-
-      if (error) throw error;
-
-      toast.success(`Statut mis à jour: ${getStatusLabel(newStatus)}`);
+  // Actions simplifiées utilisant le hook optimisé
+  const handlePickupConfirm = async () => {
+    const success = await confirmPickup(order.id, notes);
+    if (success) {
       onStatusUpdate();
       setNotes('');
-      setRecipientName('');
-      setDeliveryPhoto(null);
-
-    } catch (error: any) {
-      console.error('Error updating status:', error);
-      toast.error('Erreur lors de la mise à jour du statut');
-    } finally {
-      setLoading(false);
+      toast.success('Colis récupéré avec succès! 📦');
     }
   };
 
-  const getCurrentLocation = async (): Promise<{ lat: number; lng: number } | undefined> => {
-    try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
-      });
-      return {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
-    } catch (error) {
-      console.error('Error getting location:', error);
-      return undefined;
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'picked_up': return 'Colis récupéré';
-      case 'in_transit': return 'En cours de livraison';
-      case 'delivered': return 'Livré';
-      default: return status;
+  const handleStartDelivery = async () => {
+    const success = await startDelivery(order.id);
+    if (success) {
+      onStatusUpdate();
+      toast.success('Livraison démarrée! 🚗');
     }
   };
 
@@ -100,16 +73,20 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
       return;
     }
 
-    const deliveryProof = {
-      recipient_name: recipientName,
-      delivery_time: new Date().toISOString(),
-      photo_taken: !!deliveryPhoto
-    };
-
-    await updateStatus('delivered', { 
-      deliveryProof,
-      recipientSignature: recipientName // Simplified signature
-    });
+    const success = await completeDelivery(
+      order.id,
+      recipientName,
+      deliveryPhoto || undefined,
+      notes
+    );
+    
+    if (success) {
+      onStatusUpdate();
+      setNotes('');
+      setRecipientName('');
+      setDeliveryPhoto(null);
+      toast.success('Livraison terminée! Excellent travail! 🎉');
+    }
   };
 
   const renderActionButtons = () => {
@@ -119,12 +96,12 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
         return (
           <div className="space-y-3">
             <Button 
-              onClick={() => updateStatus('picked_up')}
+              onClick={handlePickupConfirm}
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-primary hover:bg-primary/90"
             >
               <Package className="w-4 h-4 mr-2" />
-              Confirmer la récupération
+              {loading ? 'Confirmation...' : 'Confirmer la récupération'}
             </Button>
           </div>
         );
@@ -133,12 +110,12 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
         return (
           <div className="space-y-3">
             <Button 
-              onClick={() => updateStatus('in_transit')}
+              onClick={handleStartDelivery}
               disabled={loading}
-              className="w-full bg-orange-600 hover:bg-orange-700"
+              className="w-full bg-primary hover:bg-primary/90"
             >
               <Navigation className="w-4 h-4 mr-2" />
-              Démarrer la livraison
+              {loading ? 'Démarrage...' : 'Démarrer la livraison'}
             </Button>
           </div>
         );
@@ -175,10 +152,10 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
             <Button 
               onClick={handleDeliveryComplete}
               disabled={loading || !recipientName.trim()}
-              className="w-full bg-green-600 hover:bg-green-700"
+              className="w-full bg-primary hover:bg-primary/90"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
-              Confirmer la livraison
+              {loading ? 'Finalisation...' : 'Confirmer la livraison'}
             </Button>
           </div>
         );
@@ -202,9 +179,14 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
       ? order.pickup_coordinates 
       : order.delivery_coordinates;
     
-    if (coords?.lat && coords?.lng) {
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lng}`;
+    // Sécuriser les coordonnées avant navigation
+    const secureCoords = coords ? secureLocation(coords) : null;
+    
+    if (secureCoords && isValidLocation(secureCoords)) {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${secureCoords.lat},${secureCoords.lng}`;
       window.open(url, '_blank');
+    } else {
+      toast.error('Coordonnées invalides pour la navigation');
     }
   };
 
