@@ -5999,6 +5999,16 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_availability_summary: {
+        Row: {
+          availability_rate: number | null
+          available_count: number | null
+          online_count: number | null
+          vehicle_class: string | null
+          zone_generale: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       anonymize_old_location_data: {
@@ -6188,6 +6198,16 @@ export type Database = {
           pickup_contact: string
           pickup_lat: number
           pickup_lng: number
+        }[]
+      }
+      get_driver_exact_location_admin: {
+        Args: { p_driver_id: string }
+        Returns: {
+          is_available: boolean
+          is_online: boolean
+          last_ping: string
+          latitude: number
+          longitude: number
         }[]
       }
       get_driver_location_with_audit: {
