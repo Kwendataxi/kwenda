@@ -65,6 +65,7 @@ const translations = {
     'home.home_label': 'Domicile',
     'home.work_label': 'Bureau',
     'home.remove_place': 'Supprimer ce lieu',
+    'home.search.placeholder': 'Où voulez-vous aller ?',
     
     // Toast messages
     'toast.place_removed': 'Lieu supprimé',
@@ -88,6 +89,18 @@ const translations = {
     'hero.stats.available': 'Disponible 24h/7j',
     'hero.stats.payment': 'Paiement sécurisé',
     'hero.stats.support': 'Support client',
+    'hero.kwenda_taxi': 'Kwenda Taxi',
+    'hero.made_in_rdc': 'Fait en RDC',
+    'hero.innovation_excellence': 'Innovation & Excellence',
+    'hero.tagline': 'Votre partenaire mobilité en Afrique',
+    'hero.start_now': 'Commencer maintenant',
+    'hero.view_demo': 'Voir la démo',
+    'hero.transport_types': 'Types de transport',
+    'hero.customer_service': 'Service client',
+    'hero.available_24_7': 'Disponible 24h/7j',
+    'hero.kwenda_pay': 'KwendaPay',
+    'hero.location': 'Kinshasa, Lubumbashi, Kolwezi',
+    'hero.alt_text': 'Service de transport Kwenda Taxi en RDC',
     
     // Services
     'services.title': 'Nos Services',
@@ -112,6 +125,9 @@ const translations = {
     'features.multilingual.description': 'Interface en français et langues locales',
     'features.support.title': 'Support 24/7',
     'features.support.description': 'Assistance client disponible en permanence',
+    'features.stats_cities': '4+ Villes',
+    'features.maximum_security': 'Sécurité maximale',
+    'features.stats_support': 'Support 24/7',
     
     // Support
     'support.title': 'Support Client',
@@ -131,7 +147,22 @@ const translations = {
     'system.success': 'Succès',
     'system.error_occurred': 'Une erreur s\'est produite',
     'system.try_again': 'Réessayer',
-    'system.no_data': 'Aucune donnée disponible'
+    'system.no_data': 'Aucune donnée disponible',
+    
+    // Payment
+    'payment.method': 'Paiement mobile',
+    'payment.secure': 'Paiement sécurisé',
+    'payment.options': 'Options de paiement',
+    
+    // Marketplace
+    'marketplace.new_badge': 'Nouveau',
+    'marketplace.featured': 'À la une',
+    'marketplace.trending': 'Tendance',
+    
+    // Lottery
+    'lottery.free_lottery': 'Loterie gratuite',
+    'lottery.win_credits': 'Gagnez des crédits',
+    'lottery.daily_draw': 'Tirage quotidien'
   },
   
   en: {
@@ -193,6 +224,7 @@ const translations = {
     'home.home_label': 'Home',
     'home.work_label': 'Work',
     'home.remove_place': 'Remove this place',
+    'home.search.placeholder': 'Where do you want to go?',
     
     // Toast messages
     'toast.place_removed': 'Place Removed',
@@ -216,6 +248,18 @@ const translations = {
     'hero.stats.available': 'Available 24/7',
     'hero.stats.payment': 'Secure Payment',
     'hero.stats.support': 'Customer Support',
+    'hero.kwenda_taxi': 'Kwenda Taxi',
+    'hero.made_in_rdc': 'Made in DRC',
+    'hero.innovation_excellence': 'Innovation & Excellence',
+    'hero.tagline': 'Your mobility partner in Africa',
+    'hero.start_now': 'Get Started',
+    'hero.view_demo': 'View Demo',
+    'hero.transport_types': 'Transport Types',
+    'hero.customer_service': 'Customer Service',
+    'hero.available_24_7': 'Available 24/7',
+    'hero.kwenda_pay': 'KwendaPay',
+    'hero.location': 'Kinshasa, Lubumbashi, Kolwezi',
+    'hero.alt_text': 'Kwenda Taxi transport service in DRC',
     
     // Services
     'services.title': 'Our Services',
@@ -240,6 +284,9 @@ const translations = {
     'features.multilingual.description': 'Interface in French and local languages',
     'features.support.title': '24/7 Support',
     'features.support.description': 'Customer assistance available around the clock',
+    'features.stats_cities': '4+ Cities',
+    'features.maximum_security': 'Maximum Security',
+    'features.stats_support': '24/7 Support',
     
     // Support
     'support.title': 'Customer Support',
@@ -259,7 +306,22 @@ const translations = {
     'system.success': 'Success',
     'system.error_occurred': 'An error occurred',
     'system.try_again': 'Try Again',
-    'system.no_data': 'No data available'
+    'system.no_data': 'No data available',
+    
+    // Payment
+    'payment.method': 'Mobile Payment',
+    'payment.secure': 'Secure Payment',
+    'payment.options': 'Payment Options',
+    
+    // Marketplace
+    'marketplace.new_badge': 'New',
+    'marketplace.featured': 'Featured',
+    'marketplace.trending': 'Trending',
+    
+    // Lottery
+    'lottery.free_lottery': 'Free Lottery',
+    'lottery.win_credits': 'Win Credits',
+    'lottery.daily_draw': 'Daily Draw'
   },
   
   kg: {
