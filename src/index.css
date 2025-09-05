@@ -41,11 +41,29 @@ All colors MUST be HSL.
     --accent-foreground: 220 25% 5%;
     --accent-light: 42 100% 60%;
 
-    /* Congo Flag Colors - Plus vibrants et saturés */
-    --congo-blue: 220 100% 45%;
-    --congo-red: 357 85% 50%;
-    --congo-yellow: 42 95% 55%;
-    --congo-green: 142 80% 40%;
+    /* Congo Flag Colors - INTENSIFIED */
+    --congo-blue: 220 100% 50%;
+    --congo-red: 357 95% 55%;
+    --congo-yellow: 42 100% 60%;
+    --congo-green: 142 85% 45%;
+    
+    /* Congo Electric Variants - Maximum intensity */
+    --congo-red-electric: 357 100% 65%;
+    --congo-yellow-electric: 42 100% 70%;
+    --congo-green-electric: 142 90% 55%;
+    --congo-blue-electric: 220 100% 60%;
+    
+    /* Congo Vibrant Variants - Interactive elements */
+    --congo-red-vibrant: 357 90% 50%;
+    --congo-yellow-vibrant: 42 98% 58%;
+    --congo-green-vibrant: 142 82% 42%;
+    --congo-blue-vibrant: 220 100% 48%;
+    
+    /* Congo Glow Variants - Focus states */
+    --congo-red-glow: 357 85% 70%;
+    --congo-yellow-glow: 42 95% 75%;
+    --congo-green-glow: 142 80% 60%;
+    --congo-blue-glow: 220 90% 70%;
 
     /* Success/Warning/Info semantic colors using Congo palette */
     --success: 142 76% 36%;
@@ -80,27 +98,33 @@ All colors MUST be HSL.
     --safe-area-left: env(safe-area-inset-left, 0px);
     --safe-area-right: env(safe-area-inset-right, 0px);
 
-    /* Design system extensions - Congo gradients plus dynamiques */
-    --gradient-primary: linear-gradient(135deg, hsl(357, 85%, 50%), hsl(357, 85%, 60%));
-    --gradient-hero: linear-gradient(135deg, hsl(357, 85%, 50%) 0%, hsl(42, 95%, 55%) 50%, hsl(142, 80%, 40%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(142, 80%, 40%) 0%, hsl(142, 80%, 50%) 100%);
+    /* Gradients - SPECTACULAR Congo Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(357, 95%, 55%), hsl(357, 100%, 65%));
+    --gradient-hero: linear-gradient(135deg, hsl(357, 95%, 55%) 0%, hsl(42, 100%, 60%) 25%, hsl(142, 85%, 45%) 75%, hsl(220, 100%, 50%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(142, 85%, 45%) 0%, hsl(142, 90%, 55%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(45, 25%, 95%) 0%, hsl(45, 15%, 92%) 100%);
-    --gradient-congo-flag: linear-gradient(135deg, hsl(220, 100%, 45%) 0%, hsl(42, 95%, 55%) 50%, hsl(357, 85%, 50%) 100%);
-    --gradient-congo-modern: linear-gradient(45deg, hsl(357, 85%, 50%), hsl(42, 95%, 55%), hsl(142, 80%, 40%), hsl(220, 100%, 45%));
-    --gradient-congo-subtle: linear-gradient(180deg, hsl(357, 85%, 50% / 0.15) 0%, hsl(42, 95%, 55% / 0.15) 100%);
-    --gradient-congo-vibrant: linear-gradient(45deg, hsl(357, 85%, 50% / 0.8), hsl(42, 95%, 55% / 0.8), hsl(142, 80%, 40% / 0.8));
-    --gradient-congo-glow: radial-gradient(circle at center, hsl(357, 85%, 50% / 0.3) 0%, transparent 70%);
+    --gradient-congo-flag: linear-gradient(135deg, hsl(220, 100%, 50%) 0%, hsl(42, 100%, 60%) 33%, hsl(357, 95%, 55%) 66%, hsl(142, 85%, 45%) 100%);
+    --gradient-congo-electric: linear-gradient(135deg, hsl(var(--congo-red-electric)), hsl(var(--congo-yellow-electric)), hsl(var(--congo-green-electric)), hsl(var(--congo-blue-electric)));
+    --gradient-congo-vibrant: linear-gradient(45deg, hsl(var(--congo-red-vibrant)), hsl(var(--congo-yellow-vibrant)), hsl(var(--congo-green-vibrant)), hsl(var(--congo-blue-vibrant)));
+    --gradient-congo-radial: radial-gradient(circle at center, hsl(var(--congo-red) / 0.4), hsl(var(--congo-yellow) / 0.3), hsl(var(--congo-green) / 0.2), transparent);
+    --gradient-congo-mesh: conic-gradient(from 0deg at 50% 50%, hsl(var(--congo-red)), hsl(var(--congo-yellow)), hsl(var(--congo-green)), hsl(var(--congo-blue)), hsl(var(--congo-red)));
+    --gradient-congo-glow: linear-gradient(135deg, hsl(var(--congo-red-glow) / 0.4), hsl(var(--congo-yellow-glow) / 0.3), hsl(var(--congo-blue-glow) / 0.2));
+    --gradient-congo-subtle: linear-gradient(180deg, hsl(357, 95%, 55% / 0.15) 0%, hsl(42, 100%, 60% / 0.15) 100%);
     
-    /* Shadows colorées Congo */
-    --shadow-xs: 0 1px 2px 0 hsl(357 85% 50% / 0.08);
-    --shadow-sm: 0 1px 3px 0 hsl(357 85% 50% / 0.12), 0 1px 2px -1px hsl(42 95% 55% / 0.1);
-    --shadow-md: 0 4px 6px -1px hsl(357 85% 50% / 0.15), 0 2px 4px -2px hsl(42 95% 55% / 0.12);
-    --shadow-lg: 0 10px 15px -3px hsl(357 85% 50% / 0.18), 0 4px 6px -4px hsl(42 95% 55% / 0.15);
-    --shadow-xl: 0 20px 25px -5px hsl(357 85% 50% / 0.2), 0 8px 10px -6px hsl(42 95% 55% / 0.18);
-    --shadow-elegant: 0 10px 30px -10px hsl(357, 85%, 50% / 0.4);
-    --shadow-glow: 0 0 40px hsl(357, 85%, 50% / 0.6), 0 0 20px hsl(42, 95%, 55% / 0.3);
-    --shadow-float: 0 20px 40px -10px hsl(357, 85%, 50% / 0.3), 0 0 20px hsl(42, 95%, 55% / 0.2);
-    --shadow-congo: 0 0 30px hsl(357, 85%, 50% / 0.25), 0 0 60px hsl(42, 95%, 55% / 0.15);
+    /* Shadows colorées Congo - ENHANCED */
+    --shadow-xs: 0 1px 2px 0 hsl(357 95% 55% / 0.1);
+    --shadow-sm: 0 1px 3px 0 hsl(357 95% 55% / 0.15), 0 1px 2px -1px hsl(42 100% 60% / 0.12);
+    --shadow-md: 0 4px 6px -1px hsl(357 95% 55% / 0.18), 0 2px 4px -2px hsl(42 100% 60% / 0.15);
+    --shadow-lg: 0 10px 15px -3px hsl(357 95% 55% / 0.22), 0 4px 6px -4px hsl(42 100% 60% / 0.18);
+    --shadow-xl: 0 20px 25px -5px hsl(357 95% 55% / 0.25), 0 8px 10px -6px hsl(42 100% 60% / 0.2);
+    --shadow-elegant: 0 10px 30px -10px hsl(357, 95%, 55% / 0.5);
+    --shadow-glow: 0 0 40px hsl(357, 95%, 55% / 0.7), 0 0 20px hsl(42, 100%, 60% / 0.4);
+    --shadow-float: 0 20px 40px -10px hsl(357, 95%, 55% / 0.4), 0 0 20px hsl(42, 100%, 60% / 0.25);
+    --shadow-congo: 0 0 30px hsl(357, 95%, 55% / 0.3), 0 0 60px hsl(42, 100%, 60% / 0.2);
+    --shadow-congo-intense: 0 12px 40px -10px hsl(var(--congo-red-electric) / 0.5);
+    --shadow-congo-vibrant: 0 6px 24px -6px hsl(var(--congo-yellow-vibrant) / 0.4);
+    --shadow-congo-glow: 0 0 60px hsl(var(--congo-blue-glow) / 0.3);
+    --shadow-congo-multi: 0 8px 25px -5px hsl(var(--congo-red) / 0.25), 0 16px 50px -10px hsl(var(--congo-yellow) / 0.2), 0 24px 80px -15px hsl(var(--congo-blue) / 0.15);
     
     /* Transitions stables */
     --transition-smooth: all 0.2s ease-out;
@@ -116,19 +140,12 @@ All colors MUST be HSL.
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -411,6 +428,7 @@ All colors MUST be HSL.
     display: none;
   }
   
+  /* ENHANCED CONGO ANIMATIONS */
   @keyframes slideUp {
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
@@ -430,6 +448,87 @@ All colors MUST be HSL.
   @keyframes scaleIn {
     from { transform: scale(0.95); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes congo-glow {
+    0% {
+      box-shadow: 0 0 20px hsl(var(--congo-red-glow) / 0.5);
+      transform: scale(1);
+    }
+    100% {
+      box-shadow: 0 0 40px hsl(var(--congo-blue-glow) / 0.8), 0 0 60px hsl(var(--congo-yellow-glow) / 0.4);
+      transform: scale(1.02);
+    }
+  }
+
+  @keyframes congo-electric {
+    0%, 100% {
+      filter: hue-rotate(0deg) saturate(1);
+      transform: translateY(0px);
+    }
+    50% {
+      filter: hue-rotate(15deg) saturate(1.2);
+      transform: translateY(-2px);
+    }
+  }
+
+  @keyframes congo-vibrant {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes ripple {
+    0% {
+      transform: scale(0);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+
+  @keyframes bounce-congo {
+    0%, 100% {
+      transform: translateY(0);
+      filter: hue-rotate(0deg);
+    }
+    50% {
+      transform: translateY(-10px);
+      filter: hue-rotate(180deg);
+    }
+  }
+
+  @keyframes shimmer-congo {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes pulse-congo {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes congo-gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes congo-pulse {
+    0%, 100% {
+      background: linear-gradient(135deg, hsl(var(--congo-red)), hsl(var(--congo-yellow)));
+    }
+    50% {
+      background: linear-gradient(135deg, hsl(var(--congo-green)), hsl(var(--congo-blue)));
+    }
   }
 }
 
@@ -602,43 +701,165 @@ All colors MUST be HSL.
   @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
 }
 
-/* Congo Theme Utility Classes */
+/* Congo Theme Utility Classes - DYNAMIC ENHANCED */
 .text-congo-red { color: hsl(var(--congo-red)); }
 .text-congo-yellow { color: hsl(var(--congo-yellow)); }
 .text-congo-green { color: hsl(var(--congo-green)); }
 .text-congo-blue { color: hsl(var(--congo-blue)); }
+
+/* Electric variants */
+.text-congo-red-electric { color: hsl(var(--congo-red-electric)); }
+.text-congo-yellow-electric { color: hsl(var(--congo-yellow-electric)); }
+.text-congo-green-electric { color: hsl(var(--congo-green-electric)); }
+.text-congo-blue-electric { color: hsl(var(--congo-blue-electric)); }
 
 .bg-congo-red { background-color: hsl(var(--congo-red)); }
 .bg-congo-yellow { background-color: hsl(var(--congo-yellow)); }
 .bg-congo-green { background-color: hsl(var(--congo-green)); }
 .bg-congo-blue { background-color: hsl(var(--congo-blue)); }
 
+/* Congo Dynamic Effects */
+.congo-electric {
+  background: linear-gradient(135deg, hsl(var(--congo-red-electric)), hsl(var(--congo-yellow-electric)));
+  animation: congo-electric 1.5s ease-in-out infinite;
+}
+
+.congo-vibrant {
+  background: linear-gradient(45deg, hsl(var(--congo-red-vibrant)), hsl(var(--congo-yellow-vibrant)), hsl(var(--congo-green-vibrant)), hsl(var(--congo-blue-vibrant)));
+  background-size: 300% 300%;
+  animation: congo-vibrant 4s linear infinite;
+}
+
+.congo-glow {
+  background: var(--gradient-congo-glow);
+  animation: congo-glow 2s ease-in-out infinite alternate;
+}
+
+.congo-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.congo-ripple::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: hsl(var(--congo-red-electric) / 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.congo-ripple:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+.hover-congo-glow {
+  transition: all 0.3s ease;
+}
+
+.hover-congo-glow:hover {
+  box-shadow: var(--shadow-congo-glow);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.text-congo-gradient {
+  background: var(--gradient-congo-electric);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.shimmer-congo {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--congo-yellow-electric) / 0.4),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer-congo 2s linear infinite;
+}
+
 /* Congo gradient backgrounds */
 .bg-congo-flag { background: var(--gradient-congo-flag); }
-.bg-congo-modern { 
-  background: var(--gradient-congo-modern);
+.bg-congo-electric { 
+  background: var(--gradient-congo-electric);
   background-size: 400% 400%;
-  animation: congo-gradient 4s ease-in-out infinite;
+  animation: congo-gradient 6s ease-in-out infinite;
+}
+.bg-congo-vibrant { 
+  background: var(--gradient-congo-vibrant);
+  background-size: 400% 400%;
+  animation: congo-vibrant 4s linear infinite;
 }
 .bg-congo-subtle { background: var(--gradient-congo-subtle); }
 
-/* Congo themed buttons */
+/* Congo themed buttons - ENHANCED */
 .btn-congo {
-  @apply btn-modern text-white;
-  background-color: hsl(var(--congo-red));
-  box-shadow: var(--shadow-elegant);
+  @apply btn-modern text-white congo-ripple;
+  background: linear-gradient(135deg, hsl(var(--congo-red-vibrant)), hsl(var(--congo-yellow-vibrant)));
+  box-shadow: var(--shadow-congo-intense);
+  transition: all 0.3s ease;
 }
 .btn-congo:hover {
-  background-color: hsl(var(--congo-yellow));
-  color: hsl(var(--foreground));
-  animation: congo-pulse 2s ease-in-out infinite;
+  background: linear-gradient(135deg, hsl(var(--congo-yellow-electric)), hsl(var(--congo-blue-electric)));
+  box-shadow: var(--shadow-congo-multi);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.btn-congo-electric {
+  @apply btn-modern text-white font-bold congo-ripple;
+  background: var(--gradient-congo-electric);
+  box-shadow: var(--shadow-congo-multi);
+  animation: congo-glow 2s ease-in-out infinite alternate;
+  transition: all 0.3s ease;
+}
+.btn-congo-electric:hover {
+  transform: translateY(-3px) scale(1.08);
+  animation: congo-electric 1.5s ease-in-out infinite;
+}
+
+.btn-congo-vibrant {
+  @apply btn-modern text-white font-semibold congo-ripple;
+  background: var(--gradient-congo-vibrant);
+  background-size: 300% 300%;
+  animation: congo-vibrant 4s linear infinite;
+  box-shadow: var(--shadow-congo-vibrant);
+  transition: all 0.3s ease;
+}
+.btn-congo-vibrant:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: var(--shadow-congo-glow);
+}
+
+.btn-congo-glow {
+  @apply btn-modern text-white font-semibold congo-ripple;
+  background: var(--gradient-congo-glow);
+  animation: congo-glow 2s ease-in-out infinite alternate;
+  box-shadow: var(--shadow-congo-glow);
+  transition: all 0.3s ease;
+}
+.btn-congo-glow:hover {
+  transform: translateY(-2px) scale(1.05);
+  animation: pulse-congo 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Congo themed cards */
 .card-congo {
-  @apply card-modern;
+  @apply card-modern hover-congo-glow;
   background: var(--gradient-congo-subtle);
   border: 1px solid hsl(var(--congo-yellow) / 0.2);
+}
+
+.card-congo-electric {
+  @apply card-modern congo-glow;
+  background: var(--gradient-congo-glow);
+  border: 1px solid hsl(var(--congo-blue-electric) / 0.3);
 }
 
 /* Professional status indicators using Congo colors */

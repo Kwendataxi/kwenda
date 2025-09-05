@@ -17,8 +17,15 @@ interface ParticleBackgroundProps {
 }
 
 const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
-  density = 50,
-  colors = ['hsl(357, 85%, 50%)', 'hsl(42, 95%, 55%)', 'hsl(142, 80%, 40%)', 'hsl(220, 100%, 45%)'],
+  density = 80,
+  colors = [
+    'hsl(357, 95%, 55%)', // Congo Red Electric
+    'hsl(42, 100%, 60%)', // Congo Yellow Electric  
+    'hsl(142, 85%, 45%)', // Congo Green Electric
+    'hsl(220, 100%, 50%)', // Congo Blue Electric
+    'hsl(357, 100%, 65%)', // Congo Red Vibrant
+    'hsl(42, 100%, 70%)'   // Congo Yellow Vibrant
+  ],
   className = ''
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -43,11 +50,11 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
         particlesRef.current.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * 0.5,
-          vy: (Math.random() - 0.5) * 0.5,
-          size: Math.random() * 2 + 1,
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: (Math.random() - 0.5) * 0.8,
+          size: Math.random() * 3 + 1.5,
           color: colors[Math.floor(Math.random() * colors.length)],
-          opacity: Math.random() * 0.5 + 0.1
+          opacity: Math.random() * 0.7 + 0.2
         });
       }
     };
@@ -68,9 +75,26 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
         particle.x = Math.max(0, Math.min(canvas.width, particle.x));
         particle.y = Math.max(0, Math.min(canvas.height, particle.y));
 
-        // Draw particle
+        // Draw particle with glow effect
         ctx.save();
         ctx.globalAlpha = particle.opacity;
+        
+        // Create glow effect
+        const gradient = ctx.createRadialGradient(
+          particle.x, particle.y, 0,
+          particle.x, particle.y, particle.size * 3
+        );
+        gradient.addColorStop(0, particle.color);
+        gradient.addColorStop(0.4, particle.color.replace(')', ', 0.4)').replace('hsl(', 'hsla('));
+        gradient.addColorStop(1, 'transparent');
+        
+        // Draw glow
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size * 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw core particle
         ctx.fillStyle = particle.color;
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
@@ -104,7 +128,7 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
     <canvas
       ref={canvasRef}
       className={`fixed inset-0 pointer-events-none z-0 ${className}`}
-      style={{ opacity: 0.6 }}
+      style={{ opacity: 0.8 }}
     />
   );
 };
