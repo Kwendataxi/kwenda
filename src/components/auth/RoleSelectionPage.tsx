@@ -21,7 +21,11 @@ const roles = [
     description: 'Conduire et livrer pour gagner de l\'argent',
     icon: Car,
     color: 'bg-blue-50 hover:bg-blue-100'
-  },
+  }
+];
+
+// Rôles masqués pour l'interface publique (accessible via URLs dédiées)
+const hiddenRoles = [
   {
     id: 'partenaire',
     name: 'Partenaire',

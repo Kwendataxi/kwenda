@@ -13,6 +13,8 @@ import ParticleBackground from "@/components/theme/ParticleBackground";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AdminAuth from "./pages/AdminAuth";
+import PartnerAuth from "./pages/PartnerAuth";
 import ClientApp from "./pages/ClientApp";
 import DriverApp from "./pages/DriverApp";
 import PartnerApp from "./pages/PartnerApp";
@@ -77,6 +79,16 @@ const App = () => (
               <Route path="/auth" element={
                 <OnboardingRedirect>
                   <Auth />
+                </OnboardingRedirect>
+              } />
+              <Route path="/admin/auth" element={
+                <OnboardingRedirect>
+                  <AdminAuth />
+                </OnboardingRedirect>
+              } />
+              <Route path="/partner/auth" element={
+                <OnboardingRedirect>
+                  <PartnerAuth />
                 </OnboardingRedirect>
               } />
               <Route path="/client" element={

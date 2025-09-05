@@ -478,7 +478,7 @@ const SecureTransactionsList: React.FC<SecureTransactionsListProps> = ({
         <Card>
           <CardContent className="flex flex-col items-center justify-center h-32">
             <Shield className="h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">{t('escrow.no_transactions')}</p>
+            <p className="text-muted-foreground">Aucune transaction sécurisée</p>
           </CardContent>
         </Card>
       )}
