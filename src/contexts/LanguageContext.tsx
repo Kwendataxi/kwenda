@@ -470,7 +470,7 @@ const translations = {
     'marketplace.premium_badge': '👑 Premium',
     'marketplace.discount_badge': 'Réduction',
     'marketplace.reviews_count': 'avis',
-    'marketplace.add_to_cart': 'Ajouter',
+    'marketplace.add_to_cart_short': 'Ajouter',
     'marketplace.view_details': 'Voir',
     'marketplace.view_more': 'Voir Plus de Produits',
     'marketplace.trusted_sellers': 'Vendeurs de Confiance',
