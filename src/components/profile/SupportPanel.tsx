@@ -93,43 +93,43 @@ export const SupportPanel: React.FC<SupportPanelProps> = ({ open, onClose }) => 
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <HelpCircle className="h-5 w-5 text-congo-secondary" />
+      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto sm:max-w-2xl w-[95vw] sm:w-full">
+        <DialogHeader className="pb-4">
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <HelpCircle className="h-5 w-5 text-congo-blue" />
             Support & Aide
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="help" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="help">Aide Rapide</TabsTrigger>
-            <TabsTrigger value="ticket">Nouveau Ticket</TabsTrigger>
-            <TabsTrigger value="history">Mes Tickets</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-muted/50">
+            <TabsTrigger value="help" className="text-xs sm:text-sm data-[state=active]:bg-congo-blue data-[state=active]:text-white">Aide Rapide</TabsTrigger>
+            <TabsTrigger value="ticket" className="text-xs sm:text-sm data-[state=active]:bg-congo-blue data-[state=active]:text-white">Nouveau Ticket</TabsTrigger>
+            <TabsTrigger value="history" className="text-xs sm:text-sm data-[state=active]:bg-congo-blue data-[state=active]:text-white">Mes Tickets</TabsTrigger>
           </TabsList>
 
           <TabsContent value="help" className="space-y-4">
             {/* Actions rapides */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={openFAQ}>
-                <CardContent className="pt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Card className="bg-gradient-congo-subtle border-congo-blue/20 hover:shadow-md transition-shadow cursor-pointer" onClick={openFAQ}>
+                <CardContent className="pt-6 pb-4">
                   <div className="flex items-center gap-3">
-                    <FileText className="h-8 w-8 text-congo-primary" />
-                    <div>
-                      <h3 className="font-medium">FAQ</h3>
+                    <FileText className="h-8 w-8 text-congo-blue" />
+                    <div className="flex-1">
+                      <h3 className="font-medium text-foreground">FAQ</h3>
                       <p className="text-sm text-muted-foreground">Questions fréquentes</p>
                     </div>
-                    <ExternalLink className="h-4 w-4 ml-auto text-muted-foreground" />
+                    <ExternalLink className="h-4 w-4 text-congo-blue" />
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={contactEmergency}>
-                <CardContent className="pt-6">
+              <Card className="bg-gradient-congo-subtle border-congo-red/20 hover:shadow-md transition-shadow cursor-pointer" onClick={contactEmergency}>
+                <CardContent className="pt-6 pb-4">
                   <div className="flex items-center gap-3">
-                    <Phone className="h-8 w-8 text-red-600" />
-                    <div>
-                      <h3 className="font-medium">Urgence</h3>
+                    <Phone className="h-8 w-8 text-congo-red" />
+                    <div className="flex-1">
+                      <h3 className="font-medium text-foreground">Urgence</h3>
                       <p className="text-sm text-muted-foreground">Support immédiat</p>
                     </div>
                   </div>
@@ -138,26 +138,26 @@ export const SupportPanel: React.FC<SupportPanelProps> = ({ open, onClose }) => 
             </div>
 
             {/* Statistiques support */}
-            <Card>
+            <Card className="bg-gradient-congo-subtle border-congo-green/20">
               <CardHeader>
-                <CardTitle className="text-lg">Votre Support</CardTitle>
+                <CardTitle className="text-lg text-foreground">Votre Support</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-congo-primary">{metrics.totalTickets}</div>
+                    <div className="text-2xl font-bold text-congo-blue">{metrics.totalTickets}</div>
                     <p className="text-sm text-muted-foreground">Total tickets</p>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">{metrics.openTickets}</div>
+                    <div className="text-2xl font-bold text-congo-red">{metrics.openTickets}</div>
                     <p className="text-sm text-muted-foreground">En cours</p>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{metrics.avgResponseTime}</div>
+                    <div className="text-2xl font-bold text-congo-green">{metrics.avgResponseTime}</div>
                     <p className="text-sm text-muted-foreground">Réponse moy.</p>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-congo-accent">98%</div>
+                    <div className="text-2xl font-bold text-congo-yellow">98%</div>
                     <p className="text-sm text-muted-foreground">Satisfaction</p>
                   </div>
                 </div>
@@ -170,24 +170,24 @@ export const SupportPanel: React.FC<SupportPanelProps> = ({ open, onClose }) => 
                 <CardTitle className="text-lg">Conseils Utiles</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-start gap-3 p-3 bg-muted rounded-lg">
-                  <Star className="h-5 w-5 text-congo-primary mt-0.5" />
+                <div className="flex items-start gap-3 p-3 bg-congo-blue/10 border border-congo-blue/20 rounded-lg">
+                  <Star className="h-5 w-5 text-congo-blue mt-0.5" />
                   <div>
-                    <p className="font-medium">Décrivez le problème clairement</p>
+                    <p className="font-medium text-foreground">Décrivez le problème clairement</p>
                     <p className="text-sm text-muted-foreground">Plus d'infos = résolution plus rapide</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 bg-muted rounded-lg">
-                  <Star className="h-5 w-5 text-congo-primary mt-0.5" />
+                <div className="flex items-start gap-3 p-3 bg-congo-blue/10 border border-congo-blue/20 rounded-lg">
+                  <Star className="h-5 w-5 text-congo-blue mt-0.5" />
                   <div>
-                    <p className="font-medium">Joignez des captures d'écran</p>
+                    <p className="font-medium text-foreground">Joignez des captures d'écran</p>
                     <p className="text-sm text-muted-foreground">Les images aident à comprendre le problème</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 bg-muted rounded-lg">
-                  <Star className="h-5 w-5 text-congo-primary mt-0.5" />
+                <div className="flex items-start gap-3 p-3 bg-congo-blue/10 border border-congo-blue/20 rounded-lg">
+                  <Star className="h-5 w-5 text-congo-blue mt-0.5" />
                   <div>
-                    <p className="font-medium">Consultez d'abord la FAQ</p>
+                    <p className="font-medium text-foreground">Consultez d'abord la FAQ</p>
                     <p className="text-sm text-muted-foreground">La solution existe peut-être déjà</p>
                   </div>
                 </div>
@@ -196,10 +196,10 @@ export const SupportPanel: React.FC<SupportPanelProps> = ({ open, onClose }) => 
           </TabsContent>
 
           <TabsContent value="ticket" className="space-y-4">
-            <Card>
+            <Card className="bg-gradient-congo-subtle border-congo-blue/20">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
+                <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+                  <MessageSquare className="h-5 w-5 text-congo-blue" />
                   Créer un nouveau ticket
                 </CardTitle>
               </CardHeader>
@@ -241,7 +241,7 @@ export const SupportPanel: React.FC<SupportPanelProps> = ({ open, onClose }) => 
                 <Button 
                   onClick={handleSubmitTicket}
                   disabled={loading || !ticketForm.type || !ticketForm.subject || !ticketForm.description}
-                  className="w-full congo-gradient text-white"
+                  className="w-full bg-congo-blue hover:bg-congo-blue/90 text-white"
                 >
                   {loading ? 'Envoi en cours...' : 'Envoyer le ticket'}
                 </Button>
@@ -250,9 +250,9 @@ export const SupportPanel: React.FC<SupportPanelProps> = ({ open, onClose }) => 
           </TabsContent>
 
           <TabsContent value="history" className="space-y-4">
-            <Card>
+            <Card className="bg-gradient-congo-subtle border-congo-green/20">
               <CardHeader>
-                <CardTitle className="text-lg">Historique des tickets</CardTitle>
+                <CardTitle className="text-lg text-foreground">Historique des tickets</CardTitle>
               </CardHeader>
               <CardContent>
                 {recentTickets.length === 0 ? (
@@ -264,13 +264,13 @@ export const SupportPanel: React.FC<SupportPanelProps> = ({ open, onClose }) => 
                 ) : (
                   <div className="space-y-3">
                     {recentTickets.map((ticket) => (
-                      <Card key={ticket.id} className="overflow-hidden">
+                      <Card key={ticket.id} className="overflow-hidden bg-congo-blue/10 border border-congo-blue/20">
                         <CardContent className="p-4">
-                          <div className="flex items-start justify-between mb-2">
+                          <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-2">
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-medium">{ticket.subject}</h4>
-                                <Badge variant="outline" className="text-xs">
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-1">
+                                <h4 className="font-medium text-foreground">{ticket.subject}</h4>
+                                <Badge variant="outline" className="text-xs border-congo-blue/40 text-congo-blue">
                                   {getTypeLabel(ticket.type)}
                                 </Badge>
                               </div>
@@ -281,9 +281,9 @@ export const SupportPanel: React.FC<SupportPanelProps> = ({ open, onClose }) => 
                                 Créé le {ticket.createdAt.toLocaleDateString()}
                               </p>
                             </div>
-                            <div className="flex items-center gap-1 ml-4">
+                            <div className="flex items-center gap-1">
                               {getStatusIcon(ticket.status)}
-                              <span className="text-sm">{getStatusLabel(ticket.status)}</span>
+                              <span className="text-sm text-foreground">{getStatusLabel(ticket.status)}</span>
                             </div>
                           </div>
                         </CardContent>

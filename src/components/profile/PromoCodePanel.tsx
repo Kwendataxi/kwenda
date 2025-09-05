@@ -75,41 +75,41 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Tag className="h-5 w-5 text-congo-accent" />
+      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto sm:max-w-2xl w-[95vw] sm:w-full">
+        <DialogHeader className="pb-4">
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Tag className="h-5 w-5 text-congo-yellow" />
             Codes Promo & Réductions
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="available" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="available">Disponibles</TabsTrigger>
-            <TabsTrigger value="personalized">Personnalisés</TabsTrigger>
-            <TabsTrigger value="history">Historique</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-muted/50">
+            <TabsTrigger value="available" className="text-xs sm:text-sm data-[state=active]:bg-congo-yellow data-[state=active]:text-white">Disponibles</TabsTrigger>
+            <TabsTrigger value="personalized" className="text-xs sm:text-sm data-[state=active]:bg-congo-yellow data-[state=active]:text-white">Personnalisés</TabsTrigger>
+            <TabsTrigger value="history" className="text-xs sm:text-sm data-[state=active]:bg-congo-yellow data-[state=active]:text-white">Historique</TabsTrigger>
           </TabsList>
 
           <TabsContent value="available" className="space-y-4">
-            <Card>
+            <Card className="bg-gradient-congo-subtle border-congo-yellow/20">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Percent className="h-5 w-5" />
+                <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+                  <Percent className="h-5 w-5 text-congo-yellow" />
                   Entrer un code promo
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     placeholder="Entrez votre code promo"
                     value={newCode}
                     onChange={(e) => setNewCode(e.target.value.toUpperCase())}
-                    className="flex-1"
+                    className="flex-1 border-congo-yellow/40 focus:border-congo-yellow"
                   />
                   <Button 
                     onClick={handleValidateCode}
                     disabled={!newCode.trim() || validating}
-                    className="congo-gradient text-white"
+                    className="bg-congo-yellow hover:bg-congo-yellow/90 text-white w-full sm:w-auto"
                   >
                     {validating ? 'Vérification...' : 'Valider'}
                   </Button>
@@ -130,15 +130,15 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
                 </Card>
               ) : (
                 availableCodes.map((code) => (
-                  <Card key={code.id} className="overflow-hidden">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
+                    <Card key={code.id} className="overflow-hidden bg-gradient-congo-subtle border-congo-yellow/20">
+                      <CardContent className="p-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                          <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <Badge variant="secondary" className="font-mono">
                               {code.code}
                             </Badge>
-                            <Badge variant="outline" className="text-congo-primary">
+                            <Badge variant="outline" className="text-congo-yellow border-congo-yellow/40">
                               {getDiscountText(code)}
                             </Badge>
                           </div>
@@ -161,6 +161,7 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
                           variant="outline" 
                           size="sm"
                           onClick={() => setNewCode(code.code)}
+                          className="border-congo-yellow/40 hover:bg-congo-yellow/10 hover:border-congo-yellow w-full sm:w-auto"
                         >
                           Utiliser
                         </Button>
@@ -173,10 +174,10 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
           </TabsContent>
 
           <TabsContent value="personalized" className="space-y-4">
-            <Card>
+            <Card className="bg-gradient-congo-subtle border-congo-red/20">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Gift className="h-5 w-5" />
+                <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+                  <Gift className="h-5 w-5 text-congo-red" />
                   Offres Personnalisées
                 </CardTitle>
               </CardHeader>
@@ -190,21 +191,21 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
                 ) : (
                   <div className="space-y-3">
                     {personalizedCodes.map((code, index) => (
-                      <Card key={index} className="congo-gradient-subtle">
+                      <Card key={index} className="bg-gradient-congo-subtle border-congo-red/20">
                         <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <Badge variant="default" className="mb-2 bg-congo-primary">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="flex-1">
+                              <Badge variant="default" className="mb-2 bg-congo-red text-white">
                                 EXCLUSIF
                               </Badge>
                               <p className="font-medium">{code.title}</p>
                               <p className="text-sm text-muted-foreground">{code.description}</p>
                             </div>
-                            <div className="text-right">
-                              <div className="text-lg font-bold text-congo-primary">
+                            <div className="text-right w-full sm:w-auto">
+                              <div className="text-lg font-bold text-congo-red">
                                 {code.discount}
                               </div>
-                              <Button size="sm" className="mt-2">
+                              <Button size="sm" className="mt-2 bg-congo-red hover:bg-congo-red/90 text-white w-full sm:w-auto">
                                 Activer
                               </Button>
                             </div>
@@ -219,9 +220,9 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
           </TabsContent>
 
           <TabsContent value="history" className="space-y-4">
-            <Card>
+            <Card className="bg-gradient-congo-subtle border-congo-blue/20">
               <CardHeader>
-                <CardTitle className="text-lg">Historique d'utilisation</CardTitle>
+                <CardTitle className="text-lg text-foreground">Historique d'utilisation</CardTitle>
               </CardHeader>
               <CardContent>
                 {userUsage.length === 0 ? (
@@ -233,15 +234,15 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
                 ) : (
                   <div className="space-y-3">
                     {userUsage.map((usage) => (
-                      <div key={usage.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div>
-                          <p className="font-medium font-mono">{usage.promo_codes?.code}</p>
+                      <div key={usage.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-congo-blue/10 border border-congo-blue/20 rounded-lg">
+                        <div className="flex-1">
+                          <p className="font-medium font-mono text-foreground">{usage.promo_codes?.code}</p>
                           <p className="text-sm text-muted-foreground">
                             {new Date(usage.used_at).toLocaleDateString()} - 
                             Économisé: {formatCurrency(usage.discount_amount)}
                           </p>
                         </div>
-                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <CheckCircle className="h-5 w-5 text-congo-blue" />
                       </div>
                     ))}
                   </div>

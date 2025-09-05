@@ -28,31 +28,32 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Gift className="h-5 w-5 text-congo-primary" />
+      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto sm:max-w-2xl w-[95vw] sm:w-full">
+        <DialogHeader className="pb-4">
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Gift className="h-5 w-5 text-congo-green" />
             Système de Parrainage
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Code de parrainage */}
-          <Card className="congo-gradient-subtle">
+          <Card className="bg-gradient-congo-subtle border-congo-green/20">
             <CardHeader>
-              <CardTitle className="text-lg">Votre Code de Parrainage</CardTitle>
+              <CardTitle className="text-lg text-foreground">Votre Code de Parrainage</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-background/50 rounded-lg border-2 border-dashed border-congo-primary/30">
-                <span className="text-2xl font-bold text-congo-primary tracking-wider">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-background/80 rounded-lg border-2 border-dashed border-congo-green/40">
+                <span className="text-xl sm:text-2xl font-bold text-congo-green tracking-wider text-center sm:text-left">
                   {loading ? '...' : referralCode}
                 </span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full sm:w-auto">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={copyReferralCode}
                     disabled={loading}
+                    className="flex-1 sm:flex-none border-congo-green/40 hover:bg-congo-green/10 hover:border-congo-green"
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -61,9 +62,9 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
                     size="sm"
                     onClick={shareReferralCode}
                     disabled={loading}
-                    className="congo-gradient text-white"
+                    className="flex-1 sm:flex-none bg-congo-green hover:bg-congo-green/90 text-white"
                   >
-                    <Share2 className="h-4 w-4" />
+                    <Share2 className="h-4 w-4 mr-2" />
                     Partager
                   </Button>
                 </div>
@@ -72,44 +73,43 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
           </Card>
 
           {/* Statistiques */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <Users className="h-8 w-8 mx-auto mb-2 text-congo-primary" />
-                <div className="text-2xl font-bold">{stats.totalReferred}</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card className="text-center bg-gradient-congo-subtle border-congo-blue/20">
+              <CardContent className="pt-6 pb-4">
+                <Users className="h-8 w-8 mx-auto mb-2 text-congo-blue" />
+                <div className="text-2xl font-bold text-foreground">{stats.totalReferred}</div>
                 <p className="text-sm text-muted-foreground">Parrainés</p>
               </CardContent>
             </Card>
             
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <Coins className="h-8 w-8 mx-auto mb-2 text-congo-accent" />
-                <div className="text-2xl font-bold">{stats.totalEarned} CDF</div>
+            <Card className="text-center bg-gradient-congo-subtle border-congo-yellow/20">
+              <CardContent className="pt-6 pb-4">
+                <Coins className="h-8 w-8 mx-auto mb-2 text-congo-yellow" />
+                <div className="text-2xl font-bold text-foreground">{stats.totalEarned} CDF</div>
                 <p className="text-sm text-muted-foreground">Gains Totaux</p>
               </CardContent>
             </Card>
             
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <TrendingUp className="h-8 w-8 mx-auto mb-2 text-congo-secondary" />
-                <div className="text-2xl font-bold">{stats.pendingRewards}</div>
+            <Card className="text-center bg-gradient-congo-subtle border-congo-red/20">
+              <CardContent className="pt-6 pb-4">
+                <TrendingUp className="h-8 w-8 mx-auto mb-2 text-congo-red" />
+                <div className="text-2xl font-bold text-foreground">{stats.pendingRewards}</div>
                 <p className="text-sm text-muted-foreground">En Attente</p>
               </CardContent>
             </Card>
           </div>
 
           {/* Niveau actuel */}
-          <Card>
+          <Card className="bg-gradient-congo-subtle border-congo-green/20">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5" />
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <Trophy className="h-5 w-5 text-congo-yellow" />
                   Niveau Actuel
                 </CardTitle>
                 <Badge 
                   variant="secondary" 
-                  className={cn("text-white", tierInfo.color)}
-                  style={{ backgroundColor: tierInfo.color.replace('text-', '') }}
+                  className="bg-congo-green text-white"
                 >
                   {stats.currentTier.toUpperCase()}
                 </Badge>
@@ -127,9 +127,9 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
               <div className="text-sm text-muted-foreground">
                 Plus que {tierInfo.max - stats.totalReferred} parrainages pour le niveau suivant
               </div>
-              <div className="p-3 bg-muted rounded-lg">
-                <span className="font-medium">Récompense actuelle: </span>
-                <span className="text-congo-primary font-bold">{tierInfo.reward} CDF</span>
+              <div className="p-3 bg-congo-green/10 border border-congo-green/20 rounded-lg">
+                <span className="font-medium text-foreground">Récompense actuelle: </span>
+                <span className="text-congo-green font-bold">{tierInfo.reward} CDF</span>
                 <span className="text-muted-foreground"> par parrainage réussi</span>
               </div>
             </CardContent>
@@ -174,21 +174,21 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-congo-primary text-white flex items-center justify-center text-sm font-bold">1</div>
+                <div className="w-6 h-6 rounded-full bg-congo-green text-white flex items-center justify-center text-sm font-bold">1</div>
                 <div>
                   <p className="font-medium">Partagez votre code</p>
                   <p className="text-sm text-muted-foreground">Envoyez votre code unique à vos amis</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-congo-primary text-white flex items-center justify-center text-sm font-bold">2</div>
+                <div className="w-6 h-6 rounded-full bg-congo-green text-white flex items-center justify-center text-sm font-bold">2</div>
                 <div>
                   <p className="font-medium">Ils s'inscrivent</p>
                   <p className="text-sm text-muted-foreground">Vos amis utilisent votre code lors de l'inscription</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-congo-primary text-white flex items-center justify-center text-sm font-bold">3</div>
+                <div className="w-6 h-6 rounded-full bg-congo-green text-white flex items-center justify-center text-sm font-bold">3</div>
                 <div>
                   <p className="font-medium">Gagnez des récompenses</p>
                   <p className="text-sm text-muted-foreground">Recevez des crédits pour chaque parrainage réussi</p>
