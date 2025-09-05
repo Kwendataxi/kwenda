@@ -4285,6 +4285,39 @@ export type Database = {
         }
         Relationships: []
       }
+      sensitive_data_access_audit: {
+        Row: {
+          accessed_user_data: string | null
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          operation: string
+          table_name: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accessed_user_data?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          operation: string
+          table_name: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accessed_user_data?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          operation?: string
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       sensitive_data_access_logs: {
         Row: {
           access_reason: string | null
@@ -6409,6 +6442,14 @@ export type Database = {
           p_resource_id?: string
           p_resource_type: string
           p_success?: boolean
+        }
+        Returns: undefined
+      }
+      log_sensitive_access: {
+        Args: {
+          p_accessed_user_data?: string
+          p_operation: string
+          p_table_name: string
         }
         Returns: undefined
       }
