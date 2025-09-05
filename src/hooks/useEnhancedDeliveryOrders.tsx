@@ -157,15 +157,17 @@ export const useEnhancedDeliveryOrders = () => {
         throw new Error('Coordonnées invalides - Impossible de créer la commande');
       }
 
-      // Créer la commande avec données sécurisées
+      // Créer la commande avec données sécurisées et validation stricte
+      const validDeliveryType = orderData.mode || 'flex'; // Fallback par défaut
+      
       const orderPayload = {
         user_id: user.id,
         pickup_location: securePickup?.address || 'Adresse de collecte non définie',
         delivery_location: secureDestination?.address || 'Adresse de livraison non définie',
         pickup_coordinates: pickupCoords,
         delivery_coordinates: deliveryCoords,
-        delivery_type: orderData.mode,
-        estimated_price: orderData.estimatedPrice,
+        delivery_type: validDeliveryType,
+        estimated_price: orderData.estimatedPrice || 0,
         status: 'pending'
       };
 

@@ -31,17 +31,17 @@ interface ModernLocationSearchProps {
   className?: string;
   autoFocus?: boolean;
   showCurrentLocation?: boolean;
-  variant?: 'default' | 'compact' | 'elegant';
+  variant?: 'default' | 'compact' | 'elegant' | 'premium';
 }
 
 export const ModernLocationSearch: React.FC<ModernLocationSearchProps> = ({
-  placeholder = "Rechercher une adresse...",
+  placeholder = "🔍 Où voulez-vous envoyer votre colis ?",
   onLocationSelect,
   value = '',
   className,
   autoFocus = false,
   showCurrentLocation = true,
-  variant = 'default'
+  variant = 'premium'
 }) => {
   const [inputValue, setInputValue] = useState(value);
   const [isOpen, setIsOpen] = useState(false);
@@ -121,18 +121,15 @@ export const ModernLocationSearch: React.FC<ModernLocationSearchProps> = ({
     }
   }, [onLocationSelect, addToHistory]);
 
-  // Navigation clavier fluide et robuste
+  // Navigation clavier simplifiée et robuste
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (!isOpen) return;
-    
-    const totalResults = results.length + (showCurrentLocation ? 1 : 0);
-    if (totalResults === 0) return;
+    if (!isOpen || !allResults.length) return;
     
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
         setSelectedIndex(prev => {
-          const newIndex = prev < totalResults - 1 ? prev + 1 : 0;
+          const newIndex = prev < allResults.length - 1 ? prev + 1 : 0;
           scrollToItem(newIndex);
           return newIndex;
         });
@@ -140,14 +137,14 @@ export const ModernLocationSearch: React.FC<ModernLocationSearchProps> = ({
       case 'ArrowUp':
         e.preventDefault();
         setSelectedIndex(prev => {
-          const newIndex = prev > 0 ? prev - 1 : totalResults - 1;
+          const newIndex = prev > 0 ? prev - 1 : allResults.length - 1;
           scrollToItem(newIndex);
           return newIndex;
         });
         break;
       case 'Enter':
         e.preventDefault();
-        if (selectedIndex >= 0) {
+        if (selectedIndex >= 0 && allResults[selectedIndex]) {
           if (selectedIndex === 0 && showCurrentLocation) {
             // Position actuelle
             handleCurrentLocation();
@@ -168,7 +165,7 @@ export const ModernLocationSearch: React.FC<ModernLocationSearchProps> = ({
         if (inputRef.current) inputRef.current.blur();
         break;
     }
-  }, [results, selectedIndex, showCurrentLocation, handleLocationSelect, isOpen]);
+  }, [results, selectedIndex, handleLocationSelect, isOpen]);
 
   // Scroll vers l'élément sélectionné
   const scrollToItem = useCallback((index: number) => {
@@ -238,14 +235,15 @@ export const ModernLocationSearch: React.FC<ModernLocationSearchProps> = ({
       {/* Input principal */}
       <div className="relative">
         <Card className={cn(
-          "overflow-hidden transition-all duration-200",
-          isInputFocused ? "ring-2 ring-primary ring-offset-2 shadow-lg" : "shadow-sm",
+          "overflow-hidden transition-all duration-300 border-2",
+          isInputFocused ? "ring-2 ring-primary ring-offset-2 shadow-xl border-primary" : "shadow-md border-border",
+          variant === 'premium' && "bg-gradient-to-r from-primary/5 to-accent/5 min-h-[60px]",
           variant === 'elegant' && "bg-gradient-to-r from-background to-muted/30"
         )}>
-          <div className="flex items-center space-x-3 p-3">
+          <div className="flex items-center space-x-3 p-4">
             <div className="relative flex-1">
               <Search className={cn(
-                "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 transition-colors",
+                "absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 transition-colors",
                 isInputFocused ? "text-primary" : "text-muted-foreground"
               )} />
               
@@ -261,15 +259,16 @@ export const ModernLocationSearch: React.FC<ModernLocationSearchProps> = ({
                 onBlur={() => setIsInputFocused(false)}
                 placeholder={placeholder}
                 className={cn(
-                  "pl-10 pr-10 border-0 bg-transparent",
+                  "pl-12 pr-12 border-0 bg-transparent text-lg py-3 placeholder:text-muted-foreground/70",
+                  variant === 'premium' && "text-lg font-medium min-h-[48px]",
                   variant === 'elegant' && "text-base font-medium"
                 )}
               />
               
               {/* Indicateurs à droite */}
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+              <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
                 {isSearching && (
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 )}
                 {inputValue && !isSearching && (
                   <Button
@@ -280,9 +279,9 @@ export const ModernLocationSearch: React.FC<ModernLocationSearchProps> = ({
                       clearResults();
                       setIsOpen(false);
                     }}
-                    className="h-6 w-6 p-0 hover:bg-muted"
+                    className="h-8 w-8 p-0 hover:bg-muted rounded-full"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-4 w-4" />
                   </Button>
                 )}
               </div>
