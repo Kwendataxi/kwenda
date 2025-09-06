@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FileText, Car, Package } from 'lucide-react';
 import { ServiceCategory } from './ServiceCategorySelector';
+import { useServiceConfigurations } from '@/hooks/useServiceConfigurations';
 
 interface DriverRegistrationFormProps {
   serviceCategory: ServiceCategory;
@@ -59,6 +60,8 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
   onBack,
   isLoading = false,
 }) => {
+  const { configurations } = useServiceConfigurations();
+  
   const [formData, setFormData] = useState<Partial<DriverRegistrationData>>({
     serviceCategory,
     serviceType,
@@ -127,11 +130,21 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
     }
   };
 
-  const vehicleTypes = serviceCategory === 'taxi' 
-    ? ['moto', 'car', 'premium', 'luxury']
-    : ['moto', 'van', 'truck'];
-
-  const deliveryCapacities = ['light', 'medium', 'heavy'];
+  // Obtenir les services disponibles pour la catégorie sélectionnée
+  const availableServices = configurations.filter(config => config.service_category === serviceCategory);
+  
+  // Pour les capacités de livraison, extraire les valeurs possibles des vehicle_requirements
+  const getDeliveryCapacities = () => {
+    const capacitySet = new Set<string>();
+    availableServices.forEach(service => {
+      if (service.vehicle_requirements?.cargo_capacity) {
+        capacitySet.add(service.vehicle_requirements.cargo_capacity);
+      }
+    });
+    return Array.from(capacitySet);
+  };
+  
+  const deliveryCapacities = getDeliveryCapacities();
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -260,47 +273,49 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="vehicleType">Type de véhicule *</Label>
-                <Select
-                  value={formData.vehicleType}
-                  onValueChange={(value) => updateField('vehicleType', value)}
-                >
-                  <SelectTrigger className={errors.vehicleType ? 'border-destructive' : ''}>
-                    <SelectValue placeholder="Sélectionnez le type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {vehicleTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {serviceCategory === 'delivery' && (
                 <div>
-                  <Label htmlFor="deliveryCapacity">Capacité de livraison *</Label>
+                  <Label htmlFor="vehicleType">Type de service *</Label>
                   <Select
-                    value={formData.deliveryCapacity}
-                    onValueChange={(value) => updateField('deliveryCapacity', value)}
+                    value={formData.vehicleType}
+                    onValueChange={(value) => updateField('vehicleType', value)}
                   >
-                    <SelectTrigger className={errors.deliveryCapacity ? 'border-destructive' : ''}>
-                      <SelectValue placeholder="Capacité" />
+                    <SelectTrigger className={errors.vehicleType ? 'border-destructive' : ''}>
+                      <SelectValue placeholder="Sélectionnez le type de service" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {deliveryCapacities.map((capacity) => (
-                        <SelectItem key={capacity} value={capacity}>
-                          {capacity === 'light' ? 'Léger' : capacity === 'medium' ? 'Moyen' : 'Lourd'}
+                    <SelectContent className="bg-background border shadow-md z-50">
+                      {availableServices.map((service) => (
+                        <SelectItem key={service.service_type} value={service.service_type}>
+                          {service.display_name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  {errors.deliveryCapacity && (
-                    <p className="text-sm text-destructive mt-1">{errors.deliveryCapacity}</p>
-                  )}
                 </div>
+
+              {serviceCategory === 'delivery' && (
+                  <div>
+                    <Label htmlFor="deliveryCapacity">Capacité de livraison *</Label>
+                    <Select
+                      value={formData.deliveryCapacity}
+                      onValueChange={(value) => updateField('deliveryCapacity', value)}
+                    >
+                      <SelectTrigger className={errors.deliveryCapacity ? 'border-destructive' : ''}>
+                        <SelectValue placeholder="Sélectionnez la capacité" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background border shadow-md z-50">
+                        {deliveryCapacities.map((capacity) => (
+                          <SelectItem key={capacity} value={capacity}>
+                            {capacity === 'small' ? 'Petite capacité' : 
+                             capacity === 'medium' ? 'Capacité moyenne' : 
+                             capacity === 'large' ? 'Grande capacité' : capacity}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.deliveryCapacity && (
+                      <p className="text-sm text-destructive mt-1">{errors.deliveryCapacity}</p>
+                    )}
+                  </div>
               )}
             </div>
 
