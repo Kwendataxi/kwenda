@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { locationCache } from './locationCache';
 
 export interface LocationData {
   address: string;
@@ -42,7 +43,7 @@ class MasterLocationService {
   async getCurrentPosition(options: UseMasterLocationOptions = {}): Promise<LocationData> {
     const {
       enableHighAccuracy = true,
-      timeout = 15000,
+      timeout = 30000, // Augmenté de 15s à 30s pour plus de stabilité
       maximumAge = 300000, // 5 minutes
       fallbackToIP = true,
       fallbackToDatabase = true,
@@ -88,8 +89,10 @@ class MasterLocationService {
   private async attemptGPSLocation(
     enableHighAccuracy: boolean, 
     timeout: number, 
-    maximumAge: number
+    maximumAge: number,
+    retryCount: number = 0
   ): Promise<LocationData | null> {
+    const maxRetries = 3;
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
         reject(new Error('GEOLOCATION_NOT_SUPPORTED'));
@@ -112,12 +115,26 @@ class MasterLocationService {
         try {
           const { latitude: lat, longitude: lng, accuracy } = position.coords;
           
-          // Validation des coordonnées
+          // Validation robuste des coordonnées
           if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+            if (retryCount < maxRetries) {
+              // Retry avec backoff exponentiel
+              setTimeout(() => {
+                this.attemptGPSLocation(enableHighAccuracy, timeout, maximumAge, retryCount + 1)
+                  .then(resolve)
+                  .catch(reject);
+              }, Math.pow(2, retryCount) * 1000);
+              return;
+            }
             throw new Error('INVALID_COORDINATES');
           }
+
+          // Validation de la précision GPS
+          if (accuracy && accuracy > 5000) {
+            console.warn('Précision GPS faible:', accuracy);
+          }
           
-          // Reverse geocoding avec timeout
+          // Reverse geocoding avec timeout et fallback
           const address = await Promise.race([
             this.reverseGeocode(lat, lng),
             new Promise<string>((_, reject) => 
@@ -125,23 +142,29 @@ class MasterLocationService {
             )
           ]).catch(() => `Position ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
           
-          resolve({
+          const locationData = {
             address,
             lat,
             lng,
-            type: 'current',
+            type: 'current' as const,
             accuracy
-          });
+          };
+
+          // Mettre en cache la position
+          locationCache.setCurrentLocation(locationData);
+          resolve(locationData);
         } catch (error) {
           // Si reverse geocoding échoue, retourner quand même la position
           const { latitude, longitude, accuracy } = position.coords;
-          resolve({
+          const fallbackLocation = {
             address: `Position ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
             lat: latitude,
             lng: longitude,
-            type: 'current',
+            type: 'current' as const,
             accuracy
-          });
+          };
+          locationCache.setCurrentLocation(fallbackLocation);
+          resolve(fallbackLocation);
         }
       };
 
