@@ -70,19 +70,28 @@ export const VaultTransactionDetails: React.FC<VaultTransactionDetailsProps> = (
     try {
       const { data, error } = await supabase
         .from('escrow_transactions')
-        .select(`
-          *,
-          marketplace_orders (
-            product_name,
-            quantity,
-            unit_price
-          )
-        `)
+        .select('*')
         .eq('id', transactionId)
         .single();
 
       if (error) throw error;
-      setTransaction(data as TransactionDetail);
+      
+      // Récupérer séparément les détails de la commande marketplace si elle existe
+      let marketplaceOrder = null;
+      if (data?.order_id) {
+        const { data: orderData } = await supabase
+          .from('marketplace_orders')
+          .select('product_name, quantity, unit_price')
+          .eq('id', data.order_id)
+          .maybeSingle();
+        
+        marketplaceOrder = orderData;
+      }
+
+      setTransaction({
+        ...data,
+        marketplace_orders: marketplaceOrder
+      } as TransactionDetail);
     } catch (error) {
       console.error('Erreur chargement détails:', error);
     } finally {
