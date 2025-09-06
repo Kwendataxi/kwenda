@@ -6989,6 +6989,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      cleanup_security_vulnerabilities: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       create_support_ticket: {
         Args: {
           p_category: string
@@ -7117,6 +7121,10 @@ export type Database = {
           special_requirements: string
           status: string
         }[]
+      }
+      get_driver_current_service: {
+        Args: { p_driver_id: string }
+        Returns: Json
       }
       get_driver_delivery_coordinates: {
         Args: { assignment_id_param: string }
@@ -7308,6 +7316,14 @@ export type Database = {
           details: string
           status: string
         }[]
+      }
+      get_service_price: {
+        Args: {
+          p_base_distance?: number
+          p_city?: string
+          p_service_type: string
+        }
+        Returns: Json
       }
       get_user_role: {
         Args: { user_id_param: string }
@@ -7569,6 +7585,10 @@ export type Database = {
       user_exists: {
         Args: { user_id_param: string }
         Returns: boolean
+      }
+      validate_service_requirements: {
+        Args: { p_requirements: Json; p_service_type: string }
+        Returns: Json
       }
     }
     Enums: {
