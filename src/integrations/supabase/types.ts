@@ -6525,10 +6525,10 @@ export type Database = {
       }
     }
     Views: {
-      driver_stats_summary: {
+      driver_online_status: {
         Row: {
-          available_drivers: number | null
           online_drivers: number | null
+          total_drivers: number | null
           vehicle_class: string | null
         }
         Relationships: []
@@ -6782,6 +6782,14 @@ export type Database = {
           total_calls: number
         }[]
       }
+      get_manual_security_tasks: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action: string
+          location: string
+          task: string
+        }[]
+      }
       get_market_benchmark_stats: {
         Args: { category_filter?: string }
         Returns: {
@@ -6900,6 +6908,14 @@ export type Database = {
           financial_access_count: number
           last_24h_violations: number
           suspicious_activities: number
+        }[]
+      }
+      get_security_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          check_type: string
+          details: string
+          status: string
         }[]
       }
       get_user_role: {
