@@ -3,10 +3,26 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
-interface DriverRegistrationData {
+export interface DriverRegistrationData {
   serviceCategory: 'taxi' | 'delivery';
   serviceType: string;
-  [key: string]: any;
+  displayName: string;
+  phoneNumber: string;
+  licenseNumber: string;
+  licenseExpiry: string;
+  vehicleType: string;
+  vehicleMake: string;
+  vehicleModel: string;
+  vehicleYear: number;
+  vehiclePlate: string;
+  vehicleColor?: string;
+  insuranceNumber: string;
+  insuranceExpiry?: string;
+  deliveryCapacity?: string;
+  bankAccountNumber?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  acceptsTerms: boolean;
 }
 
 export const useDriverRegistration = () => {
@@ -22,35 +38,21 @@ export const useDriverRegistration = () => {
     setIsRegistering(true);
 
     try {
-        // Créer la demande de chauffeur avec les données réelles
+      // Créer la demande de chauffeur avec les vraies données
       const { data: driverRequest, error: requestError } = await supabase
         .from('driver_requests')
         .insert({
           user_id: user.id,
           service_type: data.serviceType,
           license_number: data.licenseNumber,
-          license_expiry: data.licenseExpiry ? new Date(data.licenseExpiry).toISOString().split('T')[0] : null,
-          vehicle_type: data.serviceCategory === 'taxi' ? 'car' : 'delivery',
+          license_expiry: data.licenseExpiry,
+          vehicle_type: data.vehicleType,
           vehicle_make: data.vehicleMake,
           vehicle_model: data.vehicleModel,
           vehicle_year: data.vehicleYear,
           vehicle_plate: data.vehiclePlate,
           insurance_number: data.insuranceNumber,
-          documents: {
-            hasProfilePhoto: data.hasProfilePhoto || false,
-            hasLicensePhoto: data.hasLicensePhoto || false,
-            hasVehiclePhoto: data.hasVehiclePhoto || false,
-            hasInsuranceDoc: data.hasInsuranceDoc || false,
-            personalData: {
-              firstName: data.firstName,
-              lastName: data.lastName,
-              dateOfBirth: data.dateOfBirth,
-              phone: data.phone,
-              address: data.address,
-              emergencyContactName: data.emergencyContactName,
-              emergencyContactPhone: data.emergencyContactPhone,
-            }
-          },
+          documents: [],
           status: 'pending',
         })
         .select()
@@ -60,21 +62,24 @@ export const useDriverRegistration = () => {
         throw requestError;
       }
 
-        // Mettre à jour le profil chauffeur avec les données personnelles
+      // Mettre à jour le profil chauffeur avec les informations complètes
       const { error: profileError } = await supabase
         .from('chauffeurs')
         .update({
-          display_name: `${data.firstName} ${data.lastName}`,
-          phone_number: data.phone,
+          display_name: data.displayName,
+          phone_number: data.phoneNumber,
           license_number: data.licenseNumber,
-          license_expiry: data.licenseExpiry ? new Date(data.licenseExpiry).toISOString().split('T')[0] : null,
-          vehicle_type: data.serviceCategory === 'taxi' ? 'car' : 'delivery',
+          license_expiry: data.licenseExpiry,
+          vehicle_type: data.vehicleType,
+          vehicle_make: data.vehicleMake,
           vehicle_model: data.vehicleModel,
           vehicle_year: data.vehicleYear,
           vehicle_plate: data.vehiclePlate,
           vehicle_color: data.vehicleColor,
           insurance_number: data.insuranceNumber,
-          insurance_expiry: data.insuranceExpiry ? new Date(data.insuranceExpiry).toISOString().split('T')[0] : null,
+          insurance_expiry: data.insuranceExpiry,
+          delivery_capacity: data.deliveryCapacity,
+          bank_account_number: data.bankAccountNumber,
           emergency_contact_name: data.emergencyContactName,
           emergency_contact_phone: data.emergencyContactPhone,
           verification_status: 'pending'

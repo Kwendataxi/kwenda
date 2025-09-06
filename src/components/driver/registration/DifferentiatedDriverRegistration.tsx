@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ServiceCategorySelector, ServiceCategory } from './ServiceCategorySelector';
 import { SpecificServiceSelector } from './SpecificServiceSelector';
-import { DriverPersonalDataForm } from './DriverPersonalDataForm';
+import { DriverRegistrationForm, DriverRegistrationData } from './DriverRegistrationForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useDriverRegistration } from '@/hooks/useDriverRegistration';
@@ -32,15 +32,11 @@ export const DifferentiatedDriverRegistration: React.FC<DifferentiatedDriverRegi
     setStep('form');
   };
 
-  const handleRegistrationSubmit = async (formData: any) => {
+  const handleRegistrationSubmit = async (formData: DriverRegistrationData) => {
     if (!selectedCategory || !selectedService) return;
 
     try {
-      await registerDriver({
-        ...formData,
-        serviceCategory: selectedCategory,
-        serviceType: selectedService,
-      });
+      await registerDriver(formData);
       onSuccess();
     } catch (error) {
       console.error('Registration failed:', error);
@@ -104,7 +100,7 @@ export const DifferentiatedDriverRegistration: React.FC<DifferentiatedDriverRegi
         )}
 
         {step === 'form' && selectedCategory && selectedService && (
-          <DriverPersonalDataForm
+          <DriverRegistrationForm
             serviceCategory={selectedCategory}
             serviceType={selectedService}
             onSubmit={handleRegistrationSubmit}
@@ -114,19 +110,19 @@ export const DifferentiatedDriverRegistration: React.FC<DifferentiatedDriverRegi
         )}
       </div>
 
-      {/* Navigation buttons */}
-      <div className="flex justify-between pt-6 border-t">
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          disabled={isRegistering}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Retour
-        </Button>
+      {/* Navigation buttons - only show for category and service steps */}
+      {step !== 'form' && (
+        <div className="flex justify-between pt-6 border-t">
+          <Button
+            variant="outline"
+            onClick={handleBack}
+            disabled={isRegistering}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour
+          </Button>
 
-        {step !== 'form' && (
           <Button
             onClick={() => {
               if (step === 'category' && selectedCategory) {
@@ -141,10 +137,8 @@ export const DifferentiatedDriverRegistration: React.FC<DifferentiatedDriverRegi
             Continuer
             <ArrowRight className="h-4 w-4" />
           </Button>
-        )}
-
-{/* Form handles its own submit button */}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
