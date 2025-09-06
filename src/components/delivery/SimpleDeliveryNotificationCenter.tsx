@@ -8,7 +8,6 @@ import {
   BellOff, 
   Check, 
   Trash2, 
-  Settings, 
   Package,
   Truck,
   MapPin,
@@ -17,10 +16,9 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface DeliveryNotification {
+interface SimpleNotification {
   id: string;
   type: 'status_update' | 'driver_assigned' | 'pickup_confirmed' | 'delivered' | 'delayed' | 'cancelled';
   title: string;
@@ -28,12 +26,11 @@ interface DeliveryNotification {
   timestamp: string;
   read: boolean;
   orderId: string;
-  metadata?: any;
 }
 
-interface DeliveryNotificationCenterProps {
+interface SimpleDeliveryNotificationCenterProps {
   userId: string;
-  onNotificationClick?: (notification: DeliveryNotification) => void;
+  onNotificationClick?: (notification: SimpleNotification) => void;
 }
 
 const notificationIcons = {
@@ -54,122 +51,56 @@ const notificationColors = {
   cancelled: 'text-red-500'
 };
 
-export default function DeliveryNotificationCenter({
+export default function SimpleDeliveryNotificationCenter({
   userId,
   onNotificationClick
-}: DeliveryNotificationCenterProps) {
+}: SimpleDeliveryNotificationCenterProps) {
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState<DeliveryNotification[]>([]);
+  const [notifications, setNotifications] = useState<SimpleNotification[]>([]);
   const [loading, setLoading] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  // Load notifications
+  // Simuler des notifications pour la démonstration
   useEffect(() => {
-    const loadNotifications = async () => {
-      try {
-        // Simuler des notifications depuis l'historique de statut
-        const { data, error } = await supabase
-          .from('delivery_status_history')
-          .select('*')
-          .order('changed_at', { ascending: false })
-          .limit(50);
-
-        if (error) throw error;
-        const mappedNotifications = (data || []).map(item => ({
-          id: item.id,
-          type: 'status_update' as const,
-          title: `Statut mis à jour: ${item.status}`,
-          message: item.notes || 'Votre commande a été mise à jour',
-          timestamp: item.changed_at,
-          read: false,
-          orderId: item.delivery_order_id,
-          metadata: item.metadata
-        }));
-        setNotifications(mappedNotifications);
-      } catch (error) {
-        console.error('Error loading notifications:', error);
+    const sampleNotifications: SimpleNotification[] = [
+      {
+        id: '1',
+        type: 'status_update',
+        title: 'Commande confirmée',
+        message: 'Votre commande a été confirmée et un chauffeur va être assigné',
+        timestamp: new Date().toISOString(),
+        read: false,
+        orderId: 'ORDER-001'
+      },
+      {
+        id: '2',
+        type: 'driver_assigned',
+        title: 'Chauffeur assigné',
+        message: 'Jean-Pierre a été assigné à votre livraison',
+        timestamp: new Date(Date.now() - 300000).toISOString(),
+        read: false,
+        orderId: 'ORDER-001'
       }
-    };
-
-    loadNotifications();
+    ];
+    setNotifications(sampleNotifications);
   }, [userId]);
-
-  // Real-time notification subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel(`notifications-${userId}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'delivery_notifications',
-        filter: `user_id=eq.${userId}`
-      }, (payload) => {
-        const newNotification = payload.new as DeliveryNotification;
-        setNotifications(prev => [newNotification, ...prev.slice(0, 49)]);
-        
-        // Show toast notification
-        if (notificationsEnabled) {
-          toast({
-            title: newNotification.title,
-            description: newNotification.message
-          });
-
-          // Browser notification
-          if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification(`Kwenda Delivery - ${newNotification.title}`, {
-              body: newNotification.message,
-              icon: '/favicon.ico'
-            });
-          }
-        }
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, notificationsEnabled]);
 
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
-    try {
-      const { error } = await supabase
-        .from('delivery_notifications')
-        .update({ read: true })
-        .eq('id', notificationId);
-
-      if (error) throw error;
-
-      setNotifications(prev => prev.map(notif =>
-        notif.id === notificationId ? { ...notif, read: true } : notif
-      ));
-    } catch (error) {
-      console.error('Error marking as read:', error);
-    }
+    setNotifications(prev => prev.map(notif =>
+      notif.id === notificationId ? { ...notif, read: true } : notif
+    ));
   };
 
   // Mark all as read
   const markAllAsRead = async () => {
     setLoading(true);
     try {
-      const unreadIds = notifications
-        .filter(n => !n.read)
-        .map(n => n.id);
-
-      if (unreadIds.length > 0) {
-        const { error } = await supabase
-          .from('delivery_notifications')
-          .update({ read: true })
-          .in('id', unreadIds);
-
-        if (error) throw error;
-
-        setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
-        toast({
-          title: "Toutes marquées comme lues",
-          description: "Toutes les notifications ont été marquées comme lues"
-        });
-      }
+      setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
+      toast({
+        title: "Toutes marquées comme lues",
+        description: "Toutes les notifications ont été marquées comme lues"
+      });
     } catch (error) {
       toast({
         title: "Erreur",
@@ -183,31 +114,13 @@ export default function DeliveryNotificationCenter({
 
   // Delete notification
   const deleteNotification = async (notificationId: string) => {
-    try {
-      const { error } = await supabase
-        .from('delivery_notifications')
-        .delete()
-        .eq('id', notificationId);
-
-      if (error) throw error;
-
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
-    } catch (error) {
-      console.error('Error deleting notification:', error);
-    }
+    setNotifications(prev => prev.filter(n => n.id !== notificationId));
   };
 
   // Clear all notifications
   const clearAll = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('delivery_notifications')
-        .delete()
-        .eq('user_id', userId);
-
-      if (error) throw error;
-
       setNotifications([]);
       toast({
         title: "Succès",
@@ -221,19 +134,6 @@ export default function DeliveryNotificationCenter({
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Request notification permission
-  const requestNotificationPermission = async () => {
-    if ('Notification' in window) {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        toast({
-          title: "Notifications activées",
-          description: "Les notifications navigateur sont maintenant activées"
-        });
-      }
     }
   };
 
@@ -332,7 +232,7 @@ export default function DeliveryNotificationCenter({
                       exit={{ opacity: 0, x: -20 }}
                       layout
                       className={`
-                        p-3 rounded-lg border cursor-pointer transition-colors
+                        p-3 rounded-lg border cursor-pointer transition-colors group
                         ${notification.read 
                           ? 'bg-background border-border' 
                           : 'bg-muted/50 border-primary/20'
@@ -389,7 +289,7 @@ export default function DeliveryNotificationCenter({
                           
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-xs">
-                              #{notification.orderId.slice(-8)}
+                              #{notification.orderId}
                             </Badge>
                             
                             {!notification.read && (
@@ -406,20 +306,6 @@ export default function DeliveryNotificationCenter({
           </div>
         </ScrollArea>
       </CardContent>
-
-      {/* Permission request */}
-      {('Notification' in window && Notification.permission === 'default') && (
-        <div className="p-4 border-t">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={requestNotificationPermission}
-          >
-            Activer les notifications navigateur
-          </Button>
-        </div>
-      )}
     </Card>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,14 +10,12 @@ import {
   User, 
   Truck,
   Phone,
-  MapPin,
   Clock
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface ChatMessage {
+interface SimpleChatMessage {
   id: string;
   sender_id: string;
   sender_type: 'client' | 'driver' | 'system';
@@ -26,7 +24,7 @@ interface ChatMessage {
   read_at?: string;
 }
 
-interface RealTimeDeliveryChatProps {
+interface SimpleDeliveryChatProps {
   orderId: string;
   userType: 'client' | 'driver';
   userId: string;
@@ -35,21 +33,47 @@ interface RealTimeDeliveryChatProps {
   onCall?: () => void;
 }
 
-export default function RealTimeDeliveryChat({
+export default function SimpleDeliveryChat({
   orderId,
   userType,
   userId,
   partnerName,
   partnerPhone,
   onCall
-}: RealTimeDeliveryChatProps) {
+}: SimpleDeliveryChatProps) {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<SimpleChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isOnline, setIsOnline] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Simuler des messages pour la démonstration
+  useEffect(() => {
+    const sampleMessages: SimpleChatMessage[] = [
+      {
+        id: '1',
+        sender_id: userType === 'client' ? 'driver-id' : 'client-id',
+        sender_type: userType === 'client' ? 'driver' : 'client',
+        message: userType === 'client' 
+          ? 'Bonjour, je suis en route pour récupérer votre colis'
+          : 'Bonjour, combien de temps pour arriver ?',
+        sent_at: new Date(Date.now() - 300000).toISOString(),
+        read_at: new Date().toISOString()
+      },
+      {
+        id: '2',
+        sender_id: userId,
+        sender_type: userType,
+        message: userType === 'client' 
+          ? 'Parfait, je vous attends'
+          : 'J\'arrive dans 10 minutes',
+        sent_at: new Date(Date.now() - 180000).toISOString(),
+        read_at: new Date().toISOString()
+      }
+    ];
+    setMessages(sampleMessages);
+  }, [userId, userType]);
 
   // Auto scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -60,124 +84,37 @@ export default function RealTimeDeliveryChat({
     scrollToBottom();
   }, [messages]);
 
-  // Load existing messages
-  useEffect(() => {
-    const loadMessages = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('delivery_chat_messages')
-          .select('*')
-          .eq('delivery_order_id', orderId)
-          .order('sent_at', { ascending: true });
-
-        if (error) throw error;
-        setMessages((data || []).map(item => ({
-          id: item.id,
-          sender_id: item.sender_id,
-          sender_type: item.sender_type as 'client' | 'driver' | 'system',
-          message: item.message,
-          sent_at: item.sent_at,
-          read_at: item.read_at
-        })));
-      } catch (error) {
-        console.error('Error loading messages:', error);
-      }
-    };
-
-    loadMessages();
-  }, [orderId]);
-
-  // Real-time message subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel(`delivery-chat-${orderId}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'delivery_chat_messages',
-        filter: `delivery_order_id=eq.${orderId}`
-      }, (payload) => {
-        const newMsg = payload.new as ChatMessage;
-        setMessages(prev => [...prev, newMsg]);
-        
-        // Show notification if message is from other party
-        if (newMsg.sender_id !== userId) {
-          toast({
-            title: `Message de ${userType === 'client' ? 'votre chauffeur' : 'votre client'}`,
-            description: newMsg.message.slice(0, 50) + (newMsg.message.length > 50 ? '...' : '')
-          });
-        }
-      })
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'delivery_chat_messages',
-        filter: `delivery_order_id=eq.${orderId}`
-      }, (payload) => {
-        const updatedMsg = payload.new as ChatMessage;
-        setMessages(prev => prev.map(msg => 
-          msg.id === updatedMsg.id ? updatedMsg : msg
-        ));
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [orderId, userId, userType]);
-
   // Send message
   const handleSendMessage = async () => {
     if (!newMessage.trim() || loading) return;
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('delivery_chat_messages')
-        .insert({
-          delivery_order_id: orderId,
-          sender_id: userId,
-          sender_type: userType,
-          message: newMessage.trim()
-        });
+      const message: SimpleChatMessage = {
+        id: Date.now().toString(),
+        sender_id: userId,
+        sender_type: userType,
+        message: newMessage.trim(),
+        sent_at: new Date().toISOString()
+      };
 
-      if (error) throw error;
+      setMessages(prev => [...prev, message]);
       setNewMessage('');
+      
+      toast({
+        title: "Message envoyé",
+        description: "Votre message a été envoyé avec succès"
+      });
     } catch (error: any) {
       toast({
         title: "Erreur",
         description: "Erreur lors de l'envoi du message",
         variant: "destructive"
       });
-      console.error('Error sending message:', error);
     } finally {
       setLoading(false);
     }
   };
-
-  // Mark messages as read
-  const markMessagesAsRead = async () => {
-    try {
-      const unreadMessages = messages.filter(msg => 
-        msg.sender_id !== userId && !msg.read_at
-      );
-
-      if (unreadMessages.length > 0) {
-        const { error } = await supabase
-          .from('delivery_chat_messages')
-          .update({ read_at: new Date().toISOString() })
-          .in('id', unreadMessages.map(msg => msg.id));
-
-        if (error) throw error;
-      }
-    } catch (error) {
-      console.error('Error marking messages as read:', error);
-    }
-  };
-
-  useEffect(() => {
-    markMessagesAsRead();
-  }, [messages]);
 
   // Quick message templates
   const quickMessages = userType === 'driver' 
@@ -288,22 +225,6 @@ export default function RealTimeDeliveryChat({
                 </motion.div>
               ))}
             </AnimatePresence>
-            
-            {isTyping && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex justify-start"
-              >
-                <div className="bg-muted rounded-lg px-3 py-2 text-sm text-muted-foreground">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-current rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                    <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                  </div>
-                </div>
-              </motion.div>
-            )}
           </div>
           <div ref={messagesEndRef} />
         </ScrollArea>

@@ -721,6 +721,47 @@ export type Database = {
           },
         ]
       }
+      delivery_chat_messages: {
+        Row: {
+          delivery_order_id: string
+          id: string
+          message: string
+          metadata: Json | null
+          read_at: string | null
+          sender_id: string
+          sender_type: string
+          sent_at: string
+        }
+        Insert: {
+          delivery_order_id: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          read_at?: string | null
+          sender_id: string
+          sender_type: string
+          sent_at?: string
+        }
+        Update: {
+          delivery_order_id?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          read_at?: string | null
+          sender_id?: string
+          sender_type?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_chat_messages_delivery_order_id_fkey"
+            columns: ["delivery_order_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_fees: {
         Row: {
           base_fee: number
@@ -783,6 +824,53 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: []
+      }
+      delivery_notifications: {
+        Row: {
+          created_at: string
+          delivery_order_id: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          notification_type: string
+          read: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_order_id?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          notification_type?: string
+          read?: boolean
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_order_id?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          read?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_notifications_delivery_order_id_fkey"
+            columns: ["delivery_order_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       delivery_orders: {
         Row: {

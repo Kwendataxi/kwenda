@@ -82,13 +82,13 @@ export const useEnhancedDeliveryTracking = (orderId: string) => {
         if (!driverError) driverProfile = driver;
       }
 
-      // Load recipient profile from delivery location data
+      // Load recipient profile from delivery order data
       let recipientProfile = null;
-      if (order?.recipient_name || order?.recipient_phone) {
+      if (order?.delivery_location) {
         recipientProfile = {
-          display_name: order.recipient_name,
-          phone_number: order.recipient_phone,
-          email: order.recipient_email
+          display_name: 'Destinataire',
+          phone_number: null,
+          email: null
         };
       }
 
