@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ServiceCategorySelector, ServiceCategory } from './ServiceCategorySelector';
 import { SpecificServiceSelector } from './SpecificServiceSelector';
+import { DriverPersonalDataForm } from './DriverPersonalDataForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useDriverRegistration } from '@/hooks/useDriverRegistration';
@@ -103,34 +104,13 @@ export const DifferentiatedDriverRegistration: React.FC<DifferentiatedDriverRegi
         )}
 
         {step === 'form' && selectedCategory && selectedService && (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">
-                Finaliser votre inscription
-              </h2>
-              <p className="text-muted-foreground">
-                Service sélectionné: <span className="font-medium">{selectedService}</span> 
-                {' '}({selectedCategory})
-              </p>
-            </div>
-
-            {/* Formulaire simplifié pour cette démo */}
-            <div className="bg-muted/30 p-6 rounded-lg">
-              <h3 className="text-lg font-medium mb-4">Informations personnelles</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Formulaire détaillé à implémenter selon le service choisi...
-              </p>
-              
-              <div className="space-y-4">
-                <div className="text-sm">
-                  <strong>Type de service:</strong> {selectedCategory === 'taxi' ? 'Chauffeur Taxi' : 'Livreur'}
-                </div>
-                <div className="text-sm">
-                  <strong>Service spécifique:</strong> {selectedService}
-                </div>
-              </div>
-            </div>
-          </div>
+          <DriverPersonalDataForm
+            serviceCategory={selectedCategory}
+            serviceType={selectedService}
+            onSubmit={handleRegistrationSubmit}
+            onBack={handleBack}
+            isLoading={isRegistering}
+          />
         )}
       </div>
 
@@ -163,15 +143,7 @@ export const DifferentiatedDriverRegistration: React.FC<DifferentiatedDriverRegi
           </Button>
         )}
 
-        {step === 'form' && (
-          <Button
-            onClick={() => handleRegistrationSubmit({})}
-            disabled={isRegistering}
-            className="flex items-center gap-2"
-          >
-            {isRegistering ? 'Inscription en cours...' : 'Finaliser l\'inscription'}
-          </Button>
-        )}
+{/* Form handles its own submit button */}
       </div>
     </div>
   );

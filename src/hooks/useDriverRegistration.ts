@@ -22,21 +22,35 @@ export const useDriverRegistration = () => {
     setIsRegistering(true);
 
     try {
-      // Créer la demande de chauffeur avec le nouveau système
+        // Créer la demande de chauffeur avec les données réelles
       const { data: driverRequest, error: requestError } = await supabase
         .from('driver_requests')
         .insert({
           user_id: user.id,
           service_type: data.serviceType,
-          license_number: data.licenseNumber || 'TEMP',
-          license_expiry: data.licenseExpiry || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          vehicle_type: data.vehicleType || 'car',
-          vehicle_make: data.vehicleMake || 'Unknown',
-          vehicle_model: data.vehicleModel || 'Unknown',
-          vehicle_year: data.vehicleYear || new Date().getFullYear(),
-          vehicle_plate: data.vehiclePlate || 'TEMP-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
-          insurance_number: data.insuranceNumber || 'TEMP-INS',
-          documents: data.documents || [],
+          license_number: data.licenseNumber,
+          license_expiry: data.licenseExpiry ? new Date(data.licenseExpiry).toISOString().split('T')[0] : null,
+          vehicle_type: data.serviceCategory === 'taxi' ? 'car' : 'delivery',
+          vehicle_make: data.vehicleMake,
+          vehicle_model: data.vehicleModel,
+          vehicle_year: data.vehicleYear,
+          vehicle_plate: data.vehiclePlate,
+          insurance_number: data.insuranceNumber,
+          documents: {
+            hasProfilePhoto: data.hasProfilePhoto || false,
+            hasLicensePhoto: data.hasLicensePhoto || false,
+            hasVehiclePhoto: data.hasVehiclePhoto || false,
+            hasInsuranceDoc: data.hasInsuranceDoc || false,
+            personalData: {
+              firstName: data.firstName,
+              lastName: data.lastName,
+              dateOfBirth: data.dateOfBirth,
+              phone: data.phone,
+              address: data.address,
+              emergencyContactName: data.emergencyContactName,
+              emergencyContactPhone: data.emergencyContactPhone,
+            }
+          },
           status: 'pending',
         })
         .select()
@@ -44,6 +58,31 @@ export const useDriverRegistration = () => {
 
       if (requestError) {
         throw requestError;
+      }
+
+        // Mettre à jour le profil chauffeur avec les données personnelles
+      const { error: profileError } = await supabase
+        .from('chauffeurs')
+        .update({
+          display_name: `${data.firstName} ${data.lastName}`,
+          phone_number: data.phone,
+          license_number: data.licenseNumber,
+          license_expiry: data.licenseExpiry ? new Date(data.licenseExpiry).toISOString().split('T')[0] : null,
+          vehicle_type: data.serviceCategory === 'taxi' ? 'car' : 'delivery',
+          vehicle_model: data.vehicleModel,
+          vehicle_year: data.vehicleYear,
+          vehicle_plate: data.vehiclePlate,
+          vehicle_color: data.vehicleColor,
+          insurance_number: data.insuranceNumber,
+          insurance_expiry: data.insuranceExpiry ? new Date(data.insuranceExpiry).toISOString().split('T')[0] : null,
+          emergency_contact_name: data.emergencyContactName,
+          emergency_contact_phone: data.emergencyContactPhone,
+          verification_status: 'pending'
+        })
+        .eq('user_id', user.id);
+
+      if (profileError) {
+        console.warn('Could not update driver profile:', profileError);
       }
 
       // Créer ou mettre à jour les préférences de service
