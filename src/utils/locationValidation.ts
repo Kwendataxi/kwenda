@@ -43,53 +43,59 @@ export function isValidLocation(location: any): location is ValidatedLocation {
 }
 
 /**
- * Sécurise une location en ajoutant des coordonnées par défaut si nécessaire
+ * Sécurise une location en préservant les coordonnées valides
  */
 export function secureLocation(location: any, city: string = 'Kinshasa'): ValidatedLocation {
   if (!location) {
     throw new Error(`Veuillez sélectionner une adresse valide sur la carte`);
   }
 
-  // Si location valide, retourner telle quelle
+  // Si location déjà valide, retourner immédiatement sans modification
   if (isValidLocation(location)) {
     return {
-      ...location,
+      address: location.address,
+      lat: location.lat,
+      lng: location.lng,
+      type: location.type || 'geocoded',
+      placeId: location.placeId,
+      name: location.name,
+      subtitle: location.subtitle,
       coordinates: { lat: location.lat, lng: location.lng }
     };
   }
 
-  // IMPORTANT: Ne plus accepter automatiquement les coordonnées par défaut
-  // Forcer l'utilisateur à sélectionner une vraie adresse
-  if (!location?.lat || !location?.lng || isNaN(location.lat) || isNaN(location.lng)) {
-    console.error('🚨 Coordonnées invalides:', location);
+  // Extraction sécurisée des coordonnées (plusieurs formats possibles)
+  const lat = location.lat ?? location.coordinates?.lat ?? location.latitude;
+  const lng = location.lng ?? location.coordinates?.lng ?? location.longitude;
+
+  // Validation stricte des coordonnées
+  if (typeof lat !== 'number' || typeof lng !== 'number' || 
+      isNaN(lat) || isNaN(lng) || 
+      lat < -90 || lat > 90 || 
+      lng < -180 || lng > 180) {
+    console.error('🚨 Coordonnées invalides:', { location, extractedLat: lat, extractedLng: lng });
     throw new Error(`Coordonnées invalides. Veuillez sélectionner une adresse sur la carte.`);
   }
-  
-  // Si la location a des coordonnées valides mais pas d'adresse
-  if (location.lat && location.lng && !location.address) {
-    return {
-      address: 'Adresse sélectionnée sur la carte',
-      lat: location.lat,
-      lng: location.lng,
-      type: location?.type || 'geocoded',
-      placeId: location?.placeId,
-      name: location?.name,
-      subtitle: location?.subtitle,
-      coordinates: { lat: location.lat, lng: location.lng }
-    };
-  }
-  
-  // Réparer location avec coordonnées mais données manquantes
-  return {
-    address: location.address || 'Adresse sélectionnée',
-    lat: location.lat,
-    lng: location.lng,
+
+  // Construction d'une location valide avec données disponibles
+  const securedLocation: ValidatedLocation = {
+    address: location.address || location.name || 'Adresse sélectionnée sur la carte',
+    lat: lat,
+    lng: lng,
     type: location.type || 'geocoded',
     placeId: location.placeId,
     name: location.name,
     subtitle: location.subtitle,
-    coordinates: { lat: location.lat, lng: location.lng }
+    coordinates: { lat: lat, lng: lng }
   };
+
+  // Validation finale
+  if (!isValidLocation(securedLocation)) {
+    console.error('🚨 Échec sécurisation location:', securedLocation);
+    throw new Error(`Impossible de sécuriser la location. Veuillez réessayer.`);
+  }
+
+  return securedLocation;
 }
 
 /**
@@ -162,18 +168,30 @@ export function calculateBasePrice(
 }
 
 /**
- * Conversion sécurisée UnifiedLocation vers LocationData
+ * Conversion sécurisée UnifiedLocation vers LocationData avec validation préalable
  */
 export function unifiedToLocationData(unified: any): LocationData {
-  const secured = secureLocation({
-    address: unified?.address || unified?.name || '',
-    lat: unified?.lat || unified?.coordinates?.lat,
-    lng: unified?.lng || unified?.coordinates?.lng,
-    type: unified?.type,
-    placeId: unified?.placeId,
-    name: unified?.name,
-    subtitle: unified?.subtitle
-  });
+  if (!unified) {
+    throw new Error('Aucune location fournie pour la conversion');
+  }
+
+  // Préparation des données avec fallbacks intelligents
+  const locationInput = {
+    address: unified.address || unified.name || unified.formatted_address || '',
+    lat: unified.lat ?? unified.coordinates?.lat ?? unified.geometry?.location?.lat,
+    lng: unified.lng ?? unified.coordinates?.lng ?? unified.geometry?.location?.lng,
+    type: unified.type || 'geocoded',
+    placeId: unified.placeId || unified.place_id,
+    name: unified.name,
+    subtitle: unified.subtitle || unified.vicinity
+  };
+
+  // Validation préalable avant sécurisation
+  if (!locationInput.address) {
+    throw new Error('Adresse manquante dans la location');
+  }
+
+  const secured = secureLocation(locationInput);
   
   return {
     address: secured.address,

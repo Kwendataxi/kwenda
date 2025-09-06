@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Calculator, MapPin, Route } from 'lucide-react';
@@ -12,7 +12,10 @@ interface DynamicPriceCalculatorProps {
   onPriceCalculated: (price: number) => void;
 }
 
-const DynamicPriceCalculator: React.FC<DynamicPriceCalculatorProps> = ({
+// Cache pour éviter les recalculs identiques
+const priceCache = new Map<string, { price: number; distance: number; duration: number }>();
+
+const DynamicPriceCalculator: React.FC<DynamicPriceCalculatorProps> = React.memo(({
   pickup,
   destination,
   serviceType,
@@ -25,78 +28,103 @@ const DynamicPriceCalculator: React.FC<DynamicPriceCalculatorProps> = ({
     duration: number;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const debounceRef = useRef<NodeJS.Timeout>();
 
-  useEffect(() => {
-    const calculatePrice = async () => {
-      if (!pickup || !destination) {
-        setPriceDetails(null);
-        setError(null);
-        return;
+  // Clé de cache stable basée sur les coordonnées et le service
+  const cacheKey = useMemo(() => {
+    if (!pickup || !destination) return '';
+    return `${pickup.lat}-${pickup.lng}-${destination.lat}-${destination.lng}-${serviceType}`;
+  }, [pickup?.lat, pickup?.lng, destination?.lat, destination?.lng, serviceType]);
+
+  // Fonction de calcul stable avec cache
+  const calculatePrice = useCallback(async () => {
+    if (!pickup || !destination || !cacheKey) {
+      setPriceDetails(null);
+      setError(null);
+      return;
+    }
+
+    // Vérifier le cache d'abord
+    const cached = priceCache.get(cacheKey);
+    if (cached) {
+      setPriceDetails(cached);
+      onPriceCalculated(cached.price);
+      return;
+    }
+
+    setCalculating(true);
+    setError(null);
+
+    try {
+      const securePickup = secureLocation(pickup);
+      const secureDestination = secureLocation(destination);
+
+      if (!isValidLocation(securePickup) || !isValidLocation(secureDestination)) {
+        throw new Error('Coordonnées invalides pour le calcul du prix');
       }
 
-      setCalculating(true);
-      setError(null);
+      const result = calculateBasePrice(securePickup, secureDestination, serviceType);
+      
+      // Mettre en cache le résultat
+      priceCache.set(cacheKey, result);
+      
+      setPriceDetails(result);
+      onPriceCalculated(result.price);
 
-      // Ajouter un timeout de sécurité pour éviter les calculs infinis
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout: Calcul trop long')), 10000)
-      );
+    } catch (err: any) {
+      console.error('Erreur calcul prix:', err);
+      setError(err.message || 'Erreur de calcul du prix');
+      
+      // Prix de base selon la ville (Kinshasa par défaut)
+      const cityMultipliers = {
+        'Kinshasa': 1.0,
+        'Lubumbashi': 1.2,
+        'Kolwezi': 1.1,
+        'Abidjan': 1.0
+      };
+      
+      const basePrices = {
+        flash: 5000,
+        flex: 7000,
+        maxicharge: 12000
+      };
+      
+      const city = pickup?.address?.includes('Lubumbashi') ? 'Lubumbashi' :
+                  pickup?.address?.includes('Kolwezi') ? 'Kolwezi' :
+                  pickup?.address?.includes('Abidjan') ? 'Abidjan' : 'Kinshasa';
+      
+      const multiplier = cityMultipliers[city as keyof typeof cityMultipliers] || 1.0;
+      const fallbackPrice = Math.round(basePrices[serviceType] * multiplier);
+      
+      const fallbackResult = {
+        price: fallbackPrice,
+        distance: 0,
+        duration: 30
+      };
+      
+      setPriceDetails(fallbackResult);
+      onPriceCalculated(fallbackPrice);
+    } finally {
+      setCalculating(false);
+    }
+  }, [pickup, destination, serviceType, cacheKey, onPriceCalculated]);
 
-      try {
-        const calculationPromise = (async () => {
-          const securePickup = secureLocation(pickup);
-          const secureDestination = secureLocation(destination);
+  // Debounced effect pour éviter les calculs trop fréquents
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
 
-          if (!isValidLocation(securePickup) || !isValidLocation(secureDestination)) {
-            throw new Error('Coordonnées invalides pour le calcul du prix');
-          }
+    debounceRef.current = setTimeout(() => {
+      calculatePrice();
+    }, 1000); // Augmenté à 1 seconde
 
-          return calculateBasePrice(securePickup, secureDestination, serviceType);
-        })();
-
-        const result = await Promise.race([calculationPromise, timeoutPromise]) as any;
-        setPriceDetails(result);
-        onPriceCalculated(result.price);
-
-      } catch (err: any) {
-        console.error('Erreur calcul prix:', err);
-        setError(err.message || 'Erreur de calcul du prix');
-        
-        // Prix de base selon la ville (Kinshasa par défaut)
-        const cityMultipliers = {
-          'Kinshasa': 1.0,
-          'Lubumbashi': 1.2, // +20% pour conditions minières
-          'Kolwezi': 1.1, // +10% ville minière
-          'Abidjan': 1.0 // Prix de base
-        };
-        
-        const basePrices = {
-          flash: 5000,
-          flex: 7000,
-          maxicharge: 12000
-        };
-        
-        const city = pickup?.address?.includes('Lubumbashi') ? 'Lubumbashi' :
-                    pickup?.address?.includes('Kolwezi') ? 'Kolwezi' :
-                    pickup?.address?.includes('Abidjan') ? 'Abidjan' : 'Kinshasa';
-        
-        const multiplier = cityMultipliers[city as keyof typeof cityMultipliers] || 1.0;
-        const fallbackPrice = Math.round(basePrices[serviceType] * multiplier);
-        
-        setPriceDetails({
-          price: fallbackPrice,
-          distance: 0,
-          duration: 30
-        });
-        onPriceCalculated(fallbackPrice);
-      } finally {
-        setCalculating(false);
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
       }
     };
-
-    const timeout = setTimeout(calculatePrice, 500);
-    return () => clearTimeout(timeout);
-  }, [pickup, destination, serviceType, onPriceCalculated]);
+  }, [calculatePrice]);
 
   if (!pickup || !destination) {
     return (
@@ -172,6 +200,8 @@ const DynamicPriceCalculator: React.FC<DynamicPriceCalculatorProps> = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+DynamicPriceCalculator.displayName = 'DynamicPriceCalculator';
 
 export default DynamicPriceCalculator;

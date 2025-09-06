@@ -116,35 +116,42 @@ export const useEnhancedDeliveryOrders = () => {
 
       console.log('Utilisateur authentifié:', user.id);
 
-      // VALIDATION ULTRA-ROBUSTE DES COORDONNÉES
+      // VALIDATION ROBUSTE ET STABILISÉE DES COORDONNÉES
       const { secureLocation } = await import('@/utils/locationValidation');
       
-      // Sécuriser et valider pickup
-      const securePickup = secureLocation(orderData.pickup, orderData.city);
-      const secureDestination = secureLocation(orderData.destination, orderData.city);
+      // Validation préalable stricte
+      if (!orderData.pickup || !orderData.destination) {
+        throw new Error('Adresses de collecte et de livraison requises');
+      }
+      
+      let securePickup: any;
+      let secureDestination: any;
+      
+      try {
+        securePickup = secureLocation(orderData.pickup, orderData.city);
+        secureDestination = secureLocation(orderData.destination, orderData.city);
+      } catch (validationError: any) {
+        console.error('Erreur validation locations:', validationError);
+        throw new Error(`Validation des adresses échouée: ${validationError.message}`);
+      }
       
       console.log('Coordonnées sécurisées:', {
         pickup: securePickup,
         destination: secureDestination
       });
 
-      // Préparer les coordonnées JSON avec fallbacks robustes
+      // Construction des coordonnées finales avec validation
       const pickupCoords = {
-        lat: securePickup?.lat || securePickup?.coordinates?.lat || -4.3217,
-        lng: securePickup?.lng || securePickup?.coordinates?.lng || 15.3069,
-        type: securePickup?.type || 'fallback'
+        lat: securePickup.lat,
+        lng: securePickup.lng,
+        type: securePickup.type || 'geocoded'
       };
       
       const deliveryCoords = {
-        lat: secureDestination?.lat || secureDestination?.coordinates?.lat || -4.3217,
-        lng: secureDestination?.lng || secureDestination?.coordinates?.lng || 15.3069,
-        type: secureDestination?.type || 'fallback'
+        lat: secureDestination.lat,
+        lng: secureDestination.lng,
+        type: secureDestination.type || 'geocoded'
       };
-
-      // Validation finale pour éviter les erreurs "Cannot read properties of undefined"
-      if (!pickupCoords.lat || !pickupCoords.lng || !deliveryCoords.lat || !deliveryCoords.lng) {
-        throw new Error('Coordonnées invalides - Impossible de créer la commande');
-      }
 
       // Créer la commande avec données sécurisées et validation stricte
       const validDeliveryType = orderData.mode || 'flex'; // Fallback par défaut
