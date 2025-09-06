@@ -1,15 +1,16 @@
 import React from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Wallet, CreditCard, Trophy, QrCode, Users } from 'lucide-react';
+import { Wallet, CreditCard, Trophy, QrCode, Users, Car } from 'lucide-react';
 
 interface DriverMoreSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelect: (tab: 'wallet' | 'credits' | 'challenges' | 'partner' | 'referrals') => void;
+  onSelect: (tab: 'wallet' | 'credits' | 'challenges' | 'partner' | 'referrals' | 'vehicles') => void;
 }
 
 export const DriverMoreSheet: React.FC<DriverMoreSheetProps> = ({ open, onOpenChange, onSelect }) => {
   const items = [
+    { id: 'vehicles', label: 'Mes Véhicules', icon: Car },
     { id: 'wallet', label: 'Wallet', icon: Wallet },
     { id: 'credits', label: 'Crédits', icon: CreditCard },
     { id: 'challenges', label: 'Challenges', icon: Trophy },

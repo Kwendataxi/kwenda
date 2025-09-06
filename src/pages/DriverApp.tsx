@@ -11,6 +11,7 @@ import { DriverChallenges } from '@/components/driver/DriverChallenges';
 import { DriverCodeManager } from '@/components/driver/DriverCodeManager';
 import { DriverReferrals } from '@/components/driver/DriverReferrals';
 import ProductionDriverInterface from '@/components/driver/ProductionDriverInterface';
+import { VehicleManagementPanel } from '@/components/driver/management/VehicleManagementPanel';
 import { useAuth } from '@/hooks/useAuth';
 
 const DriverApp = () => {
@@ -52,6 +53,7 @@ const DriverApp = () => {
         {tab === 'challenges' && <DriverChallenges />}
         {tab === 'partner' && <DriverCodeManager />}
         {tab === 'referrals' && <DriverReferrals />}
+        {tab === 'vehicles' && <VehicleManagementPanel />}
       </main>
 
       <DriverBottomNavigation 

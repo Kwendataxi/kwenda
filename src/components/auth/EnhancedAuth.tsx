@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRoleBasedAuth } from '@/hooks/useRoleBasedAuth';
 import { RoleSelectionPage } from './RoleSelectionPage';
 import { ClientRegistrationForm } from './forms/ClientRegistrationForm';
-import { DriverRegistrationForm } from './forms/DriverRegistrationForm';
+import { DriverRegistrationChoice } from '@/components/driver/registration/DriverRegistrationChoice';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -139,7 +139,7 @@ export const EnhancedAuth = () => {
     }
     if (selectedRole === 'chauffeur') {
       return (
-        <DriverRegistrationForm
+        <DriverRegistrationChoice
           onSuccess={handleRegistrationSuccess}
           onBack={handleBackToRoleSelection}
         />
