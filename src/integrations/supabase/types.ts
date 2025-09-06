@@ -6602,6 +6602,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      check_security_configuration: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action_required: string
+          security_item: string
+          status: string
+        }[]
+      }
       cleanup_old_audit_logs: {
         Args: Record<PropertyKey, never>
         Returns: number
