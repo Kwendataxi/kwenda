@@ -42,38 +42,82 @@ export const useIntelligentAssignment = () => {
         throw new Error('Aucun chauffeur disponible dans cette zone')
       }
 
-      // 3. Calculer les scores pour chaque chauffeur
-      const driverScores = await Promise.all(
-        availableDrivers.map(async (driver) => {
-          const distance = calculateDistance(
-            request.pickup_location,
-            { latitude: driver.latitude, longitude: driver.longitude }
-          )
+      // 3. Récupérer les préférences de service et associations véhicules
+      const driverIds = availableDrivers.map(d => d.driver_id)
+      
+      const { data: driverPreferences } = await supabase
+        .from('driver_service_preferences')
+        .select('*')
+        .in('driver_id', driverIds)
+        .eq('is_active', true)
 
-          const score = calculateDriverScore({
-            distance,
-            rating: driver.driver_profiles?.rating_average || 3.0,
-            totalRides: driver.driver_profiles?.total_rides || 0,
-            serviceType: driver.driver_profiles?.service_type || 'taxi',
-            lastActivity: new Date(driver.last_ping)
-          })
+      const { data: vehicleAssociations } = await supabase
+        .from('driver_vehicle_associations')
+        .select('*')
+        .in('driver_id', driverIds)
+        .eq('is_active', true)
+        .eq('approval_status', 'approved')
 
-          return {
-            driver_id: driver.driver_id,
-            score,
-            distance,
-            estimated_arrival: Math.ceil(distance * 2), // Estimation simple: 2 min par km
-            rating: driver.driver_profiles?.rating_average || 3.0
-          }
+      // 4. Filtrer les chauffeurs selon leurs préférences de service
+      const compatibleDrivers = availableDrivers.filter(driver => {
+        const preferences = driverPreferences?.find(p => p.driver_id === driver.driver_id)
+        const associations = vehicleAssociations?.filter(a => a.driver_id === driver.driver_id)
+        
+        // Vérifier qu'il a au moins un véhicule approuvé
+        if (!associations || associations.length === 0) return false
+        
+        // Vérifier le type de service
+        if (preferences?.service_types && !preferences.service_types.includes(request.service_type)) {
+          return false
+        }
+
+        // Vérifier la distance maximale
+        const distance = calculateDistance(
+          request.pickup_location,
+          { latitude: driver.latitude, longitude: driver.longitude }
+        )
+        
+        if (preferences?.max_distance_km && distance > preferences.max_distance_km) {
+          return false
+        }
+
+        return true
+      })
+
+      if (compatibleDrivers.length === 0) {
+        throw new Error('Aucun chauffeur compatible trouvé pour ce type de service')
+      }
+
+      // 5. Calculer les scores pour chaque chauffeur compatible
+      const driverScores = compatibleDrivers.map(driver => {
+        const distance = calculateDistance(
+          request.pickup_location,
+          { latitude: driver.latitude, longitude: driver.longitude }
+        )
+
+        const score = calculateDriverScore({
+          distance,
+          rating: driver.driver_profiles?.rating_average || 3.0,
+          totalRides: driver.driver_profiles?.total_rides || 0,
+          serviceType: driver.driver_profiles?.service_type || 'taxi',
+          lastActivity: new Date(driver.last_ping)
         })
-      )
 
-      // 4. Sélectionner le meilleur chauffeur
+        return {
+          driver_id: driver.driver_id,
+          score,
+          distance,
+          estimated_arrival: Math.ceil(distance * 2), // Estimation simple: 2 min par km
+          rating: driver.driver_profiles?.rating_average || 3.0
+        }
+      })
+
+      // 6. Sélectionner le meilleur chauffeur
       const bestDriver = driverScores.reduce((best, current) => 
         current.score > best.score ? current : best
       )
 
-      // 5. Calculer le prix avec surge pricing
+      // 7. Calculer le prix avec surge pricing
       const pricing = await autoGeofencing.getDynamicPricing(
         pickupZone.id, 
         request.vehicle_class || 'standard'

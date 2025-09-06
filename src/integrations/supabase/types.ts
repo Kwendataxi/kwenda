@@ -1474,6 +1474,62 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_service_preferences: {
+        Row: {
+          created_at: string
+          driver_id: string
+          id: string
+          is_active: boolean
+          languages: string[] | null
+          max_distance_km: number | null
+          minimum_fare: number | null
+          preferred_zones: string[] | null
+          service_types: string[]
+          special_services: string[] | null
+          updated_at: string
+          vehicle_classes: string[] | null
+          work_schedule: Json | null
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          id?: string
+          is_active?: boolean
+          languages?: string[] | null
+          max_distance_km?: number | null
+          minimum_fare?: number | null
+          preferred_zones?: string[] | null
+          service_types?: string[]
+          special_services?: string[] | null
+          updated_at?: string
+          vehicle_classes?: string[] | null
+          work_schedule?: Json | null
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          id?: string
+          is_active?: boolean
+          languages?: string[] | null
+          max_distance_km?: number | null
+          minimum_fare?: number | null
+          preferred_zones?: string[] | null
+          service_types?: string[]
+          special_services?: string[] | null
+          updated_at?: string
+          vehicle_classes?: string[] | null
+          work_schedule?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_service_preferences_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "chauffeurs"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       driver_subscriptions: {
         Row: {
           auto_renew: boolean
@@ -1527,6 +1583,78 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "subscription_plans"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_vehicle_associations: {
+        Row: {
+          approval_status: string
+          approved_by: string | null
+          association_type: string
+          created_at: string
+          created_by: string | null
+          driver_id: string
+          end_date: string | null
+          id: string
+          is_active: boolean
+          is_primary: boolean
+          notes: string | null
+          partner_id: string | null
+          start_date: string
+          updated_at: string
+          vehicle_details: Json | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          approval_status?: string
+          approved_by?: string | null
+          association_type: string
+          created_at?: string
+          created_by?: string | null
+          driver_id: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          notes?: string | null
+          partner_id?: string | null
+          start_date?: string
+          updated_at?: string
+          vehicle_details?: Json | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          approval_status?: string
+          approved_by?: string | null
+          association_type?: string
+          created_at?: string
+          created_by?: string | null
+          driver_id?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          notes?: string | null
+          partner_id?: string | null
+          start_date?: string
+          updated_at?: string
+          vehicle_details?: Json | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_vehicle_associations_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "chauffeurs"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "driver_vehicle_associations_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partenaires"
+            referencedColumns: ["user_id"]
           },
         ]
       }
