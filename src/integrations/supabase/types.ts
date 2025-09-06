@@ -462,6 +462,9 @@ export type Database = {
           is_active: boolean | null
           license_expiry: string | null
           license_number: string | null
+          migrated_at: string | null
+          migrated_service_type: string | null
+          migration_status: string | null
           phone_number: string | null
           rating_average: number | null
           role: string | null
@@ -490,6 +493,9 @@ export type Database = {
           is_active?: boolean | null
           license_expiry?: string | null
           license_number?: string | null
+          migrated_at?: string | null
+          migrated_service_type?: string | null
+          migration_status?: string | null
           phone_number?: string | null
           rating_average?: number | null
           role?: string | null
@@ -518,6 +524,9 @@ export type Database = {
           is_active?: boolean | null
           license_expiry?: string | null
           license_number?: string | null
+          migrated_at?: string | null
+          migrated_service_type?: string | null
+          migration_status?: string | null
           phone_number?: string | null
           rating_average?: number | null
           role?: string | null
@@ -720,6 +729,39 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      data_migration_logs: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          error_message: string | null
+          id: string
+          migration_data: Json | null
+          migration_type: string
+          success: boolean | null
+          target_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          migration_data?: Json | null
+          migration_type: string
+          success?: boolean | null
+          target_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          migration_data?: Json | null
+          migration_type?: string
+          success?: boolean | null
+          target_id?: string | null
+        }
+        Relationships: []
       }
       delivery_chat_messages: {
         Row: {
@@ -1474,6 +1516,56 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_service_associations: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          created_at: string | null
+          driver_id: string
+          id: string
+          is_active: boolean | null
+          migration_source: string | null
+          notes: string | null
+          service_id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          created_at?: string | null
+          driver_id: string
+          id?: string
+          is_active?: boolean | null
+          migration_source?: string | null
+          notes?: string | null
+          service_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          created_at?: string | null
+          driver_id?: string
+          id?: string
+          is_active?: boolean | null
+          migration_source?: string | null
+          notes?: string | null
+          service_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_service_associations_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "service_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_service_preferences: {
         Row: {
           created_at: string
@@ -1527,6 +1619,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chauffeurs"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "driver_service_preferences_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "driver_service_status"
+            referencedColumns: ["driver_id"]
           },
         ]
       }
@@ -1648,6 +1747,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chauffeurs"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "driver_vehicle_associations_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "driver_service_status"
+            referencedColumns: ["driver_id"]
           },
           {
             foreignKeyName: "driver_vehicle_associations_partner_id_fkey"
@@ -6905,6 +7011,27 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_service_status: {
+        Row: {
+          current_service: string | null
+          display_name: string | null
+          driver_active: boolean | null
+          driver_id: string | null
+          effective_service: string | null
+          email: string | null
+          legacy_delivery_capacity: string | null
+          legacy_vehicle_type: string | null
+          migrated_at: string | null
+          migrated_service_type: string | null
+          migration_status: string | null
+          service_assigned_at: string | null
+          service_category: string | null
+          service_display_name: string | null
+          service_status: string | null
+          verification_status: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       anonymize_old_location_data: {
@@ -7197,6 +7324,10 @@ export type Database = {
           top_25_percent_threshold: number
           total_active_vendors: number
         }[]
+      }
+      get_migration_status: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       get_notification_stats: {
         Args: { admin_id?: string }
@@ -7509,6 +7640,10 @@ export type Database = {
               p_table_name: string
             }
         Returns: undefined
+      }
+      map_legacy_data_to_service: {
+        Args: { p_delivery_capacity?: string; p_vehicle_type?: string }
+        Returns: string
       }
       process_escrow_release: {
         Args: { escrow_id: string }
