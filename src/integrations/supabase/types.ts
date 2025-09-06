@@ -4916,6 +4916,162 @@ export type Database = {
         }
         Relationships: []
       }
+      service_change_requests: {
+        Row: {
+          created_at: string
+          current_service_type: string
+          driver_id: string
+          id: string
+          justification_documents: Json | null
+          reason: string | null
+          requested_at: string
+          requested_service_type: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_comments: string | null
+          service_category: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_service_type: string
+          driver_id: string
+          id?: string
+          justification_documents?: Json | null
+          reason?: string | null
+          requested_at?: string
+          requested_service_type: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_comments?: string | null
+          service_category: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_service_type?: string
+          driver_id?: string
+          id?: string
+          justification_documents?: Json | null
+          reason?: string | null
+          requested_at?: string
+          requested_service_type?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_comments?: string | null
+          service_category?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      service_configurations: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_name: string
+          features: Json | null
+          id: string
+          is_active: boolean
+          requirements: Json | null
+          service_category: string
+          service_type: string
+          updated_at: string
+          vehicle_requirements: Json | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_name: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          requirements?: Json | null
+          service_category: string
+          service_type: string
+          updated_at?: string
+          vehicle_requirements?: Json | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          requirements?: Json | null
+          service_category?: string
+          service_type?: string
+          updated_at?: string
+          vehicle_requirements?: Json | null
+        }
+        Relationships: []
+      }
+      service_pricing: {
+        Row: {
+          base_price: number
+          city: string
+          commission_rate: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          id: string
+          is_active: boolean
+          maximum_fare: number | null
+          minimum_fare: number
+          price_per_km: number
+          price_per_minute: number | null
+          service_category: string
+          service_type: string
+          surge_multiplier: number | null
+          updated_at: string
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          base_price?: number
+          city?: string
+          commission_rate?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          is_active?: boolean
+          maximum_fare?: number | null
+          minimum_fare?: number
+          price_per_km?: number
+          price_per_minute?: number | null
+          service_category: string
+          service_type: string
+          surge_multiplier?: number | null
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          base_price?: number
+          city?: string
+          commission_rate?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          is_active?: boolean
+          maximum_fare?: number | null
+          minimum_fare?: number
+          price_per_km?: number
+          price_per_minute?: number | null
+          service_category?: string
+          service_type?: string
+          surge_multiplier?: number | null
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       service_zones: {
         Row: {
           base_price_multiplier: number
@@ -6783,6 +6939,16 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_service_price: {
+        Args: {
+          p_city?: string
+          p_distance_km: number
+          p_duration_minutes?: number
+          p_service_category: string
+          p_service_type: string
+        }
+        Returns: Json
+      }
       calculate_surge_pricing: {
         Args: { vehicle_class_param: string; zone_id_param: string }
         Returns: number
@@ -7413,6 +7579,7 @@ export type Database = {
         | "admin_marketplace"
         | "admin_support"
         | "moderator"
+      delivery_service_type: "flash" | "flex" | "maxicharge"
       permission:
         | "users_read"
         | "users_write"
@@ -7445,6 +7612,7 @@ export type Database = {
         | "zones_write"
         | "zones_admin"
         | "drivers_admin"
+      taxi_service_type: "moto" | "eco" | "confort" | "premium"
       user_role: "client" | "driver" | "partner" | "admin"
     }
     CompositeTypes: {
@@ -7581,6 +7749,7 @@ export const Constants = {
         "admin_support",
         "moderator",
       ],
+      delivery_service_type: ["flash", "flex", "maxicharge"],
       permission: [
         "users_read",
         "users_write",
@@ -7614,6 +7783,7 @@ export const Constants = {
         "zones_admin",
         "drivers_admin",
       ],
+      taxi_service_type: ["moto", "eco", "confort", "premium"],
       user_role: ["client", "driver", "partner", "admin"],
     },
   },

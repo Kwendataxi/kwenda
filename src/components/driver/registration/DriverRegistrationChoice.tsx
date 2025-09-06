@@ -12,6 +12,7 @@ import {
   Clock
 } from 'lucide-react'
 import { FlexibleDriverRegistration } from './FlexibleDriverRegistration'
+import { DifferentiatedDriverRegistration } from './DifferentiatedDriverRegistration'
 import { DriverRegistrationForm } from '@/components/auth/forms/DriverRegistrationForm'
 
 interface DriverRegistrationChoiceProps {
@@ -35,7 +36,10 @@ export const DriverRegistrationChoice: React.FC<DriverRegistrationChoiceProps> =
         >
           ← Retour au choix
         </Button>
-        <FlexibleDriverRegistration onComplete={onSuccess} />
+        <DifferentiatedDriverRegistration 
+          onSuccess={onSuccess} 
+          onBack={() => setSelectedSystem(null)} 
+        />
       </div>
     )
   }
@@ -81,8 +85,8 @@ export const DriverRegistrationChoice: React.FC<DriverRegistrationChoiceProps> =
                   <Settings className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Système Flexible</CardTitle>
-                  <CardDescription>Nouvelle expérience intelligente</CardDescription>
+                  <CardTitle className="text-xl">Système Différencié</CardTitle>
+                  <CardDescription>Services spécialisés chauffeur/livreur</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -91,23 +95,23 @@ export const DriverRegistrationChoice: React.FC<DriverRegistrationChoiceProps> =
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>Véhicule personnel ou partenaire</span>
+                  <span>Services Taxi : Moto, Éco, Confort, Premium</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>Choix des services (taxi, livraison, mixte)</span>
+                  <span>Services Livraison : Flash, Flex, MaxiCharge</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>Préférences de zones et horaires</span>
+                  <span>Tarification spécifique par service</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>Gestion dynamique des véhicules</span>
+                  <span>Demandes de changement validées</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>Interface moderne et intuitive</span>
+                  <span>Interface adaptée selon le choix</span>
                 </div>
               </div>
 
@@ -116,7 +120,7 @@ export const DriverRegistrationChoice: React.FC<DriverRegistrationChoiceProps> =
                   className="w-full group-hover:bg-primary/90 transition-colors"
                   onClick={() => setSelectedSystem('new')}
                 >
-                  Commencer avec le système flexible
+                  Commencer avec le système différencié
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
@@ -184,7 +188,7 @@ export const DriverRegistrationChoice: React.FC<DriverRegistrationChoiceProps> =
 
         <div className="text-center space-y-2">
           <p className="text-sm text-muted-foreground">
-            <strong>Nouveau chez nous ?</strong> Le système flexible vous offre plus d'options et de contrôle
+            <strong>Nouveau chez nous ?</strong> Le système différencié vous offre des services spécialisés
           </p>
           <p className="text-xs text-muted-foreground">
             Vous pourrez toujours modifier vos préférences après l'inscription

@@ -12,6 +12,7 @@ import { DriverCodeManager } from '@/components/driver/DriverCodeManager';
 import { DriverReferrals } from '@/components/driver/DriverReferrals';
 import ProductionDriverInterface from '@/components/driver/ProductionDriverInterface';
 import { VehicleManagementPanel } from '@/components/driver/management/VehicleManagementPanel';
+import { ServiceChangeRequestPanel } from '@/components/driver/management/ServiceChangeRequestPanel';
 import { useAuth } from '@/hooks/useAuth';
 
 const DriverApp = () => {
@@ -53,7 +54,12 @@ const DriverApp = () => {
         {tab === 'challenges' && <DriverChallenges />}
         {tab === 'partner' && <DriverCodeManager />}
         {tab === 'referrals' && <DriverReferrals />}
-        {tab === 'vehicles' && <VehicleManagementPanel />}
+        {tab === 'vehicles' && (
+          <div className="space-y-6">
+            <VehicleManagementPanel />
+            <ServiceChangeRequestPanel />
+          </div>
+        )}
       </main>
 
       <DriverBottomNavigation 

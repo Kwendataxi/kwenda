@@ -1,0 +1,133 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+export type ServiceCategory = 'taxi' | 'delivery';
+
+export interface ServiceConfiguration {
+  id: string;
+  service_type: string;
+  service_category: ServiceCategory;
+  display_name: string;
+  description?: string;
+  requirements: string[];
+  features: string[];
+  vehicle_requirements: Record<string, any>;
+  is_active: boolean;
+}
+
+export interface ServicePricing {
+  id: string;
+  service_type: string;
+  service_category: ServiceCategory;
+  city: string;
+  base_price: number;
+  price_per_km: number;
+  price_per_minute?: number;
+  minimum_fare: number;
+  maximum_fare?: number;
+  surge_multiplier: number;
+  commission_rate: number;
+  currency: string;
+  is_active: boolean;
+}
+
+export const useServiceConfigurations = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: configurations, isLoading: configurationsLoading } = useQuery({
+    queryKey: ['service-configurations'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('service_configurations')
+        .select('*')
+        .eq('is_active', true)
+        .order('service_category', { ascending: true })
+        .order('service_type', { ascending: true });
+
+      if (error) throw error;
+      return data as ServiceConfiguration[];
+    },
+  });
+
+  const { data: pricing, isLoading: pricingLoading } = useQuery({
+    queryKey: ['service-pricing'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('service_pricing')
+        .select('*')
+        .eq('is_active', true)
+        .order('service_category', { ascending: true })
+        .order('service_type', { ascending: true });
+
+      if (error) throw error;
+      return data as ServicePricing[];
+    },
+  });
+
+  const updatePricingMutation = useMutation({
+    mutationFn: async (pricing: Partial<ServicePricing> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('service_pricing')
+        .update(pricing)
+        .eq('id', pricing.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['service-pricing'] });
+      toast({
+        title: "Tarification mise à jour",
+        description: "Les tarifs du service ont été mis à jour avec succès.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error updating pricing:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour la tarification.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const getTaxiServices = () => {
+    return configurations?.filter(config => config.service_category === 'taxi') || [];
+  };
+
+  const getDeliveryServices = () => {
+    return configurations?.filter(config => config.service_category === 'delivery') || [];
+  };
+
+  const getServicePricing = (serviceType: string, serviceCategory: ServiceCategory, city = 'Kinshasa') => {
+    return pricing?.find(p => 
+      p.service_type === serviceType && 
+      p.service_category === serviceCategory && 
+      p.city === city
+    );
+  };
+
+  const formatPrice = (amount: number, currency = 'CDF') => {
+    return new Intl.NumberFormat('fr-CD', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  return {
+    configurations: configurations || [],
+    pricing: pricing || [],
+    loading: configurationsLoading || pricingLoading,
+    getTaxiServices,
+    getDeliveryServices,
+    getServicePricing,
+    updatePricing: updatePricingMutation.mutate,
+    formatPrice,
+  };
+};
