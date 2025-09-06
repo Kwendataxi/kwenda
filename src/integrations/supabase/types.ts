@@ -6525,22 +6525,11 @@ export type Database = {
       }
     }
     Views: {
-      available_drivers_summary: {
+      driver_stats_summary: {
         Row: {
-          avg_rating: number | null
-          city: string | null
-          total_available_drivers: number | null
+          available_drivers: number | null
+          online_drivers: number | null
           vehicle_class: string | null
-        }
-        Relationships: []
-      }
-      driver_availability_summary: {
-        Row: {
-          availability_rate: number | null
-          available_count: number | null
-          online_count: number | null
-          vehicle_class: string | null
-          zone_generale: string | null
         }
         Relationships: []
       }
@@ -6613,6 +6602,10 @@ export type Database = {
       cleanup_old_audit_logs: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      cleanup_security_definer_views: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       create_support_ticket: {
         Args: {
