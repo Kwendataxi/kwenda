@@ -85,25 +85,15 @@ class SecureDriverLocationService {
    */
   async getAvailableDriversSummary(): Promise<DriverSummary[]> {
     try {
-      // Utiliser la vue driver_online_status qui existe déjà
-      const { data, error } = await supabase
-        .from('driver_online_status')
-        .select('*');
+      // Utiliser la fonction sécurisée
+      const { data, error } = await supabase.rpc('get_available_drivers_summary');
 
       if (error) {
         console.error('❌ Erreur lors du résumé des chauffeurs:', error);
         throw new Error('Erreur lors du chargement du résumé des chauffeurs');
       }
 
-      // Transformer les données en format DriverSummary
-      const summary: DriverSummary[] = (data || []).map(item => ({
-        total_available_drivers: Number(item.online_drivers || 0),
-        vehicle_class: item.vehicle_class || 'standard',
-        city: 'Kinshasa', // Valeur par défaut
-        avg_rating: 4.5 // Valeur par défaut
-      }));
-
-      return summary;
+      return data || [];
     } catch (error) {
       console.error('❌ Erreur dans getAvailableDriversSummary:', error);
       throw error;

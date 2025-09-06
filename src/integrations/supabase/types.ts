@@ -6794,6 +6794,15 @@ export type Database = {
           vendor_count: number
         }[]
       }
+      get_available_drivers_summary: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avg_rating: number
+          city: string
+          total_available_drivers: number
+          vehicle_class: string
+        }[]
+      }
       get_current_user_admin_status: {
         Args: Record<PropertyKey, never>
         Returns: boolean
