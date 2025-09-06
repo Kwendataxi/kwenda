@@ -133,15 +133,13 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
   // Obtenir les services disponibles pour la catégorie sélectionnée
   const availableServices = configurations.filter(config => config.service_category === serviceCategory);
   
-  // Pour les capacités de livraison, extraire les valeurs possibles des vehicle_requirements
+  // Pour les capacités de livraison, retourner les options standard
   const getDeliveryCapacities = () => {
-    const capacitySet = new Set<string>();
-    availableServices.forEach(service => {
-      if (service.vehicle_requirements?.cargo_capacity) {
-        capacitySet.add(service.vehicle_requirements.cargo_capacity);
-      }
-    });
-    return Array.from(capacitySet);
+    return [
+      { value: 'small', label: 'Petite capacité (jusqu\'à 5kg)' },
+      { value: 'medium', label: 'Capacité moyenne (5-15kg)' },
+      { value: 'large', label: 'Grande capacité (15kg+)' }
+    ];
   };
   
   const deliveryCapacities = getDeliveryCapacities();
@@ -282,7 +280,7 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                     <SelectTrigger className={errors.vehicleType ? 'border-destructive' : ''}>
                       <SelectValue placeholder="Sélectionnez le type de service" />
                     </SelectTrigger>
-                    <SelectContent className="bg-background border shadow-md z-50">
+                    <SelectContent className="bg-popover border shadow-lg z-[60] pointer-events-auto">
                       {availableServices.map((service) => (
                         <SelectItem key={service.service_type} value={service.service_type}>
                           {service.display_name}
@@ -302,12 +300,10 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                       <SelectTrigger className={errors.deliveryCapacity ? 'border-destructive' : ''}>
                         <SelectValue placeholder="Sélectionnez la capacité" />
                       </SelectTrigger>
-                      <SelectContent className="bg-background border shadow-md z-50">
+                      <SelectContent className="bg-popover border shadow-lg z-[60] pointer-events-auto">
                         {deliveryCapacities.map((capacity) => (
-                          <SelectItem key={capacity} value={capacity}>
-                            {capacity === 'small' ? 'Petite capacité' : 
-                             capacity === 'medium' ? 'Capacité moyenne' : 
-                             capacity === 'large' ? 'Grande capacité' : capacity}
+                          <SelectItem key={capacity.value} value={capacity.value}>
+                            {capacity.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
