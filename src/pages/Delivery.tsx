@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import SimpleDeliveryInterface from '@/components/delivery/SimpleDeliveryInterface';
+import DeliveryFormWizard from '@/components/delivery/DeliveryFormWizard';
 import DeliveryLiveTracker from '@/components/delivery/DeliveryLiveTracker';
 import { Package, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -51,9 +51,10 @@ const DeliveryPage = () => {
       </div>
 
       {/* Main Content */}
-      <SimpleDeliveryInterface
+      <DeliveryFormWizard
         onSubmit={handleOrderCreated}
         onCancel={handleBackToCreate}
+        city="Kinshasa"
       />
     </div>
   );
