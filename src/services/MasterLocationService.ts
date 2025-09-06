@@ -96,57 +96,76 @@ class MasterLocationService {
         return;
       }
 
+      // Validation des paramètres pour éviter les valeurs aberrantes
       const options = {
         enableHighAccuracy,
-        timeout,
-        maximumAge
+        timeout: Math.min(timeout, 15000), // Max 15s pour éviter les blocages
+        maximumAge: Math.max(maximumAge, 60000) // Min 1 minute pour cache utile
       };
 
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const { latitude: lat, longitude: lng, accuracy } = position.coords;
-            
-            // Reverse geocoding
-            const address = await this.reverseGeocode(lat, lng);
-            
-            resolve({
-              address,
-              lat,
-              lng,
-              type: 'current',
-              accuracy
-            });
-          } catch (error) {
-            // Si reverse geocoding échoue, retourner quand même la position
-            const { latitude, longitude, accuracy } = position.coords;
-            resolve({
-              address: `Position ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-              lat: latitude,
-              lng: longitude,
-              type: 'current',
-              accuracy
-            });
+      let resolved = false;
+
+      const successHandler = async (position: GeolocationPosition) => {
+        if (resolved) return;
+        resolved = true;
+
+        try {
+          const { latitude: lat, longitude: lng, accuracy } = position.coords;
+          
+          // Validation des coordonnées
+          if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+            throw new Error('INVALID_COORDINATES');
           }
-        },
-        (error) => {
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              reject(new Error('PERMISSION_DENIED'));
-              break;
-            case error.POSITION_UNAVAILABLE:
-              reject(new Error('POSITION_UNAVAILABLE'));
-              break;
-            case error.TIMEOUT:
-              reject(new Error('TIMEOUT'));
-              break;
-            default:
-              reject(new Error('UNKNOWN_ERROR'));
-              break;
-          }
-        },
-        options
-      );
+          
+          // Reverse geocoding avec timeout
+          const address = await Promise.race([
+            this.reverseGeocode(lat, lng),
+            new Promise<string>((_, reject) => 
+              setTimeout(() => reject(new Error('GEOCODING_TIMEOUT')), 5000)
+            )
+          ]).catch(() => `Position ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+          
+          resolve({
+            address,
+            lat,
+            lng,
+            type: 'current',
+            accuracy
+          });
+        } catch (error) {
+          // Si reverse geocoding échoue, retourner quand même la position
+          const { latitude, longitude, accuracy } = position.coords;
+          resolve({
+            address: `Position ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+            lat: latitude,
+            lng: longitude,
+            type: 'current',
+            accuracy
+          });
+        }
+      };
+
+      const errorHandler = (error: GeolocationPositionError) => {
+        if (resolved) return;
+        resolved = true;
+
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            reject(new Error('PERMISSION_DENIED'));
+            break;
+          case error.POSITION_UNAVAILABLE:
+            reject(new Error('POSITION_UNAVAILABLE'));
+            break;
+          case error.TIMEOUT:
+            reject(new Error('TIMEOUT'));
+            break;
+          default:
+            reject(new Error('UNKNOWN_ERROR'));
+            break;
+        }
+      };
+
+      navigator.geolocation.getCurrentPosition(successHandler, errorHandler, options);
     });
   }
 

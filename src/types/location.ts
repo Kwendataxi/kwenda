@@ -1,3 +1,7 @@
+/**
+ * Types unifiés pour la géolocalisation dans Kwenda
+ */
+
 // Interface unifiée pour toutes les locations
 export interface LocationData {
   address: string;
@@ -6,6 +10,8 @@ export interface LocationData {
   type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'ip' | 'fallback' | 'database';
   placeId?: string;
   accuracy?: number;
+  name?: string;
+  subtitle?: string;
 }
 
 // Format de retour pour les résultats de recherche
@@ -13,6 +19,31 @@ export interface SearchResult extends LocationData {
   id: string;
   title?: string;
   subtitle?: string;
+  isPopular?: boolean;
+}
+
+export interface LocationSearchResult extends LocationData {
+  id: string;
+  title?: string;
+  subtitle?: string;
+  isPopular?: boolean;
+}
+
+export interface GeolocationOptions {
+  enableHighAccuracy?: boolean;
+  timeout?: number;
+  maximumAge?: number;
+  fallbackToIP?: boolean;
+  fallbackToDatabase?: boolean;
+  fallbackToDefault?: boolean;
+}
+
+export interface LocationState {
+  location: LocationData | null;
+  loading: boolean;
+  error: string | null;
+  accuracy: number | null;
+  source: 'gps' | 'ip' | 'fallback' | 'manual' | null;
 }
 
 // Interface pour les coordonnées simples

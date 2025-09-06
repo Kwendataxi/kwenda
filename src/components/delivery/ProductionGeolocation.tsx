@@ -52,8 +52,8 @@ const ProductionGeolocation: React.FC<ProductionGeolocationProps> = ({
     try {
       const location = await masterLocationService.getCurrentPosition({
         enableHighAccuracy: true,
-        timeout: 12000,
-        maximumAge: 300000, // 5 minutes
+        timeout: 10000, // Réduit à 10s pour éviter les timeouts
+        maximumAge: 180000, // 3 minutes pour plus de réactivité
         fallbackToIP: true,
         fallbackToDatabase: true,
         fallbackToDefault: true

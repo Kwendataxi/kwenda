@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { LocationService, type LocationData, type LocationSearchResult } from '@/services/LocationService';
+import { masterLocationService, type LocationData, type LocationSearchResult } from '@/services/MasterLocationService';
 
 interface UseMasterLocationOptions {
   enableHighAccuracy?: boolean;
@@ -57,7 +57,7 @@ export const useMasterLocation = (defaultOptions: UseMasterLocationOptions = {})
     const finalOptions = { ...defaultOptions, ...options };
     
     try {
-      const position = await LocationService.getCurrentPosition(finalOptions);
+      const position = await masterLocationService.getCurrentPosition(finalOptions);
       
       setLocation(position);
       setAccuracy(position.accuracy || null);
@@ -153,7 +153,7 @@ export const useMasterLocation = (defaultOptions: UseMasterLocationOptions = {})
     if (!query.trim()) return [];
     
     try {
-      const results = await LocationService.searchLocation(query, location || undefined);
+      const results = await masterLocationService.searchLocation(query, location || undefined);
       return results;
     } catch (error) {
       console.error('Search location error:', error);
@@ -179,7 +179,7 @@ export const useMasterLocation = (defaultOptions: UseMasterLocationOptions = {})
     }
     
     try {
-      const places = await LocationService.getNearbyPlaces(location.lat, location.lng, radiusKm);
+      const places = await masterLocationService.getNearbyPlaces(location.lat, location.lng, radiusKm);
       return places;
     } catch (error) {
       console.error('Get nearby places error:', error);
@@ -198,19 +198,19 @@ export const useMasterLocation = (defaultOptions: UseMasterLocationOptions = {})
     point1: { lat: number; lng: number }, 
     point2: { lat: number; lng: number }
   ): number => {
-    return LocationService.calculateDistance(point1, point2);
+    return masterLocationService.calculateDistance(point1, point2);
   }, []);
 
   const formatDistance = useCallback((meters: number): string => {
-    return LocationService.formatDistance(meters);
+    return masterLocationService.formatDistance(meters);
   }, []);
 
   const formatDuration = useCallback((seconds: number): string => {
-    return LocationService.formatDuration(seconds);
+    return masterLocationService.formatDuration(seconds);
   }, []);
 
   const clearCache = useCallback(() => {
-    LocationService.clearCache();
+    masterLocationService.clearCache();
     setLocation(null);
     setError(null);
     setAccuracy(null);

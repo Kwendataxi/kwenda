@@ -127,17 +127,17 @@ const RobustPriceCalculator: React.FC<RobustPriceCalculatorProps> = ({
     }
   }, [pickup, destination, serviceType, city]);
 
-  // Mise à jour du prix calculé
+  // Mise à jour immédiate et stable du prix calculé
   useEffect(() => {
     if (calculatePrice) {
       setCalculating(true);
       
-      // Simulation d'un délai pour montrer le feedback visuel
+      // Délai très court pour effet visuel minimal
       const timer = setTimeout(() => {
         setPriceBreakdown(calculatePrice);
         onPriceCalculated(calculatePrice);
         setCalculating(false);
-      }, 300);
+      }, 100); // Réduit à 100ms pour plus de réactivité
 
       return () => clearTimeout(timer);
     } else {
