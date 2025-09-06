@@ -23,6 +23,11 @@ interface Product {
     lat: number;
     lng: number;
   };
+  isPopular?: boolean;
+  isNew?: boolean;
+  isPremium?: boolean;
+  condition?: 'new' | 'used' | 'refurbished';
+  tags?: string[];
 }
 
 interface CompactProductCardProps {

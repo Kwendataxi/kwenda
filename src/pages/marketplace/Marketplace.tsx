@@ -12,10 +12,25 @@ import {
 import { Link } from "react-router-dom";
 import { PageTransition } from "@/components/layout/PageTransition";
 import ModernFooter from "@/components/landing/ModernFooter";
+import { CartProvider } from '@/context/CartContext';
+import { FavoritesProvider } from '@/context/FavoritesContext';
+import { MarketplaceHeader } from '@/components/marketplace/MarketplaceHeader';
+import { AdvancedFilters } from '@/components/marketplace/AdvancedFilters';
+import { CompactProductCard } from '@/components/marketplace/CompactProductCard';
+import { ShoppingCart as ShoppingCartComponent } from '@/components/marketplace/ShoppingCart';
+import { useMarketplaceFilters } from '@/hooks/useMarketplaceFilters';
+import { useCart } from '@/context/CartContext';
+import { useFavorites } from '@/context/FavoritesContext';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
-const Marketplace = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+const MarketplaceContent = () => {
+  const [showFilters, setShowFilters] = useState(false);
+  const [showCart, setShowCart] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
+  
+  const { cartItems, addToCart, removeFromCart, updateQuantity } = useCart();
+  const { favoriteItems, toggleFavorite, isFavorite } = useFavorites();
+  const { latitude, longitude } = useGeolocation();
 
   const categories = [
     { id: "all", name: "Tous", icon: <Package className="w-4 h-4" />, count: "500+" },
@@ -28,80 +43,104 @@ const Marketplace = () => {
 
   const featuredProducts = [
     {
-      id: 1,
+      id: "1",
       name: "Samsung Galaxy A54",
       price: 450000,
       originalPrice: 550000,
       image: "/placeholder.svg",
       rating: 4.8,
-      reviews: 45,
+      reviewCount: 45,
       seller: "TechStore Kinshasa",
-      location: "Gombe, Kinshasa",
+      sellerId: "seller1",
+      category: "electronics",
+      location: { lat: -4.3217, lng: 15.3069 },
       discount: 18,
       isPopular: true,
-      deliveryTime: "2-4h"
+      isAvailable: true,
+      condition: "new" as const,
+      tags: ["samsung", "smartphone", "android"]
     },
     {
-      id: 2,
+      id: "2",
       name: "Robe Africaine Premium",
       price: 85000,
       image: "/placeholder.svg",
       rating: 4.9,
-      reviews: 32,
+      reviewCount: 32,
       seller: "Mode Africaine",
-      location: "Lubumbashi",
+      sellerId: "seller2",
+      category: "fashion",
+      location: { lat: -11.6609, lng: 27.4794 },
       isNew: true,
-      deliveryTime: "1-2 jours"
+      isAvailable: true,
+      condition: "new" as const,
+      tags: ["robe", "africaine", "mode", "fashion"]
     },
     {
-      id: 3,
+      id: "3",
       name: "Riz Jasmin 25kg",
       price: 45000,
       originalPrice: 50000,
       image: "/placeholder.svg",
       rating: 4.7,
-      reviews: 128,
+      reviewCount: 128,
       seller: "Alimentation Kwenda",
-      location: "Kinshasa",
+      sellerId: "seller3",
+      category: "food",
+      location: { lat: -4.3317, lng: 15.3169 },
       discount: 10,
-      deliveryTime: "30min-1h"
+      isAvailable: true,
+      condition: "new" as const,
+      tags: ["riz", "jasmin", "alimentation", "cereales"]
     },
     {
-      id: 4,
+      id: "4",
       name: "MacBook Air M2",
       price: 1200000,
       image: "/placeholder.svg",
       rating: 5.0,
-      reviews: 15,
+      reviewCount: 15,
       seller: "Premium Tech",
-      location: "Gombe, Kinshasa",
+      sellerId: "seller4",
+      category: "electronics",
+      location: { lat: -4.3117, lng: 15.2969 },
       isPremium: true,
-      deliveryTime: "2-4h"
+      isAvailable: true,
+      condition: "new" as const,
+      tags: ["macbook", "apple", "laptop", "ordinateur"]
     },
     {
-      id: 5,
+      id: "5",
       name: "Chaussures Nike Air Max",
       price: 120000,
       originalPrice: 150000,
       image: "/placeholder.svg",
       rating: 4.6,
-      reviews: 67,
+      reviewCount: 67,
       seller: "Sports Shop",
-      location: "Kolwezi",
+      sellerId: "seller5",
+      category: "fashion",
+      location: { lat: -10.7062, lng: 25.4731 },
       discount: 20,
-      deliveryTime: "1-2 jours"
+      isAvailable: true,
+      condition: "new" as const,
+      tags: ["nike", "air max", "chaussures", "sport"]
     },
     {
-      id: 6,
+      id: "6",
       name: "Set Maquillage Professionnel",
       price: 75000,
       image: "/placeholder.svg",
       rating: 4.8,
-      reviews: 89,
+      reviewCount: 89,
       seller: "Beauty Palace",
-      location: "Lubumbashi",
+      sellerId: "seller6",
+      category: "beauty",
+      location: { lat: -11.6509, lng: 27.4694 },
       isPopular: true,
-      deliveryTime: "2-4h"
+      isAvailable: true,
+      condition: "new" as const,
+      tags: ["maquillage", "beaute", "cosmetic", "makeup"]
     }
   ];
 
@@ -114,16 +153,60 @@ const Marketplace = () => {
 
   const cities = ["Kinshasa", "Lubumbashi", "Kolwezi"];
 
-  const filteredProducts = featuredProducts.filter(product => 
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.seller.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Initialize filters with user location and favorites
+  const userLocation = latitude && longitude ? { lat: latitude, lng: longitude } : undefined;
+  const favoriteIds = favoriteItems.map(item => item.id);
+
+  const {
+    filters,
+    filteredProducts,
+    updateFilter,
+    updateFilters,
+    resetFilters,
+    hasActiveFilters,
+    applyQuickFilter,
+    filterStats,
+  } = useMarketplaceFilters({
+    products: featuredProducts,
+    userLocation,
+    favoriteIds,
+  });
+
+  const handleAddToCart = (product: any) => {
+    addToCart(product);
+  };
+
+  const handleViewDetails = (product: any) => {
+    // Navigate to product detail page
+    console.log('View product details:', product);
+  };
+
+  const handleViewSeller = (sellerId: string) => {
+    // Navigate to seller profile
+    console.log('View seller:', sellerId);
+  };
+
+  const handleCheckout = () => {
+    setShowCart(false);
+    // Navigate to checkout
+    console.log('Proceed to checkout');
+  };
 
   return (
     <PageTransition>
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+        {/* Modern Header with Search and Location */}
+        <MarketplaceHeader
+          searchQuery={filters.searchQuery}
+          onSearchChange={(query) => updateFilter('searchQuery', query)}
+          onFilterClick={() => setShowFilters(true)}
+          onCartClick={() => setShowCart(true)}
+          onFavoritesClick={() => setShowFavorites(true)}
+          hasActiveFilters={hasActiveFilters}
+        />
+
         {/* Hero Section */}
-        <section className="relative py-20 px-4 bg-gradient-to-r from-primary via-secondary to-accent text-white overflow-hidden">
+        <section className="relative py-16 px-4 bg-gradient-to-r from-primary via-secondary to-accent text-white overflow-hidden">
           <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-10"></div>
           <div className="container mx-auto max-w-7xl text-center relative z-10">
             <Badge variant="outline" className="border-white/30 text-white mb-6">
@@ -141,22 +224,6 @@ const Marketplace = () => {
               Achetez local, supportez l'économie congolaise !
             </p>
             
-            {/* Search Bar */}
-            <div className="max-w-2xl mx-auto mb-8">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                <Input
-                  placeholder="Rechercher des produits, marques, vendeurs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-4 py-6 text-lg bg-white/95 backdrop-blur-sm border-white/20"
-                />
-                <Button size="lg" className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                  <Search className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
-
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
                 <ShoppingCart className="w-5 h-5 mr-2" />
@@ -177,9 +244,9 @@ const Marketplace = () => {
               {categories.map((category) => (
                 <Button
                   key={category.id}
-                  variant={selectedCategory === category.id ? "default" : "outline"}
+                  variant={filters.selectedCategory === category.id ? "default" : "outline"}
                   className="flex items-center gap-2 whitespace-nowrap"
-                  onClick={() => setSelectedCategory(category.id)}
+                  onClick={() => updateFilter('selectedCategory', category.id)}
                 >
                   {category.icon}
                   {category.name}
@@ -196,120 +263,68 @@ const Marketplace = () => {
         <section className="py-20 px-4">
           <div className="container mx-auto max-w-7xl">
             <div className="flex justify-between items-center mb-12">
-              <h2 className="text-display-md bg-gradient-to-r from-foreground via-primary to-secondary bg-clip-text text-transparent">
-                Produits Populaires
-              </h2>
+              <div>
+                <h2 className="text-display-md bg-gradient-to-r from-foreground via-primary to-secondary bg-clip-text text-transparent">
+                  Produits Populaires
+                </h2>
+                <p className="text-muted-foreground mt-2">
+                  {filterStats.filteredCount} produits trouvés
+                  {hasActiveFilters && ` (sur ${filterStats.totalProducts} au total)`}
+                </p>
+              </div>
               <div className="flex items-center gap-4">
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowFilters(true)}
+                  className="relative"
+                >
                   <Filter className="w-4 h-4 mr-2" />
                   Filtres
+                  {hasActiveFilters && (
+                    <div className="absolute -top-2 -right-2 w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
+                      !
+                    </div>
+                  )}
                 </Button>
-                <select className="px-4 py-2 border rounded-lg bg-background">
-                  <option>Trier par: Popularité</option>
-                  <option>Prix croissant</option>
-                  <option>Prix décroissant</option>
-                  <option>Mieux notés</option>
-                </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Products Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {filteredProducts.map((product) => (
-                <Card key={product.id} className="group hover:shadow-xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                  <div className="relative">
-                    <img 
-                      src={product.image} 
-                      alt={product.name}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    
-                    {/* Badges */}
-                    <div className="absolute top-3 left-3 flex flex-col gap-2">
-                      {product.isPopular && (
-                        <Badge className="bg-red-500 text-white">🔥 Populaire</Badge>
-                      )}
-                      {product.isNew && (
-                        <Badge className="bg-green-500 text-white">✨ Nouveau</Badge>
-                      )}
-                      {product.isPremium && (
-                        <Badge className="bg-purple-500 text-white">👑 Premium</Badge>
-                      )}
-                      {product.discount && (
-                        <Badge className="bg-orange-500 text-white">-{product.discount}%</Badge>
-                      )}
-                    </div>
-
-                    {/* Favorite */}
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="absolute top-3 right-3 bg-white/80 hover:bg-white"
-                    >
-                      <Heart className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-medium">{product.rating}</span>
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        ({product.reviews} avis)
-                      </span>
-                    </div>
-
-                    <h3 className="text-heading-sm mb-3 group-hover:text-primary transition-colors line-clamp-2">
-                      {product.name}
-                    </h3>
-
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-heading-lg text-primary font-bold">
-                        {product.price.toLocaleString()} CDF
-                      </span>
-                      {product.originalPrice && (
-                        <span className="text-sm text-muted-foreground line-through">
-                          {product.originalPrice.toLocaleString()} CDF
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Store className="w-4 h-4" />
-                        {product.seller}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <MapPin className="w-4 h-4" />
-                        {product.location}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Truck className="w-4 h-4" />
-                        Livraison: {product.deliveryTime}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button className="flex-1 group-hover:scale-105 transition-transform">
-                        <ShoppingCart className="w-4 h-4 mr-2" />
-                        Ajouter
-                      </Button>
-                      <Button variant="outline" size="icon">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <CompactProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                  onViewDetails={handleViewDetails}
+                  onViewSeller={handleViewSeller}
+                  userLocation={userLocation}
+                />
               ))}
             </div>
 
-            <div className="text-center mt-12">
-              <Button size="lg" variant="outline" className="group">
-                Voir Plus de Produits
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </div>
+            {filteredProducts.length === 0 && (
+              <div className="text-center py-20">
+                <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Aucun produit trouvé</h3>
+                <p className="text-muted-foreground mb-6">
+                  Essayez de modifier vos filtres ou votre recherche
+                </p>
+                <Button onClick={resetFilters} variant="outline">
+                  Réinitialiser les filtres
+                </Button>
+              </div>
+            )}
+
+            {filteredProducts.length > 0 && (
+              <div className="text-center mt-12">
+                <Button size="lg" variant="outline" className="group">
+                  Voir Plus de Produits
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </div>
+            )}
           </div>
         </section>
 
@@ -416,8 +431,39 @@ const Marketplace = () => {
         </section>
 
         <ModernFooter />
+
+        {/* Modals */}
+        <AdvancedFilters
+          isOpen={showFilters}
+          onClose={() => setShowFilters(false)}
+          filters={filters}
+          onUpdateFilter={updateFilter}
+          onResetFilters={resetFilters}
+          onApplyQuickFilter={applyQuickFilter}
+          hasActiveFilters={hasActiveFilters}
+          filterStats={filterStats}
+        />
+
+        <ShoppingCartComponent
+          isOpen={showCart}
+          onClose={() => setShowCart(false)}
+          cartItems={cartItems}
+          onUpdateQuantity={updateQuantity}
+          onRemoveItem={removeFromCart}
+          onCheckout={handleCheckout}
+        />
       </div>
     </PageTransition>
+  );
+};
+
+const Marketplace = () => {
+  return (
+    <CartProvider>
+      <FavoritesProvider>
+        <MarketplaceContent />
+      </FavoritesProvider>
+    </CartProvider>
   );
 };
 
