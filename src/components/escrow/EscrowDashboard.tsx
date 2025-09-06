@@ -279,7 +279,7 @@ export const EscrowDashboard: React.FC = () => {
         <DeliveryConfirmationDialog 
           open={showConfirmation}
           onOpenChange={setShowConfirmation}
-          escrowId={selectedEscrow}
+          transactionId={selectedEscrow}
           onConfirm={handleConfirmDelivery}
         />
       )}

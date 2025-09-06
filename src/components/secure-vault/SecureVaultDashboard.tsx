@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Wallet, TrendingUp, Clock, CheckCircle, AlertCircle, ArrowUpRight, Shield, Eye, Download } from 'lucide-react';
-import { DeliveryConfirmationDialog } from './DeliveryConfirmationDialog';
+import { DeliveryConfirmationDialog } from '../escrow/DeliveryConfirmationDialog';
 import { VaultTransactionDetails } from './VaultTransactionDetails';
 
 interface SecureTransaction {
@@ -362,6 +362,7 @@ const SecureTransactionsList: React.FC<SecureTransactionsListProps> = ({
   getUserRole
 }) => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -387,7 +388,7 @@ const SecureTransactionsList: React.FC<SecureTransactionsListProps> = ({
               <div className="absolute top-2 right-2">
                 <Badge variant="destructive" className="text-xs">
                   <Clock className="h-3 w-3 mr-1" />
-                  Expire bientôt
+                  {t('escrow.expires_soon')}
                 </Badge>
               </div>
             )}
@@ -401,20 +402,20 @@ const SecureTransactionsList: React.FC<SecureTransactionsListProps> = ({
                 {getStatusBadge(transaction.status)}
               </div>
               <CardDescription>
-                Rôle: {userRole === 'buyer' ? '🛍️ Acheteur' : userRole === 'seller' ? '🏪 Vendeur' : '🚚 Livreur'} • 
+                Rôle: {userRole === 'buyer' ? '🛍️ ' + t('escrow.transaction_role_buyer') : userRole === 'seller' ? '🏪 ' + t('escrow.transaction_role_seller') : '🚚 ' + t('escrow.transaction_role_driver')} • 
                 Sécurisé le {new Date(transaction.created_at).toLocaleDateString()}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <p className="text-sm text-muted-foreground">Montant sécurisé</p>
+                  <p className="text-sm text-muted-foreground">{t('escrow.secured_amount')}</p>
                   <p className="font-semibold text-lg">{transaction.total_amount.toLocaleString()} {transaction.currency}</p>
                 </div>
                 
                 {userRole === 'seller' && (
                   <div>
-                    <p className="text-sm text-muted-foreground">Votre gain (80%)</p>
+                    <p className="text-sm text-muted-foreground">{t('escrow.seller_earnings')} (80%)</p>
                     <p className="font-semibold text-success">
                       {transaction.seller_amount.toLocaleString()} {transaction.currency}
                     </p>
@@ -423,7 +424,7 @@ const SecureTransactionsList: React.FC<SecureTransactionsListProps> = ({
                 
                 {userRole === 'driver' && transaction.driver_amount && (
                   <div>
-                    <p className="text-sm text-muted-foreground">Frais livraison (15%)</p>
+                    <p className="text-sm text-muted-foreground">{t('escrow.delivery_fee')} (15%)</p>
                     <p className="font-semibold text-primary">
                       {transaction.driver_amount.toLocaleString()} {transaction.currency}
                     </p>
@@ -439,7 +440,7 @@ const SecureTransactionsList: React.FC<SecureTransactionsListProps> = ({
                   className="flex-1"
                 >
                   <Eye className="h-4 w-4 mr-2" />
-                  Détails
+                  {t('escrow.view_details')}
                 </Button>
                 
                 {canConfirm && (
@@ -447,7 +448,7 @@ const SecureTransactionsList: React.FC<SecureTransactionsListProps> = ({
                     onClick={() => onConfirmDelivery(transaction.id)}
                     className="flex-1"
                   >
-                    🔓 Libérer les fonds
+                    🔓 {t('escrow.release_funds')}
                   </Button>
                 )}
               </div>
@@ -456,7 +457,7 @@ const SecureTransactionsList: React.FC<SecureTransactionsListProps> = ({
                 <div className="mt-4 pt-4 border-t">
                   <p className="text-sm text-success flex items-center gap-2">
                     <CheckCircle className="h-4 w-4" />
-                    Fonds libérés le {new Date(transaction.completed_at).toLocaleDateString()}
+                    {t('escrow.funds_released_on')} {new Date(transaction.completed_at).toLocaleDateString()}
                   </p>
                 </div>
               )}
@@ -465,7 +466,7 @@ const SecureTransactionsList: React.FC<SecureTransactionsListProps> = ({
                 <div className="mt-4 pt-4 border-t">
                   <p className="text-sm text-warning flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    Libération automatique le {timeoutDate.toLocaleDateString()}
+                    {t('escrow.auto_release_on')} {timeoutDate.toLocaleDateString()}
                   </p>
                 </div>
               )}
@@ -478,7 +479,7 @@ const SecureTransactionsList: React.FC<SecureTransactionsListProps> = ({
         <Card>
           <CardContent className="flex flex-col items-center justify-center h-32">
             <Shield className="h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">Aucune transaction sécurisée</p>
+            <p className="text-muted-foreground">{t('escrow.no_transactions')}</p>
           </CardContent>
         </Card>
       )}

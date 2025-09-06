@@ -1,9 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Shield, Clock, CheckCircle, AlertCircle, User, Truck, Store } from 'lucide-react';
+import { 
+  Shield, 
+  CheckCircle, 
+  Clock, 
+  AlertCircle, 
+  ArrowUpRight, 
+  User, 
+  Package, 
+  Truck,
+  Calendar,
+  DollarSign
+} from 'lucide-react';
 
 interface VaultTransactionDetailsProps {
   open: boolean;
@@ -27,6 +41,13 @@ interface TransactionDetail {
   released_at?: string;
   completed_at?: string;
   created_at: string;
+  timeout_date?: string;
+  confirmation_code?: string;
+  marketplace_orders?: {
+    product_name: string;
+    quantity: number;
+    unit_price: number;
+  } | null;
 }
 
 export const VaultTransactionDetails: React.FC<VaultTransactionDetailsProps> = ({
@@ -35,7 +56,8 @@ export const VaultTransactionDetails: React.FC<VaultTransactionDetailsProps> = (
   transactionId
 }) => {
   const [transaction, setTransaction] = useState<TransactionDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (open && transactionId) {
@@ -44,16 +66,23 @@ export const VaultTransactionDetails: React.FC<VaultTransactionDetailsProps> = (
   }, [open, transactionId]);
 
   const loadTransactionDetails = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from('escrow_transactions')
-        .select('*')
+        .select(`
+          *,
+          marketplace_orders (
+            product_name,
+            quantity,
+            unit_price
+          )
+        `)
         .eq('id', transactionId)
         .single();
 
       if (error) throw error;
-      setTransaction(data);
+      setTransaction(data as TransactionDetail);
     } catch (error) {
       console.error('Erreur chargement détails:', error);
     } finally {
@@ -61,34 +90,32 @@ export const VaultTransactionDetails: React.FC<VaultTransactionDetailsProps> = (
     }
   };
 
-  const getStatusConfig = (status: string) => {
-    const configs = {
-      'held': { 
-        color: 'bg-secondary text-secondary-foreground', 
-        icon: Shield, 
-        label: 'Sécurisé',
-        description: 'Fonds protégés en attente de confirmation'
-      },
-      'completed': { 
-        color: 'bg-success text-success-foreground', 
-        icon: CheckCircle, 
-        label: 'Libéré',
-        description: 'Fonds transférés avec succès'
-      },
-      'disputed': { 
-        color: 'bg-destructive text-destructive-foreground', 
-        icon: AlertCircle, 
-        label: 'Litige',
-        description: 'Transaction en cours de résolution'
-      }
+  const getStatusIcon = (status: string) => {
+    const icons: Record<string, any> = {
+      'held': Shield,
+      'completed': CheckCircle,
+      'disputed': AlertCircle,
+      'refunded': ArrowUpRight,
+      'timeout': Clock
     };
-    return configs[status as keyof typeof configs] || configs['held'];
+    return icons[status] || Shield;
+  };
+
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      'held': 'text-primary',
+      'completed': 'text-success',
+      'disputed': 'text-destructive',
+      'refunded': 'text-muted-foreground',
+      'timeout': 'text-warning'
+    };
+    return colors[status] || 'text-primary';
   };
 
   if (loading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="max-w-2xl">
           <div className="flex items-center justify-center h-32">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
@@ -97,162 +124,197 @@ export const VaultTransactionDetails: React.FC<VaultTransactionDetailsProps> = (
     );
   }
 
-  if (!transaction) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Transaction introuvable</DialogTitle>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  if (!transaction) return null;
 
-  const statusConfig = getStatusConfig(transaction.status);
-  const StatusIcon = statusConfig.icon;
+  const StatusIcon = getStatusIcon(transaction.status);
+  const timeoutDate = transaction.timeout_date ? new Date(transaction.timeout_date) : null;
+  const isNearTimeout = timeoutDate && timeoutDate.getTime() - Date.now() < 24 * 60 * 60 * 1000;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Coffre sécurisé #{transaction.order_id.slice(-8)}
+            {t('escrow.vault_transaction_id')}{transaction.order_id.slice(-8)}
           </DialogTitle>
           <DialogDescription>
-            Détails de la transaction sécurisée
+            Détails complets de la transaction sécurisée
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Statut */}
-          <div className="flex items-center justify-center">
-            <Badge className={`${statusConfig.color} text-lg px-4 py-2`}>
-              <StatusIcon className="h-5 w-5 mr-2" />
-              {statusConfig.label}
+          {/* Statut et alerte timeout */}
+          <div className="flex items-center justify-between">
+            <Badge 
+              variant={transaction.status === 'completed' ? 'default' : 'secondary'} 
+              className="flex items-center gap-2"
+            >
+              <StatusIcon className={`h-4 w-4 ${getStatusColor(transaction.status)}`} />
+              {t(`escrow.status_${transaction.status}`)}
             </Badge>
+            
+            {isNearTimeout && (
+              <Badge variant="destructive" className="animate-pulse">
+                <Clock className="h-3 w-3 mr-1" />
+                {t('escrow.expires_soon')}
+              </Badge>
+            )}
           </div>
 
-          <p className="text-center text-muted-foreground text-sm">
-            {statusConfig.description}
-          </p>
-
-          <Separator />
-
-          {/* Répartition des fonds */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg">💰 Répartition des fonds</h3>
-            
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-bold text-primary">T</span>
+          {/* Informations produit */}
+          {transaction.marketplace_orders && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Package className="h-5 w-5" />
+                  Produit commandé
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <p className="font-semibold">{transaction.marketplace_orders.product_name}</p>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Quantité: {transaction.marketplace_orders.quantity}</span>
+                    <span>Prix unitaire: {transaction.marketplace_orders.unit_price.toLocaleString()} {transaction.currency}</span>
                   </div>
-                  <span className="font-medium">Montant total</span>
                 </div>
-                <span className="font-bold text-lg">
-                  {transaction.total_amount.toLocaleString()} {transaction.currency}
-                </span>
-              </div>
+              </CardContent>
+            </Card>
+          )}
 
-              <div className="flex justify-between items-center p-3 bg-success/10 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Store className="h-5 w-5 text-success" />
-                  <span className="font-medium">Vendeur (80%)</span>
-                </div>
-                <span className="font-bold text-success">
-                  {transaction.seller_amount.toLocaleString()} {transaction.currency}
-                </span>
-              </div>
-
-              {transaction.driver_amount && transaction.driver_amount > 0 && (
-                <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Truck className="h-5 w-5 text-primary" />
-                    <span className="font-medium">Livreur (15%)</span>
-                  </div>
-                  <span className="font-bold text-primary">
-                    {transaction.driver_amount.toLocaleString()} {transaction.currency}
+          {/* Répartition des montants */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <DollarSign className="h-5 w-5" />
+                Répartition des montants
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4">
+                <div className="flex justify-between items-center p-3 bg-primary/5 rounded-lg">
+                  <span className="font-medium">Montant total sécurisé</span>
+                  <span className="text-lg font-bold text-primary">
+                    {transaction.total_amount.toLocaleString()} {transaction.currency}
                   </span>
                 </div>
-              )}
 
-              <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className="h-5 w-5 bg-muted rounded-full flex items-center justify-center">
-                    <span className="text-xs">K</span>
+                <Separator />
+
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="flex items-center gap-2 text-sm">
+                      <User className="h-4 w-4" />
+                      Vendeur (80%)
+                    </span>
+                    <span className="font-semibold text-success">
+                      {transaction.seller_amount.toLocaleString()} {transaction.currency}
+                    </span>
                   </div>
-                  <span className="font-medium">Commission Kwenda (5%)</span>
-                </div>
-                <span className="font-bold text-muted-foreground">
-                  {transaction.platform_fee.toLocaleString()} {transaction.currency}
-                </span>
-              </div>
-            </div>
-          </div>
 
-          <Separator />
+                  {transaction.driver_amount && (
+                    <div className="flex justify-between">
+                      <span className="flex items-center gap-2 text-sm">
+                        <Truck className="h-4 w-4" />
+                        Livreur (15%)
+                      </span>
+                      <span className="font-semibold text-primary">
+                        {transaction.driver_amount.toLocaleString()} {transaction.currency}
+                      </span>
+                    </div>
+                  )}
 
-          {/* Chronologie */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg">📅 Chronologie</h3>
-            
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
-                  <Shield className="h-4 w-4 text-primary-foreground" />
-                </div>
-                <div>
-                  <p className="font-medium">Fonds sécurisés</p>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(transaction.held_at).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-
-              {transaction.released_at && (
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 bg-success rounded-full flex items-center justify-center">
-                    <CheckCircle className="h-4 w-4 text-success-foreground" />
+                  <div className="flex justify-between">
+                    <span className="flex items-center gap-2 text-sm">
+                      <Shield className="h-4 w-4" />
+                      Commission Kwenda (5%)
+                    </span>
+                    <span className="font-semibold text-muted-foreground">
+                      {transaction.platform_fee.toLocaleString()} {transaction.currency}
+                    </span>
                   </div>
-                  <div>
-                    <p className="font-medium">Fonds libérés</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Timeline des événements */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Calendar className="h-5 w-5" />
+                Chronologie
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <div className="h-2 w-2 bg-primary rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="font-medium">Transaction créée</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(transaction.released_at).toLocaleString()}
+                      {new Date(transaction.created_at).toLocaleString()}
                     </p>
                   </div>
                 </div>
-              )}
 
-              {transaction.completed_at && (
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 bg-success rounded-full flex items-center justify-center">
-                    <CheckCircle className="h-4 w-4 text-success-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Transaction terminée</p>
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <div className="h-2 w-2 bg-warning rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="font-medium">Fonds sécurisés</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(transaction.completed_at).toLocaleString()}
+                      {new Date(transaction.held_at).toLocaleString()}
                     </p>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
 
-          <Separator />
+                {transaction.completed_at && (
+                  <div className="flex items-center gap-3 p-3 bg-success/10 rounded-lg">
+                    <div className="h-2 w-2 bg-success rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="font-medium">Fonds libérés</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(transaction.completed_at).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
-          {/* Informations techniques */}
-          <div className="space-y-2">
-            <h3 className="font-semibold">🔧 Informations techniques</h3>
-            <div className="text-sm space-y-1 text-muted-foreground">
-              <p>ID Transaction: {transaction.id}</p>
-              <p>ID Commande: {transaction.order_id}</p>
-              <p>Créé le: {new Date(transaction.created_at).toLocaleString()}</p>
-            </div>
-          </div>
+                {timeoutDate && transaction.status === 'held' && (
+                  <div className="flex items-center gap-3 p-3 bg-warning/10 rounded-lg">
+                    <div className="h-2 w-2 bg-warning rounded-full animate-pulse"></div>
+                    <div className="flex-1">
+                      <p className="font-medium">Libération automatique prévue</p>
+                      <p className="text-sm text-muted-foreground">
+                        {timeoutDate.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Code de confirmation si disponible */}
+          {transaction.confirmation_code && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Code de confirmation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="p-3 bg-muted rounded-lg font-mono text-center text-lg font-bold">
+                  {transaction.confirmation_code}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-2 pt-4 border-t">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Fermer
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

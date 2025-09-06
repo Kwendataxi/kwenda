@@ -9,14 +9,14 @@ import { CheckCircle, AlertTriangle } from 'lucide-react';
 interface DeliveryConfirmationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  escrowId: string;
-  onConfirm: (escrowId: string, confirmationData: any) => void;
+  transactionId: string;
+  onConfirm: (transactionId: string, confirmationData: any) => void;
 }
 
 export const DeliveryConfirmationDialog: React.FC<DeliveryConfirmationDialogProps> = ({
   open,
   onOpenChange,
-  escrowId,
+  transactionId,
   onConfirm
 }) => {
   const [confirmationCode, setConfirmationCode] = useState('');
@@ -35,7 +35,7 @@ export const DeliveryConfirmationDialog: React.FC<DeliveryConfirmationDialogProp
     setLoading(true);
 
     try {
-      await onConfirm(escrowId, {
+      await onConfirm(transactionId, {
         confirmationCode: confirmationCode || `AUTO-${Date.now()}`,
         clientConfirmed: true,
         deliveryConfirmed,
