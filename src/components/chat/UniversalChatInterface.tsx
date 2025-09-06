@@ -15,11 +15,14 @@ import {
   X,
   ArrowLeft,
   Image as ImageIcon,
-  Paperclip
+  Paperclip,
+  Minus
 } from 'lucide-react';
 import { useUniversalChat, type UniversalConversation, type UniversalMessage } from '@/hooks/useUniversalChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
+import { AIAssistantWidget } from '@/components/ai/AIAssistantWidget';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
 interface UniversalChatInterfaceProps {
@@ -194,27 +197,43 @@ export const UniversalChatInterface = ({
 
       {/* Content */}
       <div className="flex-1 flex flex-col min-h-0">
-        {!selectedConversation ? (
-          <ConversationsList
-            conversations={conversations}
-            onSelectConversation={(id) => {
-              setSelectedConversation(id);
-              fetchMessages(id);
-            }}
-            loading={loading}
-          />
-        ) : (
-          <ChatView
-            messages={conversationMessages}
-            onSendMessage={handleSendMessage}
-            onSendLocation={handleSendLocation}
-            newMessage={newMessage}
-            setNewMessage={setNewMessage}
-            onKeyPress={handleKeyPress}
-            quickActions={quickActions}
-            messagesEndRef={messagesEndRef}
-          />
-        )}
+        <Tabs defaultValue="chat" className="flex-1 flex flex-col">
+          <TabsList className="grid w-full grid-cols-2 mx-4 mt-2">
+            <TabsTrigger value="chat">Chat</TabsTrigger>
+            <TabsTrigger value="assistant">Assistant IA</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="chat" className="flex-1 flex flex-col m-0">
+            {!selectedConversation ? (
+              <ConversationsList
+                conversations={conversations}
+                onSelectConversation={(id) => {
+                  setSelectedConversation(id);
+                  fetchMessages(id);
+                }}
+                loading={loading}
+              />
+            ) : (
+              <ChatView
+                messages={conversationMessages}
+                onSendMessage={handleSendMessage}
+                onSendLocation={handleSendLocation}
+                newMessage={newMessage}
+                setNewMessage={setNewMessage}
+                onKeyPress={handleKeyPress}
+                quickActions={quickActions}
+                messagesEndRef={messagesEndRef}
+              />
+            )}
+          </TabsContent>
+          
+          <TabsContent value="assistant" className="flex-1 p-2 m-0">
+            <AIAssistantWidget 
+              context={contextType as any}
+              className="h-full border-0 shadow-none"
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </Card>
   );
