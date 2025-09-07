@@ -1,25 +1,22 @@
-// Interface de livraison moderne avec correspondance colis-véhicule
-// Guide l'utilisateur étape par étape basé sur le poids du colis
+// Interface de livraison moderne stabilisée avec étapes séparées
+// 5 étapes distinctes : Ville -> Service -> Collecte -> Livraison -> Confirmation
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { useMasterLocation } from '@/hooks/useMasterLocation';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import ServiceSelector from './ServiceSelector';
-import DynamicPriceCalculator from './DynamicPriceCalculator';
 import { ModernLocationSearch } from '@/components/location/ModernLocationSearch';
 import CitySelector from './CitySelector';
 import { UnifiedLocation } from '@/types/locationAdapter';
 import { 
   isValidLocation, 
   secureLocation, 
-  unifiedToLocationData,
-  type ValidatedLocation 
+  unifiedToLocationData
 } from '@/utils/locationValidation';
 import { 
   ArrowLeft, 
@@ -128,8 +125,7 @@ const slideVariants = {
 
 const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfaceProps) => {
   const { toast } = useToast();
-  const masterLocation = useMasterLocation();
-  const { createDeliveryOrder, loading } = useEnhancedDeliveryOrders();
+  const { createDeliveryOrder, calculateDeliveryPrice, loading } = useEnhancedDeliveryOrders();
   
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -140,8 +136,46 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
     selectedCity: 'Kinshasa'
   });
   
-const [locationValues, setLocationValues] = useState({ pickup: '', destination: '' });
-  const [dynamicPrice, setDynamicPrice] = useState<number | null>(null);
+  const [locationValues, setLocationValues] = useState({ pickup: '', destination: '' });
+  const [calculatedPrice, setCalculatedPrice] = useState<{
+    price: number;
+    distance: number;
+    duration: number;
+  } | null>(null);
+  const [priceLoading, setPriceLoading] = useState(false);
+
+  // Calculer le prix via RPC quand pickup et destination sont définis
+  const calculatePrice = useCallback(async () => {
+    if (!formData.pickup || !formData.destination || priceLoading) return;
+    
+    setPriceLoading(true);
+    try {
+      const result = await calculateDeliveryPrice(
+        unifiedToLocationData(formData.pickup),
+        unifiedToLocationData(formData.destination),
+        formData.serviceMode as 'flash' | 'flex' | 'maxicharge'
+      );
+      setCalculatedPrice(result);
+    } catch (error) {
+      console.error('Erreur calcul prix:', error);
+      // Prix de fallback basique
+      const fallbackPrices = { flash: 5000, flex: 7000, maxicharge: 12000 };
+      setCalculatedPrice({
+        price: fallbackPrices[formData.serviceMode as keyof typeof fallbackPrices],
+        distance: 5,
+        duration: 25
+      });
+    } finally {
+      setPriceLoading(false);
+    }
+  }, [formData.pickup, formData.destination, formData.serviceMode, calculateDeliveryPrice, priceLoading]);
+
+  // Trigger price calculation when both addresses are set
+  useEffect(() => {
+    if (formData.pickup && formData.destination && currentSlide === 4) {
+      calculatePrice();
+    }
+  }, [formData.pickup, formData.destination, currentSlide, calculatePrice]);
 
   // Fonction pour passer à l'étape suivante
   const nextSlide = () => {
@@ -234,7 +268,7 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
     
     try {
       const selectedService = services.find(s => s.id === formData.serviceMode);
-      const estimatedPrice = dynamicPrice || selectedService?.basePrice || 5000;
+      const estimatedPrice = calculatedPrice?.price || selectedService?.basePrice || 5000;
       
       // Validation ultra-sécurisée des coordonnées
       const securePickup = formData.pickup ? secureLocation(formData.pickup) : null;
@@ -267,8 +301,8 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
         packageType: 'medium' as 'small' | 'medium' | 'large',
         additionalInfo: `Service: ${selectedService?.label}`,
         estimatedPrice,
-        distance: 10,
-        duration: 30
+        distance: calculatedPrice?.distance || 10,
+        duration: calculatedPrice?.duration || 30
       };
 
       const result = await createDeliveryOrder(orderData);
@@ -277,6 +311,11 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
       }
     } catch (error) {
       console.error('Erreur:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer la commande. Veuillez réessayer.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -300,6 +339,7 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
           if (previousCity !== city) {
             setFormData(prev => ({ ...prev, pickup: null, destination: null }));
             setLocationValues({ pickup: '', destination: '' });
+            setCalculatedPrice(null);
           }
         }}
       />
@@ -323,75 +363,103 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
     </div>
   );
 
-  const AddressSlide = () => {
-    const isPickup = currentSlide === 2;
-    const type = isPickup ? 'pickup' : 'destination';
-    
-    return (
-      <div className="space-y-6">
-        <div className="text-center space-y-3">
-          {isPickup ? (
-            <>
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                <MapPin className="h-8 w-8 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-foreground">Point de collecte</h2>
-                <p className="text-muted-foreground">Où devons-nous récupérer votre colis ?</p>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                <Target className="h-8 w-8 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-foreground">Destination</h2>
-                <p className="text-muted-foreground">Où livrer votre colis ?</p>
-              </div>
-            </>
-          )}
+  // Étape dédiée pour le point de collecte (Slide 2)
+  const PickupSlide = () => (
+    <div className="space-y-6">
+      <div className="text-center space-y-3">
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+          <MapPin className="h-8 w-8 text-primary" />
         </div>
-
-        <div className="space-y-4">
-          <ModernLocationSearch
-            placeholder={isPickup ? 
-              "🎯 Rechercher lieu de collecte..." : 
-              "📍 Rechercher lieu de livraison..."
-            }
-            onLocationSelect={(location) => handleLocationSelect(location, type)}
-            value={locationValues[type]}
-            showCurrentLocation={true}
-            autoFocus={true}
-            variant="elegant"
-          />
-
-          {formData[type] && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-4 bg-primary/10 rounded-lg border border-primary/20"
-            >
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <div>
-                  <span className="text-sm font-medium text-foreground">Adresse sélectionnée</span>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {formData[type]?.address}
-                  </p>
-                  {formData[type]?.subtitle && (
-                    <p className="text-xs text-muted-foreground">
-                      {formData[type]?.subtitle}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Point de collecte</h2>
+          <p className="text-muted-foreground">Où devons-nous récupérer votre colis ?</p>
         </div>
       </div>
-    );
-  };
+
+      <div className="space-y-4">
+        <ModernLocationSearch
+          placeholder="🎯 Rechercher lieu de collecte..."
+          onLocationSelect={(location) => handleLocationSelect(location, 'pickup')}
+          value={locationValues.pickup}
+          showCurrentLocation={true}
+          autoFocus={true}
+          variant="elegant"
+        />
+
+        {formData.pickup && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 bg-primary/10 rounded-lg border border-primary/20"
+          >
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="text-sm font-medium text-foreground">Point de collecte défini</span>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {formData.pickup.address}
+                </p>
+                {formData.pickup.subtitle && (
+                  <p className="text-xs text-muted-foreground">
+                    {formData.pickup.subtitle}
+                  </p>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+
+  // Étape dédiée pour la destination (Slide 3)
+  const DestinationSlide = () => (
+    <div className="space-y-6">
+      <div className="text-center space-y-3">
+        <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto">
+          <Target className="h-8 w-8 text-secondary" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Destination</h2>
+          <p className="text-muted-foreground">Où livrer votre colis ?</p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <ModernLocationSearch
+          placeholder="📍 Rechercher lieu de livraison..."
+          onLocationSelect={(location) => handleLocationSelect(location, 'destination')}
+          value={locationValues.destination}
+          showCurrentLocation={false}
+          autoFocus={true}
+          variant="elegant"
+        />
+
+        {formData.destination && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 bg-secondary/10 rounded-lg border border-secondary/20"
+          >
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="h-5 w-5 text-secondary mt-0.5 flex-shrink-0" />
+              <div>
+                <span className="text-sm font-medium text-foreground">Destination définie</span>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {formData.destination.address}
+                </p>
+                {formData.destination.subtitle && (
+                  <p className="text-xs text-muted-foreground">
+                    {formData.destination.subtitle}
+                  </p>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
 
   const ConfirmationSlide = () => {
     const selectedService = services.find(s => s.id === formData.serviceMode);
@@ -406,13 +474,48 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
           </p>
         </div>
 
-        {/* Calcul dynamique du prix sécurisé */}
-        <DynamicPriceCalculator
-          pickup={formData.pickup ? unifiedToLocationData(formData.pickup) : null}
-          destination={formData.destination ? unifiedToLocationData(formData.destination) : null}
-          serviceType={formData.serviceMode as 'flash' | 'flex' | 'maxicharge'}
-          onPriceCalculated={(price) => setDynamicPrice(price)}
-        />
+        {/* Prix calculé via RPC Supabase */}
+        {priceLoading ? (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"
+              />
+              <p className="text-sm text-muted-foreground">Calcul du prix en cours...</p>
+            </CardContent>
+          </Card>
+        ) : calculatedPrice ? (
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center space-y-3">
+                <div className="text-3xl font-bold text-primary">
+                  {calculatedPrice.price.toLocaleString()} FC
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-muted/50 p-2 rounded">
+                    <span className="text-muted-foreground">Distance</span>
+                    <div className="font-medium">{calculatedPrice.distance.toFixed(1)} km</div>
+                  </div>
+                  <div className="bg-muted/50 p-2 rounded">
+                    <span className="text-muted-foreground">Durée</span>
+                    <div className="font-medium">{calculatedPrice.duration} min</div>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  Prix calculé automatiquement
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-sm text-muted-foreground">Prix en attente de calcul...</p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Résumé complet */}
         <div className="space-y-3 sm:space-y-4">
@@ -472,8 +575,8 @@ const [locationValues, setLocationValues] = useState({ pickup: '', destination: 
     );
   };
 
-  // Gestion des étapes
-  const slides = [CitySlide, ServiceSlide, AddressSlide, AddressSlide, ConfirmationSlide];
+  // Gestion des 5 étapes séparées
+  const slides = [CitySlide, ServiceSlide, PickupSlide, DestinationSlide, ConfirmationSlide];
   const CurrentSlide = slides[currentSlide];
 
   return (
