@@ -1,16 +1,14 @@
 import React from 'react';
-import SimpleDeliveryInterface from './SimpleDeliveryInterface';
+import SlideDeliveryInterface from './SlideDeliveryInterface';
 
 interface EnhancedDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
 }
 
-// DEPRECATED: Use SimpleDeliveryInterface directly instead
-// Cette interface sera supprimée dans une prochaine version
+// Redirection vers la nouvelle interface SlideDeliveryInterface à 5 étapes
 const EnhancedDeliveryInterface = ({ onSubmit, onCancel }: EnhancedDeliveryInterfaceProps) => {
-  console.warn('⚠️ EnhancedDeliveryInterface is deprecated. Use SimpleDeliveryInterface directly.');
-  return <SimpleDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
+  return <SlideDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
 };
 
 export default EnhancedDeliveryInterface;
