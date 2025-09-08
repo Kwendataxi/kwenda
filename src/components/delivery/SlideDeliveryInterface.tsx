@@ -635,10 +635,10 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
                   </Button>
                 )}
                 
-                {currentSlide === 3 ? (
+                {currentSlide === 4 ? (
                   <Button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || !calculatedPrice}
                     className="flex-1 text-sm sm:text-base"
                   >
                     {loading ? (
@@ -648,7 +648,7 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
                       </>
                     ) : (
                       <>
-                        Confirmer
+                        Confirmer commande
                         <CheckCircle2 className="ml-2 h-4 w-4" />
                       </>
                     )}
@@ -660,7 +660,7 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
                     disabled={!canProceed()}
                     className="flex-1 text-sm sm:text-base"
                   >
-                    Suivant
+                    {currentSlide === 3 ? 'Voir confirmation' : 'Suivant'}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 )}

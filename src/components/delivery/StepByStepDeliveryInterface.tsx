@@ -51,7 +51,7 @@ interface StepByStepDeliveryInterfaceProps {
 type DeliveryStep = 'city' | 'pickup' | 'destination' | 'mode' | 'confirmation';
 
 const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryInterfaceProps) => {
-  // Rediriger vers la nouvelle interface moderne avec slides
+  // Interface moderne stabilisée avec 5 étapes séparées
   return <SlideDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
 };
 
