@@ -37,24 +37,24 @@ const DynamicPriceCalculator: React.FC<DynamicPriceCalculatorProps> = React.memo
     return `${pickup.lat}-${pickup.lng}-${destination.lat}-${destination.lng}-${serviceType}`;
   }, [pickup?.lat, pickup?.lng, destination?.lat, destination?.lng, serviceType]);
 
-  // Fonction de calcul stable avec cache amélioré
+  // Fonction de calcul optimisée sans dépendance circulaire
   const calculatePrice = useCallback(async () => {
-    if (!pickup || !destination) return;
+    if (!pickup || !destination || calculating) return;
     
     const currentCacheKey = cacheKey;
     
-    // Éviter les recalculs redondants
-    if (lastCalculatedKey === currentCacheKey) {
+    // Éviter les recalculs redondants avec vérification stricte
+    if (lastCalculatedKey === currentCacheKey && priceDetails) {
       return;
     }
     
     // Vérifier le cache en premier
-    if (priceCache.has(currentCacheKey)) {
-      const cached = priceCache.get(currentCacheKey)!;
-      setPriceDetails(cached);
+    const cachedResult = priceCache.get(currentCacheKey);
+    if (cachedResult) {
+      setPriceDetails(cachedResult);
       setError(null);
       setLastCalculatedKey(currentCacheKey);
-      onPriceCalculated?.(cached.price);
+      onPriceCalculated?.(cachedResult.price);
       return;
     }
 
@@ -72,7 +72,7 @@ const DynamicPriceCalculator: React.FC<DynamicPriceCalculatorProps> = React.memo
 
       const result = calculateBasePrice(securePickup, secureDestination, serviceType);
       
-      // Mise en cache avec TTL
+      // Mise en cache
       priceCache.set(currentCacheKey, result);
       
       setPriceDetails(result);
@@ -80,44 +80,36 @@ const DynamicPriceCalculator: React.FC<DynamicPriceCalculatorProps> = React.memo
       onPriceCalculated?.(result.price);
     } catch (err) {
       console.error('Error calculating price:', err);
-      setError('Erreur lors du calcul du prix');
+      setError('Calcul en cours...');
       
-      // Prix de fallback basé sur la ville et le service
-      const getFallbackPrice = (serviceType: string) => {
-        const cityMultipliers = {
-          'Kinshasa': 1.0,
-          'Lubumbashi': 1.2,
-          'Kolwezi': 1.1,
-          'Abidjan': 1.0
-        };
-        
-        const basePrices = {
-          flash: 5000,
-          flex: 7000,
-          maxicharge: 12000
-        };
-        
+      // Prix de fallback intelligent
+      const getFallbackPrice = () => {
+        const basePrices = { flash: 5000, flex: 7000, maxicharge: 12000 };
         const city = pickup?.address?.includes('Lubumbashi') ? 'Lubumbashi' :
                     pickup?.address?.includes('Kolwezi') ? 'Kolwezi' :
                     pickup?.address?.includes('Abidjan') ? 'Abidjan' : 'Kinshasa';
         
-        const multiplier = cityMultipliers[city as keyof typeof cityMultipliers] || 1.0;
+        const multipliers = { 'Kinshasa': 1.0, 'Lubumbashi': 1.2, 'Kolwezi': 1.1, 'Abidjan': 1.0 };
+        const multiplier = multipliers[city as keyof typeof multipliers] || 1.0;
+        
         return Math.round(basePrices[serviceType as keyof typeof basePrices] * multiplier);
       };
       
-      const fallbackPrice = getFallbackPrice(serviceType);
       const fallbackResult = {
-        price: fallbackPrice,
-        distance: 5, // Distance estimée
-        duration: 20  // Durée estimée en minutes
+        price: getFallbackPrice(),
+        distance: 5,
+        duration: 20
       };
+      
+      // Cache aussi le fallback pour éviter les recalculs
+      priceCache.set(currentCacheKey, fallbackResult);
       setPriceDetails(fallbackResult);
       setLastCalculatedKey(currentCacheKey);
-      onPriceCalculated?.(fallbackPrice);
+      onPriceCalculated?.(fallbackResult.price);
     } finally {
       setCalculating(false);
     }
-  }, [pickup, destination, serviceType, cacheKey, lastCalculatedKey, onPriceCalculated]);
+  }, [pickup?.lat, pickup?.lng, pickup?.address, destination?.lat, destination?.lng, destination?.address, serviceType, calculating]);
 
   // Debounced effect pour éviter les calculs trop fréquents
   useEffect(() => {

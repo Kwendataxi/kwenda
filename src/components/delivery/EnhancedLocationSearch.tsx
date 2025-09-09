@@ -222,7 +222,7 @@ export const EnhancedLocationSearch = ({
                 setShowDropdown(true);
               }}
               onFocus={() => setShowDropdown(true)}
-              className="pl-16 pr-5 h-24 text-xl font-medium border-2 border-primary/20 bg-white/50 backdrop-blur-sm rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary/50 placeholder:text-lg placeholder:text-muted-foreground/70 shadow-inner transition-all duration-300 hover:shadow-lg"
+              className="pl-16 pr-5 h-20 text-2xl font-bold border-4 border-primary/40 bg-white/80 backdrop-blur-sm rounded-2xl focus:ring-4 focus:ring-primary/40 focus:border-primary/70 placeholder:text-xl placeholder:text-muted-foreground shadow-2xl transition-all duration-300 hover:shadow-xl hover:border-primary/60 focus:scale-[1.02] text-foreground"
             />
             {isSearching && (
               <Loader2 className="absolute right-5 top-1/2 transform -translate-y-1/2 w-7 h-7 animate-spin text-primary drop-shadow-sm" />

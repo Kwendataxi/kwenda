@@ -144,7 +144,7 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
   } | null>(null);
   const [priceLoading, setPriceLoading] = useState(false);
 
-  // Calculer le prix via RPC quand pickup et destination sont définis
+  // Calculer le prix via RPC avec optimisation et debounce
   const calculatePrice = useCallback(async () => {
     if (!formData.pickup || !formData.destination || priceLoading) return;
     
@@ -158,7 +158,7 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
       setCalculatedPrice(result);
     } catch (error) {
       console.error('Erreur calcul prix:', error);
-      // Prix de fallback basique
+      // Prix de fallback intelligent
       const fallbackPrices = { flash: 5000, flex: 7000, maxicharge: 12000 };
       setCalculatedPrice({
         price: fallbackPrices[formData.serviceMode as keyof typeof fallbackPrices],
@@ -168,14 +168,15 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
     } finally {
       setPriceLoading(false);
     }
-  }, [formData.pickup, formData.destination, formData.serviceMode, calculateDeliveryPrice, priceLoading]);
+  }, [formData.pickup?.lat, formData.pickup?.lng, formData.destination?.lat, formData.destination?.lng, formData.serviceMode, calculateDeliveryPrice]);
 
-  // Trigger price calculation when both addresses are set
+  // Optimisation : calculer seulement à l'étape de confirmation
   useEffect(() => {
-    if (formData.pickup && formData.destination && currentSlide === 4) {
-      calculatePrice();
+    if (formData.pickup && formData.destination && currentSlide === 4 && !calculatedPrice) {
+      const timer = setTimeout(calculatePrice, 500);
+      return () => clearTimeout(timer);
     }
-  }, [formData.pickup, formData.destination, currentSlide, calculatePrice]);
+  }, [formData.pickup, formData.destination, currentSlide, calculatedPrice, calculatePrice]);
 
   // Fonction pour passer à l'étape suivante
   const nextSlide = () => {

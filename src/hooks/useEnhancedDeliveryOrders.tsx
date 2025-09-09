@@ -182,9 +182,18 @@ export const useEnhancedDeliveryOrders = () => {
 
       console.log('Commande créée avec succès:', order.id);
 
+      // Déclencher automatiquement la recherche de livreurs
+      try {
+        console.log('🚀 Déclenchement recherche de livreurs...');
+        await triggerDriverSearch(order.id, orderData.mode, pickupCoords);
+      } catch (searchError) {
+        console.warn('⚠️ Erreur recherche livreurs:', searchError);
+        // Ne pas bloquer la création de commande si la recherche échoue
+      }
+
       toast({
         title: "Commande créée ✅",
-        description: `Votre commande de livraison ${orderData.mode} a été créée avec succès`,
+        description: `Votre commande ${orderData.mode} a été créée. Recherche de livreurs en cours...`,
       });
 
       return order.id;
@@ -282,6 +291,40 @@ export const useEnhancedDeliveryOrders = () => {
     }
   };
 
+  // Fonction pour déclencher automatiquement la recherche de livreurs
+  const triggerDriverSearch = async (orderId: string, mode: string, coordinates: any) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('delivery-dispatcher', {
+        body: {
+          action: 'find_drivers',
+          order_id: orderId,
+          mode: mode,
+          radiusKm: 5,
+          maxDrivers: 10
+        }
+      });
+
+      if (error) throw error;
+
+      console.log('🎯 Livreurs trouvés:', data);
+      
+      if (data?.drivers && data.drivers.length > 0) {
+        toast({
+          title: "Livreurs disponibles ✅",
+          description: `${data.drivers.length} livreurs trouvés dans votre zone`,
+        });
+      } else {
+        toast({
+          title: "Recherche élargie 🔍",
+          description: "Aucun livreur proche trouvé, recherche élargie en cours...",
+        });
+      }
+    } catch (error: any) {
+      console.error('Erreur recherche livreurs:', error);
+      // Silencieux pour ne pas perturber l'UX
+    }
+  };
+
   return {
     loading,
     submitting,
@@ -289,6 +332,7 @@ export const useEnhancedDeliveryOrders = () => {
     createDeliveryOrder,
     getUserOrders,
     trackOrder,
-    cancelOrder
+    cancelOrder,
+    triggerDriverSearch
   };
 };
