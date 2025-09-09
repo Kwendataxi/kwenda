@@ -98,33 +98,43 @@ class IntelligentAddressSearchService {
     }
   }
 
-  /**
-   * Recherche principale avec base de données et fallback Google
-   */
-  private async performSearch(query: string, options: SearchOptions): Promise<IntelligentSearchResult[]> {
-    const {
-      city = 'Kinshasa',
-      country_code = 'CD',
-      user_lat,
-      user_lng,
-      max_results = 10,
-      min_hierarchy_level = 1,
-      include_google_fallback = true // Activé par défaut pour plus de résultats
-    } = options;
+   /**
+    * Recherche principale avec base de données et fallback Google - CORRECTION MULTI-VILLE
+    */
+   private async performSearch(query: string, options: SearchOptions): Promise<IntelligentSearchResult[]> {
+     const {
+       city = 'Kinshasa',
+       country_code = 'CD',
+       user_lat,
+       user_lng,
+       max_results = 10,
+       min_hierarchy_level = 1,
+       include_google_fallback = true
+     } = options;
 
-    // 1. Recherche dans toutes les villes configurées
-    let allResults: IntelligentSearchResult[] = [];
-    
-    // Rechercher dans toutes les villes du projet
-    const citiesToSearch = ['Kinshasa', 'Lubumbashi', 'Kolwezi'];
-    
-    for (const searchCity of citiesToSearch) {
-      const cityResults = await this.searchInDatabase(
-        query, searchCity, country_code, user_lat, user_lng, 
-        Math.ceil(max_results / citiesToSearch.length), min_hierarchy_level
-      );
-      allResults = [...allResults, ...cityResults];
-    }
+     // 1. PRIORITÉ À LA VILLE SÉLECTIONNÉE par l'utilisateur
+     let allResults: IntelligentSearchResult[] = [];
+     
+     // Rechercher d'abord dans la ville sélectionnée (75% des résultats)
+     const primaryCityResults = await this.searchInDatabase(
+       query, city, country_code, user_lat, user_lng, 
+       Math.ceil(max_results * 0.75), min_hierarchy_level
+     );
+     allResults = [...primaryCityResults];
+     
+     // Puis rechercher dans les autres villes (25% des résultats restants)
+     const otherCities = ['Kinshasa', 'Lubumbashi', 'Kolwezi'].filter(c => c !== city);
+     if (allResults.length < max_results && otherCities.length > 0) {
+       const remainingSlots = max_results - allResults.length;
+       for (const searchCity of otherCities) {
+         if (allResults.length >= max_results) break;
+         const cityResults = await this.searchInDatabase(
+           query, searchCity, country_code, user_lat, user_lng, 
+           Math.ceil(remainingSlots / otherCities.length), min_hierarchy_level
+         );
+         allResults = [...allResults, ...cityResults];
+       }
+     }
 
     // 2. Si pas assez de résultats et Google fallback activé
     if (allResults.length < max_results && include_google_fallback) {

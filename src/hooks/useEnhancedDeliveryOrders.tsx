@@ -119,9 +119,15 @@ export const useEnhancedDeliveryOrders = () => {
       // VALIDATION ROBUSTE ET STABILISÉE DES COORDONNÉES
       const { secureLocation } = await import('@/utils/locationValidation');
       
-      // Validation préalable stricte
-      if (!orderData.pickup || !orderData.destination) {
+      // Validation préalable stricte - correction du bug
+      if (!orderData.pickup?.address || !orderData.destination?.address) {
         throw new Error('Adresses de collecte et de livraison requises');
+      }
+      
+      // Validation des coordonnées numériques
+      if (!orderData.pickup.lat || !orderData.pickup.lng || 
+          !orderData.destination.lat || !orderData.destination.lng) {
+        throw new Error('Coordonnées de géolocalisation manquantes');
       }
       
       let securePickup: any;

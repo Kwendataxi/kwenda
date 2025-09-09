@@ -10,7 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import ServiceSelector from './ServiceSelector';
-import { ModernLocationSearch } from '@/components/location/ModernLocationSearch';
+import { SimplifiedLocationSearch } from './SimplifiedLocationSearch';
 import CitySelector from './CitySelector';
 import { UnifiedLocation } from '@/types/locationAdapter';
 import { 
@@ -378,13 +378,13 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
       </div>
 
       <div className="space-y-4">
-        <ModernLocationSearch
+        <SimplifiedLocationSearch
           placeholder="🎯 Rechercher lieu de collecte..."
-          onLocationSelect={(location) => handleLocationSelect(location, 'pickup')}
-          value={locationValues.pickup}
-          showCurrentLocation={true}
-          autoFocus={true}
-          variant="elegant"
+          onChange={(location) => handleLocationSelect(location, 'pickup')}
+          value={formData.pickup}
+          city={formData.selectedCity}
+          label="Point de collecte"
+          icon={<Package className="w-6 h-6 text-blue-500" />}
         />
 
         {formData.pickup && (
@@ -427,13 +427,13 @@ const SlideDeliveryInterface = ({ onSubmit, onCancel }: SlideDeliveryInterfacePr
       </div>
 
       <div className="space-y-4">
-        <ModernLocationSearch
+        <SimplifiedLocationSearch
           placeholder="📍 Rechercher lieu de livraison..."
-          onLocationSelect={(location) => handleLocationSelect(location, 'destination')}
-          value={locationValues.destination}
-          showCurrentLocation={false}
-          autoFocus={true}
-          variant="elegant"
+          onChange={(location) => handleLocationSelect(location, 'destination')}
+          value={formData.destination}
+          city={formData.selectedCity}
+          label="Point de livraison"
+          icon={<MapPin className="w-6 h-6 text-green-500" />}
         />
 
         {formData.destination && (

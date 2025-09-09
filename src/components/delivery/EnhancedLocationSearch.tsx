@@ -212,7 +212,7 @@ export const EnhancedLocationSearch = ({
         <div className="relative z-10">
           <div className="relative">
             <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 w-7 h-7 text-primary drop-shadow-sm" />
-            <Input
+             <Input
               ref={inputRef}
               type="text"
               placeholder={placeholder}
@@ -222,7 +222,7 @@ export const EnhancedLocationSearch = ({
                 setShowDropdown(true);
               }}
               onFocus={() => setShowDropdown(true)}
-              className="pl-16 pr-5 h-20 text-2xl font-bold border-4 border-primary/40 bg-white/80 backdrop-blur-sm rounded-2xl focus:ring-4 focus:ring-primary/40 focus:border-primary/70 placeholder:text-xl placeholder:text-muted-foreground shadow-2xl transition-all duration-300 hover:shadow-xl hover:border-primary/60 focus:scale-[1.02] text-foreground"
+              className="pl-16 pr-5 h-16 text-lg font-semibold border-2 border-input bg-background rounded-lg focus:ring-2 focus:ring-primary/40 focus:border-primary placeholder:text-base placeholder:text-muted-foreground shadow-sm transition-all duration-200 hover:shadow-md text-foreground"
             />
             {isSearching && (
               <Loader2 className="absolute right-5 top-1/2 transform -translate-y-1/2 w-7 h-7 animate-spin text-primary drop-shadow-sm" />
