@@ -6,19 +6,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to log webhook audit
+async function logWebhookAudit(supabase: any, payload: any, response: any, error?: string) {
+  try {
+    await supabase.rpc('log_webhook_audit', {
+      p_webhook_type: 'push_notification',
+      p_payload: payload,
+      p_response: response,
+      p_status: error ? 'error' : 'success',
+      p_error_message: error || null
+    });
+  } catch (auditError) {
+    console.error('Failed to log webhook audit:', auditError);
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const requestPayload = await req.json();
+  
   try {
-    const { user_id, title, message, type, priority = 'normal', data = {} } = await req.json();
+    const { user_id, title, message, type, priority = 'normal', data = {} } = requestPayload;
     
     if (!user_id || !title || !message) {
-      return new Response(JSON.stringify({ 
-        error: 'user_id, title, and message are required' 
-      }), {
+      const errorResponse = { error: 'user_id, title, and message are required' };
+      await logWebhookAudit(null, requestPayload, errorResponse, 'Validation failed');
+      return new Response(JSON.stringify(errorResponse), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -133,20 +150,30 @@ serve(async (req) => {
       })
       .eq('id', notification.id);
 
-    return new Response(JSON.stringify({
+    const successResponse = {
       success: true,
       notification_id: notification.id,
       fcm_sent: fcmSuccess
-    }), {
+    };
+
+    // Log success audit
+    await logWebhookAudit(supabase, requestPayload, successResponse);
+
+    return new Response(JSON.stringify(successResponse), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     console.error('Push notification error:', error);
-    return new Response(JSON.stringify({ 
+    const errorResponse = { 
       error: 'Internal server error',
       details: error.message 
-    }), {
+    };
+    
+    // Log error audit
+    await logWebhookAudit(supabase, requestPayload, errorResponse, error.message);
+    
+    return new Response(JSON.stringify(errorResponse), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
