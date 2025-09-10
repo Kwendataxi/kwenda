@@ -5809,6 +5809,90 @@ export type Database = {
           },
         ]
       }
+      unified_notifications: {
+        Row: {
+          category: string
+          channels: string[]
+          correlation_id: string | null
+          created_at: string
+          data: Json | null
+          delivered_at: string | null
+          delivery_status: Json
+          expires_at: string | null
+          id: string
+          is_read: boolean
+          max_retries: number
+          message: string
+          next_retry_at: string | null
+          notification_type: string
+          priority: string
+          read_at: string | null
+          reference_id: string | null
+          reference_type: string | null
+          retry_count: number
+          sent_at: string | null
+          source_event: string | null
+          template_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          channels?: string[]
+          correlation_id?: string | null
+          created_at?: string
+          data?: Json | null
+          delivered_at?: string | null
+          delivery_status?: Json
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          max_retries?: number
+          message: string
+          next_retry_at?: string | null
+          notification_type: string
+          priority?: string
+          read_at?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          retry_count?: number
+          sent_at?: string | null
+          source_event?: string | null
+          template_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          channels?: string[]
+          correlation_id?: string | null
+          created_at?: string
+          data?: Json | null
+          delivered_at?: string | null
+          delivery_status?: Json
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          max_retries?: number
+          message?: string
+          next_retry_at?: string | null
+          notification_type?: string
+          priority?: string
+          read_at?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          retry_count?: number
+          sent_at?: string | null
+          source_event?: string | null
+          template_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_activity_log: {
         Row: {
           activity_type: string
@@ -6757,6 +6841,60 @@ export type Database = {
           transaction_type?: string
           user_id?: string
           wallet_id?: string
+        }
+        Relationships: []
+      }
+      webhook_audit_logs: {
+        Row: {
+          correlation_id: string | null
+          created_at: string
+          error_message: string | null
+          event_type: string
+          execution_time_ms: number | null
+          id: string
+          ip_address: unknown | null
+          payload: Json
+          response_data: Json | null
+          response_status: number | null
+          retry_count: number
+          success: boolean
+          user_agent: string | null
+          user_id: string | null
+          webhook_type: string
+        }
+        Insert: {
+          correlation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          event_type: string
+          execution_time_ms?: number | null
+          id?: string
+          ip_address?: unknown | null
+          payload?: Json
+          response_data?: Json | null
+          response_status?: number | null
+          retry_count?: number
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
+          webhook_type: string
+        }
+        Update: {
+          correlation_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          event_type?: string
+          execution_time_ms?: number | null
+          id?: string
+          ip_address?: unknown | null
+          payload?: Json
+          response_data?: Json | null
+          response_status?: number | null
+          retry_count?: number
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
+          webhook_type?: string
         }
         Relationships: []
       }
