@@ -78,12 +78,43 @@ export const SimplifiedLocationSearch = ({
   }, [query, search]);
 
   const handleLocationSelect = (result: any) => {
+    console.log('🎯 Location selected in SimplifiedLocationSearch:', result);
+    
+    // Validation stricte pour éviter l'erreur "address required"
+    const address = result.name || result.address || result.subtitle || 'Lieu sélectionné';
+    
+    if (!address || address.trim() === '') {
+      console.error('❌ Address validation failed:', result);
+      toast({
+        title: "Erreur",
+        description: "Adresse invalide sélectionnée",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Validation des coordonnées
+    const lat = result.lat || 0;
+    const lng = result.lng || 0;
+    
+    if (!lat || !lng || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      console.error('❌ Coordinates validation failed:', { lat, lng });
+      toast({
+        title: "Erreur",
+        description: "Coordonnées de géolocalisation invalides",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const locationData: LocationData = {
-      address: result.name || result.address,
-      lat: result.lat,
-      lng: result.lng,
+      address: address.trim(),
+      lat,
+      lng,
       type: result.type || 'search'
     };
+    
+    console.log('✅ Valid location data created:', locationData);
     
     setQuery(locationData.address);
     setShowDropdown(false);
