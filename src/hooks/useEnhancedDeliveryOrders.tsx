@@ -119,16 +119,34 @@ export const useEnhancedDeliveryOrders = () => {
       // VALIDATION ROBUSTE ET STABILISÉE DES COORDONNÉES
       const { secureLocation } = await import('@/utils/locationValidation');
       
-      // Validation préalable stricte - correction du bug
-      if (!orderData.pickup?.address || !orderData.destination?.address) {
-        throw new Error('Adresses de collecte et de livraison requises');
+      // Validation préalable ultra-stricte - correction du bug de validation
+      if (!orderData.pickup || !orderData.pickup.address || !orderData.pickup.address.trim()) {
+        throw new Error('Adresse de collecte requise et non vide');
       }
       
-      // Validation des coordonnées numériques
-      if (!orderData.pickup.lat || !orderData.pickup.lng || 
-          !orderData.destination.lat || !orderData.destination.lng) {
-        throw new Error('Coordonnées de géolocalisation manquantes');
+      if (!orderData.destination || !orderData.destination.address || !orderData.destination.address.trim()) {
+        throw new Error('Adresse de livraison requise et non vide');
       }
+      
+      // Validation des coordonnées numériques stricte
+      const pickupLat = typeof orderData.pickup.lat === 'number' ? orderData.pickup.lat : parseFloat(orderData.pickup.lat);
+      const pickupLng = typeof orderData.pickup.lng === 'number' ? orderData.pickup.lng : parseFloat(orderData.pickup.lng);
+      const destLat = typeof orderData.destination.lat === 'number' ? orderData.destination.lat : parseFloat(orderData.destination.lat);
+      const destLng = typeof orderData.destination.lng === 'number' ? orderData.destination.lng : parseFloat(orderData.destination.lng);
+      
+      if (isNaN(pickupLat) || isNaN(pickupLng) || pickupLat === 0 || pickupLng === 0) {
+        throw new Error('Coordonnées de collecte invalides ou manquantes');
+      }
+      
+      if (isNaN(destLat) || isNaN(destLng) || destLat === 0 || destLng === 0) {
+        throw new Error('Coordonnées de livraison invalides ou manquantes');
+      }
+      
+      // Mettre à jour orderData avec des coordonnées validées
+      orderData.pickup.lat = pickupLat;
+      orderData.pickup.lng = pickupLng;
+      orderData.destination.lat = destLat;
+      orderData.destination.lng = destLng;
       
       let securePickup: any;
       let secureDestination: any;

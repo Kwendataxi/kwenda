@@ -80,52 +80,73 @@ export const SimplifiedLocationSearch = ({
   const handleLocationSelect = (result: any) => {
     console.log('🎯 Location selected in SimplifiedLocationSearch:', result);
     
-    // Validation stricte pour éviter l'erreur "address required"
-    const address = result.name || result.address || result.subtitle || 'Lieu sélectionné';
-    
-    if (!address || address.trim() === '') {
-      console.error('❌ Address validation failed:', result);
+    try {
+      // Validation ultra-stricte pour éviter l'erreur "address required"
+      const address = result.address || result.name || result.title || result.subtitle || '';
+      const lat = typeof result.lat === 'number' ? result.lat : parseFloat(result.lat || '0');
+      const lng = typeof result.lng === 'number' ? result.lng : parseFloat(result.lng || '0');
+      
+      // Validation de l'adresse
+      if (!address || !address.trim()) {
+        console.error('❌ Address validation failed:', result);
+        toast({
+          title: "Adresse manquante",
+          description: "Cette location n'a pas d'adresse valide",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Validation des coordonnées
+      if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0 || 
+          lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        console.error('❌ Coordinates validation failed:', { lat, lng, result });
+        toast({
+          title: "Coordonnées invalides",
+          description: "Cette location n'a pas de coordonnées géographiques valides",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Création d'un objet LocationData strictement valide
+      const locationData: LocationData = {
+        address: address.trim(),
+        lat,
+        lng,
+        type: result.type || 'geocoded',
+        placeId: result.placeId,
+        name: result.name,
+        subtitle: result.subtitle
+      };
+      
+      console.log('✅ Valid location data created:', locationData);
+      
+      // Mise à jour de l'état
+      setQuery(locationData.address);
+      setShowDropdown(false);
+      
+      // Appel onChange avec validation
+      onChange(locationData);
+      addToHistory(result);
+      
+      // Blur de l'input
+      inputRef.current?.blur();
+      
+      toast({
+        title: "📍 Adresse sélectionnée",
+        description: locationData.address,
+        variant: "default"
+      });
+      
+    } catch (error) {
+      console.error('❌ Error in handleLocationSelect:', error);
       toast({
         title: "Erreur",
-        description: "Adresse invalide sélectionnée",
+        description: "Impossible de sélectionner cette adresse",
         variant: "destructive"
       });
-      return;
     }
-    
-    // Validation des coordonnées
-    const lat = result.lat || 0;
-    const lng = result.lng || 0;
-    
-    if (!lat || !lng || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      console.error('❌ Coordinates validation failed:', { lat, lng });
-      toast({
-        title: "Erreur",
-        description: "Coordonnées de géolocalisation invalides",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const locationData: LocationData = {
-      address: address.trim(),
-      lat,
-      lng,
-      type: result.type || 'search'
-    };
-    
-    console.log('✅ Valid location data created:', locationData);
-    
-    setQuery(locationData.address);
-    setShowDropdown(false);
-    onChange(locationData);
-    addToHistory(result);
-    inputRef.current?.blur();
-    
-    toast({
-      title: "📍 Adresse sélectionnée",
-      description: locationData.address,
-    });
   };
 
   const handleCurrentLocation = async () => {
