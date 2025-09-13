@@ -1,10 +1,9 @@
 /**
- * Service unifié de géolocalisation pour Kwenda
- * Remplace tous les services de location précédents
+ * Service unifié de géolocalisation - Master Location Service
+ * Point central pour toutes les opérations de localisation dans Kwenda
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { locationCache } from './locationCache';
 
 export interface LocationData {
   address: string;
@@ -13,6 +12,8 @@ export interface LocationData {
   type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'ip' | 'fallback' | 'database';
   placeId?: string;
   accuracy?: number;
+  name?: string;
+  subtitle?: string;
 }
 
 export interface LocationSearchResult extends LocationData {
@@ -22,392 +23,347 @@ export interface LocationSearchResult extends LocationData {
   isPopular?: boolean;
 }
 
-interface UseMasterLocationOptions {
+export interface UseMasterLocationOptions {
   enableHighAccuracy?: boolean;
   timeout?: number;
   maximumAge?: number;
   fallbackToIP?: boolean;
   fallbackToDatabase?: boolean;
   fallbackToDefault?: boolean;
-  autoDetectLocation?: boolean;
 }
+
+// Coordonnées par défaut pour chaque ville
+const DEFAULT_COORDINATES = {
+  'Kinshasa': { lat: -4.3217, lng: 15.3069 },
+  'Lubumbashi': { lat: -11.6708, lng: 27.4794 },
+  'Kolwezi': { lat: -10.7158, lng: 25.4664 },
+  'Abidjan': { lat: 5.3600, lng: -4.0083 }
+} as const;
 
 class MasterLocationService {
   private cache = new Map<string, any>();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-  private requestCache = new Map<string, Promise<any>>();
   private debounceTimers = new Map<string, NodeJS.Timeout>();
 
-  // ============ GÉOLOCALISATION PRINCIPALE ============
-
+  /**
+   * Obtenir la position actuelle de l'utilisateur avec fallbacks
+   */
   async getCurrentPosition(options: UseMasterLocationOptions = {}): Promise<LocationData> {
     const {
       enableHighAccuracy = true,
-      timeout = 30000, // Augmenté de 15s à 30s pour plus de stabilité
+      timeout = 15000,
       maximumAge = 300000, // 5 minutes
       fallbackToIP = true,
       fallbackToDatabase = true,
       fallbackToDefault = true
     } = options;
 
-    try {
-      // Tentative GPS
-      const position = await this.attemptGPSLocation(enableHighAccuracy, timeout, maximumAge);
-      if (position) return position;
-    } catch (error) {
-      console.log('GPS failed, trying fallbacks:', error);
+    // Vérifier le cache en premier
+    const cached = this.getFromCache('current_position');
+    if (cached) {
+      console.log('📍 Position depuis cache:', cached);
+      return cached;
     }
 
-    // Fallback IP si autorisé
+    try {
+      // 1. Essayer GPS natif
+      const gpsLocation = await this.attemptGPSLocation({
+        enableHighAccuracy,
+        timeout,
+        maximumAge
+      });
+      
+      if (gpsLocation) {
+        this.setCache('current_position', gpsLocation);
+        return gpsLocation;
+      }
+    } catch (error) {
+      console.warn('GPS failed:', error);
+    }
+
+    // 2. Fallback IP géolocalisation
     if (fallbackToIP) {
       try {
-        const ipPosition = await this.getIPLocation();
-        if (ipPosition) return ipPosition;
+        const ipLocation = await this.attemptIPLocation();
+        if (ipLocation) {
+          this.setCache('current_position', ipLocation);
+          return ipLocation;
+        }
       } catch (error) {
-        console.log('IP geolocation failed:', error);
+        console.warn('IP geolocation failed:', error);
       }
     }
 
-    // Fallback base de données si autorisé
+    // 3. Fallback base de données (lieux populaires)
     if (fallbackToDatabase) {
       try {
-        const dbPosition = await this.getDatabaseLocation();
-        if (dbPosition) return dbPosition;
+        const dbLocation = await this.attemptDatabaseLocation();
+        if (dbLocation) {
+          return dbLocation;
+        }
       } catch (error) {
-        console.log('Database location failed:', error);
+        console.warn('Database fallback failed:', error);
       }
     }
 
-    // Fallback par défaut
+    // 4. Fallback coordonnées par défaut
     if (fallbackToDefault) {
-      return this.getDefaultLocation();
+      return {
+        address: 'Kinshasa, République Démocratique du Congo',
+        lat: DEFAULT_COORDINATES.Kinshasa.lat,
+        lng: DEFAULT_COORDINATES.Kinshasa.lng,
+        type: 'fallback',
+        accuracy: 10000
+      };
     }
 
-    throw new Error('POSITION_UNAVAILABLE');
+    throw new Error('Impossible de déterminer votre position');
   }
 
-  private async attemptGPSLocation(
-    enableHighAccuracy: boolean, 
-    timeout: number, 
-    maximumAge: number,
-    retryCount: number = 0
-  ): Promise<LocationData | null> {
-    const maxRetries = 3;
-    return new Promise((resolve, reject) => {
+  /**
+   * Tentative de géolocalisation GPS native
+   */
+  private async attemptGPSLocation(options: any): Promise<LocationData | null> {
+    return new Promise((resolve) => {
       if (!navigator.geolocation) {
-        reject(new Error('GEOLOCATION_NOT_SUPPORTED'));
+        resolve(null);
         return;
       }
 
-      // Validation des paramètres pour éviter les valeurs aberrantes
-      const options = {
-        enableHighAccuracy,
-        timeout: Math.min(timeout, 15000), // Max 15s pour éviter les blocages
-        maximumAge: Math.max(maximumAge, 60000) // Min 1 minute pour cache utile
-      };
+      let attempts = 0;
+      const maxAttempts = 2;
 
-      let resolved = false;
-
-      const successHandler = async (position: GeolocationPosition) => {
-        if (resolved) return;
-        resolved = true;
-
-        try {
-          const { latitude: lat, longitude: lng, accuracy } = position.coords;
-          
-          // Validation robuste des coordonnées
-          if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-            if (retryCount < maxRetries) {
-              // Retry avec backoff exponentiel
-              setTimeout(() => {
-                this.attemptGPSLocation(enableHighAccuracy, timeout, maximumAge, retryCount + 1)
-                  .then(resolve)
-                  .catch(reject);
-              }, Math.pow(2, retryCount) * 1000);
+      const tryGeolocation = () => {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude: lat, longitude: lng, accuracy } = position.coords;
+            
+            // Validation des coordonnées
+            if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+              attempts++;
+              if (attempts < maxAttempts) {
+                setTimeout(tryGeolocation, 1000);
+                return;
+              }
+              resolve(null);
               return;
             }
-            throw new Error('INVALID_COORDINATES');
-          }
 
-          // Validation de la précision GPS
-          if (accuracy && accuracy > 5000) {
-            console.warn('Précision GPS faible:', accuracy);
+            try {
+              const address = await this.reverseGeocode(lat, lng);
+              resolve({
+                address: address || `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+                lat,
+                lng,
+                type: 'current',
+                accuracy
+              });
+            } catch (error) {
+              resolve({
+                address: `Position actuelle (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+                lat,
+                lng,
+                type: 'current',
+                accuracy
+              });
+            }
+          },
+          (error) => {
+            console.warn('Geolocation error:', error);
+            attempts++;
+            if (attempts < maxAttempts) {
+              setTimeout(tryGeolocation, 1000);
+            } else {
+              resolve(null);
+            }
+          },
+          {
+            enableHighAccuracy: options.enableHighAccuracy,
+            timeout: options.timeout,
+            maximumAge: options.maximumAge
           }
-          
-          // Reverse geocoding avec timeout et fallback
-          const address = await Promise.race([
-            this.reverseGeocode(lat, lng),
-            new Promise<string>((_, reject) => 
-              setTimeout(() => reject(new Error('GEOCODING_TIMEOUT')), 5000)
-            )
-          ]).catch(() => `Position ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-          
-          const locationData = {
-            address,
-            lat,
-            lng,
-            type: 'current' as const,
-            accuracy
-          };
-
-          // Mettre en cache la position
-          locationCache.setCurrentLocation(locationData);
-          resolve(locationData);
-        } catch (error) {
-          // Si reverse geocoding échoue, retourner quand même la position
-          const { latitude, longitude, accuracy } = position.coords;
-          const fallbackLocation = {
-            address: `Position ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-            lat: latitude,
-            lng: longitude,
-            type: 'current' as const,
-            accuracy
-          };
-          locationCache.setCurrentLocation(fallbackLocation);
-          resolve(fallbackLocation);
-        }
+        );
       };
 
-      const errorHandler = (error: GeolocationPositionError) => {
-        if (resolved) return;
-        resolved = true;
-
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            reject(new Error('PERMISSION_DENIED'));
-            break;
-          case error.POSITION_UNAVAILABLE:
-            reject(new Error('POSITION_UNAVAILABLE'));
-            break;
-          case error.TIMEOUT:
-            reject(new Error('TIMEOUT'));
-            break;
-          default:
-            reject(new Error('UNKNOWN_ERROR'));
-            break;
-        }
-      };
-
-      navigator.geolocation.getCurrentPosition(successHandler, errorHandler, options);
+      tryGeolocation();
     });
   }
 
+  /**
+   * Géocodage inverse pour obtenir l'adresse
+   */
   private async reverseGeocode(lat: number, lng: number): Promise<string> {
     try {
       const { data, error } = await supabase.functions.invoke('geocode-proxy', {
-        body: { 
-          query: `${lat},${lng}`,
-          region: 'cd'  // RDC par défaut
+        body: {
+          lat,
+          lng,
+          type: 'reverse'
         }
       });
 
-      if (error) throw error;
-
-      if (data?.status === 'OK' && data.results?.[0]) {
-        return data.results[0].formatted_address;
+      if (error || !data?.results?.[0]) {
+        return this.getFallbackAddress(lat, lng);
       }
 
-      // Fallback local pour Kinshasa
-      return this.getFallbackAddress(lat, lng);
+      return data.results[0].formatted_address || this.getFallbackAddress(lat, lng);
     } catch (error) {
-      console.error('Reverse geocoding failed:', error);
+      console.warn('Reverse geocoding failed:', error);
       return this.getFallbackAddress(lat, lng);
     }
   }
 
+  /**
+   * Adresse de fallback basée sur les coordonnées
+   */
   private getFallbackAddress(lat: number, lng: number): string {
-    // Zones approximatives de Kinshasa basées sur les coordonnées
-    const kinshasa = { lat: -4.3217, lng: 15.3069 };
-    const abidjan = { lat: 5.3600, lng: -4.0083 };
-    
-    if (Math.abs(lat - kinshasa.lat) < 0.5 && Math.abs(lng - kinshasa.lng) < 0.5) {
-      const zones = [
-        'Gombe, Kinshasa, RDC',
-        'Bandalungwa, Kinshasa, RDC', 
-        'Barumbu, Kinshasa, RDC',
-        'Lemba, Kinshasa, RDC',
-        'Kintambo, Kinshasa, RDC'
-      ];
-      return zones[Math.floor(Math.random() * zones.length)];
-    }
-    
-    if (Math.abs(lat - abidjan.lat) < 0.5 && Math.abs(lng - abidjan.lng) < 0.5) {
-      const zones = [
-        'Plateau, Abidjan, Côte d\'Ivoire',
-        'Cocody, Abidjan, Côte d\'Ivoire',
-        'Marcory, Abidjan, Côte d\'Ivoire',
-        'Treichville, Abidjan, Côte d\'Ivoire'
-      ];
-      return zones[Math.floor(Math.random() * zones.length)];
-    }
-    
-    return `Lieu à ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    // Déterminer la ville la plus proche
+    let closestCity = 'Kinshasa';
+    let minDistance = Infinity;
+
+    Object.entries(DEFAULT_COORDINATES).forEach(([city, coords]) => {
+      const distance = this.calculateDistance(
+        { lat, lng },
+        { lat: coords.lat, lng: coords.lng }
+      );
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestCity = city;
+      }
+    });
+
+    return `Près de ${closestCity}, ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
   }
 
-  private async getIPLocation(): Promise<LocationData> {
+  /**
+   * Tentative de géolocalisation par IP
+   */
+  private async attemptIPLocation(): Promise<LocationData | null> {
     try {
+      // Service de géolocalisation par IP simple
       const response = await fetch('https://ipapi.co/json/');
       const data = await response.json();
       
       if (data.latitude && data.longitude) {
         return {
-          address: `${data.city}, ${data.country_name}`,
-          lat: data.latitude,
-          lng: data.longitude,
-          type: 'ip'
+          address: `${data.city || 'Ville inconnue'}, ${data.country_name || 'Pays inconnu'}`,
+          lat: parseFloat(data.latitude),
+          lng: parseFloat(data.longitude),
+          type: 'ip',
+          accuracy: 50000 // Précision IP généralement faible
         };
       }
-      
-      throw new Error('IP_LOCATION_UNAVAILABLE');
     } catch (error) {
-      throw new Error('IP_LOCATION_FAILED');
+      console.warn('IP geolocation failed:', error);
     }
+    return null;
   }
 
-  private async getDatabaseLocation(): Promise<LocationData> {
-    // Simuler une récupération depuis la base de données locale
-    const commonLocations = [
-      { address: 'Centre-ville, Kinshasa, RDC', lat: -4.3217, lng: 15.3069 },
-      { address: 'Gombe, Kinshasa, RDC', lat: -4.3166, lng: 15.3056 },
-      { address: 'Bandalungwa, Kinshasa, RDC', lat: -4.3732, lng: 15.2988 }
+  /**
+   * Fallback base de données - retourne un lieu populaire
+   */
+  private async attemptDatabaseLocation(): Promise<LocationData | null> {
+    const popularPlaces = [
+      {
+        address: 'Boulevard du 30 Juin, Gombe, Kinshasa',
+        lat: -4.3166,
+        lng: 15.3056,
+        name: 'Gombe - Centre-ville'
+      },
+      {
+        address: 'Avenue Kasavubu, Kalamu, Kinshasa',
+        lat: -4.3431,
+        lng: 15.2931,
+        name: 'Kalamu'
+      }
     ];
-    
-    const location = commonLocations[0]; // Par défaut centre-ville
-    
+
+    const randomPlace = popularPlaces[Math.floor(Math.random() * popularPlaces.length)];
     return {
-      ...location,
-      type: 'database'
+      ...randomPlace,
+      type: 'database',
+      accuracy: 1000
     };
   }
 
-  private getDefaultLocation(): LocationData {
-    return {
-      address: 'Kinshasa, République Démocratique du Congo',
-      lat: -4.3217,
-      lng: 15.3069,
-      type: 'fallback'
-    };
-  }
-
-  // ============ RECHERCHE DE LIEUX ============
-
+  /**
+   * Recherche de lieux avec debouncing
+   */
   async searchLocation(query: string, currentLocation?: LocationData): Promise<LocationSearchResult[]> {
     if (!query.trim()) return [];
 
-    const cacheKey = `search_${query.trim()}_${currentLocation ? this.getRegionFromLocation(currentLocation) : 'cd'}`;
+    const cacheKey = `search_${query.toLowerCase()}`;
     
     // Vérifier le cache
-    if (this.cache.has(cacheKey)) {
-      const cached = this.cache.get(cacheKey);
-      if (Date.now() - cached.timestamp < this.CACHE_DURATION) {
-        return cached.data;
-      }
+    const cached = this.getFromCache(cacheKey);
+    if (cached) return cached;
+
+    // Debouncing
+    const timerId = `search_${query}`;
+    if (this.debounceTimers.has(timerId)) {
+      clearTimeout(this.debounceTimers.get(timerId));
     }
 
-    // Éviter les requêtes multiples simultanées
-    if (this.requestCache.has(cacheKey)) {
-      return this.requestCache.get(cacheKey);
-    }
-
-    // Debouncing pour éviter trop de requêtes
-    const request = this.debouncedSearch(query, currentLocation, cacheKey);
-    this.requestCache.set(cacheKey, request);
-    
-    try {
-      const result = await request;
-      this.requestCache.delete(cacheKey);
-      return result;
-    } catch (error) {
-      this.requestCache.delete(cacheKey);
-      throw error;
-    }
-  }
-
-  private async debouncedSearch(query: string, currentLocation?: LocationData, cacheKey?: string): Promise<LocationSearchResult[]> {
-    return new Promise(async (resolve) => {
-      // Nettoyer le timer précédent
-      if (this.debounceTimers.has(query)) {
-        clearTimeout(this.debounceTimers.get(query)!);
-      }
-
-      // Créer un nouveau timer
+    return new Promise((resolve) => {
       const timer = setTimeout(async () => {
         try {
-          const result = await this.performSearch(query, currentLocation);
-          
-          // Mettre en cache le résultat
-          if (cacheKey) {
-            this.cache.set(cacheKey, {
-              data: result,
-              timestamp: Date.now()
-            });
-          }
-          
-          resolve(result);
+          const results = await this.performSearch(query, currentLocation);
+          this.setCache(cacheKey, results);
+          resolve(results);
         } catch (error) {
           console.error('Search error:', error);
           resolve(this.searchLocalDatabase(query));
         }
-      }, 300); // Debounce de 300ms
+      }, 300);
 
-      this.debounceTimers.set(query, timer);
+      this.debounceTimers.set(timerId, timer);
     });
   }
 
+  /**
+   * Recherche via l'API externe
+   */
   private async performSearch(query: string, currentLocation?: LocationData): Promise<LocationSearchResult[]> {
-    try {
-      // Recherche via geocode-proxy avec fallback intelligent
-      const { data, error } = await supabase.functions.invoke('geocode-proxy', {
-        body: {
-          query: query.trim(),
-          region: currentLocation ? this.getRegionFromLocation(currentLocation) : 'cd',
-          language: 'fr'
-        }
-      });
-
-      if (error) {
-        console.warn('Geocode-proxy error, using local fallback:', error);
-        return this.searchLocalDatabase(query);
+    const { data, error } = await supabase.functions.invoke('geocode-proxy', {
+      body: {
+        query,
+        region: 'cd', // République Démocratique du Congo
+        language: 'fr',
+        location: currentLocation ? { lat: currentLocation.lat, lng: currentLocation.lng } : undefined
       }
+    });
 
-      if (data?.status === 'OK' && data.results) {
-        const formattedResults = data.results.map((result: any, index: number) => ({
-          id: result.place_id || `result-${index}`,
-          address: result.formatted_address || result.name || query,
-          lat: result.geometry?.location?.lat || -4.3217,
-          lng: result.geometry?.location?.lng || 15.3069,
-          type: 'geocoded',
-          title: result.name || result.formatted_address?.split(',')[0] || query,
-          subtitle: result.formatted_address || result.name || query,
-          placeId: result.place_id
-        }));
-
-        return formattedResults.length > 0 ? formattedResults : this.searchLocalDatabase(query);
-      }
-
-      // Fallback avec base de données locale
-      return this.searchLocalDatabase(query);
-    } catch (error) {
-      console.error('Search location error:', error);
-      return this.searchLocalDatabase(query);
+    if (error || !data?.results) {
+      throw new Error('Search failed');
     }
+
+    return data.results.map((result: any, index: number) => ({
+      id: result.place_id || `search-${index}`,
+      address: result.formatted_address || result.name || query,
+      lat: result.geometry?.location?.lat || 0,
+      lng: result.geometry?.location?.lng || 0,
+      type: 'geocoded' as const,
+      placeId: result.place_id,
+      title: result.name || result.formatted_address?.split(',')[0],
+      subtitle: result.vicinity || result.formatted_address,
+      accuracy: 1
+    }));
   }
 
-  private getRegionFromLocation(location: LocationData): string {
-    // Déterminer la région basée sur la position
-    if (location.lat > 4 && location.lat < 10 && location.lng > -8 && location.lng < 0) {
-      return 'ci'; // Côte d'Ivoire
-    }
-    return 'cd'; // RDC par défaut
-  }
-
+  /**
+   * Recherche locale de fallback
+   */
   private async searchLocalDatabase(query: string): Promise<LocationSearchResult[]> {
     const localPlaces = [
-      { name: 'Centre-ville', address: 'Centre-ville, Kinshasa, RDC', lat: -4.3217, lng: 15.3069 },
-      { name: 'Aéroport de Ndjili', address: 'Aéroport International de Kinshasa, RDC', lat: -4.3970, lng: 15.4442 },
-      { name: 'Université de Kinshasa', address: 'Université de Kinshasa, Mont Amba, RDC', lat: -4.4326, lng: 15.3045 },
-      { name: 'Marché Central', address: 'Marché Central, Kinshasa, RDC', lat: -4.3258, lng: 15.3144 },
-      { name: 'Boulevard du 30 Juin', address: 'Boulevard du 30 Juin, Kinshasa, RDC', lat: -4.3200, lng: 15.3100 }
+      { name: 'Gombe', address: 'Gombe, Kinshasa', lat: -4.3166, lng: 15.3056, category: 'district' },
+      { name: 'Kalamu', address: 'Kalamu, Kinshasa', lat: -4.3431, lng: 15.2931, category: 'district' },
+      { name: 'Limete', address: 'Limete, Kinshasa', lat: -4.3800, lng: 15.2900, category: 'district' },
+      { name: 'Kintambo', address: 'Kintambo, Kinshasa', lat: -4.3298, lng: 15.2823, category: 'district' },
+      { name: 'Lingwala', address: 'Lingwala, Kinshasa', lat: -4.3100, lng: 15.3200, category: 'district' },
+      { name: 'Bandalungwa', address: 'Bandalungwa, Kinshasa', lat: -4.3600, lng: 15.2700, category: 'district' },
+      { name: 'Université de Kinshasa', address: 'Mont Amba, Kinshasa', lat: -4.4326, lng: 15.3045, category: 'university' },
+      { name: 'Marché Central', address: 'Avenue de la Paix, Kinshasa', lat: -4.3258, lng: 15.3144, category: 'market' },
+      { name: 'Aéroport de Ndjili', address: 'N\'djili, Kinshasa', lat: -4.3970, lng: 15.4442, category: 'airport' }
     ];
 
     const filtered = localPlaces.filter(place => 
@@ -415,74 +371,95 @@ class MasterLocationService {
       place.address.toLowerCase().includes(query.toLowerCase())
     );
 
-    return filtered.map((place, index) => ({
+    return filtered.slice(0, 8).map((place, index) => ({
       id: `local-${index}`,
       address: place.address,
       lat: place.lat,
       lng: place.lng,
-      type: 'database',
+      type: 'database' as const,
       title: place.name,
-      subtitle: place.address
+      subtitle: place.address,
+      accuracy: 1
     }));
   }
 
-  // ============ LIEUX À PROXIMITÉ ============
-
-  async getNearbyPlaces(lat: number, lng: number, radiusKm: number = 5): Promise<LocationSearchResult[]> {
-    // Simuler des lieux populaires à proximité
-    const nearbyPlaces = [
-      { name: 'Restaurant', address: 'Restaurant local', lat: lat + 0.01, lng: lng + 0.01 },
-      { name: 'Pharmacie', address: 'Pharmacie proche', lat: lat - 0.01, lng: lng + 0.01 },
-      { name: 'Banque', address: 'Agence bancaire', lat: lat + 0.01, lng: lng - 0.01 }
-    ];
-
-    return nearbyPlaces.map((place, index) => ({
+  /**
+   * Recherche de lieux à proximité
+   */
+  async getNearbyPlaces(lat: number, lng: number, radiusKm: number = 2): Promise<LocationSearchResult[]> {
+    // Simulation de lieux populaires à proximité
+    const nearbyTypes = ['restaurant', 'pharmacy', 'bank', 'gas_station', 'hospital'];
+    
+    return nearbyTypes.map((type, index) => ({
       id: `nearby-${index}`,
-      address: place.address,
-      lat: place.lat,
-      lng: place.lng,
-      type: 'popular',
-      title: place.name,
-      subtitle: place.address
+      address: `${type} à proximité`,
+      lat: lat + (Math.random() - 0.5) * 0.01,
+      lng: lng + (Math.random() - 0.5) * 0.01,
+      type: 'popular' as const,
+      title: `${type.charAt(0).toUpperCase() + type.slice(1)} proche`,
+      subtitle: 'À proximité de votre position',
+      accuracy: 1
     }));
   }
 
-  // ============ UTILITAIRES ============
-
+  /**
+   * Calcul de distance entre deux points (Haversine)
+   */
   calculateDistance(point1: { lat: number; lng: number }, point2: { lat: number; lng: number }): number {
-    const R = 6371e3; // Rayon de la Terre en mètres
-    const φ1 = point1.lat * Math.PI / 180;
-    const φ2 = point2.lat * Math.PI / 180;
-    const Δφ = (point2.lat - point1.lat) * Math.PI / 180;
-    const Δλ = (point2.lng - point1.lng) * Math.PI / 180;
-
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = (point2.lat - point1.lat) * Math.PI / 180;
+    const dLon = (point2.lng - point1.lng) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-    return R * c; // Distance en mètres
+    return R * c;
   }
 
+  /**
+   * Formatage de distance
+   */
   formatDistance(meters: number): string {
     if (meters < 1000) {
-      return `${Math.round(meters)}m`;
+      return `${Math.round(meters)} m`;
     }
-    return `${(meters / 1000).toFixed(1)}km`;
+    return `${(meters / 1000).toFixed(1)} km`;
   }
 
+  /**
+   * Formatage de durée
+   */
   formatDuration(seconds: number): string {
     if (seconds < 60) {
-      return `${Math.round(seconds)}s`;
+      return `${seconds} sec`;
+    } else if (seconds < 3600) {
+      return `${Math.round(seconds / 60)} min`;
     }
-    if (seconds < 3600) {
-      return `${Math.round(seconds / 60)}min`;
+    return `${Math.round(seconds / 3600)} h`;
+  }
+
+  // ============ GESTION DU CACHE ============
+
+  private getFromCache(key: string): any {
+    const cached = this.cache.get(key);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
+      return cached.data;
     }
-    return `${Math.round(seconds / 3600)}h`;
+    return null;
+  }
+
+  private setCache(key: string, data: any): void {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now()
+    });
   }
 
   clearCache(): void {
     this.cache.clear();
+    this.debounceTimers.forEach(timer => clearTimeout(timer));
+    this.debounceTimers.clear();
   }
 }
 

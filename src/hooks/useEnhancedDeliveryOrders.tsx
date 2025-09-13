@@ -12,16 +12,18 @@ export interface DeliveryOrderData {
   destination: LocationData;
   mode: 'flash' | 'flex' | 'maxicharge';
   packageType?: string;
+  packageWeight?: number;
   weight?: number;
   dimensions?: {
     length: number;
     width: number;
     height: number;
   };
+  additionalInfo?: string;
   specialInstructions?: string;
-  estimatedPrice: number;
-  distance: number;
-  duration: number;
+  estimatedPrice?: number;
+  distance?: number;
+  duration?: number;
 }
 
 export const useEnhancedDeliveryOrders = () => {
