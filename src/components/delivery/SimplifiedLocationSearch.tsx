@@ -17,9 +17,10 @@ import {
   Clock,
   Building
 } from 'lucide-react';
-import { useEnhancedIntelligentAddressSearch } from '@/hooks/useEnhancedIntelligentAddressSearch';
+import { useEnhancedLocationSearch } from '@/hooks/useEnhancedLocationSearch';
 import { useToast } from '@/hooks/use-toast';
 import type { LocationData } from '@/types/location';
+import type { EnhancedPlaceResult } from '@/services/enhancedGooglePlacesService';
 
 interface SimplifiedLocationSearchProps {
   value?: LocationData;
@@ -53,38 +54,34 @@ export const SimplifiedLocationSearch = ({
     recentSearches,
     popularPlaces,
     isSearching,
-    currentCity,
+    currentLocation,
     search,
-    addToHistory,
+    getCurrentLocation,
+    clearResults,
     setCity
-  } = useEnhancedIntelligentAddressSearch({
+  } = useEnhancedLocationSearch({
     city,
-    maxResults: 8,
-    debounceMs: 300,
-    autoDetectCity: false,
-    realtimeSearch: true
+    enableCurrentLocation: false
   });
 
   // Synchroniser la ville quand elle change
   useEffect(() => {
-    if (city !== currentCity) {
-      setCity(city);
-    }
-  }, [city, currentCity, setCity]);
+    setCity(city);
+  }, [city, setCity]);
 
   // Recherche en temps réel
   useEffect(() => {
     search(query);
   }, [query, search]);
 
-  const handleLocationSelect = (result: any) => {
+  const handleLocationSelect = (result: EnhancedPlaceResult | LocationData) => {
     console.log('🎯 Location selected in SimplifiedLocationSearch:', result);
     
     try {
       // Validation ultra-stricte pour éviter l'erreur "address required"
-      const address = result.address || result.name || result.title || result.subtitle || '';
-      const lat = typeof result.lat === 'number' ? result.lat : parseFloat(result.lat || '0');
-      const lng = typeof result.lng === 'number' ? result.lng : parseFloat(result.lng || '0');
+      const address = result.address || result.name || '';
+      const lat = Number(result.lat) || 0;
+      const lng = Number(result.lng) || 0;
       
       // Validation de l'adresse
       if (!address || !address.trim()) {
@@ -114,10 +111,10 @@ export const SimplifiedLocationSearch = ({
         address: address.trim(),
         lat,
         lng,
-        type: result.type || 'geocoded',
+        type: result.type === 'category' ? 'popular' : (result.type || 'geocoded'),
         placeId: result.placeId,
         name: result.name,
-        subtitle: result.subtitle
+        subtitle: 'vicinity' in result ? result.vicinity : undefined
       };
       
       console.log('✅ Valid location data created:', locationData);
@@ -128,7 +125,6 @@ export const SimplifiedLocationSearch = ({
       
       // Appel onChange avec validation
       onChange(locationData);
-      addToHistory(result);
       
       // Blur de l'input
       inputRef.current?.blur();
@@ -258,16 +254,16 @@ export const SimplifiedLocationSearch = ({
                         onClick={() => handleLocationSelect(result)}
                         className="w-full p-3 text-left hover:bg-accent rounded-md transition-colors flex items-center gap-3 group"
                       >
-                        {getResultIcon(result.type)}
+                        {getResultIcon(result.type || 'geocoded')}
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate">{result.name}</div>
+                          <div className="font-medium text-sm truncate">{result.address || result.name}</div>
                           <div className="text-xs text-muted-foreground truncate">
-                            {result.subtitle || `${result.commune || ''}, ${result.city || city}`}
+                            {result.vicinity || city}
                           </div>
                         </div>
-                        {result.badge && (
+                        {result.type === 'popular' && (
                           <Badge variant="secondary" className="text-xs">
-                            {result.badge}
+                            Populaire
                           </Badge>
                         )}
                         <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
@@ -289,8 +285,31 @@ export const SimplifiedLocationSearch = ({
                         >
                           <Clock className="w-4 h-4 text-orange-500" />
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm truncate">{result.name}</div>
+                            <div className="font-medium text-sm truncate">{result.address || result.name}</div>
                             <div className="text-xs text-muted-foreground">Récent</div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Lieux populaires */}
+                {popularPlaces.length > 0 && query.length < 2 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">Populaire</h4>
+                    <div className="space-y-1">
+                      {popularPlaces.slice(0, 3).map((result, index) => (
+                        <button
+                          key={result.id || index}
+                          onClick={() => handleLocationSelect(result)}
+                          className="w-full p-3 text-left hover:bg-accent rounded-md transition-colors flex items-center gap-3"
+                        >
+                          <Building className="w-4 h-4 text-purple-500" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">{result.address || result.name}</div>
+                            <div className="text-xs text-muted-foreground">Populaire</div>
                           </div>
                           <ChevronRight className="w-4 h-4 text-muted-foreground" />
                         </button>
