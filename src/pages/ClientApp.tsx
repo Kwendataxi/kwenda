@@ -54,9 +54,8 @@ import { AdvancedTaxiInterface } from '@/components/transport/AdvancedTaxiInterf
 import TripChat from '@/components/transport/TripChat';
 
 // Delivery components
-import ModernDeliveryOrderInterface from '@/components/delivery/ModernDeliveryOrderInterface';
+import ModernDeliveryInterface from '@/components/delivery/ModernDeliveryInterface';
 import DeliveryTracking from '@/components/delivery/DeliveryTracking';
-import EnhancedDeliveryInterface from '@/components/delivery/EnhancedDeliveryInterface';
 
 // Rental components
 import FluidRentalInterface from '@/components/rental/FluidRentalInterface';
@@ -470,7 +469,7 @@ const ClientApp = () => {
     }
     return (
       <div className="pb-24">
-        <EnhancedDeliveryInterface
+        <ModernDeliveryInterface
           onSubmit={handleModernDeliverySubmit}
           onCancel={() => setCurrentView('home')}
         />
