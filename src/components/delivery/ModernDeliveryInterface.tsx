@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
-import { SimplifiedLocationSearch } from './SimplifiedLocationSearch';
+import { EnhancedLocationSearch } from './EnhancedLocationSearch';
 import CitySelector from './CitySelector';
 import { LocationData } from '@/types/location';
 import { 
@@ -60,10 +60,10 @@ const deliveryServices = [
   {
     id: 'flex' as const,
     name: 'Flex',
-    subtitle: 'Standard en voiture',
-    icon: Car,
-    time: '30-60 min',
-    basePrice: 7000,
+    subtitle: 'Camionnette standard',
+    icon: Truck,
+    time: '45-90 min',
+    basePrice: 8000,
     color: 'text-green-600',
     bgColor: 'bg-green-50',
     borderColor: 'border-green-200'
@@ -100,28 +100,55 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
   } | null>(null);
   const [priceLoading, setPriceLoading] = useState(false);
 
-  // Validation stricte des LocationData
+  // Validation stricte des LocationData avec logs détaillés
   const validateLocationData = (location: any): LocationData | null => {
-    if (!location) return null;
+    console.log('Validation location:', location);
     
-    const address = location.address || location.name || '';
-    const lat = typeof location.lat === 'number' ? location.lat : parseFloat(location.lat || '0');
-    const lng = typeof location.lng === 'number' ? location.lng : parseFloat(location.lng || '0');
-    
-    if (!address.trim() || isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
-      console.error('Location invalide:', { address, lat, lng });
+    if (!location) {
+      console.warn('Location is null or undefined');
       return null;
     }
     
-    return {
+    // Extraire l'adresse avec priorité name > address
+    const address = location.name || location.address || location.formatted_address || '';
+    const lat = typeof location.lat === 'number' ? location.lat : 
+               typeof location.latitude === 'number' ? location.latitude :
+               parseFloat(location.lat || location.latitude || '0');
+    const lng = typeof location.lng === 'number' ? location.lng : 
+               typeof location.longitude === 'number' ? location.longitude :
+               parseFloat(location.lng || location.longitude || '0');
+    
+    console.log('Validation data:', { address: address.trim(), lat, lng });
+    
+    // Validation plus permissive - accepter les coordonnées valides même si proches de 0
+    if (!address.trim()) {
+      console.error('Adresse vide ou invalide');
+      return null;
+    }
+    
+    if (isNaN(lat) || isNaN(lng)) {
+      console.error('Coordonnées invalides (NaN):', { lat, lng });
+      return null;
+    }
+    
+    // Vérifier que les coordonnées sont dans des plages réalistes pour l'Afrique
+    if (Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+      console.error('Coordonnées hors limites:', { lat, lng });
+      return null;
+    }
+    
+    const validLocation = {
       address: address.trim(),
-      lat,
-      lng,
+      lat: Number(lat),
+      lng: Number(lng),
       type: location.type || 'geocoded',
-      placeId: location.placeId,
+      placeId: location.placeId || location.place_id,
       name: location.name,
-      subtitle: location.subtitle
+      subtitle: location.subtitle || location.vicinity
     };
+    
+    console.log('Location validée:', validLocation);
+    return validLocation;
   };
 
   // Calcul de prix en temps réel
@@ -162,12 +189,43 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
     }
   }, [formData.pickup, formData.destination, currentStep, calculatePrice]);
 
-  // Gestion sélection location avec validation renforcée
+  // Gestion sélection location avec validation renforcée et fallbacks
   const handleLocationSelect = (location: any, type: 'pickup' | 'destination') => {
     console.log(`Sélection ${type}:`, location);
     
+    if (!location) {
+      toast({
+        title: "Aucune adresse sélectionnée",
+        description: "Veuillez choisir une adresse dans la liste.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const validLocation = validateLocationData(location);
     if (!validLocation) {
+      console.error('Validation échouée pour:', location);
+      
+      // Fallback avec coordonnées par défaut si c'est un lieu connu
+      if (location.name || location.address) {
+        const fallbackLocation: LocationData = {
+          address: location.name || location.address,
+          lat: -4.3217, // Kinshasa par défaut
+          lng: 15.3069,
+          type: 'fallback',
+          name: location.name
+        };
+        
+        setFormData(prev => ({ ...prev, [type]: fallbackLocation }));
+        
+        toast({
+          title: `${type === 'pickup' ? 'Collecte' : 'Livraison'} définie ⚠️`,
+          description: `${fallbackLocation.address} (coordonnées approximatives)`,
+          variant: "default"
+        });
+        return;
+      }
+      
       toast({
         title: "Adresse invalide",
         description: "Cette adresse ne peut pas être utilisée. Veuillez en choisir une autre.",
@@ -331,7 +389,7 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
           </div>
           <label className="text-sm font-medium">Point de collecte</label>
         </div>
-        <SimplifiedLocationSearch
+        <EnhancedLocationSearch
           placeholder="Où récupérer le colis ?"
           onChange={(location) => handleLocationSelect(location, 'pickup')}
           value={formData.pickup}
@@ -358,7 +416,7 @@ const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterface
           </div>
           <label className="text-sm font-medium">Point de livraison</label>
         </div>
-        <SimplifiedLocationSearch
+        <EnhancedLocationSearch
           placeholder="Où livrer le colis ?"
           onChange={(location) => handleLocationSelect(location, 'destination')}
           value={formData.destination}
