@@ -7698,6 +7698,35 @@ export type Database = {
           search_keywords: string[]
         }[]
       }
+      intelligent_places_search_enhanced: {
+        Args: {
+          include_nearby?: boolean
+          max_results?: number
+          search_city?: string
+          search_query?: string
+          user_latitude?: number
+          user_longitude?: number
+        }
+        Returns: {
+          avenue: string
+          badge: string
+          category: string
+          city: string
+          commune: string
+          distance_meters: number
+          formatted_address: string
+          hierarchy_level: number
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          popularity_score: number
+          quartier: string
+          relevance_score: number
+          subcategory: string
+          subtitle: string
+        }[]
+      }
       is_current_user_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
