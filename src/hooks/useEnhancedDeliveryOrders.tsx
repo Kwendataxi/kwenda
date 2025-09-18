@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import type { LocationData } from '@/services/MasterLocationService';
+import type { LocationData } from '@/types/location';
 
 // Export for backward compatibility
 export type DeliveryLocation = LocationData;
