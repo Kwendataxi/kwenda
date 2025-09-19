@@ -1,5 +1,5 @@
 import React from 'react';
-import UltraModernDeliveryInterface from './UltraModernDeliveryInterface';
+import SimpleDeliveryInterface from './SimpleDeliveryInterface';
 
 interface StepByStepDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
@@ -7,8 +7,8 @@ interface StepByStepDeliveryInterfaceProps {
 }
 
 const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryInterfaceProps) => {
-  // Migration vers l'interface ultra-moderne avec géolocalisation robuste
-  return <UltraModernDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
+  // Interface simplifiée sans dépendances externes
+  return <SimpleDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
 };
 
 export default StepByStepDeliveryInterface;

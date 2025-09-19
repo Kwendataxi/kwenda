@@ -1,378 +1,322 @@
 import React, { useState } from 'react';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
-import { ImprovedLocationPicker } from '@/components/location/ImprovedLocationPicker';
-import { ServiceSelectionStep } from './ServiceSelectionStep';
-import { OrderConfirmationStep } from './OrderConfirmationStep';
-import { 
-  ArrowLeft,
-  ArrowRight,
-  MapPin, 
-  Navigation,
-  User,
-  Phone
-} from 'lucide-react';
-import { type UnifiedLocation } from '@/types/locationAdapter';
+import { MapPin, Star, Package, ArrowRight, Navigation } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-interface DeliveryLocation {
+interface Location {
+  id: string;
+  name: string;
   address: string;
-  coordinates: { lat: number; lng: number };
-}
-
-interface ContactInfo {
-  name: string;
-  phone: string;
-}
-
-interface DeliveryData {
-  pickup: {
-    location: DeliveryLocation | null;
-    contact: ContactInfo;
-  };
-  destination: {
-    location: DeliveryLocation | null;
-    contact: ContactInfo;
+  category: string;
+  coordinates: {
+    lat: number;
+    lng: number;
   };
 }
 
-interface DeliveryService {
-  id: 'flash' | 'flex' | 'maxicharge';
-  name: string;
-  subtitle: string;
-  description: string;
-  icon: any;
-  features: string[];
-  estimatedTime: string;
-}
-
-interface DeliveryPricing {
-  price: number;
-  distance: number;
-  duration: number;
-}
+// Lieux populaires locaux sans API
+const POPULAR_PLACES: Location[] = [
+  {
+    id: '1',
+    name: 'Université de Kinshasa',
+    address: 'Campus, Lemba',
+    category: 'Education',
+    coordinates: { lat: -4.3726, lng: 15.3678 }
+  },
+  {
+    id: '2', 
+    name: 'Marché Central de Kinshasa',
+    address: 'Avenue Tombalbaye, Centre-ville, Gombe',
+    category: 'Commerce',
+    coordinates: { lat: -4.3150, lng: 15.3100 }
+  },
+  {
+    id: '3',
+    name: 'Aéroport International N\'djili',
+    address: 'N\'djili, Nsele',
+    category: 'Transport',
+    coordinates: { lat: -4.3857, lng: 15.4446 }
+  },
+  {
+    id: '4',
+    name: 'Gombe Centre',
+    address: 'Boulevard du 30 Juin, Gombe',
+    category: 'Centre-ville',
+    coordinates: { lat: -4.3217, lng: 15.3069 }
+  },
+  {
+    id: '5',
+    name: 'Hôtel Memling',
+    address: 'Avenue des Aviateurs, Gombe',
+    category: 'Hôtel',
+    coordinates: { lat: -4.3200, lng: 15.3050 }
+  },
+  {
+    id: '6',
+    name: 'Stade des Martyrs',
+    address: 'Commune de Kalamu',
+    category: 'Sport',
+    coordinates: { lat: -4.3500, lng: 15.3200 }
+  }
+];
 
 interface SimpleDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
 }
 
-type DeliveryStep = 'addresses' | 'service' | 'confirmation' | 'created';
+export default function SimpleDeliveryInterface({ onSubmit, onCancel }: SimpleDeliveryInterfaceProps) {
+  const [step, setStep] = useState<'pickup' | 'delivery' | 'type'>('pickup');
+  const [pickup, setPickup] = useState<Location | null>(null);
+  const [delivery, setDelivery] = useState<Location | null>(null);
+  const [deliveryType, setDeliveryType] = useState<'flash' | 'flex' | 'maxicharge'>('flex');
+  const [useCurrentLocation, setUseCurrentLocation] = useState(false);
 
-const SimpleDeliveryInterface: React.FC<SimpleDeliveryInterfaceProps> = ({ 
-  onSubmit, 
-  onCancel 
-}) => {
-  const [currentStep, setCurrentStep] = useState<DeliveryStep>('addresses');
-  const [deliveryData, setDeliveryData] = useState<DeliveryData>({
-    pickup: { location: null, contact: { name: '', phone: '' } },
-    destination: { location: null, contact: { name: '', phone: '' } }
-  });
-  const [selectedService, setSelectedService] = useState<DeliveryService | null>(null);
-  const [selectedPricing, setSelectedPricing] = useState<DeliveryPricing | null>(null);
-  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
-
-  const { toast } = useToast();
-
-  const handlePickupLocationSelect = (location: UnifiedLocation) => {
-    const deliveryLocation: DeliveryLocation = {
-      address: location.address,
-      coordinates: { lat: location.lat, lng: location.lng }
-    };
-    
-    setDeliveryData(prev => ({
-      ...prev,
-      pickup: { ...prev.pickup, location: deliveryLocation }
-    }));
-
-    toast({
-      title: "Point de collecte confirmé",
-      description: "📍 " + location.address,
-    });
-  };
-
-  const handleDestinationLocationSelect = (location: UnifiedLocation) => {
-    const deliveryLocation: DeliveryLocation = {
-      address: location.address,
-      coordinates: { lat: location.lat, lng: location.lng }
-    };
-    
-    setDeliveryData(prev => ({
-      ...prev,
-      destination: { ...prev.destination, location: deliveryLocation }
-    }));
-
-    toast({
-      title: "Point de livraison confirmé", 
-      description: "🎯 " + location.address,
-    });
-  };
-
-  const canProceed = () => {
-    const hasPickup = !!(
-      deliveryData.pickup.location?.coordinates?.lat &&
-      deliveryData.pickup.location?.coordinates?.lng &&
-      deliveryData.pickup.contact.name?.trim() &&
-      deliveryData.pickup.contact.phone?.trim()
-    );
-    
-    const hasDestination = !!(
-      deliveryData.destination.location?.coordinates?.lat &&
-      deliveryData.destination.location?.coordinates?.lng &&
-      deliveryData.destination.contact.name?.trim()
-    );
-    
-    console.log('📋 Validation:', { 
-      hasPickup, 
-      hasDestination, 
-      pickup: deliveryData.pickup, 
-      destination: deliveryData.destination 
-    });
-    
-    return hasPickup && hasDestination;
-  };
-
-  const handleAddressesSubmit = () => {
-    if (canProceed()) {
-      setCurrentStep('service');
-    } else {
-      toast({
-        title: "Informations manquantes",
-        description: "Veuillez compléter tous les champs requis",
-        variant: "destructive",
-      });
+  const handleLocationSelect = (location: Location) => {
+    if (step === 'pickup') {
+      setPickup(location);
+      setStep('delivery');
+    } else if (step === 'delivery') {
+      setDelivery(location);
+      setStep('type');
     }
   };
 
-  const handleServiceSelect = (service: DeliveryService, pricing: DeliveryPricing) => {
-    setSelectedService(service);
-    setSelectedPricing(pricing);
-    setCurrentStep('confirmation');
+  const handleCurrentLocation = () => {
+    const currentLoc: Location = {
+      id: 'current',
+      name: 'Ma position actuelle',
+      address: 'Position GPS actuelle',
+      category: 'Actuelle',
+      coordinates: { lat: -4.3217, lng: 15.3069 }
+    };
+    
+    setUseCurrentLocation(true);
+    handleLocationSelect(currentLoc);
   };
 
-  const handleOrderConfirm = (orderId: string) => {
-    setCreatedOrderId(orderId);
-    setCurrentStep('created');
-    onSubmit({ orderId, ...deliveryData, service: selectedService, pricing: selectedPricing });
+  const handleSubmit = () => {
+    if (!pickup || !delivery) return;
+    
+    const orderData = {
+      pickup_location: pickup.address,
+      pickup_coordinates: pickup.coordinates,
+      delivery_location: delivery.address,
+      delivery_coordinates: delivery.coordinates,
+      delivery_type: deliveryType,
+      estimated_price: calculatePrice(),
+      status: 'pending'
+    };
+    
+    onSubmit(orderData);
   };
 
-  // Rendu conditionnel selon l'étape
-  if (currentStep === 'service' && deliveryData.pickup.location && deliveryData.destination.location) {
-    return (
-      <ServiceSelectionStep
-        pickup={deliveryData.pickup.location}
-        destination={deliveryData.destination.location}
-        onServiceSelect={handleServiceSelect}
-        onBack={() => setCurrentStep('addresses')}
-      />
-    );
-  }
+  const calculatePrice = () => {
+    const basePrices = { flash: 5000, flex: 3000, maxicharge: 8000 };
+    return basePrices[deliveryType];
+  };
 
-  if (currentStep === 'confirmation' && selectedService && selectedPricing) {
-    return (
-      <OrderConfirmationStep
-        pickup={deliveryData.pickup}
-        destination={deliveryData.destination}
-        service={selectedService}
-        pricing={selectedPricing}
-        onBack={() => setCurrentStep('service')}
-        onConfirm={handleOrderConfirm}
-      />
-    );
-  }
+  const getStepTitle = () => {
+    switch (step) {
+      case 'pickup': return 'Point de collecte';
+      case 'delivery': return 'Point de livraison';
+      case 'type': return 'Type de livraison';
+      default: return '';
+    }
+  };
 
-  if (currentStep === 'created' && createdOrderId) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 p-4 flex items-center justify-center">
-        <Card className="glassmorphism border-0 shadow-xl max-w-md w-full text-center">
-          <CardContent className="pt-8 pb-6">
-            <div className="mb-6">
-              <div className="h-16 w-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ArrowRight className="h-8 w-8 text-success" />
-              </div>
-              <h2 className="text-2xl font-bold text-success mb-2">Commande créée !</h2>
-              <p className="text-muted-foreground">
-                Votre livraison {selectedService?.name} a été confirmée
-              </p>
-            </div>
-            <Button 
-              onClick={onCancel} 
-              className="w-full h-12 rounded-xl"
-            >
-              Retour à l'accueil
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const getStepSubtitle = () => {
+    switch (step) {
+      case 'pickup': return 'Où récupérer le colis ?';
+      case 'delivery': return 'Où livrer le colis ?';
+      case 'type': return 'Choisissez votre service';
+      default: return '';
+    }
+  };
 
-  // Étape par défaut : saisie des adresses
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 p-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header moderne */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <Button
-              variant="ghost"
-              onClick={onCancel}
-              className="flex items-center gap-2 hover:bg-primary/10"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Retour
-            </Button>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Nouvelle livraison
-            </h1>
-            <div className="w-16" />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 relative overflow-hidden">
+      {/* Animated background dots */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className={cn(
+              "absolute w-2 h-2 rounded-full animate-pulse",
+              i % 4 === 0 && "bg-red-400/30",
+              i % 4 === 1 && "bg-yellow-400/30", 
+              i % 4 === 2 && "bg-green-400/30",
+              i % 4 === 3 && "bg-blue-400/30"
+            )}
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 2}s`
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative z-10 p-6">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="w-12 h-12 bg-primary rounded-2xl mx-auto mb-4 flex items-center justify-center">
+            <Package className="w-6 h-6 text-primary-foreground" />
           </div>
-          
-          <Progress value={33} className="w-full h-2" />
-          <p className="text-sm text-muted-foreground mt-2 text-center">
-            Étape 1/3 : Configuration des adresses
+          <h1 className="text-2xl font-bold text-foreground mb-2">Adresses</h1>
+          <p className="text-muted-foreground">
+            Définissez les points de collecte et de livraison
           </p>
         </div>
 
-        {/* Interface épurée */}
-        <Card className="glassmorphism animate-fade-in border-0 shadow-xl">
-          <CardHeader className="pb-6">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <MapPin className="h-5 w-5 text-primary" />
-              Adresses de livraison
-            </CardTitle>
-          </CardHeader>
-          
-          <CardContent className="space-y-8">
-            {/* Point de collecte moderne */}
-            <div>
-              <label className="block text-sm font-medium mb-4 flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-primary" />
-                Point de collecte *
-              </label>
-              
-              <ImprovedLocationPicker
-                type="pickup"
-                onLocationSelect={handlePickupLocationSelect}
-                autoFocus={true}
-                placeholder="Adresse de collecte..."
-                showCurrentLocation={true}
-                value={deliveryData.pickup.location?.address || ''}
-              />
-
-              {/* Contact collecte */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                    <User className="h-3 w-3" />
-                    Nom du contact *
-                  </label>
-                  <Input
-                    placeholder="Nom complet"
-                    value={deliveryData.pickup.contact.name}
-                    onChange={(e) => setDeliveryData(prev => ({
-                      ...prev,
-                      pickup: { ...prev.pickup, contact: { ...prev.pickup.contact, name: e.target.value } }
-                    }))}
-                    className="h-12 rounded-xl border-border/20 bg-card/50 backdrop-blur-sm
-                              hover:border-primary/30 focus:border-primary/50 transition-all duration-300"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                    <Phone className="h-3 w-3" />
-                    Téléphone *
-                  </label>
-                  <Input
-                    placeholder="+243 xxx xxx xxx"
-                    value={deliveryData.pickup.contact.phone}
-                    onChange={(e) => setDeliveryData(prev => ({
-                      ...prev,
-                      pickup: { ...prev.pickup, contact: { ...prev.pickup.contact, phone: e.target.value } }
-                    }))}
-                    className="h-12 rounded-xl border-border/20 bg-card/50 backdrop-blur-sm
-                              hover:border-primary/30 focus:border-primary/50 transition-all duration-300"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Point de destination moderne */}
-            <div>
-              <label className="block text-sm font-medium mb-4 flex items-center gap-2">
-                <Navigation className="h-4 w-4 text-secondary" />
-                Point de livraison *
-              </label>
-              
-              <ImprovedLocationPicker
-                type="destination"
-                onLocationSelect={handleDestinationLocationSelect}
-                showCurrentLocation={false}
-                placeholder="Adresse de livraison..."
-                value={deliveryData.destination.location?.address || ''}
-              />
-
-              {/* Contact destination */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                    <User className="h-3 w-3" />
-                    Nom du destinataire *
-                  </label>
-                  <Input
-                    placeholder="Nom du destinataire"
-                    value={deliveryData.destination.contact.name}
-                    onChange={(e) => setDeliveryData(prev => ({
-                      ...prev,
-                      destination: { ...prev.destination, contact: { ...prev.destination.contact, name: e.target.value } }
-                    }))}
-                    className="h-12 rounded-xl border-border/20 bg-card/50 backdrop-blur-sm
-                              hover:border-secondary/30 focus:border-secondary/50 transition-all duration-300"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                    <Phone className="h-3 w-3" />
-                    Téléphone (optionnel)
-                  </label>
-                  <Input
-                    placeholder="+243 xxx xxx xxx"
-                    value={deliveryData.destination.contact.phone}
-                    onChange={(e) => setDeliveryData(prev => ({
-                      ...prev,
-                      destination: { ...prev.destination, contact: { ...prev.destination.contact, phone: e.target.value } }
-                    }))}
-                    className="h-12 rounded-xl border-border/20 bg-card/50 backdrop-blur-sm
-                              hover:border-secondary/30 focus:border-secondary/50 transition-all duration-300"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Bouton continuer moderne */}
-            <div className="pt-6">
-              <Button
-                onClick={handleAddressesSubmit}
-                disabled={!canProceed()}
-                className="w-full h-14 text-base font-medium rounded-xl
-                          bg-gradient-to-r from-primary to-primary/90 
-                          hover:from-primary/90 hover:to-primary
-                          disabled:from-grey-300 disabled:to-grey-400
-                          transition-all duration-300 transform
-                          hover:scale-[1.02] active:scale-[0.98]
-                          shadow-lg hover:shadow-xl"
+        {/* Progress */}
+        <div className="flex justify-center mb-8">
+          <div className="flex space-x-2">
+            {['pickup', 'delivery', 'type'].map((s, i) => (
+              <div
+                key={s}
+                className={cn(
+                  "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all",
+                  step === s ? "bg-primary text-primary-foreground" : 
+                  i < ['pickup', 'delivery', 'type'].indexOf(step) ? "bg-primary/20 text-primary" :
+                  "bg-muted text-muted-foreground"
+                )}
               >
-                Continuer vers les services
-                <ArrowRight className="h-5 w-5 ml-2" />
-              </Button>
+                {i + 1}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Card className="mx-auto max-w-md bg-card/80 backdrop-blur-sm border-0 shadow-lg">
+          <div className="p-6">
+            {/* Step Title */}
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-2">
+                <Package className="w-5 h-5 text-primary" />
+                <h2 className="text-lg font-semibold">{getStepTitle()}</h2>
+              </div>
+              <p className="text-sm text-muted-foreground ml-8">{getStepSubtitle()}</p>
             </div>
-          </CardContent>
+
+            {step !== 'type' && (
+              <>
+                {/* Current Location Button */}
+                <Button
+                  variant="outline"
+                  className="w-full justify-start mb-6 h-12 bg-background/50"
+                  onClick={handleCurrentLocation}
+                >
+                  <Navigation className="w-4 h-4 mr-3" />
+                  <span>Utiliser ma position actuelle</span>
+                </Button>
+
+                {/* Popular Places */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-4">
+                    Lieux populaires à Kinshasa
+                  </h3>
+                  
+                  {POPULAR_PLACES.map((place) => (
+                    <Button
+                      key={place.id}
+                      variant="ghost"
+                      className="w-full h-auto p-4 justify-start bg-background/30 hover:bg-background/60 transition-all"
+                      onClick={() => handleLocationSelect(place)}
+                    >
+                      <div className="flex items-start gap-3 w-full">
+                        <Star className="w-4 h-4 text-yellow-500 mt-1 flex-shrink-0" />
+                        <div className="text-left flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-sm">{place.name}</span>
+                            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                              Populaire
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {place.address}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {place.category}
+                          </p>
+                        </div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {step === 'type' && (
+              <div className="space-y-4">
+                {[
+                  { id: 'flash', name: 'Flash', desc: 'Livraison express en 30min', price: '5 000 CDF' },
+                  { id: 'flex', name: 'Flex', desc: 'Livraison standard en 2h', price: '3 000 CDF' },
+                  { id: 'maxicharge', name: 'Maxicharge', desc: 'Gros colis, livraison en 4h', price: '8 000 CDF' }
+                ].map((type) => (
+                  <Button
+                    key={type.id}
+                    variant={deliveryType === type.id ? "default" : "outline"}
+                    className="w-full h-auto p-4 justify-start"
+                    onClick={() => setDeliveryType(type.id as any)}
+                  >
+                    <div className="text-left w-full">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">{type.name}</span>
+                        <span className="text-sm font-bold">{type.price}</span>
+                      </div>
+                      <p className="text-xs opacity-70 mt-1">{type.desc}</p>
+                    </div>
+                  </Button>
+                ))}
+
+                <div className="pt-4 space-y-3">
+                  <Button onClick={handleSubmit} className="w-full">
+                    Confirmer la commande
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                  <Button variant="outline" onClick={onCancel} className="w-full">
+                    Annuler
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Back Button */}
+            {step !== 'pickup' && step !== 'type' && (
+              <Button
+                variant="outline"
+                className="w-full mt-4"
+                onClick={() => setStep(step === 'delivery' ? 'pickup' : 'pickup')}
+              >
+                Retour
+              </Button>
+            )}
+          </div>
         </Card>
+
+        {/* Summary */}
+        {(pickup || delivery) && step !== 'type' && (
+          <Card className="mx-auto max-w-md mt-4 bg-card/60 backdrop-blur-sm border-0">
+            <div className="p-4">
+              <h3 className="text-sm font-medium mb-3">Résumé</h3>
+              {pickup && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                  <MapPin className="w-3 h-3" />
+                  <span>De: {pickup.name}</span>
+                </div>
+              )}
+              {delivery && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <MapPin className="w-3 h-3" />
+                  <span>Vers: {delivery.name}</span>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   );
-};
-
-export default SimpleDeliveryInterface;
+}
