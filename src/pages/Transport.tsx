@@ -1,12 +1,37 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-// Removed obsolete AdvancedTaxiInterface
+import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
+import TaxiLiveTracker from '@/components/transport/TaxiLiveTracker';
 import { Car, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 const TransportPage = () => {
   const navigate = useNavigate();
+  const [activeView, setActiveView] = useState<'create' | 'track'>('create');
+  const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
+
+  const handleBookingCreated = (data: any) => {
+    console.log('🚗 Booking created:', data);
+    if (data.bookingId) {
+      setActiveBookingId(data.bookingId);
+      setActiveView('track');
+    }
+  };
+
+  const handleBackToCreate = () => {
+    setActiveView('create');
+    setActiveBookingId(null);
+  };
+
+  if (activeView === 'track' && activeBookingId) {
+    return (
+      <TaxiLiveTracker
+        bookingId={activeBookingId}
+        onBack={handleBackToCreate}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20">
@@ -35,15 +60,11 @@ const TransportPage = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="p-8 text-center">
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Interface Transport</h2>
-            <p className="text-muted-foreground">En cours de développement avec le nouveau système simplifié</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Main Content - Interface taxi moderne */}
+      <ModernTaxiInterface
+        onSubmit={handleBookingCreated}
+        onCancel={handleBackToCreate}
+      />
     </div>
   );
 };
