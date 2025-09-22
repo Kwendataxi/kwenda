@@ -1,7 +1,7 @@
 import React from 'react';
 import { UniversalSearchInterface } from '@/components/search/UniversalSearchInterface';
 import { useUniversalSearch } from '@/hooks/useUniversalSearch';
-import { universalSearchProvider, userSearchProvider, ordersSearchProvider } from '@/services/searchProviders';
+// Removed searchProviders dependency - using simplified search
 import type { SearchResult } from '@/components/search/UniversalSearchInterface';
 
 interface UniversalAdminSearchProps {
@@ -57,14 +57,8 @@ export const UniversalAdminSearch = ({
   };
 
   const getSearchProvider = () => {
-    switch (searchType) {
-      case 'users':
-        return userSearchProvider;
-      case 'orders':
-        return ordersSearchProvider;
-      default:
-        return universalSearchProvider;
-    }
+    // Simplified search provider - return null to use default
+    return null;
   };
 
   const searchConfig = getSearchConfig();

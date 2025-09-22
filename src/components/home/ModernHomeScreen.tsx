@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ModernHeader } from './ModernHeader';
 import { ServiceGrid } from './ServiceGrid';
-import { UniversalSearchBar } from './UniversalSearchBar';
-import { RecentPlaces } from './RecentPlaces';
+// Removed obsolete components
 import { MarketplacePreview } from './MarketplacePreview';
 import { ModernBottomNavigation } from './ModernBottomNavigation';
 import { HomeTrendsSheet } from './HomeTrendsSheet';
@@ -85,18 +84,7 @@ export const ModernHomeScreen = ({
             serviceNotifications={serviceNotifications}
           />
           
-          <UniversalSearchBar 
-            onSearch={onSearch}
-            onTransportSelect={() => onServiceSelect('transport')}
-          />
-          
-          <RecentPlaces 
-            onPlaceSelect={(placeName, coordinates) => {
-              onSearch(placeName, coordinates);
-              onServiceSelect('transport');
-            }}
-            onViewAll={() => setPlacesOpen(true)}
-          />
+          {/* Simplified home interface - search removed temporarily */}
           
           <MarketplacePreview
             featuredProducts={featuredProducts}

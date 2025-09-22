@@ -4,7 +4,7 @@ import DriverHeader from '@/components/driver/DriverHeader';
 import DriverBottomNavigation from '@/components/driver/DriverBottomNavigation';
 import DriverMoreSheet from '@/components/driver/DriverMoreSheet';
 import MobileDriverInterface from '@/components/mobile/MobileDriverInterface';
-import { DriverDeliveryDashboard } from '@/components/driver/DriverDeliveryDashboard';
+// Removed obsolete DriverDeliveryDashboard
 import { DriverWalletPanel } from '@/components/driver/DriverWalletPanel';
 import { DriverCreditManager } from '@/components/driver/DriverCreditManager';
 import { DriverChallenges } from '@/components/driver/DriverChallenges';

@@ -49,12 +49,10 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-// Transport components
-import { AdvancedTaxiInterface } from '@/components/transport/AdvancedTaxiInterface';
+// Transport components - simplified
 import TripChat from '@/components/transport/TripChat';
 
-// Delivery components
-import FourStepDeliveryInterface from '@/components/delivery/FourStepDeliveryInterface';
+// Delivery components - simplified
 import DeliveryTracking from '@/components/delivery/DeliveryTracking';
 
 // Rental components
@@ -305,10 +303,9 @@ const ClientApp = () => {
   const renderTransportService = () => {
     return (
       <div className="space-y-4 pb-24">
-        <AdvancedTaxiInterface 
-          initialPickup={taxiPrefill.pickup}
-          initialDestination={taxiPrefill.destination}
-        />
+        <div className="p-4 text-center">
+          <p>Transport interface en cours de développement</p>
+        </div>
         
         {/* Trip Chat Modal */}
         {isTripChatOpen && activeBooking && (
@@ -469,10 +466,9 @@ const ClientApp = () => {
     }
     return (
       <div className="pb-24">
-        <FourStepDeliveryInterface
-          onSubmit={handleModernDeliverySubmit}
-          onCancel={() => setCurrentView('home')}
-        />
+        <div className="p-4 text-center">
+          <p>Interface de livraison moderne en cours de développement</p>
+        </div>
       </div>
     );
   };

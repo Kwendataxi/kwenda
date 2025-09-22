@@ -5,9 +5,9 @@ import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
 import VehicleSizeSelector, { VehicleSize } from './VehicleSizeSelector';
 import LoadingAssistanceToggle from './LoadingAssistanceToggle';
 import { GeocodingService } from '@/services/geocoding';
-import { useMasterLocation } from '@/hooks/useMasterLocation';
-import { UniversalLocationPicker } from '@/components/location/UniversalLocationPicker';
-import { LocationData } from '@/types/location';
+import { useSimpleLocation } from '@/hooks/useSimpleLocation';
+import { ModernLocationPicker } from '@/components/delivery/ModernLocationPicker';
+import { LocationData } from '@/services/simpleLocationService';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -33,7 +33,7 @@ const CargoDeliveryInterface = ({ onSubmit, onCancel }: CargoDeliveryInterfacePr
   const [hasAssistance, setHasAssistance] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { calculateDistance, formatDistance } = useMasterLocation();
+  const { calculateDistance, formatDistance } = useSimpleLocation();
   const { toast } = useToast();
 
   const vehicleSizes: VehicleSize[] = [
@@ -212,14 +212,11 @@ const CargoDeliveryInterface = ({ onSubmit, onCancel }: CargoDeliveryInterfacePr
             <div className="w-3 h-3 bg-primary rounded-full"></div>
             Point de récupération
           </label>
-          <UniversalLocationPicker
+          <ModernLocationPicker
             value={pickup}
-            onLocationSelect={setPickup}
+            onChange={setPickup}
             placeholder="D'où récupérer le colis ?"
-            context="delivery"
-            variant="default"
-            showCurrentLocation={true}
-            className="w-full"
+            context="pickup"
           />
         </div>
 
@@ -228,13 +225,11 @@ const CargoDeliveryInterface = ({ onSubmit, onCancel }: CargoDeliveryInterfacePr
             <MapPin className="w-3 h-3 text-primary" />
             Point de livraison
           </label>
-          <UniversalLocationPicker
+          <ModernLocationPicker
             value={destination}
-            onLocationSelect={setDestination}
+            onChange={setDestination}
             placeholder="Où livrer le colis ?"
             context="delivery"
-            variant="default"
-            className="w-full"
           />
         </div>
       </div>

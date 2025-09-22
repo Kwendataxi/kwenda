@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AdvancedTaxiInterface } from '@/components/transport/AdvancedTaxiInterface';
+// Removed obsolete AdvancedTaxiInterface
 import { Car, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -36,7 +36,14 @@ const TransportPage = () => {
       </div>
 
       {/* Main Content */}
-      <AdvancedTaxiInterface />
+      <div className="p-8 text-center">
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Interface Transport</h2>
+            <p className="text-muted-foreground">En cours de développement avec le nouveau système simplifié</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
