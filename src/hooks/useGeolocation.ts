@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { masterLocationService, type LocationData, type LocationSearchResult } from '@/services/MasterLocationService';
+import { simpleLocationService, type LocationData, type LocationSearchResult } from '@/services/simpleLocationService';
 
 export interface LocationState {
   latitude: number;
@@ -26,14 +26,7 @@ export const useGeolocation = () => {
     setState(prev => ({ ...prev, loading: true, error: '' }));
     
     try {
-      const position = await masterLocationService.getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 300000,
-        fallbackToIP: true,
-        fallbackToDatabase: true,
-        fallbackToDefault: true
-      });
+      const position = await simpleLocationService.getCurrentPosition();
       
       setState(prev => ({
         ...prev,
@@ -41,7 +34,7 @@ export const useGeolocation = () => {
         longitude: position.lng,
         accuracy: position.accuracy || 0,
         loading: false,
-        isRealGPS: position.type === 'current',
+        isRealGPS: position.type === 'gps',
         lastKnownPosition: position,
         error: ''
       }));
@@ -52,7 +45,7 @@ export const useGeolocation = () => {
         address: 'Kinshasa, République Démocratique du Congo',
         lat: -4.3217,
         lng: 15.3069,
-        type: 'fallback' as const
+        type: 'default' as const
       };
       
       setState(prev => ({
@@ -74,7 +67,7 @@ export const useGeolocation = () => {
     if (!query.trim()) return [];
     
     try {
-      const results = await masterLocationService.searchLocation(query, state.lastKnownPosition || undefined);
+      const results = await simpleLocationService.searchLocations(query);
       return results;
     } catch (error) {
       console.error('Search location error:', error);
@@ -87,12 +80,7 @@ export const useGeolocation = () => {
   }, [searchLocation]);
 
   const reverseGeocode = useCallback(async (lat: number, lng: number): Promise<string> => {
-    try {
-      const fallbackService = masterLocationService as any;
-      return await fallbackService.reverseGeocode(lat, lng);
-    } catch (error) {
-      return `Position ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-    }
+    return `Position ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
   }, []);
 
   const getCurrentLocation = useCallback(() => {
@@ -108,11 +96,11 @@ export const useGeolocation = () => {
   }, []);
 
   const calculateDistance = useCallback((point1: { lat: number; lng: number }, point2: { lat: number; lng: number }): number => {
-    return masterLocationService.calculateDistance(point1, point2);
+    return simpleLocationService.calculateDistance(point1, point2);
   }, []);
 
   const formatDistance = useCallback((meters: number): string => {
-    return masterLocationService.formatDistance(meters);
+    return simpleLocationService.formatDistance(meters);
   }, []);
 
   // Initialiser la position au premier chargement

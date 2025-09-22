@@ -1,591 +1,444 @@
 /**
- * Interface de livraison moderne et simplifiée - 3 étapes seulement
- * Étape 1: Ville + Service
- * Étape 2: Adresses (pickup + destination simultanées)
- * Étape 3: Confirmation
+ * Interface de livraison ultra-moderne et simplifiée
+ * Design glassmorphism avec workflow en une seule page
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Package, Truck, Clock, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { useSimpleLocation } from '@/hooks/useSimpleLocation';
+import { LocationSearchResult } from '@/services/simpleLocationService';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
-import { EnhancedLocationSearch } from './EnhancedLocationSearch';
-import CitySelector from './CitySelector';
-import { LocationData } from '@/types/location';
-import { 
-  ArrowLeft, 
-  ArrowRight, 
-  Package, 
-  MapPin, 
-  Target, 
-  Bike,
-  Car,
-  Truck,
-  CheckCircle2,
-  Clock,
-  Route,
-  Loader2,
-  Zap
-} from 'lucide-react';
 
 interface ModernDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
 }
 
-interface DeliveryFormData {
-  city: string;
-  serviceMode: 'flash' | 'flex' | 'maxicharge';
-  pickup: LocationData | null;
-  destination: LocationData | null;
+interface DeliveryData {
+  pickupLocation: LocationSearchResult | null;
+  deliveryLocation: LocationSearchResult | null;
+  serviceType: 'flash' | 'flex' | 'maxicharge';
+  packageType: string;
+  estimatedPrice: number;
 }
 
-// Services de livraison optimisés
-const deliveryServices = [
-  {
-    id: 'flash' as const,
-    name: 'Flash',
-    subtitle: 'Express en moto',
-    icon: Bike,
-    time: '15-30 min',
+const SERVICE_TYPES = {
+  flash: { 
+    name: 'Flash', 
+    icon: '⚡', 
+    description: 'Livraison express (1-2h)',
     basePrice: 5000,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200'
+    color: 'text-red-500'
   },
-  {
-    id: 'flex' as const,
-    name: 'Flex',
-    subtitle: 'Camionnette standard',
-    icon: Truck,
-    time: '45-90 min',
+  flex: { 
+    name: 'Flex', 
+    icon: '📦', 
+    description: 'Livraison standard (2-4h)',
+    basePrice: 3000,
+    color: 'text-blue-500'
+  },
+  maxicharge: { 
+    name: 'MaxiCharge', 
+    icon: '🚚', 
+    description: 'Gros colis (4-6h)',
     basePrice: 8000,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200'
-  },
-  {
-    id: 'maxicharge' as const,
-    name: 'MaxiCharge',
-    subtitle: 'Gros volume en camion',
-    icon: Truck,
-    time: '1-2 heures',
-    basePrice: 12000,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200'
+    color: 'text-purple-500'
   }
+};
+
+const PACKAGE_TYPES = [
+  'Documents', 'Électronique', 'Vêtements', 'Nourriture', 
+  'Médicaments', 'Mobilier', 'Équipement', 'Autre'
 ];
 
-const ModernDeliveryInterface = ({ onSubmit, onCancel }: ModernDeliveryInterfaceProps) => {
+export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDeliveryInterfaceProps) {
   const { toast } = useToast();
-  const { createDeliveryOrder, calculateDeliveryPrice, loading } = useEnhancedDeliveryOrders();
+  const { getCurrentPosition, searchLocations, calculateDistance, formatDistance } = useSimpleLocation();
   
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<DeliveryFormData>({
-    city: 'Kinshasa',
-    serviceMode: 'flex',
-    pickup: null,
-    destination: null
+  const [deliveryData, setDeliveryData] = useState<DeliveryData>({
+    pickupLocation: null,
+    deliveryLocation: null,
+    serviceType: 'flex',
+    packageType: 'Documents',
+    estimatedPrice: 3000
   });
-  
-  const [calculatedPrice, setCalculatedPrice] = useState<{
-    price: number;
-    distance: number;
-    duration: number;
-  } | null>(null);
-  const [priceLoading, setPriceLoading] = useState(false);
 
-  // Validation stricte des LocationData avec logs détaillés
-  const validateLocationData = (location: any): LocationData | null => {
-    console.log('Validation location:', location);
-    
-    if (!location) {
-      console.warn('Location is null or undefined');
-      return null;
-    }
-    
-    // Extraire l'adresse avec priorité name > address
-    const address = location.name || location.address || location.formatted_address || '';
-    const lat = typeof location.lat === 'number' ? location.lat : 
-               typeof location.latitude === 'number' ? location.latitude :
-               parseFloat(location.lat || location.latitude || '0');
-    const lng = typeof location.lng === 'number' ? location.lng : 
-               typeof location.longitude === 'number' ? location.longitude :
-               parseFloat(location.lng || location.longitude || '0');
-    
-    console.log('Validation data:', { address: address.trim(), lat, lng });
-    
-    // Validation plus permissive - accepter les coordonnées valides même si proches de 0
-    if (!address.trim()) {
-      console.error('Adresse vide ou invalide');
-      return null;
-    }
-    
-    if (isNaN(lat) || isNaN(lng)) {
-      console.error('Coordonnées invalides (NaN):', { lat, lng });
-      return null;
-    }
-    
-    // Vérifier que les coordonnées sont dans des plages réalistes pour l'Afrique
-    if (Math.abs(lat) > 90 || Math.abs(lng) > 180) {
-      console.error('Coordonnées hors limites:', { lat, lng });
-      return null;
-    }
-    
-    const validLocation = {
-      address: address.trim(),
-      lat: Number(lat),
-      lng: Number(lng),
-      type: location.type || 'geocoded',
-      placeId: location.placeId || location.place_id,
-      name: location.name,
-      subtitle: location.subtitle || location.vicinity
-    };
-    
-    console.log('Location validée:', validLocation);
-    return validLocation;
-  };
+  const [expandedSection, setExpandedSection] = useState<string>('pickup');
+  const [pickupQuery, setPickupQuery] = useState('');
+  const [deliveryQuery, setDeliveryQuery] = useState('');
+  const [pickupSuggestions, setPickupSuggestions] = useState<LocationSearchResult[]>([]);
+  const [deliverySuggestions, setDeliverySuggestions] = useState<LocationSearchResult[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Calcul de prix en temps réel
-  const calculatePrice = useCallback(async () => {
-    if (!formData.pickup || !formData.destination || priceLoading) return;
-    
-    const validPickup = validateLocationData(formData.pickup);
-    const validDestination = validateLocationData(formData.destination);
-    
-    if (!validPickup || !validDestination) {
-      console.error('Données de localisation invalides pour le calcul');
-      return;
-    }
-    
-    setPriceLoading(true);
-    try {
-      const result = await calculateDeliveryPrice(validPickup, validDestination, formData.serviceMode);
-      setCalculatedPrice(result);
-      console.log('Prix calculé:', result);
-    } catch (error) {
-      console.error('Erreur calcul prix:', error);
-      const service = deliveryServices.find(s => s.id === formData.serviceMode);
-      setCalculatedPrice({
-        price: service?.basePrice || 7000,
-        distance: 5,
-        duration: 30
-      });
-    } finally {
-      setPriceLoading(false);
-    }
-  }, [formData.pickup, formData.destination, formData.serviceMode, calculateDeliveryPrice, priceLoading]);
-
-  // Auto-calcul prix quand les adresses sont complètes
+  // Initialiser la position actuelle
   useEffect(() => {
-    if (formData.pickup && formData.destination && currentStep === 3) {
-      const timer = setTimeout(calculatePrice, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [formData.pickup, formData.destination, currentStep, calculatePrice]);
+    getCurrentPosition();
+  }, [getCurrentPosition]);
 
-  // Gestion sélection location avec validation renforcée et fallbacks
-  const handleLocationSelect = (location: any, type: 'pickup' | 'destination') => {
-    console.log(`Sélection ${type}:`, location);
-    
-    if (!location) {
-      toast({
-        title: "Aucune adresse sélectionnée",
-        description: "Veuillez choisir une adresse dans la liste.",
-        variant: "destructive"
-      });
-      return;
+  // Recherche pickup
+  useEffect(() => {
+    if (pickupQuery.length > 0) {
+      searchLocations(pickupQuery, setPickupSuggestions);
+    } else {
+      setPickupSuggestions([]);
     }
-    
-    const validLocation = validateLocationData(location);
-    if (!validLocation) {
-      console.error('Validation échouée pour:', location);
+  }, [pickupQuery, searchLocations]);
+
+  // Recherche delivery
+  useEffect(() => {
+    if (deliveryQuery.length > 0) {
+      searchLocations(deliveryQuery, setDeliverySuggestions);
+    } else {
+      setDeliverySuggestions([]);
+    }
+  }, [deliveryQuery, searchLocations]);
+
+  // Calculer le prix quand les locations changent
+  useEffect(() => {
+    if (deliveryData.pickupLocation && deliveryData.deliveryLocation) {
+      const distance = calculateDistance(
+        deliveryData.pickupLocation,
+        deliveryData.deliveryLocation
+      );
       
-      // Fallback avec coordonnées par défaut si c'est un lieu connu
-      if (location.name || location.address) {
-        const fallbackLocation: LocationData = {
-          address: location.name || location.address,
-          lat: -4.3217, // Kinshasa par défaut
-          lng: 15.3069,
-          type: 'fallback',
-          name: location.name
-        };
-        
-        setFormData(prev => ({ ...prev, [type]: fallbackLocation }));
-        
-        toast({
-          title: `${type === 'pickup' ? 'Collecte' : 'Livraison'} définie ⚠️`,
-          description: `${fallbackLocation.address} (coordonnées approximatives)`,
-          variant: "default"
-        });
-        return;
-      }
+      const basePrice = SERVICE_TYPES[deliveryData.serviceType].basePrice;
+      const distancePrice = Math.max(0, (distance / 1000 - 1)) * 500; // 500 CDF par km après le premier
+      const estimatedPrice = Math.round(basePrice + distancePrice);
       
-      toast({
-        title: "Adresse invalide",
-        description: "Cette adresse ne peut pas être utilisée. Veuillez en choisir une autre.",
-        variant: "destructive"
-      });
-      return;
+      setDeliveryData(prev => ({ ...prev, estimatedPrice }));
     }
-    
-    setFormData(prev => ({ ...prev, [type]: validLocation }));
-    
-    toast({
-      title: `${type === 'pickup' ? 'Collecte' : 'Livraison'} définie ✅`,
-      description: validLocation.address,
-      variant: "default"
-    });
-  };
+  }, [deliveryData.pickupLocation, deliveryData.deliveryLocation, deliveryData.serviceType, calculateDistance]);
 
-  // Navigation entre étapes
-  const nextStep = () => {
-    if (currentStep < 3) {
-      setCurrentStep(prev => prev + 1);
+  const handleLocationSelect = (location: LocationSearchResult, type: 'pickup' | 'delivery') => {
+    if (type === 'pickup') {
+      setDeliveryData(prev => ({ ...prev, pickupLocation: location }));
+      setPickupQuery(location.title);
+      setPickupSuggestions([]);
+      setExpandedSection('delivery');
+    } else {
+      setDeliveryData(prev => ({ ...prev, deliveryLocation: location }));
+      setDeliveryQuery(location.title);
+      setDeliverySuggestions([]);
+      setExpandedSection('service');
     }
   };
 
-  const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
-    }
-  };
-
-  // Validation pour passer à l'étape suivante
-  const canProceed = () => {
-    switch(currentStep) {
-      case 1: return formData.city && formData.serviceMode;
-      case 2: return formData.pickup && formData.destination;
-      case 3: return true;
-      default: return false;
-    }
-  };
-
-  // Soumission finale
   const handleSubmit = async () => {
-    const validPickup = validateLocationData(formData.pickup);
-    const validDestination = validateLocationData(formData.destination);
-    
-    if (!validPickup || !validDestination) {
+    if (!deliveryData.pickupLocation || !deliveryData.deliveryLocation) {
       toast({
-        title: "Erreur de validation",
-        description: "Les adresses de collecte et de livraison sont requises et doivent être valides.",
+        title: "Informations manquantes",
+        description: "Veuillez sélectionner les adresses de collecte et de livraison",
         variant: "destructive"
       });
       return;
     }
+
+    setIsSubmitting(true);
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Utilisateur non connecté');
+      }
+
       const orderData = {
-        city: formData.city,
-        pickup: validPickup,
-        destination: validDestination,
-        mode: formData.serviceMode,
-        packageWeight: 5,
-        packageType: 'medium' as const,
-        additionalInfo: `Service: ${deliveryServices.find(s => s.id === formData.serviceMode)?.name}`,
-        estimatedPrice: calculatedPrice?.price || deliveryServices.find(s => s.id === formData.serviceMode)?.basePrice || 7000,
-        distance: calculatedPrice?.distance || 5,
-        duration: calculatedPrice?.duration || 30
+        user_id: user.id,
+        pickup_location: deliveryData.pickupLocation.address,
+        delivery_location: deliveryData.deliveryLocation.address,
+        pickup_coordinates: {
+          lat: deliveryData.pickupLocation.lat,
+          lng: deliveryData.pickupLocation.lng
+        },
+        delivery_coordinates: {
+          lat: deliveryData.deliveryLocation.lat,
+          lng: deliveryData.deliveryLocation.lng
+        },
+        delivery_type: deliveryData.serviceType,
+        package_type: deliveryData.packageType,
+        estimated_price: deliveryData.estimatedPrice,
+        status: 'pending'
       };
 
-      console.log('Données de commande:', orderData);
-      const result = await createDeliveryOrder(orderData);
-      
-      if (result) {
-        onSubmit(result);
-      }
+      const { data, error } = await supabase
+        .from('delivery_orders')
+        .insert([orderData])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Commande créée",
+        description: "Votre demande de livraison a été enregistrée avec succès"
+      });
+
+      onSubmit(data);
     } catch (error) {
-      console.error('Erreur création commande:', error);
+      console.error('Erreur lors de la création:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de créer la commande. Vérifiez vos informations.",
+        description: "Impossible de créer la commande. Veuillez réessayer.",
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Étape 1: Ville + Service
-  const StepOne = () => (
-    <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <Package className="h-12 w-12 text-primary mx-auto" />
-        <h2 className="text-2xl font-bold">Configuration</h2>
-        <p className="text-muted-foreground">Choisissez votre ville et le type de livraison</p>
+  const SectionHeader = ({ 
+    id, 
+    title, 
+    icon, 
+    isCompleted, 
+    isExpanded 
+  }: { 
+    id: string; 
+    title: string; 
+    icon: React.ReactNode; 
+    isCompleted: boolean;
+    isExpanded: boolean;
+  }) => (
+    <div 
+      className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors rounded-lg"
+      onClick={() => setExpandedSection(isExpanded ? '' : id)}
+    >
+      <div className="flex items-center gap-3">
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+          isCompleted ? 'bg-green-500/20 text-green-400' : 'bg-primary/20 text-primary'
+        }`}>
+          {icon}
+        </div>
+        <span className="font-medium text-foreground">{title}</span>
       </div>
-
-      {/* Sélection ville */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium">Ville</label>
-        <CitySelector
-          selectedCity={formData.city}
-          onCityChange={(city) => setFormData(prev => ({ ...prev, city }))}
-        />
+      <div className="flex items-center gap-2">
+        {isCompleted && <Badge variant="secondary" className="text-xs">✓</Badge>}
+        {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
       </div>
+    </div>
+  );
 
-      {/* Sélection service */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium">Service de livraison</label>
-        <div className="grid gap-3">
-          {deliveryServices.map((service) => {
-            const Icon = service.icon;
-            const isSelected = formData.serviceMode === service.id;
+  const LocationInput = ({ 
+    value, 
+    onChange, 
+    suggestions, 
+    onSelect, 
+    placeholder,
+    type
+  }: {
+    value: string;
+    onChange: (value: string) => void;
+    suggestions: LocationSearchResult[];
+    onSelect: (location: LocationSearchResult) => void;
+    placeholder: string;
+    type: 'pickup' | 'delivery';
+  }) => (
+    <div className="relative">
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="glass-input"
+      />
+      
+      {suggestions.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-2 glass-card border border-border/20 rounded-lg overflow-hidden z-50">
+          {suggestions.map((suggestion) => (
+            <div
+              key={suggestion.id}
+              className="p-3 hover:bg-white/5 cursor-pointer transition-colors border-b border-border/10 last:border-b-0"
+              onClick={() => onSelect(suggestion)}
+            >
+              <div className="font-medium text-foreground">{suggestion.title}</div>
+              {suggestion.subtitle && (
+                <div className="text-xs text-muted-foreground">{suggestion.subtitle}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-background dark:via-background/95 dark:to-background/90 p-4">
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">Livraison Express</h1>
+          <p className="text-muted-foreground">Service de livraison rapide et fiable</p>
+        </div>
+
+        {/* Main Card */}
+        <Card className="glass-card border-border/20 overflow-hidden">
+          <div className="p-6 space-y-6">
             
-            return (
-              <Card 
-                key={service.id}
-                className={`cursor-pointer transition-all ${
-                  isSelected 
-                    ? 'ring-2 ring-primary border-primary' 
-                    : 'hover:border-primary/50'
-                }`}
-                onClick={() => setFormData(prev => ({ ...prev, serviceMode: service.id }))}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${service.bgColor}`}>
-                      <Icon className={`h-5 w-5 ${service.color}`} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-medium">{service.name}</h3>
-                        <Badge variant="outline">{service.time}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{service.subtitle}</p>
-                      <p className="text-sm font-medium text-primary">
-                        À partir de {service.basePrice.toLocaleString()} FC
-                      </p>
-                    </div>
-                    {isSelected && <CheckCircle2 className="h-5 w-5 text-primary" />}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-
-  // Étape 2: Adresses
-  const StepTwo = () => (
-    <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <Route className="h-12 w-12 text-primary mx-auto" />
-        <h2 className="text-2xl font-bold">Adresses</h2>
-        <p className="text-muted-foreground">Définissez les points de collecte et de livraison</p>
-      </div>
-
-      {/* Point de collecte */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-blue-100 rounded-full">
-            <Package className="h-4 w-4 text-blue-600" />
-          </div>
-          <label className="text-sm font-medium">Point de collecte</label>
-        </div>
-        <EnhancedLocationSearch
-          placeholder="Où récupérer le colis ?"
-          onChange={(location) => handleLocationSelect(location, 'pickup')}
-          value={formData.pickup}
-          city={formData.city}
-          label="Collecte"
-          icon={<Package className="w-5 h-5 text-blue-600" />}
-        />
-        {formData.pickup && (
-          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium">Collecte définie</span>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">{formData.pickup.address}</p>
-          </div>
-        )}
-      </div>
-
-      {/* Point de livraison */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-green-100 rounded-full">
-            <Target className="h-4 w-4 text-green-600" />
-          </div>
-          <label className="text-sm font-medium">Point de livraison</label>
-        </div>
-        <EnhancedLocationSearch
-          placeholder="Où livrer le colis ?"
-          onChange={(location) => handleLocationSelect(location, 'destination')}
-          value={formData.destination}
-          city={formData.city}
-          label="Livraison"
-          icon={<Target className="w-5 h-5 text-green-600" />}
-        />
-        {formData.destination && (
-          <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium">Livraison définie</span>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">{formData.destination.address}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  // Étape 3: Confirmation
-  const StepThree = () => {
-    const selectedService = deliveryServices.find(s => s.id === formData.serviceMode);
-    const ServiceIcon = selectedService?.icon || Car;
-    
-    return (
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto" />
-          <h2 className="text-2xl font-bold">Confirmation</h2>
-          <p className="text-muted-foreground">Vérifiez les détails de votre livraison</p>
-        </div>
-
-        {/* Résumé de la commande */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ServiceIcon className="h-5 w-5" />
-              Service {selectedService?.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Trajet */}
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="p-1.5 bg-blue-100 rounded-full mt-0.5">
-                  <Package className="h-3 w-3 text-blue-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">Collecte</p>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {formData.pickup?.address}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="p-1.5 bg-green-100 rounded-full mt-0.5">
-                  <Target className="h-3 w-3 text-green-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">Livraison</p>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {formData.destination?.address}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Prix */}
-            <div className="pt-4 border-t">
-              {priceLoading ? (
-                <div className="text-center">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">Calcul du prix...</p>
-                </div>
-              ) : calculatedPrice ? (
-                <div className="text-center space-y-2">
-                  <div className="text-3xl font-bold text-primary">
-                    {calculatedPrice.price.toLocaleString()} FC
-                  </div>
-                  <div className="flex justify-center gap-4 text-sm text-muted-foreground">
-                    <span>{calculatedPrice.distance.toFixed(1)} km</span>
-                    <span>•</span>
-                    <span>{calculatedPrice.duration} min</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">
-                    {selectedService?.basePrice.toLocaleString()} FC
-                  </div>
-                  <p className="text-sm text-muted-foreground">Prix estimé</p>
+            {/* Section Pickup */}
+            <div className="space-y-4">
+              <SectionHeader
+                id="pickup"
+                title="Point de collecte"
+                icon={<MapPin className="w-4 h-4" />}
+                isCompleted={!!deliveryData.pickupLocation}
+                isExpanded={expandedSection === 'pickup'}
+              />
+              
+              {expandedSection === 'pickup' && (
+                <div className="pl-11 space-y-4 animate-fade-in">
+                  <LocationInput
+                    value={pickupQuery}
+                    onChange={setPickupQuery}
+                    suggestions={pickupSuggestions}
+                    onSelect={(location) => handleLocationSelect(location, 'pickup')}
+                    placeholder="Où récupérer le colis ?"
+                    type="pickup"
+                  />
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  };
 
-  return (
-    <div className="max-w-md mx-auto p-4 space-y-6">
-      {/* Header avec progress */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={onCancel}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm font-medium">Étape {currentStep}/3</span>
-        </div>
-        <Progress value={(currentStep / 3) * 100} className="h-2" />
-      </div>
+            {/* Section Delivery */}
+            <div className="space-y-4">
+              <SectionHeader
+                id="delivery"
+                title="Point de livraison"
+                icon={<Package className="w-4 h-4" />}
+                isCompleted={!!deliveryData.deliveryLocation}
+                isExpanded={expandedSection === 'delivery'}
+              />
+              
+              {expandedSection === 'delivery' && (
+                <div className="pl-11 space-y-4 animate-fade-in">
+                  <LocationInput
+                    value={deliveryQuery}
+                    onChange={setDeliveryQuery}
+                    suggestions={deliverySuggestions}
+                    onSelect={(location) => handleLocationSelect(location, 'delivery')}
+                    placeholder="Où livrer le colis ?"
+                    type="delivery"
+                  />
+                </div>
+              )}
+            </div>
 
-      {/* Contenu dynamique */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentStep}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.2 }}
-        >
-          {currentStep === 1 && <StepOne />}
-          {currentStep === 2 && <StepTwo />}
-          {currentStep === 3 && <StepThree />}
-        </motion.div>
-      </AnimatePresence>
+            {/* Section Service */}
+            <div className="space-y-4">
+              <SectionHeader
+                id="service"
+                title="Type de service"
+                icon={<Truck className="w-4 h-4" />}
+                isCompleted={true}
+                isExpanded={expandedSection === 'service'}
+              />
+              
+              {expandedSection === 'service' && (
+                <div className="pl-11 space-y-4 animate-fade-in">
+                  <div className="grid gap-3">
+                    {Object.entries(SERVICE_TYPES).map(([key, service]) => (
+                      <div
+                        key={key}
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:scale-[1.02] ${
+                          deliveryData.serviceType === key
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border/20 glass-card hover:border-primary/30'
+                        }`}
+                        onClick={() => setDeliveryData(prev => ({ ...prev, serviceType: key as any }))}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{service.icon}</span>
+                            <div>
+                              <div className={`font-medium ${service.color}`}>{service.name}</div>
+                              <div className="text-sm text-muted-foreground">{service.description}</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-foreground">{service.basePrice.toLocaleString()} CDF</div>
+                            <div className="text-xs text-muted-foreground">+ distance</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
 
-      {/* Navigation */}
-      <div className="flex gap-3">
-        {currentStep > 1 && (
-          <Button variant="outline" onClick={prevStep} className="flex-1">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour
-          </Button>
-        )}
-        
-        {currentStep < 3 ? (
-          <Button 
-            onClick={nextStep} 
-            disabled={!canProceed()}
-            className="flex-1"
-          >
-            Continuer
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        ) : (
-          <Button 
-            onClick={handleSubmit}
-            disabled={loading || !canProceed()}
-            className="flex-1"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Création...
-              </>
-            ) : (
-              <>
-                <Zap className="h-4 w-4 mr-2" />
-                Confirmer
-              </>
+                  <div className="space-y-2">
+                    <Label htmlFor="packageType">Type de colis</Label>
+                    <select
+                      id="packageType"
+                      value={deliveryData.packageType}
+                      onChange={(e) => setDeliveryData(prev => ({ ...prev, packageType: e.target.value }))}
+                      className="w-full p-3 rounded-lg glass-input border border-border/20 bg-background/20 text-foreground"
+                    >
+                      {PACKAGE_TYPES.map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Résumé et Prix */}
+            {deliveryData.pickupLocation && deliveryData.deliveryLocation && (
+              <div className="glass-card border border-green-500/20 bg-green-500/5 p-4 rounded-lg animate-fade-in">
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="w-4 h-4 text-green-500" />
+                  <span className="font-medium text-green-700 dark:text-green-400">Résumé de la commande</span>
+                </div>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Distance:</span>
+                    <span className="font-medium">
+                      {formatDistance(calculateDistance(deliveryData.pickupLocation, deliveryData.deliveryLocation))}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Service:</span>
+                    <span className="font-medium">{SERVICE_TYPES[deliveryData.serviceType].name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Type:</span>
+                    <span className="font-medium">{deliveryData.packageType}</span>
+                  </div>
+                  <div className="border-t border-border/20 pt-2 mt-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-foreground">Prix estimé:</span>
+                      <span className="text-xl font-bold text-primary">
+                        {deliveryData.estimatedPrice.toLocaleString()} CDF
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
-          </Button>
-        )}
+
+            {/* Boutons d'action */}
+            <div className="flex gap-3 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={onCancel}
+                className="flex-1 glass-button"
+                disabled={isSubmitting}
+              >
+                Annuler
+              </Button>
+              <Button 
+                onClick={handleSubmit}
+                className="flex-1 bg-primary hover:bg-primary/90"
+                disabled={!deliveryData.pickupLocation || !deliveryData.deliveryLocation || isSubmitting}
+              >
+                {isSubmitting ? 'Création...' : 'Commander la livraison'}
+              </Button>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );
-};
-
-export default ModernDeliveryInterface;
+}
