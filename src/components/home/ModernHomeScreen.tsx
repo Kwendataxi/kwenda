@@ -83,7 +83,7 @@ export const ModernHomeScreen = ({
           <MarketplacePreview
             featuredProducts={featuredProducts}
             onProductSelect={onProductSelect}
-            onViewAll={() => setTrendsOpen(true)}
+            onViewAll={onMarketplaceViewAll}
           />
         </div>
 
