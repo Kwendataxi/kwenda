@@ -100,18 +100,15 @@ export const NotificationMonitoringDashboard: React.FC = () => {
    */
   const loadQueue = async () => {
     try {
-      const { data, error } = await supabase
-        .from('push_notification_queue')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
+      // Utiliser Edge Function pour obtenir les données de queue
+      const { data, error } = await supabase.functions.invoke('notification-dispatcher/queue');
+      
       if (error) {
         console.error('Erreur chargement queue:', error);
         return;
       }
 
-      setQueueItems(data || []);
+      setQueueItems(data?.queue || []);
     } catch (error) {
       console.error('Erreur chargement queue:', error);
     }
@@ -122,18 +119,15 @@ export const NotificationMonitoringDashboard: React.FC = () => {
    */
   const loadUserTokens = async () => {
     try {
-      const { data, error } = await supabase
-        .from('push_notification_tokens')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-
+      // Utiliser Edge Function pour obtenir les tokens
+      const { data, error } = await supabase.functions.invoke('notification-dispatcher/tokens');
+      
       if (error) {
         console.error('Erreur chargement tokens:', error);
         return;
       }
 
-      setUserTokens(data || []);
+      setUserTokens(data?.tokens || []);
     } catch (error) {
       console.error('Erreur chargement tokens:', error);
     }

@@ -35,7 +35,8 @@ export const usePushNotifications = () => {
     try {
       // Vérifier le support
       const isSupported = 'Notification' in window || 
-        (typeof window !== 'undefined' && window.Capacitor !== undefined);
+        (typeof window !== 'undefined' && 
+         typeof (window as any).Capacitor !== 'undefined');
 
       if (!isSupported) {
         setState(prev => ({ 

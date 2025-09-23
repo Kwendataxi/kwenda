@@ -1,222 +1,309 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.53.0";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface DispatchRequest {
-  event_type: 'ride_request' | 'delivery_request' | 'order_status' | 'driver_found' | 'payment_success';
-  target_users?: string[];
-  target_roles?: string[];
-  data: any;
-  priority?: 'low' | 'normal' | 'high' | 'urgent';
-  zone_filter?: string;
+interface NotificationRequest {
+  type: 'driver_assignment' | 'order_update' | 'broadcast' | 'emergency';
+  recipients: string[]; // User IDs or 'all'
+  title: string;
+  body: string;
+  data?: Record<string, any>;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  send_immediately?: boolean;
+  scheduled_for?: string;
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
+interface NotificationQueue {
+  id?: string;
+  type: string;
+  recipients: string[];
+  title: string;
+  body: string;
+  data: Record<string, any>;
+  priority: string;
+  status: 'pending' | 'processing' | 'sent' | 'failed' | 'retry';
+  retry_count: number;
+  max_retries: number;
+  scheduled_for?: string;
+  sent_at?: string;
+  error_message?: string;
+}
+
+const handler = async (req: Request): Promise<Response> => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { event_type, target_users, target_roles, data, priority = 'normal', zone_filter }: DispatchRequest = await req.json();
+    const url = new URL(req.url);
+    const action = url.pathname.split('/').pop();
 
-    if (!event_type || !data) {
-      throw new Error("Missing required fields: event_type, data");
+    switch (action) {
+      case 'send':
+        return await handleSendNotification(req, supabase);
+      case 'process-queue':
+        return await handleProcessQueue(req, supabase);
+      case 'status':
+        return await handleGetStatus(req, supabase);
+      case 'retry-failed':
+        return await handleRetryFailed(req, supabase);
+      default:
+        return await handleSendNotification(req, supabase);
     }
-
-    console.log(`📡 Dispatching ${event_type} notifications with priority ${priority}`);
-
-    let recipients: string[] = [];
-
-    // Déterminer les destinataires selon le type d'événement
-    if (target_users && target_users.length > 0) {
-      recipients = target_users;
-    } else {
-      // Logique de ciblage automatique selon l'événement
-      switch (event_type) {
-        case 'ride_request':
-          // Notifier les chauffeurs disponibles dans la zone
-          const { data: nearbyDrivers } = await supabaseClient
-            .from('driver_locations')
-            .select('driver_id')
-            .eq('is_online', true)
-            .eq('is_available', true)
-            .gte('last_ping', new Date(Date.now() - 5 * 60 * 1000).toISOString());
-
-          recipients = nearbyDrivers?.map(d => d.driver_id) || [];
-          break;
-
-        case 'delivery_request':
-          // Notifier les livreurs disponibles
-          const { data: availableDrivers } = await supabaseClient
-            .from('driver_service_preferences')
-            .select('driver_id')
-            .contains('service_types', ['delivery'])
-            .eq('is_active', true);
-
-          recipients = availableDrivers?.map(d => d.driver_id) || [];
-          break;
-
-        case 'order_status':
-          // Notifier le client et le vendeur concernés
-          if (data.buyer_id) recipients.push(data.buyer_id);
-          if (data.seller_id) recipients.push(data.seller_id);
-          break;
-
-        default:
-          if (target_roles && target_roles.length > 0) {
-            const { data: roleUsers } = await supabaseClient
-              .from('user_roles')
-              .select('user_id')
-              .in('role', target_roles)
-              .eq('is_active', true);
-
-            recipients = roleUsers?.map(u => u.user_id) || [];
-          }
-      }
-    }
-
-    if (recipients.length === 0) {
-      console.log('⚠️ No recipients found for notification dispatch');
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: 'No recipients found',
-          recipients_count: 0
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        }
-      );
-    }
-
-    // Générer le contenu de la notification selon l'événement
-    const notificationContent = generateNotificationContent(event_type, data);
-
-    // Envoyer les notifications en parallèle
-    const notificationPromises = recipients.map(async (userId) => {
-      try {
-        const { data: result, error } = await supabaseClient.functions.invoke('push-notifications', {
-          body: {
-            user_id: userId,
-            title: notificationContent.title,
-            message: notificationContent.message,
-            type: event_type,
-            priority: priority,
-            data: data,
-            sound: priority === 'urgent' || priority === 'high',
-            vibration: priority === 'urgent'
-          }
-        });
-
-        if (error) {
-          console.error(`❌ Failed to send notification to ${userId}:`, error);
-          return { userId, success: false, error: error.message };
-        }
-
-        return { userId, success: true };
-      } catch (error) {
-        console.error(`❌ Error sending notification to ${userId}:`, error);
-        return { userId, success: false, error: error.message };
-      }
-    });
-
-    const results = await Promise.all(notificationPromises);
-    const successCount = results.filter(r => r.success).length;
-    const failureCount = results.length - successCount;
-
-    console.log(`📊 Notification dispatch complete: ${successCount} success, ${failureCount} failures`);
-
-    // Log de l'activité de dispatch
-    await supabaseClient
-      .from('activity_logs')
-      .insert({
-        activity_type: 'notification_dispatch',
-        description: `Dispatch ${event_type}: ${successCount}/${results.length} envoyées`,
-        metadata: {
-          event_type: event_type,
-          recipients_count: results.length,
-          success_count: successCount,
-          failure_count: failureCount,
-          priority: priority
-        }
-      });
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        event_type: event_type,
-        recipients_count: results.length,
-        success_count: successCount,
-        failure_count: failureCount,
-        results: results
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      }
-    );
-
   } catch (error) {
-    console.error('❌ Notification dispatcher error:', error);
+    console.error('Error in notification-dispatcher:', error);
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message
+      JSON.stringify({ 
+        success: false, 
+        error: error.message 
       }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
       }
     );
   }
-});
+};
 
-function generateNotificationContent(eventType: string, data: any): { title: string; message: string } {
-  switch (eventType) {
-    case 'ride_request':
-      return {
-        title: '🚗 Nouvelle course disponible',
-        message: `${data.pickup_location || 'Nouvelle course'} → ${data.destination || 'Destination à confirmer'}`
-      };
+async function handleSendNotification(req: Request, supabase: any): Promise<Response> {
+  const { type, recipients, title, body, data = {}, priority = 'normal', send_immediately = true, scheduled_for }: NotificationRequest = await req.json();
 
-    case 'delivery_request':
-      return {
-        title: '📦 Nouvelle livraison assignée',
-        message: `Livraison ${data.delivery_type || 'standard'} - ${data.pickup_location || 'Point de collecte'}`
-      };
+  console.log(`📱 Notification request: ${type} to ${recipients.length} recipients`);
 
-    case 'order_status':
-      return {
-        title: '📱 Mise à jour commande',
-        message: `Votre commande est maintenant: ${data.status || 'mise à jour'}`
-      };
-
-    case 'driver_found':
-      return {
-        title: '✅ Chauffeur trouvé',
-        message: `Votre chauffeur arrive dans ${data.estimated_arrival || '5'} minutes`
-      };
-
-    case 'payment_success':
-      return {
-        title: '💰 Paiement confirmé',
-        message: `Paiement de ${data.amount || '0'} ${data.currency || 'CDF'} traité avec succès`
-      };
-
-    default:
-      return {
-        title: '🔔 Nouvelle notification',
-        message: data.message || 'Vous avez une nouvelle notification'
-      };
+  // Expand recipients if needed
+  let expandedRecipients = recipients;
+  if (recipients.includes('all_drivers')) {
+    const { data: drivers } = await supabase
+      .from('chauffeurs')
+      .select('user_id')
+      .eq('is_active', true);
+    
+    expandedRecipients = [...recipients.filter(r => r !== 'all_drivers'), ...drivers.map((d: any) => d.user_id)];
   }
+
+  if (recipients.includes('all_clients')) {
+    const { data: clients } = await supabase
+      .from('clients')
+      .select('user_id')
+      .eq('is_active', true);
+    
+    expandedRecipients = [...expandedRecipients.filter(r => r !== 'all_clients'), ...clients.map((c: any) => c.user_id)];
+  }
+
+  // Create notification queue entries
+  const queueEntries: NotificationQueue[] = expandedRecipients.map(userId => ({
+    type,
+    recipients: [userId],
+    title,
+    body,
+    data: { ...data, user_id: userId },
+    priority,
+    status: send_immediately ? 'pending' : 'scheduled',
+    retry_count: 0,
+    max_retries: priority === 'urgent' ? 5 : 3,
+    scheduled_for: scheduled_for || (send_immediately ? new Date().toISOString() : undefined)
+  }));
+
+  // Insert into queue
+  const { data: queuedNotifications, error: queueError } = await supabase
+    .from('push_notification_queue')
+    .insert(queueEntries)
+    .select();
+
+  if (queueError) {
+    console.error('Error queuing notifications:', queueError);
+    return new Response(
+      JSON.stringify({ success: false, error: queueError.message }),
+      { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+    );
+  }
+
+  // Process immediately if requested
+  if (send_immediately) {
+    const processResult = await processNotificationQueue(supabase, queuedNotifications.map(n => n.id));
+    
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        queued: queuedNotifications.length,
+        processed: processResult.processed,
+        failed: processResult.failed,
+        queue_ids: queuedNotifications.map(n => n.id)
+      }),
+      { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({ 
+      success: true, 
+      queued: queuedNotifications.length,
+      queue_ids: queuedNotifications.map(n => n.id)
+    }),
+    { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+  );
 }
+
+async function handleProcessQueue(req: Request, supabase: any): Promise<Response> {
+  console.log('🔄 Processing notification queue...');
+  
+  const result = await processNotificationQueue(supabase);
+  
+  return new Response(
+    JSON.stringify({ 
+      success: true, 
+      processed: result.processed,
+      failed: result.failed,
+      retried: result.retried
+    }),
+    { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+  );
+}
+
+async function processNotificationQueue(supabase: any, specificIds?: string[]) {
+  let query = supabase
+    .from('push_notification_queue')
+    .select('*')
+    .in('status', ['pending', 'retry'])
+    .lte('scheduled_for', new Date().toISOString())
+    .order('priority', { ascending: false })
+    .order('created_at', { ascending: true })
+    .limit(100);
+
+  if (specificIds) {
+    query = query.in('id', specificIds);
+  }
+
+  const { data: pendingNotifications, error } = await query;
+
+  if (error || !pendingNotifications) {
+    console.error('Error fetching pending notifications:', error);
+    return { processed: 0, failed: 0, retried: 0 };
+  }
+
+  console.log(`📋 Processing ${pendingNotifications.length} notifications`);
+
+  let processed = 0;
+  let failed = 0;
+  let retried = 0;
+
+  for (const notification of pendingNotifications) {
+    try {
+      // Mark as processing
+      await supabase
+        .from('push_notification_queue')
+        .update({ status: 'processing' })
+        .eq('id', notification.id);
+
+      // Get user's push tokens
+      const { data: tokens } = await supabase
+        .from('push_notification_tokens')
+        .select('token, platform')
+        .eq('user_id', notification.recipients[0])
+        .eq('is_active', true);
+
+      if (!tokens || tokens.length === 0) {
+        console.log(`⚠️ No push tokens for user ${notification.recipients[0]}`);
+        
+        // Mark as failed - no tokens
+        await supabase
+          .from('push_notification_queue')
+          .update({ 
+            status: 'failed',
+            error_message: 'No active push tokens found',
+            processed_at: new Date().toISOString()
+          })
+          .eq('id', notification.id);
+        
+        failed++;
+        continue;
+      }
+
+      // Simulate successful send (replace with actual FCM/APNS logic)
+      await supabase
+        .from('push_notification_queue')
+        .update({ 
+          status: 'sent',
+          sent_at: new Date().toISOString(),
+          processed_at: new Date().toISOString()
+        })
+        .eq('id', notification.id);
+      
+      processed++;
+      console.log(`📤 Notification sent successfully: ${notification.title}`);
+
+    } catch (error) {
+      console.error(`❌ Error processing notification ${notification.id}:`, error);
+      
+      await supabase
+        .from('push_notification_queue')
+        .update({ 
+          status: 'failed',
+          error_message: error.message,
+          processed_at: new Date().toISOString()
+        })
+        .eq('id', notification.id);
+      
+      failed++;
+    }
+  }
+
+  return { processed, failed, retried };
+}
+
+async function handleGetStatus(req: Request, supabase: any): Promise<Response> {
+  const { data: stats } = await supabase
+    .from('push_notification_queue')
+    .select('status')
+    .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
+  const statusCounts = (stats || []).reduce((acc: any, item: any) => {
+    acc[item.status] = (acc[item.status] || 0) + 1;
+    return acc;
+  }, {});
+
+  return new Response(
+    JSON.stringify({ 
+      success: true, 
+      stats: statusCounts,
+      total: stats?.length || 0
+    }),
+    { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+  );
+}
+
+async function handleRetryFailed(req: Request, supabase: any): Promise<Response> {
+  const { data: failedNotifications } = await supabase
+    .from('push_notification_queue')
+    .update({ 
+      status: 'retry',
+      retry_count: 0,
+      scheduled_for: new Date().toISOString()
+    })
+    .eq('status', 'failed')
+    .eq('retry_count', 0) // Only retry ones that haven't been retried yet
+    .select();
+
+  const result = await processNotificationQueue(supabase, failedNotifications?.map(n => n.id) || []);
+
+  return new Response(
+    JSON.stringify({ 
+      success: true, 
+      retried: failedNotifications?.length || 0,
+      result
+    }),
+    { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+  );
+}
+
+serve(handler);

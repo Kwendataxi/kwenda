@@ -4043,6 +4043,138 @@ export type Database = {
           },
         ]
       }
+      push_notification_analytics: {
+        Row: {
+          created_at: string
+          device_info: Json | null
+          event_type: string
+          id: string
+          notification_data: Json | null
+          notification_id: string | null
+          timestamp: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_info?: Json | null
+          event_type: string
+          id?: string
+          notification_data?: Json | null
+          notification_id?: string | null
+          timestamp?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_info?: Json | null
+          event_type?: string
+          id?: string
+          notification_data?: Json | null
+          notification_id?: string | null
+          timestamp?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      push_notification_queue: {
+        Row: {
+          body: string
+          created_at: string
+          data: Json | null
+          error_message: string | null
+          id: string
+          max_retries: number
+          metadata: Json | null
+          priority: string
+          processed_at: string | null
+          recipients: string[]
+          retry_count: number
+          scheduled_for: string | null
+          sent_at: string | null
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          data?: Json | null
+          error_message?: string | null
+          id?: string
+          max_retries?: number
+          metadata?: Json | null
+          priority?: string
+          processed_at?: string | null
+          recipients: string[]
+          retry_count?: number
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          data?: Json | null
+          error_message?: string | null
+          id?: string
+          max_retries?: number
+          metadata?: Json | null
+          priority?: string
+          processed_at?: string | null
+          recipients?: string[]
+          retry_count?: number
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      push_notification_tokens: {
+        Row: {
+          created_at: string
+          device_id: string | null
+          device_name: string | null
+          id: string
+          is_active: boolean
+          last_used: string | null
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_id?: string | null
+          device_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_used?: string | null
+          platform: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string | null
+          device_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_used?: string | null
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       push_notifications: {
         Row: {
           created_at: string

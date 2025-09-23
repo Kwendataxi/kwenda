@@ -196,21 +196,21 @@ class PushNotificationService {
       }
 
       // Désactiver les anciens tokens de cet utilisateur
-      await supabase
-        .from('push_notification_tokens')
-        .update({ is_active: false })
-        .eq('user_id', user.id)
-        .eq('platform', platform);
+      const { error: deactivateError } = await supabase.rpc('deactivate_old_tokens', {
+        p_user_id: user.id,
+        p_platform: platform
+      });
+
+      if (deactivateError) {
+        console.warn('⚠️ Erreur désactivation anciens tokens:', deactivateError);
+      }
 
       // Insérer le nouveau token
-      const { error } = await supabase
-        .from('push_notification_tokens')
-        .upsert({
-          user_id: user.id,
-          token,
-          platform,
-          is_active: true
-        });
+      const { error } = await supabase.rpc('upsert_push_token', {
+        p_user_id: user.id,
+        p_token: token,
+        p_platform: platform
+      });
 
       if (error) {
         console.error('❌ Erreur sauvegarde token:', error);
@@ -289,14 +289,15 @@ class PushNotificationService {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        await supabase
-          .from('push_notification_analytics')
-          .insert({
-            user_id: user.id,
-            event_type: eventType,
-            notification_data: notification,
-            timestamp: new Date().toISOString()
-          });
+        const { error } = await supabase.rpc('log_notification_event', {
+          p_user_id: user.id,
+          p_event_type: eventType,
+          p_notification_data: notification
+        });
+
+        if (error) {
+          console.error('❌ Erreur log notification:', error);
+        }
       }
     } catch (error) {
       console.error('❌ Erreur log notification:', error);
@@ -387,10 +388,9 @@ class PushNotificationService {
         return false;
       }
 
-      const { error } = await supabase
-        .from('push_notification_tokens')
-        .update({ is_active: false })
-        .eq('user_id', user.id);
+      const { error } = await supabase.rpc('disable_user_notifications', {
+        p_user_id: user.id
+      });
 
       if (error) {
         console.error('❌ Erreur désactivation notifications:', error);
