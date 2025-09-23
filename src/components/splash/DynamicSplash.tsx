@@ -13,7 +13,7 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
 
   const ctxMeta: Record<StartupContext, { title: string; subtitle: string }> = {
     client: {
-      title: "Kwenda Taxi Congo",
+      title: "Kwenda Taxi",
       subtitle: "Transport, Livraison, Marketplace — tout-en-un",
     },
     chauffeur: {
