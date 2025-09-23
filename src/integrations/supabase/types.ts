@@ -2420,6 +2420,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ip_geolocation_cache: {
+        Row: {
+          accuracy: number | null
+          city: string | null
+          country_code: string | null
+          country_name: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          ip_address: unknown
+          latitude: number | null
+          longitude: number | null
+          provider: string | null
+        }
+        Insert: {
+          accuracy?: number | null
+          city?: string | null
+          country_code?: string | null
+          country_name?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip_address: unknown
+          latitude?: number | null
+          longitude?: number | null
+          provider?: string | null
+        }
+        Update: {
+          accuracy?: number | null
+          city?: string | null
+          country_code?: string | null
+          country_name?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip_address?: unknown
+          latitude?: number | null
+          longitude?: number | null
+          provider?: string | null
+        }
+        Relationships: []
+      }
       location_access_audit: {
         Row: {
           access_type: string
@@ -7603,6 +7645,10 @@ export type Database = {
         }[]
       }
       cleanup_expired_trip_links: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      cleanup_ip_geolocation_cache: {
         Args: Record<PropertyKey, never>
         Returns: number
       }

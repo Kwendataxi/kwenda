@@ -225,24 +225,37 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     switch (step) {
       case 'pickup':
         return (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-primary/10 rounded-full">
-                <Navigation className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold">Point de départ</h3>
-                <p className="text-sm text-muted-foreground">D'où partez-vous ?</p>
-              </div>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-primary/10 rounded-full">
+              <Navigation className="h-5 w-5 text-primary" />
             </div>
-            
-            <ModernLocationPicker
-              value={bookingData.pickup}
-              onChange={handleLocationSelect}
-              placeholder="Rechercher votre position actuelle..."
-              context="pickup"
-            />
+            <div>
+              <h3 className="text-lg font-semibold">Point de départ</h3>
+              <p className="text-sm text-muted-foreground">D'où partez-vous ?</p>
+            </div>
           </div>
+          
+          <ModernLocationPicker
+            key="pickup"
+            value={bookingData.pickup}
+            onChange={handleLocationSelect}
+            placeholder="Rechercher votre position actuelle..."
+            context="pickup"
+          />
+          
+          {bookingData.pickup && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm text-green-700 font-medium">
+                  Position de départ confirmée
+                </span>
+              </div>
+              <p className="text-xs text-green-600 mt-1">{bookingData.pickup.address}</p>
+            </div>
+          )}
+        </div>
         );
 
       case 'destination':

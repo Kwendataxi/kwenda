@@ -507,14 +507,32 @@ class SimpleLocationService {
         return;
       }
 
+      const timeout = options?.timeout ?? 15000; // Augmenté à 15 secondes
+      console.log(`⏰ Tentative GPS avec timeout de ${timeout}ms`);
+
       const timeoutId = setTimeout(() => {
-        console.log('⏰ Timeout GPS');
+        console.log('⏰ Timeout GPS après', timeout, 'ms');
         resolve(null);
-      }, options?.timeout ?? 8000);
+      }, timeout);
+
+      // Demander les permissions explicitement
+      if ('permissions' in navigator) {
+        navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+          if (result.state === 'denied') {
+            console.log('🚫 Permissions GPS refusées');
+            clearTimeout(timeoutId);
+            resolve(null);
+            return;
+          }
+        }).catch(() => {
+          // Ignore permission errors, continue with geolocation
+        });
+      }
 
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           clearTimeout(timeoutId);
+          console.log('✅ Position GPS obtenue:', position.coords.latitude, position.coords.longitude);
           
           // Géocodage inverse pour obtenir l'adresse
           let address = `Position GPS (${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)})`;
@@ -537,13 +555,27 @@ class SimpleLocationService {
         },
         (error) => {
           clearTimeout(timeoutId);
-          console.warn('❌ Erreur GPS:', error.message);
+          console.warn('❌ Erreur GPS:', error.message, 'Code:', error.code);
+          
+          // Log détaillé des erreurs
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              console.log('🚫 Permission refusée - demander à l\'utilisateur d\'autoriser');
+              break;
+            case error.POSITION_UNAVAILABLE:
+              console.log('📍 Position indisponible - problème réseau/satellites');
+              break;
+            case error.TIMEOUT:
+              console.log('⏰ Timeout GPS - augmenter le délai ou utiliser IP');
+              break;
+          }
+          
           resolve(null);
         },
         {
           enableHighAccuracy: options?.enableHighAccuracy ?? true,
-          timeout: options?.timeout ?? 8000,
-          maximumAge: options?.maximumAge ?? 180000 // 3 minutes
+          timeout: timeout,
+          maximumAge: options?.maximumAge ?? 300000 // 5 minutes
         }
       );
     });
@@ -551,21 +583,35 @@ class SimpleLocationService {
 
   private async getIPBasedLocation(): Promise<LocationData | null> {
     try {
-      const response = await fetch('https://ipapi.co/json/');
-      const data = await response.json();
+      console.log('🌐 Tentative géolocalisation IP via Edge Function...');
       
-      if (data.latitude && data.longitude) {
+      // Import supabase client dynamically
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      // Utiliser notre Edge Function fiable
+      const { data, error } = await supabase.functions.invoke('ip-geolocation');
+      
+      if (error) {
+        console.warn('❌ Edge Function IP géolocalisation échouée:', error);
+        return null;
+      }
+      
+      if (data?.success && data?.data) {
+        console.log('✅ Géolocalisation IP réussie:', data.data.address);
         return {
-          address: `${data.city}, ${data.country_name}`,
-          lat: data.latitude,
-          lng: data.longitude,
+          address: data.data.address,
+          lat: data.data.lat,
+          lng: data.data.lng,
           type: 'cached',
-          source: 'ip'
+          source: data.data.source,
+          accuracy: data.data.accuracy
         };
       }
+      
     } catch (error) {
       console.warn('❌ Erreur géolocalisation IP:', error);
     }
+    
     return null;
   }
 

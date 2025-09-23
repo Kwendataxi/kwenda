@@ -62,13 +62,25 @@ export const ModernLocationPicker: React.FC<ModernLocationPickerProps> = ({
 
   const handleGetCurrentLocation = async () => {
     try {
-      const position = await getCurrentPosition();
+      console.log('🎯 Démarrage géolocalisation...');
+      setQuery('Détection de votre position...'); // Feedback visuel
+      
+      const position = await getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 15000 // 15 secondes
+      });
+      
       if (position) {
-        setQuery(''); // Vider la barre de recherche
+        console.log('✅ Position obtenue:', position);
+        setQuery(''); // Vider la barre de recherche après succès
+        setShowSuggestions(false);
         handleLocationSelect(position);
       }
     } catch (error) {
-      console.error('Erreur géolocalisation:', error);
+      console.error('❌ Erreur géolocalisation:', error);
+      setQuery(''); // Vider même en cas d'erreur
+      // Afficher un message d'erreur à l'utilisateur
+      alert('Impossible de détecter votre position. Veuillez saisir votre adresse manuellement.');
     }
   };
 
@@ -96,6 +108,7 @@ export const ModernLocationPicker: React.FC<ModernLocationPickerProps> = ({
                 }
               }}
               className="pl-10"
+              disabled={loading && query === 'Détection de votre position...'}
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </div>
