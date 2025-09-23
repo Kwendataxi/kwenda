@@ -12,5 +12,8 @@ verify_jwt = false
 [functions.push-notifications]
 verify_jwt = true
 
+[functions.notification-dispatcher]
+verify_jwt = true
+
 [functions.send-sms-notification]
 verify_jwt = true
