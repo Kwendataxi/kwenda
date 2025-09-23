@@ -265,15 +265,20 @@ class SimpleLocationService {
 
   private async reverseGeocode(lat: number, lng: number): Promise<string | null> {
     try {
-      // Utiliser l'Edge Function pour le géocodage
-      const response = await fetch('/api/geocode-reverse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lat, lng })
+      // Import supabase client dynamically to avoid circular imports
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      // Utiliser l'Edge Function Supabase pour le géocodage
+      const { data, error } = await supabase.functions.invoke('geocode-reverse', {
+        body: { lat, lng }
       });
       
-      if (response.ok) {
-        const data = await response.json();
+      if (error) {
+        console.warn('Edge Function error:', error);
+        return null;
+      }
+      
+      if (data?.success && data?.address) {
         return data.address;
       }
     } catch (error) {

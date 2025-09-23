@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Package, Truck, Clock, ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { MapPin, Package, Truck, Clock, ArrowLeft, ArrowRight, Check, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -64,7 +64,7 @@ type Step = 'pickup' | 'destination' | 'service' | 'confirm';
 
 export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeliveryInterfaceProps) {
   const { toast } = useToast();
-  const { getCurrentPosition, searchLocations, calculateDistance, formatDistance } = useSimpleLocation();
+  const { getCurrentPosition, searchLocations, calculateDistance, formatDistance, currentPosition, loading } = useSimpleLocation();
   
   const [currentStep, setCurrentStep] = useState<Step>('pickup');
   const [deliveryData, setDeliveryData] = useState<DeliveryData>({
@@ -80,11 +80,34 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
   const [pickupSuggestions, setPickupSuggestions] = useState<LocationSearchResult[]>([]);
   const [deliverySuggestions, setDeliverySuggestions] = useState<LocationSearchResult[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
-  // Initialiser la position actuelle
+  // Géolocalisation automatique au chargement
   useEffect(() => {
-    getCurrentPosition();
-  }, [getCurrentPosition]);
+    const initializeLocation = async () => {
+      try {
+        const position = await getCurrentPosition();
+        if (position && currentStep === 'pickup') {
+          // Auto-fill pickup avec la position actuelle
+          const locationResult: LocationSearchResult = {
+            id: `current-${Date.now()}`,
+            title: 'Ma position actuelle',
+            subtitle: position.address,
+            address: position.address,
+            lat: position.lat,
+            lng: position.lng,
+            type: position.type
+          };
+          setDeliveryData(prev => ({ ...prev, pickupLocation: locationResult }));
+          setPickupQuery('Ma position actuelle');
+        }
+      } catch (error) {
+        console.log('Géolocalisation automatique échouée, continuant sans position');
+      }
+    };
+    
+    initializeLocation();
+  }, [getCurrentPosition, currentStep]);
 
   // Recherche pickup
   useEffect(() => {
@@ -121,32 +144,58 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
   }, [deliveryData.pickupLocation, deliveryData.deliveryLocation, deliveryData.serviceType, calculateDistance]);
 
   const handleLocationSelect = (location: LocationSearchResult, type: 'pickup' | 'delivery') => {
+    // Validation améliorée avec vérification des coordonnées
+    if (!location || typeof location.lat !== 'number' || typeof location.lng !== 'number' || !location.address) {
+      toast({
+        title: "Adresse invalide",
+        description: "Veuillez sélectionner une adresse valide avec des coordonnées précises",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (type === 'pickup') {
-      if (!location.address || !location.lat || !location.lng) {
-        toast({
-          title: "Adresse invalide",
-          description: "Veuillez sélectionner une adresse valide avec des coordonnées précises",
-          variant: "destructive"
-        });
-        return;
-      }
       setDeliveryData(prev => ({ ...prev, pickupLocation: location }));
-      setPickupQuery(location.title);
+      setPickupQuery(location.title || location.address);
       setPickupSuggestions([]);
       setCurrentStep('destination');
     } else {
-      if (!location.address || !location.lat || !location.lng) {
-        toast({
-          title: "Adresse invalide",
-          description: "Veuillez sélectionner une adresse valide avec des coordonnées précises",
-          variant: "destructive"
-        });
-        return;
-      }
       setDeliveryData(prev => ({ ...prev, deliveryLocation: location }));
-      setDeliveryQuery(location.title);
+      setDeliveryQuery(location.title || location.address);
       setDeliverySuggestions([]);
       setCurrentStep('service');
+    }
+  };
+
+  const handleUseCurrentPosition = async (type: 'pickup' | 'delivery') => {
+    setIsGettingLocation(true);
+    try {
+      const position = await getCurrentPosition();
+      if (position) {
+        const locationResult: LocationSearchResult = {
+          id: `current-${type}-${Date.now()}`,
+          title: 'Ma position actuelle',
+          subtitle: position.address,
+          address: position.address,
+          lat: position.lat,
+          lng: position.lng,
+          type: position.type
+        };
+        handleLocationSelect(locationResult, type);
+        toast({
+          title: "Position détectée",
+          description: "Votre position actuelle a été utilisée",
+          variant: "default"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Géolocalisation échouée",
+        description: "Impossible d'obtenir votre position. Veuillez saisir l'adresse manuellement.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGettingLocation(false);
     }
   };
 
@@ -326,13 +375,25 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     type: 'pickup' | 'delivery';
   }) => (
     <div className="relative space-y-4">
-      <Input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="h-12 text-lg glass-input"
-        autoFocus
-      />
+      <div className="space-y-3">
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="h-12 text-lg glass-input"
+          autoFocus
+        />
+        
+        <Button
+          variant="outline"
+          onClick={() => handleUseCurrentPosition(type)}
+          disabled={isGettingLocation || loading}
+          className="w-full h-12 glass-card border-primary/20 hover:border-primary/40 text-primary"
+        >
+          <Navigation className={`w-5 h-5 mr-2 ${isGettingLocation || loading ? 'animate-spin' : ''}`} />
+          {isGettingLocation || loading ? 'Localisation en cours...' : 'Utiliser ma position actuelle'}
+        </Button>
+      </div>
       
       {suggestions.length > 0 && (
         <div className="glass-card border border-border/20 rounded-lg overflow-hidden z-50">
