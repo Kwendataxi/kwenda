@@ -3,7 +3,7 @@ import { ModernHeader } from './ModernHeader';
 import { ServiceGrid } from './ServiceGrid';
 // Removed obsolete components
 import { MarketplacePreview } from './MarketplacePreview';
-import { ModernBottomNavigation } from './ModernBottomNavigation';
+import { UniversalBottomNavigation, UniversalTabType } from '@/components/navigation/UniversalBottomNavigation';
 import { HomeTrendsSheet } from './HomeTrendsSheet';
 import { HomeRecentPlacesSheet } from './HomeRecentPlacesSheet';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
@@ -29,24 +29,24 @@ export const ModernHomeScreen = ({
   onMarketplaceViewAll,
   onNavigateToTestData
 }: ModernHomeScreenProps) => {
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState<UniversalTabType>('home');
   const [trendsOpen, setTrendsOpen] = useState(false);
   const [placesOpen, setPlacesOpen] = useState(false);
   const { unreadCount } = useRealtimeNotifications();
   const serviceNotifications = useServiceNotifications();
 
-  const handleTabChange = (tab: string) => {
+  const handleTabChange = (tab: UniversalTabType) => {
     setActiveTab(tab);
     // Navigation logic based on selected tab
     switch (tab) {
-      case 'search':
+      case 'services':
         onServiceSelect('marketplace');
         break;
-      case 'favorites':
-        // Navigate to favorites
-        break;
-      case 'activity':
+      case 'orders':
         onServiceSelect('history');
+        break;
+      case 'wallet':
+        // Navigate to wallet
         break;
       case 'profile':
         // Navigate to profile
@@ -93,11 +93,14 @@ export const ModernHomeScreen = ({
           />
         </div>
 
-        <ModernBottomNavigation
+        <UniversalBottomNavigation
+          userType="client"
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          notificationCount={3}
-          favoritesCount={5}
+          badges={{
+            orders: 3,
+            favorites: 5
+          }}
         />
       </div>
     </div>

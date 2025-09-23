@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
+import { UniversalBottomNavigation, UniversalTabType } from '@/components/navigation/UniversalBottomNavigation';
 import { Bike, Car, Truck, Clock } from 'lucide-react';
 
 interface DeliveryHomeProps {
   onCancel: () => void;
   onContinue: (mode: 'flash' | 'flex' | 'maxicharge', selectedPackageId?: string) => void;
-  activeTab?: string;
-  onTabChange?: (tab: string) => void;
+  activeTab?: UniversalTabType;
+  onTabChange?: (tab: UniversalTabType) => void;
 }
 
 type ParcelSize = 'small' | 'medium' | 'large';
@@ -122,7 +122,11 @@ const DeliveryHome: React.FC<DeliveryHomeProps> = ({ onCancel, onContinue, activ
       </div>
 
       {/* Bottom nav */}
-      <ModernBottomNavigation activeTab={activeTab} onTabChange={onTabChange} />
+      <UniversalBottomNavigation 
+        userType="client"
+        activeTab={activeTab || 'services'}
+        onTabChange={(tab) => onTabChange?.(tab)}
+      />
     </div>
   );
 };
