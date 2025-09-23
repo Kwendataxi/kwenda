@@ -106,7 +106,7 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
                       placeholder="Entrez votre code promo"
                       value={newCode}
                       onChange={(e) => setNewCode(e.target.value.toUpperCase())}
-                      className="flex-1 glassmorphism-soft border-congo-yellow/40 focus:border-congo-yellow"
+                      className="flex-1 bg-card border border-congo-yellow/40 focus:border-congo-yellow shadow-lg"
                     />
                     <CongoButton 
                       onClick={handleValidateCode}

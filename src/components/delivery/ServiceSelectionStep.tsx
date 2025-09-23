@@ -184,7 +184,7 @@ export const ServiceSelectionStep: React.FC<ServiceSelectionStepProps> = ({
           </div>
           
           {/* Route display simplifié */}
-          <div className="glassmorphism rounded-xl p-4 border border-border/20">
+          <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
             <div className="flex items-center justify-center gap-3 text-sm">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <div className="w-2 h-2 bg-primary rounded-full" />

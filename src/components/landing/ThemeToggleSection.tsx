@@ -41,7 +41,7 @@ export const ThemeToggleSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-          <Card className="glassmorphism">
+          <Card className="bg-card border border-border shadow-lg">
             <CardHeader className="text-center">
               <div className="mx-auto w-12 h-12 bg-congo-yellow rounded-full flex items-center justify-center mb-2">
                 ☀️
@@ -55,7 +55,7 @@ export const ThemeToggleSection = () => {
             </CardContent>
           </Card>
 
-          <Card className="glassmorphism">
+          <Card className="bg-card border border-border shadow-lg">
             <CardHeader className="text-center">
               <div className="mx-auto w-12 h-12 bg-congo-blue rounded-full flex items-center justify-center mb-2">
                 🌙
@@ -69,7 +69,7 @@ export const ThemeToggleSection = () => {
             </CardContent>
           </Card>
 
-          <Card className="glassmorphism">
+          <Card className="bg-card border border-border shadow-lg">
             <CardHeader className="text-center">
               <div className="mx-auto w-12 h-12 bg-accent rounded-full flex items-center justify-center mb-2">
                 🖥️

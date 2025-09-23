@@ -166,7 +166,7 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
       {/* Contenu principal avec onglets */}
       <div className="p-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 glassmorphism">
+          <TabsList className="grid w-full grid-cols-3 bg-card border border-border shadow-lg">
             <TabsTrigger value="tracking" className="flex items-center gap-2">
               <MapPin className="w-4 h-4" />
               Carte
@@ -189,7 +189,7 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
           {/* Onglet Carte et Suivi */}
           <TabsContent value="tracking" className="space-y-4">
             {/* Carte interactive */}
-            <Card className="glassmorphism border-0 shadow-xl">
+            <Card className="bg-card border border-border shadow-lg">
               <CardContent className="p-0">
                 <GoogleMapsKwenda
                   pickup={getPickupCoords()}
@@ -207,7 +207,7 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
               {driverProfile?.phone_number && (
                 <Button
                   onClick={contactDriver}
-                  className="h-12 glassmorphism-button border border-primary/30 hover:border-primary"
+                  className="h-12 bg-card border border-primary/30 hover:border-primary shadow-lg"
                 >
                   <Phone className="w-4 h-4 mr-2" />
                   Appeler le livreur
@@ -217,7 +217,7 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
               <Button
                 onClick={() => setShowChat(true)}
                 variant="outline"
-                className="h-12 glassmorphism-button border border-primary/30 hover:border-primary"
+                className="h-12 bg-card border border-primary/30 hover:border-primary shadow-lg"
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Chat
@@ -226,7 +226,7 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
 
             {/* Informations du livreur */}
             {driverProfile && (
-              <Card className="glassmorphism border-0 shadow-xl">
+              <Card className="bg-card border border-border shadow-lg">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <Avatar>
@@ -254,7 +254,7 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
           {/* Onglet Détails */}
           <TabsContent value="details" className="space-y-4">
             {/* Adresses */}
-            <Card className="glassmorphism border-0 shadow-xl">
+            <Card className="bg-card border border-border shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Navigation className="w-5 h-5 text-primary" />
@@ -281,7 +281,7 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
             </Card>
 
             {/* Informations de la commande */}
-            <Card className="glassmorphism border-0 shadow-xl">
+            <Card className="bg-card border border-border shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Package className="w-5 h-5 text-primary" />
@@ -313,7 +313,7 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
               notifications.map((notification) => (
                 <Card 
                   key={notification.id} 
-                  className={`glassmorphism border-0 shadow-xl cursor-pointer transition-all hover:shadow-glow ${
+                  className={`bg-card border border-border shadow-lg cursor-pointer transition-all hover:shadow-glow ${
                     !notification.read ? 'border-l-4 border-l-primary' : ''
                   }`}
                   onClick={() => markNotificationAsRead(notification.id)}

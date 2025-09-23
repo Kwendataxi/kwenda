@@ -100,7 +100,7 @@ const ClientRentalInterface = () => {
       </div>
 
       {/* Filters */}
-      <Card className="glassmorphism-button border-0 shadow-soft backdrop-blur-xl bg-white/10">
+      <Card className="bg-card border border-border shadow-lg">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl font-semibold text-gradient-primary">
             Filtres de recherche
@@ -190,7 +190,7 @@ const ClientRentalInterface = () => {
         </div>
 
         {filteredVehicles.length === 0 ? (
-          <Card className="glassmorphism-button border-0 shadow-soft backdrop-blur-xl bg-white/10 animate-fadeIn">
+          <Card className="bg-card border border-border shadow-lg animate-fadeIn">
             <CardContent className="text-center py-16">
               <div className="relative">
                 <Car className="h-20 w-20 text-congo-primary mx-auto mb-6 animate-pulse" />
@@ -220,7 +220,7 @@ const ClientRentalInterface = () => {
             {filteredVehicles.map((vehicle, index) => (
               <Card 
                 key={vehicle.id} 
-                className="glassmorphism-button border-0 shadow-soft backdrop-blur-xl bg-white/10 overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-500 animate-scaleIn group"
+                className="bg-card border border-border shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-500 animate-scaleIn group"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="aspect-video bg-gradient-to-br from-congo-primary/20 to-congo-gold/20 relative overflow-hidden">

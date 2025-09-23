@@ -31,7 +31,7 @@ export const MobileOptimizedLayout: React.FC<MobileOptimizedLayoutProps> = ({
     )}>
       {/* Header */}
       {header && (
-        <header className="sticky top-0 z-40 glassmorphism border-b border-border/60">
+        <header className="sticky top-0 z-40 bg-card border-b border-border/60 shadow-lg">
           {header}
         </header>
       )}

@@ -66,7 +66,7 @@ const LocationVehicules = () => {
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
         <div className="container mx-auto px-4 relative">
           <div className="max-w-5xl mx-auto text-center space-y-8">
-            <Badge variant="secondary" className="mb-6 glassmorphism-button px-4 py-2 rounded-full font-semibold text-accent border-accent/20">
+            <Badge variant="secondary" className="mb-6 bg-card border border-accent/20 shadow-lg px-4 py-2 rounded-full font-semibold text-accent">
               <Car className="w-4 h-4 mr-2" />
               Service Location de Véhicules Premium
             </Badge>
@@ -106,7 +106,7 @@ const LocationVehicules = () => {
 
           <div className="grid md:grid-cols-3 gap-8">
             {vehicleCategories.map((category, index) => (
-              <Card key={index} className="glassmorphism-button group cursor-pointer hover:scale-[1.02] transition-all duration-500 shadow-soft border border-border/20">
+              <Card key={index} className="bg-card border border-border shadow-lg group cursor-pointer hover:scale-[1.02] transition-all duration-500">
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-4">
                     <div className="w-14 h-14 bg-gradient-to-br from-accent/20 to-primary/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
@@ -181,7 +181,7 @@ const LocationVehicules = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="text-center glassmorphism-button group hover:scale-105 transition-all duration-500 border border-border/20">
+              <Card key={index} className="text-center bg-card border border-border shadow-lg group hover:scale-105 transition-all duration-500">
                 <CardContent className="p-8 space-y-6">
                   <div className="w-16 h-16 bg-gradient-to-br from-accent/15 to-primary/15 rounded-2xl flex items-center justify-center mx-auto text-accent group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-lg">
                     {feature.icon}

@@ -150,7 +150,7 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
 
       {/* VIP Status Indicator */}
       {!vipLoading && (
-        <div className="glassmorphism rounded-lg p-3">
+        <div className="bg-card border border-border shadow-lg rounded-lg p-3">
           <div className="flex items-center gap-3">
             <div 
               className="p-2 rounded-lg"

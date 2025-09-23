@@ -147,7 +147,7 @@ export const DarkModeShowcase = () => {
         </Card>
 
         {/* Glassmorphisme */}
-        <Card className="glassmorphism">
+        <Card className="bg-card border border-border shadow-lg">
           <CardHeader>
             <CardTitle>Glassmorphisme</CardTitle>
             <CardDescription>

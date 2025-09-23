@@ -366,7 +366,7 @@ export const UserProfile = () => {
       {/* Edit Name Modal */}
       {isEditingName && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card rounded-xl p-6 w-full max-w-sm glassmorphism">
+          <div className="bg-card border border-border shadow-lg rounded-xl p-6 w-full max-w-sm">
             <h3 className="text-lg font-semibold mb-4">{t('profile.edit_name')}</h3>
             <Input
               value={editedDisplayName}
@@ -390,7 +390,7 @@ export const UserProfile = () => {
       {/* Edit Phone Modal */}
       {isEditingPhone && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card rounded-xl p-6 w-full max-w-sm glassmorphism">
+          <div className="bg-card border border-border shadow-lg rounded-xl p-6 w-full max-w-sm">
             <h3 className="text-lg font-semibold mb-4">{t('profile.edit_phone')}</h3>
             <Input
               value={editedPhone}
@@ -424,7 +424,7 @@ export const UserProfile = () => {
             <button
               key={option.id}
               onClick={() => handleOptionClick(option.id)}
-              className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-all duration-200 rounded-xl group glassmorphism-soft hover:glassmorphism"
+              className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-all duration-200 rounded-xl group bg-card border border-border shadow-lg"
             >
               <div className="bg-gradient-to-br from-congo-red/10 to-congo-yellow/10 p-3 rounded-xl group-hover:from-congo-red/20 group-hover:to-congo-yellow/20 transition-all duration-200">
                 <IconComponent className="h-5 w-5 text-congo-red group-hover:text-congo-red-electric transition-colors" />
@@ -445,12 +445,12 @@ export const UserProfile = () => {
       <div className="px-4 py-4 mt-6">
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="outline" className="w-full flex items-center gap-3 text-destructive hover:text-destructive glassmorphism-soft hover:glassmorphism border-destructive/20 hover:border-destructive/40">
+            <Button variant="outline" className="w-full flex items-center gap-3 text-destructive hover:text-destructive bg-card border-destructive/20 hover:border-destructive/40 shadow-lg">
               <LogOut className="h-4 w-4" />
               {t('profile.logout')}
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent className="glassmorphism">
+          <AlertDialogContent className="bg-card border border-border shadow-lg">
             <AlertDialogHeader>
               <AlertDialogTitle>{t('profile.logout_confirm')}</AlertDialogTitle>
               <AlertDialogDescription>
@@ -472,7 +472,7 @@ export const UserProfile = () => {
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         title={getOptionTitle(activeOption)}
-        className="glassmorphism"
+        className="bg-card border border-border shadow-lg"
       >
         {renderModalContent()}
       </MobileProfileModal>

@@ -48,7 +48,7 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
                 <CardTitle className="text-lg text-foreground">Votre Code de Parrainage</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 glassmorphism-soft rounded-lg border-2 border-dashed border-congo-green/40">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-card border-2 border-dashed border-congo-green/40 rounded-lg shadow-lg">
                   <span className="text-xl sm:text-2xl font-bold text-congo-green tracking-wider text-center sm:text-left">
                     {loading ? '...' : referralCode}
                   </span>

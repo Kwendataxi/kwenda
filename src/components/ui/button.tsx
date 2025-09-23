@@ -20,7 +20,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         hero: "bg-gradient-hero text-white hover:scale-105 shadow-glow font-semibold rounded-xl",
         success: "bg-gradient-success text-white hover:scale-105 shadow-md rounded-xl",
-        soft: "glassmorphism-button hover:scale-[1.02] active:scale-[0.98] rounded-xl shadow-soft",
+        soft: "bg-card border border-border shadow-lg hover:scale-[1.02] active:scale-[0.98] rounded-xl",
         congo: "btn-congo hover:scale-[1.02] active:scale-[0.98] rounded-xl shadow-elegant",
         "congo-soft": "bg-congo-red/10 text-congo-red border border-congo-red/20 hover:bg-congo-red/20 hover:border-congo-red/30 rounded-xl backdrop-blur-sm",
         glass: "glass-button text-foreground hover:scale-[1.02] rounded-xl",

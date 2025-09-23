@@ -349,7 +349,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="h-12 text-lg glassmorphism-button border-primary/30 focus:border-primary"
+          className="h-12 text-lg bg-card border border-primary/30 focus:border-primary shadow-lg"
           autoFocus
         />
         
@@ -357,7 +357,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           variant="outline"
           onClick={() => handleUseCurrentPosition(type)}
           disabled={isGettingLocation || loading}
-          className="w-full h-12 glassmorphism-button border-primary/30 hover:border-primary text-primary hover:shadow-glow transition-all"
+          className="w-full h-12 bg-card border border-primary/30 hover:border-primary text-primary hover:shadow-glow transition-all shadow-lg"
         >
           <Navigation className={`w-5 h-5 mr-2 ${isGettingLocation || loading ? 'animate-spin' : ''}`} />
           {isGettingLocation || loading ? 'Localisation en cours...' : 'Utiliser ma position actuelle'}
@@ -365,7 +365,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
       </div>
       
       {suggestions.length > 0 && (
-        <div className="glassmorphism-button border border-primary/20 rounded-lg overflow-hidden z-50 animate-scaleIn">
+        <div className="bg-card border border-primary/20 rounded-lg overflow-hidden z-50 animate-scaleIn shadow-lg">
           {suggestions.map((suggestion) => (
             <div
               key={suggestion.id}
@@ -442,7 +442,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-[1.02] animate-fadeIn ${
               deliveryData.serviceType === key
                 ? 'border-primary bg-primary/5 shadow-glow'
-                : 'border-primary/20 glassmorphism-button hover:border-primary/50 hover:shadow-soft'
+                : 'border-primary/20 bg-card hover:border-primary/50 hover:shadow-soft shadow-lg'
             }`}
             onClick={() => setDeliveryData(prev => ({ ...prev, serviceType: key as any }))}
           >
@@ -471,7 +471,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           id="packageType"
           value={deliveryData.packageType}
           onChange={(e) => setDeliveryData(prev => ({ ...prev, packageType: e.target.value }))}
-          className="w-full p-3 rounded-lg glassmorphism-button border border-primary/30 focus:border-primary text-foreground"
+          className="w-full p-3 rounded-lg bg-card border border-primary/30 focus:border-primary text-foreground shadow-lg"
         >
           {PACKAGE_TYPES.map(type => (
             <option key={type} value={type}>{type}</option>
@@ -491,7 +491,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         <p className="text-muted-foreground">Vérifiez les détails de votre commande</p>
       </div>
       
-      <div className="glassmorphism-button border border-congo-green/30 bg-congo-green/5 p-6 rounded-xl shadow-soft">
+      <div className="bg-card border border-congo-green/30 p-6 rounded-xl shadow-soft">
         <div className="space-y-4">
           <div className="flex items-start gap-3">
             <MapPin className="w-5 h-5 text-primary mt-0.5" />
@@ -562,7 +562,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
   return (
     <div className="min-h-screen bg-background">
       {/* Header avec indicateur de progression */}
-      <div className="sticky top-0 z-40 glassmorphism-button border-b border-primary/20 p-4 backdrop-blur-xl">
+      <div className="sticky top-0 z-40 bg-card border-b border-primary/20 p-4 shadow-lg">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold text-foreground">Livraison Express</h1>
@@ -600,14 +600,14 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
       {/* Contenu principal */}
       <div className="p-4">
         <div className="max-w-2xl mx-auto">
-          <Card className="glassmorphism-button border-primary/20 p-6 animate-scaleIn">
+          <Card className="bg-card border border-primary/20 p-6 animate-scaleIn shadow-lg">
             {renderCurrentStep()}
           </Card>
         </div>
       </div>
 
       {/* Navigation footer */}
-      <div className="fixed bottom-0 left-0 right-0 glassmorphism-button border-t border-primary/20 p-4 backdrop-blur-xl">
+      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-primary/20 p-4 shadow-lg">
         <div className="max-w-2xl mx-auto flex gap-3">
           {currentStep !== 'pickup' && (
             <Button

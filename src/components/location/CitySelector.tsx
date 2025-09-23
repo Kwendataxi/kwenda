@@ -89,7 +89,7 @@ const CitySelector = ({ currentCity, onCityChange, className }: CitySelectorProp
           <ChevronDown className="h-3 w-3 opacity-70" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-72 p-2 rounded-xl glassmorphism-button backdrop-blur-lg shadow-lg border border-border/30">
+      <DropdownMenuContent align="start" className="w-72 p-2 rounded-xl bg-card border border-border shadow-lg z-50">
         {cities.map((city) => (
           <DropdownMenuItem
             key={city.name}

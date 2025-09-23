@@ -36,7 +36,7 @@ export const ResponsivePageLayout: React.FC<ResponsivePageLayoutProps> = ({
       className
     )}>
       {/* Header */}
-      <header className="sticky top-0 z-40 glassmorphism border-b border-border/60">
+      <header className="sticky top-0 z-40 bg-card border-b border-border/60 shadow-lg">
         <div className="responsive-padding py-4">
           <ResponsiveContainer size={containerSize} padding="none">
             <div className="flex items-center justify-between">

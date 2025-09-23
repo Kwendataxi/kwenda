@@ -222,7 +222,7 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
         </div>
 
         {/* Service Summary */}
-        <Card className="glassmorphism border-0 shadow-xl mb-6">
+        <Card className="bg-card border border-border shadow-lg mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <div className="p-3 bg-primary/10 rounded-xl">
@@ -265,7 +265,7 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
         </Card>
 
         {/* Delivery Details */}
-        <Card className="glassmorphism border-0 shadow-xl mb-6">
+        <Card className="bg-card border border-border shadow-lg mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Navigation className="h-5 w-5 text-primary" />
@@ -323,7 +323,7 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
         </Card>
 
         {/* Service Features */}
-        <Card className="glassmorphism border-0 shadow-xl mb-6">
+        <Card className="bg-card border border-border shadow-lg mb-6">
           <CardContent className="pt-6">
             <div className="space-y-2">
               <p className="text-sm font-medium mb-3">Services inclus :</p>
