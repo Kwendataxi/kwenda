@@ -319,44 +319,56 @@ export const useEnhancedDeliveryOrders = () => {
 
   // Fonction pour déclencher automatiquement la recherche de livreurs
   const triggerDriverSearch = async (orderId: string, mode: string, coordinates: any) => {
+    console.log('🚚 [Livraison] Début recherche chauffeur:', { orderId, mode, coordinates });
+    
     try {
-      console.log('🚚 Déclenchement delivery-dispatcher pour:', { orderId, mode, coordinates });
-      
-      // Utiliser les paramètres corrects selon l'Edge Function
+      // Valider que nous avons les coordonnées nécessaires
+      if (!coordinates?.lat || !coordinates?.lng) {
+        console.error('❌ [Livraison] Coordonnées manquantes:', coordinates);
+        throw new Error('Coordonnées de pickup manquantes');
+      }
+
+      const dispatchPayload = {
+        orderId: orderId,
+        pickupLat: coordinates.lat,
+        pickupLng: coordinates.lng,
+        deliveryType: mode
+      };
+
+      console.log('📡 [Livraison] Appel Edge Function delivery-dispatcher:', dispatchPayload);
+
       const { data, error } = await supabase.functions.invoke('delivery-dispatcher', {
-        body: {
-          orderId: orderId,
-          pickupLat: coordinates.lat,
-          pickupLng: coordinates.lng,
-          deliveryType: mode
-        }
+        body: dispatchPayload
       });
 
       if (error) {
-        console.error('Erreur Edge Function delivery-dispatcher:', error);
+        console.error('❌ [Livraison] Erreur Edge Function:', error);
         throw error;
       }
 
-      console.log('✅ Résultat delivery-dispatcher:', data);
+      console.log('✅ [Livraison] Réponse Edge Function:', data);
       
       if (data?.success && data.driver) {
+        console.log('🎉 [Livraison] Chauffeur assigné:', data.driver);
         toast({
           title: "Livreur assigné ✅",
-          description: `Livreur trouvé à ${data.driver.distance?.toFixed(1)}km de distance`,
+          description: `${data.driver.vehicle_make} ${data.driver.vehicle_model} à ${data.driver.distance?.toFixed(1)}km`,
         });
       } else if (data?.driversFound > 0) {
+        console.log('🔍 [Livraison] Livreurs trouvés:', data.driversFound);
         toast({
           title: "Livreurs disponibles 🔍",
           description: `${data.driversFound} livreurs trouvés dans votre zone`,
         });
       } else {
+        console.warn('⚠️ [Livraison] Aucun chauffeur trouvé');
         toast({
           title: "Recherche élargie 🔍",
           description: data?.message || "Aucun livreur proche trouvé, recherche élargie en cours...",
         });
       }
     } catch (error: any) {
-      console.error('Erreur recherche livreurs:', error);
+      console.error('❌ [Livraison] Erreur recherche chauffeur:', error);
       toast({
         title: "Recherche de livreurs",
         description: "Recherche de livreurs en cours, nous vous notifierons dès qu'un livreur sera disponible",

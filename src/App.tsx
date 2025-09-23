@@ -1,3 +1,4 @@
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import PerformanceOptimizer from "@/components/performance/PerformanceOptimizer";
@@ -54,12 +55,26 @@ import { StartupExperience } from "@/components/splash/StartupExperience";
 import { ScrollToTop } from "@/components/navigation/ScrollToTop";
 import { ThemeNotification } from "@/components/theme/ThemeNotification";
 import { useOrderCleanup } from "@/hooks/useOrderCleanup";
+import { DebugHelper } from "@/utils/debugHelper";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   // Initialiser le nettoyage automatique des commandes
   useOrderCleanup();
+  
+  // Diagnostic de debug en développement
+  React.useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log('🔍 [Debug] Mode développement - Diagnostic disponible');
+      console.log('🔍 [Debug] Utilise window.debugKwenda.runFullDiagnostic() pour un diagnostic complet');
+      
+      // Diagnostic automatique au démarrage
+      setTimeout(() => {
+        DebugHelper.runFullDiagnostic();
+      }, 2000);
+    }
+  }, []);
   
   return (
     <>

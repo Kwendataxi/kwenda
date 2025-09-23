@@ -41,12 +41,25 @@ export const useEnhancedTransportBooking = () => {
 
   const createBooking = async (data: BookingData) => {
     if (!user) {
+      console.error('❌ [Transport] Utilisateur non connecté');
       toast.error('Vous devez être connecté pour réserver');
       return null;
     }
 
+    console.log('🚗 [Transport] Début création réservation:', data);
     setLoading(true);
+    
     try {
+      // Valider les coordonnées d'abord
+      console.log('🔍 [Transport] Validation coordonnées...');
+      const validatedCoords = await supabase.rpc('validate_booking_coordinates', {
+        pickup_coords: data.pickupCoordinates,
+        delivery_coords: data.destinationCoordinates
+      });
+
+      console.log('✅ [Transport] Coordonnées validées:', validatedCoords);
+
+      // Calculer le prix avec les règles
       const { data: pricingRules, error: pricingError } = await supabase
         .from('pricing_rules')
         .select('*')
@@ -55,7 +68,7 @@ export const useEnhancedTransportBooking = () => {
         .maybeSingle();
 
       if (pricingError) {
-        console.warn('Could not fetch pricing rules:', pricingError);
+        console.warn('⚠️ [Transport] Erreur pricing rules:', pricingError);
       }
 
       let finalPrice = data.estimatedPrice;
@@ -64,6 +77,7 @@ export const useEnhancedTransportBooking = () => {
           (data.totalDistance * pricingRules.price_per_km) +
           (data.totalDistance * 5 * pricingRules.price_per_minute);
         finalPrice *= (data.surgeMultiplier || 1.0);
+        console.log('💰 [Transport] Prix calculé avec rules:', finalPrice);
       }
 
       const { data: booking, error } = await supabase
@@ -72,8 +86,8 @@ export const useEnhancedTransportBooking = () => {
           user_id: user.id,
           pickup_location: data.pickupLocation,
           destination: data.destination,
-          pickup_coordinates: data.pickupCoordinates,
-          destination_coordinates: data.destinationCoordinates,
+          pickup_coordinates: (validatedCoords.data as any)?.pickup || data.pickupCoordinates,
+          destination_coordinates: (validatedCoords.data as any)?.delivery || data.destinationCoordinates,
           intermediate_stops: data.intermediateStops || [],
           vehicle_type: data.vehicleType,
           estimated_price: Math.round(finalPrice),
@@ -85,16 +99,27 @@ export const useEnhancedTransportBooking = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [Transport] Erreur création réservation:', error);
+        throw error;
+      }
 
+      console.log('✅ [Transport] Réservation créée:', booking);
       toast.success('Réservation créée avec succès');
       
-      // Utiliser l'Edge Function ride-dispatcher pour l'assignation automatique
-      triggerRideDispatch(booking.id, data.pickupCoordinates);
+      // Déclencher immédiatement l'assignation automatique via Edge Function
+      try {
+        console.log('🔍 [Transport] Lancement ride-dispatcher...');
+        const pickupCoords = (validatedCoords.data as any)?.pickup || data.pickupCoordinates;
+        await triggerRideDispatch(booking.id, pickupCoords);
+      } catch (dispatchError) {
+        console.error('❌ [Transport] Erreur dispatch:', dispatchError);
+        toast.error('Recherche de chauffeur en cours...');
+      }
       
       return booking;
     } catch (error: any) {
-      console.error('Error creating booking:', error);
+      console.error('❌ [Transport] Erreur générale:', error);
       toast.error(error.message || 'Erreur lors de la réservation');
       return null;
     } finally {
