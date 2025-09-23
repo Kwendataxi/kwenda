@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Star, Shield, Phone, Mail, User, FileText, Wallet, UserCheck, Edit2, Check, X, ChevronRight, Settings, Car, Users, MapPin, Clock, Gift, Headphones, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { MobileProfileModal } from './MobileProfileModal';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
@@ -47,6 +48,7 @@ interface UserRating {
 export const UserProfile = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [rating, setRating] = useState<UserRating>({ rating: 0, total_ratings: 0 });
   const [isEditing, setIsEditing] = useState(false);
@@ -121,8 +123,8 @@ export const UserProfile = () => {
       if (error) throw error;
 
       toast({
-        title: "Profil mis à jour",
-        description: "Vos informations ont été mises à jour avec succès.",
+        title: t('profile.updated'),
+        description: t('profile.updated_desc'),
       });
 
       setIsEditing(false);
@@ -130,8 +132,8 @@ export const UserProfile = () => {
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le profil.",
+        title: t('common.error'),
+        description: t('profile.error_update'),
         variant: "destructive",
       });
     }
@@ -153,13 +155,13 @@ export const UserProfile = () => {
       setProfile(prev => prev ? { ...prev, display_name: editedDisplayName } : null);
       setIsEditingName(false);
       toast({
-        title: "Nom mis à jour",
-        description: "Votre nom a été mis à jour avec succès.",
+        title: t('profile.name_updated'),
+        description: t('profile.name_updated_desc'),
       });
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le nom.",
+        title: t('common.error'),
+        description: t('profile.error_update_name'),
         variant: "destructive",
       });
     }
@@ -177,13 +179,13 @@ export const UserProfile = () => {
       setProfile(prev => prev ? { ...prev, phone_number: editedPhone } : null);
       setIsEditingPhone(false);
       toast({
-        title: "Téléphone mis à jour",
-        description: "Votre numéro de téléphone a été mis à jour avec succès.",
+        title: t('profile.phone_updated'),
+        description: t('profile.phone_updated_desc'),
       });
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le téléphone.",
+        title: t('common.error'),
+        description: t('profile.error_update_phone'),
         variant: "destructive",
       });
     }
@@ -203,14 +205,14 @@ export const UserProfile = () => {
     try {
       await signOut();
       toast({
-        title: "Déconnexion réussie",
-        description: "Vous avez été déconnecté avec succès.",
+        title: t('profile.logout_success'),
+        description: t('profile.logout_success_desc'),
       });
       // The redirect to /auth will be handled by the AuthProvider
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible de se déconnecter.",
+        title: t('common.error'),
+        description: t('profile.error_logout'),
         variant: "destructive",
       });
     }
@@ -237,9 +239,9 @@ export const UserProfile = () => {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Configuration de votre compte...</p>
+          <p className="text-muted-foreground">{t('profile.loading')}</p>
           <p className="text-sm text-muted-foreground">
-            Nous préparons votre profil, veuillez patienter.
+            {t('profile.loading')}
           </p>
         </div>
       </div>
@@ -250,29 +252,29 @@ export const UserProfile = () => {
     {
       id: 'history',
       icon: Clock,
-      title: 'Historique',
-      subtitle: 'Activités et transactions',
+      title: t('profile.history'),
+      subtitle: t('activity.title'),
       hasArrow: true
     },
     {
       id: 'addresses',
       icon: MapPin,
-      title: 'Mes adresses',
-      subtitle: 'Adresses sauvegardées',
+      title: t('profile.addresses'),
+      subtitle: t('profile.addresses'),
       hasArrow: true
     },
     {
       id: 'support',
       icon: Headphones,
-      title: 'Assistance',
-      subtitle: 'Support client',
+      title: t('profile.support'),
+      subtitle: t('support.title'),
       hasArrow: true
     },
     {
       id: 'settings',
       icon: Settings,
-      title: 'Paramètres',
-      subtitle: 'Notifications, langues, etc.',
+      title: t('profile.settings'),
+      subtitle: t('profile.settings'),
       hasArrow: true
     }
   ];
@@ -317,7 +319,7 @@ export const UserProfile = () => {
             onClick={() => setShowModal(false)}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
           >
-            Fermer
+            {t('common.close')}
           </button>
         </div>
       );
@@ -365,17 +367,17 @@ export const UserProfile = () => {
       {isEditingName && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-card rounded-xl p-6 w-full max-w-sm glassmorphism">
-            <h3 className="text-lg font-semibold mb-4">Modifier le nom</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('profile.edit_name')}</h3>
             <Input
               value={editedDisplayName}
               onChange={(e) => setEditedDisplayName(e.target.value)}
-              placeholder="Votre nom"
+              placeholder={t('profile.enter_name')}
               className="mb-4"
             />
             <div className="flex gap-2">
               <Button onClick={handleNameSave} className="flex-1">
                 <Check className="h-4 w-4 mr-2" />
-                Sauvegarder
+                {t('profile.save')}
               </Button>
               <Button variant="outline" onClick={handleNameCancel}>
                 <X className="h-4 w-4" />
@@ -389,17 +391,17 @@ export const UserProfile = () => {
       {isEditingPhone && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-card rounded-xl p-6 w-full max-w-sm glassmorphism">
-            <h3 className="text-lg font-semibold mb-4">Modifier le téléphone</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('profile.edit_phone')}</h3>
             <Input
               value={editedPhone}
               onChange={(e) => setEditedPhone(e.target.value)}
-              placeholder="Numéro de téléphone"
+              placeholder={t('profile.enter_phone')}
               className="mb-4"
             />
             <div className="flex gap-2">
               <Button onClick={handlePhoneSave} className="flex-1">
                 <Check className="h-4 w-4 mr-2" />
-                Sauvegarder
+                {t('profile.save')}
               </Button>
               <Button variant="outline" onClick={handlePhoneCancel}>
                 <X className="h-4 w-4" />
@@ -445,20 +447,20 @@ export const UserProfile = () => {
           <AlertDialogTrigger asChild>
             <Button variant="outline" className="w-full flex items-center gap-3 text-destructive hover:text-destructive glassmorphism-soft hover:glassmorphism border-destructive/20 hover:border-destructive/40">
               <LogOut className="h-4 w-4" />
-              Se déconnecter
+              {t('profile.logout')}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent className="glassmorphism">
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirmer la déconnexion</AlertDialogTitle>
+              <AlertDialogTitle>{t('profile.logout_confirm')}</AlertDialogTitle>
               <AlertDialogDescription>
-                Êtes-vous sûr de vouloir vous déconnecter de votre compte Kwenda Taxi ?
+                {t('profile.logout_confirm')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogCancel>{t('profile.cancel')}</AlertDialogCancel>
               <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
-                Se déconnecter
+                {t('profile.logout')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

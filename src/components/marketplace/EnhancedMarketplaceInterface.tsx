@@ -144,7 +144,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
         condition: product.condition || 'new',
         description: product.description || '',
         seller_id: product.seller_id,
-        seller: { display_name: 'Vendeur' },
+        seller: { display_name: t('marketplace.unknown_seller') },
         location: product.location || 'Kinshasa',
         coordinates: product.coordinates && typeof product.coordinates === 'object' 
           ? product.coordinates as { lat: number; lng: number }
@@ -159,8 +159,8 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
     } catch (error) {
       console.error('Error loading products:', error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de charger les produits',
+        title: t('common.error'),
+        description: t('marketplace.error_load'),
         variant: 'destructive',
       });
     } finally {
@@ -233,15 +233,15 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
         price: product.price,
         image: product.image,
         quantity: 1,
-        seller: product.seller.display_name || 'Vendeur inconnu',
+        seller: product.seller.display_name || t('marketplace.unknown_seller'),
         seller_id: product.seller_id,
         coordinates: product.coordinates
       }]);
     }
 
     toast({
-      title: 'Produit ajouté',
-      description: `${product.title} a été ajouté au panier`,
+      title: t('marketplace.product_added'),
+      description: t('marketplace.product_added_desc').replace('{0}', product.title),
     });
   };
 
@@ -284,8 +284,8 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
   const handleCheckout = async () => {
     if (!coordinates) {
       toast({
-        title: 'Localisation requise',
-        description: 'Activez la géolocalisation pour calculer la livraison',
+        title: t('marketplace.location_required'),
+        description: t('marketplace.location_required_desc'),
         variant: 'destructive',
       });
       return;
@@ -334,8 +334,8 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
     setIsCartOpen(false);
     
     toast({
-      title: 'Commandes créées',
-      description: 'Vos commandes ont été transmises aux vendeurs',
+      title: t('marketplace.orders_created'),
+      description: t('marketplace.orders_created_desc'),
     });
   };
 
@@ -372,7 +372,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
       {/* Horizontal Product Sections */}
       {featuredProducts.length > 0 && (
         <HorizontalProductScroll
-          title="✨ Sélection"
+          title={`✨ ${t('marketplace.featured')}`}
           products={featuredProducts.map(p => ({ 
             id: p.id,
             name: p.title, 
@@ -405,7 +405,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
 
       {popularProducts.length > 0 && (
         <HorizontalProductScroll
-          title="⭐ Populaires"
+          title={`⭐ ${t('marketplace.popular')}`}
           products={popularProducts.map(p => ({ 
             id: p.id,
             name: p.title, 
@@ -438,7 +438,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
 
       {nearbyProducts.length > 0 && coordinates && (
         <HorizontalProductScroll
-          title="📍 Près de vous"
+          title={`📍 ${t('marketplace.nearby')}`}
           products={nearbyProducts.map(p => ({ 
             id: p.id,
             name: p.title, 
@@ -473,9 +473,9 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
         <Card className="p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="w-4 h-4" />
-            <span>Votre position: {coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}</span>
+            <span>{t('marketplace.your_position')}: {coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}</span>
             <Badge variant="secondary" className="ml-auto">
-              {filteredProducts.length} produits
+              {filteredProducts.length} {t('marketplace.products_count')}
             </Badge>
           </div>
         </Card>

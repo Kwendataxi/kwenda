@@ -19,19 +19,19 @@ export const ModernBottomNavigation = ({
   const tabs = [
     {
       id: 'home',
-      name: 'Accueil',
+      name: t('client.nav.home'),
       icon: Home,
       badge: 0
     },
     {
       id: 'activity',
-      name: 'Activité',
+      name: t('client.nav.activity'),
       icon: Activity,
       badge: notificationCount
     },
     {
       id: 'profil',
-      name: 'Compte',
+      name: t('client.nav.account'),
       icon: User,
       badge: 0
     }

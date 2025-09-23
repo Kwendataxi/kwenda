@@ -231,15 +231,80 @@ const translations = {
     'payment.secure': 'Paiement sécurisé',
     'payment.options': 'Options de paiement',
     
-    // Marketplace
+    // Marketplace Basic
     'marketplace.new_badge': 'Nouveau',
-    'marketplace.featured': 'À la une',
     'marketplace.trending': 'Tendance',
     
     // Lottery
     'lottery.free_lottery': 'Loterie gratuite',
     'lottery.win_credits': 'Gagnez des crédits',
-    'lottery.daily_draw': 'Tirage quotidien'
+    'lottery.daily_draw': 'Tirage quotidien',
+
+    // Client Navigation
+    'client.nav.home': 'Accueil',
+    'client.nav.activity': 'Activité', 
+    'client.nav.account': 'Compte',
+
+    // User Profile
+    'profile.loading': 'Chargement du profil...',
+    'profile.edit_name': 'Modifier le nom',
+    'profile.edit_phone': 'Modifier le téléphone',
+    'profile.history': 'Historique',
+    'profile.addresses': 'Mes adresses',
+    'profile.support': 'Assistance',
+    'profile.settings': 'Paramètres',
+    'profile.logout': 'Se déconnecter',
+    'profile.logout_confirm': 'Confirmer la déconnexion',
+    'profile.save': 'Enregistrer',
+    'profile.cancel': 'Annuler',
+    'profile.enter_name': 'Entrez votre nom',
+    'profile.enter_phone': 'Entrez votre téléphone',
+
+    // Activity History
+    'activity.title': 'Activité',
+    'activity.loading': 'Chargement de l\'historique...',
+    'activity.no_rides': 'Aucune course trouvée',
+    'activity.driver': 'Chauffeur',
+    'activity.completed': 'Terminé',
+    'activity.pending': 'En attente',
+    'activity.today': 'Aujourd\'hui',
+    'activity.yesterday': 'Hier',
+    'activity.price_undefined': 'Prix non défini',
+
+    // Marketplace Client
+    'marketplace.my_activities': 'Mes Activités',
+    'marketplace.my_purchases': 'Mes Achats', 
+    'marketplace.my_sales': 'Mes Ventes',
+    'marketplace.quantity': 'Quantité',
+    'marketplace.phone': 'Téléphone',
+    'marketplace.add_to_cart': 'Ajouter au panier',
+    'marketplace.product_added': 'Produit ajouté',
+    'marketplace.product_added_desc': '{0} a été ajouté au panier',
+    'marketplace.location_required': 'Localisation requise',
+    'marketplace.location_required_desc': 'Activez la géolocalisation pour calculer la livraison',
+    'marketplace.orders_created': 'Commandes créées',
+    'marketplace.orders_created_desc': 'Vos commandes ont été transmises aux vendeurs',
+    'marketplace.your_position': 'Votre position',
+    'marketplace.products_count': 'produits',
+    'marketplace.featured': 'Sélection',
+    'marketplace.popular': 'Populaires',
+    'marketplace.nearby': 'Près de vous',
+    'marketplace.error_load': 'Impossible de charger les produits',
+    'marketplace.unknown_seller': 'Vendeur inconnu',
+
+    // Profile Messages
+    'profile.updated': 'Profil mis à jour',
+    'profile.updated_desc': 'Vos informations ont été mises à jour avec succès',
+    'profile.name_updated': 'Nom mis à jour',
+    'profile.name_updated_desc': 'Votre nom a été mis à jour avec succès',
+    'profile.phone_updated': 'Téléphone mis à jour',
+    'profile.phone_updated_desc': 'Votre numéro de téléphone a été mis à jour avec succès',
+    'profile.logout_success': 'Déconnexion réussie',
+    'profile.logout_success_desc': 'Vous avez été déconnecté avec succès',
+    'profile.error_update': 'Impossible de mettre à jour le profil',
+    'profile.error_update_name': 'Impossible de mettre à jour le nom',
+    'profile.error_update_phone': 'Impossible de mettre à jour le téléphone',
+    'profile.error_logout': 'Impossible de se déconnecter'
   },
   
   en: {
@@ -467,15 +532,80 @@ const translations = {
     'payment.secure': 'Secure Payment',
     'payment.options': 'Payment Options',
     
-    // Marketplace
+    // Marketplace Basic
     'marketplace.new_badge': 'New',
-    'marketplace.featured': 'Featured',
     'marketplace.trending': 'Trending',
     
     // Lottery
     'lottery.free_lottery': 'Free Lottery',
     'lottery.win_credits': 'Win Credits',
-    'lottery.daily_draw': 'Daily Draw'
+    'lottery.daily_draw': 'Daily Draw',
+
+    // Client Navigation
+    'client.nav.home': 'Home',
+    'client.nav.activity': 'Activity',
+    'client.nav.account': 'Account',
+
+    // User Profile
+    'profile.loading': 'Loading profile...',
+    'profile.edit_name': 'Edit name',
+    'profile.edit_phone': 'Edit phone',
+    'profile.history': 'History',
+    'profile.addresses': 'My addresses',
+    'profile.support': 'Support',
+    'profile.settings': 'Settings',
+    'profile.logout': 'Logout',
+    'profile.logout_confirm': 'Confirm logout',
+    'profile.save': 'Save',
+    'profile.cancel': 'Cancel',
+    'profile.enter_name': 'Enter your name',
+    'profile.enter_phone': 'Enter your phone',
+
+    // Activity History
+    'activity.title': 'Activity',
+    'activity.loading': 'Loading history...',
+    'activity.no_rides': 'No rides found',
+    'activity.driver': 'Driver',
+    'activity.completed': 'Completed',
+    'activity.pending': 'Pending',
+    'activity.today': 'Today',
+    'activity.yesterday': 'Yesterday',
+    'activity.price_undefined': 'Price undefined',
+
+    // Marketplace Client
+    'marketplace.my_activities': 'My Activities',
+    'marketplace.my_purchases': 'My Purchases',
+    'marketplace.my_sales': 'My Sales',
+    'marketplace.quantity': 'Quantity',
+    'marketplace.phone': 'Phone',
+    'marketplace.add_to_cart': 'Add to cart',
+    'marketplace.product_added': 'Product added',
+    'marketplace.product_added_desc': '{0} has been added to cart',
+    'marketplace.location_required': 'Location required',
+    'marketplace.location_required_desc': 'Enable geolocation to calculate delivery',
+    'marketplace.orders_created': 'Orders created',
+    'marketplace.orders_created_desc': 'Your orders have been sent to sellers',
+    'marketplace.your_position': 'Your position',
+    'marketplace.products_count': 'products',
+    'marketplace.featured': 'Featured',
+    'marketplace.popular': 'Popular',
+    'marketplace.nearby': 'Nearby',
+    'marketplace.error_load': 'Failed to load products',
+    'marketplace.unknown_seller': 'Unknown seller',
+
+    // Profile Messages
+    'profile.updated': 'Profile updated',
+    'profile.updated_desc': 'Your information has been updated successfully',
+    'profile.name_updated': 'Name updated',
+    'profile.name_updated_desc': 'Your name has been updated successfully',
+    'profile.phone_updated': 'Phone updated',
+    'profile.phone_updated_desc': 'Your phone number has been updated successfully',
+    'profile.logout_success': 'Logout successful',
+    'profile.logout_success_desc': 'You have been logged out successfully',
+    'profile.error_update': 'Failed to update profile',
+    'profile.error_update_name': 'Failed to update name',
+    'profile.error_update_phone': 'Failed to update phone',
+    'profile.error_logout': 'Failed to logout'
   },
   
   kg: {

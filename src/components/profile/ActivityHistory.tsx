@@ -151,7 +151,7 @@ export const ActivityHistory = () => {
               <Button variant="ghost" size="icon">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <h1 className="text-lg font-semibold">Activité</h1>
+              <h1 className="text-lg font-semibold">{t('activity.title')}</h1>
             </div>
           </div>
         </div>
@@ -160,7 +160,7 @@ export const ActivityHistory = () => {
           <div className="flex items-center justify-center py-8">
             <div className="text-center">
               <Clock className="h-8 w-8 animate-pulse mx-auto mb-2 text-muted-foreground" />
-              <p className="text-muted-foreground">Chargement de l'historique...</p>
+              <p className="text-muted-foreground">{t('activity.loading')}</p>
             </div>
           </div>
         </div>
@@ -177,7 +177,7 @@ export const ActivityHistory = () => {
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold">Activité</h1>
+            <h1 className="text-lg font-semibold">{t('activity.title')}</h1>
           </div>
         </div>
       </div>
@@ -187,7 +187,7 @@ export const ActivityHistory = () => {
         {bookings.length === 0 ? (
           <div className="text-center py-8">
             <Car className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">Aucune course trouvée</p>
+            <p className="text-muted-foreground">{t('activity.no_rides')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -212,7 +212,7 @@ export const ActivityHistory = () => {
                       <div className="flex items-center justify-between mb-2">
                         <div>
                           <p className="font-medium text-sm">
-                            {booking.driver?.display_name || 'Chauffeur'}
+                            {booking.driver?.display_name || t('activity.driver')}
                           </p>
                           {booking.rating && (
                             <div className="flex items-center gap-2 mt-1">
@@ -225,14 +225,14 @@ export const ActivityHistory = () => {
                         </div>
                         <div className="text-right">
                           <p className="font-semibold text-sm">
-                            {booking.actual_price ? formatAmount(booking.actual_price) : 'Prix non défini'}
+                            {booking.actual_price ? formatAmount(booking.actual_price) : t('activity.price_undefined')}
                           </p>
                           <Badge 
                             variant={booking.status === 'completed' ? 'default' : 'secondary'}
                             className="text-xs"
                           >
-                            {booking.status === 'completed' ? 'Terminé' : 
-                             booking.status === 'pending' ? 'En attente' : booking.status}
+                            {booking.status === 'completed' ? t('activity.completed') : 
+                             booking.status === 'pending' ? t('activity.pending') : booking.status}
                           </Badge>
                         </div>
                       </div>
