@@ -7298,12 +7298,19 @@ export type Database = {
         }
       }
       find_nearby_drivers: {
-        Args: {
-          max_distance_km?: number
-          pickup_lat: number
-          pickup_lng: number
-          vehicle_class_filter?: string
-        }
+        Args:
+          | {
+              max_distance_km?: number
+              pickup_lat: number
+              pickup_lng: number
+              vehicle_class_filter?: string
+            }
+          | {
+              pickup_lat: number
+              pickup_lng: number
+              radius_km?: number
+              service_type_param?: string
+            }
         Returns: {
           distance_km: number
           driver_id: string
@@ -7327,6 +7334,10 @@ export type Database = {
           rating_average: number
           vehicle_class: string
         }[]
+      }
+      fix_invalid_coordinates: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       generate_driver_code: {
         Args: Record<PropertyKey, never>
@@ -7887,6 +7898,10 @@ export type Database = {
       user_exists: {
         Args: { user_id_param: string }
         Returns: boolean
+      }
+      validate_booking_coordinates: {
+        Args: { delivery_coords?: Json; pickup_coords: Json }
+        Returns: Json
       }
       validate_service_requirements: {
         Args: { p_requirements: Json; p_service_type: string }

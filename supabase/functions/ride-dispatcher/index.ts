@@ -1,583 +1,172 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
+
+interface DispatchRequest {
+  booking_id: string;
+  pickup_coordinates: {
+    lat: number;
+    lng: number;
+  };
+  service_type?: string;
+  radius_km?: number;
+}
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
+    // Initialize Supabase client
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const requestData = await req.json();
-    const { action, rideRequestId, driverId, coordinates } = requestData;
-
-    console.log('Ride dispatcher action:', action, { rideRequestId, driverId });
-
-    switch (action) {
-      case 'create_request':
-        return await createRideRequest(supabase, requestData);
-      
-      case 'find_drivers':
-        return await findNearbyDrivers(supabase, rideRequestId, coordinates);
-      
-      case 'assign_driver':
-        return await assignDriverToRide(supabase, rideRequestId, driverId);
-      
-      case 'update_status':
-        return await updateRideStatus(supabase, rideRequestId, requestData);
-      
-      default:
-        return new Response(
-          JSON.stringify({ success: false, error: 'Action non supportée' }),
-          { 
-            status: 200, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
+    if (req.method !== 'POST') {
+      return new Response(
+        JSON.stringify({ error: 'Method not allowed' }),
+        { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
+    const { booking_id, pickup_coordinates, service_type = 'taxi', radius_km = 10 }: DispatchRequest = await req.json();
+
+    console.log(`🚗 Dispatch request for booking ${booking_id} at ${pickup_coordinates.lat}, ${pickup_coordinates.lng}`);
+
+    // Validate coordinates using our database function
+    const { data: coordinateValidation, error: validationError } = await supabaseClient
+      .rpc('validate_booking_coordinates', {
+        pickup_coords: pickup_coordinates
+      });
+
+    if (validationError) {
+      console.error('❌ Coordinate validation error:', validationError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid coordinates', details: validationError.message }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const validatedCoords = coordinateValidation.pickup;
+
+    // Find nearby drivers using our database function
+    const { data: nearbyDrivers, error: searchError } = await supabaseClient
+      .rpc('find_nearby_drivers', {
+        pickup_lat: validatedCoords.lat,
+        pickup_lng: validatedCoords.lng,
+        service_type_param: service_type,
+        radius_km: radius_km
+      });
+
+    if (searchError) {
+      console.error('❌ Driver search error:', searchError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to find drivers', details: searchError.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`🔍 Found ${nearbyDrivers?.length || 0} nearby drivers`);
+
+    if (!nearbyDrivers || nearbyDrivers.length === 0) {
+      // No drivers found - update booking status
+      await supabaseClient
+        .from('transport_bookings')
+        .update({ 
+          status: 'no_driver_available',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', booking_id);
+
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'No drivers available in the area',
+          drivers_searched: 0
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Try to assign the closest driver
+    const closestDriver = nearbyDrivers[0];
+    
+    // Update booking with assigned driver
+    const { error: assignError } = await supabaseClient
+      .from('transport_bookings')
+      .update({
+        driver_id: closestDriver.driver_id,
+        status: 'driver_assigned',
+        driver_assigned_at: new Date().toISOString(),
+        pickup_coordinates: validatedCoords,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', booking_id);
+
+    if (assignError) {
+      console.error('❌ Driver assignment error:', assignError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to assign driver', details: assignError.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Mark driver as unavailable temporarily
+    await supabaseClient
+      .from('driver_locations')
+      .update({ 
+        is_available: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('driver_id', closestDriver.driver_id);
+
+    // Create driver notification (simplified for now)
+    await supabaseClient
+      .from('activity_logs')
+      .insert({
+        user_id: closestDriver.driver_id,
+        activity_type: 'ride_request',
+        description: `Nouvelle course assignée - ${service_type}`,
+        reference_type: 'transport_booking',
+        reference_id: booking_id,
+        metadata: {
+          pickup_coordinates: validatedCoords,
+          distance_km: closestDriver.distance_km,
+          estimated_arrival: Math.round(closestDriver.distance_km * 2) // 2 min per km estimate
+        }
+      });
+
+    console.log(`✅ Driver ${closestDriver.driver_id} assigned to booking ${booking_id}`);
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        driver_assigned: {
+          driver_id: closestDriver.driver_id,
+          distance_km: closestDriver.distance_km,
+          estimated_arrival_minutes: Math.round(closestDriver.distance_km * 2)
+        },
+        total_drivers_found: nearbyDrivers.length,
+        coordinates_corrected: validatedCoords.corrected || false
+      }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
   } catch (error) {
-    console.error('Erreur dispatcher:', error);
+    console.error('❌ Unexpected error in ride dispatcher:', error);
     return new Response(
       JSON.stringify({ 
-        success: false, 
-        error: error.message || 'Erreur interne du serveur' 
+        error: 'Internal server error', 
+        details: error instanceof Error ? error.message : 'Unknown error' 
       }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
-
-async function createRideRequest(supabase: any, data: any) {
-  try {
-    const { 
-      userId, 
-      pickupLocation, 
-      pickupCoordinates, 
-      destination, 
-      destinationCoordinates, 
-      vehicleClass = 'standard' 
-    } = data;
-
-    // Validation des données d'entrée
-    if (!userId || !pickupLocation || !destination) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Données manquantes: userId, pickupLocation et destination requis' 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (!pickupCoordinates || !pickupCoordinates.lat || !pickupCoordinates.lng) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Coordonnées de départ invalides' 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    if (!destinationCoordinates || !destinationCoordinates.lat || !destinationCoordinates.lng) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Coordonnées de destination invalides' 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Coordonnées reçues:', { pickupCoordinates, destinationCoordinates });
-
-    // Calculer les zones
-    const { data: pickupZone } = await supabase
-      .rpc('get_zone_for_coordinates', {
-        lat: pickupCoordinates.lat,
-        lng: pickupCoordinates.lng
-      });
-
-    const { data: destinationZone } = await supabase
-      .rpc('get_zone_for_coordinates', {
-        lat: destinationCoordinates.lat,
-        lng: destinationCoordinates.lng
-      });
-
-    // Calculer le prix estimé
-    const distance = calculateDistance(
-      pickupCoordinates.lat, pickupCoordinates.lng,
-      destinationCoordinates.lat, destinationCoordinates.lng
-    );
-
-    // Récupérer les règles de tarification avec gestion d'erreur
-    const { data: pricingRules } = await supabase
-      .from('pricing_rules')
-      .select('*')
-      .eq('vehicle_class', vehicleClass)
-      .eq('service_type', 'transport')
-      .eq('is_active', true);
-
-    const pricingRule = pricingRules?.[0];
-    let estimatedPrice = pricingRule?.base_price || 500;
-    if (distance > 0) {
-      estimatedPrice += distance * (pricingRule?.price_per_km || 150);
-    }
-
-    // Calculer le surge pricing
-    const { data: surgeMultiplier } = await supabase
-      .rpc('calculate_surge_pricing', {
-        zone_id_param: pickupZone,
-        vehicle_class_param: vehicleClass
-      });
-
-    const surgePrice = estimatedPrice * (surgeMultiplier || 1);
-
-    // Créer la demande de course
-    const { data: rideRequest, error } = await supabase
-      .from('ride_requests')
-      .insert({
-        user_id: userId,
-        pickup_location: pickupLocation,
-        pickup_coordinates: pickupCoordinates,
-        destination: destination,
-        destination_coordinates: destinationCoordinates,
-        pickup_zone_id: pickupZone,
-        destination_zone_id: destinationZone,
-        vehicle_class: vehicleClass,
-        estimated_price: estimatedPrice,
-        surge_price: surgePrice,
-        status: 'pending'
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Erreur création ride_request:', error);
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Erreur lors de la création de la demande: ' + error.message 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Demande de course créée:', rideRequest.id);
-
-    // Déclencher la recherche de chauffeurs
-    setTimeout(() => {
-      findNearbyDrivers(supabase, rideRequest.id, pickupCoordinates);
-    }, 1000);
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        rideRequest,
-        estimatedPrice: surgePrice 
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
-  } catch (error: any) {
-    console.error('Erreur createRideRequest:', error);
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message || 'Erreur inconnue lors de la création de la demande' 
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-}
-
-async function findNearbyDrivers(supabase: any, rideRequestId: string, coordinates: any) {
-  console.log('Recherche de chauffeurs pour:', rideRequestId);
-
-  // Récupérer les détails de la demande
-  const { data: rideRequest } = await supabase
-    .from('ride_requests')
-    .select('*')
-    .eq('id', rideRequestId)
-    .single();
-
-  if (!rideRequest || rideRequest.status !== 'pending') {
-    return new Response(
-      JSON.stringify({ error: 'Demande de course non trouvée ou déjà traitée' }),
-      { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  // Rechercher les chauffeurs disponibles dans un rayon de 5km
-  const { data: nearbyDrivers } = await supabase
-    .from('driver_locations')
-    .select(`
-      driver_id,
-      latitude,
-      longitude,
-      driver_profiles!inner(
-        user_id,
-        vehicle_make,
-        vehicle_model,
-        vehicle_class,
-        rating_average,
-        is_active,
-        verification_status
-      )
-    `)
-    .eq('is_online', true)
-    .eq('is_available', true)
-    .eq('driver_profiles.is_active', true)
-    .eq('driver_profiles.verification_status', 'verified')
-    .eq('vehicle_class', rideRequest.vehicle_class);
-
-  if (!nearbyDrivers || nearbyDrivers.length === 0) {
-    // Aucun chauffeur disponible
-    await supabase
-      .from('ride_requests')
-      .update({ status: 'no_drivers_available' })
-      .eq('id', rideRequestId);
-
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        message: 'Aucun chauffeur disponible' 
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  // Calculer les distances et trier
-  const driversWithDistance = nearbyDrivers
-    .map(driver => ({
-      ...driver,
-      distance: calculateDistance(
-        coordinates.lat, coordinates.lng,
-        driver.latitude, driver.longitude
-      )
-    }))
-    .filter(driver => driver.distance <= 5) // 5km max
-    .sort((a, b) => a.distance - b.distance)
-    .slice(0, 3); // Top 3 chauffeurs
-
-  if (driversWithDistance.length === 0) {
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        message: 'Aucun chauffeur à proximité' 
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  // Mettre à jour le statut de la demande
-  await supabase
-    .from('ride_requests')
-    .update({ 
-      status: 'dispatching',
-      dispatch_time: new Date().toISOString()
-    })
-    .eq('id', rideRequestId);
-
-  // Envoyer les notifications aux chauffeurs et créer des offres
-  const expiresAt = new Date(Date.now() + 2 * 60 * 1000).toISOString(); // expire in 2 minutes
-  for (const driver of driversWithDistance) {
-    // Créer une offre ciblée pour le chauffeur
-    await supabase
-      .from('ride_offers')
-      .insert({
-        ride_request_id: rideRequestId,
-        driver_id: driver.driver_id,
-        status: 'pending',
-        expires_at: expiresAt
-      });
-
-    // Notification push (existant)
-    await supabase
-      .from('push_notifications')
-      .insert({
-        user_id: driver.driver_id,
-        title: 'Nouvelle course disponible',
-        message: `Course vers ${rideRequest.destination} - ${rideRequest.surge_price} CDF`,
-        notification_type: 'ride_request',
-        reference_id: rideRequestId
-      });
-  }
-
-  return new Response(
-    JSON.stringify({ 
-      success: true, 
-      drivers: driversWithDistance,
-      message: `${driversWithDistance.length} chauffeurs notifiés`
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-}
-
-async function assignDriverToRide(supabase: any, rideRequestId: string, driverId: string) {
-  console.log('Attribution chauffeur:', { rideRequestId, driverId });
-
-  // Check if driver has sufficient credits before accepting
-  const { data: credits, error: creditsError } = await supabase
-    .from('driver_credits')
-    .select('*')
-    .eq('driver_id', driverId)
-    .single();
-
-  if (creditsError || !credits) {
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: 'Driver credit account not found' 
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  // Vérifier que la demande est toujours disponible
-  const { data: rideRequest } = await supabase
-    .from('ride_requests')
-    .select('*')
-    .eq('id', rideRequestId)
-    .single();
-
-  if (!rideRequest || rideRequest.status !== 'dispatching') {
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        message: 'Course déjà attribuée ou annulée' 
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  // Check credit requirements based on service type
-  const serviceType = 'transport';
-  const creditRequirement = 200; // 200 CDF for transport
-
-  if (credits.balance < creditRequirement) {
-    // Update driver status to offline if insufficient credits
-    await supabase
-      .from('driver_locations')
-      .update({ is_online: false, is_available: false })
-      .eq('driver_id', driverId);
-
-    // Send low balance notification
-    await supabase.from('push_notifications').insert({
-      user_id: driverId,
-      title: 'Crédits Insuffisants',
-      message: `Solde insuffisant pour accepter cette course (${credits.balance} CDF disponible, ${creditRequirement} CDF requis). Rechargez vos crédits.`,
-      notification_type: 'low_balance',
-      reference_id: rideRequestId
-    });
-
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: 'Insufficient credits',
-        current_balance: credits.balance,
-        required_amount: creditRequirement,
-        message: 'Rechargez vos crédits pour accepter des courses'
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  // Deduct credits for accepting the ride
-  const newBalance = credits.balance - creditRequirement;
-  
-  await supabase
-    .from('driver_credits')
-    .update({ 
-      balance: newBalance,
-      total_spent: credits.total_spent + creditRequirement
-    })
-    .eq('driver_id', driverId);
-
-  // Record the transaction
-  await supabase.from('credit_transactions').insert({
-    driver_id: driverId,
-    transaction_type: 'deduction',
-    amount: creditRequirement,
-    currency: 'CDF',
-    description: `Frais d'acceptation de course ${serviceType}`,
-    reference_type: serviceType,
-    reference_id: rideRequestId,
-    balance_before: credits.balance,
-    balance_after: newBalance
-  });
-
-  // Attribuer le chauffeur
-  const { error: updateError } = await supabase
-    .from('ride_requests')
-    .update({
-      assigned_driver_id: driverId,
-      status: 'accepted',
-      acceptance_time: new Date().toISOString()
-    })
-    .eq('id', rideRequestId);
-
-  if (updateError) throw updateError;
-
-  // Mettre à jour les offres: accepter celle du chauffeur et expirer les autres
-  await supabase
-    .from('ride_offers')
-    .update({ status: 'accepted', accepted_at: new Date().toISOString() })
-    .eq('ride_request_id', rideRequestId)
-    .eq('driver_id', driverId);
-
-  await supabase
-    .from('ride_offers')
-    .update({ status: 'expired' })
-    .eq('ride_request_id', rideRequestId)
-    .neq('driver_id', driverId)
-    .eq('status', 'pending');
-
-  // Log activity
-  await supabase.from('activity_logs').insert({
-    user_id: driverId,
-    activity_type: 'ride_accepted',
-    description: `Course acceptée - ${creditRequirement} CDF déduits`,
-    amount: creditRequirement,
-    currency: 'CDF',
-    reference_id: rideRequestId,
-    reference_type: serviceType
-  });
-
-  // Marquer le chauffeur comme non disponible
-  await supabase
-    .from('driver_locations')
-    .update({ is_available: false })
-    .eq('driver_id', driverId);
-
-  // Notifier le client
-  await supabase
-    .from('push_notifications')
-    .insert({
-      user_id: rideRequest.user_id,
-      title: 'Chauffeur trouvé !',
-      message: 'Votre chauffeur arrive, préparez-vous',
-      notification_type: 'driver_assigned',
-      reference_id: rideRequestId
-    });
-
-  return new Response(
-    JSON.stringify({ 
-      success: true, 
-      message: 'Ride accepted successfully',
-      credits_deducted: creditRequirement,
-      new_balance: newBalance
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-}
-
-async function updateRideStatus(supabase: any, rideRequestId: string, data: any) {
-  const { status, coordinates, notes, actual_price } = data;
-
-  console.log('Mise à jour statut course:', { rideRequestId, status, actual_price });
-
-  const updates: any = { status };
-
-  switch (status) {
-    case 'driver_arrived':
-      updates.driver_arrived_at = new Date().toISOString();
-      break;
-    case 'in_progress':
-      updates.customer_boarded_at = new Date().toISOString();
-      updates.pickup_time = updates.pickup_time || new Date().toISOString();
-      break;
-    case 'completed':
-      updates.completion_time = new Date().toISOString();
-      if (actual_price) updates.actual_price = actual_price;
-      break;
-    case 'cancelled':
-      updates.cancellation_time = new Date().toISOString();
-      if (notes) updates.cancellation_reason = notes;
-      break;
-  }
-
-  const { data: updatedRide, error } = await supabase
-    .from('ride_requests')
-    .update(updates)
-    .eq('id', rideRequestId)
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  // Process automatic commission payment when ride is completed
-  if (status === 'completed' && actual_price) {
-    console.log('Processing automatic commission for completed ride');
-    
-    try {
-      // Call commission processing edge function
-      const { data: commissionResult, error: commissionError } = await supabase.functions.invoke(
-        'wallet-commission',
-        {
-          body: {
-            booking_id: rideRequestId,
-            amount: parseFloat(actual_price.toString()),
-            service_type: 'transport',
-            driver_id: updatedRide.assigned_driver_id,
-            user_id: updatedRide.user_id
-          }
-        }
-      );
-
-      if (commissionError) {
-        console.error('Commission processing error:', commissionError);
-        // Continue with ride completion even if commission fails
-      } else {
-        console.log('Commission processed successfully:', commissionResult);
-      }
-    } catch (commissionErr) {
-      console.error('Failed to process commission:', commissionErr);
-      // Don't fail the ride completion due to commission issues
-    }
-  }
-
-  // Si course terminée ou annulée, remettre le chauffeur disponible
-  if (['completed', 'cancelled'].includes(status)) {
-    if (updatedRide?.assigned_driver_id) {
-      await supabase
-        .from('driver_locations')
-        .update({ is_available: true })
-        .eq('driver_id', updatedRide.assigned_driver_id);
-    }
-  }
-
-  return new Response(
-    JSON.stringify({ 
-      success: true, 
-      rideRequest: updatedRide,
-      commissionProcessed: status === 'completed' && actual_price
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-}
-
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Rayon de la Terre en km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-}

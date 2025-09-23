@@ -1,0 +1,118 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+interface GeocodeRequest {
+  lat: number;
+  lng: number;
+}
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    if (req.method !== 'POST') {
+      return new Response(
+        JSON.stringify({ error: 'Method not allowed' }),
+        { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { lat, lng }: GeocodeRequest = await req.json();
+
+    console.log(`🌍 Reverse geocoding for ${lat}, ${lng}`);
+
+    // Try Google Maps API first if available
+    const googleApiKey = Deno.env.get('GOOGLE_MAPS_API_KEY');
+    
+    if (googleApiKey) {
+      try {
+        const googleResponse = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${googleApiKey}&language=fr`
+        );
+        
+        if (googleResponse.ok) {
+          const googleData = await googleResponse.json();
+          
+          if (googleData.status === 'OK' && googleData.results.length > 0) {
+            const address = googleData.results[0].formatted_address;
+            console.log(`✅ Google geocoding successful: ${address}`);
+            
+            return new Response(
+              JSON.stringify({ 
+                address,
+                source: 'google',
+                success: true 
+              }),
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Google geocoding failed:', error);
+      }
+    }
+
+    // Fallback to simple area detection based on coordinates
+    let address = '';
+    
+    // Kinshasa area detection
+    if (lat >= -5.0 && lat <= -4.0 && lng >= 15.0 && lng <= 16.0) {
+      // Rough Kinshasa communes based on coordinates
+      if (lat >= -4.4 && lng <= 15.4) {
+        address = 'Gombe, Kinshasa, République Démocratique du Congo';
+      } else if (lat >= -4.5 && lng >= 15.4) {
+        address = 'Lemba, Kinshasa, République Démocratique du Congo';
+      } else if (lat <= -4.4 && lng <= 15.4) {
+        address = 'Kinshasa Centre, République Démocratique du Congo';
+      } else {
+        address = 'Kinshasa, République Démocratique du Congo';
+      }
+    }
+    // Lubumbashi area
+    else if (lat >= -12.0 && lat <= -11.0 && lng >= 27.0 && lng <= 28.0) {
+      address = 'Lubumbashi, République Démocratique du Congo';
+    }
+    // Kolwezi area
+    else if (lat >= -11.0 && lat <= -10.0 && lng >= 25.0 && lng <= 26.0) {
+      address = 'Kolwezi, République Démocratique du Congo';
+    }
+    // Abidjan area
+    else if (lat >= 5.0 && lat <= 6.0 && lng >= -5.0 && lng <= -3.0) {
+      address = 'Abidjan, Côte d\'Ivoire';
+    }
+    // Default fallback
+    else {
+      address = `Position ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    }
+
+    console.log(`📍 Fallback geocoding: ${address}`);
+
+    return new Response(
+      JSON.stringify({ 
+        address,
+        source: 'fallback',
+        success: true 
+      }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('❌ Geocoding error:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: 'Geocoding failed',
+        address: `Position ${0}, ${0}`,
+        source: 'error',
+        success: false
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+});

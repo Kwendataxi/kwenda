@@ -140,7 +140,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     setLoading(true);
     try {
       const bookingPayload = {
-        user_id: user?.id,
+        user_id: user?.id || '00000000-0000-0000-0000-000000000000',
         pickup_location: bookingData.pickup.address,
         pickup_coordinates: { lat: bookingData.pickup.lat, lng: bookingData.pickup.lng },
         destination: bookingData.destination.address,
@@ -164,6 +164,44 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         title: "Réservation créée",
         description: "Recherche d'un chauffeur en cours...",
       });
+
+      // Try to dispatch driver automatically
+      try {
+        const dispatchResponse = await supabase.functions.invoke('ride-dispatcher', {
+          body: {
+            booking_id: data.id,
+            pickup_coordinates: {
+              lat: bookingData.pickup.lat,
+              lng: bookingData.pickup.lng
+            },
+            service_type: bookingData.vehicleType
+          }
+        });
+
+        if (dispatchResponse.error) {
+          console.warn('❌ Dispatch failed:', dispatchResponse.error);
+          toast({
+            title: "Réservation créée",
+            description: "Recherche de chauffeurs en cours...",
+          });
+        } else if (dispatchResponse.data?.success) {
+          toast({
+            title: "Chauffeur trouvé!",
+            description: `Arrivée estimée: ${dispatchResponse.data.driver_assigned.estimated_arrival_minutes} min`,
+          });
+        } else {
+          toast({
+            title: "Aucun chauffeur disponible",
+            description: "Nous recherchons d'autres chauffeurs...",
+          });
+        }
+      } catch (dispatchError) {
+        console.warn('Dispatch error:', dispatchError);
+        toast({
+          title: "Réservation créée",
+          description: "Recherche de chauffeurs en cours...",
+        });
+      }
 
       onSubmit({ 
         bookingId: data.id, 
