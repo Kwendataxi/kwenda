@@ -1904,6 +1904,96 @@ export type Database = {
         }
         Relationships: []
       }
+      emergency_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          alert_type: string
+          auto_notifications_sent: Json | null
+          created_at: string
+          emergency_contacts: Json | null
+          id: string
+          location: Json
+          priority_level: number
+          resolution_notes: string | null
+          resolved_at: string | null
+          responder_id: string | null
+          status: string
+          trip_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          alert_type?: string
+          auto_notifications_sent?: Json | null
+          created_at?: string
+          emergency_contacts?: Json | null
+          id?: string
+          location: Json
+          priority_level?: number
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          responder_id?: string | null
+          status?: string
+          trip_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          alert_type?: string
+          auto_notifications_sent?: Json | null
+          created_at?: string
+          emergency_contacts?: Json | null
+          id?: string
+          location?: Json
+          priority_level?: number
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          responder_id?: string | null
+          status?: string
+          trip_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      encryption_keys: {
+        Row: {
+          algorithm: string
+          created_at: string
+          created_by: string | null
+          encrypted_key: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_identifier: string
+          key_type: string
+        }
+        Insert: {
+          algorithm?: string
+          created_at?: string
+          created_by?: string | null
+          encrypted_key: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_identifier: string
+          key_type: string
+        }
+        Update: {
+          algorithm?: string
+          created_at?: string
+          created_by?: string | null
+          encrypted_key?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_identifier?: string
+          key_type?: string
+        }
+        Relationships: []
+      }
       enhanced_support_tickets: {
         Row: {
           assigned_to: string | null
@@ -2177,6 +2267,60 @@ export type Database = {
           response_time_ms?: number | null
           status?: string
           success_rate?: number | null
+        }
+        Relationships: []
+      }
+      geolocation_audit_trail: {
+        Row: {
+          action_type: string
+          created_at: string
+          encrypted_payload: string | null
+          error_message: string | null
+          id: string
+          ip_address: unknown | null
+          location_data: Json | null
+          metadata: Json | null
+          resource_id: string | null
+          resource_type: string
+          risk_score: number | null
+          session_id: string | null
+          success: boolean
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          encrypted_payload?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          location_data?: Json | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          risk_score?: number | null
+          session_id?: string | null
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          encrypted_payload?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          location_data?: Json | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          risk_score?: number | null
+          session_id?: string | null
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -5882,6 +6026,42 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_share_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          encrypted_data: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          share_id: string
+          trip_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          encrypted_data: string
+          expires_at: string
+          id?: string
+          is_active?: boolean
+          share_id: string
+          trip_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          encrypted_data?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          share_id?: string
+          trip_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       unified_conversations: {
         Row: {
           context_id: string | null
@@ -7365,6 +7545,14 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_risk_score: {
+        Args: {
+          p_action_type: string
+          p_time_window_hours?: number
+          p_user_id: string
+        }
+        Returns: number
+      }
       calculate_service_price: {
         Args: {
           p_city?: string
@@ -7408,7 +7596,7 @@ export type Database = {
         }[]
       }
       cleanup_old_audit_logs: {
-        Args: Record<PropertyKey, never>
+        Args: Record<PropertyKey, never> | { p_retention_days?: number }
         Returns: number
       }
       cleanup_old_notifications: {
@@ -7945,6 +8133,17 @@ export type Database = {
           p_user_id?: string
         }
         Returns: string
+      }
+      log_geolocation_access: {
+        Args: {
+          p_action_type: string
+          p_encrypted_payload?: string
+          p_location_data?: Json
+          p_metadata?: Json
+          p_resource_id?: string
+          p_resource_type: string
+        }
+        Returns: undefined
       }
       log_location_access: {
         Args: {
