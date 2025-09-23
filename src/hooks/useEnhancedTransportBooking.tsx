@@ -89,7 +89,8 @@ export const useEnhancedTransportBooking = () => {
 
       toast.success('Réservation créée avec succès');
       
-      findNearbyDrivers(booking.id, data.pickupCoordinates);
+      // Utiliser l'Edge Function ride-dispatcher pour l'assignation automatique
+      triggerRideDispatch(booking.id, data.pickupCoordinates);
       
       return booking;
     } catch (error: any) {
@@ -101,85 +102,56 @@ export const useEnhancedTransportBooking = () => {
     }
   };
 
+  // Utiliser l'Edge Function ride-dispatcher pour la recherche et assignation automatique
+  const triggerRideDispatch = async (bookingId: string, pickupCoordinates?: { lat: number; lng: number }) => {
+    if (!pickupCoordinates) {
+      toast.error('Coordonnées de collecte manquantes');
+      return;
+    }
+
+    setMatching(true);
+    
+    try {
+      console.log('🚗 Déclenchement ride-dispatcher pour:', bookingId);
+      
+      const { data, error } = await supabase.functions.invoke('ride-dispatcher', {
+        body: {
+          rideRequestId: bookingId,
+          pickupLat: pickupCoordinates.lat,
+          pickupLng: pickupCoordinates.lng,
+          serviceType: 'taxi',
+          vehicleClass: 'standard'
+        }
+      });
+
+      if (error) {
+        console.error('Erreur Edge Function:', error);
+        throw error;
+      }
+
+      console.log('✅ Résultat ride-dispatcher:', data);
+
+      if (data.success && data.driver) {
+        toast.success(`Chauffeur assigné ! Distance: ${data.driver.distance?.toFixed(1)}km`);
+      } else {
+        toast.error(data.message || 'Aucun chauffeur disponible dans la zone');
+      }
+
+    } catch (error: any) {
+      console.error('Erreur recherche de chauffeurs:', error);
+      toast.error('Erreur lors de la recherche de chauffeurs');
+    } finally {
+      setMatching(false);
+    }
+  };
+
   const findNearbyDrivers = async (
     bookingId: string, 
     pickupCoordinates?: { lat: number; lng: number }
   ) => {
-    if (!pickupCoordinates) return [];
-
-    setMatching(true);
-    try {
-      const { data: nearbyDrivers, error } = await supabase
-        .from('driver_locations')
-        .select(`
-          driver_id,
-          latitude,
-          longitude,
-          vehicle_class
-        `)
-        .eq('is_online', true)
-        .eq('is_available', true);
-
-      if (error) throw error;
-
-      const driverIds = (nearbyDrivers || []).map(d => d.driver_id);
-      const { data: driverProfiles } = await supabase
-        .from('driver_profiles')
-        .select('user_id, vehicle_make, vehicle_model, vehicle_plate, rating_average, rating_count')
-        .in('user_id', driverIds);
-
-      const driversWithDistance: DriverMatch[] = (nearbyDrivers || [])
-        .map(driver => {
-          const distance = calculateDistance(
-            pickupCoordinates.lat,
-            pickupCoordinates.lng,
-            Number(driver.latitude),
-            Number(driver.longitude)
-          );
-          
-          const profile = driverProfiles?.find(p => p.user_id === driver.driver_id);
-          
-          return {
-            driver_id: driver.driver_id,
-            distance,
-            estimated_arrival: Math.ceil(distance * 2),
-            driver_profile: profile || {
-              user_id: driver.driver_id,
-              vehicle_make: 'Toyota',
-              vehicle_model: 'Corolla',
-              vehicle_plate: 'ABC-123',
-              rating_average: 4.5,
-              rating_count: 10
-            }
-          };
-        })
-        .filter(driver => driver.distance <= 10)
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, 5);
-
-      if (driversWithDistance.length > 0) {
-        const assignedDriver = driversWithDistance[0];
-        
-        setTimeout(async () => {
-          const success = await assignDriverToBooking(bookingId, assignedDriver.driver_id);
-          if (success) {
-            toast.success(`Chauffeur trouvé ! Arrivée dans ${assignedDriver.estimated_arrival} minutes`);
-          }
-        }, 3000);
-      } else {
-        setTimeout(() => {
-          toast.error('Aucun chauffeur disponible dans la zone');
-        }, 3000);
-      }
-
-      return driversWithDistance;
-    } catch (error: any) {
-      console.error('Error finding drivers:', error);
-      toast.error('Erreur lors de la recherche de chauffeurs');
-      return [];
-    } finally {
-      setMatching(false);
-    }
+    // Redirige vers triggerRideDispatch pour compatibilité
+    triggerRideDispatch(bookingId, pickupCoordinates);
+    return [];
   };
 
   const assignDriverToBooking = async (bookingId: string, driverId: string) => {
@@ -289,6 +261,7 @@ export const useEnhancedTransportBooking = () => {
     createBooking,
     findNearbyDrivers,
     getUserBookings,
-    cancelBooking
+    cancelBooking,
+    triggerRideDispatch
   };
 };

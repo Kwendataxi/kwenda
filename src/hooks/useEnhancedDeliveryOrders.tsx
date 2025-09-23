@@ -320,34 +320,47 @@ export const useEnhancedDeliveryOrders = () => {
   // Fonction pour déclencher automatiquement la recherche de livreurs
   const triggerDriverSearch = async (orderId: string, mode: string, coordinates: any) => {
     try {
+      console.log('🚚 Déclenchement delivery-dispatcher pour:', { orderId, mode, coordinates });
+      
+      // Utiliser les paramètres corrects selon l'Edge Function
       const { data, error } = await supabase.functions.invoke('delivery-dispatcher', {
         body: {
-          action: 'find_drivers',
-          order_id: orderId,
-          mode: mode,
-          radiusKm: 5,
-          maxDrivers: 10
+          orderId: orderId,
+          pickupLat: coordinates.lat,
+          pickupLng: coordinates.lng,
+          deliveryType: mode
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur Edge Function delivery-dispatcher:', error);
+        throw error;
+      }
 
-      console.log('🎯 Livreurs trouvés:', data);
+      console.log('✅ Résultat delivery-dispatcher:', data);
       
-      if (data?.drivers && data.drivers.length > 0) {
+      if (data?.success && data.driver) {
         toast({
-          title: "Livreurs disponibles ✅",
-          description: `${data.drivers.length} livreurs trouvés dans votre zone`,
+          title: "Livreur assigné ✅",
+          description: `Livreur trouvé à ${data.driver.distance?.toFixed(1)}km de distance`,
+        });
+      } else if (data?.driversFound > 0) {
+        toast({
+          title: "Livreurs disponibles 🔍",
+          description: `${data.driversFound} livreurs trouvés dans votre zone`,
         });
       } else {
         toast({
           title: "Recherche élargie 🔍",
-          description: "Aucun livreur proche trouvé, recherche élargie en cours...",
+          description: data?.message || "Aucun livreur proche trouvé, recherche élargie en cours...",
         });
       }
     } catch (error: any) {
       console.error('Erreur recherche livreurs:', error);
-      // Silencieux pour ne pas perturber l'UX
+      toast({
+        title: "Recherche de livreurs",
+        description: "Recherche de livreurs en cours, nous vous notifierons dès qu'un livreur sera disponible",
+      });
     }
   };
 

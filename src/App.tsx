@@ -53,8 +53,118 @@ import { OnboardingRedirect } from "@/components/onboarding/OnboardingRedirect";
 import { StartupExperience } from "@/components/splash/StartupExperience";
 import { ScrollToTop } from "@/components/navigation/ScrollToTop";
 import { ThemeNotification } from "@/components/theme/ThemeNotification";
+import { useOrderCleanup } from "@/hooks/useOrderCleanup";
 
 const queryClient = new QueryClient();
+
+const AppContent = () => {
+  // Initialiser le nettoyage automatique des commandes
+  useOrderCleanup();
+  
+  return (
+    <>
+      <DynamicTheme>
+        <ParticleBackground />
+        <ThemeNotification />
+        <PerformanceOptimizer>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <StartupExperience />
+            <OnboardingRedirect>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/auth" element={
+                  <OnboardingRedirect>
+                    <Auth />
+                  </OnboardingRedirect>
+                } />
+                <Route path="/admin/auth" element={
+                  <OnboardingRedirect>
+                    <AdminAuth />
+                  </OnboardingRedirect>
+                } />
+                <Route path="/partner/auth" element={
+                  <OnboardingRedirect>
+                    <PartnerAuth />
+                  </OnboardingRedirect>
+                } />
+                <Route path="/client" element={
+                  <ProtectedRoute>
+                    <ClientApp />
+                  </ProtectedRoute>
+                } />
+                <Route path="/chauffeur" element={
+                  <ProtectedRoute>
+                    <DriverApp />
+                  </ProtectedRoute>
+                } />
+                <Route path="/partenaire" element={
+                  <ProtectedRoute>
+                    <PartnerApp />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <AdminApp />
+                  </ProtectedRoute>
+                 } />
+                 <Route path="/escrow" element={
+                   <ProtectedRoute>
+                     <EscrowPage />
+                   </ProtectedRoute>
+                 } />
+                 
+                {/* Footer Pages */}
+                <Route path="/support/help-center" element={<HelpCenter />} />
+                <Route path="/support/contact" element={<Contact />} />
+                <Route path="/support/faq" element={<FAQ />} />
+                <Route path="/legal/terms" element={<Terms />} />
+                <Route path="/legal/privacy" element={<Privacy />} />
+                <Route path="/locations/kinshasa" element={<Kinshasa />} />
+                <Route path="/locations/lubumbashi" element={<Lubumbashi />} />
+                <Route path="/locations/kolwezi" element={<Kolwezi />} />
+                <Route path="/about" element={<About />} />
+                
+                {/* Services Pages */}
+                <Route path="/services/taxi-vtc" element={<TransportVTC />} />
+                <Route path="/services/livraison-express" element={<LivraisonExpress />} />
+                <Route path="/services/location-vehicules" element={<LocationVehicules />} />
+                <Route path="/services/kwenda-tombola" element={<KwendaTombola />} />
+                
+                {/* Partners Pages */}
+                <Route path="/partners/devenir-chauffeur" element={<DevenirChauffeur />} />
+                <Route path="/partners/louer-vehicule" element={<LouerVehicule />} />
+                <Route path="/partners/devenir-livreur" element={<DevenirLivreur />} />
+                <Route path="/partners/vendre-en-ligne" element={<VendreEnLigne />} />
+                
+                {/* Support Pages */}
+                <Route path="/support/signaler-probleme" element={<SignalerProbleme />} />
+                
+                {/* Locations Pages */}
+                <Route path="/locations/expansion" element={<Expansion />} />
+                
+                {/* New Pages */}
+                <Route path="/demo" element={<Demo />} />
+                <Route path="/partner" element={<ProgrammePartenaire />} />
+                <Route path="/locations/coverage-map" element={<CarteCouverture />} />
+                <Route path="/marketplace" element={<Marketplace />} />
+                
+                {/* Test Routes */}
+                <Route path="/test/auth-system" element={<AuthSystemTest />} />
+                
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+              </Routes>
+            </OnboardingRedirect>
+          </BrowserRouter>
+        </PerformanceOptimizer>
+      </DynamicTheme>
+    </>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -64,105 +174,7 @@ const App = () => (
           <LanguageProvider>
           <TooltipProvider>
             <ChatProvider>
-            <DynamicTheme>
-              <ParticleBackground />
-              <ThemeNotification />
-              <PerformanceOptimizer>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <ScrollToTop />
-                  <StartupExperience />
-                  <OnboardingRedirect>
-                    <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/auth" element={
-                <OnboardingRedirect>
-                  <Auth />
-                </OnboardingRedirect>
-              } />
-              <Route path="/admin/auth" element={
-                <OnboardingRedirect>
-                  <AdminAuth />
-                </OnboardingRedirect>
-              } />
-              <Route path="/partner/auth" element={
-                <OnboardingRedirect>
-                  <PartnerAuth />
-                </OnboardingRedirect>
-              } />
-              <Route path="/client" element={
-                <ProtectedRoute>
-                  <ClientApp />
-                </ProtectedRoute>
-              } />
-              <Route path="/chauffeur" element={
-                <ProtectedRoute>
-                  <DriverApp />
-                </ProtectedRoute>
-              } />
-              <Route path="/partenaire" element={
-                <ProtectedRoute>
-                  <PartnerApp />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin" element={
-                <ProtectedRoute>
-                  <AdminApp />
-                </ProtectedRoute>
-               } />
-               <Route path="/escrow" element={
-                 <ProtectedRoute>
-                   <EscrowPage />
-                 </ProtectedRoute>
-               } />
-               
-              {/* Footer Pages */}
-              <Route path="/support/help-center" element={<HelpCenter />} />
-              <Route path="/support/contact" element={<Contact />} />
-              <Route path="/support/faq" element={<FAQ />} />
-              <Route path="/legal/terms" element={<Terms />} />
-              <Route path="/legal/privacy" element={<Privacy />} />
-              <Route path="/locations/kinshasa" element={<Kinshasa />} />
-              <Route path="/locations/lubumbashi" element={<Lubumbashi />} />
-              <Route path="/locations/kolwezi" element={<Kolwezi />} />
-              <Route path="/about" element={<About />} />
-              
-              {/* Services Pages */}
-              <Route path="/services/taxi-vtc" element={<TransportVTC />} />
-              <Route path="/services/livraison-express" element={<LivraisonExpress />} />
-              <Route path="/services/location-vehicules" element={<LocationVehicules />} />
-              <Route path="/services/kwenda-tombola" element={<KwendaTombola />} />
-              
-              {/* Partners Pages */}
-              <Route path="/partners/devenir-chauffeur" element={<DevenirChauffeur />} />
-              <Route path="/partners/louer-vehicule" element={<LouerVehicule />} />
-              <Route path="/partners/devenir-livreur" element={<DevenirLivreur />} />
-              <Route path="/partners/vendre-en-ligne" element={<VendreEnLigne />} />
-              
-              {/* Support Pages */}
-              <Route path="/support/signaler-probleme" element={<SignalerProbleme />} />
-              
-              {/* Locations Pages */}
-              <Route path="/locations/expansion" element={<Expansion />} />
-              
-              {/* New Pages */}
-              <Route path="/demo" element={<Demo />} />
-              <Route path="/partner" element={<ProgrammePartenaire />} />
-              <Route path="/locations/coverage-map" element={<CarteCouverture />} />
-              <Route path="/marketplace" element={<Marketplace />} />
-              
-              {/* Test Routes */}
-              <Route path="/test/auth-system" element={<AuthSystemTest />} />
-              
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </OnboardingRedirect>
-                </BrowserRouter>
-              </PerformanceOptimizer>
-            </DynamicTheme>
+              <AppContent />
            </ChatProvider>
          </TooltipProvider>
         </LanguageProvider>
