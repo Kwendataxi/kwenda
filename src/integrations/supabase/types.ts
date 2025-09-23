@@ -5992,6 +5992,7 @@ export type Database = {
           estimated_price: number | null
           id: string
           intermediate_stops: Json | null
+          notes: string | null
           pickup_coordinates: Json | null
           pickup_location: string
           pickup_time: string | null
@@ -6017,6 +6018,7 @@ export type Database = {
           estimated_price?: number | null
           id?: string
           intermediate_stops?: Json | null
+          notes?: string | null
           pickup_coordinates?: Json | null
           pickup_location: string
           pickup_time?: string | null
@@ -6042,6 +6044,7 @@ export type Database = {
           estimated_price?: number | null
           id?: string
           intermediate_stops?: Json | null
+          notes?: string | null
           pickup_coordinates?: Json | null
           pickup_location?: string
           pickup_time?: string | null

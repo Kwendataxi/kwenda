@@ -169,12 +169,12 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         vehicleType: bookingData.vehicleType,
         passengers: bookingData.passengers,
         estimatedPrice,
-        totalDistance: calculateDistance(
+        distance: calculateDistance(
           { lat: bookingData.pickup.lat, lng: bookingData.pickup.lng },
           { lat: bookingData.destination.lat, lng: bookingData.destination.lng }
         ) / 1000,
         notes: bookingData.notes,
-        scheduledAt: bookingData.scheduledAt
+        scheduledTime: bookingData.scheduledAt
       });
 
       if (result) {

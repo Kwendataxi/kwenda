@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
 import TaxiLiveTracker from '@/components/transport/TaxiLiveTracker';
+import { TaxiTestComponent } from '@/components/transport/TaxiTestComponent';
 import { Car, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 const TransportPage = () => {
   const navigate = useNavigate();
-  const [activeView, setActiveView] = useState<'create' | 'track'>('create');
+  const [activeView, setActiveView] = useState<'create' | 'track' | 'test'>('create');
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
 
   const handleBookingCreated = (data: any) => {
@@ -24,12 +25,34 @@ const TransportPage = () => {
     setActiveBookingId(null);
   };
 
+  const handleShowTest = () => {
+    setActiveView('test');
+  };
+
   if (activeView === 'track' && activeBookingId) {
     return (
       <TaxiLiveTracker
         bookingId={activeBookingId}
         onBack={handleBackToCreate}
       />
+    );
+  }
+
+  // Si on est en mode test
+  if (activeView === 'test') {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">Tests Système Taxi</h1>
+          <button 
+            onClick={handleBackToCreate}
+            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80"
+          >
+            Retour à l'interface
+          </button>
+        </div>
+        <TaxiTestComponent />
+      </div>
     );
   }
 
@@ -57,6 +80,12 @@ const TransportPage = () => {
               <p className="text-sm text-muted-foreground">Service de taxi VTC</p>
             </div>
           </div>
+          <button 
+            onClick={handleShowTest}
+            className="px-3 py-1 text-xs bg-secondary text-secondary-foreground rounded hover:bg-secondary/80"
+          >
+            Tests Système
+          </button>
         </div>
       </div>
 

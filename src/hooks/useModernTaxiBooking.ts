@@ -29,9 +29,9 @@ interface ModernBookingData {
   vehicleType: string;
   passengers?: number;
   estimatedPrice: number;
-  totalDistance?: number;
+  distance?: number;
   notes?: string;
-  scheduledAt?: Date;
+  scheduledTime?: Date;
 }
 
 interface BookingResult {
@@ -156,9 +156,9 @@ export function useModernTaxiBooking() {
         vehicle_type: bookingData.vehicleType,
         passengers: bookingData.passengers || 1,
         estimated_price: Math.round(bookingData.estimatedPrice),
-        total_distance: bookingData.totalDistance,
-        notes: bookingData.notes || '',
-        scheduled_at: bookingData.scheduledAt?.toISOString(),
+        estimated_distance: bookingData.distance,
+        notes: bookingData.notes || null,
+        scheduled_time: bookingData.scheduledTime?.toISOString(),
         status: 'pending'
       };
 
