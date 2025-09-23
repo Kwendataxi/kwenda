@@ -2147,6 +2147,39 @@ export type Database = {
           },
         ]
       }
+      function_monitoring_logs: {
+        Row: {
+          created_at: string
+          error_count: number | null
+          function_name: string
+          id: string
+          metadata: Json | null
+          response_time_ms: number | null
+          status: string
+          success_rate: number | null
+        }
+        Insert: {
+          created_at?: string
+          error_count?: number | null
+          function_name: string
+          id?: string
+          metadata?: Json | null
+          response_time_ms?: number | null
+          status: string
+          success_rate?: number | null
+        }
+        Update: {
+          created_at?: string
+          error_count?: number | null
+          function_name?: string
+          id?: string
+          metadata?: Json | null
+          response_time_ms?: number | null
+          status?: string
+          success_rate?: number | null
+        }
+        Relationships: []
+      }
       intelligent_places: {
         Row: {
           avenue: string | null
@@ -7244,6 +7277,10 @@ export type Database = {
       }
       cleanup_old_audit_logs: {
         Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      cleanup_old_notifications: {
+        Args: { days_old?: number }
         Returns: number
       }
       cleanup_security_definer_views: {

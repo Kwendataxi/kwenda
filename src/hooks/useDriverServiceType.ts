@@ -22,29 +22,26 @@ export const useDriverServiceType = () => {
       }
 
       try {
-        // First, try the new system using the driver_service_status view
-        const { data: statusData, error: statusError } = await supabase
-          .from('driver_service_status')
-          .select('effective_service, current_service, service_category')
+        // Check driver service preferences first
+        const { data: prefData, error: prefError } = await supabase
+          .from('driver_service_preferences')
+          .select('service_types, is_active')
           .eq('driver_id', user.id)
+          .eq('is_active', true)
           .maybeSingle();
 
-        if (!statusError && statusData) {
-          const effectiveService = statusData.effective_service || statusData.current_service;
+        if (!prefError && prefData && prefData.service_types?.length > 0) {
+          const serviceTypes = prefData.service_types;
           
-          if (effectiveService) {
-            // Map specific service types to general categories
-            if (effectiveService.startsWith('delivery_') || effectiveService === 'delivery_flex' || effectiveService === 'delivery_flash' || effectiveService === 'delivery_maxicharge') {
-              setServiceType('delivery');
-            } else if (effectiveService.startsWith('taxi_') || effectiveService === 'moto_transport') {
-              setServiceType('taxi');
-            } else {
-              // Use service_category as fallback
-              setServiceType(statusData.service_category === 'delivery' ? 'delivery' : 'taxi');
-            }
-            setLoading(false);
-            return;
+          if (serviceTypes.includes('delivery') || serviceTypes.includes('delivery_flex') || serviceTypes.includes('delivery_flash')) {
+            setServiceType('delivery');
+          } else if (serviceTypes.includes('taxi') || serviceTypes.includes('moto_transport')) {
+            setServiceType('taxi');
+          } else {
+            setServiceType('taxi'); // Default
           }
+          setLoading(false);
+          return;
         }
 
         // Fallback to driver_profiles table

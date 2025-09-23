@@ -1,181 +1,142 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper function to log webhook audit
-async function logWebhookAudit(supabase: any, payload: any, response: any, error?: string) {
-  try {
-    await supabase.rpc('log_webhook_audit', {
-      p_webhook_type: 'push_notification',
-      p_payload: payload,
-      p_response: response,
-      p_status: error ? 'error' : 'success',
-      p_error_message: error || null
-    });
-  } catch (auditError) {
-    console.error('Failed to log webhook audit:', auditError);
-  }
+interface NotificationRequest {
+  user_id: string;
+  title: string;
+  message: string;
+  type: 'ride_request' | 'delivery_request' | 'marketplace_order' | 'system' | 'urgent';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  data?: any;
+  sound?: boolean;
+  vibration?: boolean;
+  timeout?: number;
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const requestPayload = await req.json();
-  
   try {
-    const { user_id, title, message, type, priority = 'normal', data = {} } = requestPayload;
-    
-    if (!user_id || !title || !message) {
-      const errorResponse = { error: 'user_id, title, and message are required' };
-      await logWebhookAudit(null, requestPayload, errorResponse, 'Validation failed');
-      return new Response(JSON.stringify(errorResponse), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("Authorization header is required");
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const fcmServerKey = Deno.env.get('FCM_SERVER_KEY');
+    const { user_id, title, message, type, priority = 'normal', data, sound = true, vibration = true, timeout = 30000 }: NotificationRequest = await req.json();
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    if (!user_id || !title || !message || !type) {
+      throw new Error("Missing required fields: user_id, title, message, type");
+    }
 
-    console.log(`Sending notification to user: ${user_id}`);
+    console.log(`📱 Sending ${priority} notification to user ${user_id}: ${title}`);
 
-    // 1. Insérer la notification dans la base
-    const { data: notification, error: dbError } = await supabase
+    // Insérer dans la table des notifications
+    const { data: notification, error: insertError } = await supabaseClient
       .from('push_notifications')
       .insert({
-        user_id,
-        title,
-        message,
-        notification_type: type || 'general',
-        priority,
-        data,
+        user_id: user_id,
+        title: title,
+        message: message,
+        notification_type: type,
+        priority: priority,
+        data: data || {},
         is_sent: false
       })
       .select()
       .single();
 
-    if (dbError) {
-      console.error('Database error:', dbError);
-      return new Response(JSON.stringify({ error: 'Database error' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    if (insertError) {
+      console.error('❌ Database insert error:', insertError);
+      throw new Error('Failed to create notification record');
     }
 
-    // 2. Envoyer via FCM si configuré
-    let fcmSuccess = false;
-    if (fcmServerKey) {
-      try {
-        // Récupérer le FCM token de l'utilisateur
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('fcm_token')
-          .eq('user_id', user_id)
-          .single();
-
-        if (profile?.fcm_token) {
-          const fcmPayload = {
-            to: profile.fcm_token,
-            notification: {
-              title,
-              body: message,
-              icon: '/icon-192x192.png',
-              badge: '/icon-192x192.png',
-              tag: type || 'general'
-            },
-            data: {
-              notification_id: notification.id,
-              type: type || 'general',
-              priority,
-              ...data
-            }
-          };
-
-          const fcmResponse = await fetch('https://fcm.googleapis.com/fcm/send', {
-            method: 'POST',
-            headers: {
-              'Authorization': `key=${fcmServerKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(fcmPayload),
-          });
-
-          const fcmResult = await fcmResponse.json();
-          fcmSuccess = fcmResult.success === 1;
-          console.log('FCM result:', fcmResult);
-        }
-      } catch (fcmError) {
-        console.error('FCM error:', fcmError);
+    // Envoyer notification temps réel via Supabase Realtime
+    const channel = supabaseClient.channel(`notifications:${user_id}`);
+    
+    await channel.send({
+      type: 'broadcast',
+      event: 'new_notification',
+      payload: {
+        id: notification.id,
+        title: title,
+        message: message,
+        type: type,
+        priority: priority,
+        data: data || {},
+        sound: sound,
+        vibration: vibration,
+        timeout: timeout,
+        timestamp: new Date().toISOString()
       }
-    }
+    });
 
-    // 3. Envoyer via Supabase Realtime
-    try {
-      await supabase
-        .channel(`notifications:${user_id}`)
-        .send({
-          type: 'broadcast',
-          event: 'new_notification',
-          payload: {
-            id: notification.id,
-            title,
-            message,
-            type: type || 'general',
-            priority,
-            data,
-            timestamp: new Date().toISOString()
-          }
-        });
-    } catch (realtimeError) {
-      console.error('Realtime error:', realtimeError);
-    }
-
-    // 4. Marquer comme envoyée
-    await supabase
+    // Marquer comme envoyée
+    const { error: updateError } = await supabaseClient
       .from('push_notifications')
       .update({ 
         is_sent: true,
-        sent_at: new Date().toISOString(),
-        fcm_success: fcmSuccess
+        sent_at: new Date().toISOString() 
       })
       .eq('id', notification.id);
 
-    const successResponse = {
-      success: true,
-      notification_id: notification.id,
-      fcm_sent: fcmSuccess
-    };
+    if (updateError) {
+      console.error('⚠️ Error updating notification status:', updateError);
+    }
 
-    // Log success audit
-    await logWebhookAudit(supabase, requestPayload, successResponse);
+    // Log de l'activité
+    await supabaseClient
+      .from('activity_logs')
+      .insert({
+        user_id: user_id,
+        activity_type: 'notification_sent',
+        description: `Notification ${type} envoyée: ${title}`,
+        metadata: {
+          notification_id: notification.id,
+          type: type,
+          priority: priority,
+          title: title
+        }
+      });
 
-    return new Response(JSON.stringify(successResponse), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.log(`✅ Notification sent successfully to user ${user_id}`);
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        notification_id: notification.id,
+        message: `Notification envoyée avec succès`,
+        delivery_method: 'realtime'
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
 
   } catch (error) {
-    console.error('Push notification error:', error);
-    const errorResponse = { 
-      error: 'Internal server error',
-      details: error.message 
-    };
-    
-    // Log error audit
-    await logWebhookAudit(supabase, requestPayload, errorResponse, error.message);
-    
-    return new Response(JSON.stringify(errorResponse), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('❌ Push notification error:', error);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error.message,
+        message: 'Échec de l\'envoi de la notification'
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      }
+    );
   }
 });
