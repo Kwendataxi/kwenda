@@ -119,45 +119,81 @@ export const useEnhancedDeliveryOrders = () => {
       console.log('Utilisateur authentifié:', user.id);
 
       // VALIDATION ROBUSTE ET STABILISÉE DES COORDONNÉES
-      const { secureLocation } = await import('@/utils/locationValidation');
+      const { secureLocation, unifiedToLocationData } = await import('@/utils/locationValidation');
       
-      // Validation préalable ultra-stricte - correction du bug de validation
-      if (!orderData.pickup || !orderData.pickup.address || !orderData.pickup.address.trim()) {
-        throw new Error('Adresse de collecte requise et non vide');
+      console.log('🔍 Debug orderData reçu:', JSON.stringify(orderData, null, 2));
+      
+      // Validation et normalisation intelligente des données
+      if (!orderData?.pickup) {
+        throw new Error('Données de collecte manquantes');
       }
       
-      if (!orderData.destination || !orderData.destination.address || !orderData.destination.address.trim()) {
-        throw new Error('Adresse de livraison requise et non vide');
+      if (!orderData?.destination) {
+        throw new Error('Données de livraison manquantes');
       }
       
-      // Validation des coordonnées numériques stricte
-      const pickupLat = typeof orderData.pickup.lat === 'number' ? orderData.pickup.lat : parseFloat(orderData.pickup.lat);
-      const pickupLng = typeof orderData.pickup.lng === 'number' ? orderData.pickup.lng : parseFloat(orderData.pickup.lng);
-      const destLat = typeof orderData.destination.lat === 'number' ? orderData.destination.lat : parseFloat(orderData.destination.lat);
-      const destLng = typeof orderData.destination.lng === 'number' ? orderData.destination.lng : parseFloat(orderData.destination.lng);
+      // Normaliser et valider l'adresse de pickup
+      const pickupAddress = orderData.pickup.address || 'Adresse de collecte non définie';
       
-      if (isNaN(pickupLat) || isNaN(pickupLng) || pickupLat === 0 || pickupLng === 0) {
-        throw new Error('Coordonnées de collecte invalides ou manquantes');
+      const destinationAddress = orderData.destination.address || 'Adresse de livraison non définie';
+      
+      console.log('📍 Adresses extraites:', { pickupAddress, destinationAddress });
+      
+      if (!pickupAddress || pickupAddress.trim() === '' || pickupAddress === 'Adresse de collecte non définie') {
+        throw new Error('Veuillez sélectionner une adresse de collecte valide');
       }
       
-      if (isNaN(destLat) || isNaN(destLng) || destLat === 0 || destLng === 0) {
-        throw new Error('Coordonnées de livraison invalides ou manquantes');
+      if (!destinationAddress || destinationAddress.trim() === '' || destinationAddress === 'Adresse de livraison non définie') {
+        throw new Error('Veuillez sélectionner une adresse de livraison valide');
       }
       
-      // Mettre à jour orderData avec des coordonnées validées
-      orderData.pickup.lat = pickupLat;
-      orderData.pickup.lng = pickupLng;
-      orderData.destination.lat = destLat;
-      orderData.destination.lng = destLng;
+      // Validation et extraction intelligente des coordonnées
+      const pickupLat = orderData.pickup.lat;
+      const pickupLng = orderData.pickup.lng;
+      const destLat = orderData.destination.lat;
+      const destLng = orderData.destination.lng;
+      
+      console.log('🎯 Coordonnées extraites:', {
+        pickup: { lat: pickupLat, lng: pickupLng },
+        destination: { lat: destLat, lng: destLng }
+      });
+      
+      if (!pickupLat || !pickupLng || isNaN(Number(pickupLat)) || isNaN(Number(pickupLng))) {
+        throw new Error('Coordonnées de collecte invalides. Veuillez sélectionner une adresse sur la carte.');
+      }
+      
+      if (!destLat || !destLng || isNaN(Number(destLat)) || isNaN(Number(destLng))) {
+        throw new Error('Coordonnées de livraison invalides. Veuillez sélectionner une adresse sur la carte.');
+      }
+      
+      // Préparer les données normalisées pour validation
+      const normalizedPickup = {
+        address: pickupAddress,
+        lat: Number(pickupLat),
+        lng: Number(pickupLng),
+        type: orderData.pickup.type || 'geocoded'
+      };
+      
+      const normalizedDestination = {
+        address: destinationAddress,
+        lat: Number(destLat),
+        lng: Number(destLng),
+        type: orderData.destination.type || 'geocoded'
+      };
       
       let securePickup: any;
       let secureDestination: any;
       
       try {
-        securePickup = secureLocation(orderData.pickup, orderData.city);
-        secureDestination = secureLocation(orderData.destination, orderData.city);
+        securePickup = secureLocation(normalizedPickup, orderData.city);
+        secureDestination = secureLocation(normalizedDestination, orderData.city);
+        
+        console.log('✅ Validation réussie:', {
+          securePickup: { address: securePickup.address, lat: securePickup.lat, lng: securePickup.lng },
+          secureDestination: { address: secureDestination.address, lat: secureDestination.lat, lng: secureDestination.lng }
+        });
       } catch (validationError: any) {
-        console.error('Erreur validation locations:', validationError);
+        console.error('❌ Erreur validation locations:', validationError);
         throw new Error(`Validation des adresses échouée: ${validationError.message}`);
       }
       

@@ -83,6 +83,34 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
     setIsCreating(true);
     
     try {
+      // Validation préalable des données essentielles
+      if (!pickup?.location || !destination?.location) {
+        toast({
+          title: "Erreur de validation",
+          description: "Données de localisation manquantes",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!pickup.location.address || !pickup.location.address.trim()) {
+        toast({
+          title: "Adresse de collecte requise",
+          description: "Veuillez sélectionner une adresse de collecte valide",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!destination.location.address || !destination.location.address.trim()) {
+        toast({
+          title: "Adresse de livraison requise", 
+          description: "Veuillez sélectionner une adresse de livraison valide",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // Transformer les données au format attendu par createDeliveryOrder
       const orderData = {
         pickup: {
@@ -105,6 +133,8 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
         distance: pricing.distance,
         duration: pricing.duration
       };
+      
+      console.log('🚀 OrderConfirmationStep - Données à envoyer:', JSON.stringify(orderData, null, 2));
 
       const orderId = await createDeliveryOrder(orderData);
       

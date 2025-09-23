@@ -46,12 +46,15 @@ export function isValidLocation(location: any): location is ValidatedLocation {
  * Sécurise une location en préservant les coordonnées valides
  */
 export function secureLocation(location: any, city: string = 'Kinshasa'): ValidatedLocation {
+  console.log('🔧 secureLocation input:', JSON.stringify(location, null, 2));
+  
   if (!location) {
     throw new Error(`Veuillez sélectionner une adresse valide sur la carte`);
   }
 
   // Si location déjà valide, retourner immédiatement sans modification
   if (isValidLocation(location)) {
+    console.log('✅ Location déjà valide, retour direct');
     return {
       address: location.address,
       lat: location.lat,
@@ -65,8 +68,17 @@ export function secureLocation(location: any, city: string = 'Kinshasa'): Valida
   }
 
   // Extraction sécurisée des coordonnées (plusieurs formats possibles)
-  const lat = location.lat ?? location.coordinates?.lat ?? location.latitude;
-  const lng = location.lng ?? location.coordinates?.lng ?? location.longitude;
+  const lat = location.lat ?? location.coordinates?.lat ?? location.latitude ?? location.location?.lat;
+  const lng = location.lng ?? location.coordinates?.lng ?? location.longitude ?? location.location?.lng;
+  
+  // Extraction intelligente de l'adresse
+  const address = location.address || 
+                  location.location?.address || 
+                  location.name || 
+                  location.formatted_address ||
+                  'Adresse sélectionnée sur la carte';
+
+  console.log('📍 Extraction coordonnées/adresse:', { lat, lng, address });
 
   // Validation stricte des coordonnées
   if (typeof lat !== 'number' || typeof lng !== 'number' || 
@@ -76,18 +88,26 @@ export function secureLocation(location: any, city: string = 'Kinshasa'): Valida
     console.error('🚨 Coordonnées invalides:', { location, extractedLat: lat, extractedLng: lng });
     throw new Error(`Coordonnées invalides. Veuillez sélectionner une adresse sur la carte.`);
   }
+  
+  // Validation de l'adresse
+  if (!address || address.trim() === '') {
+    console.error('🚨 Adresse invalide:', { address, location });
+    throw new Error(`Adresse manquante. Veuillez sélectionner une adresse valide.`);
+  }
 
   // Construction d'une location valide avec données disponibles
   const securedLocation: ValidatedLocation = {
-    address: location.address || location.name || 'Adresse sélectionnée sur la carte',
+    address: address.trim(),
     lat: lat,
     lng: lng,
     type: location.type || 'geocoded',
-    placeId: location.placeId,
-    name: location.name,
-    subtitle: location.subtitle,
+    placeId: location.placeId || location.location?.placeId,
+    name: location.name || location.location?.name,
+    subtitle: location.subtitle || location.location?.subtitle,
     coordinates: { lat: lat, lng: lng }
   };
+
+  console.log('🔒 Location sécurisée:', securedLocation);
 
   // Validation finale
   if (!isValidLocation(securedLocation)) {
