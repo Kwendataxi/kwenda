@@ -5,7 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Returns the driver's service type to help default the Chauffeur UI tab.
- * Supports the new differentiated service system.
  * serviceType: 'taxi' | 'delivery' | 'unknown'
  */
 export const useDriverServiceType = () => {
@@ -22,7 +21,7 @@ export const useDriverServiceType = () => {
       }
 
       try {
-        // Check driver service preferences first
+        // First, check driver service preferences
         const { data: prefData, error: prefError } = await supabase
           .from('driver_service_preferences')
           .select('service_types, is_active')
@@ -33,15 +32,19 @@ export const useDriverServiceType = () => {
         if (!prefError && prefData && prefData.service_types?.length > 0) {
           const serviceTypes = prefData.service_types;
           
-          if (serviceTypes.includes('delivery') || serviceTypes.includes('delivery_flex') || serviceTypes.includes('delivery_flash')) {
+          // Check if any delivery services are included
+          if (serviceTypes.some(type => type.includes('delivery'))) {
             setServiceType('delivery');
-          } else if (serviceTypes.includes('taxi') || serviceTypes.includes('moto_transport')) {
-            setServiceType('taxi');
-          } else {
-            setServiceType('taxi'); // Default
+            setLoading(false);
+            return;
           }
-          setLoading(false);
-          return;
+          
+          // Check if any taxi services are included
+          if (serviceTypes.some(type => type.includes('taxi') || type === 'moto_transport')) {
+            setServiceType('taxi');
+            setLoading(false);
+            return;
+          }
         }
 
         // Fallback to driver_profiles table
@@ -52,8 +55,13 @@ export const useDriverServiceType = () => {
           .maybeSingle();
 
         if (!profileError && profileData) {
-          const type = (profileData?.service_type as 'taxi' | 'delivery' | null) || 'taxi';
-          setServiceType(type);
+          const type = profileData.service_type || 'taxi';
+          
+          if (type === 'delivery' || type === 'delivery_flex' || type === 'delivery_flash') {
+            setServiceType('delivery');
+          } else {
+            setServiceType('taxi');
+          }
           setLoading(false);
           return;
         }
@@ -68,7 +76,7 @@ export const useDriverServiceType = () => {
         if (!chauffeurError && chauffeurData) {
           // Use migrated service type if available
           if (chauffeurData.migrated_service_type) {
-            if (chauffeurData.migrated_service_type.startsWith('delivery_')) {
+            if (chauffeurData.migrated_service_type.includes('delivery')) {
               setServiceType('delivery');
             } else {
               setServiceType('taxi');
@@ -77,7 +85,7 @@ export const useDriverServiceType = () => {
             return;
           }
 
-          // Map legacy data
+          // Map legacy data based on delivery capacity
           if (chauffeurData.delivery_capacity) {
             setServiceType('delivery');
           } else {
