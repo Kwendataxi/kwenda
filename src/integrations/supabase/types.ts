@@ -7446,6 +7446,14 @@ export type Database = {
           user_id: string
         }[]
       }
+      deactivate_old_tokens: {
+        Args: { p_platform: string; p_user_id: string }
+        Returns: undefined
+      }
+      disable_user_notifications: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
       ensure_user_profile: {
         Args: { p_user_id: string }
         Returns: {
@@ -7948,6 +7956,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_notification_event: {
+        Args: {
+          p_event_type: string
+          p_notification_data: Json
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       log_security_event: {
         Args: {
           p_action_type: string
@@ -8084,6 +8100,10 @@ export type Database = {
           sensitive_data_access: number
           suspicious_patterns: number
         }[]
+      }
+      upsert_push_token: {
+        Args: { p_platform: string; p_token: string; p_user_id: string }
+        Returns: undefined
       }
       user_exists: {
         Args: { user_id_param: string }
