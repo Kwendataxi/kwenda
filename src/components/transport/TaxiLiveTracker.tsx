@@ -192,7 +192,7 @@ export default function TaxiLiveTracker({ bookingId, onBack }: TaxiLiveTrackerPr
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="glassmorphism w-full max-w-md mx-4">
           <CardContent className="p-8 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
@@ -205,7 +205,7 @@ export default function TaxiLiveTracker({ bookingId, onBack }: TaxiLiveTrackerPr
 
   if (!booking) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="glassmorphism w-full max-w-md mx-4">
           <CardContent className="p-8 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
@@ -221,7 +221,7 @@ export default function TaxiLiveTracker({ bookingId, onBack }: TaxiLiveTrackerPr
   const StatusIcon = statusConfig?.icon || AlertCircle;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-10 glassmorphism border-b border-border/20 p-4">
         <div className="max-w-md mx-auto flex items-center justify-between">

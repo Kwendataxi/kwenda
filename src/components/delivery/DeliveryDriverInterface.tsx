@@ -114,7 +114,7 @@ const DeliveryDriverInterface = () => {
 
   if (activeDelivery) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 p-4">
+      <div className="min-h-screen bg-background p-4">
         <Card className="max-w-md mx-auto">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -200,7 +200,7 @@ const DeliveryDriverInterface = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 p-4">
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-2xl mx-auto">
         <Card className="mb-6">
           <CardHeader>

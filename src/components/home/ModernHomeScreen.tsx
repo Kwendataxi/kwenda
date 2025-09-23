@@ -62,11 +62,11 @@ export const ModernHomeScreen = ({
   },[user])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/30 relative overflow-hidden">
-      {/* Dynamic background effects */}
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Subtle Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-congo-red/5 via-transparent to-congo-yellow/5 animate-pulse" />
-        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-congo-blue/5 via-transparent to-congo-green/5 animate-pulse delay-1000" />
+        <div className="absolute top-20 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl" />
       </div>
       
       <div className="relative z-10">

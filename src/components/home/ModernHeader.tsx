@@ -125,7 +125,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
   return (
     <div className="relative overflow-hidden">
       {/* Fond moderne avec gradient adaptatif */}
-      <div className="px-6 py-4 pt-12 relative z-10 bg-gradient-to-br from-background via-background/95 to-accent/5 dark:from-background dark:via-background/90 dark:to-accent/10">
+      <div className="px-6 py-4 pt-12 relative z-10 bg-background">
 
         {/* Structure en 2 colonnes améliorée */}
         <div className="flex items-center justify-between">

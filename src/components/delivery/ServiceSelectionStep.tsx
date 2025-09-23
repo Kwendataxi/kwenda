@@ -159,7 +159,7 @@ export const ServiceSelectionStep: React.FC<ServiceSelectionStepProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/98 to-background/95 p-4">
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-6xl mx-auto">
         {/* Soft Header */}
         <div className="mb-8">

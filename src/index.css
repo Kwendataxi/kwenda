@@ -13,7 +13,7 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Kwenda Taxi Congo Design System - Couleurs Congo vibrantes */
-    --background: 42 25% 94%;
+    --background: 0 0% 100%;
     --foreground: 220 25% 5%;
 
     --card: 42 35% 88%;
@@ -431,7 +431,7 @@ All colors MUST be HSL.
 
   .dark {
     /* Dark Mode Congo Design System - OPTIMIZED & CLEAN */
-    --background: 220 35% 4%;
+    --background: 0 0% 0%;
     --foreground: 42 15% 98%;
 
     --card: 220 30% 7%;

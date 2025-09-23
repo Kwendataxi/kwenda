@@ -300,7 +300,7 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-background dark:via-background/95 dark:to-background/90 p-4">
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">

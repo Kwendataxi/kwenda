@@ -7,10 +7,10 @@ const Hero = () => {
   const { t } = useLanguage();
   
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted overflow-hidden">
-      {/* Background Pattern */}
+    <section className="relative min-h-screen bg-background overflow-hidden">
+      {/* Soft Background Pattern */}
       <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary))_0%,transparent_50%)]"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-primary/3"></div>
       </div>
       
       <div className="container mx-auto px-4 py-20 relative z-10">
@@ -85,9 +85,9 @@ const Hero = () => {
               </div>
             </div>
             
-            {/* Decorative Elements */}
-            <div className="absolute -top-8 -left-8 w-24 h-24 bg-primary/10 rounded-full blur-xl"></div>
-            <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-secondary/10 rounded-full blur-xl"></div>
+            {/* Soft Decorative Elements */}
+            <div className="absolute -top-8 -left-8 w-16 h-16 bg-primary/5 rounded-full blur-2xl"></div>
+            <div className="absolute -bottom-8 -right-8 w-20 h-20 bg-secondary/4 rounded-full blur-2xl"></div>
           </div>
         </div>
       </div>

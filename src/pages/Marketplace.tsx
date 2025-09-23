@@ -10,7 +10,7 @@ const MarketplacePage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20 mobile-safe-layout">
+    <div className="min-h-screen bg-background mobile-safe-layout">
       {/* Header */}
       <header className="sticky top-0 z-10 glassmorphism border-b border-border/20">
         <div className="responsive-padding">

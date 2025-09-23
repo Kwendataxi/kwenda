@@ -23,16 +23,13 @@ const ModernHero = () => {
   },[user])
 
   return (
-    <section className="relative min-h-screen bg-gradient-congo-vibrant overflow-hidden">
-      {/* Enhanced Animated Background Elements */}
+    <section className="relative min-h-screen bg-background overflow-hidden">
+      {/* Soft Modern Decorative Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-congo-red/30 rounded-full blur-xl animate-congo-pulse"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-congo-yellow/40 rounded-full blur-lg animate-congo-pulse" style={{animationDelay: '1s'}}></div>
-        <div className="absolute bottom-40 left-1/4 w-40 h-40 bg-congo-green/25 rounded-full blur-2xl animate-congo-pulse" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 right-1/3 w-20 h-20 bg-congo-blue/20 rounded-full blur-lg animate-congo-pulse" style={{animationDelay: '0.5s'}}></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_80%,hsl(var(--congo-red))_0%,transparent_50%)] opacity-20"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,hsl(var(--congo-yellow))_0%,transparent_40%)] opacity-20"></div>
-        <div className="absolute inset-0 bg-gradient-congo-glow opacity-40"></div>
+        <div className="absolute top-20 left-10 w-20 h-20 bg-primary/5 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute top-40 right-20 w-16 h-16 bg-secondary/3 rounded-full blur-2xl animate-float" style={{animationDelay: '1s'}}></div>
+        <div className="absolute bottom-40 left-1/4 w-24 h-24 bg-accent/4 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 right-1/3 w-12 h-12 bg-primary/3 rounded-full blur-xl animate-float" style={{animationDelay: '0.5s'}}></div>
       </div>
       
       <div className="container-section py-8 sm:py-12 lg:py-20 relative z-10">
@@ -169,10 +166,10 @@ const ModernHero = () => {
               </div>
             </div>
             
-            {/* Enhanced Decorative Background Elements */}
-            <div className="absolute -top-12 -left-12 w-32 h-32 lg:w-40 lg:h-40 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full blur-2xl animate-float"></div>
-            <div className="absolute -bottom-12 -right-12 w-40 h-40 lg:w-48 lg:h-48 bg-gradient-to-br from-accent/20 to-primary/20 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-            <div className="absolute top-1/2 -right-8 w-24 h-24 bg-gradient-to-br from-secondary/15 to-accent/15 rounded-full blur-xl animate-pulse"></div>
+            {/* Soft Modern Decorative Background Elements */}
+            <div className="absolute -top-12 -left-12 w-24 h-24 lg:w-28 lg:h-28 bg-primary/8 rounded-full blur-3xl animate-float"></div>
+            <div className="absolute -bottom-12 -right-12 w-28 h-28 lg:w-32 lg:h-32 bg-secondary/6 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+            <div className="absolute top-1/2 -right-8 w-16 h-16 bg-accent/5 rounded-full blur-2xl animate-pulse"></div>
           </div>
         </div>
       </div>

@@ -32,7 +32,7 @@ const DeliveryPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/20">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-10 glassmorphism border-b border-border/20 p-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">

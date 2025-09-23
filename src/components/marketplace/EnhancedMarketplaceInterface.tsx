@@ -535,7 +535,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 mobile-safe-layout">
+    <div className="min-h-screen bg-background mobile-safe-layout">
       {/* Modern Header */}
       <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="flex items-center justify-between p-4">

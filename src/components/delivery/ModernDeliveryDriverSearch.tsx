@@ -295,7 +295,7 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
   // État recherche en cours
   if (searchState === 'searching') {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-muted/10 to-background">
+      <div className="min-h-screen flex flex-col bg-background">
         {/* Header moderne avec gradient subtil */}
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary to-primary/80" />
@@ -470,7 +470,7 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
   // Aucun livreur trouvé
   if (searchState === 'none') {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-muted/10 to-background">
+      <div className="min-h-screen flex flex-col bg-background">
         {/* Header moderne */}
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-destructive/90 via-destructive to-destructive/80" />
@@ -590,7 +590,7 @@ export const ModernDeliveryDriverSearch: React.FC<ModernDeliveryDriverSearchProp
 
   // Livreurs trouvés - affichage des résultats
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-muted/5 to-background">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Header moderne avec succès */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/90 via-emerald-600 to-emerald-500/80" />
