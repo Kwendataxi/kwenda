@@ -7559,12 +7559,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      monitoring_stats: {
+        Row: {
+          avg_response_time: number | null
+          error_rate_percent: number | null
+          failed_calls: number | null
+          function_name: string | null
+          last_check: string | null
+          successful_calls: number | null
+          total_calls: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       anonymize_old_location_data: {
         Args: { days_old?: number }
         Returns: number
+      }
+      auto_monitor_edge_functions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       calculate_delivery_estimate: {
         Args: { order_id_param: string }
@@ -7650,6 +7665,10 @@ export type Database = {
       }
       cleanup_ip_geolocation_cache: {
         Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      cleanup_monitoring_logs: {
+        Args: { days_to_keep?: number }
         Returns: number
       }
       cleanup_old_audit_logs: {
