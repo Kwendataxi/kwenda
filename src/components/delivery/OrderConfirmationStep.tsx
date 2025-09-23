@@ -83,8 +83,16 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
     setIsCreating(true);
     
     try {
-      // Validation préalable des données essentielles
+      // VALIDATION ROBUSTE DES DONNÉES DE LIVRAISON
+      console.log('🔍 OrderConfirmationStep - Validation des données:', {
+        pickup: pickup?.location,
+        destination: destination?.location,
+        service: service
+      });
+      
+      // Validation des structures de données
       if (!pickup?.location || !destination?.location) {
+        console.error('❌ Structures de localisation manquantes');
         toast({
           title: "Erreur de validation",
           description: "Données de localisation manquantes",
@@ -93,7 +101,12 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
         return;
       }
       
-      if (!pickup.location.address || !pickup.location.address.trim()) {
+      // Validation des adresses
+      const pickupAddress = pickup.location.address?.trim();
+      const destinationAddress = destination.location.address?.trim();
+      
+      if (!pickupAddress) {
+        console.error('❌ Adresse de collecte manquante');
         toast({
           title: "Adresse de collecte requise",
           description: "Veuillez sélectionner une adresse de collecte valide",
@@ -102,7 +115,8 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
         return;
       }
       
-      if (!destination.location.address || !destination.location.address.trim()) {
+      if (!destinationAddress) {
+        console.error('❌ Adresse de destination manquante');
         toast({
           title: "Adresse de livraison requise", 
           description: "Veuillez sélectionner une adresse de livraison valide",
@@ -111,24 +125,48 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
         return;
       }
       
-      // Transformer les données au format attendu par createDeliveryOrder
+      // Validation des coordonnées
+      const pickupCoords = pickup.location.coordinates;
+      const destCoords = destination.location.coordinates;
+      
+      if (!pickupCoords?.lat || !pickupCoords?.lng || isNaN(Number(pickupCoords.lat)) || isNaN(Number(pickupCoords.lng))) {
+        console.error('❌ Coordonnées de collecte invalides:', pickupCoords);
+        toast({
+          title: "Coordonnées de collecte invalides",
+          description: "Veuillez sélectionner une position valide sur la carte",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!destCoords?.lat || !destCoords?.lng || isNaN(Number(destCoords.lat)) || isNaN(Number(destCoords.lng))) {
+        console.error('❌ Coordonnées de destination invalides:', destCoords);
+        toast({
+          title: "Coordonnées de livraison invalides",
+          description: "Veuillez sélectionner une position valide sur la carte",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Préparer les données normalisées et validées
       const orderData = {
         pickup: {
-          address: pickup.location.address,
-          lat: pickup.location.coordinates.lat,
-          lng: pickup.location.coordinates.lng,
-          contactName: pickup.contact.name,
-          contactPhone: pickup.contact.phone
+          address: pickupAddress,
+          lat: Number(pickupCoords.lat),
+          lng: Number(pickupCoords.lng),
+          contactName: pickup.contact?.name || '',
+          contactPhone: pickup.contact?.phone || ''
         },
         destination: {
-          address: destination.location.address,
-          lat: destination.location.coordinates.lat,
-          lng: destination.location.coordinates.lng,
-          contactName: destination.contact.name,
-          contactPhone: destination.contact.phone || ''
+          address: destinationAddress,
+          lat: Number(destCoords.lat),
+          lng: Number(destCoords.lng),
+          contactName: destination.contact?.name || '',
+          contactPhone: destination.contact?.phone || ''
         },
         mode: service.id,
-        city: 'Kinshasa', // Ville par défaut
+        city: 'Kinshasa',
         estimatedPrice: pricing.price,
         distance: pricing.distance,
         duration: pricing.duration
