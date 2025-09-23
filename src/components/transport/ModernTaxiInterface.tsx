@@ -259,6 +259,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
             </div>
             
             <ModernLocationPicker
+              key="destination" // Force remount pour vider la barre
               value={bookingData.destination}
               onChange={handleLocationSelect}
               placeholder="Rechercher votre destination..."

@@ -26,6 +26,13 @@ export const ModernLocationPicker: React.FC<ModernLocationPickerProps> = ({
   
   const { getCurrentPosition, searchLocations, loading, getPopularPlaces } = useSimpleLocation();
 
+  // Synchroniser query avec value pour éviter les conflits d'affichage
+  React.useEffect(() => {
+    if (!value) {
+      setQuery('');
+    }
+  }, [value]);
+
   const handleSearch = (searchQuery: string) => {
     setQuery(searchQuery);
     
@@ -57,6 +64,7 @@ export const ModernLocationPicker: React.FC<ModernLocationPickerProps> = ({
     try {
       const position = await getCurrentPosition();
       if (position) {
+        setQuery(''); // Vider la barre de recherche
         handleLocationSelect(position);
       }
     } catch (error) {
