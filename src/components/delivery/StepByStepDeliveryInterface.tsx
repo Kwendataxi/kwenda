@@ -1,5 +1,5 @@
 import React from 'react';
-import ModernDeliveryInterface from './ModernDeliveryInterface';
+import SlideDeliveryInterface from './SlideDeliveryInterface';
 
 interface StepByStepDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
@@ -7,9 +7,9 @@ interface StepByStepDeliveryInterfaceProps {
 }
 
 const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryInterfaceProps) => {
-  // Utilise maintenant directement l'interface moderne avec toutes ses fonctionnalités avancées
-  // Géolocalisation intelligente, pricing automatique, UI glassmorphism
-  return <ModernDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
+  // Utilise maintenant l'interface moderne avec navigation par slides
+  // Géolocalisation intelligente, pricing automatique, UI glassmorphism, navigation fluide
+  return <SlideDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
 };
 
 export default StepByStepDeliveryInterface;
