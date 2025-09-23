@@ -262,7 +262,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
             />
 
             {bookingData.pickup && (
-              <Card className="glassmorphism border-primary/20">
+              <Card className="bg-card border border-border shadow-md">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 text-sm">
                     <Navigation className="h-4 w-4 text-primary" />
@@ -357,7 +357,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
               <p className="text-sm text-muted-foreground">Vérifiez les détails de votre course</p>
             </div>
 
-            <Card className="glassmorphism">
+            <Card className="bg-card border border-border shadow-md">
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-start gap-3">
                   <Navigation className="h-5 w-5 text-primary mt-0.5" />

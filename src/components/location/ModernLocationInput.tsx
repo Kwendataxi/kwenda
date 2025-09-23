@@ -50,14 +50,16 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
     clearError
   } = useSimpleLocation();
 
-  // Synchroniser query avec value seulement quand value change depuis l'extérieur
+  // Synchroniser query avec value de manière optimisée
   useEffect(() => {
+    // Seulement si value change et n'est pas vide, ou si value devient null/undefined
     if (value?.address && value.address !== query) {
       setQuery(value.address);
-    } else if (!value && query) {
-      // Ne pas effacer le query si c'est juste une recherche en cours
+    } else if (!value && !context) {
+      // Reset seulement si pas de contexte spécifique
+      setQuery('');
     }
-  }, [value]);
+  }, [value?.address]);
 
   // Auto-detect position if requested
   useEffect(() => {
