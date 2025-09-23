@@ -158,7 +158,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
           
           {/* Actions à droite */}
           <div className="flex items-center gap-3">
-            <ThemeToggle variant="icon" size="md" className="glassmorphism hover:bg-accent/20" />
+            <ThemeToggle variant="icon" size="md" className="glassmorphism-button" />
             <LanguageSelector />
           </div>
         </div>
