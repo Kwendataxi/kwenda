@@ -33,7 +33,7 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
   autoDetect = false,
   className = ""
 }) => {
-  const [query, setQuery] = useState(value?.address || '');
+  const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<ServiceLocationSearchResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -49,6 +49,15 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
     error,
     clearError
   } = useSimpleLocation();
+
+  // Synchroniser query avec value seulement quand value change depuis l'extérieur
+  useEffect(() => {
+    if (value?.address && value.address !== query) {
+      setQuery(value.address);
+    } else if (!value && query) {
+      // Ne pas effacer le query si c'est juste une recherche en cours
+    }
+  }, [value]);
 
   // Auto-detect position if requested
   useEffect(() => {
@@ -204,7 +213,7 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
             onClick={() => setShowSuggestions(false)}
           />
           
-          <Card className="absolute top-full left-0 right-0 z-20 mt-1 glassmorphism border-border/50 max-h-80 overflow-hidden">
+          <Card className="absolute top-full left-0 right-0 z-20 mt-1 bg-background border border-border shadow-lg max-h-80 overflow-hidden">
             <CardContent className="p-0">
               {isSearching ? (
                 <div className="p-4 text-center">
