@@ -272,15 +272,25 @@ export function TaxiTestComponent() {
               <CardContent className="p-4">
                 <h4 className="font-medium text-success mb-2 flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
-                  Dernière réservation
+                  Dernière réservation réussie
                 </h4>
                 <div className="space-y-1 text-sm">
-                  <div>ID: <code className="bg-muted px-1 rounded">{lastBooking.id}</code></div>
-                  <div>Status: <Badge variant={lastBooking.status === 'driver_assigned' ? 'default' : 'secondary'}>
-                    {lastBooking.status}
-                  </Badge></div>
+                  <div className="flex items-center gap-2">
+                    <span>ID:</span>
+                    <code className="bg-muted px-2 py-0.5 rounded text-xs font-mono">{lastBooking.id.slice(0, 8)}...</code>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>Status:</span>
+                    <Badge variant={lastBooking.status === 'driver_assigned' ? 'default' : lastBooking.status === 'pending' ? 'secondary' : 'outline'}>
+                      {lastBooking.status === 'driver_assigned' ? 'Chauffeur assigné' : 
+                       lastBooking.status === 'pending' ? 'En attente' : lastBooking.status}
+                    </Badge>
+                  </div>
                   {lastBooking.driverAssigned && (
-                    <div>Chauffeur assigné: {lastBooking.driverAssigned.estimatedArrival}min</div>
+                    <div className="flex items-center gap-2">
+                      <span>Arrivée estimée:</span>
+                      <Badge variant="outline">{lastBooking.driverAssigned.estimatedArrival} min</Badge>
+                    </div>
                   )}
                 </div>
               </CardContent>
