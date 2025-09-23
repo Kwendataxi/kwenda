@@ -7,7 +7,21 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
-import { UltimateLocationData } from '@/services/ultimateLocationService';
+import { LocationData } from '@/types/location';
+
+// Interface compatible avec l'ancien UltimateLocationData
+interface UltimateLocationData {
+  address: string;
+  lat: number;
+  lng: number;
+  accuracy: number;
+  confidence: number;
+  source: string;
+  timestamp: number;
+  type: 'precise' | 'approximate' | 'fallback';
+  placeId?: string;
+  name?: string;
+}
 
 interface ModernBookingData {
   pickup: UltimateLocationData;

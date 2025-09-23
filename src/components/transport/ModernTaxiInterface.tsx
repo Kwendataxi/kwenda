@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { UltimateLocationPicker } from '@/components/location/UltimateLocationPicker';
-import { useUltimateLocation } from '@/hooks/useUltimateLocation';
+import { ModernLocationInput } from '@/components/location/ModernLocationInput';
+import { useSimpleLocation } from '@/hooks/useSimpleLocation';
 import { useModernTaxiBooking } from '@/hooks/useModernTaxiBooking';
+import { LocationData } from '@/types/location';
 import { 
   MapPin, 
   Navigation, 
@@ -19,12 +20,11 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
-import { UltimateLocationData } from '@/services/ultimateLocationService';
 import { useAuth } from '@/hooks/useAuth';
 
 interface TaxiBookingData {
-  pickup: UltimateLocationData | null;
-  destination: UltimateLocationData | null;
+  pickup: LocationData | null;
+  destination: LocationData | null;
   vehicleType: 'taxi_standard' | 'taxi_premium' | 'moto_transport';
   passengers: number;
   scheduledAt?: Date;
@@ -66,15 +66,7 @@ const VEHICLE_TYPES = [
 export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiInterfaceProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { 
-    getCurrentPosition, 
-    calculateDistance, 
-    formatDistance,
-    location: currentLocation,
-    loading: locationLoading,
-    accuracy,
-    confidence
-  } = useUltimateLocation({ autoDetect: true });
+  const { calculateDistance, formatDistance } = useSimpleLocation();
   
   const {
     createBooking,
@@ -96,20 +88,13 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [estimatedPrice, setEstimatedPrice] = useState<number>(0);
   const [estimatedDuration, setEstimatedDuration] = useState<string>('');
 
-  // Auto-detect current location for pickup
-  useEffect(() => {
-    if (step === 'pickup' && !bookingData.pickup && currentLocation) {
-      setBookingData(prev => ({ 
-        ...prev, 
-        pickup: currentLocation
-      }));
-    }
-  }, [step, bookingData.pickup, currentLocation]);
-
   // Calculate pricing when both locations are selected
   useEffect(() => {
     if (bookingData.pickup && bookingData.destination) {
-      const distance = calculateDistance(bookingData.pickup, bookingData.destination);
+      const distance = calculateDistance(
+        { lat: bookingData.pickup.lat, lng: bookingData.pickup.lng },
+        { lat: bookingData.destination.lat, lng: bookingData.destination.lng }
+      );
       const vehicleInfo = VEHICLE_TYPES.find(v => v.id === bookingData.vehicleType);
       
       if (vehicleInfo && distance > 0) {
@@ -124,21 +109,19 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     }
   }, [bookingData.pickup, bookingData.destination, bookingData.vehicleType, calculateDistance]);
 
-  const handleLocationSelect = (location: UltimateLocationData | null) => {
-    if (!location) return;
-    
-    if (step === 'pickup') {
-      setBookingData(prev => ({ 
-        ...prev, 
-        pickup: location
-      }));
-      setStep('destination');
-    } else if (step === 'destination') {
-      setBookingData(prev => ({ 
-        ...prev, 
-        destination: location
-      }));
-      setStep('details');
+  const handlePickupChange = (location: LocationData | null) => {
+    setBookingData(prev => ({ ...prev, pickup: location }));
+    if (location && step === 'pickup') {
+      // Auto-advance to destination step
+      setTimeout(() => setStep('destination'), 500);
+    }
+  };
+
+  const handleDestinationChange = (location: LocationData | null) => {
+    setBookingData(prev => ({ ...prev, destination: location }));
+    if (location && step === 'destination') {
+      // Auto-advance to details step
+      setTimeout(() => setStep('details'), 500);
     }
   };
 
@@ -153,19 +136,53 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     }
 
     try {
+      setLoading(true);
+      
+      // Convert LocationData to UltimateLocationData format for createBooking
+      const pickupFormatted = {
+        address: bookingData.pickup.address,
+        lat: bookingData.pickup.lat,
+        lng: bookingData.pickup.lng,
+        accuracy: bookingData.pickup.accuracy || 50,
+        confidence: 85,
+        source: 'browser' as const,
+        timestamp: Date.now(),
+        type: 'precise' as const,
+        placeId: bookingData.pickup.placeId
+      };
+
+      const destinationFormatted = {
+        address: bookingData.destination.address,
+        lat: bookingData.destination.lat,
+        lng: bookingData.destination.lng,
+        accuracy: bookingData.destination.accuracy || 50,
+        confidence: 85,
+        source: 'browser' as const,
+        timestamp: Date.now(),
+        type: 'precise' as const,
+        placeId: bookingData.destination.placeId
+      };
+
       const result = await createBooking({
-        pickup: bookingData.pickup,
-        destination: bookingData.destination,
+        pickup: pickupFormatted,
+        destination: destinationFormatted,
         vehicleType: bookingData.vehicleType,
         passengers: bookingData.passengers,
         estimatedPrice,
-        totalDistance: bookingData.pickup && bookingData.destination ? 
-          calculateDistance(bookingData.pickup, bookingData.destination) / 1000 : undefined,
+        totalDistance: calculateDistance(
+          { lat: bookingData.pickup.lat, lng: bookingData.pickup.lng },
+          { lat: bookingData.destination.lat, lng: bookingData.destination.lng }
+        ) / 1000,
         notes: bookingData.notes,
         scheduledAt: bookingData.scheduledAt
       });
 
       if (result) {
+        toast({
+          title: "Réservation confirmée!",
+          description: "Recherche d'un chauffeur en cours...",
+        });
+        
         onSubmit({ 
           bookingId: result.id,
           status: result.status,
@@ -177,6 +194,13 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
 
     } catch (error) {
       console.error('❌ [TaxiInterface] Erreur réservation:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer la réservation. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -184,38 +208,37 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     switch (step) {
       case 'pickup':
         return (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-primary/10 rounded-full">
-              <Navigation className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold">Point de départ</h3>
-              <p className="text-sm text-muted-foreground">D'où partez-vous ?</p>
-            </div>
-          </div>
-          
-          <UltimateLocationPicker
-            value={bookingData.pickup}
-            onChange={handleLocationSelect}
-            placeholder="Rechercher votre position actuelle..."
-            context="pickup"
-            autoDetect={true}
-            showAccuracy={true}
-          />
-          
-          {bookingData.pickup && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-green-700 font-medium">
-                  Position de départ confirmée
-                </span>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-primary/10 rounded-full">
+                <Navigation className="h-5 w-5 text-primary" />
               </div>
-              <p className="text-xs text-green-600 mt-1">{bookingData.pickup.address}</p>
+              <div>
+                <h3 className="text-lg font-semibold">Point de départ</h3>
+                <p className="text-sm text-muted-foreground">D'où partez-vous ?</p>
+              </div>
             </div>
-          )}
-        </div>
+            
+            <ModernLocationInput
+              value={bookingData.pickup}
+              onChange={handlePickupChange}
+              placeholder="Rechercher votre position..."
+              context="pickup"
+              autoDetect={true}
+            />
+            
+            {bookingData.pickup && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-sm text-green-700 font-medium">
+                    Position de départ confirmée
+                  </span>
+                </div>
+                <p className="text-xs text-green-600 mt-1">{bookingData.pickup.address}</p>
+              </div>
+            )}
+          </div>
         );
 
       case 'destination':
@@ -231,12 +254,11 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
               </div>
             </div>
             
-            <UltimateLocationPicker
+            <ModernLocationInput
               value={bookingData.destination}
-              onChange={handleLocationSelect}
+              onChange={handleDestinationChange}
               placeholder="Rechercher votre destination..."
               context="destination"
-              showAccuracy={false}
             />
 
             {bookingData.pickup && (
@@ -372,7 +394,10 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
                     <span className="text-sm text-muted-foreground">Distance</span>
                     <span className="font-medium">
                       {bookingData.pickup && bookingData.destination && 
-                        formatDistance(calculateDistance(bookingData.pickup, bookingData.destination))
+                        formatDistance(calculateDistance(
+                          { lat: bookingData.pickup.lat, lng: bookingData.pickup.lng },
+                          { lat: bookingData.destination.lat, lng: bookingData.destination.lng }
+                        ))
                       }
                     </span>
                   </div>
@@ -476,10 +501,17 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         {step === 'confirm' && (
           <Button
             onClick={handleSubmitBooking}
-            disabled={loading}
+            disabled={loading || isCreatingBooking}
             className="flex-1"
           >
-            {loading ? 'Réservation...' : 'Confirmer'}
+            {(loading || isCreatingBooking) ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Réservation...
+              </>
+            ) : (
+              'Confirmer'
+            )}
           </Button>
         )}
       </div>
@@ -496,16 +528,24 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         </Card>
       )}
 
-      {lastBooking && (
+      {isSearchingDriver && (
         <Card className="glassmorphism border-primary/20">
           <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-primary">
-              <CheckCircle className="h-4 w-4" />
-              <span className="text-sm">
-                {lastBooking.status === 'driver_assigned' 
-                  ? `Chauffeur assigné ! Arrivée: ${lastBooking.driverAssigned?.estimatedArrival || 'N/A'} min`
-                  : 'Réservation créée, recherche en cours...'
-                }
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span className="text-sm">Recherche d'un chauffeur...</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {lastBooking && (
+        <Card className="glassmorphism border-green-500/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span className="text-sm text-green-700">
+                Réservation créée avec succès!
               </span>
             </div>
           </CardContent>

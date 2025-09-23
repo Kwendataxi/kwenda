@@ -1,0 +1,262 @@
+/**
+ * Composant unifié de sélection de localisation
+ * Remplace UltimateLocationPicker et unifie avec la livraison
+ * Interface épurée avec géolocalisation précise
+ */
+
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useSimpleLocation } from '@/hooks/useSimpleLocation';
+import { LocationData, LocationSearchResult as TypesLocationSearchResult } from '@/types/location';
+import { LocationSearchResult as ServiceLocationSearchResult } from '@/services/simpleLocationService';
+import { MapPin, Navigation, Search, Loader2, Clock, Star } from 'lucide-react';
+
+interface ModernLocationInputProps {
+  value?: LocationData | null;
+  onChange: (location: LocationData | null) => void;
+  placeholder?: string;
+  label?: string;
+  context?: 'pickup' | 'destination' | 'delivery' | 'general';
+  autoDetect?: boolean;
+  className?: string;
+}
+
+export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
+  value,
+  onChange,
+  placeholder = "Rechercher une adresse...",
+  label,
+  context = 'general',
+  autoDetect = false,
+  className = ""
+}) => {
+  const [query, setQuery] = useState(value?.address || '');
+  const [suggestions, setSuggestions] = useState<ServiceLocationSearchResult[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  
+  const {
+    getCurrentPosition,
+    searchLocations,
+    getPopularPlaces,
+    loading: locationLoading,
+    error,
+    clearError
+  } = useSimpleLocation();
+
+  // Auto-detect position if requested
+  useEffect(() => {
+    if (autoDetect && !value) {
+      handleGetCurrentLocation();
+    }
+  }, [autoDetect, value]);
+
+  // Search avec debounce
+  useEffect(() => {
+    if (query.length < 2) {
+      setSuggestions(getPopularPlaces());
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setIsSearching(true);
+      searchLocations(query, (results) => {
+        setSuggestions(results);
+        setIsSearching(false);
+      });
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query, searchLocations, getPopularPlaces]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newQuery = e.target.value;
+    setQuery(newQuery);
+    setShowSuggestions(true);
+    
+    if (newQuery !== value?.address) {
+      onChange(null);
+    }
+  };
+
+  const handleLocationSelect = (location: LocationData | ServiceLocationSearchResult) => {
+    const locationData: LocationData = {
+      address: location.address,
+      lat: location.lat,
+      lng: location.lng,
+      type: 'title' in location ? 'geocoded' : (location.type as any),
+      placeId: 'id' in location ? location.id : undefined,
+      name: ('title' in location ? location.title : location.name) || location.address
+    };
+    
+    setQuery(location.address);
+    setShowSuggestions(false);
+    onChange(locationData);
+    inputRef.current?.blur();
+  };
+
+  const handleGetCurrentLocation = async () => {
+    try {
+      clearError();
+      const position = await getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 30000,
+        maximumAge: 300000
+      });
+      
+      if (position) {
+        const enhancedPosition: ServiceLocationSearchResult = {
+          ...position,
+          id: `current-${Date.now()}`,
+          title: position.address
+        };
+        handleLocationSelect(enhancedPosition);
+      }
+    } catch (err) {
+      console.error('Erreur géolocalisation:', err);
+    }
+  };
+
+  const getContextIcon = () => {
+    switch (context) {
+      case 'pickup':
+        return <Navigation className="h-4 w-4 text-primary" />;
+      case 'destination':
+        return <MapPin className="h-4 w-4 text-secondary" />;
+      case 'delivery':
+        return <MapPin className="h-4 w-4 text-accent" />;
+      default:
+        return <Search className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
+  const getPlaceIcon = (type?: string) => {
+    if (type === 'popular') return <Star className="h-4 w-4 text-yellow-500" />;
+    if (type === 'recent') return <Clock className="h-4 w-4 text-blue-500" />;
+    return <MapPin className="h-4 w-4 text-muted-foreground" />;
+  };
+
+  return (
+    <div className={`relative space-y-2 ${className}`}>
+      {label && (
+        <label className="text-sm font-medium text-foreground">
+          {label}
+        </label>
+      )}
+      
+      <div className="relative">
+        <div className="relative">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2">
+            {getContextIcon()}
+          </div>
+          
+          <Input
+            ref={inputRef}
+            value={query}
+            onChange={handleInputChange}
+            onFocus={() => setShowSuggestions(true)}
+            placeholder={placeholder}
+            className="pl-10 pr-16 bg-background/80 backdrop-blur-sm border-border/50 focus:border-primary/50"
+          />
+          
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleGetCurrentLocation}
+            disabled={locationLoading}
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-primary/10"
+          >
+            {locationLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Navigation className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+
+        {/* Status géolocalisation */}
+        {locationLoading && (
+          <div className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Localisation en cours...
+          </div>
+        )}
+
+        {error && (
+          <div className="mt-2 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+      </div>
+
+      {/* Suggestions dropdown */}
+      {showSuggestions && (
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setShowSuggestions(false)}
+          />
+          
+          <Card className="absolute top-full left-0 right-0 z-20 mt-1 glassmorphism border-border/50 max-h-80 overflow-hidden">
+            <CardContent className="p-0">
+              {isSearching ? (
+                <div className="p-4 text-center">
+                  <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground mt-2">Recherche...</p>
+                </div>
+              ) : suggestions.length > 0 ? (
+                <div className="max-h-80 overflow-y-auto">
+                  {suggestions.map((suggestion, index) => (
+                    <div
+                      key={suggestion.id || index}
+                      onClick={() => handleLocationSelect(suggestion)}
+                      className="p-3 hover:bg-muted/50 cursor-pointer border-b border-border/20 last:border-0 transition-colors"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5">
+                          {getPlaceIcon(suggestion.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">
+                            {suggestion.title || suggestion.address}
+                          </p>
+                          {suggestion.subtitle && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              {suggestion.subtitle}
+                            </p>
+                          )}
+                        </div>
+                        {suggestion.type === 'default' && (
+                          <Badge variant="secondary" className="text-xs">
+                            Populaire
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : query.length >= 2 ? (
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  Aucun résultat trouvé
+                </div>
+              ) : (
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  Lieux populaires
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default ModernLocationInput;
