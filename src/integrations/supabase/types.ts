@@ -7517,14 +7517,7 @@ export type Database = {
       }
     }
     Views: {
-      driver_online_status: {
-        Row: {
-          online_drivers: number | null
-          total_drivers: number | null
-          vehicle_class: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       anonymize_old_location_data: {
