@@ -16,11 +16,18 @@ const roles = [
     color: 'bg-primary/10 hover:bg-primary/20'
   },
   {
-    id: 'chauffeur',
-    name: 'Chauffeur',
-    description: 'Conduire et livrer pour gagner de l\'argent',
+    id: 'taxi_driver',
+    name: 'Chauffeur Taxi',
+    description: 'Transport de passagers avec différents niveaux de service',
     icon: Car,
     color: 'bg-blue-50 hover:bg-blue-100'
+  },
+  {
+    id: 'delivery_driver',
+    name: 'Livreur',
+    description: 'Service de livraison express et standard',
+    icon: Car,
+    color: 'bg-green-50 hover:bg-green-100'
   }
 ];
 

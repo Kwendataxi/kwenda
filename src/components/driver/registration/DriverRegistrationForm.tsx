@@ -23,6 +23,8 @@ export interface DriverRegistrationData {
   // Informations personnelles
   displayName: string;
   phoneNumber: string;
+  email: string;
+  password: string;
   
   // Informations du permis
   licenseNumber: string;
@@ -75,6 +77,16 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
 
     if (!formData.displayName?.trim()) {
       newErrors.displayName = 'Nom complet requis';
+    }
+    if (!formData.email?.trim()) {
+      newErrors.email = 'Email requis';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Format d\'email invalide';
+    }
+    if (!formData.password?.trim()) {
+      newErrors.password = 'Mot de passe requis';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Le mot de passe doit contenir au moins 6 caractères';
     }
     if (!formData.phoneNumber?.trim()) {
       newErrors.phoneNumber = 'Numéro de téléphone requis';
@@ -198,6 +210,38 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                 />
                 {errors.phoneNumber && (
                   <p className="text-sm text-destructive mt-1">{errors.phoneNumber}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email || ''}
+                  onChange={(e) => updateField('email', e.target.value)}
+                  placeholder="votre@email.com"
+                  className={errors.email ? 'border-destructive' : ''}
+                />
+                {errors.email && (
+                  <p className="text-sm text-destructive mt-1">{errors.email}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="password">Mot de passe *</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password || ''}
+                  onChange={(e) => updateField('password', e.target.value)}
+                  placeholder="Minimum 6 caractères"
+                  className={errors.password ? 'border-destructive' : ''}
+                />
+                {errors.password && (
+                  <p className="text-sm text-destructive mt-1">{errors.password}</p>
                 )}
               </div>
             </div>

@@ -8345,6 +8345,15 @@ export type Database = {
         Args: { delivery_coords?: Json; pickup_coords: Json }
         Returns: Json
       }
+      validate_driver_registration_data: {
+        Args: {
+          email_param: string
+          license_number_param: string
+          phone_number_param: string
+          vehicle_plate_param: string
+        }
+        Returns: Json
+      }
       validate_service_requirements: {
         Args: { p_requirements: Json; p_service_type: string }
         Returns: Json

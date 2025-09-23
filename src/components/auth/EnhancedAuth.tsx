@@ -96,7 +96,12 @@ export const EnhancedAuth = () => {
 
   const handleRoleSelection = (role: string) => {
     setSelectedRole(role);
-    setStep('registration');
+    // Pour les chauffeurs/livreurs, aller directement au formulaire d'inscription
+    if (role === 'taxi_driver' || role === 'delivery_driver') {
+      setStep('registration');
+    } else {
+      setStep('registration');
+    }
   };
 
   const handleRegistrationSuccess = () => {
@@ -137,7 +142,7 @@ export const EnhancedAuth = () => {
         />
       );
     }
-    if (selectedRole === 'chauffeur') {
+    if (selectedRole === 'taxi_driver' || selectedRole === 'delivery_driver') {
       return (
         <DriverRegistrationChoice
           onSuccess={handleRegistrationSuccess}
