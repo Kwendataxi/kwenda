@@ -36,7 +36,25 @@ serve(async (req) => {
       );
     }
 
-    const { booking_id, pickup_coordinates, service_type = 'taxi', radius_km = 10 }: DispatchRequest = await req.json();
+    const body = await req.json();
+    console.log('🔍 Raw request body:', body);
+    
+    // Validation stricte des paramètres
+    if (!body.booking_id) {
+      return new Response(
+        JSON.stringify({ error: 'Missing booking_id parameter' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (!body.pickup_coordinates || typeof body.pickup_coordinates.lat !== 'number' || typeof body.pickup_coordinates.lng !== 'number') {
+      return new Response(
+        JSON.stringify({ error: 'Invalid pickup_coordinates format. Expected: {lat: number, lng: number}' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { booking_id, pickup_coordinates, service_type = 'taxi', radius_km = 15 }: DispatchRequest = body;
 
     console.log(`🚗 Dispatch request for booking ${booking_id} at ${pickup_coordinates.lat}, ${pickup_coordinates.lng}`);
 

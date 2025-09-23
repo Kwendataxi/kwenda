@@ -263,11 +263,13 @@ export function useModernTaxiBooking() {
         try {
           const { data, error } = await supabase.functions.invoke('ride-dispatcher', {
             body: {
-              rideRequestId: bookingId,
-              pickupLat: pickupCoords.lat,
-              pickupLng: pickupCoords.lng,
-              serviceType: 'taxi',
-              vehicleClass: 'standard'
+              booking_id: bookingId,
+              pickup_coordinates: {
+                lat: pickupCoords.lat,
+                lng: pickupCoords.lng
+              },
+              service_type: 'taxi',
+              radius_km: 15
             }
           });
 
