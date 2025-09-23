@@ -25,8 +25,10 @@ import NativeMapComponent from '@/components/mobile/NativeMapComponent';
 import DrivingInterface from '@/components/mobile/DrivingInterface';
 import { useToast } from '@/hooks/use-toast';
 
+type TestModeType = 'tracking' | 'map' | 'driving';
+
 export default function MobileNativeTestPage() {
-  const [testMode, setTestMode] = useState<'tracking' | 'map' | 'driving'>('tracking');
+  const [testMode, setTestMode] = useState<TestModeType>('tracking');
   const [backgroundMode, setBackgroundMode] = useState(true);
   const [batteryOptimization, setBatteryOptimization] = useState(true);
   const [accuracyLevel, setAccuracyLevel] = useState<'high' | 'balanced' | 'low_power'>('balanced');
@@ -349,7 +351,7 @@ export default function MobileNativeTestPage() {
           </Button>
           <Button
             variant={testMode === 'driving' ? "default" : "outline"}
-            onClick={() => setTestMode('driving')}
+            onClick={() => setTestMode('driving' as 'tracking' | 'map' | 'driving')}
           >
             <Navigation className="h-4 w-4 mr-2" />
             Conduite
