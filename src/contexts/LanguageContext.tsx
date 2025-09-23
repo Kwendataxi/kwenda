@@ -1,5 +1,3 @@
-// BACKUP MINIMAL VERSION - WORKING VERSION TO UNBLOCK THE APP
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export type Language = 'fr' | 'en' | 'kg' | 'lua' | 'sw';
@@ -524,7 +522,7 @@ const translations = {
     'system.error': 'Error',
     'system.success': 'Success',
     'system.error_occurred': 'An error occurred',
-    'system.try_again': 'Try Again',
+    'system.try_again': 'Try again',
     'system.no_data': 'No data available',
     
     // Payment
@@ -614,22 +612,51 @@ const translations = {
     'nav.services': 'Kisalu',
     'nav.about': 'Mukuatuetu',
     'nav.contact': 'Tubakana',
-    'nav.login': 'Kukota',
-    'nav.signup': 'Kusumina',
+    'nav.login': 'Kota',
+    'nav.signup': 'Sumina',
     
-    // Common
+    // Common - Kikongo
     'common.loading': 'Yina ku kanga...',
     'common.error': 'Nkama',
     'common.success': 'Malonga',
-    'common.cancel': 'Leka',
-    'common.confirm': 'Kundima',
+    'common.cancel': 'Lemba',
+    'common.confirm': 'Ndinga',
+    'common.save': 'Bika',
+    'common.edit': 'Yambula',
+    'common.delete': 'Boma',
+    'common.view_all': 'Tala yonso',
+    'common.add': 'Bakisa',
+    'common.remove': 'Longola',
+    'common.close': 'Kanga',
+    'common.back': 'Vuanda',
+    'common.next': 'Kuesi',
+    'common.previous': 'Kuna',
     
-    // Basic
+    // Auth
+    'auth.login': 'Kota',
+    'auth.register': 'Sumina',
+    'auth.email': 'Email',
+    'auth.password': 'Code ya lukutuka',
+    'auth.continue': 'Kwenda',
+    'auth.logout': 'Fuluka',
+    
+    // Role Selection
+    'role.client': 'Nkuenda',
+    'role.driver': 'Mvuzi',
+    'role.partner': 'Nkundi',
+    'role.admin': 'Ntuadisi',
+    'role.select': 'Songa',
+    'role.client_desc': 'Vova mabuela ye mavanga',
+    'role.driver_desc': 'Kala mvuzi ya nkundi',
+    'role.partner_desc': 'Salela bavuzi beno',
+    
+    // Support
     'support.title': 'Sadila ya ba clients',
-    'support.contact_us': 'Tubakana',
+    'support.subtitle': 'Beto tuena fika mu kusadila beno',
+    'support.contact': 'Tubakana',
     'support.phone': 'Telefone',
     'support.email': 'Email',
-    'support.chat': 'Mongo mongo',
+    'support.chat': 'Mono mongo',
     'support.create_ticket': 'Sala ticket',
     'support.subject': 'Makambu',
     'support.description': 'Malongi',
@@ -639,7 +666,12 @@ const translations = {
     'escrow.no_transactions': 'Transaction ya mbanza yafulu ko',
     'system.loading': 'Yina ku kanga...',
     'system.error': 'Nkama',
-    'system.success': 'Malonga'
+    'system.success': 'Malonga',
+
+    // Client Navigation
+    'client.nav.home': 'Nzo',
+    'client.nav.activity': 'Kisalu',
+    'client.nav.account': 'Kôntu'
   },
   
   lua: {
@@ -651,29 +683,63 @@ const translations = {
     'nav.login': 'Kukota',
     'nav.signup': 'Kusumina',
     
-    // Common
+    // Common - Tshiluba
     'common.loading': 'Kuntala...',
     'common.error': 'Nshimu',
     'common.success': 'Malonga',
-    'common.cancel': 'Leka',
-    'common.confirm': 'Kutambula',
+    'common.cancel': 'Kulemba',
+    'common.confirm': 'Kuñingisha',
+    'common.save': 'Kubika',
+    'common.edit': 'Kusongola',
+    'common.delete': 'Kuñola',
+    'common.view_all': 'Kumona bionso',
+    'common.add': 'Kubakisha',
+    'common.remove': 'Kulongola',
+    'common.close': 'Kukanga',
+    'common.back': 'Kuvuanda',
+    'common.next': 'Kudiata',
+    'common.previous': 'Kuna',
     
-    // Basic
+    // Auth
+    'auth.login': 'Kukota',
+    'auth.register': 'Kusumina',
+    'auth.email': 'Email',
+    'auth.password': 'Code ya lukutuka',
+    'auth.continue': 'Kuenda nayi',
+    'auth.logout': 'Kufuluka',
+    
+    // Role Selection
+    'role.client': 'Nkaji',
+    'role.driver': 'Mvuzi',
+    'role.partner': 'Nkundi',
+    'role.admin': 'Ntuadisi',
+    'role.select': 'Kusonga',
+    'role.client_desc': 'Kuvova mabuela ne mavanga',
+    'role.driver_desc': 'Kukala mvuzi wa nkundi',
+    'role.partner_desc': 'Kusala bavuzi banu',
+    
+    // Support
     'support.title': 'Kusadila ba clients',
-    'support.contact_us': 'Kutusungila',
+    'support.subtitle': 'Twena apa mukusadila',
+    'support.contact': 'Kutusungila',
     'support.phone': 'Telefone',
     'support.email': 'Email',
-    'support.chat': 'Kusambula',
+    'support.chat': 'Kusolola',
     'support.create_ticket': 'Kusala ticket',
-    'support.subject': 'Mukanda',
+    'support.subject': 'Makambu',
     'support.description': 'Malongi',
     'support.send_ticket': 'Kutuma ticket',
-    'support.available_soon': 'Kabidi mingi ko',
-    'escrow.title': 'Coffre ya mbanza',
-    'escrow.no_transactions': 'Transacton ya mbanza ibi',
+    'support.available_soon': 'Kufika ye dikoloba',
+    'escrow.title': 'Coffre ya mbanza ya KwendaPay',
+    'escrow.no_transactions': 'Transaction ya mbanza yafulu ko',
     'system.loading': 'Kuntala...',
     'system.error': 'Nshimu',
-    'system.success': 'Malonga'
+    'system.success': 'Malonga',
+
+    // Client Navigation
+    'client.nav.home': 'Muetu',
+    'client.nav.activity': 'Bisalu',
+    'client.nav.account': 'Kôntu'
   },
   
   sw: {
@@ -685,29 +751,63 @@ const translations = {
     'nav.login': 'Ingia',
     'nav.signup': 'Jisajili',
     
-    // Common
+    // Common - Kiswahili
     'common.loading': 'Inapakia...',
     'common.error': 'Hitilafu',
     'common.success': 'Mafanikio',
     'common.cancel': 'Ghairi',
     'common.confirm': 'Thibitisha',
+    'common.save': 'Hifadhi',
+    'common.edit': 'Hariri',
+    'common.delete': 'Futa',
+    'common.view_all': 'Angalia yote',
+    'common.add': 'Ongeza',
+    'common.remove': 'Ondoa',
+    'common.close': 'Funga',
+    'common.back': 'Rudi',
+    'common.next': 'Ifuatayo',
+    'common.previous': 'Iliyotangulia',
     
-    // Basic
+    // Auth
+    'auth.login': 'Ingia',
+    'auth.register': 'Jisajili',
+    'auth.email': 'Email',
+    'auth.password': 'Nywila',
+    'auth.continue': 'Endelea',
+    'auth.logout': 'Toka',
+    
+    // Role Selection
+    'role.client': 'Mteja',
+    'role.driver': 'Dereva',
+    'role.partner': 'Mshirika',
+    'role.admin': 'Msimamizi',
+    'role.select': 'Chagua',
+    'role.client_desc': 'Agiza usafiri na mizigo',
+    'role.driver_desc': 'Kuwa dereva mshirika',
+    'role.partner_desc': 'Simamia magari yako',
+    
+    // Support
     'support.title': 'Huduma za Wateja',
-    'support.contact_us': 'Wasiliana Nasi',
+    'support.subtitle': 'Tuko hapa kukusaidia',
+    'support.contact': 'Wasiliana nasi',
     'support.phone': 'Simu',
-    'support.email': 'Barua pepe',
+    'support.email': 'Email',
     'support.chat': 'Mazungumzo',
-    'support.create_ticket': 'Unda tiketi',
+    'support.create_ticket': 'Tengeneza tiketi',
     'support.subject': 'Mada',
     'support.description': 'Maelezo',
     'support.send_ticket': 'Tuma tiketi',
     'support.available_soon': 'Itapatikana hivi karibuni',
-    'escrow.title': 'Akiba Salama',
-    'escrow.no_transactions': 'Hakuna miamala salama',
+    'escrow.title': 'Akiba Salama ya KwendaPay',
+    'escrow.no_transactions': 'Hakuna muamala wa kuhifadhi',
     'system.loading': 'Inapakia...',
     'system.error': 'Hitilafu',
-    'system.success': 'Mafanikio'
+    'system.success': 'Mafanikio',
+
+    // Client Navigation
+    'client.nav.home': 'Nyumbani',
+    'client.nav.activity': 'Shughuli',
+    'client.nav.account': 'Akaunti'
   }
 };
 
