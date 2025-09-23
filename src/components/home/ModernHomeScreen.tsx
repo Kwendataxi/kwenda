@@ -3,7 +3,7 @@ import { ModernHeader } from './ModernHeader';
 import { ServiceGrid } from './ServiceGrid';
 // Removed obsolete components
 import { MarketplacePreview } from './MarketplacePreview';
-import { UniversalBottomNavigation, UniversalTabType } from '@/components/navigation/UniversalBottomNavigation';
+import { ModernBottomNavigation } from './ModernBottomNavigation';
 import { HomeTrendsSheet } from './HomeTrendsSheet';
 import { HomeRecentPlacesSheet } from './HomeRecentPlacesSheet';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
@@ -29,26 +29,20 @@ export const ModernHomeScreen = ({
   onMarketplaceViewAll,
   onNavigateToTestData
 }: ModernHomeScreenProps) => {
-  const [activeTab, setActiveTab] = useState<UniversalTabType>('home');
+  const [activeTab, setActiveTab] = useState('home');
   const [trendsOpen, setTrendsOpen] = useState(false);
   const [placesOpen, setPlacesOpen] = useState(false);
   const { unreadCount } = useRealtimeNotifications();
   const serviceNotifications = useServiceNotifications();
 
-  const handleTabChange = (tab: UniversalTabType) => {
+  const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     // Navigation logic based on selected tab
     switch (tab) {
-      case 'services':
-        onServiceSelect('marketplace');
-        break;
-      case 'orders':
+      case 'activity':
         onServiceSelect('history');
         break;
-      case 'wallet':
-        // Navigate to wallet
-        break;
-      case 'profile':
+      case 'profil':
         // Navigate to profile
         break;
       default:
@@ -93,14 +87,11 @@ export const ModernHomeScreen = ({
           />
         </div>
 
-        <UniversalBottomNavigation
-          userType="client"
+        <ModernBottomNavigation
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          badges={{
-            orders: 3,
-            favorites: 5
-          }}
+          notificationCount={3}
+          favoritesCount={5}
         />
       </div>
     </div>

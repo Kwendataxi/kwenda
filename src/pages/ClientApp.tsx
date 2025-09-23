@@ -17,7 +17,7 @@ import OfflineMode from '@/components/advanced/OfflineMode';
 import SecurityVerification from '@/components/advanced/SecurityVerification';
 import { ResponsiveUserProfile } from '@/components/profile/ResponsiveUserProfile';
 import { ModernHomeScreen } from '@/components/home/ModernHomeScreen';
-import { UniversalBottomNavigation } from '@/components/navigation/UniversalBottomNavigation';
+import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
 import { ResponsiveContainer } from '@/components/layout/ResponsiveContainer';
 import { MobileOptimizedLayout } from '@/components/layout/MobileOptimizedLayout';
 import { 
@@ -665,29 +665,22 @@ const ClientApp = () => {
       {/* Marketplace components now handled by EnhancedMarketplaceInterface */}
       
 
-      {/* Universal Bottom Navigation - Always visible */}
-      <UniversalBottomNavigation
-        userType="client"
-        activeTab={currentView === 'home' ? 'home' : currentView === 'history' || currentView === 'activity' ? 'orders' : 'profile'}
+      {/* Modern Bottom Navigation - Always visible */}
+      <ModernBottomNavigation
+        activeTab={currentView === 'home' ? 'home' : currentView === 'history' || currentView === 'activity' ? 'activity' : 'profil'}
         onTabChange={(tab) => {
           const preserveScroll = serviceType === 'marketplace';
           
           if (tab === 'home') {
             transitionToView(setCurrentView, 'home', { preserveScroll });
-          } else if (tab === 'services') {
-            transitionToView(setCurrentView, 'service', { preserveScroll });
-          } else if (tab === 'orders') {
+          } else if (tab === 'activity') {
             transitionToView(setCurrentView, 'history', { preserveScroll });
-          } else if (tab === 'wallet') {
-            transitionToView(setCurrentView, 'wallet', { preserveScroll });
-          } else if (tab === 'profile') {
+          } else if (tab === 'profil') {
             transitionToView(setCurrentView, 'profile', { preserveScroll });
           }
         }}
-        badges={{
-          orders: 0,
-          wallet: 0
-        }}
+        notificationCount={0}
+        favoritesCount={0}
       />
       
         
