@@ -51,10 +51,10 @@ export function useUltimateLocation(options: UseUltimateLocationOptions = {}) {
       
       const position = await ultimateLocationService.getCurrentPosition({
         enableHighAccuracy: true,
-        timeout: 25000,
-        fallbackToIP: true,
-        useNetworkLocation: true,
-        minAccuracy: 50,
+        timeout: 40000,
+        fallbackToIP: false,
+        useNetworkLocation: false,
+        minAccuracy: 20,
         ...config
       });
 
@@ -95,7 +95,7 @@ export function useUltimateLocation(options: UseUltimateLocationOptions = {}) {
       const results = await ultimateLocationService.searchPlaces(query, state.location || undefined);
       
       console.log(`✅ [useUltimate] ${results.length} résultats trouvés`);
-      return results;
+      return results.slice(0, 5); // Limite à 5 résultats pour interface épurée
 
     } catch (error: any) {
       console.error('❌ [useUltimate] Erreur recherche:', error);

@@ -113,12 +113,12 @@ class UltimateLocationService {
   async getCurrentPosition(config: GeolocationConfig = {}): Promise<UltimateLocationData> {
     const options = {
       enableHighAccuracy: true,
-      timeout: 25000, // 25 secondes pour l'Afrique
-      maximumAge: 120000, // 2 minutes
-      fallbackToIP: true,
-      useNetworkLocation: true,
+      timeout: 40000, // 40 secondes pour précision maximale
+      maximumAge: 180000, // 3 minutes
+      fallbackToIP: false, // Pas de fallback automatique
+      useNetworkLocation: false,
       enableCaching: true,
-      minAccuracy: 100, // 100 mètres minimum
+      minAccuracy: 20, // 20 mètres maximum
       ...config
     };
 
@@ -132,77 +132,46 @@ class UltimateLocationService {
         return cached;
       }
 
-      // 2. Tentatives parallèles pour optimiser le temps
-      const locationPromises: Promise<UltimateLocationData | null>[] = [];
-
-      // Capacitor (priorité sur mobile)
+      // 2. Mode séquentiel pour précision maximale
+      
+      // Étape 1: Capacitor GPS (mobile natif)
       if (this.isCapacitorAvailable) {
-        locationPromises.push(this.getCapacitorPosition(options));
+        try {
+          console.log('🎯 GPS Capacitor haute précision...');
+          const position = await this.getCapacitorPosition(options);
+          if (position && position.accuracy <= 20) {
+            const enriched = await this.enrichWithReverseGeocoding(position);
+            this.cachePosition(enriched);
+            this.currentPosition = enriched;
+            console.log('✅ Position ultra-précise Capacitor');
+            return enriched;
+          }
+        } catch (error) {
+          console.log('❌ Capacitor GPS échoué:', error);
+        }
       }
-
-      // GPS Navigateur avec timeout agressif
-      locationPromises.push(this.getHighPrecisionGPS(options));
-
-      // Network-based location (WiFi/Cell triangulation)
-      if (options.useNetworkLocation) {
-        locationPromises.push(this.getNetworkBasedLocation());
-      }
-
-      // Lancer toutes les tentatives en parallèle
-      const results = await Promise.allSettled(locationPromises);
-
-      // Analyser les résultats et choisir le meilleur
-      const validPositions = results
-        .filter(result => result.status === 'fulfilled' && result.value !== null)
-        .map(result => (result as PromiseFulfilledResult<UltimateLocationData>).value)
-        .filter(pos => pos.accuracy <= options.minAccuracy);
-
-      if (validPositions.length > 0) {
-        // Choisir la position la plus précise
-        const bestPosition = validPositions.reduce((best, current) => 
-          current.accuracy < best.accuracy ? current : best
-        );
-
-        // Enrichir avec géocodage inverse
-        const enriched = await this.enrichWithReverseGeocoding(bestPosition);
-        this.cachePosition(enriched);
-        this.currentPosition = enriched;
-
-        console.log(`✅ [Ultimate] Position ${enriched.source} obtenue (±${enriched.accuracy}m)`);
-        return enriched;
+      
+      // Étape 2: GPS navigateur haute précision
+      try {
+        console.log('🌐 GPS navigateur haute précision...');
+        const position = await this.getHighPrecisionGPS(options);
+        if (position && position.accuracy <= 20) {
+          const enriched = await this.enrichWithReverseGeocoding(position);
+          this.cachePosition(enriched);
+          this.currentPosition = enriched;
+          console.log('✅ Position ultra-précise navigateur');
+          return enriched;
+        }
+      } catch (error) {
+        console.log('❌ GPS navigateur échoué:', error);
       }
 
     } catch (error) {
       console.warn('⚠️ [Ultimate] Erreur géolocalisation précise:', error);
     }
 
-    // 3. Fallback vers géolocalisation IP consensus
-    if (options.fallbackToIP) {
-      try {
-        const ipPosition = await this.getIPConsensusLocation();
-        if (ipPosition) {
-          this.cachePosition(ipPosition);
-          console.log('🌐 [Ultimate] Position IP consensus obtenue');
-          return ipPosition;
-        }
-      } catch (error) {
-        console.warn('⚠️ [Ultimate] Erreur IP consensus:', error);
-      }
-    }
-
-    // 4. Derniers recours: Supabase Edge Function
-    try {
-      const edgePosition = await this.getEdgeFunctionLocation();
-      if (edgePosition) {
-        console.log('☁️ [Ultimate] Position Edge Function obtenue');
-        return edgePosition;
-      }
-    } catch (error) {
-      console.warn('⚠️ [Ultimate] Erreur Edge Function:', error);
-    }
-
-    // 5. Position par défaut intelligente
-    return this.getIntelligentFallback();
+    // Pas de fallback automatique - demander saisie manuelle
+    throw new Error('Position GPS précise non disponible. Veuillez saisir votre adresse manuellement.');
   }
 
   /**
