@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useSimpleLocation } from '@/hooks/useSimpleLocation';
-import { ModernLocationPicker } from '@/components/delivery/ModernLocationPicker';
+import { UltimateLocationPicker } from '@/components/location/UltimateLocationPicker';
+import { useUltimateLocation } from '@/hooks/useUltimateLocation';
+import { useModernTaxiBooking } from '@/hooks/useModernTaxiBooking';
 import { 
   MapPin, 
   Navigation, 
@@ -13,15 +14,17 @@ import {
   DollarSign,
   Car,
   Users,
-  Zap
+  Zap,
+  Loader2,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
-import { LocationData as UnifiedLocationData } from '@/services/simpleLocationService';
-import { supabase } from '@/integrations/supabase/client';
+import { UltimateLocationData } from '@/services/ultimateLocationService';
 import { useAuth } from '@/hooks/useAuth';
 
 interface TaxiBookingData {
-  pickup: UnifiedLocationData | null;
-  destination: UnifiedLocationData | null;
+  pickup: UltimateLocationData | null;
+  destination: UltimateLocationData | null;
   vehicleType: 'taxi_standard' | 'taxi_premium' | 'moto_transport';
   passengers: number;
   scheduledAt?: Date;
@@ -63,7 +66,23 @@ const VEHICLE_TYPES = [
 export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiInterfaceProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { getCurrentPosition, calculateDistance, formatDistance } = useSimpleLocation();
+  const { 
+    getCurrentPosition, 
+    calculateDistance, 
+    formatDistance,
+    location: currentLocation,
+    loading: locationLoading,
+    accuracy,
+    confidence
+  } = useUltimateLocation({ autoDetect: true });
+  
+  const {
+    createBooking,
+    isCreatingBooking,
+    isSearchingDriver,
+    lastBooking,
+    error: bookingError
+  } = useModernTaxiBooking();
   
   const [bookingData, setBookingData] = useState<TaxiBookingData>({
     pickup: null,
@@ -79,17 +98,13 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
 
   // Auto-detect current location for pickup
   useEffect(() => {
-    if (step === 'pickup' && !bookingData.pickup) {
-      getCurrentPosition().then(location => {
-        if (location) {
-          setBookingData(prev => ({ 
-            ...prev, 
-            pickup: location
-          }));
-        }
-      }).catch(console.warn);
+    if (step === 'pickup' && !bookingData.pickup && currentLocation) {
+      setBookingData(prev => ({ 
+        ...prev, 
+        pickup: currentLocation
+      }));
     }
-  }, [step, bookingData.pickup, getCurrentPosition]);
+  }, [step, bookingData.pickup, currentLocation]);
 
   // Calculate pricing when both locations are selected
   useEffect(() => {
@@ -109,7 +124,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     }
   }, [bookingData.pickup, bookingData.destination, bookingData.vehicleType, calculateDistance]);
 
-  const handleLocationSelect = (location: UnifiedLocationData | null) => {
+  const handleLocationSelect = (location: UltimateLocationData | null) => {
     if (!location) return;
     
     if (step === 'pickup') {
@@ -137,87 +152,31 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       return;
     }
 
-    setLoading(true);
     try {
-      const bookingPayload = {
-        user_id: user?.id || '00000000-0000-0000-0000-000000000000',
-        pickup_location: bookingData.pickup.address,
-        pickup_coordinates: { lat: bookingData.pickup.lat, lng: bookingData.pickup.lng },
-        destination: bookingData.destination.address,
-        destination_coordinates: { lat: bookingData.destination.lat, lng: bookingData.destination.lng },
-        vehicle_type: bookingData.vehicleType,
+      const result = await createBooking({
+        pickup: bookingData.pickup,
+        destination: bookingData.destination,
+        vehicleType: bookingData.vehicleType,
         passengers: bookingData.passengers,
-        estimated_price: estimatedPrice,
-        notes: bookingData.notes || '',
-        status: 'pending'
-      };
-
-      const { data, error } = await supabase
-        .from('transport_bookings')
-        .insert([bookingPayload])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast({
-        title: "Réservation créée",
-        description: "Recherche d'un chauffeur en cours...",
+        estimatedPrice,
+        totalDistance: bookingData.pickup && bookingData.destination ? 
+          calculateDistance(bookingData.pickup, bookingData.destination) / 1000 : undefined,
+        notes: bookingData.notes,
+        scheduledAt: bookingData.scheduledAt
       });
 
-      // Try to dispatch driver automatically
-      try {
-        const dispatchResponse = await supabase.functions.invoke('ride-dispatcher', {
-          body: {
-            booking_id: data.id,
-            pickup_coordinates: {
-              lat: bookingData.pickup.lat,
-              lng: bookingData.pickup.lng
-            },
-            service_type: bookingData.vehicleType
-          }
-        });
-
-        if (dispatchResponse.error) {
-          console.warn('❌ Dispatch failed:', dispatchResponse.error);
-          toast({
-            title: "Réservation créée",
-            description: "Recherche de chauffeurs en cours...",
-          });
-        } else if (dispatchResponse.data?.success) {
-          toast({
-            title: "Chauffeur trouvé!",
-            description: `Arrivée estimée: ${dispatchResponse.data.driver_assigned.estimated_arrival_minutes} min`,
-          });
-        } else {
-          toast({
-            title: "Aucun chauffeur disponible",
-            description: "Nous recherchons d'autres chauffeurs...",
-          });
-        }
-      } catch (dispatchError) {
-        console.warn('Dispatch error:', dispatchError);
-        toast({
-          title: "Réservation créée",
-          description: "Recherche de chauffeurs en cours...",
+      if (result) {
+        onSubmit({ 
+          bookingId: result.id,
+          status: result.status,
+          driverAssigned: result.driverAssigned,
+          estimatedDuration,
+          ...bookingData
         });
       }
 
-      onSubmit({ 
-        bookingId: data.id, 
-        ...bookingPayload,
-        estimatedDuration 
-      });
-
     } catch (error) {
-      console.error('Booking error:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de créer la réservation",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+      console.error('❌ [TaxiInterface] Erreur réservation:', error);
     }
   };
 
@@ -236,12 +195,13 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
             </div>
           </div>
           
-          <ModernLocationPicker
-            key="pickup"
+          <UltimateLocationPicker
             value={bookingData.pickup}
             onChange={handleLocationSelect}
             placeholder="Rechercher votre position actuelle..."
             context="pickup"
+            autoDetect={true}
+            showAccuracy={true}
           />
           
           {bookingData.pickup && (
@@ -271,12 +231,12 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
               </div>
             </div>
             
-            <ModernLocationPicker
-              key="destination" // Force remount pour vider la barre
+            <UltimateLocationPicker
               value={bookingData.destination}
               onChange={handleLocationSelect}
               placeholder="Rechercher votre destination..."
-              context="delivery"
+              context="destination"
+              showAccuracy={false}
             />
 
             {bookingData.pickup && (
@@ -523,6 +483,34 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
           </Button>
         )}
       </div>
+
+      {/* Indicateurs de statut */}
+      {bookingError && (
+        <Card className="glassmorphism border-destructive/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">{bookingError}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {lastBooking && (
+        <Card className="glassmorphism border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-primary">
+              <CheckCircle className="h-4 w-4" />
+              <span className="text-sm">
+                {lastBooking.status === 'driver_assigned' 
+                  ? `Chauffeur assigné ! Arrivée: ${lastBooking.driverAssigned?.estimatedArrival || 'N/A'} min`
+                  : 'Réservation créée, recherche en cours...'
+                }
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
