@@ -7523,16 +7523,6 @@ export type Database = {
           total_drivers: number | null
           vehicle_class: string | null
         }
-        Insert: {
-          online_drivers?: number | null
-          total_drivers?: number | null
-          vehicle_class?: string | null
-        }
-        Update: {
-          online_drivers?: number | null
-          total_drivers?: number | null
-          vehicle_class?: string | null
-        }
         Relationships: []
       }
     }
