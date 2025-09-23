@@ -18,6 +18,7 @@ import {
   Leaf,
   Clock,
   Users,
+  RefreshCw,
   Fuel,
   Settings,
   CheckCircle,
@@ -428,15 +429,24 @@ const FluidRentalInterface = ({ onCancel, onBookingComplete }: FluidRentalInterf
             <p className="text-muted-foreground text-center max-w-sm leading-relaxed">
               Nous n'avons trouvé aucun véhicule pour le moment. Essayez de changer de ville ou revenez plus tard.
             </p>
-            <div className="mt-6 flex gap-3">
+            <div className="mt-8 flex gap-3">
               <Button 
-                variant="outline" 
+                variant="secondary" 
                 size="sm"
                 onClick={() => setSelectedCity('Kinshasa')}
-                className="rounded-full glassmorphism hover:bg-primary/5 transition-all duration-300"
+                className="rounded-full border border-border/30 bg-card/80 backdrop-blur-sm text-foreground hover:bg-primary/10 hover:text-primary transition-all duration-300 shadow-sm"
               >
                 <MapPin className="w-4 h-4 mr-2" />
                 Changer de ville
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => window.location.reload()}
+                className="rounded-full bg-muted/50 hover:bg-muted/80 transition-all duration-300"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Actualiser
               </Button>
             </div>
           </div>
