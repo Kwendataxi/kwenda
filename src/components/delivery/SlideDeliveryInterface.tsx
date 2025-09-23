@@ -380,7 +380,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="h-12 text-lg glass-input"
+          className="h-12 text-lg glassmorphism-button border-primary/30 focus:border-primary"
           autoFocus
         />
         
@@ -388,7 +388,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           variant="outline"
           onClick={() => handleUseCurrentPosition(type)}
           disabled={isGettingLocation || loading}
-          className="w-full h-12 glass-card border-primary/20 hover:border-primary/40 text-primary"
+          className="w-full h-12 glassmorphism-button border-primary/30 hover:border-primary text-primary hover:shadow-glow transition-all"
         >
           <Navigation className={`w-5 h-5 mr-2 ${isGettingLocation || loading ? 'animate-spin' : ''}`} />
           {isGettingLocation || loading ? 'Localisation en cours...' : 'Utiliser ma position actuelle'}
@@ -396,7 +396,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
       </div>
       
       {suggestions.length > 0 && (
-        <div className="glass-card border border-border/20 rounded-lg overflow-hidden z-50">
+        <div className="glassmorphism-button border border-primary/20 rounded-lg overflow-hidden z-50 animate-scaleIn">
           {suggestions.map((suggestion) => (
             <div
               key={suggestion.id}
@@ -470,10 +470,10 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         {Object.entries(SERVICE_TYPES).map(([key, service]) => (
           <div
             key={key}
-            className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-[1.02] ${
+            className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-[1.02] animate-fadeIn ${
               deliveryData.serviceType === key
-                ? 'border-primary bg-primary/5 shadow-lg shadow-primary/20'
-                : 'border-border/20 glass-card hover:border-primary/30'
+                ? 'border-primary bg-primary/5 shadow-glow'
+                : 'border-primary/20 glassmorphism-button hover:border-primary/50 hover:shadow-soft'
             }`}
             onClick={() => setDeliveryData(prev => ({ ...prev, serviceType: key as any }))}
           >
@@ -502,7 +502,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           id="packageType"
           value={deliveryData.packageType}
           onChange={(e) => setDeliveryData(prev => ({ ...prev, packageType: e.target.value }))}
-          className="w-full p-3 rounded-lg glass-input border border-border/20 bg-background/20 text-foreground"
+          className="w-full p-3 rounded-lg glassmorphism-button border border-primary/30 focus:border-primary text-foreground"
         >
           {PACKAGE_TYPES.map(type => (
             <option key={type} value={type}>{type}</option>
@@ -522,7 +522,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         <p className="text-muted-foreground">Vérifiez les détails de votre commande</p>
       </div>
       
-      <div className="glass-card border border-green-500/20 bg-green-500/5 p-6 rounded-xl">
+      <div className="glassmorphism-button border border-congo-green/30 bg-congo-green/5 p-6 rounded-xl shadow-soft">
         <div className="space-y-4">
           <div className="flex items-start gap-3">
             <MapPin className="w-5 h-5 text-primary mt-0.5" />
@@ -593,11 +593,11 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
   return (
     <div className="min-h-screen bg-background">
       {/* Header avec indicateur de progression */}
-      <div className="sticky top-0 z-40 glass-card border-b border-border/20 p-4">
+      <div className="sticky top-0 z-40 glassmorphism-button border-b border-primary/20 p-4 backdrop-blur-xl">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold text-foreground">Livraison Express</h1>
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 congo-glow">
               {getStepNumber(currentStep)}/4
             </Badge>
           </div>
@@ -631,20 +631,20 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
       {/* Contenu principal */}
       <div className="p-4">
         <div className="max-w-2xl mx-auto">
-          <Card className="glass-card border-border/20 p-6">
+          <Card className="glassmorphism-button border-primary/20 p-6 animate-scaleIn">
             {renderCurrentStep()}
           </Card>
         </div>
       </div>
 
       {/* Navigation footer */}
-      <div className="fixed bottom-0 left-0 right-0 glass-card border-t border-border/20 p-4">
+      <div className="fixed bottom-0 left-0 right-0 glassmorphism-button border-t border-primary/20 p-4 backdrop-blur-xl">
         <div className="max-w-2xl mx-auto flex gap-3">
           {currentStep !== 'pickup' && (
             <Button
               variant="outline"
               onClick={handleBack}
-              className="flex-1 glass-button"
+              className="flex-1 btn-congo-soft"
               disabled={isSubmitting}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -656,7 +656,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             <Button
               variant="outline"
               onClick={onCancel}
-              className="flex-1 glass-button"
+              className="flex-1 btn-congo-soft"
               disabled={isSubmitting}
             >
               Annuler
@@ -666,7 +666,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           {currentStep !== 'confirm' ? (
             <Button
               onClick={handleNext}
-              className="flex-1 bg-primary hover:bg-primary/90"
+              className="flex-1 btn-congo shadow-glow hover:shadow-congo"
               disabled={!deliveryData.pickupLocation && currentStep === 'pickup' || 
                        !deliveryData.deliveryLocation && currentStep === 'destination'}
             >
@@ -676,7 +676,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           ) : (
             <Button
               onClick={handleSubmit}
-              className="flex-1 bg-primary hover:bg-primary/90"
+              className="flex-1 btn-congo shadow-glow hover:shadow-congo"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Création...' : 'Confirmer la commande'}
