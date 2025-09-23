@@ -17,14 +17,14 @@ interface ParticleBackgroundProps {
 }
 
 const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
-  density = 80,
+  density = 40,
   colors = [
-    'hsl(357, 95%, 55%)', // Congo Red Electric
-    'hsl(42, 100%, 60%)', // Congo Yellow Electric  
-    'hsl(142, 85%, 45%)', // Congo Green Electric
-    'hsl(220, 100%, 50%)', // Congo Blue Electric
-    'hsl(357, 100%, 65%)', // Congo Red Vibrant
-    'hsl(42, 100%, 70%)'   // Congo Yellow Vibrant
+    'hsl(357, 70%, 55%)', // Congo Red Electric (softer)
+    'hsl(42, 80%, 60%)', // Congo Yellow Electric (softer)
+    'hsl(142, 65%, 45%)', // Congo Green Electric (softer)
+    'hsl(220, 80%, 50%)', // Congo Blue Electric (softer)
+    'hsl(357, 75%, 65%)', // Congo Red Vibrant (softer)
+    'hsl(42, 85%, 70%)'   // Congo Yellow Vibrant (softer)
   ],
   className = ''
 }) => {
@@ -52,9 +52,9 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
           y: Math.random() * canvas.height,
           vx: (Math.random() - 0.5) * 0.8,
           vy: (Math.random() - 0.5) * 0.8,
-          size: Math.random() * 3 + 1.5,
+          size: Math.random() * 2 + 1,
           color: colors[Math.floor(Math.random() * colors.length)],
-          opacity: Math.random() * 0.7 + 0.2
+          opacity: Math.random() * 0.4 + 0.1
         });
       }
     };
@@ -128,7 +128,7 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
     <canvas
       ref={canvasRef}
       className={`fixed inset-0 pointer-events-none z-0 ${className}`}
-      style={{ opacity: 0.8 }}
+      style={{ opacity: 0.2 }}
     />
   );
 };
