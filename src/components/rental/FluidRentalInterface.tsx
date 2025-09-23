@@ -417,9 +417,28 @@ const FluidRentalInterface = ({ onCancel, onBookingComplete }: FluidRentalInterf
         </div>
 
         {vehicles.length === 0 && (
-          <div className="text-center py-12">
-            <Car className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">Aucun véhicule disponible pour le moment</p>
+          <div className="flex flex-col items-center justify-center py-20 px-6">
+            <div className="relative mb-8">
+              <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/10 blur-2xl animate-pulse" />
+              <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/10 to-background border border-border/60 backdrop-blur-sm flex items-center justify-center">
+                <Car className="w-10 h-10 text-primary/80" />
+              </div>
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-3">Aucun véhicule disponible</h3>
+            <p className="text-muted-foreground text-center max-w-sm leading-relaxed">
+              Nous n'avons trouvé aucun véhicule pour le moment. Essayez de changer de ville ou revenez plus tard.
+            </p>
+            <div className="mt-6 flex gap-3">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setSelectedCity('Kinshasa')}
+                className="rounded-full glassmorphism hover:bg-primary/5 transition-all duration-300"
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                Changer de ville
+              </Button>
+            </div>
           </div>
         )}
       </div>
