@@ -62,25 +62,32 @@ const LocationVehicules = () => {
         <ModernHeader />
       
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-accent/10 to-primary-glow/10">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
-            <Badge variant="secondary" className="mb-4">
-              Service Location de Véhicules
+      <section className="py-20 bg-gradient-to-br from-accent/5 via-primary/5 to-secondary/5 relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+        <div className="container mx-auto px-4 relative">
+          <div className="max-w-5xl mx-auto text-center space-y-8">
+            <Badge variant="secondary" className="mb-6 glassmorphism-button px-4 py-2 rounded-full font-semibold text-accent border-accent/20">
+              <Car className="w-4 h-4 mr-2" />
+              Service Location de Véhicules Premium
             </Badge>
-            <h1 className="text-display-lg">
-              Louez le véhicule parfait à <span className="text-accent">Kinshasa</span>
+            <h1 className="text-display-lg leading-tight">
+              Louez le véhicule parfait à <span className="bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent font-bold">Kinshasa</span>
             </h1>
-            <p className="text-body-lg text-muted-foreground">
-              Large choix de véhicules pour tous vos besoins. Location à l'heure, à la journée ou au mois. 
-              Avec ou sans chauffeur professionnel.
+            <p className="text-body-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              Large choix de véhicules modernes et entretenus pour tous vos besoins. Location flexible à l'heure, à la journée ou au mois avec chauffeurs professionnels.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild variant="hero" size="lg" className="min-h-[48px]">
-                <Link to="/auth">Réserver maintenant</Link>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
+              <Button asChild variant="hero" size="lg" className="min-h-[52px] px-8 rounded-xl font-bold shadow-xl">
+                <Link to="/auth">
+                  <Calendar className="w-5 h-5 mr-2" />
+                  Réserver maintenant
+                </Link>
               </Button>
-              <Button variant="soft" asChild size="lg" className="min-h-[48px]">
-                <Link to="/auth">Devenir partenaire</Link>
+              <Button variant="glass" asChild size="lg" className="min-h-[52px] px-8 rounded-xl font-semibold">
+                <Link to="/auth">
+                  <Users className="w-5 h-5 mr-2" />
+                  Devenir partenaire
+                </Link>
               </Button>
             </div>
           </div>
@@ -99,37 +106,61 @@ const LocationVehicules = () => {
 
           <div className="grid md:grid-cols-3 gap-8">
             {vehicleCategories.map((category, index) => (
-              <Card key={index} className="card-modern group cursor-pointer">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <Car className="w-8 h-8 text-accent group-hover:scale-110 transition-transform duration-300" />
-                    <Badge variant="outline" className="bg-accent/10 text-accent border-accent/30 rounded-lg">{category.price}</Badge>
+              <Card key={index} className="glassmorphism-button group cursor-pointer hover:scale-[1.02] transition-all duration-500 shadow-soft border border-border/20">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-accent/20 to-primary/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <Car className="w-8 h-8 text-accent" />
+                    </div>
+                    <Badge variant="outline" className="bg-gradient-to-r from-accent/10 to-primary/10 text-accent border-accent/30 rounded-xl px-3 py-1 font-semibold shadow-sm">
+                      {category.price}
+                    </Badge>
                   </div>
-                  <CardTitle>{category.name}</CardTitle>
-                  <CardDescription>{category.description}</CardDescription>
+                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
+                    {category.name}
+                  </CardTitle>
+                  <CardDescription className="text-muted-foreground/80 text-sm leading-relaxed">
+                    {category.description}
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Modèles disponibles :</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      {category.vehicles.map((vehicle, idx) => (
-                        <li key={idx}>• {vehicle}</li>
-                      ))}
-                    </ul>
+                <CardContent className="space-y-6 pt-2">
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm flex items-center gap-2">
+                      <div className="w-2 h-2 bg-accent rounded-full"></div>
+                      Modèles disponibles
+                    </h4>
+                    <div className="bg-muted/30 rounded-lg p-3 backdrop-blur-sm">
+                      <ul className="text-sm text-muted-foreground space-y-2">
+                        {category.vehicles.map((vehicle, idx) => (
+                          <li key={idx} className="flex items-center gap-2">
+                            <div className="w-1 h-1 bg-accent/60 rounded-full"></div>
+                            {vehicle}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Inclus :</h4>
-                    <ul className="space-y-1">
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm flex items-center gap-2">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      Services inclus
+                    </h4>
+                    <ul className="space-y-2">
                       {category.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-center gap-2 text-sm">
-                          <div className="w-1.5 h-1.5 bg-accent rounded-full" />
-                          {feature}
+                        <li key={idx} className="flex items-center gap-3 text-sm">
+                          <div className="w-4 h-4 bg-gradient-to-r from-accent/20 to-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <div className="w-1.5 h-1.5 bg-accent rounded-full" />
+                          </div>
+                          <span className="text-foreground/90">{feature}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <Button variant="congo" className="w-full min-h-[44px]" asChild>
-                    <Link to="/auth">Réserver <ArrowRight className="w-4 h-4 ml-2" /></Link>
+                  <Button variant="hero" className="w-full min-h-[48px] rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300" asChild>
+                    <Link to="/auth">
+                      Réserver maintenant
+                      <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                    </Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -150,13 +181,19 @@ const LocationVehicules = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="text-center card-modern group">
-                <CardContent className="p-6 space-y-4">
-                  <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mx-auto text-accent group-hover:scale-110 transition-transform duration-300">
+              <Card key={index} className="text-center glassmorphism-button group hover:scale-105 transition-all duration-500 border border-border/20">
+                <CardContent className="p-8 space-y-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-accent/15 to-primary/15 rounded-2xl flex items-center justify-center mx-auto text-accent group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-lg">
                     {feature.icon}
                   </div>
-                  <h3 className="font-semibold">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-lg text-foreground group-hover:text-accent transition-colors duration-300">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground/80 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             ))}

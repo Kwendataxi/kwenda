@@ -234,9 +234,9 @@ All colors MUST be HSL.
     transform: translateY(-1px);
   }
 
-  /* Soft shadows and modern effects */
+  /* Enhanced modern effects */
   .shadow-soft {
-    box-shadow: 0 4px 12px -2px hsl(var(--primary) / 0.08), 0 2px 8px -2px hsl(var(--primary) / 0.04);
+    box-shadow: 0 6px 16px -4px hsl(var(--primary) / 0.12), 0 4px 12px -2px hsl(var(--primary) / 0.08);
   }
 
   .card-modern {
@@ -250,6 +250,20 @@ All colors MUST be HSL.
     border-color: hsl(var(--border) / 0.6);
     box-shadow: var(--shadow-elegant);
     transform: translateY(-2px);
+  }
+
+  /* Grid pattern background */
+  .bg-grid-pattern {
+    background-image: radial-gradient(circle, hsl(var(--accent) / 0.2) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Enhanced glassmorphism */
+  .glassmorphism-enhanced {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.3);
+    box-shadow: 0 8px 32px hsl(var(--primary) / 0.08);
   }
   
   .glass-input {
