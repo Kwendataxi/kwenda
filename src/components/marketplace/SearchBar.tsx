@@ -35,30 +35,31 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   return (
-    <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b shadow-sm">
-      <div className="p-4">
-        <form onSubmit={handleSubmit} className="flex gap-3">
+    <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border/20">
+      <div className="p-3">
+        <form onSubmit={handleSubmit} className="flex gap-2">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               placeholder="Rechercher des produits..."
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
-              className="pl-12 h-12 text-base bg-card border-border/50 focus:border-primary transition-colors rounded-full"
+              className="pl-10 h-10 text-sm bg-card/50 border-border/40 focus:border-primary/60 transition-all rounded-xl shadow-sm"
             />
           </div>
           <Button 
             type="submit" 
-            className="h-12 px-6 bg-primary hover:bg-primary/90 text-white font-medium touch-manipulation rounded-full"
+            size="sm"
+            className="h-10 px-4 bg-primary hover:bg-primary/90 text-white font-medium touch-manipulation rounded-xl shadow-sm"
           >
             <Search className="w-4 h-4 md:mr-2" />
-            <span className="hidden md:inline">Rechercher</span>
+            <span className="hidden md:inline text-sm">Rechercher</span>
           </Button>
           
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" className="h-12 w-12 p-0 border-border/50 hover:bg-muted touch-manipulation rounded-full">
-                <SlidersHorizontal className="w-5 h-5" />
+              <Button variant="outline" size="sm" className="h-10 w-10 p-0 border-border/40 hover:bg-muted/50 touch-manipulation rounded-xl shadow-sm">
+                <SlidersHorizontal className="w-4 h-4" />
               </Button>
             </SheetTrigger>
             <SheetContent>

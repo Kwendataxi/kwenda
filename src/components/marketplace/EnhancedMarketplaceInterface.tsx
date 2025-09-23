@@ -345,7 +345,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
   const nearbyProducts = filteredProducts.filter(p => p.coordinates).slice(0, 6);
 
   const renderShopTab = () => (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Wallet Balance */}
       {wallet && (
         <WalletBalance 
@@ -469,17 +469,6 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
         />
       )}
 
-      {coordinates && (
-        <Card className="p-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MapPin className="w-4 h-4" />
-            <span>{t('marketplace.your_position')}: {coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}</span>
-            <Badge variant="secondary" className="ml-auto">
-              {filteredProducts.length} {t('marketplace.products_count')}
-            </Badge>
-          </div>
-        </Card>
-      )}
 
       <div className="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-5">
         {loading ? (
