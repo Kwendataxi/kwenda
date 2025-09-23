@@ -9,13 +9,17 @@ import { Geolocation } from '@capacitor/geolocation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useLocationCache } from '@/hooks/useLocationCache';
+import { useNetworkOptimization } from '@/hooks/useNetworkOptimization';
 import { 
   Navigation, 
   MapPin, 
   Car, 
   Zap, 
   Smartphone,
-  RefreshCw
+  RefreshCw,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 
 interface NativeMapProps {
@@ -46,6 +50,10 @@ export default function NativeMapComponent({
   const [route, setRoute] = useState<any>(null);
   const [nearbyDrivers, setNearbyDrivers] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  
+  // Hooks pour optimisation
+  const locationCache = useLocationCache({ maxCacheSize: 200 });
+  const networkOptimization = useNetworkOptimization();
 
   useEffect(() => {
     setIsNative(Capacitor.isNativePlatform());
@@ -120,22 +128,54 @@ export default function NativeMapComponent({
     if (!origin || !destination) return;
 
     try {
-      // Simuler calcul de route optimisé pour mobile
+      // Vérifier cache d'abord
+      const cacheKey = `route_${origin.lat}_${origin.lng}_${destination.lat}_${destination.lng}`;
+      const cachedRoute = localStorage.getItem(cacheKey);
+      
+      if (cachedRoute) {
+        const route = JSON.parse(cachedRoute);
+        setRoute(route);
+        onRouteCalculated?.(route);
+        return;
+      }
+
+      // Calculer nouvelle route
+      const distance = calculateDistance(origin.lat, origin.lng, destination.lat, destination.lng);
       const mockRoute = {
-        distance: calculateDistance(origin.lat, origin.lng, destination.lat, destination.lng),
-        duration: Math.ceil(calculateDistance(origin.lat, origin.lng, destination.lat, destination.lng) / 1000 * 2), // 2 min par km
+        distance,
+        duration: Math.ceil(distance / 1000 * 2), // 2 min par km
         polyline: `${origin.lat},${origin.lng};${destination.lat},${destination.lng}`,
         steps: [
           {
             instruction: `Diriger vers ${destination.address || 'destination'}`,
-            distance: calculateDistance(origin.lat, origin.lng, destination.lat, destination.lng),
-            duration: Math.ceil(calculateDistance(origin.lat, origin.lng, destination.lat, destination.lng) / 1000 * 2)
+            distance,
+            duration: Math.ceil(distance / 1000 * 2)
           }
-        ]
+        ],
+        cached: false
       };
+
+      // Mettre en cache pour 30 minutes
+      const cacheEntry = {
+        ...mockRoute,
+        timestamp: Date.now(),
+        expiryTime: Date.now() + (30 * 60 * 1000)
+      };
+      localStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
 
       setRoute(mockRoute);
       onRouteCalculated?.(mockRoute);
+      
+      // Ajouter à la queue réseau si en ligne
+      if (networkOptimization.isOnline) {
+        networkOptimization.addToQueue({
+          type: 'route_calculation',
+          origin,
+          destination,
+          timestamp: Date.now()
+        }, 'normal');
+      }
+      
     } catch (error) {
       console.error('Erreur calcul route:', error);
       setError('Impossible de calculer l\'itinéraire');
@@ -279,6 +319,14 @@ export default function NativeMapComponent({
           <span>{isNative ? 'Natif' : 'Web'}</span>
         </Badge>
         
+        <Badge variant={networkOptimization.isOnline ? "outline" : "destructive"} className="flex items-center space-x-1">
+          {networkOptimization.isOnline ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+          <span>{networkOptimization.isOnline ? 'En ligne' : 'Hors ligne'}</span>
+          {networkOptimization.queueSize > 0 && (
+            <span className="text-xs">({networkOptimization.queueSize})</span>
+          )}
+        </Badge>
+        
         {optimizeForBattery && (
           <Badge variant="outline" className="flex items-center space-x-1">
             <Zap className="h-3 w-3" />
@@ -291,6 +339,10 @@ export default function NativeMapComponent({
             ±{Math.round(currentLocation.accuracy)}m
           </Badge>
         )}
+        
+        <Badge variant="outline" className="text-xs">
+          Cache: {locationCache.stats.hits}H/{locationCache.stats.misses}M
+        </Badge>
       </div>
 
       {/* Contrôles */}

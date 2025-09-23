@@ -47,11 +47,13 @@ export function useBatteryOptimizedTracking(options: BatteryOptimizedTrackingOpt
     activeTimeMs: 0
   });
   const [batteryLevel, setBatteryLevel] = useState<number>(100);
+  const [networkStatus, setNetworkStatus] = useState<'online' | 'offline'>('online');
 
   const watchIdRef = useRef<string | null>(null);
   const lastLocationRef = useRef<LocationUpdate | null>(null);
   const startTimeRef = useRef<number>(0);
   const updateCountRef = useRef<number>(0);
+  const offlineQueueRef = useRef<LocationUpdate[]>([]);
 
   // Configuration par défaut selon le niveau d'accuracy
   const getTrackingOptions = useCallback((): PositionOptions => {
@@ -81,10 +83,13 @@ export function useBatteryOptimizedTracking(options: BatteryOptimizedTrackingOpt
   // Initialiser les permissions et la surveillance de batterie
   useEffect(() => {
     initializeBatteryMonitoring();
+    initializeNetworkMonitoring();
     return () => {
       if (watchIdRef.current) {
         stopTracking();
       }
+      // Vider la queue offline
+      offlineQueueRef.current = [];
     };
   }, []);
 
@@ -97,13 +102,35 @@ export function useBatteryOptimizedTracking(options: BatteryOptimizedTrackingOpt
         
         // Vérifier le niveau toutes les minutes
         setInterval(async () => {
-          const info = await Device.getBatteryInfo();
-          setBatteryLevel(info.batteryLevel || 100);
+          try {
+            const info = await Device.getBatteryInfo();
+            setBatteryLevel(info.batteryLevel || 100);
+          } catch (error) {
+            console.warn('Erreur lecture batterie:', error);
+          }
         }, 60000);
       }
     } catch (error) {
       console.warn('Impossible de surveiller la batterie:', error);
     }
+  };
+
+  const initializeNetworkMonitoring = () => {
+    // Surveiller l'état réseau
+    const updateNetworkStatus = () => {
+      setNetworkStatus(navigator.onLine ? 'online' : 'offline');
+    };
+
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+    
+    // Initialiser le statut
+    updateNetworkStatus();
+
+    return () => {
+      window.removeEventListener('online', updateNetworkStatus);
+      window.removeEventListener('offline', updateNetworkStatus);
+    };
   };
 
   const requestPermissions = async (): Promise<boolean> => {
@@ -197,31 +224,84 @@ export function useBatteryOptimizedTracking(options: BatteryOptimizedTrackingOpt
       batteryUsage: Math.max(0, 100 - batteryLevel)
     }));
 
-    // Sauvegarder en base si conducteur
-    try {
-      const { data: user } = await supabase.auth.getUser();
-      if (user.user) {
-        await supabase
-          .from('driver_locations')
-          .upsert({
-            driver_id: user.user.id,
-            latitude: locationUpdate.latitude,
-            longitude: locationUpdate.longitude,
-            accuracy: locationUpdate.accuracy,
-            speed: locationUpdate.speed,
-            heading: locationUpdate.heading,
-            last_ping: new Date().toISOString(),
-            is_online: true,
-            is_available: true,
-            updated_at: new Date().toISOString()
-          });
+    // Sauvegarder en base si conducteur (avec gestion offline)
+    if (networkStatus === 'online') {
+      try {
+        const { data: user } = await supabase.auth.getUser();
+        if (user.user) {
+          // Traiter d'abord la queue offline
+          await processOfflineQueue();
+          
+          // Puis sauvegarder la position actuelle
+          await supabase
+            .from('driver_locations')
+            .upsert({
+              driver_id: user.user.id,
+              latitude: locationUpdate.latitude,
+              longitude: locationUpdate.longitude,
+              accuracy: locationUpdate.accuracy,
+              speed: locationUpdate.speed,
+              heading: locationUpdate.heading,
+              last_ping: new Date().toISOString(),
+              is_online: true,
+              is_available: true,
+              updated_at: new Date().toISOString()
+            });
+        }
+      } catch (error) {
+        console.error('Erreur sauvegarde position:', error);
+        // Ajouter à la queue offline en cas d'erreur
+        offlineQueueRef.current.push(locationUpdate);
+        setError('Connexion instable - données en attente');
       }
-    } catch (error) {
-      console.error('Erreur sauvegarde position:', error);
+    } else {
+      // Mode hors ligne - ajouter à la queue
+      offlineQueueRef.current.push(locationUpdate);
+      setError('Mode hors ligne - données en attente de synchronisation');
     }
 
     setError(null);
   }, [options, batteryLevel]);
+
+  const processOfflineQueue = async () => {
+    if (offlineQueueRef.current.length === 0) return;
+
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (user.user) {
+        // Traiter par batch pour éviter la surcharge
+        const batchSize = 10;
+        const batches = [];
+        
+        for (let i = 0; i < offlineQueueRef.current.length; i += batchSize) {
+          batches.push(offlineQueueRef.current.slice(i, i + batchSize));
+        }
+
+        for (const batch of batches) {
+          const locationUpdates = batch.map(loc => ({
+            driver_id: user.user.id,
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+            accuracy: loc.accuracy,
+            speed: loc.speed,
+            heading: loc.heading,
+            last_ping: new Date(loc.timestamp).toISOString(),
+            is_online: true,
+            is_available: true,
+            updated_at: new Date().toISOString()
+          }));
+
+          await supabase.from('driver_locations').upsert(locationUpdates);
+        }
+
+        // Vider la queue après succès
+        offlineQueueRef.current = [];
+        console.log('Queue offline synchronisée avec succès');
+      }
+    } catch (error) {
+      console.error('Erreur synchronisation queue offline:', error);
+    }
+  };
 
   const handleLocationError = useCallback((error: any) => {
     console.error('Erreur géolocalisation:', error);
@@ -328,12 +408,21 @@ export function useBatteryOptimizedTracking(options: BatteryOptimizedTrackingOpt
     }
   };
 
+  // Effet pour synchroniser quand on revient en ligne
+  useEffect(() => {
+    if (networkStatus === 'online' && offlineQueueRef.current.length > 0) {
+      processOfflineQueue();
+    }
+  }, [networkStatus]);
+
   return {
     isTracking,
     currentLocation,
     error,
     stats,
     batteryLevel,
+    networkStatus,
+    offlineQueueSize: offlineQueueRef.current.length,
     startTracking,
     stopTracking,
     getCurrentPosition,

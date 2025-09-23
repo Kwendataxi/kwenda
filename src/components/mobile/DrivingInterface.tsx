@@ -47,6 +47,7 @@ export default function DrivingInterface({
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [tripProgress, setTripProgress] = useState(0);
+  const [isNightMode, setIsNightMode] = useState(false);
   
   const { toast } = useToast();
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -57,6 +58,8 @@ export default function DrivingInterface({
     currentLocation,
     batteryLevel,
     stats,
+    networkStatus,
+    offlineQueueSize,
     startTracking,
     stopTracking
   } = useBatteryOptimizedTracking({
@@ -73,6 +76,10 @@ export default function DrivingInterface({
       startTracking();
       startTimer();
     }
+
+    // Détection automatique du mode nuit
+    const hour = new Date().getHours();
+    setIsNightMode(hour < 6 || hour > 20);
 
     return () => {
       stopTracking();
@@ -169,6 +176,10 @@ export default function DrivingInterface({
 
   const callPassenger = () => {
     if (currentTrip?.passengerPhone) {
+      // Vibration pour retour haptique
+      if (navigator.vibrate) {
+        navigator.vibrate(200);
+      }
       window.open(`tel:${currentTrip.passengerPhone}`);
     }
   };
@@ -240,12 +251,12 @@ export default function DrivingInterface({
   }
 
   return (
-    <div className="h-screen bg-black text-white flex flex-col">
+    <div className={`h-screen flex flex-col ${isNightMode ? 'bg-black text-white' : 'bg-gray-100 text-gray-900'}`}>
       {/* Barre de statut */}
-      <div className="flex items-center justify-between p-4 bg-gray-900">
+      <div className={`flex items-center justify-between p-4 ${isNightMode ? 'bg-gray-900' : 'bg-white border-b'}`}>
         <div className="flex items-center space-x-2">
           <div className={`h-3 w-3 rounded-full ${statusInfo.color}`}></div>
-          <Badge variant="secondary" className="text-white bg-gray-700">
+          <Badge variant="secondary" className={isNightMode ? "text-white bg-gray-700" : "text-gray-900 bg-gray-200"}>
             {statusInfo.action}
           </Badge>
         </div>
@@ -259,6 +270,9 @@ export default function DrivingInterface({
           <div className="flex items-center space-x-1">
             <Signal className="h-4 w-4" />
             <span>{isTracking ? 'GPS' : 'Off'}</span>
+            {networkStatus === 'offline' && (
+              <span className="text-red-400 text-xs">({offlineQueueSize} en attente)</span>
+            )}
           </div>
           
           <div className="flex items-center space-x-1">
