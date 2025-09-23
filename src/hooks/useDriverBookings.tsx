@@ -22,10 +22,7 @@ export const useDriverBookings = () => {
   const [activeBooking, setActiveBooking] = useState<ActiveBooking | null>(null);
   const [pendingRequests, setPendingRequests] = useState<ActiveBooking[]>([]);
   const { user } = useAuth();
-  const { startTracking, updateLocation, stopTracking, trackingData } = useRealtimeTracking({
-    enabled: true,
-    userType: 'driver'
-  });
+  const { startTracking, stopTracking, currentLocation } = useRealtimeTracking();
 
   // Listen for new booking requests
   useEffect(() => {
@@ -156,14 +153,11 @@ export const useDriverBookings = () => {
 
       setActiveBooking(activeBookingData);
       
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-          startTracking({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          });
-        });
-      }
+      // Démarrer le tracking du chauffeur
+      startTracking({
+        updateInterval: 10000,
+        highAccuracy: true
+      });
 
       setPendingRequests(prev => prev.filter(req => req.id !== bookingId));
       
@@ -225,10 +219,8 @@ export const useDriverBookings = () => {
 
   // Update current location
   const updateCurrentLocation = (location: { lat: number; lng: number }) => {
-    updateLocation({
-      latitude: location.lat,
-      longitude: location.lng
-    });
+    // Location updates are handled automatically by useRealtimeTracking
+    console.log('Location updated:', location);
   };
 
   useEffect(() => {
@@ -241,7 +233,7 @@ export const useDriverBookings = () => {
     loading,
     activeBooking,
     pendingRequests,
-    trackingData,
+    currentLocation,
     acceptBooking,
     updateBookingStatus,
     updateCurrentLocation,

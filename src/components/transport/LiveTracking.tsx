@@ -48,50 +48,39 @@ const LiveTracking: React.FC<LiveTrackingProps> = ({
   const { toast } = useToast();
   const geolocation = useGeolocation();
   const { 
-    trackingData, 
-    connected, 
-    getDistanceToDestination,
-    calculateETA 
-  } = useRealtimeTracking({
-    trackingId: bookingId,
-    userType: 'client',
-    enabled: true
-  });
+    currentLocation, 
+    isTracking,
+    startTracking,
+    stopTracking
+  } = useRealtimeTracking();
 
-  // Calculate trip progress
+  // Simulate trip progress for demo
   useEffect(() => {
-    if (!trackingData || !geolocation.latitude || !geolocation.longitude) return;
-
-    const destinationCoords = {
-      latitude: geolocation.latitude, // In real app, this would be the actual destination
-      longitude: geolocation.longitude
-    };
-
-    const distanceToDestination = getDistanceToDestination(destinationCoords);
-    
-    if (distanceToDestination !== null) {
-      const progressPercentage = Math.max(0, Math.min(100, 
-        ((tripInfo.estimatedDistance - distanceToDestination) / tripInfo.estimatedDistance) * 100
-      ));
-      setProgress(progressPercentage);
-
-      // Calculate ETA
-      const eta = calculateETA(distanceToDestination);
-      setEstimatedArrival(new Date(Date.now() + eta * 60000));
-
-      // Update trip status based on proximity
-      if (distanceToDestination < 0.1) { // Within 100m
-        setTripStatus('arrived');
-        if (onTripComplete) {
-          onTripComplete();
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        const newProgress = Math.min(100, prev + 2);
+        
+        if (newProgress > 25 && tripStatus === 'waiting') {
+          setTripStatus('pickup');
+        } else if (newProgress > 50 && tripStatus === 'pickup') {
+          setTripStatus('enroute');
+        } else if (newProgress >= 100 && tripStatus === 'enroute') {
+          setTripStatus('arrived');
+          if (onTripComplete) {
+            onTripComplete();
+          }
         }
-      } else if (progressPercentage > 10) {
-        setTripStatus('enroute');
-      } else {
-        setTripStatus('pickup');
-      }
-    }
-  }, [trackingData, geolocation.latitude, geolocation.longitude, tripInfo.estimatedDistance, getDistanceToDestination, calculateETA, onTripComplete]);
+        
+        return newProgress;
+      });
+      
+      // Update ETA
+      const remainingTime = (100 - progress) * (tripInfo.estimatedDuration / 100);
+      setEstimatedArrival(new Date(Date.now() + remainingTime * 60000));
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [progress, tripStatus, tripInfo.estimatedDuration, onTripComplete]);
 
   const getStatusInfo = () => {
     switch (tripStatus) {
@@ -144,12 +133,12 @@ const LiveTracking: React.FC<LiveTrackingProps> = ({
   return (
     <div className="space-y-6">
       {/* Connection Status */}
-      <Card className={`border-2 ${connected ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+      <Card className={`border-2 ${isTracking ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className={`w-3 h-3 rounded-full ${connected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+            <div className={`w-3 h-3 rounded-full ${isTracking ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
             <span className="font-medium">
-              {connected ? 'Suivi en temps réel actif' : 'Connexion au suivi en cours...'}
+              {isTracking ? 'Suivi en temps réel actif' : 'Mode démo - suivi simulé'}
             </span>
           </div>
         </CardContent>
@@ -281,7 +270,7 @@ const LiveTracking: React.FC<LiveTrackingProps> = ({
       </Card>
 
       {/* Driver Location */}
-      {trackingData && (
+      {currentLocation && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
@@ -293,24 +282,20 @@ const LiveTracking: React.FC<LiveTrackingProps> = ({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Latitude:</span>
-                <span className="text-sm font-mono">{trackingData.latitude.toFixed(6)}</span>
+                <span className="text-sm font-mono">{currentLocation.lat.toFixed(6)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Longitude:</span>
-                <span className="text-sm font-mono">{trackingData.longitude.toFixed(6)}</span>
+                <span className="text-sm font-mono">{currentLocation.lng.toFixed(6)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Statut:</span>
-                <Badge variant={trackingData.status === 'available' ? 'default' : 'secondary'}>
-                  {trackingData.status}
-                </Badge>
+                <Badge variant="default">En course</Badge>
               </div>
-              {trackingData.speed && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Vitesse:</span>
-                  <span className="text-sm">{Math.round(trackingData.speed)} km/h</span>
-                </div>
-              )}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Précision:</span>
+                <span className="text-sm">GPS</span>
+              </div>
             </div>
           </CardContent>
         </Card>

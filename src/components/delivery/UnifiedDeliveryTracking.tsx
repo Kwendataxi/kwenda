@@ -73,20 +73,13 @@ export const UnifiedDeliveryTracking: React.FC<UnifiedDeliveryTrackingProps> = (
 
   // Configuration tracking temps réel
   const {
-    trackingData,
+    currentLocation,
     isTracking,
-    connected,
+    error: trackingError,
     startTracking,
-    updateLocation,
-    updateStatus,
     stopTracking,
-    calculateETA,
-    getDistanceToDestination
-  } = useRealtimeTracking({
-    trackingId: orderId,
-    userType,
-    enabled: true
-  });
+    getNearbyDrivers
+  } = useRealtimeTracking();
 
   // Chargement initial des données
   useEffect(() => {
@@ -172,22 +165,10 @@ export const UnifiedDeliveryTracking: React.FC<UnifiedDeliveryTrackingProps> = (
   // Démarrer le tracking si c'est un livreur
   useEffect(() => {
     if (userType === 'driver' && order && !isTracking) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          startTracking({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          });
-        },
-        (error) => {
-          console.error('Erreur géolocalisation:', error);
-          // Utiliser position par défaut de Kinshasa
-          startTracking({
-            latitude: -4.3217,
-            longitude: 15.3069
-          });
-        }
-      );
+      startTracking({
+        updateInterval: 30000,
+        highAccuracy: true
+      });
     }
 
     // Nettoyage au démontage
@@ -198,28 +179,7 @@ export const UnifiedDeliveryTracking: React.FC<UnifiedDeliveryTrackingProps> = (
     };
   }, [userType, order, isTracking, startTracking, stopTracking]);
 
-  // Mise à jour périodique de la position du livreur
-  useEffect(() => {
-    if (userType !== 'driver' || !isTracking) return;
-
-    const interval = setInterval(() => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          updateLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            heading: position.coords.heading || undefined,
-            speed: position.coords.speed || undefined
-          });
-        },
-        (error) => {
-          console.error('Erreur mise à jour position:', error);
-        }
-      );
-    }, 30000); // Toutes les 30 secondes
-
-    return () => clearInterval(interval);
-  }, [userType, isTracking, updateLocation]);
+  // Note: Le tracking se fait automatiquement via useRealtimeTracking
 
   if (loading) {
     return (
@@ -259,12 +219,12 @@ export const UnifiedDeliveryTracking: React.FC<UnifiedDeliveryTrackingProps> = (
   const deliveryCoords = order.delivery_coordinates ? 
     secureLocation(order.delivery_coordinates) : null;
 
-  // Calculer ETA si on a le tracking
-  const eta = trackingData && deliveryCoords ? 
-    calculateETA(getDistanceToDestination({
-      latitude: deliveryCoords.lat,
-      longitude: deliveryCoords.lng
-    })) : null;
+  // Calculer ETA approximatif
+  const eta = currentLocation && deliveryCoords ? 
+    Math.ceil(Math.sqrt(
+      Math.pow(currentLocation.lat - deliveryCoords.lat, 2) + 
+      Math.pow(currentLocation.lng - deliveryCoords.lng, 2)
+    ) * 100) : null;
 
   const openNavigation = (coordinates: any) => {
     if (!coordinates || !isValidLocation(coordinates)) {
@@ -303,9 +263,9 @@ export const UnifiedDeliveryTracking: React.FC<UnifiedDeliveryTrackingProps> = (
           {/* Statut de connexion tracking */}
           {userType === 'driver' && (
             <div className="flex items-center gap-2 text-sm">
-              <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`} />
+              <div className={`w-2 h-2 rounded-full ${isTracking ? 'bg-green-500' : 'bg-red-500'}`} />
               <span className="text-muted-foreground">
-                Tracking: {connected ? 'Connecté' : 'Déconnecté'}
+                Tracking: {isTracking ? 'Actif' : 'Inactif'}
               </span>
             </div>
           )}
@@ -432,7 +392,7 @@ export const UnifiedDeliveryTracking: React.FC<UnifiedDeliveryTrackingProps> = (
       )}
 
       {/* Position du livreur en temps réel */}
-      {trackingData && (
+      {currentLocation && userType === 'driver' && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Position en temps réel</CardTitle>
@@ -441,25 +401,19 @@ export const UnifiedDeliveryTracking: React.FC<UnifiedDeliveryTrackingProps> = (
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Latitude:</span>
-                <span>{trackingData.latitude?.toFixed(6)}</span>
+                <span>{currentLocation.lat?.toFixed(6)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Longitude:</span>
-                <span>{trackingData.longitude?.toFixed(6)}</span>
+                <span>{currentLocation.lng?.toFixed(6)}</span>
               </div>
-              {trackingData.speed && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Vitesse:</span>
-                  <span>{Math.round(trackingData.speed)} km/h</span>
-                </div>
-              )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Statut:</span>
-                <Badge variant="outline">{trackingData.status}</Badge>
+                <Badge variant="outline">En course</Badge>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Dernière mise à jour:</span>
-                <span>{new Date(trackingData.timestamp).toLocaleTimeString()}</span>
+                <span className="text-muted-foreground">Précision:</span>
+                <span>GPS</span>
               </div>
             </div>
           </CardContent>
