@@ -7815,6 +7815,14 @@ export type Database = {
             }
         Returns: undefined
       }
+      maintain_security_compliance: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          check_name: string
+          recommendation: string
+          status: string
+        }[]
+      }
       map_legacy_data_to_service: {
         Args: { p_delivery_capacity?: string; p_vehicle_type?: string }
         Returns: string
@@ -7843,6 +7851,10 @@ export type Database = {
         Returns: string
       }
       refresh_driver_status: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_security_stats: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
