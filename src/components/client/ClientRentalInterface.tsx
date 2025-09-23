@@ -89,34 +89,39 @@ const ClientRentalInterface = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Location de Véhicules</h1>
-        <p className="text-muted-foreground">
-          Trouvez le véhicule parfait pour vos besoins à Kinshasa
+    <div className="space-y-8 animate-fadeIn">
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-congo-primary via-congo-gold to-congo-red bg-clip-text text-transparent">
+          Location de Véhicules
+        </h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Trouvez le véhicule parfait pour vos besoins dans toute l'Afrique francophone
         </p>
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Filtres de recherche</CardTitle>
+      <Card className="glassmorphism-button border-0 shadow-soft backdrop-blur-xl bg-white/10">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-semibold text-gradient-primary">
+            Filtres de recherche
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Rechercher</label>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground/80 block">Rechercher</label>
               <Input
                 placeholder="Nom, marque, modèle..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-white/20 border-white/30 backdrop-blur-sm rounded-xl focus:bg-white/30 transition-all duration-300"
               />
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Ville</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground/80 block">Ville</label>
               <select 
-                className="w-full p-2 border rounded-md"
+                className="w-full p-3 bg-white/20 border border-white/30 rounded-xl backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all duration-300 text-foreground"
                 value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
               >
@@ -126,10 +131,10 @@ const ClientRentalInterface = () => {
               </select>
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Type de véhicule</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground/80 block">Type de véhicule</label>
               <select 
-                className="w-full p-2 border rounded-md"
+                className="w-full p-3 bg-white/20 border border-white/30 rounded-xl backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all duration-300 text-foreground"
                 value={selectedVehicleType}
                 onChange={(e) => setSelectedVehicleType(e.target.value)}
               >
@@ -142,11 +147,11 @@ const ClientRentalInterface = () => {
               </select>
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-foreground/80 block">
                 Budget: {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
               </label>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <input
                   type="range"
                   min="5000"
@@ -154,7 +159,7 @@ const ClientRentalInterface = () => {
                   step="5000"
                   value={priceRange[0]}
                   onChange={(e) => setPriceRange([+e.target.value, priceRange[1]])}
-                  className="w-full"
+                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer range-modern"
                 />
                 <input
                   type="range"
@@ -163,7 +168,7 @@ const ClientRentalInterface = () => {
                   step="5000"
                   value={priceRange[1]}
                   onChange={(e) => setPriceRange([priceRange[0], +e.target.value])}
-                  className="w-full"
+                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer range-modern"
                 />
               </div>
             </div>
@@ -185,12 +190,15 @@ const ClientRentalInterface = () => {
         </div>
 
         {filteredVehicles.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Car className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Aucun véhicule disponible</h3>
-              <p className="text-muted-foreground mb-4">
-                Nous n'avons trouvé aucun véhicule correspondant à vos critères.
+          <Card className="glassmorphism-button border-0 shadow-soft backdrop-blur-xl bg-white/10 animate-fadeIn">
+            <CardContent className="text-center py-16">
+              <div className="relative">
+                <Car className="h-20 w-20 text-congo-primary mx-auto mb-6 animate-pulse" />
+                <div className="absolute -top-2 -right-2 w-4 h-4 bg-congo-gold rounded-full animate-ping"></div>
+              </div>
+              <h3 className="text-2xl font-bold mb-3 text-gradient-primary">Aucun véhicule disponible</h3>
+              <p className="text-muted-foreground mb-8 max-w-md mx-auto text-lg">
+                Nous n'avons trouvé aucun véhicule correspondant à vos critères de recherche.
               </p>
               <Button 
                 onClick={() => {
@@ -198,85 +206,103 @@ const ClientRentalInterface = () => {
                   setSelectedVehicleType('all');
                   setPriceRange([10000, 100000]);
                 }}
+                variant="congo"
+                size="lg"
+                className="px-8 py-4 text-lg font-semibold shadow-glow hover:shadow-xl transform hover:scale-105 transition-all duration-300"
               >
+                <Star className="h-5 w-5 mr-2" />
                 Réinitialiser les filtres
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredVehicles.map((vehicle) => (
-              <Card key={vehicle.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="aspect-video bg-gray-200 relative">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredVehicles.map((vehicle, index) => (
+              <Card 
+                key={vehicle.id} 
+                className="glassmorphism-button border-0 shadow-soft backdrop-blur-xl bg-white/10 overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-500 animate-scaleIn group"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="aspect-video bg-gradient-to-br from-congo-primary/20 to-congo-gold/20 relative overflow-hidden">
                   {vehicle.images.length > 0 ? (
                     <img 
                       src={vehicle.images[0]} 
                       alt={vehicle.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = '/placeholder.svg';
                       }}
                     />
                   ) : (
                     <div className="flex items-center justify-center h-full">
-                      <Car className="h-16 w-16 text-muted-foreground" />
+                      <Car className="h-20 w-20 text-congo-primary animate-pulse" />
                     </div>
                   )}
-                  <div className="absolute top-3 right-3">
-                    <Badge variant="default" className="bg-green-600">
+                  <div className="absolute top-4 right-4">
+                    <Badge className="bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-glow border-0 px-3 py-1">
                       Disponible
                     </Badge>
                   </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
                 </div>
 
-                <CardHeader>
+                <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{vehicle.name}</CardTitle>
-                      <CardDescription>
+                    <div className="space-y-1">
+                      <CardTitle className="text-xl font-bold text-gradient-primary group-hover:text-congo-gold transition-colors duration-300">
+                        {vehicle.name}
+                      </CardTitle>
+                      <CardDescription className="text-base text-foreground/70">
                         {vehicle.brand} {vehicle.model} {vehicle.year}
                       </CardDescription>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-primary">
+                      <p className="text-3xl font-bold bg-gradient-to-r from-congo-primary to-congo-gold bg-clip-text text-transparent">
                         {formatPrice(vehicle.daily_rate)}
                       </p>
-                      <p className="text-sm text-muted-foreground">par jour</p>
+                      <p className="text-sm text-muted-foreground font-medium">par jour</p>
                     </div>
                   </div>
                 </CardHeader>
 
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>{vehicle.seats} places</span>
+                <CardContent className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-white/10 backdrop-blur-sm">
+                      <Users className="h-4 w-4 text-congo-primary" />
+                      <span className="text-sm font-medium">{vehicle.seats} places</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span>{vehicle.transmission}</span>
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-white/10 backdrop-blur-sm">
+                      <Clock className="h-4 w-4 text-congo-gold" />
+                      <span className="text-sm font-medium">{vehicle.transmission}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{vehicle.city}</span>
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-white/10 backdrop-blur-sm">
+                      <MapPin className="h-4 w-4 text-congo-red" />
+                      <span className="text-sm font-medium">{vehicle.city}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span>{formatPrice(vehicle.hourly_rate)}/h</span>
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-white/10 backdrop-blur-sm">
+                      <DollarSign className="h-4 w-4 text-emerald-500" />
+                      <span className="text-sm font-medium">{formatPrice(vehicle.hourly_rate)}/h</span>
                     </div>
                   </div>
 
                   {vehicle.features.length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">Équipements:</p>
-                      <div className="flex flex-wrap gap-1">
+                    <div className="space-y-3">
+                      <p className="text-sm font-semibold text-foreground/80">Équipements:</p>
+                      <div className="flex flex-wrap gap-2">
                         {vehicle.features.slice(0, 3).map((feature, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
+                          <Badge 
+                            key={index} 
+                            variant="outline" 
+                            className="text-xs bg-gradient-to-r from-congo-primary/20 to-congo-gold/20 border-congo-primary/30 hover:border-congo-gold/50 transition-colors duration-300"
+                          >
                             {feature}
                           </Badge>
                         ))}
                         {vehicle.features.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs bg-gradient-to-r from-congo-gold/20 to-congo-red/20 border-congo-gold/30"
+                          >
                             +{vehicle.features.length - 3} autres
                           </Badge>
                         )}
@@ -284,16 +310,20 @@ const ClientRentalInterface = () => {
                     </div>
                   )}
 
-                  <div className="space-y-2">
+                  <div className="space-y-3 pt-2">
                     <Button 
-                      className="w-full" 
+                      className="w-full group-hover:scale-105 transition-transform duration-300" 
                       onClick={() => handleBooking(vehicle.id)}
+                      variant="congo"
+                      size="lg"
                     >
-                      <CalendarDays className="h-4 w-4 mr-2" />
+                      <CalendarDays className="h-5 w-5 mr-2" />
                       Réserver maintenant
                     </Button>
-                    <div className="text-center text-xs text-muted-foreground">
-                      Caution: {formatPrice(vehicle.security_deposit)}
+                    <div className="text-center p-2 rounded-lg bg-white/10 backdrop-blur-sm">
+                      <span className="text-sm font-medium text-foreground/70">
+                        Caution: <span className="text-congo-gold font-bold">{formatPrice(vehicle.security_deposit)}</span>
+                      </span>
                     </div>
                   </div>
                 </CardContent>
