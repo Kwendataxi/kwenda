@@ -350,8 +350,8 @@ export default function MobileNativeTestPage() {
             Carte
           </Button>
           <Button
-            variant={testMode === 'driving' ? "default" : "outline"}
-            onClick={() => setTestMode('driving' as 'tracking' | 'map' | 'driving')}
+            variant={(testMode as TestModeType) === 'driving' ? "default" : "outline"}
+            onClick={() => setTestMode('driving')}
           >
             <Navigation className="h-4 w-4 mr-2" />
             Conduite
