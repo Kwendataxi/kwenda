@@ -8177,7 +8177,14 @@ export type Database = {
         Returns: undefined
       }
       log_driver_registration_attempt: {
-        Args: { p_email: string; p_error_message?: string; p_success: boolean }
+        Args:
+          | { p_email: string; p_error_message?: string; p_success: boolean }
+          | {
+              p_error_message?: string
+              p_registration_data?: Json
+              p_success: boolean
+              p_user_id: string
+            }
         Returns: undefined
       }
       log_edge_function_performance: {
@@ -8374,12 +8381,20 @@ export type Database = {
         Returns: Json
       }
       validate_driver_registration_data: {
-        Args: {
-          p_email: string
-          p_license_number: string
-          p_phone: string
-          p_vehicle_plate: string
-        }
+        Args:
+          | {
+              p_email: string
+              p_license_number: string
+              p_phone: string
+              p_vehicle_plate: string
+            }
+          | {
+              p_email: string
+              p_license_number: string
+              p_phone_number: string
+              p_user_id?: string
+              p_vehicle_plate: string
+            }
         Returns: Json
       }
       validate_service_requirements: {
