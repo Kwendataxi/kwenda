@@ -82,18 +82,39 @@ class SimpleLocationService {
    */
   async getCurrentPosition(): Promise<LocationData> {
     try {
-      // Tenter la géolocalisation GPS
-      const position = await this.getGPSPosition();
-      if (position) {
-        this.cachePosition(position);
-        return position;
+      // 1. Vérifier le cache d'abord
+      if (this.cachedPosition) {
+        const age = Date.now() - (this.cachedPosition as any).timestamp;
+        if (age < 300000) { // 5 minutes
+          console.log('📍 Position récupérée du cache');
+          return this.cachedPosition;
+        }
       }
+
+      // 2. Tenter la géolocalisation GPS réelle
+      const gpsPosition = await this.getGPSPosition();
+      if (gpsPosition) {
+        this.cachePosition(gpsPosition);
+        console.log('🎯 Position GPS obtenue:', gpsPosition.address);
+        return gpsPosition;
+      }
+
+      // 3. Fallback vers géolocalisation IP
+      const ipPosition = await this.getIPBasedLocation();
+      if (ipPosition) {
+        this.cachePosition(ipPosition);
+        console.log('🌐 Position IP obtenue:', ipPosition.address);
+        return ipPosition;
+      }
+
     } catch (error) {
-      console.log('GPS non disponible, utilisation de la position par défaut');
+      console.warn('⚠️ Erreur géolocalisation:', error);
     }
 
-    // Fallback vers position par défaut
-    return this.getDefaultPosition();
+    // 4. Dernier recours: position par défaut
+    const defaultPos = this.getDefaultPosition();
+    console.log('📍 Position par défaut utilisée:', defaultPos.address);
+    return defaultPos;
   }
 
   /**
@@ -177,34 +198,88 @@ class SimpleLocationService {
   private async getGPSPosition(): Promise<LocationData | null> {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
+        console.log('🚫 Géolocalisation non supportée');
         resolve(null);
         return;
       }
 
-      const timeoutId = setTimeout(() => resolve(null), 5000);
+      const timeoutId = setTimeout(() => {
+        console.log('⏰ Timeout GPS');
+        resolve(null);
+      }, 8000);
 
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           clearTimeout(timeoutId);
+          
+          // Géocodage inverse pour obtenir l'adresse
+          let address = `Position GPS (${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)})`;
+          
+          try {
+            const geocoded = await this.reverseGeocode(position.coords.latitude, position.coords.longitude);
+            if (geocoded) address = geocoded;
+          } catch (e) {
+            console.warn('Géocodage inverse échoué:', e);
+          }
+
           resolve({
-            address: `Position GPS (${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)})`,
+            address,
             lat: position.coords.latitude,
             lng: position.coords.longitude,
             type: 'gps',
             accuracy: position.coords.accuracy
           });
         },
-        () => {
+        (error) => {
           clearTimeout(timeoutId);
+          console.warn('❌ Erreur GPS:', error.message);
           resolve(null);
         },
         {
-          enableHighAccuracy: false,
-          timeout: 4000,
-          maximumAge: 300000
+          enableHighAccuracy: true,
+          timeout: 7000,
+          maximumAge: 180000 // 3 minutes
         }
       );
     });
+  }
+
+  private async getIPBasedLocation(): Promise<LocationData | null> {
+    try {
+      const response = await fetch('https://ipapi.co/json/');
+      const data = await response.json();
+      
+      if (data.latitude && data.longitude) {
+        return {
+          address: `${data.city}, ${data.country_name}`,
+          lat: data.latitude,
+          lng: data.longitude,
+          type: 'cached'
+        };
+      }
+    } catch (error) {
+      console.warn('❌ Erreur géolocalisation IP:', error);
+    }
+    return null;
+  }
+
+  private async reverseGeocode(lat: number, lng: number): Promise<string | null> {
+    try {
+      // Utiliser l'Edge Function pour le géocodage
+      const response = await fetch('/api/geocode-reverse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat, lng })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.address;
+      }
+    } catch (error) {
+      console.warn('Géocodage inverse échoué:', error);
+    }
+    return null;
   }
 
   private getDefaultPosition(): LocationData {
