@@ -153,4 +153,4 @@ export const UniversalBottomNavigation: React.FC<UniversalBottomNavigationProps>
   );
 };
 
-export default UniversalBottomNavigation;
+export { UniversalBottomNavigation as default };
