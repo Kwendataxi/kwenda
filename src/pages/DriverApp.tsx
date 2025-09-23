@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDriverServiceType } from '@/hooks/useDriverServiceType';
 import DriverHeader from '@/components/driver/DriverHeader';
-import DriverBottomNavigation from '@/components/driver/DriverBottomNavigation';
+import { UniversalBottomNavigation } from '@/components/navigation/UniversalBottomNavigation';
 import DriverMoreSheet from '@/components/driver/DriverMoreSheet';
 import MobileDriverInterface from '@/components/mobile/MobileDriverInterface';
 // Removed obsolete DriverDeliveryDashboard
@@ -41,31 +41,32 @@ const DriverApp = () => {
 
 
   return (
-    <div className="min-h-screen bg-background content-with-bottom-nav">
+    <div className="min-h-screen bg-background mobile-safe-layout">
       <DriverHeader serviceType="delivery" />
       
-      <main className="container mx-auto px-4 content-with-bottom-nav-scrollable pt-4">
-        {tab === 'rides' && <MobileDriverInterface onNavigateToEarnings={() => setTab('wallet')} onNavigateToCredits={() => setTab('credits')} onNavigateToNavigation={() => {}} />}
-        {tab === 'deliveries' && (
-          <ProductionDriverInterface />
-        )}
-        {tab === 'wallet' && <DriverWalletPanel />}
-        {tab === 'credits' && <DriverCreditManager />}
-        {tab === 'challenges' && <DriverChallenges />}
-        {tab === 'partner' && <DriverCodeManager />}
-        {tab === 'referrals' && <DriverReferrals />}
-        {tab === 'vehicles' && (
-          <div className="space-y-6">
-            <VehicleManagementPanel />
-            <ServiceChangeRequestPanel />
-          </div>
-        )}
+      <main className="flex-1 overflow-y-auto content-scrollable responsive-padding">
+        <div className="container-fluid space-y-6">
+          {tab === 'rides' && <MobileDriverInterface onNavigateToEarnings={() => setTab('earnings')} onNavigateToCredits={() => setTab('credits')} onNavigateToNavigation={() => {}} />}
+          {tab === 'deliveries' && <ProductionDriverInterface />}
+          {tab === 'earnings' && <DriverWalletPanel />}
+          {tab === 'credits' && <DriverCreditManager />}
+          {tab === 'challenges' && <DriverChallenges />}
+          {tab === 'partner' && <DriverCodeManager />}
+          {tab === 'referrals' && <DriverReferrals />}
+          {tab === 'vehicles' && (
+            <div className="space-y-6">
+              <VehicleManagementPanel />
+              <ServiceChangeRequestPanel />
+            </div>
+          )}
+        </div>
       </main>
 
-      <DriverBottomNavigation 
+      <UniversalBottomNavigation 
+        userType="driver"
         activeTab={tab as any} 
         onTabChange={setTab as any}
-        onOpenMore={() => setMoreOpen(true)}
+        onMoreAction={() => setMoreOpen(true)}
       />
       
       <DriverMoreSheet 

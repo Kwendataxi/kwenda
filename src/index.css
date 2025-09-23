@@ -278,15 +278,108 @@ All colors MUST be HSL.
   }
 
   /* Enhanced touch targets for mobile */
+  .min-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .touch-friendly {
+    padding: 12px;
+    margin: 4px;
+  }
+
+  /* Responsive spacing utilities */
+  .responsive-padding {
+    padding: clamp(1rem, 4vw, 2rem);
+  }
+
+  .responsive-margin {
+    margin: clamp(0.5rem, 2vw, 1.5rem);
+  }
+
+  .responsive-gap {
+    gap: clamp(0.75rem, 3vw, 1.5rem);
+  }
+
+  /* Responsive text sizing */
+  .text-responsive-xs { font-size: clamp(0.75rem, 2.5vw, 0.875rem); }
+  .text-responsive-sm { font-size: clamp(0.875rem, 3vw, 1rem); }
+  .text-responsive-base { font-size: clamp(1rem, 3.5vw, 1.125rem); }
+  .text-responsive-lg { font-size: clamp(1.125rem, 4vw, 1.25rem); }
+  .text-responsive-xl { font-size: clamp(1.25rem, 4.5vw, 1.5rem); }
+  .text-responsive-2xl { font-size: clamp(1.5rem, 5vw, 2rem); }
+  .text-responsive-3xl { font-size: clamp(2rem, 6vw, 3rem); }
+
+  /* Container with fluid width */
+  .container-fluid {
+    width: 100%;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: clamp(1rem, 4vw, 2rem);
+    padding-right: clamp(1rem, 4vw, 2rem);
+  }
+
+  /* Advanced mobile optimizations */
   @media (max-width: 768px) {
-    .min-touch-target {
-      min-height: 44px;
-      min-width: 44px;
+    /* Optimize for mobile viewport */
+    .mobile-optimized {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
-    
-    .touch-friendly {
-      padding: 12px;
-      margin: 4px;
+
+    /* Better button spacing on mobile */
+    .button-stack > * + * {
+      margin-top: 0.75rem;
+    }
+
+    /* Mobile-friendly form spacing */
+    .form-mobile > * + * {
+      margin-top: 1rem;
+    }
+
+    /* Improved card spacing on mobile */
+    .card-mobile {
+      margin: 0.5rem;
+      border-radius: 0.75rem;
+    }
+
+    /* Mobile-first navigation fixes */
+    .mobile-nav-safe {
+      padding-bottom: calc(env(safe-area-inset-bottom) + 5rem);
+    }
+
+    /* Performance optimizations for mobile */
+    .performance-mobile {
+      will-change: auto;
+      transform: translateZ(0);
+    }
+
+    /* Improved focus states for accessibility */
+    .focus-visible:focus-visible {
+      outline: 2px solid hsl(var(--primary));
+      outline-offset: 2px;
+    }
+  }
+
+  /* Large screen optimizations */
+  @media (min-width: 1024px) {
+    .desktop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+
+    .desktop-sidebar {
+      width: 280px;
+      flex-shrink: 0;
+    }
+
+    .desktop-content {
+      min-width: 0;
+      flex: 1;
     }
   }
 

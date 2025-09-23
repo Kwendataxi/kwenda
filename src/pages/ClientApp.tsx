@@ -17,7 +17,9 @@ import OfflineMode from '@/components/advanced/OfflineMode';
 import SecurityVerification from '@/components/advanced/SecurityVerification';
 import { ResponsiveUserProfile } from '@/components/profile/ResponsiveUserProfile';
 import { ModernHomeScreen } from '@/components/home/ModernHomeScreen';
-import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
+import { UniversalBottomNavigation } from '@/components/navigation/UniversalBottomNavigation';
+import { ResponsiveContainer } from '@/components/layout/ResponsiveContainer';
+import { MobileOptimizedLayout } from '@/components/layout/MobileOptimizedLayout';
 import { 
   MapPin, 
   Car, 
@@ -547,7 +549,8 @@ const ClientApp = () => {
 
   return (
     <ChatProvider>
-      <div className={`relative content-with-bottom-nav ${optimizations.reducedAnimations ? 'reduce-animations' : ''} ${optimizations.cacheEnabled ? 'memory-efficient' : ''}`}>
+      <div className={`mobile-safe-layout ${optimizations.reducedAnimations ? 'reduce-animations' : ''} ${optimizations.cacheEnabled ? 'memory-efficient' : ''}`}>
+        <main className="flex-1 overflow-y-auto content-scrollable">
         {/* Connection Indicator - Hidden */}
         {/* <ConnectionIndicator /> */}
         
@@ -662,22 +665,29 @@ const ClientApp = () => {
       {/* Marketplace components now handled by EnhancedMarketplaceInterface */}
       
 
-      {/* Modern Bottom Navigation - Always visible */}
-      <ModernBottomNavigation
-        activeTab={currentView === 'home' ? 'home' : currentView === 'history' || currentView === 'activity' ? 'activity' : 'profil'}
+      {/* Universal Bottom Navigation - Always visible */}
+      <UniversalBottomNavigation
+        userType="client"
+        activeTab={currentView === 'home' ? 'home' : currentView === 'history' || currentView === 'activity' ? 'orders' : 'profile'}
         onTabChange={(tab) => {
           const preserveScroll = serviceType === 'marketplace';
           
           if (tab === 'home') {
             transitionToView(setCurrentView, 'home', { preserveScroll });
-          } else if (tab === 'activity') {
+          } else if (tab === 'services') {
+            transitionToView(setCurrentView, 'service', { preserveScroll });
+          } else if (tab === 'orders') {
             transitionToView(setCurrentView, 'history', { preserveScroll });
-          } else if (tab === 'profil') {
-            transitionToView(setCurrentView, 'profil', { preserveScroll });
+          } else if (tab === 'wallet') {
+            transitionToView(setCurrentView, 'wallet', { preserveScroll });
+          } else if (tab === 'profile') {
+            transitionToView(setCurrentView, 'profile', { preserveScroll });
           }
         }}
-        notificationCount={0} // TODO: Connect to real notifications
-        favoritesCount={0} // TODO: Connect to favorites count
+        badges={{
+          orders: 0,
+          wallet: 0
+        }}
       />
       
         
@@ -730,8 +740,10 @@ const ClientApp = () => {
         />
       ))}
       
-      {/* Toast notifications */}
-      <div id="toast-container" />
+        </main>
+        
+        {/* Toast notifications */}
+        <div id="toast-container" />
       </div>
     </ChatProvider>
   );
