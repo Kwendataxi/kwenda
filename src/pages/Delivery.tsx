@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import StepByStepDeliveryInterface from '@/components/delivery/StepByStepDeliveryInterface';
 import { OrderConfirmationStep } from '@/components/delivery/OrderConfirmationStep';
-import DeliveryLiveTracker from '@/components/delivery/DeliveryLiveTracker';
+import DeliveryTrackingHub from '@/components/delivery/DeliveryTrackingHub';
 import { Package, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -35,7 +35,7 @@ const DeliveryPage = () => {
 
   if (activeView === 'track' && activeOrderId) {
     return (
-      <DeliveryLiveTracker
+      <DeliveryTrackingHub
         orderId={activeOrderId}
         onBack={handleBackToCreate}
       />
@@ -72,10 +72,28 @@ const DeliveryPage = () => {
         </div>
         
         <OrderConfirmationStep
-          pickup={deliveryData.pickup}
-          destination={deliveryData.destination}
-          service={deliveryData.service}
-          pricing={deliveryData.pricing}
+          pickup={{
+            location: deliveryData.pickup.location,
+            contact: deliveryData.pickup.contact || { name: 'Expéditeur', phone: '' }
+          }}
+          destination={{
+            location: deliveryData.destination.location,
+            contact: deliveryData.destination.contact || { name: 'Destinataire', phone: '' }
+          }}
+          service={{
+            id: deliveryData.service.mode,
+            name: deliveryData.service.name,
+            subtitle: deliveryData.service.description,
+            description: deliveryData.service.description,
+            icon: deliveryData.service.icon,
+            features: deliveryData.service.features || ['Suivi temps réel', 'Support 24/7'],
+            estimatedTime: deliveryData.service.estimatedTime || '2-4h'
+          }}
+          pricing={{
+            price: deliveryData.pricing.price,
+            distance: deliveryData.distance || 0,
+            duration: deliveryData.duration || 0
+          }}
           onConfirm={handleOrderCreated}
           onBack={() => setActiveView('create')}
         />

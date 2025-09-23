@@ -46,11 +46,11 @@ interface DeliveryPricing {
 interface OrderConfirmationStepProps {
   pickup: {
     location: DeliveryLocation;
-    contact: ContactInfo;
+    contact?: ContactInfo;
   };
   destination: {
     location: DeliveryLocation;
-    contact: ContactInfo;
+    contact?: ContactInfo;
   };
   service: DeliveryService;
   pricing: DeliveryPricing;
@@ -155,14 +155,14 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
           address: pickupAddress,
           lat: Number(pickupCoords.lat),
           lng: Number(pickupCoords.lng),
-          contactName: pickup.contact?.name || '',
+          contactName: pickup.contact?.name || 'Expéditeur',
           contactPhone: pickup.contact?.phone || ''
         },
         destination: {
           address: destinationAddress,
           lat: Number(destCoords.lat),
           lng: Number(destCoords.lng),
-          contactName: destination.contact?.name || '',
+          contactName: destination.contact?.name || 'Destinataire',
           contactPhone: destination.contact?.phone || ''
         },
         mode: service.id,
@@ -285,12 +285,14 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <User className="h-3 w-3" />
-                    {pickup.contact.name}
+                    {pickup.contact?.name || 'Expéditeur'}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Phone className="h-3 w-3" />
-                    {pickup.contact.phone}
-                  </div>
+                  {pickup.contact?.phone && (
+                    <div className="flex items-center gap-1">
+                      <Phone className="h-3 w-3" />
+                      {pickup.contact.phone}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -306,9 +308,9 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <User className="h-3 w-3" />
-                    {destination.contact.name}
+                    {destination.contact?.name || 'Destinataire'}
                   </div>
-                  {destination.contact.phone && (
+                  {destination.contact?.phone && (
                     <div className="flex items-center gap-1">
                       <Phone className="h-3 w-3" />
                       {destination.contact.phone}
