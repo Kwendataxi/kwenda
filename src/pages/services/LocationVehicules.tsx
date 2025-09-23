@@ -76,10 +76,10 @@ const LocationVehicules = () => {
               Avec ou sans chauffeur professionnel.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild className="bg-gradient-to-r from-accent to-primary-glow">
+              <Button asChild variant="hero" size="lg" className="min-h-[48px]">
                 <Link to="/auth">Réserver maintenant</Link>
               </Button>
-              <Button variant="outline" asChild>
+              <Button variant="soft" asChild size="lg" className="min-h-[48px]">
                 <Link to="/auth">Devenir partenaire</Link>
               </Button>
             </div>
@@ -99,11 +99,11 @@ const LocationVehicules = () => {
 
           <div className="grid md:grid-cols-3 gap-8">
             {vehicleCategories.map((category, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
+              <Card key={index} className="card-modern group cursor-pointer">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <Car className="w-8 h-8 text-accent" />
-                    <Badge variant="outline">{category.price}</Badge>
+                    <Car className="w-8 h-8 text-accent group-hover:scale-110 transition-transform duration-300" />
+                    <Badge variant="outline" className="bg-accent/10 text-accent border-accent/30 rounded-lg">{category.price}</Badge>
                   </div>
                   <CardTitle>{category.name}</CardTitle>
                   <CardDescription>{category.description}</CardDescription>
@@ -128,7 +128,7 @@ const LocationVehicules = () => {
                       ))}
                     </ul>
                   </div>
-                  <Button className="w-full" asChild>
+                  <Button variant="congo" className="w-full min-h-[44px]" asChild>
                     <Link to="/auth">Réserver <ArrowRight className="w-4 h-4 ml-2" /></Link>
                   </Button>
                 </CardContent>
@@ -150,9 +150,9 @@ const LocationVehicules = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="text-center">
+              <Card key={index} className="text-center card-modern group">
                 <CardContent className="p-6 space-y-4">
-                  <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto text-accent">
+                  <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mx-auto text-accent group-hover:scale-110 transition-transform duration-300">
                     {feature.icon}
                   </div>
                   <h3 className="font-semibold">{feature.title}</h3>
@@ -242,10 +242,10 @@ const LocationVehicules = () => {
             Profitez de notre large choix de véhicules et de nos tarifs compétitifs
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild variant="secondary" size="lg">
+            <Button asChild variant="secondary" size="lg" className="min-h-[48px] rounded-xl">
               <Link to="/auth">Voir les véhicules</Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-accent">
+            <Button asChild variant="soft" size="lg" className="border-white/20 text-white hover:bg-white/10 hover:text-white min-h-[48px] rounded-xl backdrop-blur-sm">
               <Link to="/support/contact">Nous contacter</Link>
             </Button>
           </div>

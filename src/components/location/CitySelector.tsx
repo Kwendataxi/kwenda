@@ -75,32 +75,32 @@ const CitySelector = ({ currentCity, onCityChange, className }: CitySelectorProp
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button 
-          variant="outline" 
+          variant="soft" 
           size="sm"
-          className={`justify-between ${className}`}
+          className={`justify-between min-h-[44px] rounded-xl ${className}`}
         >
           <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
-            <span>{selectedCity.name}</span>
-            <Badge variant="secondary" className="text-xs">
+            <MapPin className="h-4 w-4 text-accent" />
+            <span className="font-semibold">{selectedCity.name}</span>
+            <Badge variant="secondary" className="text-xs bg-accent/10 text-accent border-accent/20 rounded-md">
               {selectedCity.currency}
             </Badge>
           </div>
-          <ChevronDown className="h-3 w-3" />
+          <ChevronDown className="h-3 w-3 opacity-70" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-64">
+      <DropdownMenuContent align="start" className="w-72 p-2 rounded-xl glassmorphism-button backdrop-blur-lg shadow-lg border border-border/30">
         {cities.map((city) => (
           <DropdownMenuItem
             key={city.name}
             onClick={() => onCityChange(city.name)}
-            className="flex items-center justify-between cursor-pointer"
+            className="flex items-center justify-between cursor-pointer p-3 rounded-lg hover:bg-accent/10 transition-colors min-h-[44px]"
           >
             <div>
-              <div className="font-medium">{city.name}</div>
-              <div className="text-xs text-muted-foreground">{city.country}</div>
+              <div className="font-semibold">{city.name}</div>
+              <div className="text-xs text-muted-foreground/70">{city.country}</div>
             </div>
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs bg-accent/10 text-accent border-accent/20 rounded-md">
               {city.currency}
             </Badge>
           </DropdownMenuItem>
