@@ -7878,6 +7878,15 @@ export type Database = {
           user_type: string
         }[]
       }
+      security_audit_report: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action_required: string
+          category: string
+          details: string
+          status: string
+        }[]
+      }
       security_diagnostic: {
         Args: Record<PropertyKey, never>
         Returns: {
