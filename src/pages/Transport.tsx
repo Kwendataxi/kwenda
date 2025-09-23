@@ -51,10 +51,10 @@ const TransportPage = () => {
               <Car className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Kwenda Transport
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Kwenda Taxi
               </h1>
-              <p className="text-sm text-muted-foreground">Service de transport VTC</p>
+              <p className="text-sm text-muted-foreground">Service de taxi VTC</p>
             </div>
           </div>
         </div>

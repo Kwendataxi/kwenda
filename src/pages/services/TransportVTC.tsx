@@ -66,14 +66,14 @@ const TransportVTC = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center space-y-8">
             <Badge variant="secondary" className="mb-4">
-              Service Transport VTC
+              Service Taxi VTC
             </Badge>
             <h1 className="text-display-lg">
-              Transport intelligent à <span className="text-primary">Kinshasa</span>
+              Taxi intelligent à <span className="text-primary">Kinshasa</span>
             </h1>
             <p className="text-body-lg text-muted-foreground">
               Déplacez-vous facilement dans Kinshasa avec notre réseau de chauffeurs professionnels. 
-              Taxi-bus, moto-taxi ou VTC privé, choisissez le mode de transport qui vous convient.
+              Taxi-bus, moto-taxi ou VTC privé, choisissez le mode de taxi qui vous convient.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild className="bg-gradient-to-r from-primary to-primary-glow">
@@ -134,9 +134,9 @@ const TransportVTC = () => {
       <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center space-y-4 mb-12">
-            <h2 className="text-heading-xl">Pourquoi choisir Kwenda Transport ?</h2>
+            <h2 className="text-heading-xl">Pourquoi choisir Kwenda Taxi ?</h2>
             <p className="text-body-md text-muted-foreground">
-              Une expérience de transport moderne et sécurisée
+              Une expérience de taxi moderne et sécurisée
             </p>
           </div>
 

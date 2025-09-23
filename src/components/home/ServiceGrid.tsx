@@ -20,7 +20,7 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
   const mainServices = [
     {
       id: 'transport',
-      name: t('home.services.taxi'),
+      name: 'Taxi',
       icon: Car,
       gradient: 'from-primary to-primary-glow',
       available: true

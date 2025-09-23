@@ -13,7 +13,7 @@ const ModernFooter = () => {
     {
       title: "Services",
       links: [
-        { name: "Transport VTC", href: "/services/transport-vtc", icon: <Car className="w-4 h-4" /> },
+        { name: "Taxi VTC", href: "/services/taxi-vtc", icon: <Car className="w-4 h-4" /> },
         { name: "Livraison Express", href: "/services/livraison-express", icon: <Package className="w-4 h-4" /> },
         { name: "Location Véhicules", href: "/services/location-vehicules", icon: <Car className="w-4 h-4" /> },
         { name: "Marketplace", href: "/marketplace", icon: <Store className="w-4 h-4" /> },

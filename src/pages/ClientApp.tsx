@@ -324,7 +324,7 @@ const ClientApp = () => {
     }
   };
 
-  const renderTransportService = () => {
+  const renderTaxiService = () => {
     return (
       <div className="content-with-bottom-nav space-y-4">
         <ModernTaxiInterface
@@ -599,7 +599,7 @@ const ClientApp = () => {
             case 'transport':
               return (
                 <div className="min-h-screen bg-background glassmorphism">
-                  {renderTransportService()}
+                  {renderTaxiService()}
                 </div>
               );
             case 'delivery':

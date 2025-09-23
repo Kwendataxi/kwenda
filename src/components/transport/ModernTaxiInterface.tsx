@@ -44,7 +44,7 @@ const VEHICLE_TYPES = [
   },
   {
     id: 'taxi_premium',
-    name: 'Taxi Premium',
+    name: 'Taxi Premium',  
     description: '4 places, climatisé',
     icon: Car,
     basePrice: 3000,
