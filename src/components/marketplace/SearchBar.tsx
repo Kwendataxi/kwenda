@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
 import { Label } from '../ui/label';
 import { Slider } from '../ui/slider';
@@ -28,10 +28,20 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 }) => {
   const [localSearch, setLocalSearch] = useState(searchQuery);
 
+  // Synchroniser avec les props
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSearchChange(localSearch);
     onSearch();
+  };
+
+  const handleClear = () => {
+    setLocalSearch('');
+    onSearchChange('');
   };
 
   return (
@@ -44,8 +54,19 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               placeholder="Rechercher des produits..."
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
-              className="pl-10 h-10 text-sm bg-card/50 border-border/40 focus:border-primary/60 transition-all rounded-xl shadow-sm"
+              className="pl-10 pr-10 h-10 text-sm bg-card/50 border-border/40 focus:border-primary/60 transition-all rounded-xl shadow-sm"
             />
+            {localSearch && (
+              <Button
+                type="button"
+                onClick={handleClear}
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-muted/50"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
           </div>
           <Button 
             type="submit" 
