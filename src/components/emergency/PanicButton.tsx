@@ -116,9 +116,13 @@ export default function PanicButton({
       }
 
       // Créer l'alerte d'urgence
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('Utilisateur non authentifié');
+
       const { data: alert, error } = await supabase
         .from('emergency_alerts')
-        .insert([{
+        .insert({
+          user_id: user.user.id,
           alert_type: 'panic',
           status: 'active',
           location: {
@@ -128,10 +132,10 @@ export default function PanicButton({
             timestamp: new Date().toISOString()
           },
           trip_id: tripId,
-          emergency_contacts: emergencyContacts,
-          priority_level: 1, // Critique
+          emergency_contacts: emergencyContacts as any,
+          priority_level: 1,
           auto_notifications_sent: {}
-        }])
+        })
         .select()
         .single();
 

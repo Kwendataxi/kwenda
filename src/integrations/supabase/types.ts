@@ -7595,6 +7595,10 @@ export type Database = {
           status: string
         }[]
       }
+      cleanup_expired_trip_links: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       cleanup_old_audit_logs: {
         Args: Record<PropertyKey, never> | { p_retention_days?: number }
         Returns: number
@@ -7634,9 +7638,22 @@ export type Database = {
           user_id: string
         }[]
       }
+      create_trip_share_link: {
+        Args: {
+          p_encrypted_data: string
+          p_expires_at: string
+          p_share_id: string
+          p_trip_id: string
+        }
+        Returns: string
+      }
       deactivate_old_tokens: {
         Args: { p_platform: string; p_user_id: string }
         Returns: undefined
+      }
+      deactivate_trip_share_link: {
+        Args: { p_share_id: string }
+        Returns: boolean
       }
       disable_user_notifications: {
         Args: { p_user_id: string }
@@ -7965,6 +7982,18 @@ export type Database = {
           p_service_type: string
         }
         Returns: Json
+      }
+      get_trip_share_data: {
+        Args: { p_share_id: string }
+        Returns: {
+          created_at: string
+          encrypted_data: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          share_id: string
+          trip_id: string
+        }[]
       }
       get_user_role: {
         Args: { user_id_param: string }
@@ -8299,6 +8328,10 @@ export type Database = {
           sensitive_data_access: number
           suspicious_patterns: number
         }[]
+      }
+      update_trip_share_location: {
+        Args: { p_encrypted_data: string; p_share_id: string }
+        Returns: boolean
       }
       upsert_push_token: {
         Args: { p_platform: string; p_token: string; p_user_id: string }

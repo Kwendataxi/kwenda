@@ -51,13 +51,21 @@ class TripSharingService {
       // Chiffrer les données sensibles
       const encryptedData = await this.encryptTripData(tripData);
 
-      // Créer l'enregistrement en base - utiliser RPC pour éviter les problèmes de types
-      const { data, error } = await supabase.rpc('create_trip_share_link', {
-        p_share_id: shareId,
-        p_trip_id: tripData.tripId,
-        p_encrypted_data: encryptedData,
-        p_expires_at: expiresAt.toISOString()
-      });
+      // Créer l'enregistrement en base - utiliser insert direct temporairement
+      const { data: user } = await supabase.auth.getUser();
+      
+      const { data, error } = await supabase
+        .from('trip_share_links')
+        .insert({
+          share_id: shareId,
+          trip_id: tripData.tripId,
+          encrypted_data: encryptedData,
+          expires_at: expiresAt.toISOString(),
+          is_active: true,
+          created_by: user.user?.id
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -86,9 +94,12 @@ class TripSharingService {
    */
   async getTripShareData(shareId: string): Promise<TripShareData | null> {
     try {
-      const { data, error } = await supabase.rpc('get_trip_share_data', {
-        p_share_id: shareId
-      });
+      const { data, error } = await supabase
+        .from('trip_share_links')
+        .select('*')
+        .eq('share_id', shareId)
+        .eq('is_active', true)
+        .maybeSingle();
 
       if (error || !data) return null;
 
@@ -235,9 +246,10 @@ class TripSharingService {
    * Désactiver un lien de partage
    */
   async deactivateShareLink(shareId: string): Promise<void> {
-    await supabase.rpc('deactivate_trip_share_link', {
-      p_share_id: shareId
-    });
+    await supabase
+      .from('trip_share_links')
+      .update({ is_active: false })
+      .eq('share_id', shareId);
 
     await this.logSharingEvent('trip_share_deactivated', shareId);
   }
@@ -254,10 +266,13 @@ class TripSharingService {
       tripData.currentLocation = location;
       const encryptedData = await this.encryptTripData(tripData);
 
-      await supabase.rpc('update_trip_share_location', {
-        p_share_id: shareId,
-        p_encrypted_data: encryptedData
-      });
+      await supabase
+        .from('trip_share_links')
+        .update({ 
+          encrypted_data: encryptedData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('share_id', shareId);
 
       await this.logSharingEvent('trip_location_updated', shareId);
     } catch (error) {
@@ -290,7 +305,12 @@ class TripSharingService {
    */
   async cleanupExpiredLinks(): Promise<number> {
     try {
-      const { data, error } = await supabase.rpc('cleanup_expired_trip_links');
+      const { data, error } = await supabase
+        .from('trip_share_links')
+        .update({ is_active: false })
+        .lt('expires_at', new Date().toISOString())
+        .eq('is_active', true)
+        .select('share_id');
 
       if (error) throw error;
 

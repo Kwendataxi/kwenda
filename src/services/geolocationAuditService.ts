@@ -230,8 +230,8 @@ class GeolocationAuditService {
           totalRequests: profile.requests.length,
           riskScore: profile.riskScores.reduce((sum: number, score: number) => sum + score, 0) / profile.riskScores.length,
           suspiciousActivity: profile.riskScores.some((score: number) => score >= 8) || profile.failedAttempts > 5,
-          lastActivity: Math.max(...profile.requests.map((r: any) => new Date(r.created_at).getTime())),
-          flaggedActions: Array.from(profile.flaggedActions)
+          lastActivity: new Date(Math.max(...profile.requests.map((r: any) => new Date(r.created_at).getTime()))).toISOString(),
+          flaggedActions: Array.from(profile.flaggedActions) as string[]
         }))
         .sort((a, b) => b.riskScore - a.riskScore)
         .slice(0, limit);
@@ -269,7 +269,7 @@ class GeolocationAuditService {
         resourceId: log.resource_id,
         locationData: log.location_data,
         encryptedPayload: log.encrypted_payload,
-        ipAddress: log.ip_address,
+        ipAddress: log.ip_address?.toString() || '',
         userAgent: log.user_agent,
         sessionId: log.session_id,
         riskScore: log.risk_score || 0,
@@ -334,7 +334,7 @@ class GeolocationAuditService {
         resourceId: log.resource_id,
         locationData: log.location_data,
         encryptedPayload: log.encrypted_payload,
-        ipAddress: log.ip_address,
+        ipAddress: log.ip_address?.toString() || '',
         userAgent: log.user_agent,
         sessionId: log.session_id,
         riskScore: log.risk_score || 0,
