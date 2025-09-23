@@ -6,20 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface StatusUpdateRequest {
-  orderId: string;
-  newStatus: 'confirmed' | 'driver_assigned' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled';
-  driverId?: string;
-  locationCoordinates?: { lat: number; lng: number };
-  driverNotes?: string;
-  recipientSignature?: string;
-  deliveryPhotoUrl?: string;
-  deliveryProof?: any;
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
@@ -28,153 +17,154 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { orderId, newStatus, driverId, locationCoordinates, driverNotes, recipientSignature, deliveryPhotoUrl, deliveryProof }: StatusUpdateRequest = await req.json()
+    const { 
+      orderId, 
+      newStatus, 
+      driverId, 
+      locationCoordinates,
+      deliveryProof,
+      recipientSignature,
+      driverNotes 
+    } = await req.json()
 
-    console.log(`Updating delivery order ${orderId} to status: ${newStatus}`)
+    console.log(`📦 Updating delivery ${orderId} to status: ${newStatus}`)
 
-    // Préparer les données de mise à jour
+    // Get current order details
+    const { data: currentOrder, error: orderError } = await supabase
+      .from('delivery_orders')
+      .select('*, user_id')
+      .eq('id', orderId)
+      .single()
+
+    if (orderError || !currentOrder) {
+      throw new Error('Commande de livraison non trouvée')
+    }
+
+    const previousStatus = currentOrder.status
     const updateData: any = {
       status: newStatus,
       updated_at: new Date().toISOString()
     }
 
-    // Ajouter les timestamps spécifiques selon le statut
-    const now = new Date().toISOString()
+    // Add timestamp fields based on status
     switch (newStatus) {
-      case 'confirmed':
-        updateData.confirmed_at = now
-        break
-      case 'driver_assigned':
-        updateData.driver_assigned_at = now
-        if (driverId) {
-          updateData.driver_id = driverId
-        }
-        break
       case 'picked_up':
-        updateData.picked_up_at = now
-        if (driverNotes) updateData.driver_notes = driverNotes
+        updateData.picked_up_at = new Date().toISOString()
         break
       case 'in_transit':
-        updateData.in_transit_at = now
+        updateData.in_transit_at = new Date().toISOString()
         break
       case 'delivered':
-        updateData.delivered_at = now
+        updateData.delivered_at = new Date().toISOString()
+        updateData.delivery_time = new Date().toISOString()
         if (deliveryProof) updateData.delivery_proof = deliveryProof
         if (recipientSignature) updateData.recipient_signature = recipientSignature
-        if (deliveryPhotoUrl) updateData.delivery_photo_url = deliveryPhotoUrl
-        if (driverNotes) updateData.driver_notes = driverNotes
-        break
-      case 'cancelled':
-        updateData.cancelled_at = now
         break
     }
 
-    // Mettre à jour la commande de livraison
-    const { data: order, error: orderError } = await supabase
+    if (driverNotes) {
+      updateData.driver_notes = driverNotes
+    }
+
+    // Update the delivery order
+    const { error: updateError } = await supabase
       .from('delivery_orders')
       .update(updateData)
       .eq('id', orderId)
-      .select()
-      .single()
 
-    if (orderError) {
-      throw new Error(`Failed to update delivery order: ${orderError.message}`)
+    if (updateError) {
+      console.error('Error updating delivery order:', updateError)
+      throw updateError
     }
 
-    console.log(`Delivery order ${orderId} updated successfully to ${newStatus}`)
-
-    // Enregistrer dans l'historique avec localisation si fournie
-    const historyData: any = {
-      delivery_order_id: orderId,
-      status: newStatus,
-      changed_by: driverId || null,
-      notes: `Status changed to ${newStatus}${driverNotes ? ` - ${driverNotes}` : ''}`
-    }
-
-    if (locationCoordinates) {
-      historyData.location_coordinates = locationCoordinates
-    }
-
+    // Add status history entry
     const { error: historyError } = await supabase
       .from('delivery_status_history')
-      .insert(historyData)
+      .insert({
+        delivery_order_id: orderId,
+        status: newStatus,
+        previous_status: previousStatus,
+        changed_by: driverId,
+        notes: driverNotes,
+        location_coordinates: locationCoordinates,
+        metadata: {
+          delivery_proof: deliveryProof,
+          recipient_signature: recipientSignature,
+          timestamp: new Date().toISOString()
+        }
+      })
 
     if (historyError) {
-      console.error('Failed to record status history:', historyError)
+      console.error('Error creating status history:', historyError)
     }
 
-    // Envoyer des notifications selon le statut
-    let notificationTitle = ''
-    let notificationMessage = ''
-
-    switch (newStatus) {
-      case 'confirmed':
-        notificationTitle = 'Commande confirmée'
-        notificationMessage = 'Votre demande de livraison a été acceptée'
-        break
-      case 'driver_assigned':
-        notificationTitle = 'Livreur assigné'
-        notificationMessage = 'Un livreur se dirige vers le point de retrait'
-        break
-      case 'picked_up':
-        notificationTitle = 'Colis récupéré'
-        notificationMessage = 'Le livreur a récupéré votre colis'
-        break
-      case 'in_transit':
-        notificationTitle = 'En cours de livraison'
-        notificationMessage = 'Le colis est en route vers la destination'
-        break
-      case 'delivered':
-        notificationTitle = 'Livré'
-        notificationMessage = 'Colis livré avec succès'
-        break
-      case 'cancelled':
-        notificationTitle = 'Livraison annulée'
-        notificationMessage = 'Votre livraison a été annulée'
-        break
+    // Create notifications for customer
+    const statusMessages = {
+      picked_up: 'Votre colis a été récupéré',
+      in_transit: 'Votre colis est en cours de livraison',
+      delivered: 'Votre colis a été livré avec succès'
     }
 
-    // Créer une notification pour le client
-    if (notificationTitle && order.user_id) {
+    const message = statusMessages[newStatus as keyof typeof statusMessages]
+    if (message) {
       const { error: notificationError } = await supabase
-        .from('user_notifications')
+        .from('delivery_notifications')
         .insert({
-          user_id: order.user_id,
-          title: notificationTitle,
-          message: notificationMessage,
-          type: 'delivery_update',
+          user_id: currentOrder.user_id,
+          delivery_order_id: orderId,
+          notification_type: 'status_update',
+          title: 'Mise à jour de votre livraison',
+          message,
           metadata: {
-            delivery_order_id: orderId,
             status: newStatus,
-            timestamp: now
+            driver_notes: driverNotes,
+            location: locationCoordinates
           }
         })
 
       if (notificationError) {
-        console.error('Failed to create notification:', notificationError)
+        console.error('Error creating customer notification:', notificationError)
       }
     }
 
+    // If delivered, mark driver as available again
+    if (newStatus === 'delivered' && driverId) {
+      const { error: availabilityError } = await supabase
+        .from('driver_locations')
+        .update({ is_available: true })
+        .eq('driver_id', driverId)
+
+      if (availabilityError) {
+        console.error('Error updating driver availability:', availabilityError)
+      }
+    }
+
+    console.log(`✅ Successfully updated delivery ${orderId} to ${newStatus}`)
+
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        order,
-        message: `Delivery status updated to ${newStatus}` 
+      JSON.stringify({
+        success: true,
+        orderId,
+        newStatus,
+        previousStatus,
+        message: `Statut mis à jour: ${newStatus}`
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      }
     )
 
   } catch (error) {
-    console.error('Error in delivery-status-manager:', error)
-    
+    console.error('Delivery status update error:', error)
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message 
+      JSON.stringify({
+        success: false,
+        error: error.message
       }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400
+        status: 500
       }
     )
   }

@@ -173,10 +173,44 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
 
       if (error) throw error;
 
-      toast({
-        title: "Commande créée",
-        description: "Votre demande de livraison a été enregistrée avec succès"
-      });
+      console.log('✅ Delivery order created:', data);
+
+      // Automatic driver assignment
+      try {
+        const { data: assignmentResult, error: assignmentError } = await supabase.functions.invoke('delivery-dispatcher', {
+          body: {
+            orderId: data.id,
+            pickupLat: deliveryData.pickupLocation.lat,
+            pickupLng: deliveryData.pickupLocation.lng,
+            deliveryType: deliveryData.serviceType
+          }
+        });
+
+        if (assignmentError) {
+          console.error('❌ Driver assignment failed:', assignmentError);
+          toast({
+            title: "Commande créée",
+            description: "Commande créée mais aucun livreur disponible pour le moment"
+          });
+        } else if (assignmentResult?.success) {
+          console.log('✅ Driver assigned:', assignmentResult.driver);
+          toast({
+            title: "Commande créée",
+            description: "Votre demande de livraison a été enregistrée et un livreur a été assigné"
+          });
+        } else {
+          toast({
+            title: "Commande créée",
+            description: "Votre demande de livraison a été enregistrée avec succès"
+          });
+        }
+      } catch (assignmentError) {
+        console.error('❌ Assignment service error:', assignmentError);
+        toast({
+          title: "Commande créée",
+          description: "Votre demande de livraison a été enregistrée avec succès"
+        });
+      }
 
       onSubmit(data);
     } catch (error) {
