@@ -3,32 +3,34 @@
  * Remplace tous les autres hooks de géolocalisation
  */
 
-import { useState, useCallback, useRef } from 'react';
-import { simpleLocationService, type LocationData, type LocationSearchResult } from '@/services/simpleLocationService';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { simpleLocationService, type LocationData, type LocationSearchResult, type GeolocationOptions } from '@/services/simpleLocationService';
 
 interface UseSimpleLocationState {
   currentPosition: LocationData | null;
   loading: boolean;
   error: string | null;
+  isTracking: boolean;
 }
 
 export const useSimpleLocation = () => {
   const [state, setState] = useState<UseSimpleLocationState>({
     currentPosition: null,
     loading: false,
-    error: null
+    error: null,
+    isTracking: false
   });
 
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   /**
-   * Obtenir la position actuelle
+   * Obtenir la position actuelle avec options avancées
    */
-  const getCurrentPosition = useCallback(async (): Promise<LocationData> => {
+  const getCurrentPosition = useCallback(async (options?: GeolocationOptions): Promise<LocationData> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
-      const position = await simpleLocationService.getCurrentPosition();
+      const position = await simpleLocationService.getCurrentPosition(options);
       
       setState(prev => ({
         ...prev,
@@ -120,17 +122,77 @@ export const useSimpleLocation = () => {
   }, []);
 
   /**
+   * Commencer le suivi en temps réel
+   */
+  const startTracking = useCallback(async (options?: GeolocationOptions): Promise<void> => {
+    if (state.isTracking) {
+      console.warn('⚠️ Suivi déjà en cours');
+      return;
+    }
+
+    setState(prev => ({ ...prev, isTracking: true, error: null }));
+
+    try {
+      await simpleLocationService.startTracking(
+        (position: LocationData) => {
+          setState(prev => ({
+            ...prev,
+            currentPosition: position,
+            error: null
+          }));
+        },
+        {
+          enableHighAccuracy: true,
+          interval: 5000, // 5 secondes par défaut
+          distanceFilter: 10, // 10 mètres minimum
+          ...options
+        }
+      );
+      console.log('🎯 Suivi démarré');
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        isTracking: false,
+        error: error instanceof Error ? error.message : 'Erreur de tracking'
+      }));
+    }
+  }, [state.isTracking]);
+
+  /**
+   * Arrêter le suivi en temps réel
+   */
+  const stopTracking = useCallback((): void => {
+    if (!state.isTracking) {
+      return;
+    }
+
+    simpleLocationService.stopTracking();
+    setState(prev => ({ ...prev, isTracking: false }));
+    console.log('🛑 Suivi arrêté');
+  }, [state.isTracking]);
+
+  /**
    * Définir la ville actuelle
    */
   const setCurrentCity = useCallback((city: string): void => {
     simpleLocationService.setCurrentCity(city);
   }, []);
 
+  // Cleanup tracking on unmount
+  useEffect(() => {
+    return () => {
+      if (state.isTracking) {
+        simpleLocationService.stopTracking();
+      }
+    };
+  }, [state.isTracking]);
+
   return {
     // État
     currentPosition: state.currentPosition,
     loading: state.loading,
     error: state.error,
+    isTracking: state.isTracking,
 
     // Actions
     getCurrentPosition,
@@ -140,6 +202,8 @@ export const useSimpleLocation = () => {
     formatDistance,
     clearError,
     setCurrentCity,
+    startTracking,
+    stopTracking,
 
     // Alias pour compatibilité
     isLoading: state.loading,

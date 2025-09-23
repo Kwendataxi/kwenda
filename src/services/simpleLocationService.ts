@@ -3,12 +3,30 @@
  * Remplace tous les autres services pour une approche unifiée
  */
 
+// Type declarations for Capacitor
+declare global {
+  interface Window {
+    Capacitor?: {
+      isNativePlatform?: () => boolean;
+    };
+  }
+}
+
 export interface LocationData {
   address: string;
   lat: number;
   lng: number;
-  type: 'gps' | 'cached' | 'default';
+  type: 'gps' | 'cached' | 'default' | 'capacitor';
   accuracy?: number;
+  source?: 'capacitor' | 'browser' | 'ip' | 'cache';
+}
+
+export interface GeolocationOptions {
+  enableHighAccuracy?: boolean;
+  timeout?: number;
+  maximumAge?: number;
+  interval?: number; // For continuous tracking (milliseconds)
+  distanceFilter?: number; // Minimum distance change (meters)
 }
 
 export interface LocationSearchResult extends LocationData {
@@ -65,6 +83,8 @@ class SimpleLocationService {
   private static instance: SimpleLocationService;
   private cachedPosition: LocationData | null = null;
   private currentCity: string = 'Kinshasa';
+  private watchId: string | number | null = null;
+  private isCapacitorAvailable: boolean = false;
 
   static getInstance(): SimpleLocationService {
     if (!this.instance) {
@@ -75,15 +95,29 @@ class SimpleLocationService {
 
   constructor() {
     this.loadCachedPosition();
+    this.checkCapacitorAvailability();
+  }
+
+  private checkCapacitorAvailability(): void {
+    try {
+      // Check if Capacitor is available
+      this.isCapacitorAvailable = typeof window !== 'undefined' && 
+        window.Capacitor !== undefined && 
+        typeof window.Capacitor.isNativePlatform === 'function';
+      
+      console.log(`📱 Capacitor disponible: ${this.isCapacitorAvailable}`);
+    } catch (error) {
+      this.isCapacitorAvailable = false;
+    }
   }
 
   /**
    * Obtenir la position actuelle avec fallback automatique
    */
-  async getCurrentPosition(): Promise<LocationData> {
+  async getCurrentPosition(options?: GeolocationOptions): Promise<LocationData> {
     try {
       // 1. Vérifier le cache d'abord
-      if (this.cachedPosition) {
+      if (this.cachedPosition && !options?.enableHighAccuracy) {
         const age = Date.now() - (this.cachedPosition as any).timestamp;
         if (age < 300000) { // 5 minutes
           console.log('📍 Position récupérée du cache');
@@ -91,15 +125,25 @@ class SimpleLocationService {
         }
       }
 
-      // 2. Tenter la géolocalisation GPS réelle
-      const gpsPosition = await this.getGPSPosition();
+      // 2. Tenter Capacitor Geolocation d'abord (plus précis sur mobile)
+      if (this.isCapacitorAvailable) {
+        const capacitorPosition = await this.getCapacitorPosition(options);
+        if (capacitorPosition) {
+          this.cachePosition(capacitorPosition);
+          console.log('📱 Position Capacitor obtenue:', capacitorPosition.address);
+          return capacitorPosition;
+        }
+      }
+
+      // 3. Fallback vers géolocalisation GPS navigateur
+      const gpsPosition = await this.getBrowserGPSPosition(options);
       if (gpsPosition) {
         this.cachePosition(gpsPosition);
         console.log('🎯 Position GPS obtenue:', gpsPosition.address);
         return gpsPosition;
       }
 
-      // 3. Fallback vers géolocalisation IP
+      // 4. Fallback vers géolocalisation IP
       const ipPosition = await this.getIPBasedLocation();
       if (ipPosition) {
         this.cachePosition(ipPosition);
@@ -111,7 +155,7 @@ class SimpleLocationService {
       console.warn('⚠️ Erreur géolocalisation:', error);
     }
 
-    // 4. Dernier recours: position par défaut
+    // 5. Dernier recours: position par défaut
     const defaultPos = this.getDefaultPosition();
     console.log('📍 Position par défaut utilisée:', defaultPos.address);
     return defaultPos;
@@ -240,6 +284,42 @@ class SimpleLocationService {
   }
 
   /**
+   * Commencer le suivi en temps réel
+   */
+  async startTracking(
+    callback: (position: LocationData) => void,
+    options?: GeolocationOptions
+  ): Promise<void> {
+    const trackingOptions = {
+      enableHighAccuracy: true,
+      interval: 5000, // 5 secondes par défaut
+      distanceFilter: 10, // 10 mètres minimum
+      ...options
+    };
+
+    if (this.isCapacitorAvailable) {
+      await this.startCapacitorTracking(callback, trackingOptions);
+    } else {
+      await this.startBrowserTracking(callback, trackingOptions);
+    }
+  }
+
+  /**
+   * Arrêter le suivi
+   */
+  stopTracking(): void {
+    if (this.watchId !== null) {
+      if (this.isCapacitorAvailable) {
+        this.stopCapacitorTracking();
+      } else {
+        this.stopBrowserTracking();
+      }
+      this.watchId = null;
+      console.log('🛑 Suivi de position arrêté');
+    }
+  }
+
+  /**
    * Définir la ville actuelle
    */
   setCurrentCity(city: string): void {
@@ -247,7 +327,179 @@ class SimpleLocationService {
   }
 
   // Méthodes privées
-  private async getGPSPosition(): Promise<LocationData | null> {
+  
+  /**
+   * Obtenir position via Capacitor (natif mobile)
+   */
+  private async getCapacitorPosition(options?: GeolocationOptions): Promise<LocationData | null> {
+    try {
+      // Import dynamique pour éviter les erreurs SSR
+      const { Geolocation } = await import('@capacitor/geolocation');
+      
+      // Vérifier les permissions
+      const permissions = await Geolocation.checkPermissions();
+      if (permissions.location !== 'granted') {
+        const requested = await Geolocation.requestPermissions();
+        if (requested.location !== 'granted') {
+          console.warn('🚫 Permissions géolocalisation refusées');
+          return null;
+        }
+      }
+
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: options?.enableHighAccuracy ?? true,
+        timeout: options?.timeout ?? 10000,
+        maximumAge: options?.maximumAge ?? 60000
+      });
+
+      // Géocodage inverse pour obtenir l'adresse
+      let address = `Position GPS (${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)})`;
+      
+      try {
+        const geocoded = await this.reverseGeocode(position.coords.latitude, position.coords.longitude);
+        if (geocoded) address = geocoded;
+      } catch (e) {
+        console.warn('Géocodage inverse échoué:', e);
+      }
+
+      return {
+        address,
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+        type: 'capacitor',
+        accuracy: position.coords.accuracy,
+        source: 'capacitor'
+      };
+    } catch (error) {
+      console.warn('❌ Erreur Capacitor Geolocation:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Suivi en temps réel via Capacitor
+   */
+  private async startCapacitorTracking(
+    callback: (position: LocationData) => void,
+    options: GeolocationOptions
+  ): Promise<void> {
+    try {
+      const { Geolocation } = await import('@capacitor/geolocation');
+      
+      this.watchId = await Geolocation.watchPosition({
+        enableHighAccuracy: options.enableHighAccuracy ?? true,
+        timeout: options.timeout ?? 10000
+      }, async (position, err) => {
+        if (err) {
+          console.warn('❌ Erreur tracking Capacitor:', err);
+          return;
+        }
+        
+        if (position) {
+          // Géocodage inverse
+          let address = `Position GPS (${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)})`;
+          
+          try {
+            const geocoded = await this.reverseGeocode(position.coords.latitude, position.coords.longitude);
+            if (geocoded) address = geocoded;
+          } catch (e) {
+            // Ignore geocoding errors during tracking
+          }
+
+          const locationData: LocationData = {
+            address,
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            type: 'capacitor',
+            accuracy: position.coords.accuracy,
+            source: 'capacitor'
+          };
+
+          callback(locationData);
+        }
+      });
+
+      console.log('📱 Suivi Capacitor démarré');
+    } catch (error) {
+      console.warn('❌ Erreur démarrage tracking Capacitor:', error);
+    }
+  }
+
+  /**
+   * Arrêter le suivi Capacitor
+   */
+  private async stopCapacitorTracking(): Promise<void> {
+    try {
+      const { Geolocation } = await import('@capacitor/geolocation');
+      if (this.watchId !== null) {
+        await Geolocation.clearWatch({ id: this.watchId as string });
+      }
+    } catch (error) {
+      console.warn('❌ Erreur arrêt tracking Capacitor:', error);
+    }
+  }
+
+  /**
+   * Suivi en temps réel via navigateur
+   */
+  private startBrowserTracking(
+    callback: (position: LocationData) => void,
+    options: GeolocationOptions
+  ): void {
+    if (!navigator.geolocation) {
+      console.warn('🚫 Géolocalisation navigateur non supportée');
+      return;
+    }
+
+    this.watchId = navigator.geolocation.watchPosition(
+      async (position) => {
+        // Géocodage inverse
+        let address = `Position GPS (${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)})`;
+        
+        try {
+          const geocoded = await this.reverseGeocode(position.coords.latitude, position.coords.longitude);
+          if (geocoded) address = geocoded;
+        } catch (e) {
+          // Ignore geocoding errors during tracking
+        }
+
+        const locationData: LocationData = {
+          address,
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          type: 'gps',
+          accuracy: position.coords.accuracy,
+          source: 'browser'
+        };
+
+        callback(locationData);
+      },
+      (error) => {
+        console.warn('❌ Erreur tracking navigateur:', error.message);
+      },
+      {
+        enableHighAccuracy: options.enableHighAccuracy ?? true,
+        timeout: options.timeout ?? 10000,
+        maximumAge: options.maximumAge ?? 60000
+      }
+    );
+
+    console.log('🌐 Suivi navigateur démarré');
+  }
+
+  /**
+   * Arrêter le suivi navigateur
+   */
+  private stopBrowserTracking(): void {
+    if (navigator.geolocation && this.watchId !== null) {
+      navigator.geolocation.clearWatch(this.watchId as number);
+    }
+  }
+
+  /**
+   * Fallback géolocalisation navigateur améliorée
+   */
+  private async getBrowserGPSPosition(options?: GeolocationOptions): Promise<LocationData | null> {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
         console.log('🚫 Géolocalisation non supportée');
@@ -258,7 +510,7 @@ class SimpleLocationService {
       const timeoutId = setTimeout(() => {
         console.log('⏰ Timeout GPS');
         resolve(null);
-      }, 8000);
+      }, options?.timeout ?? 8000);
 
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -279,7 +531,8 @@ class SimpleLocationService {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
             type: 'gps',
-            accuracy: position.coords.accuracy
+            accuracy: position.coords.accuracy,
+            source: 'browser'
           });
         },
         (error) => {
@@ -288,9 +541,9 @@ class SimpleLocationService {
           resolve(null);
         },
         {
-          enableHighAccuracy: true,
-          timeout: 7000,
-          maximumAge: 180000 // 3 minutes
+          enableHighAccuracy: options?.enableHighAccuracy ?? true,
+          timeout: options?.timeout ?? 8000,
+          maximumAge: options?.maximumAge ?? 180000 // 3 minutes
         }
       );
     });
@@ -306,7 +559,8 @@ class SimpleLocationService {
           address: `${data.city}, ${data.country_name}`,
           lat: data.latitude,
           lng: data.longitude,
-          type: 'cached'
+          type: 'cached',
+          source: 'ip'
         };
       }
     } catch (error) {
