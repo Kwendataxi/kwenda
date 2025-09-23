@@ -253,14 +253,10 @@ All colors MUST be HSL.
     scroll-behavior: smooth;
   }
 
-  /* Mobile optimizations */
+  /* Mobile optimizations - simplified */
   @media (max-width: 768px) {
-    .mobile-safe-layout {
-      padding-bottom: env(safe-area-inset-bottom, 1rem) !important;
-    }
-    
     .content-scrollable {
-      max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 200px);
+      max-height: calc(100vh - 5rem - env(safe-area-inset-bottom, 0));
     }
   }
 
@@ -348,7 +344,7 @@ All colors MUST be HSL.
 
     /* Mobile-first navigation fixes */
     .mobile-nav-safe {
-      padding-bottom: calc(env(safe-area-inset-bottom) + 5rem);
+      padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0));
     }
 
     /* Performance optimizations for mobile */
@@ -391,40 +387,33 @@ All colors MUST be HSL.
   }
 
   body {
-    padding-bottom: max(env(safe-area-inset-bottom), 80px);
     min-height: 100vh;
     min-height: 100dvh;
   }
 
-  /* Ensure proper mobile viewport handling */
+  /* Mobile safe layout - simplified */
   .mobile-safe-layout {
     min-height: 100vh;
     min-height: 100dvh;
-    padding-bottom: max(env(safe-area-inset-bottom), 6rem);
     display: flex;
     flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
   .content-scrollable {
     flex: 1;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: max(env(safe-area-inset-bottom), 4rem);
   }
 
-  /* Fixed bottom elements spacing */
-  .fixed-bottom-element {
-    bottom: max(env(safe-area-inset-bottom), 1rem);
-  }
-
-  /* Global class for content spacing with fixed bottom navigation */
+  /* Content spacing with bottom navigation - simplified */
   .content-with-bottom-nav {
-    padding-bottom: max(env(safe-area-inset-bottom), 5rem);
-    min-height: calc(100vh - max(env(safe-area-inset-bottom), 5rem));
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0));
+    min-height: calc(100vh - 5rem - env(safe-area-inset-bottom, 0));
   }
 
   .content-with-bottom-nav-scrollable {
-    max-height: calc(100vh - max(env(safe-area-inset-bottom), 5rem) - 2rem);
+    max-height: calc(100vh - 5rem - env(safe-area-inset-bottom, 0) - 1rem);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }

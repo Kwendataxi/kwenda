@@ -287,7 +287,7 @@ const ClientApp = () => {
   };
 
   const renderHome = () => (
-    <div className="pb-24">
+    <div className="content-with-bottom-nav">
       <ModernHomeScreen
         onServiceSelect={handleServiceSelect}
         onSearch={handleUniversalSearch}
@@ -326,7 +326,7 @@ const ClientApp = () => {
 
   const renderTransportService = () => {
     return (
-      <div className="space-y-4 pb-24">
+      <div className="content-with-bottom-nav space-y-4">
         <ModernTaxiInterface
           onSubmit={handleTransportSubmit}
           onCancel={() => setCurrentView('home')}
@@ -444,7 +444,7 @@ const ClientApp = () => {
     }
 
     return (
-      <div className="pb-24">
+      <div className="content-with-bottom-nav">
         <FluidRentalInterface
           onCancel={() => setCurrentView('home')}
           onBookingComplete={handleRentalBookingComplete}

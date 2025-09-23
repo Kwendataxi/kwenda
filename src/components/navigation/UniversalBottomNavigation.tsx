@@ -100,12 +100,11 @@ export const UniversalBottomNavigation: React.FC<UniversalBottomNavigationProps>
   return (
     <nav className={cn(
       'fixed bottom-0 left-0 right-0 z-[100]',
-      'safe-area-padding',
       className
     )}>
-      <div className="mx-auto max-w-screen-sm px-4 pb-[env(safe-area-inset-bottom,1rem)]">
+      <div className="mx-auto max-w-screen-sm px-4 pb-[env(safe-area-inset-bottom)]">
         <motion.div 
-          className="glassmorphism rounded-2xl shadow-lg grid transition-all duration-300"
+          className="bg-background/95 backdrop-blur-xl border border-border/60 rounded-2xl shadow-lg grid transition-all duration-300"
           style={{ gridTemplateColumns: `repeat(${config.length}, minmax(0, 1fr))` }}
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
