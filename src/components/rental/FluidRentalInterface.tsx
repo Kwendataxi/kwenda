@@ -7,6 +7,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useModernRentals } from '@/hooks/useModernRentals';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   ArrowLeft,
   Calendar as CalendarIcon,
@@ -21,7 +22,10 @@ import {
   Settings,
   CheckCircle,
   ArrowRight,
-  Star
+  Star,
+  Zap,
+  Sparkles,
+  Shield
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -50,6 +54,7 @@ const FluidRentalInterface = ({ onCancel, onBookingComplete }: FluidRentalInterf
   } = useModernRentals(selectedCity);
 
   const { toast } = useToast();
+  const { t, language } = useLanguage();
 
   const getIconComponent = (iconName: string, className?: string) => {
     const iconMap: { [key: string]: any } = {
@@ -258,46 +263,55 @@ const FluidRentalInterface = ({ onCancel, onBookingComplete }: FluidRentalInterf
   }
 
   return (
-    <div className="min-h-screen bg-background/50 backdrop-blur-sm p-3">
+    <div className="min-h-screen bg-background glassmorphism p-3">
       <div className="max-w-4xl mx-auto space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
+        {/* Enhanced Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
             <Button 
               variant="ghost" 
               size="sm"
               onClick={onCancel}
-              className="w-10 h-10 rounded-full"
+              className="w-12 h-12 rounded-full glassmorphism hover:bg-primary/10 transition-all duration-300"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-semibold">Location de véhicules</h1>
-              <p className="text-sm text-muted-foreground">Choisissez votre véhicule</p>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                {language === 'en' ? 'Vehicle Rental' : 'Location de Véhicules'}
+              </h1>
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                {language === 'en' ? 'Premium fleet at your service' : 'Flotte premium à votre service'}
+              </p>
             </div>
           </div>
 
-          {/* Sélecteur de ville */}
-          <select 
-            value={selectedCity}
-            onChange={(e) => setSelectedCity(e.target.value)}
-            className="bg-white/80 backdrop-blur-sm border-0 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-          >
-            {availableCities.map(city => (
-              <option key={city} value={city}>{city}</option>
-            ))}
-          </select>
+          {/* Enhanced City Selector */}
+          <div className="relative">
+            <select 
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="glassmorphism border-primary/20 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all duration-300 appearance-none bg-gradient-to-r from-background/80 to-background/60"
+            >
+              {availableCities.map(city => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
+            <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-primary pointer-events-none" />
+          </div>
         </div>
 
-        {/* Catégories */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        {/* Enhanced Categories */}
+        <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide">
           <Button
             variant={selectedCategory === '' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setSelectedCategory('')}
-            className="rounded-full flex-shrink-0"
+            className="rounded-full flex-shrink-0 transition-all duration-300 hover:scale-105 glassmorphism"
           >
-            Tous
+            <Zap className="w-4 h-4 mr-2" />
+            {language === 'en' ? 'All' : 'Tous'}
           </Button>
           {categories.map((category) => (
             <Button
@@ -305,7 +319,7 @@ const FluidRentalInterface = ({ onCancel, onBookingComplete }: FluidRentalInterf
               variant={selectedCategory === category.id ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSelectedCategory(category.id)}
-              className="rounded-full flex-shrink-0 flex items-center gap-2"
+              className="rounded-full flex-shrink-0 flex items-center gap-2 transition-all duration-300 hover:scale-105 glassmorphism"
             >
               {getIconComponent(category.icon, "w-4 h-4")}
               {category.name}
@@ -313,24 +327,25 @@ const FluidRentalInterface = ({ onCancel, onBookingComplete }: FluidRentalInterf
           ))}
         </div>
 
-        {/* Véhicules */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Enhanced Vehicles Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {(selectedCategory ? getVehiclesByCategory(selectedCategory) : vehicles).map((vehicle) => {
             const adjustedPrice = calculateCityPrice(vehicle.daily_rate, selectedCategory);
             
             return (
               <Card 
                 key={vehicle.id}
-                className="group cursor-pointer rounded-2xl border-0 shadow-sm bg-white/80 backdrop-blur-sm hover:shadow-md transition-all hover:scale-[1.02]"
+                className="group cursor-pointer rounded-2xl border-0 shadow-xl glassmorphism hover:shadow-2xl transition-all duration-500 hover:scale-[1.03] hover:bg-gradient-to-br hover:from-primary/5 hover:to-secondary/5"
                 onClick={() => {
                   setSelectedVehicle(vehicle);
                   setStep('booking');
                 }}
               >
-                <CardContent className="p-4">
+                <CardContent className="p-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-gradient-to-br from-primary to-primary-glow rounded-xl flex items-center justify-center flex-shrink-0">
-                      {getIconComponent(vehicle.vehicle_type === 'utility' ? 'Truck' : 'Car', "w-7 h-7 text-white")}
+                    <div className="relative w-16 h-16 bg-gradient-to-br from-primary via-primary-glow to-secondary rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {getIconComponent(vehicle.vehicle_type === 'utility' ? 'Truck' : 'Car', "w-8 h-8 text-white drop-shadow-lg")}
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl" />
                     </div>
                     
                     <div className="flex-1 min-w-0">
@@ -381,15 +396,18 @@ const FluidRentalInterface = ({ onCancel, onBookingComplete }: FluidRentalInterf
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-muted/50">
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                      <span>4.8</span>
+                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-gradient-to-r from-primary/20 to-secondary/20">
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                        <span className="font-semibold">4.8</span>
+                      </div>
+                      <Shield className="w-4 h-4 text-green-500" />
                     </div>
                     
-                    <Button size="sm" className="rounded-full h-8 px-4 bg-gradient-to-r from-primary to-primary-glow">
-                      Réserver
-                      <ArrowRight className="w-3 h-3 ml-1" />
+                    <Button size="sm" className="rounded-full h-10 px-6 bg-gradient-to-r from-primary via-primary-glow to-secondary text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                      {language === 'en' ? 'Book Now' : 'Réserver'}
+                      <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
                 </CardContent>

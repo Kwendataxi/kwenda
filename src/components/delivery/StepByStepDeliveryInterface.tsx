@@ -7,7 +7,8 @@ interface StepByStepDeliveryInterfaceProps {
 }
 
 const StepByStepDeliveryInterface = ({ onSubmit, onCancel }: StepByStepDeliveryInterfaceProps) => {
-  // Interface moderne simplifiée avec géolocalisation robuste
+  // Utilise maintenant directement l'interface moderne avec toutes ses fonctionnalités avancées
+  // Géolocalisation intelligente, pricing automatique, UI glassmorphism
   return <ModernDeliveryInterface onSubmit={onSubmit} onCancel={onCancel} />;
 };
 

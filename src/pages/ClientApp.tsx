@@ -20,6 +20,8 @@ import { ModernHomeScreen } from '@/components/home/ModernHomeScreen';
 import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
 import { ResponsiveContainer } from '@/components/layout/ResponsiveContainer';
 import { MobileOptimizedLayout } from '@/components/layout/MobileOptimizedLayout';
+import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
+import ModernDeliveryInterface from '@/components/delivery/ModernDeliveryInterface';
 import { 
   MapPin, 
   Car, 
@@ -300,14 +302,35 @@ const ClientApp = () => {
     </div>
   );
 
-  // Remove old booking handler since AdvancedTaxiInterface is self-contained
+  // Transport handlers
+  const handleTransportSubmit = async (data: any) => {
+    try {
+      console.log('=== Création de réservation transport ===', data);
+      
+      // Set transport tracking state
+      setActiveBooking(data);
+      
+      // Award lottery tickets for transport
+      await lotteryTickets.awardTransportTickets(data.bookingId);
+      
+      toast({
+        title: "Réservation confirmée",
+        description: "Votre chauffeur arrive dans quelques minutes",
+      });
+      
+      console.log('Transport réservé:', data);
+    } catch (error) {
+      console.error('Erreur création transport:', error);
+    }
+  };
 
   const renderTransportService = () => {
     return (
       <div className="space-y-4 pb-24">
-        <div className="p-4 text-center">
-          <p>Transport interface en cours de développement</p>
-        </div>
+        <ModernTaxiInterface
+          onSubmit={handleTransportSubmit}
+          onCancel={() => setCurrentView('home')}
+        />
         
         {/* Trip Chat Modal */}
         {isTripChatOpen && activeBooking && (
@@ -468,9 +491,10 @@ const ClientApp = () => {
     }
     return (
       <div className="pb-24">
-        <div className="p-4 text-center">
-          <p>Interface de livraison moderne en cours de développement</p>
-        </div>
+        <ModernDeliveryInterface
+          onSubmit={handleModernDeliverySubmit}
+          onCancel={() => setCurrentView('home')}
+        />
       </div>
     );
   };
@@ -574,27 +598,22 @@ const ClientApp = () => {
           switch (serviceType) {
             case 'transport':
               return (
-                <div className="min-h-screen bg-background content-with-bottom-nav-scrollable">
-                  <div className="p-4">
-                    <div className="flex items-center gap-4 mb-6">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setCurrentView('home')}
-                        className="rounded-xl"
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                      </Button>
-                      <h1 className="text-lg font-semibold text-gray-900">Transport</h1>
-                    </div>
-                    {renderTransportService()}
-                  </div>
+                <div className="min-h-screen bg-background glassmorphism">
+                  {renderTransportService()}
                 </div>
               );
             case 'delivery':
-              return renderDeliveryService();
+              return (
+                <div className="min-h-screen bg-background glassmorphism">
+                  {renderDeliveryService()}
+                </div>
+              );
             case 'rental':
-              return renderRentalService();
+              return (
+                <div className="min-h-screen bg-background glassmorphism">
+                  {renderRentalService()}
+                </div>
+              );
             case 'marketplace':
               return (
                 <EnhancedMarketplaceInterface 
