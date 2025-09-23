@@ -36,17 +36,32 @@ export const useDriverRegistration = () => {
     setIsRegistering(true);
 
     try {
-      // 1. Valider les données avant l'inscription
-      const { data: validation } = await supabase.rpc('validate_driver_registration_data', {
-        license_number_param: data.licenseNumber,
-        vehicle_plate_param: data.vehiclePlate,
-        phone_number_param: data.phoneNumber,
-        email_param: data.email
+      // 1. Valider les données avant l'inscription avec la nouvelle fonction
+      const { data: validation, error: validationError } = await supabase.rpc('validate_driver_registration_data', {
+        p_email: data.email,
+        p_phone: data.phoneNumber,
+        p_license_number: data.licenseNumber,
+        p_vehicle_plate: data.vehiclePlate
       });
 
-      if (validation && typeof validation === 'object' && 'valid' in validation && !validation.valid) {
+      if (validationError) {
+        await supabase.rpc('log_driver_registration_attempt', {
+          p_email: data.email,
+          p_success: false,
+          p_error_message: `Validation error: ${validationError.message}`
+        });
+        throw validationError;
+      }
+
+      if (validation && typeof validation === 'object' && 'valid' in validation && !(validation as any).valid) {
         const errors = (validation as any).errors || [];
-        throw new Error(errors.join(', '));
+        const errorMessage = Array.isArray(errors) ? errors.join(', ') : 'Erreur de validation';
+        await supabase.rpc('log_driver_registration_attempt', {
+          p_email: data.email,
+          p_success: false,
+          p_error_message: errorMessage
+        });
+        throw new Error(errorMessage);
       }
 
       // 2. Créer le compte Supabase Auth avec métadonnées
@@ -65,11 +80,22 @@ export const useDriverRegistration = () => {
       });
 
       if (authError) {
+        await supabase.rpc('log_driver_registration_attempt', {
+          p_email: data.email,
+          p_success: false,
+          p_error_message: `Auth error: ${authError.message}`
+        });
         throw authError;
       }
 
       if (!authData.user) {
-        throw new Error('Erreur lors de la création du compte');
+        const errorMsg = 'Erreur lors de la création du compte';
+        await supabase.rpc('log_driver_registration_attempt', {
+          p_email: data.email,
+          p_success: false,
+          p_error_message: errorMsg
+        });
+        throw new Error(errorMsg);
       }
 
       // 3. Le trigger handle_new_driver() va automatiquement créer le profil chauffeur
@@ -145,6 +171,13 @@ export const useDriverRegistration = () => {
         console.warn('Could not create service preferences:', preferencesError);
       }
 
+      // Log successful registration
+      await supabase.rpc('log_driver_registration_attempt', {
+        p_email: data.email,
+        p_success: true,
+        p_error_message: null
+      });
+
       toast({
         title: "Inscription réussie !",
         description: "Votre compte a été créé avec succès. Vérifiez votre email pour confirmer votre adresse.",
@@ -153,6 +186,18 @@ export const useDriverRegistration = () => {
       return authData;
     } catch (error: any) {
       console.error('Driver registration error:', error);
+      
+      // Log the error if not already logged
+      try {
+        await supabase.rpc('log_driver_registration_attempt', {
+          p_email: data.email || 'unknown',
+          p_success: false,
+          p_error_message: `Unexpected error: ${error.message || 'Unknown error'}`
+        });
+      } catch (logError) {
+        console.warn('Failed to log registration error:', logError);
+      }
+      
       toast({
         title: "Erreur d'inscription",
         description: error.message || "Une erreur est survenue lors de l'inscription. Veuillez réessayer.",
