@@ -256,82 +256,51 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     setIsSubmitting(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('Utilisateur non connecté');
-      }
-
-      const orderData = {
-        user_id: user.id,
-        pickup_location: deliveryData.pickupLocation.address,
-        delivery_location: deliveryData.deliveryLocation.address,
-        pickup_coordinates: {
-          lat: deliveryData.pickupLocation.lat,
-          lng: deliveryData.pickupLocation.lng
+      // Conversion vers le format attendu par OrderConfirmationStep/useEnhancedDeliveryOrders
+      const adaptedOrderData = {
+        pickup: {
+          location: {
+            address: deliveryData.pickupLocation.address,
+            coordinates: {
+              lat: deliveryData.pickupLocation.lat,
+              lng: deliveryData.pickupLocation.lng
+            }
+          }
         },
-        delivery_coordinates: {
-          lat: deliveryData.deliveryLocation.lat,
-          lng: deliveryData.deliveryLocation.lng
+        destination: {
+          location: {
+            address: deliveryData.deliveryLocation.address,
+            coordinates: {
+              lat: deliveryData.deliveryLocation.lat,
+              lng: deliveryData.deliveryLocation.lng
+            }
+          }
         },
-        delivery_type: deliveryData.serviceType,
-        package_type: deliveryData.packageType,
-        estimated_price: deliveryData.estimatedPrice,
-        status: 'pending'
+        service: {
+          mode: deliveryData.serviceType,
+          name: SERVICE_TYPES[deliveryData.serviceType].name,
+          description: SERVICE_TYPES[deliveryData.serviceType].description
+        },
+        pricing: {
+          price: deliveryData.estimatedPrice,
+          mode: deliveryData.serviceType
+        },
+        packageDetails: {
+          type: deliveryData.packageType,
+          description: `Colis de type ${deliveryData.packageType}`
+        }
       };
 
-      const { data, error } = await supabase
-        .from('delivery_orders')
-        .insert([orderData])
-        .select()
-        .single();
+      console.log('🔄 Données formatées pour OrderConfirmationStep:', adaptedOrderData);
 
-      if (error) throw error;
-
-      console.log('✅ Delivery order created:', data);
-
-      // Automatic driver assignment
-      try {
-        const { data: assignmentResult, error: assignmentError } = await supabase.functions.invoke('delivery-dispatcher', {
-          body: {
-            orderId: data.id,
-            pickupLat: deliveryData.pickupLocation.lat,
-            pickupLng: deliveryData.pickupLocation.lng,
-            deliveryType: deliveryData.serviceType
-          }
-        });
-
-        if (assignmentError) {
-          console.error('❌ Driver assignment failed:', assignmentError);
-          toast({
-            title: "Commande créée",
-            description: "Commande créée mais aucun livreur disponible pour le moment"
-          });
-        } else if (assignmentResult?.success) {
-          console.log('✅ Driver assigned:', assignmentResult.driver);
-          toast({
-            title: "Commande créée",
-            description: "Votre demande de livraison a été enregistrée et un livreur a été assigné"
-          });
-        } else {
-          toast({
-            title: "Commande créée",
-            description: "Votre demande de livraison a été enregistrée avec succès"
-          });
-        }
-      } catch (assignmentError) {
-        console.error('❌ Assignment service error:', assignmentError);
-        toast({
-          title: "Commande créée",
-          description: "Votre demande de livraison a été enregistrée avec succès"
-        });
-      }
-
-      onSubmit(data);
+      // Passer les données au parent qui utilisera OrderConfirmationStep
+      onSubmit(adaptedOrderData);
+      
     } catch (error) {
-      console.error('Erreur lors de la création:', error);
+      console.error('Erreur lors de la préparation:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de créer la commande. Veuillez réessayer.",
+        description: "Impossible de préparer la commande. Veuillez réessayer.",
         variant: "destructive"
       });
     } finally {
