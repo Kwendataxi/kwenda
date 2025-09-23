@@ -1319,6 +1319,27 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_online_status_table: {
+        Row: {
+          last_updated: string | null
+          online_drivers: number | null
+          total_drivers: number | null
+          vehicle_class: string | null
+        }
+        Insert: {
+          last_updated?: string | null
+          online_drivers?: number | null
+          total_drivers?: number | null
+          vehicle_class?: string | null
+        }
+        Update: {
+          last_updated?: string | null
+          online_drivers?: number | null
+          total_drivers?: number | null
+          vehicle_class?: string | null
+        }
+        Relationships: []
+      }
       driver_profiles: {
         Row: {
           created_at: string
@@ -1620,13 +1641,6 @@ export type Database = {
             referencedRelation: "chauffeurs"
             referencedColumns: ["user_id"]
           },
-          {
-            foreignKeyName: "driver_service_preferences_driver_id_fkey"
-            columns: ["driver_id"]
-            isOneToOne: false
-            referencedRelation: "driver_service_status"
-            referencedColumns: ["driver_id"]
-          },
         ]
       }
       driver_subscriptions: {
@@ -1747,13 +1761,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chauffeurs"
             referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "driver_vehicle_associations_driver_id_fkey"
-            columns: ["driver_id"]
-            isOneToOne: false
-            referencedRelation: "driver_service_status"
-            referencedColumns: ["driver_id"]
           },
           {
             foreignKeyName: "driver_vehicle_associations_partner_id_fkey"
@@ -7147,26 +7154,15 @@ export type Database = {
           total_drivers: number | null
           vehicle_class: string | null
         }
-        Relationships: []
-      }
-      driver_service_status: {
-        Row: {
-          current_service: string | null
-          display_name: string | null
-          driver_active: boolean | null
-          driver_id: string | null
-          effective_service: string | null
-          email: string | null
-          legacy_delivery_capacity: string | null
-          legacy_vehicle_type: string | null
-          migrated_at: string | null
-          migrated_service_type: string | null
-          migration_status: string | null
-          service_assigned_at: string | null
-          service_category: string | null
-          service_display_name: string | null
-          service_status: string | null
-          verification_status: string | null
+        Insert: {
+          online_drivers?: number | null
+          total_drivers?: number | null
+          vehicle_class?: string | null
+        }
+        Update: {
+          online_drivers?: number | null
+          total_drivers?: number | null
+          vehicle_class?: string | null
         }
         Relationships: []
       }
@@ -7845,6 +7841,10 @@ export type Database = {
           p_unit?: string
         }
         Returns: string
+      }
+      refresh_driver_status: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       search_places: {
         Args: {
