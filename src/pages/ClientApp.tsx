@@ -21,7 +21,7 @@ import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation
 import { ResponsiveContainer } from '@/components/layout/ResponsiveContainer';
 import { MobileOptimizedLayout } from '@/components/layout/MobileOptimizedLayout';
 import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
-import ModernDeliveryInterface from '@/components/delivery/ModernDeliveryInterface';
+import StepByStepDeliveryInterface from '@/components/delivery/StepByStepDeliveryInterface';
 import { 
   MapPin, 
   Car, 
@@ -491,7 +491,7 @@ const ClientApp = () => {
     }
     return (
       <div className="pb-24">
-        <ModernDeliveryInterface
+        <StepByStepDeliveryInterface
           onSubmit={handleModernDeliverySubmit}
           onCancel={() => setCurrentView('home')}
         />
