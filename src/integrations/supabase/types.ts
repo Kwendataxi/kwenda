@@ -453,6 +453,7 @@ export type Database = {
           created_at: string | null
           delivery_capacity: string | null
           display_name: string | null
+          documents: Json | null
           email: string
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
@@ -466,17 +467,24 @@ export type Database = {
           migrated_service_type: string | null
           migration_status: string | null
           phone_number: string | null
+          profile_photo_url: string | null
           rating_average: number | null
+          rating_count: number | null
           role: string | null
           service_areas: string[] | null
+          service_type: string | null
           total_rides: number | null
           updated_at: string | null
           user_id: string
+          vehicle_class: string | null
           vehicle_color: string | null
+          vehicle_make: string | null
           vehicle_model: string | null
+          vehicle_photo_url: string | null
           vehicle_plate: string | null
           vehicle_type: string | null
           vehicle_year: number | null
+          verification_level: string | null
           verification_status: string | null
         }
         Insert: {
@@ -484,6 +492,7 @@ export type Database = {
           created_at?: string | null
           delivery_capacity?: string | null
           display_name?: string | null
+          documents?: Json | null
           email: string
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
@@ -497,17 +506,24 @@ export type Database = {
           migrated_service_type?: string | null
           migration_status?: string | null
           phone_number?: string | null
+          profile_photo_url?: string | null
           rating_average?: number | null
+          rating_count?: number | null
           role?: string | null
           service_areas?: string[] | null
+          service_type?: string | null
           total_rides?: number | null
           updated_at?: string | null
           user_id: string
+          vehicle_class?: string | null
           vehicle_color?: string | null
+          vehicle_make?: string | null
           vehicle_model?: string | null
+          vehicle_photo_url?: string | null
           vehicle_plate?: string | null
           vehicle_type?: string | null
           vehicle_year?: number | null
+          verification_level?: string | null
           verification_status?: string | null
         }
         Update: {
@@ -515,6 +531,7 @@ export type Database = {
           created_at?: string | null
           delivery_capacity?: string | null
           display_name?: string | null
+          documents?: Json | null
           email?: string
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
@@ -528,17 +545,24 @@ export type Database = {
           migrated_service_type?: string | null
           migration_status?: string | null
           phone_number?: string | null
+          profile_photo_url?: string | null
           rating_average?: number | null
+          rating_count?: number | null
           role?: string | null
           service_areas?: string[] | null
+          service_type?: string | null
           total_rides?: number | null
           updated_at?: string | null
           user_id?: string
+          vehicle_class?: string | null
           vehicle_color?: string | null
+          vehicle_make?: string | null
           vehicle_model?: string | null
+          vehicle_photo_url?: string | null
           vehicle_plate?: string | null
           vehicle_type?: string | null
           vehicle_year?: number | null
+          verification_level?: string | null
           verification_status?: string | null
         }
         Relationships: []
