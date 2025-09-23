@@ -98,7 +98,9 @@ export const useDriverRegistration = () => {
           emergency_contact_phone: data.emergencyContactPhone,
           verification_status: 'pending',
           is_active: false, // Désactivé jusqu'à vérification
-          role: data.serviceCategory === 'taxi' ? 'chauffeur' : 'livreur'
+          role: data.serviceCategory === 'taxi' ? 'chauffeur' : 'livreur',
+          service_type: data.serviceType,
+          vehicle_class: 'standard'
         })
         .eq('user_id', authData.user.id);
 

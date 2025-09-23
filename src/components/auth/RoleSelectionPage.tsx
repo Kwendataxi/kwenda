@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Car, User, Building, Shield } from 'lucide-react';
+import { Car, User, Building, Shield, Package } from 'lucide-react';
 
 interface RoleSelectionPageProps {
   onRoleSelect: (role: string) => void;
@@ -18,15 +18,15 @@ const roles = [
   {
     id: 'taxi_driver',
     name: 'Chauffeur Taxi',
-    description: 'Transport de passagers avec différents niveaux de service',
+    description: 'Transport de passagers • Services moto, eco, confort, premium',
     icon: Car,
     color: 'bg-blue-50 hover:bg-blue-100'
   },
   {
     id: 'delivery_driver',
     name: 'Livreur',
-    description: 'Service de livraison express et standard',
-    icon: Car,
+    description: 'Livraison de colis • Services flash, flex, maxicharge',
+    icon: Package,
     color: 'bg-green-50 hover:bg-green-100'
   }
 ];

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ServiceCategorySelector, ServiceCategory } from './ServiceCategorySelector';
-import { SpecificServiceSelector } from './SpecificServiceSelector';
-import { DriverRegistrationForm, DriverRegistrationData } from './DriverRegistrationForm';
+import { SimplifiedDriverRegistration } from './SimplifiedDriverRegistration';
+import { DriverRegistrationData } from './DriverRegistrationForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useDriverRegistration } from '@/hooks/useDriverRegistration';
@@ -15,7 +15,7 @@ export const DifferentiatedDriverRegistration: React.FC<DifferentiatedDriverRegi
   onSuccess,
   onBack,
 }) => {
-  const [step, setStep] = useState<'category' | 'service' | 'form'>('category');
+  const [step, setStep] = useState<'category' | 'form'>('category');
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(null);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   
@@ -24,12 +24,11 @@ export const DifferentiatedDriverRegistration: React.FC<DifferentiatedDriverRegi
   const handleCategorySelect = (category: ServiceCategory) => {
     setSelectedCategory(category);
     setSelectedService(null);
-    setStep('service');
+    setStep('form');
   };
 
   const handleServiceSelect = (serviceType: string) => {
     setSelectedService(serviceType);
-    setStep('form');
   };
 
   const handleRegistrationSubmit = async (formData: DriverRegistrationData) => {
@@ -45,12 +44,9 @@ export const DifferentiatedDriverRegistration: React.FC<DifferentiatedDriverRegi
 
   const handleBack = () => {
     switch (step) {
-      case 'service':
+      case 'form':
         setStep('category');
         setSelectedCategory(null);
-        break;
-      case 'form':
-        setStep('service');
         setSelectedService(null);
         break;
       default:
@@ -62,8 +58,6 @@ export const DifferentiatedDriverRegistration: React.FC<DifferentiatedDriverRegi
     switch (step) {
       case 'category':
         return selectedCategory !== null;
-      case 'service':
-        return selectedService !== null;
       case 'form':
         return true;
       default:
@@ -75,9 +69,8 @@ export const DifferentiatedDriverRegistration: React.FC<DifferentiatedDriverRegi
     <div className="space-y-6">
       {/* Progress indicator */}
       <div className="flex items-center justify-center space-x-2">
-        <div className={`h-2 w-8 rounded-full ${step === 'category' ? 'bg-primary' : 'bg-muted'}`} />
-        <div className={`h-2 w-8 rounded-full ${step === 'service' ? 'bg-primary' : 'bg-muted'}`} />
-        <div className={`h-2 w-8 rounded-full ${step === 'form' ? 'bg-primary' : 'bg-muted'}`} />
+        <div className={`h-2 w-12 rounded-full ${step === 'category' ? 'bg-primary' : 'bg-muted'}`} />
+        <div className={`h-2 w-12 rounded-full ${step === 'form' ? 'bg-primary' : 'bg-muted'}`} />
       </div>
 
       {/* Step content */}
@@ -90,19 +83,9 @@ export const DifferentiatedDriverRegistration: React.FC<DifferentiatedDriverRegi
           />
         )}
 
-        {step === 'service' && selectedCategory && (
-          <SpecificServiceSelector
+        {step === 'form' && selectedCategory && (
+          <SimplifiedDriverRegistration
             serviceCategory={selectedCategory}
-            selectedService={selectedService}
-            onServiceSelect={handleServiceSelect}
-            disabled={isRegistering}
-          />
-        )}
-
-        {step === 'form' && selectedCategory && selectedService && (
-          <DriverRegistrationForm
-            serviceCategory={selectedCategory}
-            serviceType={selectedService}
             onSubmit={handleRegistrationSubmit}
             onBack={handleBack}
             isLoading={isRegistering}
@@ -126,8 +109,6 @@ export const DifferentiatedDriverRegistration: React.FC<DifferentiatedDriverRegi
           <Button
             onClick={() => {
               if (step === 'category' && selectedCategory) {
-                setStep('service');
-              } else if (step === 'service' && selectedService) {
                 setStep('form');
               }
             }}
