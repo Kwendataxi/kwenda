@@ -118,13 +118,59 @@ class SimpleLocationService {
   }
 
   /**
-   * Rechercher des lieux
+   * Rechercher des lieux universellement
    */
   async searchLocations(query: string): Promise<LocationSearchResult[]> {
     if (!query.trim()) {
       return this.getPopularPlaces();
     }
 
+    try {
+      // Import supabase client dynamically
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      // Obtenir la position actuelle pour améliorer la recherche
+      let currentPos = this.cachedPosition;
+      if (!currentPos) {
+        try {
+          currentPos = await this.getCurrentPosition();
+        } catch (e) {
+          // Ignore error, use default
+        }
+      }
+      
+      // Utiliser l'Edge Function pour la recherche globale
+      const { data, error } = await supabase.functions.invoke('places-search', {
+        body: { 
+          query: query.trim(),
+          lat: currentPos?.lat,
+          lng: currentPos?.lng,
+          radius: 50000 // 50km radius
+        }
+      });
+      
+      if (error) {
+        console.warn('Places search API error:', error);
+        return this.getFallbackSearchResults(query);
+      }
+      
+      if (data?.success && data?.results) {
+        console.log(`🔍 Found ${data.results.length} places for "${query}"`);
+        return data.results;
+      }
+      
+    } catch (error) {
+      console.warn('Places search failed:', error);
+    }
+
+    // Fallback to local search + popular places
+    return this.getFallbackSearchResults(query);
+  }
+
+  /**
+   * Résultats de fallback pour la recherche
+   */
+  private getFallbackSearchResults(query: string): LocationSearchResult[] {
     const normalizedQuery = query.toLowerCase();
     
     // Filtrer les lieux populaires selon la recherche
@@ -134,31 +180,37 @@ class SimpleLocationService {
       place.address.toLowerCase().includes(normalizedQuery)
     );
 
-    // Ajouter quelques suggestions génériques si peu de résultats
-    if (filtered.length < 3) {
-      const currentDefault = this.getDefaultPosition();
-      filtered.push({
-        id: `search-${Date.now()}`,
-        title: query,
-        subtitle: this.currentCity,
-        address: `${query}, ${this.currentCity}`,
-        lat: currentDefault.lat + (Math.random() - 0.5) * 0.01,
-        lng: currentDefault.lng + (Math.random() - 0.5) * 0.01,
-        type: 'default' as const
-      });
-    }
+    // Ajouter suggestion générique
+    const currentDefault = this.getDefaultPosition();
+    filtered.unshift({
+      id: `search-${Date.now()}`,
+      title: query,
+      subtitle: 'Rechercher cette adresse',
+      address: query,
+      lat: currentDefault.lat + (Math.random() - 0.5) * 0.01,
+      lng: currentDefault.lng + (Math.random() - 0.5) * 0.01,
+      type: 'default' as const
+    });
 
     return filtered.slice(0, 8);
   }
 
   /**
-   * Obtenir les lieux populaires
+   * Obtenir les lieux populaires (mix global + locaux)
    */
   getPopularPlaces(): LocationSearchResult[] {
-    return POPULAR_PLACES.filter(place => 
+    // Retourner les lieux populaires de la ville actuelle + quelques suggestions globales
+    const localPlaces = POPULAR_PLACES.filter(place => 
       place.subtitle?.includes(this.currentCity) || 
       place.address.includes(this.currentCity)
-    ).slice(0, 6);
+    ).slice(0, 4);
+
+    const globalSuggestions = POPULAR_PLACES.filter(place => 
+      !place.subtitle?.includes(this.currentCity) && 
+      !place.address.includes(this.currentCity)
+    ).slice(0, 2);
+
+    return [...localPlaces, ...globalSuggestions];
   }
 
   /**

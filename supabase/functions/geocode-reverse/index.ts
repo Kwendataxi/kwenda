@@ -59,37 +59,55 @@ serve(async (req) => {
       }
     }
 
-    // Fallback to simple area detection based on coordinates
+    // Universal fallback using coordinates
     let address = '';
     
-    // Kinshasa area detection
-    if (lat >= -5.0 && lat <= -4.0 && lng >= 15.0 && lng <= 16.0) {
-      // Rough Kinshasa communes based on coordinates
-      if (lat >= -4.4 && lng <= 15.4) {
-        address = 'Gombe, Kinshasa, République Démocratique du Congo';
-      } else if (lat >= -4.5 && lng >= 15.4) {
-        address = 'Lemba, Kinshasa, République Démocratique du Congo';
-      } else if (lat <= -4.4 && lng <= 15.4) {
-        address = 'Kinshasa Centre, République Démocratique du Congo';
-      } else {
+    // Try to determine country/region from coordinates
+    let region = '';
+    
+    // Africa detection
+    if (lat >= -35 && lat <= 37 && lng >= -18 && lng <= 52) {
+      // Specific countries in Africa
+      if (lat >= -5.0 && lat <= -4.0 && lng >= 15.0 && lng <= 16.0) {
         address = 'Kinshasa, République Démocratique du Congo';
+      } else if (lat >= -12.0 && lat <= -11.0 && lng >= 27.0 && lng <= 28.0) {
+        address = 'Lubumbashi, République Démocratique du Congo';
+      } else if (lat >= -11.0 && lat <= -10.0 && lng >= 25.0 && lng <= 26.0) {
+        address = 'Kolwezi, République Démocratique du Congo';
+      } else if (lat >= 5.0 && lat <= 6.0 && lng >= -5.0 && lng <= -3.0) {
+        address = 'Abidjan, Côte d\'Ivoire';
+      } else {
+        region = 'Afrique';
       }
     }
-    // Lubumbashi area
-    else if (lat >= -12.0 && lat <= -11.0 && lng >= 27.0 && lng <= 28.0) {
-      address = 'Lubumbashi, République Démocratique du Congo';
+    // Europe detection
+    else if (lat >= 35 && lat <= 70 && lng >= -10 && lng <= 40) {
+      region = 'Europe';
     }
-    // Kolwezi area
-    else if (lat >= -11.0 && lat <= -10.0 && lng >= 25.0 && lng <= 26.0) {
-      address = 'Kolwezi, République Démocratique du Congo';
+    // North America detection
+    else if (lat >= 25 && lat <= 70 && lng >= -170 && lng <= -50) {
+      region = 'Amérique du Nord';
     }
-    // Abidjan area
-    else if (lat >= 5.0 && lat <= 6.0 && lng >= -5.0 && lng <= -3.0) {
-      address = 'Abidjan, Côte d\'Ivoire';
+    // Asia detection
+    else if (lat >= -10 && lat <= 70 && lng >= 60 && lng <= 180) {
+      region = 'Asie';
     }
-    // Default fallback
-    else {
-      address = `Position ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    // South America detection
+    else if (lat >= -55 && lat <= 15 && lng >= -85 && lng <= -35) {
+      region = 'Amérique du Sud';
+    }
+    // Oceania detection
+    else if (lat >= -50 && lat <= -10 && lng >= 110 && lng <= 180) {
+      region = 'Océanie';
+    }
+    
+    // If no specific address found, create generic one
+    if (!address) {
+      if (region) {
+        address = `Position ${lat.toFixed(4)}, ${lng.toFixed(4)} (${region})`;
+      } else {
+        address = `Coordonnées ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      }
     }
 
     console.log(`📍 Fallback geocoding: ${address}`);

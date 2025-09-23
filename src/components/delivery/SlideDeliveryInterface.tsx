@@ -429,7 +429,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         onChange={setPickupQuery}
         suggestions={pickupSuggestions}
         onSelect={(location) => handleLocationSelect(location, 'pickup')}
-        placeholder="Rechercher une adresse..."
+        placeholder="Adresse de collecte (n'importe où dans le monde)"
         type="pickup"
       />
     </div>
@@ -450,7 +450,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         onChange={setDeliveryQuery}
         suggestions={deliverySuggestions}
         onSelect={(location) => handleLocationSelect(location, 'delivery')}
-        placeholder="Rechercher une adresse..."
+        placeholder="Adresse de livraison (partout dans le monde)"
         type="delivery"
       />
     </div>
