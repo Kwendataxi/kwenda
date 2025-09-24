@@ -8172,6 +8172,20 @@ export type Database = {
         }
         Returns: Json
       }
+      get_transport_chat_messages: {
+        Args: { p_booking_id: string }
+        Returns: {
+          booking_id: string
+          id: string
+          message: string
+          message_type: string
+          metadata: Json
+          read_at: string
+          sender_id: string
+          sender_type: string
+          sent_at: string
+        }[]
+      }
       get_trip_share_data: {
         Args: { p_share_id: string }
         Returns: {
@@ -8251,6 +8265,25 @@ export type Database = {
       increment_address_usage: {
         Args: { address_id: string }
         Returns: undefined
+      }
+      insert_booking_report: {
+        Args: {
+          p_booking_id: string
+          p_driver_id: string
+          p_reason: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      insert_driver_rating: {
+        Args: {
+          p_booking_id: string
+          p_driver_id: string
+          p_feedback?: string
+          p_rating: number
+          p_user_id: string
+        }
+        Returns: string
       }
       intelligent_places_search: {
         Args:
@@ -8444,6 +8477,10 @@ export type Database = {
         Args: { p_delivery_capacity?: string; p_vehicle_type?: string }
         Returns: string
       }
+      mark_message_as_read: {
+        Args: { p_message_id: string }
+        Returns: undefined
+      }
       process_escrow_release: {
         Args: { escrow_id: string }
         Returns: boolean
@@ -8532,6 +8569,15 @@ export type Database = {
           sensitive_data_access: number
           suspicious_patterns: number
         }[]
+      }
+      send_transport_chat_message: {
+        Args: {
+          p_booking_id: string
+          p_message: string
+          p_message_type?: string
+          p_sender_id: string
+        }
+        Returns: string
       }
       update_trip_share_location: {
         Args: { p_encrypted_data: string; p_share_id: string }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
-import TaxiLiveTracker from '@/components/transport/TaxiLiveTracker';
+import AdvancedTaxiTracker from '@/components/transport/AdvancedTaxiTracker';
 import { TaxiTestComponent } from '@/components/transport/TaxiTestComponent';
 import { Car, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ const TransportPage = () => {
 
   if (activeView === 'track' && activeBookingId) {
     return (
-      <TaxiLiveTracker
+      <AdvancedTaxiTracker
         bookingId={activeBookingId}
         onBack={handleBackToCreate}
       />

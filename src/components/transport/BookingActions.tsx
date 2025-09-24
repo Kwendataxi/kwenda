@@ -83,19 +83,29 @@ const BookingActions: React.FC<BookingActionsProps> = ({ booking, onBookingUpdat
 
     setLoading(true);
     try {
-      // Enregistrer l'évaluation directement via SQL
+      // Insérer directement l'évaluation
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error('User not authenticated');
 
-      const { error } = await supabase.rpc('insert_driver_rating', {
-        p_driver_id: booking.driver_id,
-        p_user_id: userData.user.id,
-        p_booking_id: booking.id,
-        p_rating: rating,
-        p_feedback: feedback || null
-      });
+      const { error: ratingError } = await supabase
+        .from('driver_ratings')
+        .insert({
+          driver_id: booking.driver_id,
+          user_id: userData.user.id,
+          booking_id: booking.id,
+          rating: rating,
+          feedback: feedback || null
+        });
 
-      if (error) throw error;
+      if (ratingError) throw ratingError;
+
+      // Marquer la réservation comme évaluée
+      const { error: updateError } = await supabase
+        .from('transport_bookings')
+        .update({ rated: true })
+        .eq('id', booking.id);
+
+      if (updateError) throw updateError;
 
       toast({
         title: "Évaluation enregistrée",
@@ -168,16 +178,21 @@ const BookingActions: React.FC<BookingActionsProps> = ({ booking, onBookingUpdat
 
     setLoading(true);
     try {
-      // Créer un signalement directement via SQL
+      // Créer un signalement
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error('User not authenticated');
 
-      const { error } = await supabase.rpc('insert_booking_report', {
-        p_booking_id: booking.id,
-        p_user_id: userData.user.id,
-        p_driver_id: booking.driver_id,
-        p_reason: reportReason
-      });
+      const { error } = await supabase
+        .from('booking_reports')
+        .insert({
+          booking_id: booking.id,
+          user_id: userData.user.id,
+          driver_id: booking.driver_id,
+          reason: reportReason,
+          status: 'pending'
+        });
+
+      if (error) throw error;
 
       if (error) throw error;
 
