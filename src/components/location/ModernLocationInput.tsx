@@ -53,6 +53,13 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
   // Ne jamais synchroniser automatiquement - chaque champ reste indépendant
   // Empêcher complètement la propagation d'état entre pickup et destination
 
+  // Réinitialiser query pour destination pour éviter la pollution entre champs
+  useEffect(() => {
+    if (context === 'destination') {
+      setQuery('');
+    }
+  }, [context]);
+
   // Auto-détection de position seulement si explicitement demandée via navigation
   useEffect(() => {
     if (autoDetect && !value && context === 'pickup') {

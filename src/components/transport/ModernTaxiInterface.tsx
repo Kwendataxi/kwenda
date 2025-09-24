@@ -328,6 +328,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
             </div>
             
             <ModernLocationInput
+              key="destination-field"
               value={null}
               onChange={handleDestinationChange}
               placeholder="Où allez-vous ?"
