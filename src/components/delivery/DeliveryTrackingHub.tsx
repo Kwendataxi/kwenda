@@ -25,6 +25,8 @@ import {
 import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
 import RealTimeDeliveryChat from './RealTimeDeliveryChat';
 import { useEnhancedDeliveryTracking } from '@/hooks/useEnhancedDeliveryTracking';
+import { useUserRole } from '@/hooks/useUserRole';
+import DriverDeliveryActions from '@/components/driver/DriverDeliveryActions';
 // import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface DeliveryTrackingHubProps {
@@ -35,6 +37,7 @@ interface DeliveryTrackingHubProps {
 export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackingHubProps) {
   const [activeTab, setActiveTab] = useState('tracking');
   const [showChat, setShowChat] = useState(false);
+  const { userRole } = useUserRole();
   
   const {
     order,
@@ -368,9 +371,29 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
         </div>
       )}
 
+      {/* Actions chauffeur si connecté en tant que chauffeur */}
+      {userRole === 'chauffeur' && (
+        <div className="p-4 border-t bg-background/95 backdrop-blur">
+          <DriverDeliveryActions 
+            order={{ 
+              id: orderId,
+              status: order.status,
+              pickup_location: order.pickup_location,
+              delivery_location: order.delivery_location,
+              pickup_coordinates: order.pickup_coordinates,
+              delivery_coordinates: order.delivery_coordinates,
+              delivery_type: order.delivery_type || 'flex',
+              estimated_price: order.estimated_price || order.actual_price || 0,
+              user_id: order.user_id
+            }}
+            onStatusUpdate={() => window.location.reload()}
+          />
+        </div>
+      )}
+
       {/* Bouton retour */}
       {onBack && (
-        <div className="p-4">
+        <div className={`p-4 ${userRole === 'chauffeur' ? '' : 'border-t'}`}>
           <Button onClick={onBack} variant="outline" className="w-full">
             Retour à l'accueil
           </Button>

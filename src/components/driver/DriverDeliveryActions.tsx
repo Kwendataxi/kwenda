@@ -39,6 +39,9 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
   const [notes, setNotes] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [deliveryPhoto, setDeliveryPhoto] = useState<File | null>(null);
+
+  // Debug log pour vérifier les données reçues
+  console.log('DriverDeliveryActions order:', order);
   
   // Utiliser le hook optimisé pour les actions livreur
   const {
@@ -190,12 +193,24 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
     }
   };
 
+  // Si pas de données de commande, afficher un état de chargement
+  if (!order.id || !order.status) {
+    return (
+      <Card className="border-gray-200">
+        <CardContent className="p-4 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-sm text-muted-foreground">Chargement des détails de livraison...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="border-grey-200">
+    <Card className="border-gray-200 bg-card">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <Package className="w-5 h-5 text-primary" />
-          Livraison {order.delivery_type.toUpperCase()}
+          Livraison {(order.delivery_type || 'FLEX').toUpperCase()}
         </CardTitle>
       </CardHeader>
       
