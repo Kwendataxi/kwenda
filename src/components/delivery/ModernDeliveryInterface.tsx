@@ -27,6 +27,11 @@ interface DeliveryData {
   serviceType: 'flash' | 'flex' | 'maxicharge';
   packageType: string;
   estimatedPrice: number;
+  // Nouveaux champs de contact
+  senderName: string;
+  senderPhone: string;
+  recipientName: string;
+  recipientPhone: string;
 }
 
 const SERVICE_TYPES = {
@@ -66,7 +71,11 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
     deliveryLocation: null,
     serviceType: 'flex',
     packageType: 'Documents',
-    estimatedPrice: 3000
+    estimatedPrice: 3000,
+    senderName: '',
+    senderPhone: '',
+    recipientName: '',
+    recipientPhone: ''
   });
 
   const [expandedSection, setExpandedSection] = useState<string>('pickup');
@@ -103,10 +112,20 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
   };
 
   const handleSubmit = async () => {
+    // Validation complète
     if (!deliveryData.pickupLocation || !deliveryData.deliveryLocation) {
       toast({
         title: "Informations manquantes",
         description: "Veuillez sélectionner les adresses de collecte et de livraison",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!deliveryData.senderName || !deliveryData.senderPhone || !deliveryData.recipientName || !deliveryData.recipientPhone) {
+      toast({
+        title: "Informations de contact manquantes",
+        description: "Veuillez remplir tous les champs de contact",
         variant: "destructive"
       });
       return;
@@ -135,6 +154,10 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
         delivery_type: deliveryData.serviceType,
         package_type: deliveryData.packageType,
         estimated_price: deliveryData.estimatedPrice,
+        sender_name: deliveryData.senderName,
+        sender_phone: deliveryData.senderPhone,
+        recipient_name: deliveryData.recipientName,
+        recipient_phone: deliveryData.recipientPhone,
         status: 'pending'
       };
 
@@ -311,7 +334,10 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
                             ? 'border-primary bg-primary/5'
                             : 'border-border/20 glass-card hover:border-primary/30'
                         }`}
-                        onClick={() => setDeliveryData(prev => ({ ...prev, serviceType: key as any }))}
+                        onClick={() => {
+                          setDeliveryData(prev => ({ ...prev, serviceType: key as any }));
+                          setExpandedSection('contacts');
+                        }}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -342,6 +368,79 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
                         <option key={type} value={type}>{type}</option>
                       ))}
                     </select>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Section Contacts */}
+            <div className="space-y-4">
+              <SectionHeader
+                id="contacts"
+                title="Informations de contact"
+                icon={<Package className="w-4 h-4" />}
+                isCompleted={!!(deliveryData.senderName && deliveryData.senderPhone && deliveryData.recipientName && deliveryData.recipientPhone)}
+                isExpanded={expandedSection === 'contacts'}
+              />
+              
+              {expandedSection === 'contacts' && (
+                <div className="pl-11 space-y-6 animate-fade-in">
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-foreground">Expéditeur (récupération)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="senderName">Nom complet *</Label>
+                        <Input
+                          id="senderName"
+                          value={deliveryData.senderName}
+                          onChange={(e) => setDeliveryData(prev => ({ ...prev, senderName: e.target.value }))}
+                          placeholder="Nom de l'expéditeur"
+                          className="glass-input"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="senderPhone">Téléphone *</Label>
+                        <Input
+                          id="senderPhone"
+                          value={deliveryData.senderPhone}
+                          onChange={(e) => setDeliveryData(prev => ({ ...prev, senderPhone: e.target.value }))}
+                          placeholder="+243 XXX XXX XXX"
+                          className="glass-input"
+                          type="tel"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-foreground">Destinataire (livraison)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="recipientName">Nom complet *</Label>
+                        <Input
+                          id="recipientName"
+                          value={deliveryData.recipientName}
+                          onChange={(e) => setDeliveryData(prev => ({ ...prev, recipientName: e.target.value }))}
+                          placeholder="Nom du destinataire"
+                          className="glass-input"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="recipientPhone">Téléphone *</Label>
+                        <Input
+                          id="recipientPhone"
+                          value={deliveryData.recipientPhone}
+                          onChange={(e) => setDeliveryData(prev => ({ ...prev, recipientPhone: e.target.value }))}
+                          placeholder="+243 XXX XXX XXX"
+                          className="glass-input"
+                          type="tel"
+                          required
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -400,9 +499,17 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
               <Button 
                 onClick={handleSubmit}
                 className="flex-1 bg-primary hover:bg-primary/90"
-                disabled={!deliveryData.pickupLocation || !deliveryData.deliveryLocation || isSubmitting}
+                disabled={
+                  !deliveryData.pickupLocation || 
+                  !deliveryData.deliveryLocation || 
+                  !deliveryData.senderName || 
+                  !deliveryData.senderPhone || 
+                  !deliveryData.recipientName || 
+                  !deliveryData.recipientPhone || 
+                  isSubmitting
+                }
               >
-                {isSubmitting ? 'Création...' : 'Commander la livraison'}
+                {isSubmitting ? 'Création...' : 'Confirmer la commande'}
               </Button>
             </div>
           </div>

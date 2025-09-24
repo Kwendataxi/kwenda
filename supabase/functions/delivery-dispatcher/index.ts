@@ -1,132 +1,163 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 interface DeliveryOrder {
-  id: string
-  pickup_coordinates: { lat: number; lng: number }
-  delivery_coordinates: { lat: number; lng: number }
-  delivery_type: string
-  estimated_price: number
-  user_id: string
+  id: string;
+  pickup_coordinates: any;
+  delivery_coordinates: any;
+  delivery_type: string;
+  estimated_price: number;
+  user_id: string;
+  sender_phone?: string;
+  recipient_phone?: string;
+  sender_name?: string;
+  recipient_name?: string;
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { orderId, pickupLat, pickupLng, deliveryType } = await req.json()
+    const { orderId, pickupLat, pickupLng, deliveryType } = await req.json();
 
-    console.log(`🚚 Looking for driver for delivery order ${orderId}`)
+    console.log(`🚚 Looking for driver for delivery order ${orderId}`);
+    console.log(`📍 Pickup location: ${pickupLat}, ${pickupLng}`);
+    console.log(`🚛 Delivery type: ${deliveryType}`);
 
-    // Find available drivers nearby (within 15km for deliveries)
-    const { data: nearbyDrivers, error: driversError } = await supabase
-      .rpc('find_nearby_drivers', {
-        pickup_lat: pickupLat,
-        pickup_lng: pickupLng,
-        service_type_param: 'delivery',
-        radius_km: 15
-      })
+    // Find nearby available drivers within 15km
+    const { data: drivers, error: driversError } = await supabase.rpc('find_nearby_drivers', {
+      user_latitude: pickupLat,
+      user_longitude: pickupLng,
+      max_distance_km: 15,
+      service_type: 'delivery'
+    });
 
     if (driversError) {
-      console.error('Error finding drivers:', driversError)
-      throw driversError
+      console.error('❌ Error finding drivers:', driversError);
+      throw driversError;
     }
 
-    if (!nearbyDrivers || nearbyDrivers.length === 0) {
-      console.log('❌ No drivers available for delivery')
+    if (!drivers || drivers.length === 0) {
+      console.log('❌ No drivers available for delivery');
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: 'Aucun livreur disponible dans la zone',
-          driversFound: 0
+          message: 'Aucun livreur disponible dans votre zone',
+          drivers_searched: 0
         }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200
-        }
-      )
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
+    console.log(`✅ Found ${drivers.length} available drivers`);
+    
     // Select the closest driver
-    const selectedDriver = nearbyDrivers[0]
-    console.log(`✅ Found driver ${selectedDriver.driver_id} at ${selectedDriver.distance_km}km`)
+    const selectedDriver = drivers[0];
+    
+    console.log(`🎯 Assigning driver ${selectedDriver.driver_id} (${selectedDriver.distance_km}km away)`);
 
-    // Assign driver to delivery order
-    const { error: assignError } = await supabase
+    // Update the delivery order with driver assignment
+    const { error: updateError } = await supabase
       .from('delivery_orders')
       .update({
         driver_id: selectedDriver.driver_id,
         status: 'driver_assigned',
-        driver_assigned_at: new Date().toISOString()
+        driver_assigned_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
-      .eq('id', orderId)
+      .eq('id', orderId);
 
-    if (assignError) {
-      console.error('Error assigning driver:', assignError)
-      throw assignError
+    if (updateError) {
+      console.error('❌ Error updating delivery order:', updateError);
+      throw updateError;
     }
 
     // Mark driver as unavailable
     const { error: locationError } = await supabase
       .from('driver_locations')
-      .update({ is_available: false })
-      .eq('driver_id', selectedDriver.driver_id)
+      .update({
+        is_available: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('driver_id', selectedDriver.driver_id);
 
     if (locationError) {
-      console.error('Error updating driver availability:', locationError)
+      console.warn('⚠️ Could not update driver availability:', locationError);
     }
 
-    // Create notification for driver
+    // Get delivery order details for notification
+    const { data: orderDetails, error: orderError } = await supabase
+      .from('delivery_orders')
+      .select('*')
+      .eq('id', orderId)
+      .single();
+
+    if (orderError) {
+      console.warn('⚠️ Could not get order details:', orderError);
+    }
+
+    // Create notification for the driver with contact information
+    const notificationData = {
+      user_id: selectedDriver.driver_id,
+      title: `Nouvelle livraison ${deliveryType.toUpperCase()}`,
+      message: `Nouvelle commande de livraison assignée. Distance: ${selectedDriver.distance_km.toFixed(1)}km`,
+      notification_type: 'delivery_assignment',
+      delivery_order_id: orderId,
+      metadata: {
+        orderId,
+        deliveryType,
+        distance: selectedDriver.distance_km,
+        estimatedPrice: orderDetails?.estimated_price,
+        pickupLocation: orderDetails?.pickup_location,
+        deliveryLocation: orderDetails?.delivery_location,
+        senderName: orderDetails?.sender_name,
+        senderPhone: orderDetails?.sender_phone,
+        recipientName: orderDetails?.recipient_name,
+        recipientPhone: orderDetails?.recipient_phone
+      }
+    };
+
     const { error: notificationError } = await supabase
       .from('delivery_notifications')
-      .insert({
-        user_id: selectedDriver.driver_id,
-        delivery_order_id: orderId,
-        notification_type: 'driver_assignment',
-        title: 'Nouvelle livraison assignée',
-        message: `Vous avez été assigné à une livraison ${deliveryType}`,
-        metadata: {
-          distance_km: selectedDriver.distance_km,
-          delivery_type: deliveryType
-        }
-      })
+      .insert([notificationData]);
 
     if (notificationError) {
-      console.error('Error creating notification:', notificationError)
+      console.warn('⚠️ Could not create notification:', notificationError);
     }
 
-    // Add status history entry (no user_id required for system changes)
+    // Log the assignment in delivery status history
     const { error: historyError } = await supabase
       .from('delivery_status_history')
-      .insert({
+      .insert([{
         delivery_order_id: orderId,
         status: 'driver_assigned',
-        previous_status: 'confirmed',
-        changed_by: selectedDriver.driver_id,
-        notes: `Livreur assigné automatiquement - Distance: ${selectedDriver.distance_km.toFixed(1)}km`,
-        location_coordinates: {
-          lat: selectedDriver.latitude,
-          lng: selectedDriver.longitude
-        }
-      })
+        previous_status: 'pending',
+        changed_by: null, // System assignment
+        metadata: {
+          driver_id: selectedDriver.driver_id,
+          assignment_method: 'automatic',
+          distance_km: selectedDriver.distance_km
+        },
+        notes: `Livreur assigné automatiquement - Distance: ${selectedDriver.distance_km.toFixed(1)}km`
+      }]);
 
     if (historyError) {
-      console.error('Error creating status history:', historyError)
+      console.warn('⚠️ Could not log status history:', historyError);
     }
 
-    console.log(`🎯 Successfully assigned driver ${selectedDriver.driver_id} to delivery ${orderId}`)
+    console.log('✅ Driver assignment completed successfully');
 
     return new Response(
       JSON.stringify({
@@ -134,27 +165,25 @@ serve(async (req) => {
         driver: {
           id: selectedDriver.driver_id,
           distance: selectedDriver.distance_km,
-          vehicleClass: selectedDriver.vehicle_class
+          vehicle_class: selectedDriver.vehicle_class
         },
         message: 'Livreur assigné avec succès'
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200
-      }
-    )
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
 
   } catch (error) {
-    console.error('Delivery dispatcher error:', error)
+    console.error('❌ Delivery dispatcher error:', error);
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message
+      JSON.stringify({ 
+        success: false, 
+        error: error.message,
+        message: 'Erreur lors de l\'assignation du livreur'
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
-    )
+    );
   }
-})
+});

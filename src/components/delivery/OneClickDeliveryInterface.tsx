@@ -187,7 +187,7 @@ const OneClickDeliveryInterface = ({ onSubmit, onCancel }: OneClickDeliveryInter
         deliveryLocation: destination.address,
         pickupCoordinates: { lat: pickup.coordinates[1], lng: pickup.coordinates[0] },
         deliveryCoordinates: { lat: destination.coordinates[1], lng: destination.coordinates[0] },
-        deliveryType: selectedMode as 'flash' | 'cargo',
+        deliveryType: selectedMode as 'flash' | 'flex' | 'maxicharge',
         estimatedPrice: estimatedPrice,
       };
 

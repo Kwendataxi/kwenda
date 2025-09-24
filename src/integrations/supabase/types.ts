@@ -1004,7 +1004,11 @@ export type Database = {
           pickup_coordinates: Json | null
           pickup_location: string
           pickup_time: string | null
+          recipient_name: string | null
+          recipient_phone: string | null
           recipient_signature: string | null
+          sender_name: string | null
+          sender_phone: string | null
           status: string | null
           updated_at: string
           user_id: string
@@ -1036,7 +1040,11 @@ export type Database = {
           pickup_coordinates?: Json | null
           pickup_location: string
           pickup_time?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
           recipient_signature?: string | null
+          sender_name?: string | null
+          sender_phone?: string | null
           status?: string | null
           updated_at?: string
           user_id: string
@@ -1068,7 +1076,11 @@ export type Database = {
           pickup_coordinates?: Json | null
           pickup_location?: string
           pickup_time?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
           recipient_signature?: string | null
+          sender_name?: string | null
+          sender_phone?: string | null
           status?: string | null
           updated_at?: string
           user_id?: string

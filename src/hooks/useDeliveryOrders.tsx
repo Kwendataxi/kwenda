@@ -8,12 +8,16 @@ interface DeliveryData {
   deliveryLocation: string;
   pickupCoordinates?: { lat: number; lng: number };
   deliveryCoordinates?: { lat: number; lng: number };
-  deliveryType: 'flash' | 'cargo';
+  deliveryType: 'flash' | 'flex' | 'maxicharge';
   packageType?: string;
   vehicleSize?: string;
   loadingAssistance?: boolean;
   estimatedPrice: number;
   pickupTime?: string;
+  senderName?: string;
+  senderPhone?: string;
+  recipientName?: string;
+  recipientPhone?: string;
 }
 
 export const useDeliveryOrders = () => {
@@ -42,6 +46,10 @@ export const useDeliveryOrders = () => {
           loading_assistance: data.loadingAssistance || false,
           estimated_price: data.estimatedPrice,
           pickup_time: data.pickupTime || new Date().toISOString(),
+          sender_name: data.senderName,
+          sender_phone: data.senderPhone,
+          recipient_name: data.recipientName,
+          recipient_phone: data.recipientPhone,
           status: 'pending'
         })
         .select()
