@@ -8659,6 +8659,15 @@ export type Database = {
           status: string
         }[]
       }
+      security_definer_check: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          check_name: string
+          recommendation: string
+          status: string
+          view_count: number
+        }[]
+      }
       security_diagnostic: {
         Args: Record<PropertyKey, never>
         Returns: {
