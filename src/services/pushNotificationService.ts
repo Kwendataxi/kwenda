@@ -47,8 +47,8 @@ class PushNotificationService {
   private checkCapacitorAvailability(): void {
     try {
       this.isCapacitorAvailable = typeof window !== 'undefined' && 
-        window.Capacitor !== undefined && 
-        typeof window.Capacitor.isNativePlatform === 'function';
+        (window as any).Capacitor !== undefined && 
+        typeof (window as any).Capacitor.isNativePlatform === 'function';
       
       console.log(`📱 Capacitor Push Notifications disponible: ${this.isCapacitorAvailable}`);
     } catch (error) {

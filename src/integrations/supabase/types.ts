@@ -8715,6 +8715,10 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: boolean
       }
+      validate_and_fix_delivery_coordinates: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       validate_booking_coordinates: {
         Args: { delivery_coords?: Json; pickup_coords: Json }
         Returns: Json
