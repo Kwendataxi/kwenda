@@ -10,7 +10,17 @@ type ThemeMode = 'day' | 'sunset' | 'night';
 const DynamicTheme: React.FC<DynamicThemeProps> = ({ children }) => {
   const [themeMode, setThemeMode] = useState<ThemeMode>('day');
   const [mounted, setMounted] = useState(false);
-  const { theme, systemTheme, resolvedTheme } = useTheme();
+  
+  // Safe theme hook usage
+  let theme = 'dark', systemTheme = 'dark', resolvedTheme = 'dark';
+  try {
+    const themeData = useTheme();
+    theme = themeData.theme || 'dark';
+    systemTheme = themeData.systemTheme || 'dark';
+    resolvedTheme = themeData.resolvedTheme || 'dark';
+  } catch (error) {
+    console.warn('Theme context not available, using defaults');
+  }
 
   useEffect(() => {
     setMounted(true);

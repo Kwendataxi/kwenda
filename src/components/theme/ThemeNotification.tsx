@@ -4,8 +4,18 @@ import { Sun, Moon, Monitor } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const ThemeNotification = () => {
-  const { theme, systemTheme } = useTheme();
   const [previousTheme, setPreviousTheme] = useState<string | undefined>();
+  
+  // Safe theme access
+  let theme = 'dark', systemTheme = 'dark';
+  try {
+    const themeData = useTheme();
+    theme = themeData.theme || 'dark';
+    systemTheme = themeData.systemTheme || 'dark';
+  } catch (error) {
+    // Skip notifications if theme context is not available
+    return null;
+  }
 
   useEffect(() => {
     if (previousTheme && theme !== previousTheme) {
