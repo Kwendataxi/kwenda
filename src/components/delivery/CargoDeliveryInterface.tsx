@@ -212,7 +212,7 @@ const CargoDeliveryInterface = ({ onSubmit, onCancel }: CargoDeliveryInterfacePr
             <div className="w-3 h-3 bg-primary rounded-full"></div>
             Point de récupération
           </label>
-          <ModernLocationPicker
+            <ModernLocationPicker
             value={pickup}
             onChange={setPickup}
             placeholder="D'où récupérer le colis ?"

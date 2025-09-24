@@ -8,8 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useIntelligentLocation } from '@/hooks/useIntelligentLocation';
-import { LocationData, LocationSearchResult } from '@/services/intelligentLocationService';
+import { useSmartGeolocation, LocationData, LocationSearchResult } from '@/hooks/useSmartGeolocation';
 import { MapPin, Search, Loader2, Navigation, Star, Clock } from 'lucide-react';
 
 interface IntelligentLocationPickerProps {
@@ -41,7 +40,7 @@ export const IntelligentLocationPicker: React.FC<IntelligentLocationPickerProps>
     getPopularPlaces,
     error,
     clearError
-  } = useIntelligentLocation();
+  } = useSmartGeolocation();
 
   // Synchroniser query avec value
   useEffect(() => {
@@ -55,7 +54,7 @@ export const IntelligentLocationPicker: React.FC<IntelligentLocationPickerProps>
     setQuery(searchQuery);
     
     if (searchQuery.trim()) {
-      searchLocations(searchQuery, (results) => {
+      searchLocations(searchQuery).then(results => {
         setSuggestions(results);
         setShowSuggestions(true);
       });

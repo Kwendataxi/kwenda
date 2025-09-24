@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useSimpleLocation } from '@/hooks/useSimpleLocation';
-import { LocationData, LocationSearchResult } from '@/types/location';
+import { useSmartGeolocation, LocationData, LocationSearchResult } from '@/hooks/useSmartGeolocation';
 import { MapPin, Search, Loader2, Navigation } from 'lucide-react';
 
 interface ModernLocationPickerProps {
@@ -24,7 +23,7 @@ export const ModernLocationPicker: React.FC<ModernLocationPickerProps> = ({
   const [suggestions, setSuggestions] = useState<LocationSearchResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   
-  const { getCurrentPosition, searchLocations, loading, getPopularPlaces } = useSimpleLocation();
+  const { getCurrentPosition, searchLocations, loading, getPopularPlaces } = useSmartGeolocation();
 
   // Synchroniser query avec value pour éviter les conflits d'affichage
   React.useEffect(() => {
@@ -37,7 +36,7 @@ export const ModernLocationPicker: React.FC<ModernLocationPickerProps> = ({
     setQuery(searchQuery);
     
     if (searchQuery.trim()) {
-      searchLocations(searchQuery, (results) => {
+      searchLocations(searchQuery).then(results => {
         setSuggestions(results);
         setShowSuggestions(true);
       });
