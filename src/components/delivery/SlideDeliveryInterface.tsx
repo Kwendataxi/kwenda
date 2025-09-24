@@ -574,7 +574,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           {/* Progress Bar */}
           <div className="flex items-center gap-2">
             {(['pickup', 'destination', 'service', 'confirm'] as Step[]).map((step, index) => (
-              <React.Fragment key={step}>
+              <div key={step} className="flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
                   currentStep === step 
                     ? 'bg-primary text-primary-foreground' 
@@ -591,7 +591,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
                       : 'bg-muted'
                   }`} />
                 )}
-              </React.Fragment>
+              </div>
             ))}
           </div>
         </div>
