@@ -17,9 +17,11 @@ import { MarketplaceHeader } from '@/components/marketplace/MarketplaceHeader';
 import { AdvancedFilters } from '@/components/marketplace/AdvancedFilters';
 import { ProductCard } from '@/components/marketplace/ProductCard';
 import { FilterDialog } from '@/components/marketplace/FilterDialog';
+import { CompactProductCard } from '@/components/marketplace/CompactProductCard';
+import { ShoppingCartComponent } from '@/components/marketplace/ShoppingCartComponent';
 import { useMarketplaceFilters } from '@/hooks/useMarketplaceFilters';
 import { useCart } from '@/context/CartContext';
-import { useFavorites } from '@/hooks/useUnifiedFavorites';
+import { useFavorites } from '@/context/FavoritesContext';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
 const MarketplaceContent = () => {

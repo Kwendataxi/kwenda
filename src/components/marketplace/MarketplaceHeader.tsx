@@ -12,7 +12,7 @@ import {
   X
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { useFavorites } from '@/hooks/useUnifiedFavorites';
+import { useFavorites } from '@/context/FavoritesContext';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { cn } from '@/lib/utils';
 
