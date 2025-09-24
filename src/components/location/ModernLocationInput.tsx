@@ -50,8 +50,8 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
     clearError
   } = useSimpleLocation();
 
-  // Ne jamais synchroniser automatiquement avec les valeurs externes
-  // Chaque champ reste indépendant et vide au démarrage
+  // Ne jamais synchroniser automatiquement - chaque champ reste indépendant
+  // Empêcher complètement la propagation d'état entre pickup et destination
 
   // Auto-détection de position seulement si explicitement demandée via navigation
   useEffect(() => {
@@ -84,9 +84,8 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
     setQuery(newQuery);
     setShowSuggestions(true);
     
-    if (newQuery !== value?.address) {
-      onChange(null);
-    }
+    // Toujours nettoyer la sélection quand l'utilisateur tape
+    onChange(null);
   };
 
   const handleLocationSelect = (location: LocationData | ServiceLocationSearchResult) => {
@@ -99,7 +98,13 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
       name: ('title' in location ? location.title : location.name) || location.address
     };
     
-    setQuery(location.address);
+    // Pour destination, ne jamais garder l'affichage si c'est la même adresse que pickup
+    if (context === 'destination') {
+      setQuery(location.address);
+    } else {
+      setQuery(location.address);
+    }
+    
     setShowSuggestions(false);
     onChange(locationData);
     inputRef.current?.blur();
