@@ -50,14 +50,8 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
     clearError
   } = useSimpleLocation();
 
-  // Synchroniser avec la valeur externe UNIQUEMENT pour context 'pickup' et seulement lors de la sélection
-  useEffect(() => {
-    if (value && value.address && context === 'pickup' && !query) {
-      // Ne pré-remplir que pour pickup et si le champ est vide
-      setQuery(value.address);
-    }
-    // Pour destination, ne JAMAIS pré-remplir automatiquement
-  }, [value, query, context]);
+  // Ne jamais synchroniser automatiquement avec les valeurs externes
+  // Chaque champ reste indépendant et vide au démarrage
 
   // Auto-détection de position seulement si explicitement demandée via navigation
   useEffect(() => {
