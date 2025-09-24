@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useTheme } from 'next-themes';
+import { useSafeTheme } from './SafeThemeProvider';
 
 interface DynamicThemeProps {
   children: React.ReactNode;
@@ -10,17 +10,7 @@ type ThemeMode = 'day' | 'sunset' | 'night';
 const DynamicTheme: React.FC<DynamicThemeProps> = ({ children }) => {
   const [themeMode, setThemeMode] = useState<ThemeMode>('day');
   const [mounted, setMounted] = useState(false);
-  
-  // Safe theme hook usage
-  let theme = 'dark', systemTheme = 'dark', resolvedTheme = 'dark';
-  try {
-    const themeData = useTheme();
-    theme = themeData.theme || 'dark';
-    systemTheme = themeData.systemTheme || 'dark';
-    resolvedTheme = themeData.resolvedTheme || 'dark';
-  } catch (error) {
-    console.warn('Theme context not available, using defaults');
-  }
+  const { theme, resolvedTheme } = useSafeTheme();
 
   useEffect(() => {
     setMounted(true);
