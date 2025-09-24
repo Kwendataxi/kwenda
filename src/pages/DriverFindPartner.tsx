@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PartnerRequestForm } from '@/components/auth/PartnerRequestForm';
-// Utilisation d'un layout simple sans header/footer spéciaux
 import { supabase } from '@/integrations/supabase/client';
 import { Building2, CheckCircle, Clock, Users } from 'lucide-react';
 import { toast } from 'sonner';
@@ -150,22 +149,22 @@ export const DriverFindPartner = () => {
             <h1 className="text-2xl font-bold">Kwenda</h1>
           </div>
         </div>
-          <div className="container mx-auto px-4 py-8">
-            <Card className="max-w-md mx-auto">
-              <CardContent className="text-center py-8">
-                <h2 className="text-xl font-semibold mb-2">Profil introuvable</h2>
-                <p className="text-muted-foreground mb-4">
-                  Nous n'avons pas trouvé votre profil chauffeur.
-                </p>
-                <Button onClick={() => navigate('/')}>
-                  Retour à l'accueil
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+        <div className="container mx-auto px-4 py-8">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="text-center py-8">
+              <h2 className="text-xl font-semibold mb-2">Profil introuvable</h2>
+              <p className="text-muted-foreground mb-4">
+                Nous n'avons pas trouvé votre profil chauffeur.
+              </p>
+              <Button onClick={() => navigate('/')}>
+                Retour à l'accueil
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -174,154 +173,153 @@ export const DriverFindPartner = () => {
           <h1 className="text-2xl font-bold">Kwenda</h1>
         </div>
       </div>
-        
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto space-y-8">
-            {/* Header */}
-            <div className="text-center">
-              <h1 className="text-3xl font-bold mb-4">Trouver un partenaire</h1>
-              <p className="text-lg text-muted-foreground">
-                Connectez-vous avec des partenaires pour commencer à travailler
-              </p>
-            </div>
+      
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Header */}
+          <div className="text-center">
+            <h1 className="text-3xl font-bold mb-4">Trouver un partenaire</h1>
+            <p className="text-lg text-muted-foreground">
+              Connectez-vous avec des partenaires pour commencer à travailler
+            </p>
+          </div>
 
-            {/* Status card */}
+          {/* Status card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Votre statut
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">
+                    {driverProfile.role === 'chauffeur' ? 'Chauffeur' : 'Livreur'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    En recherche de partenaire véhicule
+                  </p>
+                </div>
+                <Badge variant="outline">Sans véhicule</Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Existing requests */}
+          {requests.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Votre statut
-                </CardTitle>
+                <CardTitle>Vos demandes de partenariat</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">
-                      {driverProfile.role === 'chauffeur' ? 'Chauffeur' : 'Livreur'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      En recherche de partenaire véhicule
-                    </p>
-                  </div>
-                  <Badge variant="outline">Sans véhicule</Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Existing requests */}
-            {requests.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Vos demandes de partenariat</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {requests.map((request) => (
-                      <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-4">
-                          <Building2 className="h-8 w-8 text-muted-foreground" />
-                          <div>
-                            <h4 className="font-medium">{request.partenaires.company_name}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Demande envoyée le {new Date(request.created_at).toLocaleDateString('fr-FR')}
-                            </p>
-                            {request.response_message && (
-                              <p className="text-sm mt-1 text-muted-foreground">
-                                Réponse: {request.response_message}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          {getStatusBadge(request.status)}
-                          {request.responded_at && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {new Date(request.responded_at).toLocaleDateString('fr-FR')}
+                <div className="space-y-4">
+                  {requests.map((request) => (
+                    <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <Building2 className="h-8 w-8 text-muted-foreground" />
+                        <div>
+                          <h4 className="font-medium">{request.partenaires.company_name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Demande envoyée le {new Date(request.created_at).toLocaleDateString('fr-FR')}
+                          </p>
+                          {request.response_message && (
+                            <p className="text-sm mt-1 text-muted-foreground">
+                              Réponse: {request.response_message}
                             </p>
                           )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Action buttons */}
-            <div className="flex justify-center gap-4">
-              {!showRequestForm ? (
-                <Button
-                  onClick={() => setShowRequestForm(true)}
-                  size="lg"
-                  className="flex items-center gap-2"
-                >
-                  <Building2 className="h-5 w-5" />
-                  Rechercher des partenaires
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  onClick={() => setShowRequestForm(false)}
-                >
-                  Annuler
-                </Button>
-              )}
-            </div>
-
-            {/* Partner request form */}
-            {showRequestForm && user && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Rechercher des partenaires</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <PartnerRequestForm
-                    driverId={user.id}
-                    serviceCategory={driverProfile.role === 'chauffeur' ? 'taxi' : 'delivery'}
-                    onRequestSent={handleRequestSent}
-                  />
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Info section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Comment ça marche ?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                      <span className="text-primary font-bold">1</span>
+                      <div className="text-right">
+                        {getStatusBadge(request.status)}
+                        {request.responded_at && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(request.responded_at).toLocaleDateString('fr-FR')}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <h3 className="font-semibold mb-2">Recherchez</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Parcourez les partenaires disponibles dans votre zone
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <div className="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                      <span className="text-primary font-bold">2</span>
-                    </div>
-                    <h3 className="font-semibold mb-2">Postulez</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Envoyez une demande avec un message de présentation
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <div className="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                      <span className="text-primary font-bold">3</span>
-                    </div>
-                    <h3 className="font-semibold mb-2">Commencez</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Une fois accepté, votre compte devient actif
-                    </p>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex justify-center gap-4">
+            {!showRequestForm ? (
+              <Button
+                onClick={() => setShowRequestForm(true)}
+                size="lg"
+                className="flex items-center gap-2"
+              >
+                <Building2 className="h-5 w-5" />
+                Rechercher des partenaires
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => setShowRequestForm(false)}
+              >
+                Annuler
+              </Button>
+            )}
           </div>
+
+          {/* Partner request form */}
+          {showRequestForm && user && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Rechercher des partenaires</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PartnerRequestForm
+                  driverId={user.id}
+                  serviceCategory={driverProfile.role === 'chauffeur' ? 'taxi' : 'delivery'}
+                  onRequestSent={handleRequestSent}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Info section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Comment ça marche ?</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                    <span className="text-primary font-bold">1</span>
+                  </div>
+                  <h3 className="font-semibold mb-2">Recherchez</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Parcourez les partenaires disponibles dans votre zone
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                    <span className="text-primary font-bold">2</span>
+                  </div>
+                  <h3 className="font-semibold mb-2">Postulez</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Envoyez une demande avec un message de présentation
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                    <span className="text-primary font-bold">3</span>
+                  </div>
+                  <h3 className="font-semibold mb-2">Commencez</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Une fois accepté, votre compte devient actif
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

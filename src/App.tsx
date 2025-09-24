@@ -58,6 +58,7 @@ import { ScrollToTop } from "@/components/navigation/ScrollToTop";
 import { ThemeNotification } from "@/components/theme/ThemeNotification";
 import { useOrderCleanup } from "@/hooks/useOrderCleanup";
 import { DebugHelper } from "@/utils/debugHelper";
+import { DriverFindPartner } from "./pages/DriverFindPartner";
 
 const queryClient = new QueryClient();
 
@@ -131,6 +132,11 @@ const AppContent = () => {
                  <Route path="/escrow" element={
                    <ProtectedRoute>
                      <EscrowPage />
+                   </ProtectedRoute>
+                 } />
+                 <Route path="/driver/find-partner" element={
+                   <ProtectedRoute>
+                     <DriverFindPartner />
                    </ProtectedRoute>
                  } />
                  
