@@ -10,14 +10,28 @@ const SecurityDashboard = () => {
     {
       name: 'Row Level Security (RLS)',
       status: 'SECURED',
-      description: 'Toutes les tables sensibles ont RLS activé',
+      description: 'Toutes les tables sensibles ont RLS activé et policies sécurisées',
       action: 'Aucune action requise',
       variant: 'success' as const
     },
     {
       name: 'Function Security',
       status: 'SECURED', 
-      description: 'Toutes les fonctions ont search_path configuré',
+      description: 'Fonctions critiques sécurisées avec search_path',
+      action: 'Aucune action requise',
+      variant: 'success' as const
+    },
+    {
+      name: 'Views Security',
+      status: 'SECURED',
+      description: 'Vues SECURITY DEFINER dangereuses supprimées',
+      action: 'Aucune action requise',
+      variant: 'success' as const
+    },
+    {
+      name: 'User Roles Policies',
+      status: 'SECURED',
+      description: 'Policies RLS non-récursives corrigées',
       action: 'Aucune action requise',
       variant: 'success' as const
     },
@@ -36,6 +50,13 @@ const SecurityDashboard = () => {
       action: 'Mettre à jour PostgreSQL via Dashboard',
       variant: 'warning' as const,
       link: 'https://supabase.com/dashboard/project/wddlktajnhwhyquwcdgf/settings/infrastructure'
+    },
+    {
+      name: 'Audit de Sécurité',
+      status: 'ACTIF',
+      description: 'Logs de sécurité enrichis et nettoyage automatique',
+      action: 'Surveillance continue active',
+      variant: 'success' as const
     }
   ];
 

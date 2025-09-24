@@ -5438,6 +5438,7 @@ export type Database = {
           metadata: Json | null
           resource_id: string | null
           resource_type: string
+          risk_level: string | null
           success: boolean | null
           user_agent: string | null
           user_id: string | null
@@ -5451,6 +5452,7 @@ export type Database = {
           metadata?: Json | null
           resource_id?: string | null
           resource_type: string
+          risk_level?: string | null
           success?: boolean | null
           user_agent?: string | null
           user_id?: string | null
@@ -5464,6 +5466,7 @@ export type Database = {
           metadata?: Json | null
           resource_id?: string | null
           resource_type?: string
+          risk_level?: string | null
           success?: boolean | null
           user_agent?: string | null
           user_id?: string | null
@@ -7903,6 +7906,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      cleanup_security_logs: {
+        Args: { retention_days?: number }
+        Returns: number
+      }
       cleanup_security_vulnerabilities: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -8691,8 +8698,8 @@ export type Database = {
       security_health_check: {
         Args: Record<PropertyKey, never>
         Returns: {
+          action_required: string
           check_type: string
-          count: number
           details: string
           status: string
         }[]
