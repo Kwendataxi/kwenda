@@ -51,6 +51,7 @@ import Marketplace from "./pages/marketplace/Marketplace";
 import AuthSystemTest from "./pages/test/AuthSystemTest";
 import TrackingTest from "./pages/test/TrackingTest";
 import ModernTrackingTest from "./pages/test/ModernTrackingTest";
+import { ModernNavigationTest } from "./pages/test/ModernNavigationTest";
 import { ChatProvider } from "@/components/chat/ChatProvider";
 import Onboarding from "./pages/Onboarding";
 import MesAdresses from "./pages/address/MesAdresses";
@@ -190,7 +191,8 @@ const AppContent = () => {
                 {/* Test Routes */}
                 <Route path="/test/auth-system" element={<AuthSystemTest />} />
                 <Route path="/test/tracking" element={<TrackingTest />} />
-                <Route path="/test/modern-tracking" element={<ModernTrackingTest />} />
+        <Route path="/test/modern-tracking" element={<ModernTrackingTest />} />
+        <Route path="/test/modern-navigation" element={<ModernNavigationTest />} />
                 
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
