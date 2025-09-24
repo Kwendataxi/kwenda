@@ -67,7 +67,7 @@ const VEHICLE_TYPES = [
 export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiInterfaceProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { calculateDistance, formatDistance } = useSimpleLocation();
+  const { calculateDistance, formatDistance, getCurrentPosition } = useSimpleLocation();
   const location = useLocation();
   
   const {
@@ -112,9 +112,9 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         });
       } else if (addressType === 'destination') {
         setBookingData(prev => ({ ...prev, destination: locationData }));
-        if (bookingData.pickup) {
-          setStep('details');
-        }
+        
+        // Détecter automatiquement la position actuelle comme point de départ
+        detectCurrentLocationAsPickup();
         
         toast({
           title: "Destination définie",
@@ -123,6 +123,43 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       }
     }
   }, [location.state]);
+
+  // Détecter automatiquement la position actuelle comme point de départ
+  const detectCurrentLocationAsPickup = async () => {
+    try {
+      const position = await getCurrentPosition();
+      if (position) {
+        const pickupLocation: LocationData = {
+          address: position.address,
+          lat: position.lat,
+          lng: position.lng,
+          accuracy: position.accuracy || 50
+        };
+        
+        setBookingData(prev => ({ 
+          ...prev, 
+          pickup: pickupLocation 
+        }));
+        
+        // Aller directement à l'étape des détails
+        setStep('details');
+        
+        toast({
+          title: "Position détectée",
+          description: "Votre position actuelle définie comme point de départ",
+        });
+      }
+    } catch (error) {
+      console.error('Erreur géolocalisation:', error);
+      // En cas d'erreur, rester sur l'étape pickup pour saisie manuelle
+      setStep('pickup');
+      toast({
+        title: "Géolocalisation échouée",
+        description: "Veuillez saisir manuellement votre point de départ",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Calculate pricing when both locations are selected
   useEffect(() => {

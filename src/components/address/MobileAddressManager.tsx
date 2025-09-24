@@ -160,13 +160,13 @@ export const MobileAddressManager = () => {
             lat: address.coordinates?.lat || -4.3217,
             lng: address.coordinates?.lng || 15.3069
           },
-          addressType: 'pickup' // Utiliser comme point de départ par défaut
+          addressType: 'destination' // Utiliser comme destination par défaut
         }
       });
       
       toast({
         title: "Adresse sélectionnée",
-        description: `${address.label} utilisée comme point de départ`,
+        description: `${address.label} définie comme destination`,
       });
     } catch (error) {
       console.error('Erreur lors de la sélection de l\'adresse:', error);
