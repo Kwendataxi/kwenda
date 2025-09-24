@@ -50,23 +50,21 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
     clearError
   } = useSimpleLocation();
 
-  // Synchroniser query avec value de manière optimisée
+  // Synchroniser avec la valeur externe seulement si elle provient d'une navigation/sélection
   useEffect(() => {
-    // Seulement si value change et n'est pas vide, ou si value devient null/undefined
-    if (value?.address && value.address !== query) {
+    if (value && value.address && !query) {
+      // Ne pré-remplir que si le champ est vide (évite la surcharge automatique)
       setQuery(value.address);
-    } else if (!value && !context) {
-      // Reset seulement si pas de contexte spécifique
-      setQuery('');
     }
-  }, [value?.address]);
+  }, [value, query]);
 
-  // Auto-detect position if requested
+  // Auto-détection de position seulement si explicitement demandée via navigation
   useEffect(() => {
-    if (autoDetect && !value) {
+    if (autoDetect && !value && context === 'pickup') {
+      // Ne déclencher que pour pickup et si aucune valeur n'est déjà définie
       handleGetCurrentLocation();
     }
-  }, [autoDetect, value]);
+  }, [autoDetect, value, context]);
 
   // Search avec debounce
   useEffect(() => {

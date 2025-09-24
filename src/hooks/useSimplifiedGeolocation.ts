@@ -22,8 +22,8 @@ export const useSimplifiedGeolocation = (options: UseSimplifiedGeolocationOption
 
   const {
     enableHighAccuracy = true,
-    timeout = 10000, // Plus court pour éviter les timeouts
-    maximumAge = 60000, // 1 minute
+    timeout = 8000, // Optimisé pour UX plus fluide
+    maximumAge = 300000, // 5 minutes pour réutiliser positions récentes
   } = options;
 
   // Position par défaut Kinshasa si aucune géolocalisation
