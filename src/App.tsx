@@ -200,21 +200,21 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
+  <ThemeProvider>
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <FavoritesProvider>
           <LanguageProvider>
-          <TooltipProvider>
-            <ChatProvider>
-              <AppContent />
-           </ChatProvider>
-         </TooltipProvider>
-        </LanguageProvider>
-       </FavoritesProvider>
-     </AuthProvider>
-    </ThemeProvider>
-   </QueryClientProvider>
+            <TooltipProvider>
+              <ChatProvider>
+                <AppContent />
+              </ChatProvider>
+            </TooltipProvider>
+          </LanguageProvider>
+        </FavoritesProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

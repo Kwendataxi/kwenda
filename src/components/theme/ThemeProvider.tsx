@@ -6,11 +6,11 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange={true}
+      defaultTheme="dark"
+      enableSystem={false}
+      disableTransitionOnChange={false}
       storageKey="kwenda-theme"
-      themes={['light', 'dark', 'system']}
+      themes={['light', 'dark']}
       {...props}
     >
       {children}
