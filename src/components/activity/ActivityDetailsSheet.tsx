@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
-import { UnifiedActivityItem } from '@/hooks/useUnifiedActivity';
+import { UnifiedActivityItem } from '@/hooks/useUnifiedActivityRobust';
 import { CreditCard, Package, ShoppingBag } from 'lucide-react';
 
 interface Props {

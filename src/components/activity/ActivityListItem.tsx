@@ -1,10 +1,11 @@
-import { UnifiedActivityItem } from '@/hooks/useUnifiedActivity';
+import { UnifiedActivityItem } from '@/hooks/useUnifiedActivityRobust';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Package, ShoppingBag } from 'lucide-react';
+import { CreditCard, Package, ShoppingBag, Car } from 'lucide-react';
 
 const iconByType: Record<UnifiedActivityItem['type'], React.ReactNode> = {
+  transport: <Car className="h-4 w-4" />,
   delivery: <Package className="h-4 w-4" />,
   marketplace_purchase: <ShoppingBag className="h-4 w-4" />,
   marketplace_sale: <ShoppingBag className="h-4 w-4" />,
@@ -12,6 +13,7 @@ const iconByType: Record<UnifiedActivityItem['type'], React.ReactNode> = {
 };
 
 const labelByType: Record<UnifiedActivityItem['type'], string> = {
+  transport: 'Transport',
   delivery: 'Livraison',
   marketplace_purchase: 'Achat',
   marketplace_sale: 'Vente',
