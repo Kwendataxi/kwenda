@@ -5256,8 +5256,10 @@ export type Database = {
           id: string
           is_default: boolean
           label: string
+          last_used_at: string | null
           quartier: string | null
           updated_at: string
+          usage_count: number | null
           user_id: string
         }
         Insert: {
@@ -5270,8 +5272,10 @@ export type Database = {
           id?: string
           is_default?: boolean
           label: string
+          last_used_at?: string | null
           quartier?: string | null
           updated_at?: string
+          usage_count?: number | null
           user_id: string
         }
         Update: {
@@ -5284,8 +5288,10 @@ export type Database = {
           id?: string
           is_default?: boolean
           label?: string
+          last_used_at?: string | null
           quartier?: string | null
           updated_at?: string
+          usage_count?: number | null
           user_id?: string
         }
         Relationships: []
@@ -8133,6 +8139,10 @@ export type Database = {
       has_user_role: {
         Args: { check_role: string }
         Returns: boolean
+      }
+      increment_address_usage: {
+        Args: { address_id: string }
+        Returns: undefined
       }
       intelligent_places_search: {
         Args:

@@ -147,8 +147,15 @@ export const MobileAddressManager = () => {
   };
 
   const getUsageCount = (address: SavedAddress) => {
-    return address.usage_count || Math.floor(Math.random() * 15) + 1;
+    return address.usage_count || 0;
   };
+
+  // Trier les adresses par favoris puis par usage
+  const sortedAddresses = [...addresses].sort((a, b) => {
+    if (a.is_default && !b.is_default) return -1;
+    if (!a.is_default && b.is_default) return 1;
+    return (b.usage_count || 0) - (a.usage_count || 0);
+  });
 
   const AddressCard = ({ address }: { address: SavedAddress }) => (
     <div className="bg-card border border-border rounded-xl p-4 space-y-3 shadow-sm">
@@ -257,7 +264,7 @@ export const MobileAddressManager = () => {
             </div>
           ) : addresses.length > 0 ? (
             <div className="space-y-3">
-              {addresses.map((address) => (
+              {sortedAddresses.map((address) => (
                 <AddressCard key={address.id} address={address} />
               ))}
             </div>

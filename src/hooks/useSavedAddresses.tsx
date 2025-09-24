@@ -13,6 +13,8 @@ interface SavedAddress {
   coordinates?: any;
   is_default: boolean;
   address_type: string;
+  usage_count?: number;
+  last_used_at?: string;
   created_at: string;
 }
 
@@ -181,6 +183,25 @@ export const useSavedAddresses = () => {
     return addresses.filter(addr => addr.address_type === type);
   };
 
+  const incrementAddressUsage = async (addressId: string) => {
+    try {
+      const { error } = await supabase.rpc('increment_address_usage', {
+        address_id: addressId
+      });
+
+      if (error) throw error;
+
+      // Mettre à jour l'état local
+      setAddresses(prev => prev.map(addr => 
+        addr.id === addressId 
+          ? { ...addr, usage_count: (addr.usage_count || 0) + 1, last_used_at: new Date().toISOString() }
+          : addr
+      ));
+    } catch (error: any) {
+      console.error('Erreur lors de l\'incrémentation de l\'usage:', error);
+    }
+  };
+
   return {
     addresses,
     saveAddress,
@@ -189,6 +210,7 @@ export const useSavedAddresses = () => {
     setDefaultAddress,
     getDefaultAddress,
     getAddressesByType,
+    incrementAddressUsage,
     isLoading,
     refetch: fetchAddresses,
   };
