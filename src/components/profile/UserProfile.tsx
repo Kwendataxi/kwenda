@@ -24,6 +24,7 @@ import { ReferralPanel } from './ReferralPanel';
 import { PromoCodePanel } from './PromoCodePanel';
 import { UserAddressesManager } from './UserAddressesManager';
 import CustomerSupport from './CustomerSupport';
+import { useNavigate } from 'react-router-dom';
 import { DriverUpgrade } from './DriverUpgrade';
 import { TeamAccountManager } from './TeamAccountManager';
 import { UserSettings } from './UserSettings';
@@ -48,6 +49,7 @@ interface UserRating {
 export const UserProfile = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [rating, setRating] = useState<UserRating>({ rating: 0, total_ratings: 0 });
@@ -291,7 +293,9 @@ export const UserProfile = () => {
         case 'history':
           return <ActivityHistory />;
         case 'addresses':
-          return <UserAddressesManager />;
+          // Rediriger vers la page mobile dédiée
+          navigate('/mes-adresses');
+          return null;
         case 'support':
           return <CustomerSupport />;
         case 'security':

@@ -50,6 +50,7 @@ import Marketplace from "./pages/marketplace/Marketplace";
 import AuthSystemTest from "./pages/test/AuthSystemTest";
 import { ChatProvider } from "@/components/chat/ChatProvider";
 import Onboarding from "./pages/Onboarding";
+import MesAdresses from "./pages/address/MesAdresses";
 import { OnboardingRedirect } from "@/components/onboarding/OnboardingRedirect";
 import { StartupExperience } from "@/components/splash/StartupExperience";
 import { ScrollToTop } from "@/components/navigation/ScrollToTop";
@@ -166,6 +167,9 @@ const AppContent = () => {
                 <Route path="/partner" element={<ProgrammePartenaire />} />
                 <Route path="/locations/coverage-map" element={<CarteCouverture />} />
                 <Route path="/marketplace" element={<Marketplace />} />
+                
+                {/* Address Pages */}
+                <Route path="/mes-adresses" element={<MesAdresses />} />
                 
                 {/* Test Routes */}
                 <Route path="/test/auth-system" element={<AuthSystemTest />} />
