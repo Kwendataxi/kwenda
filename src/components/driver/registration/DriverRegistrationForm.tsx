@@ -30,17 +30,17 @@ export interface DriverRegistrationData {
   licenseNumber: string;
   licenseExpiry: string;
   
-  // Informations du véhicule
-  vehicleType: string;
-  vehicleMake: string;
-  vehicleModel: string;
-  vehicleYear: number;
-  vehiclePlate: string;
-  vehicleColor: string;
+  // Informations du véhicule - Optionnelles si pas de véhicule propre
+  vehicleType?: string;
+  vehicleMake?: string;
+  vehicleModel?: string;
+  vehicleYear?: number;
+  vehiclePlate?: string;
+  vehicleColor?: string;
   
-  // Assurance
-  insuranceNumber: string;
-  insuranceExpiry: string;
+  // Assurance - Optionnel si pas de véhicule propre
+  insuranceNumber?: string;
+  insuranceExpiry?: string;
   
   // Informations spécifiques
   deliveryCapacity?: string;
@@ -53,6 +53,7 @@ export interface DriverRegistrationData {
   
   serviceCategory: ServiceCategory;
   serviceType: string;
+  hasOwnVehicle: boolean; // Nouveau champ pour distinguer les modes
 }
 
 export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({

@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Car, Package, User, Phone, Mail, FileText, Shield, ArrowLeft } from 'lucide-react';
 import { ServiceCategory } from './ServiceCategorySelector';
 import { SpecificServiceSelector } from './SpecificServiceSelector';
-import { DriverRegistrationData } from './DriverRegistrationForm';
+import { DriverRegistrationData } from '@/hooks/useDriverRegistration';
 
 interface SimplifiedDriverRegistrationProps {
   serviceCategory: ServiceCategory;
@@ -59,23 +59,26 @@ export const SimplifiedDriverRegistration: React.FC<SimplifiedDriverRegistration
     if (!formData.licenseExpiry) {
       newErrors.licenseExpiry = 'Date d\'expiration du permis requise';
     }
-    if (!formData.vehicleMake?.trim()) {
-      newErrors.vehicleMake = 'Marque du véhicule requise';
-    }
-    if (!formData.vehicleModel?.trim()) {
-      newErrors.vehicleModel = 'Modèle du véhicule requis';
-    }
-    if (!formData.vehicleYear || formData.vehicleYear < 2000) {
-      newErrors.vehicleYear = 'Année du véhicule invalide';
-    }
-    if (!formData.vehiclePlate?.trim()) {
-      newErrors.vehiclePlate = 'Plaque d\'immatriculation requise';
-    }
-    if (!formData.vehicleColor?.trim()) {
-      newErrors.vehicleColor = 'Couleur du véhicule requise';
-    }
-    if (!formData.insuranceNumber?.trim()) {
-      newErrors.insuranceNumber = 'Numéro d\'assurance requis';
+    // Validation des champs véhicule seulement si le chauffeur a son propre véhicule
+    if (formData.hasOwnVehicle) {
+      if (!formData.vehicleMake?.trim()) {
+        newErrors.vehicleMake = 'Marque du véhicule requise';
+      }
+      if (!formData.vehicleModel?.trim()) {
+        newErrors.vehicleModel = 'Modèle du véhicule requis';
+      }
+      if (!formData.vehicleYear || formData.vehicleYear < 2000) {
+        newErrors.vehicleYear = 'Année du véhicule invalide';
+      }
+      if (!formData.vehiclePlate?.trim()) {
+        newErrors.vehiclePlate = 'Plaque d\'immatriculation requise';
+      }
+      if (!formData.vehicleColor?.trim()) {
+        newErrors.vehicleColor = 'Couleur du véhicule requise';
+      }
+      if (!formData.insuranceNumber?.trim()) {
+        newErrors.insuranceNumber = 'Numéro d\'assurance requis';
+      }
     }
     if (!formData.acceptsTerms) {
       newErrors.acceptsTerms = 'Vous devez accepter les conditions';
@@ -92,6 +95,7 @@ export const SimplifiedDriverRegistration: React.FC<SimplifiedDriverRegistration
         ...formData,
         serviceType: selectedService,
         vehicleType: selectedService,
+        hasOwnVehicle: false, // Par défaut dans cette interface simplifiée
       } as DriverRegistrationData;
       
       await onSubmit(completeData);

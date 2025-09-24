@@ -493,6 +493,7 @@ export type Database = {
           email: string
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
+          has_own_vehicle: boolean | null
           id: string
           insurance_expiry: string | null
           insurance_number: string | null
@@ -532,6 +533,7 @@ export type Database = {
           email: string
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          has_own_vehicle?: boolean | null
           id?: string
           insurance_expiry?: string | null
           insurance_number?: string | null
@@ -571,6 +573,7 @@ export type Database = {
           email?: string
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
+          has_own_vehicle?: boolean | null
           id?: string
           insurance_expiry?: string | null
           insurance_number?: string | null
@@ -3355,6 +3358,57 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      partner_driver_requests: {
+        Row: {
+          created_at: string | null
+          driver_id: string | null
+          id: string
+          partner_id: string | null
+          request_message: string | null
+          responded_at: string | null
+          response_message: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          driver_id?: string | null
+          id?: string
+          partner_id?: string | null
+          request_message?: string | null
+          responded_at?: string | null
+          response_message?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          driver_id?: string | null
+          id?: string
+          partner_id?: string | null
+          request_message?: string | null
+          responded_at?: string | null
+          response_message?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_driver_requests_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "chauffeurs"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "partner_driver_requests_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partenaires"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       partner_drivers: {
         Row: {

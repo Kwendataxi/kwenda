@@ -12,19 +12,20 @@ export interface DriverRegistrationData {
   password: string; // Ajouté pour Supabase Auth
   licenseNumber: string;
   licenseExpiry: string;
-  vehicleType: string;
-  vehicleMake: string;
-  vehicleModel: string;
-  vehicleYear: number;
-  vehiclePlate: string;
+  vehicleType?: string; // Optionnel si pas de véhicule propre
+  vehicleMake?: string; // Optionnel si pas de véhicule propre
+  vehicleModel?: string; // Optionnel si pas de véhicule propre
+  vehicleYear?: number; // Optionnel si pas de véhicule propre
+  vehiclePlate?: string; // Optionnel si pas de véhicule propre
   vehicleColor?: string;
-  insuranceNumber: string;
+  insuranceNumber?: string; // Optionnel si pas de véhicule propre
   insuranceExpiry?: string;
   deliveryCapacity?: string;
   bankAccountNumber?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   acceptsTerms: boolean;
+  hasOwnVehicle: boolean; // Nouveau champ pour distinguer les modes
 }
 
 export const useDriverRegistration = () => {
@@ -41,7 +42,7 @@ export const useDriverRegistration = () => {
         p_email: data.email,
         p_phone: data.phoneNumber,
         p_license_number: data.licenseNumber,
-        p_vehicle_plate: data.vehiclePlate
+        p_vehicle_plate: data.hasOwnVehicle ? data.vehiclePlate : null
       });
 
       if (validationError) {
@@ -103,31 +104,38 @@ export const useDriverRegistration = () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // 4. Mettre à jour le profil avec les détails complets
+      const updateData: any = {
+        display_name: data.displayName,
+        phone_number: data.phoneNumber,
+        license_number: data.licenseNumber,
+        license_expiry: data.licenseExpiry,
+        delivery_capacity: data.deliveryCapacity,
+        bank_account_number: data.bankAccountNumber,
+        emergency_contact_name: data.emergencyContactName,
+        emergency_contact_phone: data.emergencyContactPhone,
+        verification_status: 'pending',
+        is_active: data.hasOwnVehicle, // Actif seulement si véhicule propre
+        role: data.serviceCategory === 'taxi' ? 'chauffeur' : 'livreur',
+        service_type: data.serviceType,
+        vehicle_class: 'standard',
+        has_own_vehicle: data.hasOwnVehicle
+      };
+
+      // Ajouter les infos véhicule seulement si le chauffeur a son propre véhicule
+      if (data.hasOwnVehicle) {
+        updateData.vehicle_type = data.vehicleType;
+        updateData.vehicle_make = data.vehicleMake;
+        updateData.vehicle_model = data.vehicleModel;
+        updateData.vehicle_year = data.vehicleYear;
+        updateData.vehicle_plate = data.vehiclePlate;
+        updateData.vehicle_color = data.vehicleColor;
+        updateData.insurance_number = data.insuranceNumber;
+        updateData.insurance_expiry = data.insuranceExpiry;
+      }
+
       const { error: updateError } = await supabase
         .from('chauffeurs')
-        .update({
-          display_name: data.displayName,
-          phone_number: data.phoneNumber,
-          license_number: data.licenseNumber,
-          license_expiry: data.licenseExpiry,
-          vehicle_type: data.vehicleType,
-          vehicle_make: data.vehicleMake,
-          vehicle_model: data.vehicleModel,
-          vehicle_year: data.vehicleYear,
-          vehicle_plate: data.vehiclePlate,
-          vehicle_color: data.vehicleColor,
-          insurance_number: data.insuranceNumber,
-          insurance_expiry: data.insuranceExpiry,
-          delivery_capacity: data.deliveryCapacity,
-          bank_account_number: data.bankAccountNumber,
-          emergency_contact_name: data.emergencyContactName,
-          emergency_contact_phone: data.emergencyContactPhone,
-          verification_status: 'pending',
-          is_active: false, // Désactivé jusqu'à vérification
-          role: data.serviceCategory === 'taxi' ? 'chauffeur' : 'livreur',
-          service_type: data.serviceType,
-          vehicle_class: 'standard'
-        })
+        .update(updateData)
         .eq('user_id', authData.user.id);
 
       if (updateError) {
@@ -135,22 +143,28 @@ export const useDriverRegistration = () => {
       }
 
       // 5. Créer la demande de chauffeur
+      const requestData: any = {
+        user_id: authData.user.id,
+        service_type: data.serviceType,
+        license_number: data.licenseNumber,
+        license_expiry: data.licenseExpiry,
+        documents: [],
+        status: 'pending',
+      };
+
+      // Ajouter les infos véhicule seulement si le chauffeur a son propre véhicule
+      if (data.hasOwnVehicle) {
+        requestData.vehicle_type = data.vehicleType;
+        requestData.vehicle_make = data.vehicleMake;
+        requestData.vehicle_model = data.vehicleModel;
+        requestData.vehicle_year = data.vehicleYear;
+        requestData.vehicle_plate = data.vehiclePlate;
+        requestData.insurance_number = data.insuranceNumber;
+      }
+
       const { error: requestError } = await supabase
         .from('driver_requests')
-        .insert({
-          user_id: authData.user.id,
-          service_type: data.serviceType,
-          license_number: data.licenseNumber,
-          license_expiry: data.licenseExpiry,
-          vehicle_type: data.vehicleType,
-          vehicle_make: data.vehicleMake,
-          vehicle_model: data.vehicleModel,
-          vehicle_year: data.vehicleYear,
-          vehicle_plate: data.vehiclePlate,
-          insurance_number: data.insuranceNumber,
-          documents: [],
-          status: 'pending',
-        });
+        .insert(requestData);
 
       if (requestError) {
         console.warn('Could not create driver request:', requestError);

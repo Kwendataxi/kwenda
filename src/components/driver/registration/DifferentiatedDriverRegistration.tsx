@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ServiceCategorySelector, ServiceCategory } from './ServiceCategorySelector';
 import { SimplifiedDriverRegistration } from './SimplifiedDriverRegistration';
-import { DriverRegistrationData } from './DriverRegistrationForm';
+import { DriverRegistrationData } from '@/hooks/useDriverRegistration';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useDriverRegistration } from '@/hooks/useDriverRegistration';
