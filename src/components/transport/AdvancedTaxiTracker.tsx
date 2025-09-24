@@ -35,8 +35,8 @@ interface BookingData {
   id: string;
   pickup_location: string;
   destination: string;
-  pickup_coordinates?: { lat: number; lng: number };
-  destination_coordinates?: { lat: number; lng: number };
+  pickup_coordinates?: any;
+  destination_coordinates?: any;
   vehicle_type: string;
   estimated_price: number;
   actual_price?: number;
@@ -51,6 +51,7 @@ interface BookingData {
   vehicle_color?: string;
   estimated_duration?: number;
   distance_km?: number;
+  rated?: boolean;
 }
 
 interface DriverLocation {
@@ -131,6 +132,14 @@ export default function AdvancedTaxiTracker({ bookingId, onBack }: AdvancedTaxiT
   const canShowRoute = useMemo(() => {
     return booking?.pickup_coordinates && booking?.destination_coordinates;
   }, [booking]);
+
+  const getCoordinates = (coords: any) => {
+    if (!coords) return undefined;
+    if (typeof coords === 'object' && coords.lat && coords.lng) {
+      return { lat: coords.lat, lng: coords.lng };
+    }
+    return undefined;
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR').format(price) + ' CDF';
@@ -262,7 +271,9 @@ export default function AdvancedTaxiTracker({ bookingId, onBack }: AdvancedTaxiT
         driver_rating: driverInfo?.rating_average,
         vehicle_model: driverInfo?.vehicle_model,
         vehicle_plate: driverInfo?.vehicle_plate,
-        vehicle_color: driverInfo?.vehicle_color
+        vehicle_color: driverInfo?.vehicle_color,
+        pickup_coordinates: data.pickup_coordinates as any,
+        destination_coordinates: data.destination_coordinates as any
       });
 
     } catch (error) {
@@ -366,8 +377,8 @@ export default function AdvancedTaxiTracker({ bookingId, onBack }: AdvancedTaxiT
             <Card className="glassmorphism">
               <CardContent className="p-0">
                 <GoogleMapsKwenda
-                  pickup={booking.pickup_coordinates}
-                  destination={booking.destination_coordinates}
+                  pickup={getCoordinates(booking.pickup_coordinates)}
+                  destination={getCoordinates(booking.destination_coordinates)}
                   driverLocation={driverLocation ? {
                     lat: driverLocation.lat,
                     lng: driverLocation.lng,

@@ -244,6 +244,42 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_reports: {
+        Row: {
+          admin_notes: string | null
+          booking_id: string
+          created_at: string | null
+          driver_id: string | null
+          id: string
+          reason: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          booking_id: string
+          created_at?: string | null
+          driver_id?: string | null
+          id?: string
+          reason: string
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          booking_id?: string
+          created_at?: string | null
+          driver_id?: string | null
+          id?: string
+          reason?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       business_accounts: {
         Row: {
           billing_address: Json | null
@@ -1488,6 +1524,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      driver_ratings: {
+        Row: {
+          booking_id: string
+          created_at: string | null
+          driver_id: string
+          feedback: string | null
+          id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string | null
+          driver_id: string
+          feedback?: string | null
+          id?: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string | null
+          driver_id?: string
+          feedback?: string | null
+          id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: []
       }
       driver_requests: {
         Row: {
@@ -6002,6 +6068,7 @@ export type Database = {
           pickup_coordinates: Json | null
           pickup_location: string
           pickup_time: string | null
+          rated: boolean | null
           status: string | null
           surge_multiplier: number | null
           total_distance: number | null
@@ -6028,6 +6095,7 @@ export type Database = {
           pickup_coordinates?: Json | null
           pickup_location: string
           pickup_time?: string | null
+          rated?: boolean | null
           status?: string | null
           surge_multiplier?: number | null
           total_distance?: number | null
@@ -6054,6 +6122,7 @@ export type Database = {
           pickup_coordinates?: Json | null
           pickup_location?: string
           pickup_time?: string | null
+          rated?: boolean | null
           status?: string | null
           surge_multiplier?: number | null
           total_distance?: number | null
@@ -6062,6 +6131,45 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vehicle_type?: string
+        }
+        Relationships: []
+      }
+      transport_chat_messages: {
+        Row: {
+          booking_id: string
+          created_at: string | null
+          id: string
+          message: string
+          message_type: string
+          metadata: Json | null
+          read_at: string | null
+          sender_id: string
+          sender_type: string
+          sent_at: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string | null
+          id?: string
+          message: string
+          message_type?: string
+          metadata?: Json | null
+          read_at?: string | null
+          sender_id: string
+          sender_type: string
+          sent_at?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string | null
+          id?: string
+          message?: string
+          message_type?: string
+          metadata?: Json | null
+          read_at?: string | null
+          sender_id?: string
+          sender_type?: string
+          sent_at?: string | null
         }
         Relationships: []
       }

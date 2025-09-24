@@ -113,24 +113,14 @@ const TaxiChat: React.FC<TaxiChatProps> = ({ bookingId, driverId, onClose }) => 
 
   const loadMessages = async () => {
     try {
-      const { data, error } = await supabase
-        .from('transport_chat_messages')
-        .select('*')
-        .eq('booking_id', bookingId)
-        .order('sent_at', { ascending: true });
+      // Utiliser une requête RPC pour les messages
+      const { data, error } = await supabase.rpc('get_transport_chat_messages', {
+        p_booking_id: bookingId
+      });
 
       if (error) throw error;
 
       setMessages(data || []);
-      
-      // Marquer les messages du chauffeur comme lus
-      const unreadMessages = data?.filter(msg => 
-        msg.sender_type === 'driver' && !msg.read_at
-      ) || [];
-      
-      for (const msg of unreadMessages) {
-        await markMessageAsRead(msg.id);
-      }
 
     } catch (error) {
       console.error('Erreur chargement messages:', error);
@@ -146,10 +136,9 @@ const TaxiChat: React.FC<TaxiChatProps> = ({ bookingId, driverId, onClose }) => 
 
   const markMessageAsRead = async (messageId: string) => {
     try {
-      await supabase
-        .from('transport_chat_messages')
-        .update({ read_at: new Date().toISOString() })
-        .eq('id', messageId);
+      await supabase.rpc('mark_message_as_read', {
+        p_message_id: messageId
+      });
     } catch (error) {
       console.error('Erreur marquage lu:', error);
     }
@@ -160,15 +149,12 @@ const TaxiChat: React.FC<TaxiChatProps> = ({ bookingId, driverId, onClose }) => 
 
     setSending(true);
     try {
-      const { error } = await supabase
-        .from('transport_chat_messages')
-        .insert({
-          booking_id: bookingId,
-          sender_id: user.id,
-          sender_type: 'client',
-          message: messageText,
-          message_type: messageType
-        });
+      const { error } = await supabase.rpc('send_transport_chat_message', {
+        p_booking_id: bookingId,
+        p_sender_id: user.id,
+        p_message: messageText,
+        p_message_type: messageType
+      });
 
       if (error) throw error;
 

@@ -83,16 +83,17 @@ const BookingActions: React.FC<BookingActionsProps> = ({ booking, onBookingUpdat
 
     setLoading(true);
     try {
-      // Enregistrer l'évaluation
-      const { error } = await supabase
-        .from('driver_ratings')
-        .insert({
-          driver_id: booking.driver_id,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          booking_id: booking.id,
-          rating: rating,
-          feedback: feedback || null
-        });
+      // Enregistrer l'évaluation directement via SQL
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('User not authenticated');
+
+      const { error } = await supabase.rpc('insert_driver_rating', {
+        p_driver_id: booking.driver_id,
+        p_user_id: userData.user.id,
+        p_booking_id: booking.id,
+        p_rating: rating,
+        p_feedback: feedback || null
+      });
 
       if (error) throw error;
 
@@ -167,15 +168,16 @@ const BookingActions: React.FC<BookingActionsProps> = ({ booking, onBookingUpdat
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('booking_reports')
-        .insert({
-          booking_id: booking.id,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          driver_id: booking.driver_id,
-          reason: reportReason,
-          status: 'pending'
-        });
+      // Créer un signalement directement via SQL
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('User not authenticated');
+
+      const { error } = await supabase.rpc('insert_booking_report', {
+        p_booking_id: booking.id,
+        p_user_id: userData.user.id,
+        p_driver_id: booking.driver_id,
+        p_reason: reportReason
+      });
 
       if (error) throw error;
 
