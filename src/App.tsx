@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/hooks/useAuth";
-import { FavoritesProvider } from "@/components/marketplace/FavoritesManager";
+import { FavoritesProvider } from "@/hooks/useUnifiedFavorites";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import DynamicTheme from "@/components/theme/DynamicTheme";
 import ParticleBackground from "@/components/theme/ParticleBackground";

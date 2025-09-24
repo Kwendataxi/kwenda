@@ -13,14 +13,13 @@ import { Link } from "react-router-dom";
 import { PageTransition } from "@/components/layout/PageTransition";
 import ModernFooter from "@/components/landing/ModernFooter";
 import { CartProvider } from '@/context/CartContext';
-import { FavoritesProvider } from '@/context/FavoritesContext';
 import { MarketplaceHeader } from '@/components/marketplace/MarketplaceHeader';
 import { AdvancedFilters } from '@/components/marketplace/AdvancedFilters';
-import { CompactProductCard } from '@/components/marketplace/CompactProductCard';
-import { ShoppingCart as ShoppingCartComponent } from '@/components/marketplace/ShoppingCart';
+import { ProductCard } from '@/components/marketplace/ProductCard';
+import { FilterDialog } from '@/components/marketplace/FilterDialog';
 import { useMarketplaceFilters } from '@/hooks/useMarketplaceFilters';
 import { useCart } from '@/context/CartContext';
-import { useFavorites } from '@/context/FavoritesContext';
+import { useFavorites } from '@/hooks/useUnifiedFavorites';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
 const MarketplaceContent = () => {
@@ -460,9 +459,7 @@ const MarketplaceContent = () => {
 const Marketplace = () => {
   return (
     <CartProvider>
-      <FavoritesProvider>
-        <MarketplaceContent />
-      </FavoritesProvider>
+      <MarketplaceContent />
     </CartProvider>
   );
 };
