@@ -7,7 +7,7 @@ export interface LocationData {
   address: string;
   lat: number;
   lng: number;
-  type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'ip' | 'fallback' | 'database';
+  type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'ip' | 'fallback' | 'database' | 'default' | 'gps';
   placeId?: string;
   accuracy?: number;
   name?: string;
