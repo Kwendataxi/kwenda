@@ -36,12 +36,12 @@ serve(async (req) => {
     console.log(`📍 Pickup location: ${pickupLat}, ${pickupLng}`);
     console.log(`🚛 Delivery type: ${deliveryType}`);
 
-    // Find nearby available drivers within 15km
+    // Find nearby available drivers within 15km - Using correct parameters
     const { data: drivers, error: driversError } = await supabase.rpc('find_nearby_drivers', {
-      user_latitude: pickupLat,
-      user_longitude: pickupLng,
-      max_distance_km: 15,
-      service_type: 'delivery'
+      pickup_lat: pickupLat,
+      pickup_lng: pickupLng,
+      service_type_param: 'delivery',
+      radius_km: 15
     });
 
     if (driversError) {

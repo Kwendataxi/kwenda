@@ -74,7 +74,7 @@ serve(async (req) => {
 
     const validatedCoords = coordinateValidation.pickup;
 
-    // Find nearby drivers using our database function
+    // Find nearby drivers using our database function with correct parameters
     const { data: nearbyDrivers, error: searchError } = await supabaseClient
       .rpc('find_nearby_drivers', {
         pickup_lat: validatedCoords.lat,
