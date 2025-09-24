@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Plus, Heart, Star, Home, Building, MapPin, Navigation, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Heart, Star, Home, Building, MapPin, Navigation, Edit, Trash2, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -38,6 +38,7 @@ export const MobileAddressManager = () => {
     updateAddress, 
     deleteAddress, 
     setDefaultAddress,
+    incrementAddressUsage,
     isLoading 
   } = useSavedAddresses();
 
@@ -146,6 +147,37 @@ export const MobileAddressManager = () => {
     await setDefaultAddress(address.id);
   };
 
+  const handleAddressClick = async (address: SavedAddress) => {
+    try {
+      // Incrémenter le compteur d'usage
+      await incrementAddressUsage(address.id);
+      
+      // Naviguer vers l'interface taxi avec l'adresse pré-remplie
+      navigate('/transport', {
+        state: {
+          prefilledAddress: {
+            address: `${address.label} - ${address.address_line}`,
+            lat: address.coordinates?.lat || -4.3217,
+            lng: address.coordinates?.lng || 15.3069
+          },
+          addressType: 'pickup' // Utiliser comme point de départ par défaut
+        }
+      });
+      
+      toast({
+        title: "Adresse sélectionnée",
+        description: `${address.label} utilisée comme point de départ`,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la sélection de l\'adresse:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de sélectionner l'adresse",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getUsageCount = (address: SavedAddress) => {
     return address.usage_count || 0;
   };
@@ -158,7 +190,10 @@ export const MobileAddressManager = () => {
   });
 
   const AddressCard = ({ address }: { address: SavedAddress }) => (
-    <div className="bg-card border border-border rounded-xl p-4 space-y-3 shadow-sm">
+    <div 
+      className="bg-card border border-border rounded-xl p-4 space-y-3 shadow-sm cursor-pointer hover:bg-card/80 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+      onClick={() => handleAddressClick(address)}
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-3 flex-1">
           <div className="mt-1">
@@ -187,13 +222,29 @@ export const MobileAddressManager = () => {
                 {address.address_type === 'business' ? 'Pro' : 'Perso'}
               </Badge>
             </div>
+            
+            {/* Bouton Commander un taxi visible */}
+            <Button
+              size="sm"
+              className="w-full mt-3 bg-primary hover:bg-primary/90"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddressClick(address);
+              }}
+            >
+              <Car className="h-4 w-4 mr-2" />
+              Commander un taxi
+            </Button>
           </div>
         </div>
-        <div className="flex items-center space-x-1">
+        <div className="flex flex-col space-y-1">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => toggleFavorite(address)}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFavorite(address);
+            }}
             className="h-8 w-8 p-0"
           >
             <Heart className={`h-4 w-4 ${address.is_default ? 'text-red-500 fill-current' : 'text-muted-foreground'}`} />
@@ -201,7 +252,10 @@ export const MobileAddressManager = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleEdit(address)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEdit(address);
+            }}
             className="h-8 w-8 p-0"
           >
             <Edit className="h-4 w-4" />
@@ -209,7 +263,10 @@ export const MobileAddressManager = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleDelete(address.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(address.id);
+            }}
             className="h-8 w-8 p-0 text-destructive hover:text-destructive"
           >
             <Trash2 className="h-4 w-4" />

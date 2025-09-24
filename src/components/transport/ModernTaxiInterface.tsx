@@ -8,6 +8,7 @@ import { ModernLocationInput } from '@/components/location/ModernLocationInput';
 import { useSimpleLocation } from '@/hooks/useSimpleLocation';
 import { useModernTaxiBooking } from '@/hooks/useModernTaxiBooking';
 import { LocationData } from '@/types/location';
+import { useLocation } from 'react-router-dom';
 import { 
   MapPin, 
   Navigation, 
@@ -67,6 +68,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const { toast } = useToast();
   const { user } = useAuth();
   const { calculateDistance, formatDistance } = useSimpleLocation();
+  const location = useLocation();
   
   const {
     createBooking,
@@ -87,6 +89,40 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [loading, setLoading] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState<number>(0);
   const [estimatedDuration, setEstimatedDuration] = useState<string>('');
+
+  // Gérer l'adresse pré-remplie depuis la navigation
+  useEffect(() => {
+    if (location.state?.prefilledAddress) {
+      const { prefilledAddress, addressType } = location.state;
+      
+      const locationData: LocationData = {
+        address: prefilledAddress.address,
+        lat: prefilledAddress.lat,
+        lng: prefilledAddress.lng,
+        accuracy: 50
+      };
+
+      if (addressType === 'pickup') {
+        setBookingData(prev => ({ ...prev, pickup: locationData }));
+        setStep('destination');
+        
+        toast({
+          title: "Adresse de départ définie",
+          description: prefilledAddress.address,
+        });
+      } else if (addressType === 'destination') {
+        setBookingData(prev => ({ ...prev, destination: locationData }));
+        if (bookingData.pickup) {
+          setStep('details');
+        }
+        
+        toast({
+          title: "Destination définie",
+          description: prefilledAddress.address,
+        });
+      }
+    }
+  }, [location.state]);
 
   // Calculate pricing when both locations are selected
   useEffect(() => {
