@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSimpleLocation } from '@/hooks/useSimpleLocation';
-import { LocationData, LocationSearchResult } from '@/services/simpleLocationService';
+import { LocationData, LocationSearchResult } from '@/types/location';
 import { MapPin, Search, Loader2, Navigation } from 'lucide-react';
 
 interface ModernLocationPickerProps {

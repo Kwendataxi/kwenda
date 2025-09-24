@@ -13,7 +13,7 @@ export interface LocationData {
   address: string;
   lat: number;
   lng: number;
-  type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'database' | 'google' | 'manual';
+  type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'database' | 'google' | 'manual' | 'ip' | 'fallback' | 'default' | 'gps';
   placeId?: string;
   accuracy?: number;
   name?: string;
@@ -27,7 +27,7 @@ export interface SimpleLocationSearchResult {
   address: string;
   lat: number;
   lng: number;
-  type?: string;
+  type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'database' | 'google' | 'manual' | 'ip' | 'fallback' | 'default' | 'gps';
   placeId?: string;
   name?: string;
   subtitle?: string;

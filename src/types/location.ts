@@ -2,12 +2,12 @@
  * Types unifiés pour la géolocalisation dans Kwenda
  */
 
-// Interface unifiée pour toutes les locations
+// Interface unifiée pour toutes les locations - compatible avec tous les services
 export interface LocationData {
   address: string;
   lat: number;
   lng: number;
-  type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'ip' | 'fallback' | 'database' | 'default' | 'gps';
+  type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'database' | 'google' | 'manual' | 'ip' | 'fallback' | 'default' | 'gps';
   placeId?: string;
   accuracy?: number;
   name?: string;

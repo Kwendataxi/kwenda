@@ -9,9 +9,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useSimpleLocation } from '@/hooks/useSimpleLocation';
-import { LocationData, LocationSearchResult as TypesLocationSearchResult } from '@/types/location';
-import { LocationSearchResult as ServiceLocationSearchResult } from '@/services/simpleLocationService';
+import { useSimpleLocation, type SimpleLocationSearchResult } from '@/hooks/useUnifiedLocation';
+import { LocationData } from '@/types/location';
 import { MapPin, Navigation, Search, Loader2, Clock, Star } from 'lucide-react';
 
 interface ModernLocationInputProps {
@@ -34,7 +33,7 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
   className = ""
 }) => {
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<ServiceLocationSearchResult[]>([]);
+  const [suggestions, setSuggestions] = useState<SimpleLocationSearchResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   
@@ -95,7 +94,7 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
     onChange(null);
   };
 
-  const handleLocationSelect = (location: LocationData | ServiceLocationSearchResult) => {
+  const handleLocationSelect = (location: LocationData | SimpleLocationSearchResult) => {
     const locationData: LocationData = {
       address: location.address,
       lat: location.lat,
@@ -128,7 +127,7 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
       });
       
       if (position) {
-        const enhancedPosition: ServiceLocationSearchResult = {
+        const enhancedPosition: SimpleLocationSearchResult = {
           ...position,
           id: `current-${Date.now()}`,
           title: position.address

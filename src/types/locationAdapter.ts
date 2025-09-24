@@ -11,7 +11,7 @@ export interface UnifiedLocation {
   address: string;
   lat: number;
   lng: number;
-  type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'database' | 'ip' | 'fallback' | 'default' | 'gps';
+  type?: 'current' | 'geocoded' | 'popular' | 'recent' | 'database' | 'google' | 'manual' | 'ip' | 'fallback' | 'default' | 'gps';
   placeId?: string;
   name?: string;
   subtitle?: string;
