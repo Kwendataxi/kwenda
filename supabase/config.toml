@@ -1,19 +1,25 @@
 project_id = "wddlktajnhwhyquwcdgf"
 
-[functions.partner-driver-earnings]
-verify_jwt = true
-
-[functions.delivery-dispatcher]
-verify_jwt = true
+# Configuration basique pour Kwenda
+# Edge Functions essentielles
 
 [functions.geocode-proxy]
 verify_jwt = false
 
+[functions.delivery-dispatcher]
+verify_jwt = true
+
+[functions.ride-dispatcher]
+verify_jwt = true
+
+[functions.wallet-topup]
+verify_jwt = true
+
+[functions.mobile-money-payment]
+verify_jwt = true
+
 [functions.push-notifications]
 verify_jwt = true
 
-[functions.notification-dispatcher]
-verify_jwt = true
-
-[functions.send-sms-notification]
-verify_jwt = true
+[functions.get-google-maps-key]
+verify_jwt = false

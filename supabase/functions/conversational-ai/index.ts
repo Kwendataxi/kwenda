@@ -142,7 +142,7 @@ serve(async (req) => {
     console.error('Error in conversational-ai function:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         response: 'Désolé, je rencontre un problème technique. Veuillez réessayer.'
       }),
       {
