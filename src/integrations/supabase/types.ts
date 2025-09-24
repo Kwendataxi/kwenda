@@ -8233,6 +8233,15 @@ export type Database = {
           total_orders: number
         }[]
       }
+      get_security_compliance_report: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          category: string
+          compliance_level: string
+          details: string
+          status: string
+        }[]
+      }
       get_security_metrics: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -8600,6 +8609,10 @@ export type Database = {
       refresh_security_stats: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      run_security_maintenance: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       search_places: {
         Args: {
