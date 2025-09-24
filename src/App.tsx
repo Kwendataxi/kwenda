@@ -42,6 +42,7 @@ import LouerVehicule from "./pages/partners/LouerVehicule";
 import DevenirLivreur from "./pages/partners/DevenirLivreur";
 import VendreEnLigne from "./pages/partners/VendreEnLigne";
 import SignalerProbleme from "./pages/support/SignalerProbleme";
+import TransportPage from "./pages/Transport";
 import Expansion from "./pages/locations/Expansion";
 import Demo from "./pages/demo/Demo";
 import ProgrammePartenaire from "./pages/partner/ProgrammePartenaire";
@@ -143,6 +144,13 @@ const AppContent = () => {
                 <Route path="/locations/lubumbashi" element={<Lubumbashi />} />
                 <Route path="/locations/kolwezi" element={<Kolwezi />} />
                 <Route path="/about" element={<About />} />
+                
+                {/* Transport Page */}
+                <Route path="/transport" element={
+                  <ProtectedRoute>
+                    <TransportPage />
+                  </ProtectedRoute>
+                } />
                 
                 {/* Services Pages */}
                 <Route path="/services/taxi-vtc" element={<TransportVTC />} />
