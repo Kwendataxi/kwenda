@@ -8,7 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/hooks/useAuth";
 import { FavoritesProvider } from "@/components/marketplace/FavoritesManager";
-import { SafeThemeProvider } from "@/components/theme/SafeThemeProvider";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import DynamicTheme from "@/components/theme/DynamicTheme";
 import ParticleBackground from "@/components/theme/ParticleBackground";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -200,7 +200,7 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <SafeThemeProvider>
+  <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <FavoritesProvider>
@@ -214,7 +214,7 @@ const App = () => (
         </FavoritesProvider>
       </AuthProvider>
     </QueryClientProvider>
-  </SafeThemeProvider>
+  </ThemeProvider>
 );
 
 export default App;
