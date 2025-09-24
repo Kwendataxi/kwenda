@@ -67,7 +67,7 @@ export const useSimplifiedGeolocation = (options: UseSimplifiedGeolocationOption
     }
   }, []);
 
-  const getCurrentPosition = useCallback(async (useDefault = false): Promise<Location> => {
+  const getCurrentPosition = useCallback(async (useDefault = false, forceRefresh = false): Promise<Location> => {
     // Si on demande la position par défaut ou si c'est un fallback
     if (useDefault) {
       const defaultLocation = DEFAULT_POSITION;
@@ -81,12 +81,14 @@ export const useSimplifiedGeolocation = (options: UseSimplifiedGeolocationOption
     setError(null);
 
     try {
-      // Vérifier la position stockée en premier
-      const stored = getStoredLocation();
-      if (stored) {
-        setLocation(stored);
-        setLoading(false);
-        return stored;
+      // Si forceRefresh est true, ne pas utiliser le cache
+      if (!forceRefresh) {
+        const stored = getStoredLocation();
+        if (stored) {
+          setLocation(stored);
+          setLoading(false);
+          return stored;
+        }
       }
 
       // Vérifier le support de la géolocalisation
@@ -94,15 +96,15 @@ export const useSimplifiedGeolocation = (options: UseSimplifiedGeolocationOption
         throw new Error('GEOLOCATION_NOT_SUPPORTED');
       }
 
-      // Demander la position actuelle
+      // Demander la position actuelle avec timeout plus long pour plus de précision
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(
           resolve,
           reject,
           {
-            enableHighAccuracy,
-            timeout,
-            maximumAge,
+            enableHighAccuracy: true, // Force la haute précision
+            timeout: 20000, // Augmenté à 20s pour GPS plus précis
+            maximumAge: forceRefresh ? 0 : maximumAge, // Pas de cache si forceRefresh
           }
         );
       });
@@ -118,7 +120,7 @@ export const useSimplifiedGeolocation = (options: UseSimplifiedGeolocationOption
       storeLocation(newLocation);
       setLoading(false);
 
-      toast.success('Position GPS obtenue');
+      toast.success('Position GPS précise obtenue');
       return newLocation;
 
     } catch (err: any) {
@@ -127,29 +129,31 @@ export const useSimplifiedGeolocation = (options: UseSimplifiedGeolocationOption
       let errorMessage = 'Erreur de géolocalisation';
       
       if (err.code === 1) {
-        errorMessage = 'Permission refusée';
+        errorMessage = 'Permission GPS refusée';
       } else if (err.code === 2) {
-        errorMessage = 'Position indisponible';
+        errorMessage = 'Signal GPS indisponible';
       } else if (err.code === 3) {
-        errorMessage = 'Timeout GPS';
+        errorMessage = 'Délai GPS dépassé';
       } else if (err.message === 'GEOLOCATION_NOT_SUPPORTED') {
         errorMessage = 'Géolocalisation non supportée';
       }
 
       setError(errorMessage);
 
-      // Essayer d'utiliser une position stockée même ancienne
-      const stored = getStoredLocation();
-      if (stored) {
-        setLocation(stored);
-        toast.warning('Position GPS précédente utilisée');
-        return stored;
+      // Essayer d'utiliser une position stockée même ancienne en dernier recours
+      if (!forceRefresh) {
+        const stored = getStoredLocation();
+        if (stored) {
+          setLocation(stored);
+          toast.warning('Position GPS précédente utilisée');
+          return stored;
+        }
       }
 
-      // Dernier recours: position par défaut
+      // Dernier recours: position par défaut adaptée à la ville
       const defaultLocation = DEFAULT_POSITION;
       setLocation(defaultLocation);
-      toast.warning('Position par défaut utilisée (Kinshasa)');
+      toast.warning('Position par défaut utilisée (Kinshasa centre)');
       return defaultLocation;
     }
   }, [enableHighAccuracy, timeout, maximumAge, getStoredLocation, storeLocation]);
@@ -207,11 +211,16 @@ export const useSimplifiedGeolocation = (options: UseSimplifiedGeolocationOption
     return getCurrentPosition(true);
   }, [getCurrentPosition]);
 
+  const getCurrentPositionForced = useCallback(() => {
+    return getCurrentPosition(false, true); // Force refresh du GPS
+  }, [getCurrentPosition]);
+
   return {
     location,
     loading,
     error,
     getCurrentPosition,
+    getCurrentPositionForced,
     watchPosition,
     clearWatch,
     useDefaultPosition,

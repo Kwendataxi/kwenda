@@ -295,7 +295,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
             <ModernLocationInput
               value={null}
               onChange={handlePickupChange}
-              placeholder="Rechercher votre position..."
+              placeholder="D'où partez-vous ?"
               context="pickup"
               autoDetect={false}
             />
@@ -330,7 +330,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
             <ModernLocationInput
               value={null}
               onChange={handleDestinationChange}
-              placeholder="Rechercher votre destination..."
+              placeholder="Où allez-vous ?"
               context="destination"
               autoDetect={false}
             />

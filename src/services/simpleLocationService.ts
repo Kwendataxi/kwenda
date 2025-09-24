@@ -116,10 +116,10 @@ class SimpleLocationService {
    */
   async getCurrentPosition(options?: GeolocationOptions): Promise<LocationData> {
     try {
-      // 1. Vérifier le cache d'abord
-      if (this.cachedPosition && !options?.enableHighAccuracy) {
+      // 1. Vérifier le cache d'abord (sauf si on demande une position fraîche)
+      if (this.cachedPosition && !options?.enableHighAccuracy && options?.maximumAge !== 0) {
         const age = Date.now() - (this.cachedPosition as any).timestamp;
-        if (age < 300000) { // 5 minutes
+        if (age < (options?.maximumAge ?? 300000)) { // Utiliser maximumAge ou 5 minutes par défaut
           console.log('📍 Position récupérée du cache');
           return this.cachedPosition;
         }

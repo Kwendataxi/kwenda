@@ -50,13 +50,14 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
     clearError
   } = useSimpleLocation();
 
-  // Synchroniser avec la valeur externe seulement si elle provient d'une navigation/sélection
+  // Synchroniser avec la valeur externe UNIQUEMENT pour context 'pickup' et seulement lors de la sélection
   useEffect(() => {
-    if (value && value.address && !query) {
-      // Ne pré-remplir que si le champ est vide (évite la surcharge automatique)
+    if (value && value.address && context === 'pickup' && !query) {
+      // Ne pré-remplir que pour pickup et si le champ est vide
       setQuery(value.address);
     }
-  }, [value, query]);
+    // Pour destination, ne JAMAIS pré-remplir automatiquement
+  }, [value, query, context]);
 
   // Auto-détection de position seulement si explicitement demandée via navigation
   useEffect(() => {
@@ -113,10 +114,11 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
   const handleGetCurrentLocation = async () => {
     try {
       clearError();
+      // Force une nouvelle position GPS précise (pas de cache)
       const position = await getCurrentPosition({
         enableHighAccuracy: true,
-        timeout: 30000,
-        maximumAge: 300000
+        timeout: 20000,
+        maximumAge: 0  // Pas de cache, position fraîche
       });
       
       if (position) {
@@ -128,7 +130,7 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
         handleLocationSelect(enhancedPosition);
       }
     } catch (err) {
-      console.error('Erreur géolocalisation:', err);
+      console.error('Erreur géolocalisation précise:', err);
     }
   };
 
