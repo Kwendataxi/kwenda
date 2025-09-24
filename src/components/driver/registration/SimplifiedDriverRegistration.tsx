@@ -3,436 +3,282 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Car, Package, User, Phone, Mail, FileText, Shield, ArrowLeft } from 'lucide-react';
-import { ServiceCategory } from './ServiceCategorySelector';
-import { SpecificServiceSelector } from './SpecificServiceSelector';
-import { DriverRegistrationData } from '@/hooks/useDriverRegistration';
+import { toast } from 'sonner';
+import { useDriverRegistration } from '@/hooks/useDriverRegistration';
+import { VehicleOwnershipSelector } from '@/components/auth/VehicleOwnershipSelector';
+import { ServiceSpecificFields } from '@/components/auth/ServiceSpecificFields';
 
 interface SimplifiedDriverRegistrationProps {
-  serviceCategory: ServiceCategory;
-  onSubmit: (data: DriverRegistrationData) => Promise<void>;
+  serviceCategory: 'taxi' | 'delivery';
   onBack: () => void;
-  isLoading?: boolean;
+  onSuccess: () => void;
 }
 
 export const SimplifiedDriverRegistration: React.FC<SimplifiedDriverRegistrationProps> = ({
   serviceCategory,
-  onSubmit,
   onBack,
-  isLoading = false,
+  onSuccess
 }) => {
-  const [selectedService, setSelectedService] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Partial<DriverRegistrationData>>({
+  const { registerDriver, isRegistering } = useDriverRegistration();
+  const [vehicleMode, setVehicleMode] = useState<'own' | 'partner' | null>(null);
+  const [formData, setFormData] = useState({
+    displayName: '',
+    email: '',
+    password: '',
+    phoneNumber: '',
+    licenseNumber: '',
+    licenseExpiry: '',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
     serviceCategory,
-    acceptsTerms: false,
+    serviceType: serviceCategory,
+    hasOwnVehicle: false,
+    vehicleType: '',
+    vehicleMake: '',
+    vehicleModel: '',
+    vehicleYear: new Date().getFullYear(),
+    vehiclePlate: '',
+    vehicleColor: '',
+    insuranceNumber: '',
+    insuranceExpiry: '',
+    deliveryCapacity: '',
+    acceptsTerms: false
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
+  const handleFieldChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
-    if (!selectedService) {
-      newErrors.serviceType = 'Veuillez sélectionner un service';
+  const handleVehicleModeSelect = (mode: 'own' | 'partner') => {
+    setVehicleMode(mode);
+    setFormData(prev => ({
+      ...prev,
+      hasOwnVehicle: mode === 'own'
+    }));
+  };
+
+  const validateForm = () => {
+    if (!vehicleMode) {
+      toast.error('Veuillez choisir si vous avez un véhicule ou cherchez un partenaire');
+      return false;
     }
-    if (!formData.displayName?.trim()) {
-      newErrors.displayName = 'Nom complet requis';
+
+    if (!formData.displayName || !formData.email || !formData.password || 
+        !formData.phoneNumber || !formData.licenseNumber || !formData.licenseExpiry) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return false;
     }
-    if (!formData.email?.trim()) {
-      newErrors.email = 'Email requis';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Format d\'email invalide';
-    }
-    if (!formData.password?.trim()) {
-      newErrors.password = 'Mot de passe requis';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Le mot de passe doit contenir au moins 6 caractères';
-    }
-    if (!formData.phoneNumber?.trim()) {
-      newErrors.phoneNumber = 'Numéro de téléphone requis';
-    }
-    if (!formData.licenseNumber?.trim()) {
-      newErrors.licenseNumber = 'Numéro de permis requis';
-    }
-    if (!formData.licenseExpiry) {
-      newErrors.licenseExpiry = 'Date d\'expiration du permis requise';
-    }
-    // Validation des champs véhicule seulement si le chauffeur a son propre véhicule
-    if (formData.hasOwnVehicle) {
-      if (!formData.vehicleMake?.trim()) {
-        newErrors.vehicleMake = 'Marque du véhicule requise';
-      }
-      if (!formData.vehicleModel?.trim()) {
-        newErrors.vehicleModel = 'Modèle du véhicule requis';
-      }
-      if (!formData.vehicleYear || formData.vehicleYear < 2000) {
-        newErrors.vehicleYear = 'Année du véhicule invalide';
-      }
-      if (!formData.vehiclePlate?.trim()) {
-        newErrors.vehiclePlate = 'Plaque d\'immatriculation requise';
-      }
-      if (!formData.vehicleColor?.trim()) {
-        newErrors.vehicleColor = 'Couleur du véhicule requise';
-      }
-      if (!formData.insuranceNumber?.trim()) {
-        newErrors.insuranceNumber = 'Numéro d\'assurance requis';
+
+    if (vehicleMode === 'own') {
+      if (!formData.vehicleType || !formData.vehicleMake || !formData.vehicleModel || 
+          !formData.vehiclePlate || !formData.insuranceNumber || !formData.insuranceExpiry) {
+        toast.error('Veuillez remplir toutes les informations du véhicule');
+        return false;
       }
     }
+
     if (!formData.acceptsTerms) {
-      newErrors.acceptsTerms = 'Vous devez accepter les conditions';
+      toast.error('Veuillez accepter les conditions d\'utilisation');
+      return false;
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm() && selectedService) {
-      const completeData: DriverRegistrationData = {
-        ...formData,
-        serviceType: selectedService,
-        vehicleType: selectedService,
-        hasOwnVehicle: false, // Par défaut dans cette interface simplifiée
-      } as DriverRegistrationData;
-      
-      await onSubmit(completeData);
+    
+    if (!validateForm()) {
+      return;
     }
-  };
 
-  const updateField = (field: keyof DriverRegistrationData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+    try {
+      const result = await registerDriver(formData);
+      if (result.success) {
+        if (result.hasOwnVehicle) {
+          toast.success('Inscription réussie ! Votre compte est en attente de vérification.');
+        } else {
+          toast.success('Inscription réussie ! Redirection vers la recherche de partenaires.');
+          // Redirect to partner search page
+          window.location.href = '/driver/find-partner';
+        }
+        onSuccess();
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'inscription:', error);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        {serviceCategory === 'taxi' ? (
-          <Car className="h-8 w-8 text-primary" />
-        ) : (
-          <Package className="h-8 w-8 text-primary" />
-        )}
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
-            Inscription {serviceCategory === 'taxi' ? 'Chauffeur Taxi' : 'Livreur'}
-          </h1>
-          <p className="text-muted-foreground">
-            Rejoignez notre plateforme en 2 étapes simples
-          </p>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Étape 1: Sélection du service */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">1</span>
-              Choisissez votre service spécifique
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SpecificServiceSelector
-              serviceCategory={serviceCategory}
-              selectedService={selectedService}
-              onServiceSelect={setSelectedService}
-              disabled={isLoading}
-            />
-            {errors.serviceType && (
-              <Alert className="mt-4">
-                <AlertDescription className="text-destructive">
-                  {errors.serviceType}
-                </AlertDescription>
-              </Alert>
+    <div className="w-full max-w-2xl mx-auto p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-center">
+            Inscription {serviceCategory === 'taxi' ? 'Chauffeur' : 'Livreur'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Sélection mode véhicule */}
+            {!vehicleMode && (
+              <VehicleOwnershipSelector
+                selectedMode={vehicleMode}
+                onModeSelect={handleVehicleModeSelect}
+                serviceCategory={serviceCategory}
+              />
             )}
-          </CardContent>
-        </Card>
 
-        {/* Étape 2: Informations personnelles et véhicule */}
-        {selectedService && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">2</span>
-                Vos informations
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Informations personnelles */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <User className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">Informations personnelles</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {vehicleMode && (
+              <>
+                {/* Informations personnelles */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">Informations personnelles</h3>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setVehicleMode(null)}
+                    >
+                      Modifier le choix véhicule
+                    </Button>
+                  </div>
+                  
                   <div>
                     <Label htmlFor="displayName">Nom complet *</Label>
                     <Input
                       id="displayName"
-                      value={formData.displayName || ''}
-                      onChange={(e) => updateField('displayName', e.target.value)}
-                      placeholder="Votre nom complet"
-                      className={errors.displayName ? 'border-destructive' : ''}
+                      value={formData.displayName}
+                      onChange={(e) => handleFieldChange('displayName', e.target.value)}
+                      required
                     />
-                    {errors.displayName && (
-                      <p className="text-sm text-destructive mt-1">{errors.displayName}</p>
-                    )}
                   </div>
-                  
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="email">Email *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleFieldChange('email', e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="password">Mot de passe *</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) => handleFieldChange('password', e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <Label htmlFor="phoneNumber">Téléphone *</Label>
+                    <Label htmlFor="phoneNumber">Numéro de téléphone *</Label>
                     <Input
                       id="phoneNumber"
-                      value={formData.phoneNumber || ''}
-                      onChange={(e) => updateField('phoneNumber', e.target.value)}
-                      placeholder="+243 xxx xxx xxx"
-                      className={errors.phoneNumber ? 'border-destructive' : ''}
+                      value={formData.phoneNumber}
+                      onChange={(e) => handleFieldChange('phoneNumber', e.target.value)}
+                      placeholder="+243 XXX XXX XXX"
+                      required
                     />
-                    {errors.phoneNumber && (
-                      <p className="text-sm text-destructive mt-1">{errors.phoneNumber}</p>
-                    )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email || ''}
-                      onChange={(e) => updateField('email', e.target.value)}
-                      placeholder="votre@email.com"
-                      className={errors.email ? 'border-destructive' : ''}
-                    />
-                    {errors.email && (
-                      <p className="text-sm text-destructive mt-1">{errors.email}</p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="password">Mot de passe *</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={formData.password || ''}
-                      onChange={(e) => updateField('password', e.target.value)}
-                      placeholder="Minimum 6 caractères"
-                      className={errors.password ? 'border-destructive' : ''}
-                    />
-                    {errors.password && (
-                      <p className="text-sm text-destructive mt-1">{errors.password}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Informations du permis */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <FileText className="h-5 w-5 text-primary" />
+                {/* Informations du permis */}
+                <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Permis de conduire</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="licenseNumber">Numéro de permis *</Label>
-                    <Input
-                      id="licenseNumber"
-                      value={formData.licenseNumber || ''}
-                      onChange={(e) => updateField('licenseNumber', e.target.value)}
-                      placeholder="Numéro de permis"
-                      className={errors.licenseNumber ? 'border-destructive' : ''}
-                    />
-                    {errors.licenseNumber && (
-                      <p className="text-sm text-destructive mt-1">{errors.licenseNumber}</p>
-                    )}
-                  </div>
                   
-                  <div>
-                    <Label htmlFor="licenseExpiry">Date d'expiration *</Label>
-                    <Input
-                      id="licenseExpiry"
-                      type="date"
-                      value={formData.licenseExpiry || ''}
-                      onChange={(e) => updateField('licenseExpiry', e.target.value)}
-                      className={errors.licenseExpiry ? 'border-destructive' : ''}
-                    />
-                    {errors.licenseExpiry && (
-                      <p className="text-sm text-destructive mt-1">{errors.licenseExpiry}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Informations du véhicule */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Car className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">Informations du véhicule</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="vehicleMake">Marque *</Label>
-                    <Input
-                      id="vehicleMake"
-                      value={formData.vehicleMake || ''}
-                      onChange={(e) => updateField('vehicleMake', e.target.value)}
-                      placeholder="Toyota, Honda..."
-                      className={errors.vehicleMake ? 'border-destructive' : ''}
-                    />
-                    {errors.vehicleMake && (
-                      <p className="text-sm text-destructive mt-1">{errors.vehicleMake}</p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="vehicleModel">Modèle *</Label>
-                    <Input
-                      id="vehicleModel"
-                      value={formData.vehicleModel || ''}
-                      onChange={(e) => updateField('vehicleModel', e.target.value)}
-                      placeholder="Corolla, Civic..."
-                      className={errors.vehicleModel ? 'border-destructive' : ''}
-                    />
-                    {errors.vehicleModel && (
-                      <p className="text-sm text-destructive mt-1">{errors.vehicleModel}</p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="vehicleYear">Année *</Label>
-                    <Input
-                      id="vehicleYear"
-                      type="number"
-                      min="2000"
-                      max={new Date().getFullYear()}
-                      value={formData.vehicleYear || ''}
-                      onChange={(e) => updateField('vehicleYear', parseInt(e.target.value))}
-                      placeholder="2020"
-                      className={errors.vehicleYear ? 'border-destructive' : ''}
-                    />
-                    {errors.vehicleYear && (
-                      <p className="text-sm text-destructive mt-1">{errors.vehicleYear}</p>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="licenseNumber">Numéro de permis *</Label>
+                      <Input
+                        id="licenseNumber"
+                        value={formData.licenseNumber}
+                        onChange={(e) => handleFieldChange('licenseNumber', e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="licenseExpiry">Date d'expiration *</Label>
+                      <Input
+                        id="licenseExpiry"
+                        type="date"
+                        value={formData.licenseExpiry}
+                        onChange={(e) => handleFieldChange('licenseExpiry', e.target.value)}
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="vehiclePlate">Plaque d'immatriculation *</Label>
-                    <Input
-                      id="vehiclePlate"
-                      value={formData.vehiclePlate || ''}
-                      onChange={(e) => updateField('vehiclePlate', e.target.value)}
-                      placeholder="ABC-123"
-                      className={errors.vehiclePlate ? 'border-destructive' : ''}
-                    />
-                    {errors.vehiclePlate && (
-                      <p className="text-sm text-destructive mt-1">{errors.vehiclePlate}</p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="vehicleColor">Couleur *</Label>
-                    <Input
-                      id="vehicleColor"
-                      value={formData.vehicleColor || ''}
-                      onChange={(e) => updateField('vehicleColor', e.target.value)}
-                      placeholder="Blanc, Noir..."
-                      className={errors.vehicleColor ? 'border-destructive' : ''}
-                    />
-                    {errors.vehicleColor && (
-                      <p className="text-sm text-destructive mt-1">{errors.vehicleColor}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
+                {/* Champs spécifiques au service et véhicule */}
+                <ServiceSpecificFields
+                  serviceCategory={serviceCategory}
+                  hasOwnVehicle={vehicleMode === 'own'}
+                  formData={formData}
+                  onFieldChange={handleFieldChange}
+                />
 
-              {/* Assurance */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Shield className="h-5 w-5 text-primary" />
-                  <h3 className="text-lg font-semibold">Assurance véhicule</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="insuranceNumber">Numéro d'assurance *</Label>
-                    <Input
-                      id="insuranceNumber"
-                      value={formData.insuranceNumber || ''}
-                      onChange={(e) => updateField('insuranceNumber', e.target.value)}
-                      placeholder="Numéro de police"
-                      className={errors.insuranceNumber ? 'border-destructive' : ''}
-                    />
-                    {errors.insuranceNumber && (
-                      <p className="text-sm text-destructive mt-1">{errors.insuranceNumber}</p>
-                    )}
-                  </div>
+                {/* Contact d'urgence */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Contact d'urgence</h3>
                   
-                  <div>
-                    <Label htmlFor="insuranceExpiry">Date d'expiration</Label>
-                    <Input
-                      id="insuranceExpiry"
-                      type="date"
-                      value={formData.insuranceExpiry || ''}
-                      onChange={(e) => updateField('insuranceExpiry', e.target.value)}
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="emergencyContactName">Nom du contact</Label>
+                      <Input
+                        id="emergencyContactName"
+                        value={formData.emergencyContactName}
+                        onChange={(e) => handleFieldChange('emergencyContactName', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="emergencyContactPhone">Téléphone du contact</Label>
+                      <Input
+                        id="emergencyContactPhone"
+                        value={formData.emergencyContactPhone}
+                        onChange={(e) => handleFieldChange('emergencyContactPhone', e.target.value)}
+                        placeholder="+243 XXX XXX XXX"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Conditions */}
-              <div className="space-y-4">
+                {/* Conditions d'utilisation */}
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="acceptsTerms"
-                    checked={formData.acceptsTerms || false}
-                    onCheckedChange={(checked) => updateField('acceptsTerms', checked)}
+                    checked={formData.acceptsTerms}
+                    onCheckedChange={(checked) => handleFieldChange('acceptsTerms', checked)}
                   />
                   <Label htmlFor="acceptsTerms" className="text-sm">
-                    J'accepte les <a href="#" className="text-primary hover:underline">conditions d'utilisation</a> et la <a href="#" className="text-primary hover:underline">politique de confidentialité</a> *
+                    J'accepte les <a href="#" className="text-primary underline">conditions d'utilisation</a> et la <a href="#" className="text-primary underline">politique de confidentialité</a>
                   </Label>
                 </div>
-                {errors.acceptsTerms && (
-                  <p className="text-sm text-destructive">{errors.acceptsTerms}</p>
-                )}
-              </div>
 
-              {/* Actions */}
-              <div className="flex justify-between pt-6 border-t">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onBack}
-                  disabled={isLoading}
-                  className="flex items-center gap-2"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Retour
-                </Button>
-
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex items-center gap-2"
-                >
-                  {isLoading ? 'Inscription...' : 'Créer mon compte'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </form>
+                {/* Boutons */}
+                <div className="flex gap-4 pt-6">
+                  <Button type="button" variant="outline" onClick={onBack} className="flex-1">
+                    Retour
+                  </Button>
+                  <Button type="submit" disabled={isRegistering} className="flex-1">
+                    {isRegistering ? 'Inscription en cours...' : 'Finaliser l\'inscription'}
+                  </Button>
+                </div>
+              </>
+            )}
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

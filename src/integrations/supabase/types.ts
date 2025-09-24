@@ -8654,15 +8654,15 @@ export type Database = {
           | {
               p_email: string
               p_license_number: string
-              p_phone: string
+              p_phone_number: string
+              p_user_id?: string
               p_vehicle_plate: string
             }
           | {
               p_email: string
               p_license_number: string
               p_phone_number: string
-              p_user_id?: string
-              p_vehicle_plate: string
+              p_vehicle_plate?: string
             }
         Returns: Json
       }

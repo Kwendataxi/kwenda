@@ -84,11 +84,10 @@ export const DifferentiatedDriverRegistration: React.FC<DifferentiatedDriverRegi
         )}
 
         {step === 'form' && selectedCategory && (
-          <SimplifiedDriverRegistration
+          <SimplifiedDriverRegistration 
             serviceCategory={selectedCategory}
-            onSubmit={handleRegistrationSubmit}
             onBack={handleBack}
-            isLoading={isRegistering}
+            onSuccess={onSuccess}
           />
         )}
       </div>

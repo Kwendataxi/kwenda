@@ -40,16 +40,17 @@ export const useDriverRegistration = () => {
       // 1. Valider les données avant l'inscription avec la nouvelle fonction
       const { data: validation, error: validationError } = await supabase.rpc('validate_driver_registration_data', {
         p_email: data.email,
-        p_phone: data.phoneNumber,
+        p_phone_number: data.phoneNumber,
         p_license_number: data.licenseNumber,
         p_vehicle_plate: data.hasOwnVehicle ? data.vehiclePlate : null
       });
 
       if (validationError) {
         await supabase.rpc('log_driver_registration_attempt', {
-          p_email: data.email,
+          p_user_id: null,
           p_success: false,
-          p_error_message: `Validation error: ${validationError.message}`
+          p_error_message: `Validation error: ${validationError.message}`,
+          p_registration_data: { email: data.email }
         });
         throw validationError;
       }
@@ -58,9 +59,10 @@ export const useDriverRegistration = () => {
         const errors = (validation as any).errors || [];
         const errorMessage = Array.isArray(errors) ? errors.join(', ') : 'Erreur de validation';
         await supabase.rpc('log_driver_registration_attempt', {
-          p_email: data.email,
+          p_user_id: null,
           p_success: false,
-          p_error_message: errorMessage
+          p_error_message: errorMessage,
+          p_registration_data: { email: data.email, errors }
         });
         throw new Error(errorMessage);
       }
@@ -82,9 +84,10 @@ export const useDriverRegistration = () => {
 
       if (authError) {
         await supabase.rpc('log_driver_registration_attempt', {
-          p_email: data.email,
+          p_user_id: null,
           p_success: false,
-          p_error_message: `Auth error: ${authError.message}`
+          p_error_message: `Auth error: ${authError.message}`,
+          p_registration_data: { email: data.email }
         });
         throw authError;
       }
@@ -92,9 +95,10 @@ export const useDriverRegistration = () => {
       if (!authData.user) {
         const errorMsg = 'Erreur lors de la création du compte';
         await supabase.rpc('log_driver_registration_attempt', {
-          p_email: data.email,
+          p_user_id: null,
           p_success: false,
-          p_error_message: errorMsg
+          p_error_message: errorMsg,
+          p_registration_data: { email: data.email }
         });
         throw new Error(errorMsg);
       }
@@ -187,9 +191,14 @@ export const useDriverRegistration = () => {
 
       // Log successful registration
       await supabase.rpc('log_driver_registration_attempt', {
-        p_email: data.email,
+        p_user_id: authData.user.id,
         p_success: true,
-        p_error_message: null
+        p_error_message: null,
+        p_registration_data: {
+          service_type: data.serviceType,
+          has_own_vehicle: data.hasOwnVehicle,
+          registration_date: new Date().toISOString()
+        }
       });
 
       toast({
@@ -197,16 +206,26 @@ export const useDriverRegistration = () => {
         description: "Votre compte a été créé avec succès. Vérifiez votre email pour confirmer votre adresse.",
       });
 
-      return authData;
+      return { 
+        success: true, 
+        hasOwnVehicle: data.hasOwnVehicle,
+        redirectPath: data.hasOwnVehicle ? '/dashboard' : '/driver/find-partner',
+        user: authData.user,
+        session: authData.session
+      };
     } catch (error: any) {
       console.error('Driver registration error:', error);
       
       // Log the error if not already logged
       try {
         await supabase.rpc('log_driver_registration_attempt', {
-          p_email: data.email || 'unknown',
+          p_user_id: null,
           p_success: false,
-          p_error_message: `Unexpected error: ${error.message || 'Unknown error'}`
+          p_error_message: `Unexpected error: ${error.message || 'Unknown error'}`,
+          p_registration_data: {
+            email: data.email || 'unknown',
+            error_timestamp: new Date().toISOString()
+          }
         });
       } catch (logError) {
         console.warn('Failed to log registration error:', logError);
