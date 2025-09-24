@@ -10,8 +10,9 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { useSimpleLocation } from '@/hooks/useSimpleLocation';
-import { LocationSearchResult } from '@/services/simpleLocationService';
+import { enhancedLocationService } from '@/services/enhancedLocationService';
+import { LocationSearchResult, UnifiedLocation } from '@/types/unifiedLocation';
+import EnhancedLocationPicker from '@/components/location/EnhancedLocationPicker';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,8 +22,8 @@ interface ModernDeliveryInterfaceProps {
 }
 
 interface DeliveryData {
-  pickupLocation: LocationSearchResult | null;
-  deliveryLocation: LocationSearchResult | null;
+  pickupLocation: UnifiedLocation | null;
+  deliveryLocation: UnifiedLocation | null;
   serviceType: 'flash' | 'flex' | 'maxicharge';
   packageType: string;
   estimatedPrice: number;
@@ -59,7 +60,6 @@ const PACKAGE_TYPES = [
 
 export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDeliveryInterfaceProps) {
   const { toast } = useToast();
-  const { getCurrentPosition, searchLocations, calculateDistance, formatDistance } = useSimpleLocation();
   
   const [deliveryData, setDeliveryData] = useState<DeliveryData>({
     pickupLocation: null,
@@ -70,41 +70,14 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
   });
 
   const [expandedSection, setExpandedSection] = useState<string>('pickup');
-  const [pickupQuery, setPickupQuery] = useState('');
-  const [deliveryQuery, setDeliveryQuery] = useState('');
-  const [pickupSuggestions, setPickupSuggestions] = useState<LocationSearchResult[]>([]);
-  const [deliverySuggestions, setDeliverySuggestions] = useState<LocationSearchResult[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Initialiser la position actuelle
-  useEffect(() => {
-    getCurrentPosition();
-  }, [getCurrentPosition]);
-
-  // Recherche pickup
-  useEffect(() => {
-    if (pickupQuery.length > 0) {
-      searchLocations(pickupQuery, setPickupSuggestions);
-    } else {
-      setPickupSuggestions([]);
-    }
-  }, [pickupQuery, searchLocations]);
-
-  // Recherche delivery
-  useEffect(() => {
-    if (deliveryQuery.length > 0) {
-      searchLocations(deliveryQuery, setDeliverySuggestions);
-    } else {
-      setDeliverySuggestions([]);
-    }
-  }, [deliveryQuery, searchLocations]);
 
   // Calculer le prix quand les locations changent
   useEffect(() => {
     if (deliveryData.pickupLocation && deliveryData.deliveryLocation) {
-      const distance = calculateDistance(
-        deliveryData.pickupLocation,
-        deliveryData.deliveryLocation
+      const distance = enhancedLocationService.calculateDistance(
+        deliveryData.pickupLocation.coordinates,
+        deliveryData.deliveryLocation.coordinates
       );
       
       const basePrice = SERVICE_TYPES[deliveryData.serviceType].basePrice;
@@ -113,18 +86,18 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
       
       setDeliveryData(prev => ({ ...prev, estimatedPrice }));
     }
-  }, [deliveryData.pickupLocation, deliveryData.deliveryLocation, deliveryData.serviceType, calculateDistance]);
+  }, [deliveryData.pickupLocation, deliveryData.deliveryLocation, deliveryData.serviceType]);
 
-  const handleLocationSelect = (location: LocationSearchResult, type: 'pickup' | 'delivery') => {
-    if (type === 'pickup') {
-      setDeliveryData(prev => ({ ...prev, pickupLocation: location }));
-      setPickupQuery(location.title);
-      setPickupSuggestions([]);
+  const handlePickupLocationChange = (location: UnifiedLocation | null) => {
+    setDeliveryData(prev => ({ ...prev, pickupLocation: location }));
+    if (location) {
       setExpandedSection('delivery');
-    } else {
-      setDeliveryData(prev => ({ ...prev, deliveryLocation: location }));
-      setDeliveryQuery(location.title);
-      setDeliverySuggestions([]);
+    }
+  };
+
+  const handleDeliveryLocationChange = (location: UnifiedLocation | null) => {
+    setDeliveryData(prev => ({ ...prev, deliveryLocation: location }));
+    if (location) {
       setExpandedSection('service');
     }
   };
@@ -152,12 +125,12 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
         pickup_location: deliveryData.pickupLocation.address,
         delivery_location: deliveryData.deliveryLocation.address,
         pickup_coordinates: {
-          lat: deliveryData.pickupLocation.lat,
-          lng: deliveryData.pickupLocation.lng
+          lat: deliveryData.pickupLocation.coordinates.lat,
+          lng: deliveryData.pickupLocation.coordinates.lng
         },
         delivery_coordinates: {
-          lat: deliveryData.deliveryLocation.lat,
-          lng: deliveryData.deliveryLocation.lng
+          lat: deliveryData.deliveryLocation.coordinates.lat,
+          lng: deliveryData.deliveryLocation.coordinates.lng
         },
         delivery_type: deliveryData.serviceType,
         package_type: deliveryData.packageType,
@@ -180,8 +153,8 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
         const { data: assignmentResult, error: assignmentError } = await supabase.functions.invoke('delivery-dispatcher', {
           body: {
             orderId: data.id,
-            pickupLat: deliveryData.pickupLocation.lat,
-            pickupLng: deliveryData.pickupLocation.lng,
+            pickupLat: deliveryData.pickupLocation.coordinates.lat,
+            pickupLng: deliveryData.pickupLocation.coordinates.lng,
             deliveryType: deliveryData.serviceType
           }
         });
@@ -257,47 +230,6 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
     </div>
   );
 
-  const LocationInput = ({ 
-    value, 
-    onChange, 
-    suggestions, 
-    onSelect, 
-    placeholder,
-    type
-  }: {
-    value: string;
-    onChange: (value: string) => void;
-    suggestions: LocationSearchResult[];
-    onSelect: (location: LocationSearchResult) => void;
-    placeholder: string;
-    type: 'pickup' | 'delivery';
-  }) => (
-    <div className="relative">
-      <Input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="glass-input"
-      />
-      
-      {suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 glass-card border border-border/20 rounded-lg overflow-hidden z-50">
-          {suggestions.map((suggestion) => (
-            <div
-              key={suggestion.id}
-              className="p-3 hover:bg-white/5 cursor-pointer transition-colors border-b border-border/10 last:border-b-0"
-              onClick={() => onSelect(suggestion)}
-            >
-              <div className="font-medium text-foreground">{suggestion.title}</div>
-              {suggestion.subtitle && (
-                <div className="text-xs text-muted-foreground">{suggestion.subtitle}</div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -324,13 +256,12 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
               
               {expandedSection === 'pickup' && (
                 <div className="pl-11 space-y-4 animate-fade-in">
-                  <LocationInput
-                    value={pickupQuery}
-                    onChange={setPickupQuery}
-                    suggestions={pickupSuggestions}
-                    onSelect={(location) => handleLocationSelect(location, 'pickup')}
+                  <EnhancedLocationPicker
+                    value={deliveryData.pickupLocation}
+                    onChange={handlePickupLocationChange}
                     placeholder="Où récupérer le colis ?"
-                    type="pickup"
+                    context="pickup"
+                    showCurrentLocationButton={true}
                   />
                 </div>
               )}
@@ -348,13 +279,12 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
               
               {expandedSection === 'delivery' && (
                 <div className="pl-11 space-y-4 animate-fade-in">
-                  <LocationInput
-                    value={deliveryQuery}
-                    onChange={setDeliveryQuery}
-                    suggestions={deliverySuggestions}
-                    onSelect={(location) => handleLocationSelect(location, 'delivery')}
+                  <EnhancedLocationPicker
+                    value={deliveryData.deliveryLocation}
+                    onChange={handleDeliveryLocationChange}
                     placeholder="Où livrer le colis ?"
-                    type="delivery"
+                    context="delivery"
+                    showCurrentLocationButton={true}
                   />
                 </div>
               )}
@@ -429,7 +359,12 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Distance:</span>
                     <span className="font-medium">
-                      {formatDistance(calculateDistance(deliveryData.pickupLocation, deliveryData.deliveryLocation))}
+                      {enhancedLocationService.formatDistance(
+                        enhancedLocationService.calculateDistance(
+                          deliveryData.pickupLocation.coordinates, 
+                          deliveryData.deliveryLocation.coordinates
+                        )
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between">
