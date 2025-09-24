@@ -107,7 +107,7 @@ serve(async (req) => {
       console.error('Error creating notification:', notificationError)
     }
 
-    // Add status history entry
+    // Add status history entry (no user_id required for system changes)
     const { error: historyError } = await supabase
       .from('delivery_status_history')
       .insert({

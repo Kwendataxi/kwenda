@@ -145,8 +145,8 @@ serve(async (req) => {
       })
       .eq('driver_id', closestDriver.driver_id);
 
-    // Create driver notification (simplified for now)
-    await supabaseClient
+    // Create driver notification in activity_logs with required user_id
+    const { error: activityError } = await supabaseClient
       .from('activity_logs')
       .insert({
         user_id: closestDriver.driver_id,
@@ -160,6 +160,10 @@ serve(async (req) => {
           estimated_arrival: Math.round(closestDriver.distance_km * 2) // 2 min per km estimate
         }
       });
+
+    if (activityError) {
+      console.error('❌ Error creating activity log:', activityError);
+    }
 
     console.log(`✅ Driver ${closestDriver.driver_id} assigned to booking ${booking_id}`);
 
