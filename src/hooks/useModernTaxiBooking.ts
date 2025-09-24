@@ -154,11 +154,10 @@ export function useModernTaxiBooking() {
         destination: bookingData.destination.address,
         destination_coordinates: validatedDestination,
         vehicle_type: bookingData.vehicleType,
-        passengers: bookingData.passengers || 1,
         estimated_price: Math.round(bookingData.estimatedPrice),
-        estimated_distance: bookingData.distance,
+        total_distance: bookingData.distance,
         notes: bookingData.notes || null,
-        scheduled_time: bookingData.scheduledTime?.toISOString(),
+        pickup_time: bookingData.scheduledTime?.toISOString() || new Date().toISOString(),
         status: 'pending'
       };
 
