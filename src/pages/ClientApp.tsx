@@ -617,7 +617,7 @@ const ClientApp = () => {
             case 'marketplace':
               return (
                 <EnhancedMarketplaceInterface 
-                  onBack={() => setCurrentView('home')}
+                  onNavigate={(path) => setCurrentView('home')}
                 />
               );
             default:

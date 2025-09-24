@@ -62,8 +62,9 @@ const POPULAR_PLACES: Location[] = [
 ];
 
 interface SimpleDeliveryInterfaceProps {
-  onSubmit: (data: any) => void;
-  onCancel: () => void;
+  onNavigate: (path: string) => void;
+  onSubmit?: (data: any) => void;
+  onCancel?: () => void;
 }
 
 export default function SimpleDeliveryInterface({ onSubmit, onCancel }: SimpleDeliveryInterfaceProps) {

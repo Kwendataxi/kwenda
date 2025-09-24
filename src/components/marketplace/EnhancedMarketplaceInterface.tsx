@@ -77,10 +77,10 @@ interface CartItem {
 }
 
 interface EnhancedMarketplaceInterfaceProps {
-  onBack: () => void;
+  onNavigate: (path: string) => void;
 }
 
-export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterfaceProps> = ({ onBack }) => {
+export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterfaceProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t, formatCurrency } = useLanguage();
@@ -528,7 +528,7 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
       {/* Modern Header */}
       <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="flex items-center justify-between p-4">
-          <Button variant="ghost" size="icon" onClick={onBack} className="touch-manipulation">
+          <Button variant="ghost" size="icon" onClick={() => onNavigate('/client')} className="touch-manipulation">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="text-center">
@@ -683,3 +683,5 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
     </div>
   );
 };
+
+export default EnhancedMarketplaceInterface;
