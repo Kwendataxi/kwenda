@@ -7785,6 +7785,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      automated_security_maintenance: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       calculate_delivery_estimate: {
         Args: { order_id_param: string }
         Returns: string
@@ -8661,6 +8665,15 @@ export type Database = {
           check_name: string
           recommendation: string
           result: string
+        }[]
+      }
+      security_health_check: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          check_type: string
+          count: number
+          details: string
+          status: string
         }[]
       }
       security_monitor_access: {
