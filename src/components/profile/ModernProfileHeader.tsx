@@ -51,106 +51,100 @@ export const ModernProfileHeader = ({
   };
 
   return (
-    <div className={cn("relative p-6 bg-gradient-to-br from-background to-accent/5 border-b border-border/50", className)}>
-      <div className="flex items-start gap-6">
-        {/* Avatar avec bouton de changement de photo */}
+    <div className={cn("relative px-4 py-6 bg-gradient-to-br from-background to-primary/[0.02] border-b border-border/30", className)}>
+      {/* Header principal avec layout optimisé */}
+      <div className="flex items-center gap-4">
+        {/* Avatar compact avec overlay discret */}
         <div className="relative group">
-          <Avatar className="w-20 h-20 border-3 border-primary/20 shadow-lg transition-all duration-300 group-hover:border-primary/40">
+          <Avatar className="w-16 h-16 border-2 border-primary/10 shadow-sm transition-all duration-200 group-hover:border-primary/20">
             <AvatarImage src={currentAvatarUrl || ''} className="object-cover" />
-            <AvatarFallback className="text-xl font-bold bg-gradient-to-br from-primary/10 to-primary/20 text-primary">
+            <AvatarFallback className="text-lg font-semibold bg-gradient-to-br from-primary/5 to-primary/10 text-primary">
               {profile.display_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
             </AvatarFallback>
           </Avatar>
           
-          {/* Bouton pour changer la photo */}
-          <div className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          {/* Overlay subtil pour changement de photo */}
+          <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
             <Button 
               size="sm" 
               variant="ghost" 
-              className="p-2 text-white hover:bg-white/20 rounded-full"
+              className="p-1.5 text-white hover:bg-white/20 rounded-full h-8 w-8"
               onClick={() => setShowUpload(!showUpload)}
             >
-              <Camera className="h-4 w-4" />
+              <Camera className="h-3.5 w-3.5" />
             </Button>
           </div>
           
-          {/* Upload component conditionnel */}
-          {showUpload && (
-            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-              <ProfilePictureUpload onUploadComplete={handleAvatarUpload} />
-            </div>
-          )}
-          
-          {/* Indicateur de statut en ligne */}
-          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-3 border-background shadow-sm">
-            <div className="w-full h-full rounded-full bg-green-400 animate-pulse" />
-          </div>
+          {/* Statut en ligne minimaliste */}
+          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-500 rounded-full border-2 border-background shadow-sm" />
         </div>
 
-        {/* Informations utilisateur */}
-        <div className="flex-1 min-w-0 space-y-4">
-          {/* Nom complet sans troncature */}
-          <div className="space-y-2">
-            <div className="flex items-start gap-3">
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-foreground leading-tight break-words">
-                  {profile.display_name || user?.email?.split('@')[0] || 'Utilisateur'}
-                </h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {user?.email}
-                </p>
-              </div>
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                onClick={onEditName}
-                className="p-2 text-muted-foreground hover:text-primary hover:bg-accent/50 transition-colors"
-              >
-                <Edit2 className="h-4 w-4" />
-              </Button>
-            </div>
+        {/* Informations principales */}
+        <div className="flex-1 min-w-0">
+          {/* Nom avec bouton d'édition discret */}
+          <div className="flex items-center gap-2 group/name">
+            <h1 className="text-xl font-bold text-foreground truncate">
+              {profile.display_name || user?.email?.split('@')[0] || 'Utilisateur'}
+            </h1>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              onClick={onEditName}
+              className="p-1 h-6 w-6 opacity-0 group-hover/name:opacity-100 text-muted-foreground hover:text-primary transition-all duration-200"
+            >
+              <Edit2 className="h-3 w-3" />
+            </Button>
           </div>
-
-          {/* Numéro de téléphone */}
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground flex-1">
-              📞 {profile.phone_number || "Ajouter un numéro"}
+          
+          {/* Email secondaire */}
+          <p className="text-sm text-muted-foreground truncate mt-0.5">
+            {user?.email}
+          </p>
+          
+          {/* Téléphone avec édition */}
+          <div className="flex items-center gap-2 mt-1 group/phone">
+            <span className="text-sm text-muted-foreground truncate flex-1">
+              {profile.phone_number || "Ajouter un numéro"}
             </span>
             <Button 
               size="sm" 
               variant="ghost" 
               onClick={onEditPhone}
-              className="p-2 text-muted-foreground hover:text-primary hover:bg-accent/50 transition-colors"
+              className="p-1 h-5 w-5 opacity-0 group-hover/phone:opacity-100 text-muted-foreground hover:text-primary transition-all duration-200"
             >
-              <Edit2 className="h-4 w-4" />
+              <Edit2 className="h-3 w-3" />
             </Button>
-          </div>
-
-          {/* Badges et statuts */}
-          <div className="flex flex-wrap items-center gap-3">
-            <Badge variant="secondary" className="px-3 py-1 text-sm font-medium">
-              {getUserTypeLabel(profile.user_type)}
-            </Badge>
-
-            {/* Rating mis en évidence */}
-            {rating && rating.total_ratings > 0 && (
-              <div className="flex items-center gap-2 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 px-3 py-1.5 rounded-full border border-amber-200 dark:border-amber-800">
-                <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                <span className="text-sm font-bold text-amber-700 dark:text-amber-300">
-                  {rating.rating}
-                </span>
-                <span className="text-xs text-amber-600 dark:text-amber-400">
-                  ({rating.total_ratings} avis)
-                </span>
-              </div>
-            )}
-
-            <Badge variant="outline" className="px-3 py-1 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950/30">
-              🟢 Actif
-            </Badge>
           </div>
         </div>
       </div>
+
+      {/* Badges et métriques */}
+      <div className="flex items-center justify-between mt-4">
+        {/* Type d'utilisateur discret */}
+        <Badge variant="secondary" className="px-2.5 py-1 text-xs font-medium bg-primary/5 text-primary border-primary/10">
+          {getUserTypeLabel(profile.user_type)}
+        </Badge>
+
+        {/* Rating compact si disponible */}
+        {rating && rating.total_ratings > 0 && (
+          <div className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/20 px-2.5 py-1 rounded-full border border-amber-200/50 dark:border-amber-800/50">
+            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+            <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+              {rating.rating}
+            </span>
+            <span className="text-xs text-amber-600/80 dark:text-amber-400/80">
+              ({rating.total_ratings})
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Upload component positionné discrètement */}
+      {showUpload && (
+        <div className="absolute top-full left-4 mt-2 z-10">
+          <ProfilePictureUpload onUploadComplete={handleAvatarUpload} />
+        </div>
+      )}
     </div>
   );
 };
