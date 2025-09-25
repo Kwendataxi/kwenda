@@ -6,6 +6,27 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Utilitaire pour fetch avec timeout
+async function fetchWithTimeout(url: string, options: any, timeoutMs: number) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -54,79 +75,71 @@ serve(async (req) => {
     // Essayer plusieurs services de géolocalisation IP
     let locationData = null;
 
-    // Service 1: ipapi.co
-    try {
-      console.log('🔄 Tentative ipapi.co...');
-      const response1 = await fetch(`https://ipapi.co/${clientIP}/json/`, {
+    // Essayer plusieurs services en parallèle avec timeout intelligent
+    const services = [
+      () => fetchWithTimeout(`https://ipapi.co/${clientIP}/json/`, {
         headers: { 'User-Agent': 'Kwenda-App/1.0' }
-      });
-      const data1 = await response1.json();
+      }, 4000).then(data => {
+        if (data.latitude && data.longitude && !data.error) {
+          return {
+            latitude: data.latitude,
+            longitude: data.longitude,
+            city: data.city,
+            country_name: data.country_name,
+            country_code: data.country_code,
+            provider: 'ipapi.co',
+            accuracy: 8000
+          };
+        }
+        throw new Error('Invalid data from ipapi.co');
+      }),
       
-      if (data1.latitude && data1.longitude && !data1.error) {
-        locationData = {
-          latitude: data1.latitude,
-          longitude: data1.longitude,
-          city: data1.city,
-          country_name: data1.country_name,
-          country_code: data1.country_code,
-          provider: 'ipapi.co',
-          accuracy: 10000
-        };
-        console.log('✅ ipapi.co réussi');
-      }
-    } catch (error) {
-      console.warn('❌ ipapi.co échoué:', error instanceof Error ? error.message : 'Unknown error');
-    }
-
-    // Service 2: ip-api.com (fallback)
-    if (!locationData) {
-      try {
-        console.log('🔄 Tentative ip-api.com...');
-        const response2 = await fetch(`http://ip-api.com/json/${clientIP}?fields=status,country,countryCode,city,lat,lon`, {
-          headers: { 'User-Agent': 'Kwenda-App/1.0' }
-        });
-        const data2 = await response2.json();
-        
-        if (data2.status === 'success' && data2.lat && data2.lon) {
-          locationData = {
-            latitude: data2.lat,
-            longitude: data2.lon,
-            city: data2.city,
-            country_name: data2.country,
-            country_code: data2.countryCode,
-            provider: 'ip-api.com',
+      () => fetchWithTimeout(`https://ipinfo.io/${clientIP}/json`, {
+        headers: { 'User-Agent': 'Kwenda-App/1.0' }
+      }, 5000).then(data => {
+        if (data.loc) {
+          const [lat, lng] = data.loc.split(',').map(Number);
+          return {
+            latitude: lat,
+            longitude: lng,
+            city: data.city,
+            country_name: data.country,
+            country_code: data.country,
+            provider: 'ipinfo.io',
+            accuracy: 12000
+          };
+        }
+        throw new Error('Invalid data from ipinfo.io');
+      }),
+      
+      () => fetchWithTimeout(`https://get.geojs.io/v1/ip/geo.json`, {
+        headers: { 'User-Agent': 'Kwenda-App/1.0' }
+      }, 6000).then(data => {
+        if (data.latitude && data.longitude) {
+          return {
+            latitude: parseFloat(data.latitude),
+            longitude: parseFloat(data.longitude),
+            city: data.city,
+            country_name: data.country,
+            country_code: data.country_code,
+            provider: 'geojs.io',
             accuracy: 15000
           };
-          console.log('✅ ip-api.com réussi');
         }
-      } catch (error) {
-        console.warn('❌ ip-api.com échoué:', error instanceof Error ? error.message : 'Unknown error');
-      }
-    }
+        throw new Error('Invalid data from geojs.io');
+      })
+    ];
 
-    // Service 3: freeipapi.com (fallback)
-    if (!locationData) {
+    // Essayer les services séquentiellement avec retry intelligent
+    for (let i = 0; i < services.length; i++) {
       try {
-        console.log('🔄 Tentative freeipapi.com...');
-        const response3 = await fetch(`https://freeipapi.com/api/json/${clientIP}`, {
-          headers: { 'User-Agent': 'Kwenda-App/1.0' }
-        });
-        const data3 = await response3.json();
-        
-        if (data3.latitude && data3.longitude) {
-          locationData = {
-            latitude: data3.latitude,
-            longitude: data3.longitude,
-            city: data3.cityName,
-            country_name: data3.countryName,
-            country_code: data3.countryCode,
-            provider: 'freeipapi.com',
-            accuracy: 20000
-          };
-          console.log('✅ freeipapi.com réussi');
-        }
+        console.log(`🔄 Tentative service ${i + 1}/3...`);
+        locationData = await services[i]();
+        console.log(`✅ Service ${i + 1} réussi:`, locationData.provider);
+        break;
       } catch (error) {
-        console.warn('❌ freeipapi.com échoué:', error instanceof Error ? error.message : 'Unknown error');
+        console.warn(`❌ Service ${i + 1} échoué:`, error instanceof Error ? error.message : 'Unknown error');
+        // Continuer avec le service suivant
       }
     }
 

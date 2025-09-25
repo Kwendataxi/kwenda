@@ -445,9 +445,19 @@ async function getGPSPosition(options: PositionOptions): Promise<LocationData> {
       return;
     }
 
+    // Timeout adaptatif pour l'Afrique (plus long pour connexions lentes)
+    const adaptiveTimeout = options.timeout || 15000; // 15 secondes pour l'Afrique
     const timeoutId = setTimeout(() => {
-      reject(new Error('Timeout GPS'));
-    }, options.timeout || 8000);
+      reject(new Error('Timeout GPS - Connexion trop lente'));
+    }, adaptiveTimeout);
+
+    // Options GPS optimisées pour l'Afrique
+    const optimizedOptions = {
+      ...options,
+      enableHighAccuracy: true,
+      timeout: adaptiveTimeout,
+      maximumAge: 60000 // Accepter une position vieille de 1 minute
+    };
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -456,7 +466,7 @@ async function getGPSPosition(options: PositionOptions): Promise<LocationData> {
         const coords = position.coords;
         let address = `${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`;
         
-        // Essayer le géocodage inverse
+        // Essayer le géocodage inverse avec timeout
         try {
           address = await reverseGeocode(coords.latitude, coords.longitude);
         } catch (error) {
@@ -469,19 +479,19 @@ async function getGPSPosition(options: PositionOptions): Promise<LocationData> {
           lng: coords.longitude,
           type: 'gps',
           accuracy: coords.accuracy,
-          confidence: 0.95
+          confidence: coords.accuracy < 100 ? 0.95 : 0.85 // Confiance basée sur précision
         });
       },
       (error) => {
         clearTimeout(timeoutId);
         const errorMessages: { [key: number]: string } = {
-          1: 'Permission refusée',
-          2: 'Position indisponible',
-          3: 'Timeout GPS'
+          1: 'Permission GPS refusée - Veuillez autoriser la géolocalisation',
+          2: 'Position GPS indisponible - Vérifiez votre connexion',
+          3: 'Timeout GPS - Connexion trop lente'
         };
-        reject(new Error(errorMessages[error.code] || 'Erreur GPS inconnue'));
+        reject(new Error(errorMessages[error.code] || `Erreur GPS ${error.code}`));
       },
-      options
+      optimizedOptions
     );
   });
 }

@@ -58,20 +58,22 @@ export class IPGeolocationService {
 
   private async tryMultipleProviders(): Promise<IPLocationResult> {
     const providers = [
-      () => this.getLocationFromGeoJS(), // Plus fiable
-      () => this.getLocationFromIPInfo(),
-      () => this.getLocationFromIPAPI()
+      () => this.getLocationFromIPInfo(), // Plus fiable avec clé API
+      () => this.getLocationFromIPAPI(),
+      () => this.getLocationFromGeoJS()
     ];
 
     let lastError: Error | null = null;
 
     for (const provider of providers) {
       try {
-        const result = await this.timeoutPromise(provider(), 5000);
+        const result = await this.timeoutPromise(provider(), 8000); // Timeout plus long pour l'Afrique
         return result;
       } catch (error) {
         lastError = error as Error;
         console.warn('Provider failed, trying next:', error);
+        // Attendre un peu avant le prochain service
+        await new Promise(resolve => setTimeout(resolve, 500));
         continue;
       }
     }
@@ -116,42 +118,71 @@ export class IPGeolocationService {
   }
 
   private async getLocationFromIPAPI(): Promise<IPLocationResult> {
-    const response = await fetch('https://ipapi.co/json/', {
-      timeout: 5000
-    } as any);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
     
-    if (!response.ok) throw new Error('IPAPI failed');
-    
-    const data = await response.json();
-    
-    return {
-      latitude: data.latitude,
-      longitude: data.longitude,
-      city: data.city || 'Unknown',
-      country: data.country_name || 'Unknown',
-      accuracy: 10000, // IP est moins précis
-      provider: 'ipapi.co'
-    };
+    try {
+      const response = await fetch('https://ipapi.co/json/', {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Kwenda-App/1.0'
+        }
+      });
+      
+      if (!response.ok) throw new Error(`IPAPI HTTP ${response.status}`);
+      
+      const data = await response.json();
+      
+      if (data.latitude && data.longitude && !data.error) {
+        return {
+          latitude: data.latitude,
+          longitude: data.longitude,
+          city: data.city || 'Unknown',
+          country: data.country_name || 'Unknown',
+          accuracy: 8000, // Amélioré pour l'Afrique
+          provider: 'ipapi.co'
+        };
+      }
+      
+      throw new Error('Invalid response from ipapi.co');
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   private async getLocationFromIPInfo(): Promise<IPLocationResult> {
-    const response = await fetch('https://ipinfo.io/json', {
-      timeout: 5000
-    } as any);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 7000);
     
-    if (!response.ok) throw new Error('IPInfo failed');
-    
-    const data = await response.json();
-    const [lat, lng] = data.loc.split(',').map(Number);
-    
-    return {
-      latitude: lat,
-      longitude: lng,
-      city: data.city || 'Unknown',
-      country: data.country || 'Unknown',
-      accuracy: 15000,
-      provider: 'ipinfo.io'
-    };
+    try {
+      const response = await fetch('https://ipinfo.io/json', {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Kwenda-App/1.0',
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) throw new Error(`IPInfo HTTP ${response.status}`);
+      
+      const data = await response.json();
+      
+      if (data.loc) {
+        const [lat, lng] = data.loc.split(',').map(Number);
+        return {
+          latitude: lat,
+          longitude: lng,
+          city: data.city || 'Unknown',
+          country: data.country || 'Unknown',
+          accuracy: 12000, // Optimisé pour l'Afrique
+          provider: 'ipinfo.io'
+        };
+      }
+      
+      throw new Error('Invalid response from ipinfo.io');
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   private async getLocationFromIPStack(): Promise<IPLocationResult> {
