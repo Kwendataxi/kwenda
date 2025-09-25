@@ -29,6 +29,7 @@ import { AdminRentalManager } from '@/components/admin/AdminRentalManager';
 import { AdminTeamManager } from '@/components/admin/teams/AdminTeamManager';
 import { RoleManagement } from '@/components/admin/roles/RoleManagement';
 import { AdminPromoCodeManager } from '@/components/admin/AdminPromoCodeManager';
+import AdminPartnerManager from '@/components/admin/AdminPartnerManager';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -158,6 +159,12 @@ const AdminApp = () => {
       <TabsContent value="drivers" className="space-y-6">
         <PermissionGuard requiredPermissions={['users_read']}>
           <DriverManagement />
+        </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="partners" className="space-y-6">
+        <PermissionGuard requiredPermissions={['users_read']}>
+          <AdminPartnerManager />
         </PermissionGuard>
       </TabsContent>
 

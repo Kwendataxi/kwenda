@@ -19,6 +19,7 @@ import {
   Database,
   Megaphone,
   Trophy,
+  Building,
 } from 'lucide-react';
 
 interface AdminVerticalNavProps {
@@ -41,6 +42,7 @@ const NAV_ITEMS: Array<{
   { id: 'dispatch', label: 'Dispatch NG', icon: Zap },
   { id: 'location', label: 'Location', icon: Car },
   { id: 'drivers', label: 'Chauffeurs', icon: Car },
+  { id: 'partners', label: 'Partenaires', icon: Building },
   { id: 'users', label: 'Utilisateurs', icon: Users },
   { id: 'teams', label: 'Équipes', icon: Users },
   { id: 'roles', label: 'Gestion Rôles', icon: Settings },
