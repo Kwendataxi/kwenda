@@ -22,3 +22,15 @@ verify_jwt = true
 
 [functions.push-notifications]
 verify_jwt = true
+
+[functions.seed-drivers]
+verify_jwt = false
+
+[functions.intelligent-driver-matching]
+verify_jwt = false
+
+[functions.smart-notification-dispatcher]
+verify_jwt = true
+
+[functions.send-sms-notification]
+verify_jwt = true

@@ -76,10 +76,13 @@ export const TaxiRealTimeChat: React.FC<TaxiRealTimeChatProps> = ({
 
   const loadChatHistory = async () => {
     try {
+      const { data: user } = await supabase.auth.getUser();
+      const userId = user.user?.id;
+      
       const { data, error } = await supabase
-        .from('unified_messages')
+        .from('messages')
         .select('*')
-        .eq('booking_id', bookingId)
+        .eq('conversation_id', bookingId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -87,9 +90,9 @@ export const TaxiRealTimeChat: React.FC<TaxiRealTimeChatProps> = ({
       if (data) {
         setMessages(data.map(msg => ({
           id: msg.id,
-          message: msg.message_content,
-          sender_type: msg.sender_type as 'client' | 'driver',
-          sender_name: msg.sender_name || 'Utilisateur',
+          message: msg.content,
+          sender_type: msg.sender_id === userId ? 'client' : 'driver',
+          sender_name: msg.sender_id === userId ? 'Vous' : 'Chauffeur',
           timestamp: msg.created_at,
           message_type: msg.message_type as any,
           metadata: msg.metadata
@@ -108,16 +111,18 @@ export const TaxiRealTimeChat: React.FC<TaxiRealTimeChatProps> = ({
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'unified_messages',
-          filter: `booking_id=eq.${bookingId}`
+          table: 'messages',
+          filter: `conversation_id=eq.${bookingId}`
         },
-        (payload) => {
+        async (payload) => {
           const newMsg = payload.new as any;
+          const { data: user } = await supabase.auth.getUser();
+          const userId = user.user?.id;
           setMessages(prev => [...prev, {
             id: newMsg.id,
-            message: newMsg.message_content,
-            sender_type: newMsg.sender_type,
-            sender_name: newMsg.sender_name || 'Utilisateur',
+            message: newMsg.content,
+            sender_type: newMsg.sender_id === userId ? 'client' : 'driver',
+            sender_name: newMsg.sender_id === userId ? 'Vous' : 'Chauffeur',
             timestamp: newMsg.created_at,
             message_type: newMsg.message_type,
             metadata: newMsg.metadata
@@ -136,15 +141,13 @@ export const TaxiRealTimeChat: React.FC<TaxiRealTimeChatProps> = ({
 
     setIsLoading(true);
     try {
+      const { data: user } = await supabase.auth.getUser();
       const { error } = await supabase
-        .from('unified_messages')
+        .from('messages')
         .insert({
-          conversation_id: `taxi_${bookingId}`,
-          booking_id: bookingId,
-          sender_id: (await supabase.auth.getUser()).data.user?.id,
-          sender_type: 'client',
-          sender_name: 'Client',
-          message_content: messageText,
+          conversation_id: bookingId,
+          sender_id: user.user?.id,
+          content: messageText,
           message_type: messageType,
           metadata: messageType === 'location' ? { 
             location: messageText,
