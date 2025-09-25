@@ -19,6 +19,8 @@ import { useReferrals } from '@/hooks/useReferrals';
 import { formatCurrency } from '@/lib/utils';
 import { SocialShareButtons } from '@/components/referral/SocialShareButtons';
 import { ReferralProgress } from '@/components/referral/ReferralProgress';
+import { QuickShareMenu } from '@/components/referral/QuickShareMenu';
+import { motion } from 'framer-motion';
 
 export const DriverReferrals: React.FC = () => {
   const {
@@ -199,31 +201,80 @@ export const DriverReferrals: React.FC = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="invite" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Votre Code de Parrainage</CardTitle>
-              <CardDescription>
-                Partagez ce code avec de futurs chauffeurs et gagnez {formatCurrency(stats.currentReward)} par inscription
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="flex-1 p-3 bg-muted rounded-lg text-center font-mono text-lg font-semibold">
-                  {referralCode}
-                </div>
-                <Button variant="outline" size="icon" onClick={copyReferralCode}>
-                  <Copy className="w-4 h-4" />
-                </Button>
-              </div>
+        <TabsContent value="invite" className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Card className="bg-gradient-to-br from-congo-green/5 to-congo-yellow/5 border border-congo-green/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Share2 className="h-5 w-5 text-congo-green" />
+                  Votre Code de Parrainage
+                </CardTitle>
+                <CardDescription className="text-base">
+                  Partagez ce code avec de futurs chauffeurs et gagnez{' '}
+                  <span className="font-bold text-congo-green">
+                    {formatCurrency(stats.currentReward)}
+                  </span>{' '}
+                  par inscription réussie
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Code de parrainage amélioré */}
+                <motion.div 
+                  className="relative p-6 bg-gradient-to-r from-congo-green/10 to-congo-yellow/10 border-2 border-dashed border-congo-green/40 rounded-xl shadow-glow"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className="absolute inset-0 bg-grid-pattern opacity-20 rounded-xl"></div>
+                  
+                  <div className="relative flex items-center justify-between gap-4">
+                    <motion.span 
+                      className="text-2xl font-bold text-congo-green tracking-wider animate-congo-pulse font-mono"
+                      animate={{ scale: [1, 1.05, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      {referralCode}
+                    </motion.span>
+                    
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={copyReferralCode}
+                        className="hover:scale-105 transition-transform"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                      
+                      <QuickShareMenu
+                        referralCode={referralCode}
+                        userType={stats.userType}
+                        reward={stats.currentReward}
+                      >
+                        <Button
+                          size="sm"
+                          className="bg-gradient-to-r from-congo-red to-congo-red-glow hover:from-congo-red-vibrant hover:to-congo-red-electric hover:scale-105 transition-all duration-300 text-white"
+                        >
+                          <Share2 className="w-4 h-4 mr-2" />
+                          Partager
+                        </Button>
+                      </QuickShareMenu>
+                    </div>
+                  </div>
+                </motion.div>
 
-              <SocialShareButtons 
-                referralCode={referralCode}
-                userType={stats.userType}
-                reward={stats.currentReward}
-              />
-            </CardContent>
-          </Card>
+                {/* Boutons de partage améliorés */}
+                <SocialShareButtons 
+                  referralCode={referralCode}
+                  userType={stats.userType}
+                  reward={stats.currentReward}
+                />
+              </CardContent>
+            </Card>
+          </motion.div>
 
           <Card>
             <CardHeader>
