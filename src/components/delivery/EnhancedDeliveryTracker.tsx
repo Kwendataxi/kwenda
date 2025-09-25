@@ -27,6 +27,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
+import StickyDeliveryProgress from './StickyDeliveryProgress';
 
 interface EnhancedDeliveryTrackerProps {
   orderId: string;
@@ -413,6 +414,15 @@ export default function EnhancedDeliveryTracker({ orderId, onBack }: EnhancedDel
           </div>
         </div>
       </div>
+
+      {/* Progression sticky */}
+      <StickyDeliveryProgress 
+        orderId={orderId}
+        currentStatus={order.status}
+        progress={statusInfo.progress}
+        statusLabel={statusInfo.label}
+        eta={eta || undefined}
+      />
 
       {/* Contenu principal avec onglets */}
       <div className="p-4">

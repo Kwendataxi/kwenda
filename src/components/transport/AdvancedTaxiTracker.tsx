@@ -25,6 +25,7 @@ import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
 import TaxiChat from './TaxiChat';
 import BookingActions from './BookingActions';
 import StatusProgress from './StatusProgress';
+import StickyProgressSteps from './StickyProgressSteps';
 
 interface AdvancedTaxiTrackerProps {
   bookingId: string;
@@ -356,8 +357,15 @@ export default function AdvancedTaxiTracker({ bookingId, onBack }: AdvancedTaxiT
         </div>
       </div>
 
+      {/* Étapes fixes sticky */}
+      <StickyProgressSteps 
+        status={booking.status}
+        statusConfig={statusConfig}
+        bookingId={booking.id}
+      />
+
       <div className="max-w-4xl mx-auto p-4">
-        {/* Status et Progression */}
+        {/* Status et Progression (version complète, scrollable) */}
         <StatusProgress 
           status={booking.status}
           statusConfig={statusConfig}
