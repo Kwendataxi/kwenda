@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Car, Star, Clock, ArrowRight } from 'lucide-react';
+import { Clock, Car, Star, ArrowRight } from 'lucide-react';
 
 interface EnhancedBooking {
   id: string;
@@ -144,18 +144,7 @@ export const ActivityHistory = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <h1 className="text-lg font-semibold">{t('activity.title')}</h1>
-            </div>
-          </div>
-        </div>
-        
+      <div className="min-h-screen bg-background">        
         <div className="p-4">
           <div className="flex items-center justify-center py-8">
             <div className="text-center">
@@ -170,20 +159,9 @@ export const ActivityHistory = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-lg font-semibold">{t('activity.title')}</h1>
-          </div>
-        </div>
-      </div>
 
       {/* Content */}
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-4 pt-6">
         {bookings.length === 0 ? (
           <div className="text-center py-8">
             <Car className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
