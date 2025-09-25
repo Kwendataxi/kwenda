@@ -68,7 +68,7 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
       id: 'support',
       icon: HelpCircle,
       label: 'Support',
-      variant: 'glow' as const,
+      variant: 'support' as const,
       description: 'Aide & assistance',
       action: handleSupport
     }

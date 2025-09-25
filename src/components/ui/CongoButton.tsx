@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 
 interface CongoButtonProps {
   children: React.ReactNode;
-  variant?: 'congo' | 'electric' | 'vibrant' | 'glow';
+  variant?: 'congo' | 'electric' | 'vibrant' | 'glow' | 'support';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   onClick?: () => void;
@@ -26,7 +26,8 @@ const CongoButton: React.FC<CongoButtonProps> = ({
     congo: 'btn-congo',
     electric: 'btn-congo-electric',
     vibrant: 'btn-congo-vibrant',
-    glow: 'btn-congo-glow'
+    glow: 'btn-congo-glow',
+    support: 'btn-support-red'
   };
 
   const sizes = {

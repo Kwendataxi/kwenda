@@ -765,6 +765,20 @@ All colors MUST be HSL.
     background: hsl(var(--congo-blue-vibrant));
   }
 
+  /* Bouton Support Rouge Fixe */
+  .btn-support-red {
+    background: hsl(0, 85%, 55%);
+    @apply text-white font-semibold transition-all duration-200;
+    @apply hover:scale-105 active:scale-95;
+    box-shadow: 0 4px 15px hsl(0, 85%, 55% / 0.3);
+    border-radius: 12px;
+  }
+
+  .btn-support-red:hover {
+    background: hsl(0, 90%, 60%);
+    box-shadow: 0 6px 20px hsl(0, 85%, 55% / 0.4);
+  }
+
   /* Congo card styles - ENHANCED DARK MODE */
   .card-congo {
     background: linear-gradient(145deg, hsl(var(--card)), hsl(var(--muted)));
