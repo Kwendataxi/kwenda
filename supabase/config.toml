@@ -43,3 +43,9 @@ verify_jwt = false
 
 [functions.ride-dispatcher]
 verify_jwt = false
+
+[functions.rental-moderation]
+verify_jwt = true
+
+[functions.taxi-moderation]
+verify_jwt = true

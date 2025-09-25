@@ -152,7 +152,7 @@ export default function AdminRentalModerationEnhanced() {
           <div>
             <p className="text-sm text-muted-foreground">Véhicule</p>
             <p className="font-medium">{vehicle.brand} {vehicle.model} ({vehicle.year})</p>
-            <p className="text-sm text-muted-foreground mt-1">Type: {vehicle.vehicle_type}</p>
+            <p className="text-sm text-muted-foreground mt-1">Année: {vehicle.year}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Partenaire</p>
