@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useAdvancedRideRequest } from '@/hooks/useAdvancedRideRequest';
 import { useClientBookings } from '@/hooks/useClientBookings';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Car, 
   MapPin, 
@@ -23,6 +24,7 @@ interface EnhancedClientInterfaceProps {
 }
 
 const EnhancedClientInterface: React.FC<EnhancedClientInterfaceProps> = ({ className }) => {
+  const { t } = useLanguage();
   const [pickupLocation, setPickupLocation] = useState('');
   const [destination, setDestination] = useState('');
   const [selectedVehicle, setSelectedVehicle] = useState<string>('standard');
@@ -50,7 +52,7 @@ const EnhancedClientInterface: React.FC<EnhancedClientInterfaceProps> = ({ class
 
   const handleBookingRequest = async () => {
     if (!pickupLocation || !destination) {
-      toast.error('Veuillez saisir les lieux de départ et d\'arrivée');
+      toast.error(t('transport.enter_locations') || 'Veuillez saisir les lieux de départ et d\'arrivée');
       return;
     }
 
@@ -70,11 +72,11 @@ const EnhancedClientInterface: React.FC<EnhancedClientInterfaceProps> = ({ class
       });
 
       if (request) {
-        toast.success('Recherche de chauffeur en cours...');
+        toast.success(t('transport.searching_driver'));
       }
     } catch (error) {
       console.error('Error creating booking:', error);
-      toast.error('Erreur lors de la création de la réservation');
+      toast.error(t('transport.booking_error') || 'Erreur lors de la création de la réservation');
     }
   };
 
@@ -164,10 +166,10 @@ const EnhancedClientInterface: React.FC<EnhancedClientInterfaceProps> = ({ class
   return (
     <Card className={cn("border-border/50", className)}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Car className="h-5 w-5 text-primary" />
-          Réserver une course
-        </CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Car className="h-5 w-5 text-primary" />
+            {t('transport.book_ride')}
+          </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Location Inputs */}
@@ -175,7 +177,7 @@ const EnhancedClientInterface: React.FC<EnhancedClientInterfaceProps> = ({ class
           <div className="relative">
             <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-500" />
             <Input
-              placeholder="Lieu de départ"
+              placeholder={t('transport.pickup_location')}
               value={pickupLocation}
               onChange={(e) => setPickupLocation(e.target.value)}
               className="pl-10"
@@ -185,7 +187,7 @@ const EnhancedClientInterface: React.FC<EnhancedClientInterfaceProps> = ({ class
           <div className="relative">
             <Navigation className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-red-500" />
             <Input
-              placeholder="Destination"
+              placeholder={t('transport.destination')}
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
               className="pl-10"
@@ -195,7 +197,7 @@ const EnhancedClientInterface: React.FC<EnhancedClientInterfaceProps> = ({ class
 
         {/* Vehicle Selection */}
         <div className="space-y-3">
-          <div className="text-sm font-medium">Type de véhicule :</div>
+          <div className="text-sm font-medium">{t('transport.vehicle_type')} :</div>
           <div className="grid gap-2">
             {vehicleTypes.map((vehicle) => (
               <Button

@@ -258,6 +258,41 @@ const translations = {
     'profile.enter_name': 'Entrez votre nom',
     'profile.enter_phone': 'Entrez votre téléphone',
 
+    // Transport
+    'transport.destination': 'Destination',
+    'transport.vehicle_type': 'Type de véhicule',
+    'transport.confirm_booking': 'Confirmer la réservation',
+    'transport.position_detected': 'Position détectée',
+    'transport.geolocation_failed': 'Géolocalisation échouée',
+    'transport.pickup_location': 'Lieu de départ',
+    'transport.book_ride': 'Réserver une course',
+    'transport.searching_driver': 'Recherche de chauffeur en cours...',
+    'transport.driver_found': 'Chauffeur trouvé',
+    'transport.cancel_ride': 'Annuler la course',
+    'transport.ride_in_progress': 'Course en cours',
+
+    // Delivery
+    'delivery.destination': 'Point de livraison',
+    'delivery.service_type': 'Type de service',
+    'delivery.confirmation': 'Confirmation',
+    'delivery.where_deliver': 'Où devons-nous livrer votre colis ?',
+    'delivery.package_type': 'Type de colis',
+    'delivery.estimated_price': 'Prix estimé',
+    'delivery.pickup_location': 'Point de collecte',
+    'delivery.express_delivery': 'Livraison Express',
+    'delivery.fast_reliable': 'Service de livraison rapide et fiable',
+    'delivery.where_pickup': 'Où récupérer le colis ?',
+    'delivery.where_delivery': 'Où livrer le colis ?',
+    'delivery.contact_info': 'Informations de contact',
+
+    // Driver Navigation
+    'driver.rides': 'Courses',
+    'driver.deliveries': 'Livraisons',
+
+    // Transport additional keys
+    'transport.enter_locations': 'Veuillez saisir les lieux de départ et d\'arrivée',
+    'transport.booking_error': 'Erreur lors de la création de la réservation',
+
     // Activity History
     'activity.title': 'Activité',
     'activity.loading': 'Chargement de l\'historique...',
@@ -558,6 +593,41 @@ const translations = {
     'profile.cancel': 'Cancel',
     'profile.enter_name': 'Enter your name',
     'profile.enter_phone': 'Enter your phone',
+
+    // Transport
+    'transport.destination': 'Destination',
+    'transport.vehicle_type': 'Vehicle type',
+    'transport.confirm_booking': 'Confirm booking',
+    'transport.position_detected': 'Position detected',
+    'transport.geolocation_failed': 'Geolocation failed',
+    'transport.pickup_location': 'Pickup location',
+    'transport.book_ride': 'Book a ride',
+    'transport.searching_driver': 'Searching for driver...',
+    'transport.driver_found': 'Driver found',
+    'transport.cancel_ride': 'Cancel ride',
+    'transport.ride_in_progress': 'Ride in progress',
+
+    // Delivery
+    'delivery.destination': 'Delivery location',
+    'delivery.service_type': 'Service type',
+    'delivery.confirmation': 'Confirmation',
+    'delivery.where_deliver': 'Where should we deliver your package?',
+    'delivery.package_type': 'Package type',
+    'delivery.estimated_price': 'Estimated price',
+    'delivery.pickup_location': 'Pickup location',
+    'delivery.express_delivery': 'Express Delivery',
+    'delivery.fast_reliable': 'Fast and reliable delivery service',
+    'delivery.where_pickup': 'Where to pickup the package?',
+    'delivery.where_delivery': 'Where to deliver the package?',
+    'delivery.contact_info': 'Contact information',
+
+    // Driver Navigation
+    'driver.rides': 'Rides',
+    'driver.deliveries': 'Deliveries',
+
+    // Transport additional keys
+    'transport.enter_locations': 'Please enter pickup and destination locations',
+    'transport.booking_error': 'Error creating booking',
 
     // Activity History
     'activity.title': 'Activity',
@@ -1236,6 +1306,25 @@ const translations = {
     'delivery.mode.standard': 'Standard',
     'delivery.mode.same_day': 'Siku Ile Ile',
     'delivery.mode.next_day': 'Siku Ifuatayo',
+    'delivery.express_delivery': 'Ufikiaji wa Haraka',
+    'delivery.fast_reliable': 'Huduma ya ufikiaji wa haraka na ya kuaminika',
+    'delivery.where_pickup': 'Wapi kuchukua kitu?',
+    'delivery.where_delivery': 'Wapi kufikisha kitu?',
+    'delivery.contact_info': 'Maelezo ya mawasiliano',
+    'delivery.confirmation': 'Uthibitisho',
+    'delivery.vehicle_type': 'Aina ya gari',
+    'delivery.confirm_booking': 'Thibitisha uhifadhi',
+    'delivery.position_detected': 'Mahali pamegundulika',
+    'delivery.geolocation_failed': 'Kutambua mahali kumeshindwa',
+    'delivery.book_ride': 'Weka safari',
+    'delivery.searching_driver': 'Kutafuta dereva...',
+    'delivery.driver_found': 'Dereva amepatikana',
+    'delivery.cancel_ride': 'Ghairi safari',
+    'delivery.ride_in_progress': 'Safari inaendelea',
+
+    // Driver Navigation
+    'driver.rides': 'Safari',
+    'driver.deliveries': 'Ufikiaji',
     'delivery.package_details': 'Maelezo ya Kitu',
     'delivery.package_type': 'Aina ya Kitu',
     'delivery.package_weight': 'Uzito wa Kitu',

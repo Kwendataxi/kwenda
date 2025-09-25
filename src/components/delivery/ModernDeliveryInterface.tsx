@@ -15,6 +15,7 @@ import { LocationSearchResult, UnifiedLocation } from '@/types/unifiedLocation';
 import EnhancedLocationPicker from '@/components/location/EnhancedLocationPicker';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ModernDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
@@ -64,6 +65,7 @@ const PACKAGE_TYPES = [
 ];
 
 export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDeliveryInterfaceProps) {
+  const { t } = useLanguage();
   const { toast } = useToast();
   
   const [deliveryData, setDeliveryData] = useState<DeliveryData>({
@@ -261,8 +263,8 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Livraison Express</h1>
-          <p className="text-muted-foreground">Service de livraison rapide et fiable</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">{t('delivery.express_delivery')}</h1>
+          <p className="text-muted-foreground">{t('delivery.fast_reliable')}</p>
         </div>
 
         {/* Main Card */}
@@ -273,7 +275,7 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
             <div className="space-y-4">
               <SectionHeader
                 id="pickup"
-                title="Point de collecte"
+                title={t('delivery.pickup_location')}
                 icon={<MapPin className="w-4 h-4" />}
                 isCompleted={!!deliveryData.pickupLocation}
                 isExpanded={expandedSection === 'pickup'}
@@ -285,7 +287,7 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
                     key="pickup-location-picker"
                     value={deliveryData.pickupLocation}
                     onChange={handlePickupLocationChange}
-                    placeholder="Où récupérer le colis ?"
+                    placeholder={t('delivery.where_pickup')}
                     context="pickup"
                     showCurrentLocationButton={true}
                   />
@@ -297,7 +299,7 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
             <div className="space-y-4">
               <SectionHeader
                 id="delivery"
-                title="Point de livraison"
+                title={t('delivery.destination')}
                 icon={<Package className="w-4 h-4" />}
                 isCompleted={!!deliveryData.deliveryLocation}
                 isExpanded={expandedSection === 'delivery'}
@@ -309,7 +311,7 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
                     key="delivery-location-picker"
                     value={deliveryData.deliveryLocation}
                     onChange={handleDeliveryLocationChange}
-                    placeholder="Où livrer le colis ?"
+                    placeholder={t('delivery.where_delivery')}
                     context="delivery"
                     showCurrentLocationButton={true}
                   />
@@ -321,7 +323,7 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
             <div className="space-y-4">
               <SectionHeader
                 id="service"
-                title="Type de service"
+                title={t('delivery.service_type')}
                 icon={<Truck className="w-4 h-4" />}
                 isCompleted={true}
                 isExpanded={expandedSection === 'service'}
@@ -381,7 +383,7 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
             <div className="space-y-4">
               <SectionHeader
                 id="contacts"
-                title="Informations de contact"
+                title={t('delivery.contact_info')}
                 icon={<Package className="w-4 h-4" />}
                 isCompleted={!!(deliveryData.senderName && deliveryData.senderPhone && deliveryData.recipientName && deliveryData.recipientPhone)}
                 isExpanded={expandedSection === 'contacts'}
