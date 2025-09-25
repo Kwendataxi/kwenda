@@ -271,7 +271,10 @@ export default function CompleteCorrectionTest() {
               </Button>
               
               <div className="space-y-2">
-                <CitySelector onCityChange={testCityChange} />
+                <CitySelector 
+                  currentCity={currentCity}
+                  onCityChange={testCityChange} 
+                />
               </div>
 
               <div className="flex gap-2">
