@@ -457,7 +457,7 @@ async function getDatabasePosition(): Promise<LocationData> {
     lng: place.longitude,
     type: 'database',
     name: place.name,
-    subtitle: place.subtitle,
+    subtitle: `${place.commune || ''}, ${place.city || ''}`.replace(/^,\s*/, '').trim() || place.name,
     confidence: 0.8
   };
 }
@@ -492,7 +492,7 @@ async function searchInDatabase(query: string): Promise<LocationSearchResult[]> 
       lng: place.longitude,
       type: 'database' as const,
       title: place.name,
-      subtitle: `${place.commune || ''}, ${place.city || ''}`.trim(),
+      subtitle: `${place.commune || ''}, ${place.city || ''}`.replace(/^,\s*/, '').trim(),
       relevanceScore: place.relevance_score,
       confidence: place.relevance_score / 100
     })) || [];

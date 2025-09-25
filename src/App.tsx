@@ -52,7 +52,7 @@ import AuthSystemTest from "./pages/test/AuthSystemTest";
 import TrackingTest from "./pages/test/TrackingTest";
 import ModernTrackingTest from "./pages/test/ModernTrackingTest";
 import { ModernNavigationTest } from "./pages/test/ModernNavigationTest";
-import IntelligentLocationTest from "./pages/test/IntelligentLocationTest";
+import SmartLocationTest from "./pages/test/SmartLocationTest";
 import EdgeFunctionTest from "./pages/test/EdgeFunctionTest";
 import { ChatProvider } from "@/components/chat/ChatProvider";
 import Onboarding from "./pages/Onboarding";
@@ -195,7 +195,7 @@ const AppContent = () => {
                 <Route path="/test/tracking" element={<TrackingTest />} />
         <Route path="/test/modern-tracking" element={<ModernTrackingTest />} />
         <Route path="/test/modern-navigation" element={<ModernNavigationTest />} />
-        <Route path="/test/intelligent-location" element={<IntelligentLocationTest />} />
+        <Route path="/test/intelligent-location" element={<SmartLocationTest />} />
         <Route path="/test/edge-functions" element={<EdgeFunctionTest />} />
                 
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
