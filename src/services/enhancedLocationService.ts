@@ -1,464 +1,396 @@
 /**
- * Service de géolocalisation unifié et amélioré pour Kwenda
- * Remplace les anciens services avec une approche unifiée
+ * 🚀 SERVICE DE GÉOLOCALISATION AMÉLIORÉ AVEC CACHE INTELLIGENT
+ * 
+ * Performance optimisée pour l'Afrique avec multi-sources et cache
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  UnifiedLocation, 
-  UnifiedCoordinates, 
-  LocationSearchResult, 
-  GeolocationOptions,
-  CityConfig,
-  getCurrentCity,
-  getCityByCoordinates,
-  validateCoordinates,
-  createUnifiedLocation,
-  SUPPORTED_CITIES
-} from '@/types/unifiedLocation';
+import type { LocationData, LocationSearchResult } from '@/hooks/useSmartGeolocation';
 
-class EnhancedLocationService {
+interface CacheEntry {
+  results: LocationSearchResult[];
+  timestamp: number;
+  expiry: number;
+  provider: string;
+}
+
+interface SearchCacheKey {
+  query: string;
+  region: string;
+  userLat?: number;
+  userLng?: number;
+}
+
+export class EnhancedLocationService {
   private static instance: EnhancedLocationService;
-  private currentCity: CityConfig = getCurrentCity();
-  private cache = new Map<string, { data: LocationSearchResult[], timestamp: number }>();
-  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-  private constructor() {}
+  private localCache = new Map<string, CacheEntry>();
+  private readonly CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 heures
+  private readonly LOCAL_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
   static getInstance(): EnhancedLocationService {
-    if (!EnhancedLocationService.instance) {
-      EnhancedLocationService.instance = new EnhancedLocationService();
+    if (!this.instance) {
+      this.instance = new EnhancedLocationService();
     }
-    return EnhancedLocationService.instance;
+    return this.instance;
   }
 
-  /**
-   * Obtenir la position actuelle avec fallbacks robustes
-   */
-  async getCurrentPosition(options: GeolocationOptions = {}): Promise<UnifiedLocation> {
-    const {
-      enableHighAccuracy = true,
-      timeout = 10000,
-      maximumAge = 300000, // 5 minutes
-      fallbackToIP = true,
-      fallbackToDatabase = true,
-      fallbackToDefault = true
-    } = options;
-
-    try {
-      // 1. Essayer GPS natif
-      const position = await this.getGPSPosition({
-        enableHighAccuracy,
-        timeout,
-        maximumAge
-      });
-
-      const coords: UnifiedCoordinates = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
-
-      if (validateCoordinates(coords)) {
-        const address = await this.reverseGeocode(coords);
-        const detectedCity = getCityByCoordinates(coords);
-        
-        return createUnifiedLocation(
-          'current_location',
-          'Ma position actuelle',
-          coords,
-          address
-        );
-      }
-    } catch (gpsError) {
-      console.warn('GPS failed:', gpsError);
-    }
-
-    // 2. Fallback IP géolocalisation
-    if (fallbackToIP) {
-      try {
-        const ipLocation = await this.getIPLocation();
-        if (ipLocation) return ipLocation;
-      } catch (ipError) {
-        console.warn('IP geolocation failed:', ipError);
-      }
-    }
-
-    // 3. Fallback base de données (dernière position connue)
-    if (fallbackToDatabase) {
-      try {
-        const dbLocation = await this.getLastKnownLocation();
-        if (dbLocation) return dbLocation;
-      } catch (dbError) {
-        console.warn('Database fallback failed:', dbError);
-      }
-    }
-
-    // 4. Fallback par défaut (centre-ville de la ville courante)
-    if (fallbackToDefault) {
-      return createUnifiedLocation(
-        'default_location',
-        `Centre-ville ${this.currentCity.name}`,
-        this.currentCity.defaultCoordinates,
-        `${this.currentCity.name}, ${this.currentCity.countryCode === 'CD' ? 'République Démocratique du Congo' : 'Côte d\'Ivoire'}`
-      );
-    }
-
-    throw new Error('Impossible d\'obtenir la position');
+  // 🔑 GÉNÉRER CLÉ DE CACHE
+  private generateCacheKey(params: SearchCacheKey): string {
+    const { query, region, userLat, userLng } = params;
+    const locationPart = userLat && userLng ? `_${userLat.toFixed(3)}_${userLng.toFixed(3)}` : '';
+    return `${query.toLowerCase().trim()}_${region}${locationPart}`;
   }
 
-  /**
-   * Rechercher des lieux avec cache et fallbacks améliorés
-   */
-  async searchLocations(
-    query: string, 
-    city: string = this.currentCity.name, 
-    maxResults: number = 10
-  ): Promise<LocationSearchResult[]> {
-    const cacheKey = `search_${query}_${city}_${maxResults}`;
+  // 💾 VÉRIFIER CACHE LOCAL
+  private getLocalCache(key: string): LocationSearchResult[] | null {
+    const entry = this.localCache.get(key);
+    if (entry && Date.now() < entry.expiry) {
+      console.log('🏠 Cache local utilisé pour:', key);
+      return entry.results;
+    }
     
-    // Vérifier le cache d'abord
-    const cached = this.getFromCache(cacheKey);
-    if (cached) {
-      console.log('📱 Using cached search results for:', query);
-      return cached;
+    if (entry) {
+      this.localCache.delete(key);
     }
+    return null;
+  }
 
+  // 💾 SAUVEGARDER CACHE LOCAL
+  private setLocalCache(key: string, results: LocationSearchResult[], provider: string): void {
+    this.localCache.set(key, {
+      results,
+      timestamp: Date.now(),
+      expiry: Date.now() + this.LOCAL_CACHE_DURATION,
+      provider
+    });
+    
+    // Nettoyer le cache si trop volumineux
+    if (this.localCache.size > 100) {
+      const oldestKeys = Array.from(this.localCache.keys()).slice(0, 20);
+      oldestKeys.forEach(k => this.localCache.delete(k));
+    }
+  }
+
+  // 🗄️ VÉRIFIER CACHE SUPABASE
+  private async getDatabaseCache(key: string): Promise<LocationSearchResult[] | null> {
     try {
-      const results = await this.performSearch(query, city, maxResults);
-      this.saveToCache(cacheKey, results);
-      return results;
+      const { data, error } = await supabase
+        .from('location_search_cache')
+        .select('results, created_at, provider')
+        .eq('search_key', key)
+        .gte('expires_at', new Date().toISOString())
+        .single();
+
+      if (error || !data) return null;
+
+      console.log('🏛️ Cache base de données utilisé:', key, 'Provider:', data.provider);
+      return (data.results as any[])?.map((result: any) => result as LocationSearchResult) || [];
     } catch (error) {
-      console.error('❌ Search failed, using fallback:', error);
-      
-      // Fallback robuste avec recherche locale offline
-      return this.getFallbackSearchResults(query, city, maxResults);
+      console.warn('Erreur lecture cache DB:', error);
+      return null;
     }
   }
 
-  /**
-   * Exécuter la recherche principale
-   */
-  private async performSearch(query: string, city: string, maxResults: number): Promise<LocationSearchResult[]> {
-    const results: LocationSearchResult[] = [];
-
-    // 1. Recherche dans la base de données Supabase
+  // 🗄️ SAUVEGARDER CACHE SUPABASE
+  private async setDatabaseCache(
+    key: string,
+    query: string,
+    region: string,
+    results: LocationSearchResult[],
+    provider: string
+  ): Promise<void> {
     try {
-      const dbResults = await this.searchInDatabase(query, city, maxResults);
-      results.push(...dbResults);
-    } catch (dbError) {
-      console.warn('Database search failed:', dbError);
+      await supabase
+        .from('location_search_cache')
+        .upsert({
+          search_key: key,
+          query,
+          region,
+          results: results as any,
+          result_count: results.length,
+          provider,
+          expires_at: new Date(Date.now() + this.CACHE_DURATION).toISOString()
+        });
+    } catch (error) {
+      console.warn('Erreur sauvegarde cache DB:', error);
     }
-
-    // 2. Si pas assez de résultats, recherche Google Maps via proxy
-    if (results.length < maxResults) {
-      try {
-        const googleResults = await this.searchWithGoogleMaps(query, city, maxResults - results.length);
-        results.push(...googleResults);
-      } catch (googleError) {
-        console.warn('Google Maps search failed:', googleError);
-      }
-    }
-
-    // 3. Tri par pertinence et limitation
-    return results
-      .sort((a, b) => b.relevanceScore - a.relevanceScore)
-      .slice(0, maxResults);
   }
 
-  /**
-   * Recherche dans la base de données Supabase
-   */
-  private async searchInDatabase(query: string, city: string, maxResults: number): Promise<LocationSearchResult[]> {
-    const { data, error } = await supabase
-      .rpc('intelligent_places_search', {
+  // 🔍 RECHERCHE MULTI-SOURCES INTELLIGENTE
+  async searchLocations(
+    query: string,
+    region: string = 'cd',
+    userLat?: number,
+    userLng?: number,
+    maxResults: number = 8
+  ): Promise<LocationSearchResult[]> {
+    if (!query.trim()) {
+      return this.getPopularPlaces(region, userLat, userLng);
+    }
+
+    const cacheKey = this.generateCacheKey({ query, region, userLat, userLng });
+
+    // 1. Vérifier cache local
+    const localResults = this.getLocalCache(cacheKey);
+    if (localResults) {
+      return localResults.slice(0, maxResults);
+    }
+
+    // 2. Vérifier cache base de données
+    const dbResults = await this.getDatabaseCache(cacheKey);
+    if (dbResults) {
+      this.setLocalCache(cacheKey, dbResults, 'database_cache');
+      return dbResults.slice(0, maxResults);
+    }
+
+    // 3. Recherche fraîche multi-sources
+    console.log('🔍 Recherche fraîche pour:', query);
+    const results = await this.performFreshSearch(query, region, userLat, userLng, maxResults);
+
+    // 4. Mettre en cache
+    if (results.length > 0) {
+      this.setLocalCache(cacheKey, results, 'fresh_search');
+      await this.setDatabaseCache(cacheKey, query, region, results, 'multi_source');
+    }
+
+    return results;
+  }
+
+  // 🆕 RECHERCHE FRAÎCHE MULTI-SOURCES
+  private async performFreshSearch(
+    query: string,
+    region: string,
+    userLat?: number,
+    userLng?: number,
+    maxResults: number = 8
+  ): Promise<LocationSearchResult[]> {
+    const allResults: LocationSearchResult[] = [];
+
+    try {
+      // 1. Recherche dans la base de données locale (priorité)
+      const dbResults = await this.searchInDatabase(query, region, userLat, userLng);
+      allResults.push(...dbResults);
+
+      // 2. Si pas assez de résultats, chercher via Google
+      if (allResults.length < maxResults) {
+        const googleResults = await this.searchViaGoogle(query, region);
+        allResults.push(...googleResults);
+      }
+
+      // 3. Déduplication et scoring
+      const uniqueResults = this.deduplicateAndScore(allResults, userLat, userLng);
+
+      return uniqueResults.slice(0, maxResults);
+    } catch (error) {
+      console.error('Erreur recherche multi-sources:', error);
+      return this.getFallbackResults(query, region);
+    }
+  }
+
+  // 🏛️ RECHERCHE BASE DE DONNÉES
+  private async searchInDatabase(
+    query: string,
+    region: string,
+    userLat?: number,
+    userLng?: number
+  ): Promise<LocationSearchResult[]> {
+    try {
+      const { data, error } = await supabase.rpc('intelligent_places_search', {
         search_query: query,
-        search_city: city,
-        max_results: maxResults
+        search_city: region === 'cd' ? 'Kinshasa' : 'Abidjan',
+        user_latitude: userLat,
+        user_longitude: userLng,
+        max_results: 10
       });
 
-    if (error) throw error;
+      if (error || !data) return [];
 
-    return data?.map((item: any) => this.transformDatabaseResult(item)) || [];
+      return data.map((place: any, index: number) => ({
+        id: `db-${place.id}`,
+        name: place.name,
+        address: place.formatted_address,
+        lat: place.latitude,
+        lng: place.longitude,
+        type: 'database',
+        title: place.name,
+        subtitle: place.subtitle,
+        relevanceScore: place.relevance_score || (90 - index * 5),
+        distance: place.distance_meters,
+        isPopular: place.badge === 'Populaire'
+      }));
+    } catch (error) {
+      console.error('Erreur recherche DB:', error);
+      return [];
+    }
   }
 
-  /**
-   * Recherche via Google Maps (via edge function proxy)
-   */
-  private async searchWithGoogleMaps(query: string, city: string, maxResults: number): Promise<LocationSearchResult[]> {
-    const { data, error } = await supabase.functions.invoke('geocode-proxy', {
-      body: {
-        query: `${query}, ${city}`,
-        type: 'search',
-        maxResults
+  // 🌐 RECHERCHE GOOGLE PLACES
+  private async searchViaGoogle(
+    query: string,
+    region: string
+  ): Promise<LocationSearchResult[]> {
+    try {
+      const { data, error } = await supabase.functions.invoke('geocode-proxy', {
+        body: { query, region }
+      });
+
+      if (error || !data?.results) return [];
+
+      return data.results.map((place: any, index: number) => ({
+        id: `google-${place.place_id}`,
+        name: place.name,
+        address: place.formatted_address,
+        lat: place.geometry.location.lat,
+        lng: place.geometry.location.lng,
+        type: 'google',
+        placeId: place.place_id,
+        title: place.name,
+        subtitle: place.formatted_address.split(',').slice(1, 3).join(',').trim(),
+        relevanceScore: 70 - index * 5
+      }));
+    } catch (error) {
+      console.error('Erreur recherche Google:', error);
+      return [];
+    }
+  }
+
+  // 🔄 DÉDUPLICATION ET SCORING
+  private deduplicateAndScore(
+    results: LocationSearchResult[],
+    userLat?: number,
+    userLng?: number
+  ): LocationSearchResult[] {
+    const uniqueMap = new Map<string, LocationSearchResult>();
+
+    results.forEach(result => {
+      const key = `${result.lat.toFixed(4)}_${result.lng.toFixed(4)}`;
+      const existing = uniqueMap.get(key);
+
+      if (!existing || result.relevanceScore! > existing.relevanceScore!) {
+        // Calculer distance si coordonnées utilisateur disponibles
+        if (userLat && userLng) {
+          result.distance = this.calculateDistance(userLat, userLng, result.lat, result.lng);
+          
+          // Bonus proximité
+          const proximityBonus = Math.max(0, (10000 - result.distance) / 10000 * 20);
+          result.relevanceScore = (result.relevanceScore || 0) + proximityBonus;
+        }
+
+        uniqueMap.set(key, result);
       }
     });
 
-    if (error) throw error;
-
-    return data?.results?.map((result: any, index: number) => 
-      this.transformGoogleResult(result, index, city)
-    ) || [];
+    return Array.from(uniqueMap.values())
+      .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
   }
 
-  /**
-   * Obtenir les lieux populaires avec fallbacks
-   */
-  async getPopularLocations(city: string, maxResults: number = 8): Promise<LocationSearchResult[]> {
-    try {
-      const { data, error } = await supabase
-        .rpc('intelligent_places_search', {
-          search_query: '',
-          search_city: city,
-          max_results: maxResults
-        });
-
-      if (error) throw error;
-
-      return data?.map((item: any) => this.transformDatabaseResult(item)) || [];
-    } catch (error) {
-      console.error('❌ Failed to get popular locations, using fallback:', error);
-      return this.getFallbackPopularPlaces(city);
-    }
+  // 📍 CALCULER DISTANCE (PUBLIC)
+  calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371000; // Rayon Terre en mètres
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
   }
 
-  /**
-   * Recherche locale de fallback quand les services externes échouent
-   */
-  private getFallbackSearchResults(query: string, city: string, maxResults: number = 10): LocationSearchResult[] {
-    const normalizedQuery = query.toLowerCase().trim();
-    
-    // Si query vide, retourner les lieux populaires
-    if (!normalizedQuery) {
-      return this.getFallbackPopularPlaces(city);
-    }
-
-    const fallbackPlaces = this.getFallbackPopularPlaces(city);
-    
-    // Filtrer les lieux selon la query
-    return fallbackPlaces
-      .filter(place => 
-        place.name.toLowerCase().includes(normalizedQuery) ||
-        place.address.toLowerCase().includes(normalizedQuery) ||
-        place.subtitle?.toLowerCase().includes(normalizedQuery)
-      )
-      .slice(0, maxResults);
-  }
-
-  /**
-   * Lieux populaires de fallback par ville (améliorés)
-   */
-  private getFallbackPopularPlaces(city: string): LocationSearchResult[] {
-    const places = {
-      'Kinshasa': [
-        { name: 'Gombe Centre-ville', coords: { lat: -4.3175, lng: 15.3117 }, commune: 'Gombe', category: 'Centre commercial' },
-        { name: 'Aéroport de N\'djili', coords: { lat: -4.3856, lng: 15.4446 }, commune: 'Ndjili', category: 'Transport' },
-        { name: 'Marché Central', coords: { lat: -4.3217, lng: 15.3069 }, commune: 'Kinshasa', category: 'Commerce' },
-        { name: 'Université de Kinshasa (UNIKIN)', coords: { lat: -4.4326, lng: 15.2662 }, commune: 'Lemba', category: 'Éducation' },
-        { name: 'Stade des Martyrs', coords: { lat: -4.3425, lng: 15.3436 }, commune: 'Lingwala', category: 'Sport' },
-        { name: 'Boulevard du 30 Juin', coords: { lat: -4.3200, lng: 15.3100 }, commune: 'Gombe', category: 'Avenue principale' },
-        { name: 'Marché de la Liberté', coords: { lat: -4.3800, lng: 15.3200 }, commune: 'Masina', category: 'Commerce' },
-        { name: 'Clinique Ngaliema', coords: { lat: -4.3900, lng: 15.2500 }, commune: 'Ngaliema', category: 'Santé' }
-      ],
-      'Lubumbashi': [
-        { name: 'Centre-ville Lubumbashi', coords: { lat: -11.6792, lng: 27.4716 }, commune: 'Lubumbashi', category: 'Centre commercial' },
-        { name: 'Aéroport Luano', coords: { lat: -11.5913, lng: 27.5306 }, commune: 'Annexe', category: 'Transport' },
-        { name: 'Université de Lubumbashi', coords: { lat: -11.6600, lng: 27.4800 }, commune: 'Lubumbashi', category: 'Éducation' },
-        { name: 'Marché Kenya', coords: { lat: -11.6700, lng: 27.4600 }, commune: 'Kenya', category: 'Commerce' }
-      ],
-      'Kolwezi': [
-        { name: 'Centre-ville Kolwezi', coords: { lat: -10.7147, lng: 25.4665 }, commune: 'Kolwezi', category: 'Centre commercial' },
-        { name: 'Mine de Mutanda', coords: { lat: -10.6500, lng: 25.5000 }, commune: 'Mutoshi', category: 'Industriel' }
-      ],
-      'Abidjan': [
-        { name: 'Plateau Centre', coords: { lat: 5.3199, lng: -4.0200 }, commune: 'Plateau', category: 'Centre commercial' },
-        { name: 'Aéroport Félix Houphouët-Boigny', coords: { lat: 5.2614, lng: -3.9263 }, commune: 'Port-Bouët', category: 'Transport' },
-        { name: 'Cocody Université', coords: { lat: 5.3800, lng: -3.9800 }, commune: 'Cocody', category: 'Éducation' }
-      ]
-    };
-
-    const cityPlaces = places[city] || places['Kinshasa'];
-    
-    return cityPlaces.map((place, index) => ({
-      id: `fallback_${city}_${index}`,
-      name: place.name,
-      address: `${place.name}, ${place.commune}, ${city}`,
-      coordinates: place.coords,
-      type: 'popular' as const,
-      subtitle: `${place.commune}, ${city}`,
-      category: place.category,
-      relevanceScore: 0.9 - (index * 0.05),
-      popularityScore: 95 - (index * 5),
-      badge: 'Populaire',
-      confidence: 0.8
-    }));
-  }
-
-  /**
-   * Géocodage inverse pour obtenir une adresse à partir de coordonnées
-   */
-  async reverseGeocode(coordinates: UnifiedCoordinates): Promise<string> {
-    try {
-      const { data, error } = await supabase.functions.invoke('geocode-reverse', {
-        body: {
-          lat: coordinates.lat,
-          lng: coordinates.lng
-        }
-      });
-
-      if (error) throw error;
-
-      return data?.address || `${coordinates.lat.toFixed(4)}, ${coordinates.lng.toFixed(4)}`;
-    } catch (error) {
-      console.warn('Reverse geocoding failed:', error);
-      
-      // Fallback basé sur la ville détectée
-      const detectedCity = getCityByCoordinates(coordinates);
-      return `${detectedCity.name}, ${detectedCity.countryCode === 'CD' ? 'RDC' : 'Côte d\'Ivoire'}`;
-    }
-  }
-
-  /**
-   * Calculer la distance entre deux points (formule de Haversine)
-   */
-  calculateDistance(point1: UnifiedCoordinates, point2: UnifiedCoordinates): number {
-    const R = 6371000; // Rayon de la Terre en mètres
-    const φ1 = point1.lat * Math.PI / 180;
-    const φ2 = point2.lat * Math.PI / 180;
-    const Δφ = (point2.lat - point1.lat) * Math.PI / 180;
-    const Δλ = (point2.lng - point1.lng) * Math.PI / 180;
-
-    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c; // Distance en mètres
-  }
-
-  /**
-   * Formater une distance en texte lisible
-   */
+  // 📏 FORMATER DISTANCE (PUBLIC)
   formatDistance(meters: number): string {
     if (meters < 1000) {
       return `${Math.round(meters)}m`;
-    } else {
-      return `${(meters / 1000).toFixed(1)}km`;
     }
+    return `${(meters / 1000).toFixed(1)}km`;
   }
 
-  // Méthodes utilitaires privées
-  private async getGPSPosition(options: PositionOptions): Promise<GeolocationPosition> {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error('Géolocalisation non supportée'));
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(resolve, reject, options);
-    });
-  }
-
-  private async getIPLocation(): Promise<UnifiedLocation | null> {
+  // 🏆 LIEUX POPULAIRES
+  private async getPopularPlaces(
+    region: string,
+    userLat?: number,
+    userLng?: number
+  ): Promise<LocationSearchResult[]> {
     try {
-      const response = await fetch('https://ipapi.co/json/');
-      const data = await response.json();
-      
-      if (data.latitude && data.longitude) {
-        const coords: UnifiedCoordinates = {
-          lat: parseFloat(data.latitude),
-          lng: parseFloat(data.longitude)
-        };
+      const { data } = await supabase.rpc('intelligent_places_search', {
+        search_query: '',
+        search_city: region === 'cd' ? 'Kinshasa' : 'Abidjan',
+        user_latitude: userLat,
+        user_longitude: userLng,
+        max_results: 8
+      });
 
-        if (validateCoordinates(coords)) {
-          return createUnifiedLocation(
-            'ip_location',
-            'Position approximative',
-            coords,
-            `${data.city}, ${data.country_name}`
-          );
-        }
-      }
+      if (!data) return this.getFallbackResults('', region);
+
+      return data.map((place: any) => ({
+        id: `popular-${place.id}`,
+        name: place.name,
+        address: place.formatted_address,
+        lat: place.latitude,
+        lng: place.longitude,
+        type: 'popular',
+        title: place.name,
+        subtitle: place.subtitle,
+        relevanceScore: place.popularity_score || 100,
+        isPopular: true
+      }));
     } catch (error) {
-      console.warn('IP geolocation failed:', error);
+      console.error('Erreur lieux populaires:', error);
+      return this.getFallbackResults('', region);
     }
-    
-    return null;
   }
 
-  private async getLastKnownLocation(): Promise<UnifiedLocation | null> {
-    // TODO: Implémenter la récupération de la dernière position connue depuis la DB
-    return null;
+  // 🆘 RÉSULTATS FALLBACK
+  private getFallbackResults(query: string, region: string): LocationSearchResult[] {
+    const cityCenter = region === 'cd' 
+      ? { lat: -4.3217, lng: 15.3069, city: 'Kinshasa', country: 'RDC' }
+      : { lat: 5.3600, lng: -4.0083, city: 'Abidjan', country: 'Côte d\'Ivoire' };
+
+    if (query) {
+      return [{
+        id: 'fallback-search',
+        name: query,
+        address: `${query}, ${cityCenter.city}, ${cityCenter.country}`,
+        lat: cityCenter.lat + (Math.random() - 0.5) * 0.01,
+        lng: cityCenter.lng + (Math.random() - 0.5) * 0.01,
+        type: 'fallback',
+        title: query,
+        subtitle: `Résultat approximatif à ${cityCenter.city}`,
+        relevanceScore: 50
+      }];
+    }
+
+    return [{
+      id: 'fallback-center',
+      name: `Centre-ville de ${cityCenter.city}`,
+      address: `${cityCenter.city}, ${cityCenter.country}`,
+      lat: cityCenter.lat,
+      lng: cityCenter.lng,
+      type: 'fallback',
+      title: `Centre-ville`,
+      subtitle: cityCenter.city,
+      relevanceScore: 100,
+      isPopular: true
+    }];
   }
 
-  private transformDatabaseResult(item: any): LocationSearchResult {
+  // 🧹 NETTOYER CACHE
+  clearCache(): void {
+    this.localCache.clear();
+    console.log('🧹 Cache local nettoyé');
+  }
+
+  // 📊 STATS CACHE
+  getCacheStats() {
     return {
-      id: item.id || `db_${Date.now()}_${Math.random()}`,
-      name: item.name || 'Lieu inconnu',
-      address: item.formatted_address || `${item.name}, ${item.city}`,
-      coordinates: {
-        lat: parseFloat(item.latitude) || 0,
-        lng: parseFloat(item.longitude) || 0
-      },
-      type: 'database' as const,
-      subtitle: item.subtitle || `${item.commune}, ${item.city}`,
-      category: item.category,
-      relevanceScore: parseFloat(item.relevance_score) || 0,
-      popularityScore: parseInt(item.popularity_score) || 0,
-      distanceFromUser: item.distance_meters || undefined,
-      badge: item.badge || undefined,
-      confidence: 0.9
+      localCacheSize: this.localCache.size,
+      localCacheEntries: Array.from(this.localCache.entries()).map(([key, entry]) => ({
+        key,
+        provider: entry.provider,
+        timestamp: new Date(entry.timestamp).toLocaleString(),
+        resultsCount: entry.results.length
+      }))
     };
-  }
-
-  private transformGoogleResult(result: any, index: number, city: string): LocationSearchResult {
-    const coords = result.geometry?.location || { lat: 0, lng: 0 };
-    
-    return {
-      id: `google_${Date.now()}_${index}`,
-      name: result.name || 'Lieu Google',
-      address: result.formatted_address || result.vicinity || '',
-      coordinates: {
-        lat: parseFloat(coords.lat) || 0,
-        lng: parseFloat(coords.lng) || 0
-      },
-      type: 'google' as const,
-      subtitle: city,
-      category: result.types?.[0] || 'lieu',
-      relevanceScore: 0.7 - (index * 0.1),
-      popularityScore: result.rating ? Math.round(result.rating * 20) : 50,
-      badge: result.rating ? '⭐' : undefined,
-      confidence: 0.8
-    };
-  }
-
-  private getFromCache(key: string): LocationSearchResult[] | null {
-    const cached = this.cache.get(key);
-    if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
-      return cached.data;
-    }
-    return null;
-  }
-
-  private saveToCache(key: string, data: LocationSearchResult[]): void {
-    this.cache.set(key, { data, timestamp: Date.now() });
-  }
-
-  public clearCache(): void {
-    this.cache.clear();
-  }
-
-  public setCurrentCity(city: string): void {
-    const cityConfig = SUPPORTED_CITIES[city.toLowerCase()];
-    if (cityConfig) {
-      this.currentCity = cityConfig;
-      this.clearCache(); // Vider le cache lors du changement de ville
-    }
-  }
-
-  public getCurrentCity(): CityConfig {
-    return this.currentCity;
   }
 }
 
-// Export de l'instance singleton
 export const enhancedLocationService = EnhancedLocationService.getInstance();

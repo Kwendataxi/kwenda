@@ -2579,6 +2579,42 @@ export type Database = {
         }
         Relationships: []
       }
+      location_search_cache: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          provider: string | null
+          query: string
+          region: string | null
+          result_count: number | null
+          results: Json
+          search_key: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          provider?: string | null
+          query: string
+          region?: string | null
+          result_count?: number | null
+          results?: Json
+          search_key: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          provider?: string | null
+          query?: string
+          region?: string | null
+          result_count?: number | null
+          results?: Json
+          search_key?: string
+        }
+        Relationships: []
+      }
       lottery_draws: {
         Row: {
           created_at: string
@@ -6569,6 +6605,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_location_preferences: {
+        Row: {
+          auto_save_favorites: boolean | null
+          created_at: string | null
+          id: string
+          location_sharing: boolean | null
+          preferred_city: string | null
+          preferred_language: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          auto_save_favorites?: boolean | null
+          created_at?: string | null
+          id?: string
+          location_sharing?: boolean | null
+          preferred_city?: string | null
+          preferred_language?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          auto_save_favorites?: boolean | null
+          created_at?: string | null
+          id?: string
+          location_sharing?: boolean | null
+          preferred_city?: string | null
+          preferred_language?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_loyalty_points: {
         Row: {
           created_at: string
@@ -6833,6 +6902,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_recent_searches: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_searched_at: string | null
+          result_address: string | null
+          result_latitude: number | null
+          result_longitude: number | null
+          search_count: number | null
+          search_query: string
+          selected: boolean | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_searched_at?: string | null
+          result_address?: string | null
+          result_latitude?: number | null
+          result_longitude?: number | null
+          search_count?: number | null
+          search_query: string
+          selected?: boolean | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_searched_at?: string | null
+          result_address?: string | null
+          result_latitude?: number | null
+          result_longitude?: number | null
+          search_count?: number | null
+          search_query?: string
+          selected?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_rewards: {
         Row: {
           claimed_at: string | null
@@ -6916,6 +7024,51 @@ export type Database = {
           is_active?: boolean
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_saved_places: {
+        Row: {
+          address: string
+          created_at: string | null
+          id: string
+          last_used_at: string | null
+          latitude: number
+          longitude: number
+          metadata: Json | null
+          name: string
+          place_type: string
+          updated_at: string | null
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          address: string
+          created_at?: string | null
+          id?: string
+          last_used_at?: string | null
+          latitude: number
+          longitude: number
+          metadata?: Json | null
+          name: string
+          place_type?: string
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          address?: string
+          created_at?: string | null
+          id?: string
+          last_used_at?: string | null
+          latitude?: number
+          longitude?: number
+          metadata?: Json | null
+          name?: string
+          place_type?: string
+          updated_at?: string | null
+          usage_count?: number | null
           user_id?: string
         }
         Relationships: []
@@ -7881,6 +8034,10 @@ export type Database = {
           security_item: string
           status: string
         }[]
+      }
+      cleanup_expired_location_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       cleanup_expired_trip_links: {
         Args: Record<PropertyKey, never>

@@ -200,7 +200,7 @@ export const useSmartGeolocation = () => {
     }
   }, []);
 
-  // 🔍 RECHERCHE UNIVERSELLE INTELLIGENTE
+  // 🔍 RECHERCHE UNIVERSELLE INTELLIGENTE AVEC CACHE
   const searchLocations = useCallback(async (query: string): Promise<LocationSearchResult[]> => {
     if (!query.trim()) {
       const popularPlaces = await getPopularPlacesForCurrentCity();
@@ -218,30 +218,26 @@ export const useSmartGeolocation = () => {
     return new Promise((resolve) => {
       searchTimeoutRef.current = setTimeout(async () => {
         try {
-          // 1. Recherche universelle dans la base de données
-          const dbResults = await searchInCurrentCityDatabase(query);
+          // Utiliser le service de géolocalisation amélioré
+          const { enhancedLocationService } = await import('@/services/enhancedLocationService');
           
-          // 2. Si pas assez de résultats, chercher via Google
-          let allResults = [...dbResults];
-          if (dbResults.length < 5) {
-            const googleResults = await searchViaGoogle(query);
-            allResults = [...dbResults, ...googleResults];
-          }
-
-          // 3. Trier par pertinence
-          const sortedResults = allResults
-            .filter((result, index, self) => 
-              self.findIndex(r => r.lat === result.lat && r.lng === result.lng) === index
-            )
-            .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0))
-            .slice(0, 8);
+          const currentCity = state.currentCity?.code || 'cd';
+          const userLat = state.currentLocation?.lat;
+          const userLng = state.currentLocation?.lng;
+          
+          const results = await enhancedLocationService.searchLocations(
+            query,
+            currentCity,
+            userLat,
+            userLng
+          );
 
           setState(prev => ({
             ...prev,
-            searchResults: sortedResults,
+            searchResults: results,
             searchLoading: false
           }));
-          resolve(sortedResults);
+          resolve(results);
 
         } catch (error) {
           console.error('Search error:', error);
@@ -255,7 +251,7 @@ export const useSmartGeolocation = () => {
         }
       }, 300); // 300ms debounce
     });
-  }, []);
+  }, [state.currentCity, state.currentLocation]);
 
   // 🗺️ LIEUX POPULAIRES UNIVERSELS
   const getPopularPlacesForCurrentCity = useCallback(async (): Promise<LocationSearchResult[]> => {
