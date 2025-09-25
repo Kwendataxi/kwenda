@@ -587,11 +587,16 @@ async function searchInDatabase(query: string): Promise<LocationSearchResult[]> 
 
 async function searchViaGoogle(query: string): Promise<LocationSearchResult[]> {
   try {
-    // Adapter la recherche Google selon la ville détectée
+    // Adapter la recherche Google selon la ville détectée DYNAMIQUEMENT
     const currentCity = universalGeolocation.getCurrentCity();
-    const cityContext = `${query}, ${currentCity.name}`;
+    console.log(`🌐 Recherche Google dans: ${currentCity.name} (${currentCity.countryCode})`);
+    
     const { data, error } = await supabase.functions.invoke('geocode-proxy', {
-      body: { query: cityContext }
+      body: { 
+        query: query,
+        city: currentCity.name,
+        region: currentCity.countryCode.toLowerCase()
+      }
     });
 
     if (error) throw error;
@@ -601,11 +606,11 @@ async function searchViaGoogle(query: string): Promise<LocationSearchResult[]> {
       address: result.formatted_address,
       lat: result.geometry.location.lat,
       lng: result.geometry.location.lng,
-      type: 'database' as const,
+      type: 'google' as const,
       title: result.formatted_address,
-      subtitle: 'Via Google Maps',
-      relevanceScore: 60 - index * 10, // Décrémenter pour l'ordre
-      confidence: 0.9
+      subtitle: `Via Google Maps • ${currentCity.name}`,
+      relevanceScore: 70 - index * 10, // Score Google modéré
+      confidence: 0.85
     })) || [];
   } catch (error) {
     console.error('Google search error:', error);

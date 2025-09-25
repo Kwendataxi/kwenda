@@ -157,13 +157,46 @@ export const useUnifiedLocation = () => {
   }, [getModernPosition, convertToLocationData]);
 
   /**
-   * Rechercher des lieux avec enhanced service
+   * Rechercher des lieux avec geolocation universelle DYNAMIQUE
    */
   const searchLocations = useCallback(async (
     query: string,
     callback?: (results: SimpleLocationSearchResult[]) => void
   ): Promise<SimpleLocationSearchResult[]> => {
     try {
+      // Utiliser universalGeolocation pour la recherche contextuelle
+      const { universalGeolocation } = await import('@/services/universalGeolocation');
+      
+      // Détecter la ville actuelle d'abord
+      await universalGeolocation.detectUserCity();
+      
+      // Rechercher dans la ville détectée
+      const universalResults = await universalGeolocation.searchInCurrentCity(query, 10);
+      
+      if (universalResults && universalResults.length > 0) {
+        // Convertir les résultats universels
+        const convertedResults: SimpleLocationSearchResult[] = universalResults.map(result => ({
+          id: result.id || `universal-${Date.now()}-${Math.random()}`,
+          title: result.name || result.address,
+          address: result.address || '',
+          lat: result.lat || result.latitude || 0,
+          lng: result.lng || result.longitude || 0,
+          type: 'database',
+          name: result.name,
+          subtitle: result.commune || result.city,
+          isPopular: result.popularity_score > 0.7
+        }));
+        
+        console.log(`🔍 Recherche universelle réussie: ${convertedResults.length} résultats`);
+        
+        if (callback) {
+          callback(convertedResults);
+        }
+        
+        return convertedResults;
+      }
+      
+      // Fallback vers enhanced service si pas de résultats universels
       const results = await enhancedLocationService.searchLocations(query);
       const convertedResults = results.map(convertSearchResult);
       
@@ -173,10 +206,9 @@ export const useUnifiedLocation = () => {
       
       return convertedResults;
     } catch (error) {
-      console.error('Erreur de recherche:', error);
+      console.error('Erreur de recherche universelle:', error);
       // Fallback vers lieux populaires en cas d'erreur
       try {
-        // Utiliser des lieux populaires statiques en fallback
         const convertedPopular = getPopularPlaces();
         
         if (callback) {

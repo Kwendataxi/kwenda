@@ -100,12 +100,17 @@ export class UniversalGeolocationService {
   }
 
   /**
-   * 🎯 Détecter automatiquement la ville de l'utilisateur
+   * 🎯 Détecter automatiquement la ville de l'utilisateur avec détection RÉELLE
    */
   async detectUserCity(coordinates?: { lat: number; lng: number }): Promise<CityConfig> {
-    // Vérifier le cache
-    if (this.cityDetectionCache && 
-        Date.now() - this.cityDetectionCache.timestamp < this.CACHE_DURATION) {
+    console.log('🎯 Détection ville commencée...', coordinates);
+    
+    // Forcer une nouvelle détection si pas de cache ou coordonnées fournies
+    const forceRefresh = coordinates || !this.cityDetectionCache || 
+                        Date.now() - this.cityDetectionCache.timestamp > this.CACHE_DURATION;
+    
+    if (!forceRefresh && this.cityDetectionCache) {
+      console.log('📱 Utilisation cache ville:', this.cityDetectionCache.city.name);
       this.currentCity = this.cityDetectionCache.city;
       return this.currentCity;
     }
@@ -113,66 +118,83 @@ export class UniversalGeolocationService {
     try {
       let userCoordinates = coordinates;
 
-      // Si pas de coordonnées fournies, essayer de les obtenir
+      // Si pas de coordonnées fournies, essayer de les obtenir ACTIVEMENT
       if (!userCoordinates) {
+        console.log('🔍 Tentative GPS...');
         try {
-          // Essayer GPS d'abord
+          // Essayer GPS avec timeout réduit pour plus de réactivité
           const position = await this.getCurrentPositionPromise();
           userCoordinates = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
           };
-        } catch {
-          // Fallback sur IP
+          console.log('✅ GPS réussi:', userCoordinates);
+        } catch (gpsError) {
+          console.log('❌ GPS échoué, tentative IP...', gpsError);
+          // Fallback sur IP avec détection active
           try {
             const ipLocation = await IPGeolocationService.getInstance().getCurrentLocation();
             userCoordinates = {
               lat: ipLocation.latitude,
               lng: ipLocation.longitude
             };
-          } catch {
-            // Fallback par défaut sur Kinshasa
+            console.log('✅ IP réussi:', userCoordinates);
+          } catch (ipError) {
+            console.log('❌ IP échoué, utilisation Kinshasa par défaut', ipError);
+            // Forcer le fallback sur Kinshasa mais PAS de cache permanent
             this.currentCity = SUPPORTED_CITIES.kinshasa;
-            this.cacheDetection(this.currentCity);
+            // Cache court pour permettre de nouvelles tentatives
+            this.cityDetectionCache = {
+              city: this.currentCity,
+              timestamp: Date.now() - (this.CACHE_DURATION * 0.5) // Cache de 15min seulement
+            };
             return this.currentCity;
           }
         }
       }
 
-      // Déterminer la ville la plus proche
+      // Déterminer la ville RÉELLE la plus proche
       const detectedCity = this.findNearestSupportedCity(userCoordinates);
       this.currentCity = detectedCity;
       this.cacheDetection(detectedCity);
 
-      console.log(`🌍 Ville détectée: ${detectedCity.name}`, userCoordinates);
+      console.log(`🌍 Ville RÉELLEMENT détectée: ${detectedCity.name} (${detectedCity.code})`, userCoordinates);
       return detectedCity;
 
     } catch (error) {
-      console.error('Erreur détection ville:', error);
-      // Fallback sur Kinshasa
+      console.error('❌ Erreur détection ville complète:', error);
+      // Fallback temporaire sur Kinshasa
       this.currentCity = SUPPORTED_CITIES.kinshasa;
+      // Cache court pour permettre de nouvelles tentatives rapides
+      this.cityDetectionCache = {
+        city: this.currentCity,
+        timestamp: Date.now() - (this.CACHE_DURATION * 0.7) // Cache de 9min pour retry plus rapide
+      };
       return this.currentCity;
     }
   }
 
   /**
-   * 🎯 Trouver la ville supportée la plus proche
+   * 🎯 Trouver la ville supportée la plus proche avec logs détaillés
    */
   private findNearestSupportedCity(coordinates: { lat: number; lng: number }): CityConfig {
     let nearestCity = SUPPORTED_CITIES.kinshasa;
     let minDistance = Infinity;
+    
+    console.log('🔍 Recherche ville la plus proche pour:', coordinates);
 
-    for (const [, city] of Object.entries(SUPPORTED_CITIES)) {
-      // Vérifier si dans les limites de la ville
-      if (this.isWithinCityBounds(coordinates, city)) {
+    for (const [cityKey, city] of Object.entries(SUPPORTED_CITIES)) {
+      // Vérifier si dans les limites de la ville d'abord
+      const withinBounds = this.isWithinCityBounds(coordinates, city);
+      
+      if (withinBounds) {
+        console.log(`✅ Position dans les limites de ${city.name}!`);
         return city;
       }
 
-      // Calculer la distance si pas dans les limites
-      const distance = this.calculateDistance(
-        coordinates,
-        city.coordinates
-      );
+      // Calculer la distance sinon
+      const distance = this.calculateDistance(coordinates, city.coordinates);
+      console.log(`📍 Distance vers ${city.name}: ${distance.toFixed(2)}km`);
 
       if (distance < minDistance) {
         minDistance = distance;
@@ -180,6 +202,7 @@ export class UniversalGeolocationService {
       }
     }
 
+    console.log(`🎯 Ville la plus proche: ${nearestCity.name} (${minDistance.toFixed(2)}km)`);
     return nearestCity;
   }
 
