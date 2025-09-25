@@ -72,7 +72,7 @@ async function processNotification(supabase: any, notification: any) {
       .from('unified_notifications')
       .update({
         status: 'failed',
-        error_message: error.message
+        error_message: error instanceof Error ? error.message : 'Unknown error'
       })
       .eq('id', notification.id);
   }
@@ -242,7 +242,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: false,
       error: 'Internal server error',
-      details: error.message
+      details: error instanceof Error ? error.message : 'Unknown error'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

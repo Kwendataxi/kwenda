@@ -449,7 +449,7 @@ export default function EnhancedDeliveryTracker({ orderId, onBack }: EnhancedDel
                     driverLocation={getDriverLocationForMap()}
                     showRoute={Boolean(getPickupCoords() && getDestinationCoords())}
                     height="250px"
-                    deliveryMode={order.delivery_type}
+                    deliveryMode={order.delivery_type as "flash" | "flex" | "maxicharge"}
                   />
                 </CardContent>
               </Card>

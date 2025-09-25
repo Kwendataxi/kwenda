@@ -193,7 +193,7 @@ async function drawLottery(body: any, supabase: any) {
 
   // Créer la liste pondérée des participants (plus de tickets = plus de chances)
   const weightedEntries: any[] = [];
-  entries.forEach(entry => {
+  entries.forEach((entry: any) => {
     for (let i = 0; i < entry.tickets_used; i++) {
       weightedEntries.push(entry);
     }

@@ -65,7 +65,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message 
+        error: error instanceof Error ? error.message : 'Unknown error' 
       }),
       {
         status: 500,
@@ -101,7 +101,7 @@ async function handleSendNotification(req: Request, supabase: any): Promise<Resp
   }
 
   // Create notification queue entries
-  const queueEntries: NotificationQueue[] = expandedRecipients.map(userId => ({
+  const queueEntries: any[] = expandedRecipients.map(userId => ({
     type,
     recipients: [userId],
     title,
@@ -130,7 +130,7 @@ async function handleSendNotification(req: Request, supabase: any): Promise<Resp
 
   // Process immediately if requested
   if (send_immediately) {
-    const processResult = await processNotificationQueue(supabase, queuedNotifications.map(n => n.id));
+    const processResult = await processNotificationQueue(supabase, queuedNotifications.map((n: any) => n.id));
     
     return new Response(
       JSON.stringify({ 
@@ -138,7 +138,7 @@ async function handleSendNotification(req: Request, supabase: any): Promise<Resp
         queued: queuedNotifications.length,
         processed: processResult.processed,
         failed: processResult.failed,
-        queue_ids: queuedNotifications.map(n => n.id)
+        queue_ids: queuedNotifications.map((n: any) => n.id)
       }),
       { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
     );
@@ -148,7 +148,7 @@ async function handleSendNotification(req: Request, supabase: any): Promise<Resp
     JSON.stringify({ 
       success: true, 
       queued: queuedNotifications.length,
-      queue_ids: queuedNotifications.map(n => n.id)
+      queue_ids: queuedNotifications.map((n: any) => n.id)
     }),
     { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
   );
@@ -249,7 +249,7 @@ async function processNotificationQueue(supabase: any, specificIds?: string[]) {
         .from('push_notification_queue')
         .update({ 
           status: 'failed',
-          error_message: error.message,
+          error_message: error instanceof Error ? error.message : 'Unknown error',
           processed_at: new Date().toISOString()
         })
         .eq('id', notification.id);
@@ -294,7 +294,7 @@ async function handleRetryFailed(req: Request, supabase: any): Promise<Response>
     .eq('retry_count', 0) // Only retry ones that haven't been retried yet
     .select();
 
-  const result = await processNotificationQueue(supabase, failedNotifications?.map(n => n.id) || []);
+  const result = await processNotificationQueue(supabase, failedNotifications?.map((n: any) => n.id) || []);
 
   return new Response(
     JSON.stringify({ 

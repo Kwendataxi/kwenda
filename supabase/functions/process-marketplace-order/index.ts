@@ -95,7 +95,7 @@ serve(async (req) => {
 
           // Send notifications to drivers (would implement push notifications here)
           for (const driver of topDrivers) {
-            console.log(`Notified driver ${driver.profiles?.display_name} (${driver.distance.toFixed(2)}km away)`)
+            console.log(`Notified driver ${(driver as any).profiles?.display_name} (${driver.distance.toFixed(2)}km away)`)
           }
         }
       }
@@ -152,7 +152,7 @@ serve(async (req) => {
     
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         success: false 
       }),
       { 

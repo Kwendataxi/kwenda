@@ -97,7 +97,7 @@ serve(async (req) => {
     console.error('Voice to text error:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         text: '' // Fallback empty text
       }),
       {

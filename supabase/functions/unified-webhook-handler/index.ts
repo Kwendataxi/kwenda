@@ -117,7 +117,7 @@ serve(async (req) => {
 
       case 'marketplace_notification':
         // Handle marketplace notifications
-        let recipients = [];
+        let recipients: string[] = [];
         let notificationTitle = '';
         let notificationMessage = '';
 
@@ -208,11 +208,11 @@ serve(async (req) => {
     const errorResponse = {
       success: false,
       error: 'Internal server error',
-      details: error.message
+      details: error instanceof Error ? error.message : 'Unknown error'
     };
 
     // Log error audit
-    await logWebhookAudit(supabase, webhook_type, requestPayload, errorResponse, error.message);
+    await logWebhookAudit(supabase, webhook_type, requestPayload, errorResponse, error instanceof Error ? error.message : 'Unknown error');
 
     return new Response(JSON.stringify(errorResponse), {
       status: 500,

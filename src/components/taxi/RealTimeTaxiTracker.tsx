@@ -26,7 +26,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
-import TaxiChat from './TaxiChat';
+import { TaxiChat } from './TaxiChat';
 import TaxiPaymentModal from '../payment/TaxiPaymentModal';
 
 interface RealTimeTaxiTrackerProps {
@@ -583,8 +583,8 @@ export default function RealTimeTaxiTracker({ bookingId, onBack }: RealTimeTaxiT
       {showChat && hasDriver && bookingData.driver && (
         <TaxiChat
           bookingId={bookingData.id}
-          driverId={bookingData.driver_id!}
-          onClose={() => setShowChat(false)}
+          driverName={bookingData.driver?.display_name || 'Chauffeur'}
+          onCallDriver={() => window.open(`tel:${bookingData.driver?.phone_number}`)}
         />
       )}
 

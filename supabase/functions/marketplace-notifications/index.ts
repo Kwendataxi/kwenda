@@ -39,7 +39,7 @@ serve(async (req) => {
     }
 
     // Determine notification recipients and content
-    let recipients = []
+    let recipients: string[] = []
     let notificationTitle = ''
     let notificationBody = ''
 
@@ -172,7 +172,7 @@ serve(async (req) => {
     
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         success: false 
       }),
       { 
