@@ -22,11 +22,11 @@ All colors MUST be HSL.
     --popover: 42 35% 88%;
     --popover-foreground: 220 25% 5%;
 
-    /* Primary: Rouge Congo vibrant */
-    --primary: 357 90% 45%;
+    /* Primary: Rouge Congo vibrant mais plus doux */
+    --primary: 357 85% 50%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 357 90% 55%;
-    --primary-light: 357 90% 65%;
+    --primary-glow: 357 85% 60%;
+    --primary-light: 357 85% 70%;
 
     /* Secondary: Or Congo éclatant */
     --secondary: 42 100% 50%;
@@ -47,17 +47,17 @@ All colors MUST be HSL.
     --congo-yellow: 42 100% 60%;
     --congo-green: 142 85% 45%;
     
-    /* Congo Electric Variants - Maximum intensity */
-    --congo-red-electric: 357 100% 65%;
-    --congo-yellow-electric: 42 100% 70%;
-    --congo-green-electric: 142 90% 55%;
-    --congo-blue-electric: 220 100% 60%;
+    /* Congo Electric Variants - Intensité réduite pour plus de douceur */
+    --congo-red-electric: 357 88% 60%;
+    --congo-yellow-electric: 42 95% 65%;
+    --congo-green-electric: 142 80% 50%;
+    --congo-blue-electric: 220 90% 55%;
     
-    /* Congo Vibrant Variants - Interactive elements */
-    --congo-red-vibrant: 357 90% 50%;
-    --congo-yellow-vibrant: 42 98% 58%;
-    --congo-green-vibrant: 142 82% 42%;
-    --congo-blue-vibrant: 220 100% 48%;
+    /* Congo Vibrant Variants - Interactive elements plus doux */
+    --congo-red-vibrant: 357 82% 48%;
+    --congo-yellow-vibrant: 42 90% 55%;
+    --congo-green-vibrant: 142 75% 40%;
+    --congo-blue-vibrant: 220 85% 45%;
     
     /* Congo Glow Variants - Focus states */
     --congo-red-glow: 357 85% 70%;
@@ -108,8 +108,8 @@ All colors MUST be HSL.
     --gradient-congo-vibrant: linear-gradient(45deg, hsl(var(--congo-red-vibrant)), hsl(var(--congo-yellow-vibrant)), hsl(var(--congo-green-vibrant)), hsl(var(--congo-blue-vibrant)));
     --gradient-congo-radial: radial-gradient(circle at center, hsl(var(--congo-red) / 0.4), hsl(var(--congo-yellow) / 0.3), hsl(var(--congo-green) / 0.2), transparent);
     --gradient-congo-mesh: conic-gradient(from 0deg at 50% 50%, hsl(var(--congo-red)), hsl(var(--congo-yellow)), hsl(var(--congo-green)), hsl(var(--congo-blue)), hsl(var(--congo-red)));
-    --gradient-congo-glow: linear-gradient(135deg, hsl(var(--congo-red-glow) / 0.4), hsl(var(--congo-yellow-glow) / 0.3), hsl(var(--congo-blue-glow) / 0.2));
-    --gradient-congo-subtle: linear-gradient(180deg, hsl(357, 95%, 55% / 0.15) 0%, hsl(42, 100%, 60% / 0.15) 100%);
+    --gradient-congo-glow: linear-gradient(135deg, hsl(var(--congo-red-glow) / 0.3), hsl(var(--congo-yellow-glow) / 0.25), hsl(var(--congo-blue-glow) / 0.15));
+    --gradient-congo-subtle: linear-gradient(180deg, hsl(357, 85%, 50% / 0.12) 0%, hsl(42, 95%, 55% / 0.12) 100%);
     
     /* Shadows colorées Congo - ENHANCED */
     --shadow-xs: 0 1px 2px 0 hsl(357 95% 55% / 0.1);
@@ -126,11 +126,11 @@ All colors MUST be HSL.
     --shadow-congo-glow: 0 0 60px hsl(var(--congo-blue-glow) / 0.3);
     --shadow-congo-multi: 0 8px 25px -5px hsl(var(--congo-red) / 0.25), 0 16px 50px -10px hsl(var(--congo-yellow) / 0.2), 0 24px 80px -15px hsl(var(--congo-blue) / 0.15);
     
-    /* Transitions stables */
-    --transition-smooth: all 0.2s ease-out;
-    --transition-fast: all 0.1s ease-out;
-    --transition-bounce: transform 0.2s ease-out;
-    --transition-spring: transform 0.3s ease-out;
+    /* Transitions plus fluides et naturelles */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-spring: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     --radius: 0.75rem;
     --radius-sm: 0.5rem;
@@ -293,6 +293,18 @@ All colors MUST be HSL.
   
   .hover-scale:hover {
     transform: scale(1.02);
+  }
+
+  /* Touch-friendly spacing */
+  .touch-friendly {
+    padding: 12px 16px;
+    min-height: 44px;
+  }
+
+  /* Minimum touch target */
+  .min-touch-target {
+    min-height: 44px;
+    min-width: 44px;
   }
 
   /* Horizontal scroll container */

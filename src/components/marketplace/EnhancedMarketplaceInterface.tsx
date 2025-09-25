@@ -470,25 +470,25 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
       )}
 
 
-      <div className="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {loading ? (
-          Array.from({ length: 15 }).map((_, index) => (
-            <Card key={index} className="overflow-hidden animate-pulse max-w-[160px]">
-              <div className="aspect-square bg-muted"></div>
-              <div className="p-2 space-y-2">
-                <div className="h-3 bg-muted rounded"></div>
-                <div className="h-2 bg-muted rounded w-3/4"></div>
-                <div className="h-3 bg-muted rounded w-1/2"></div>
+          Array.from({ length: 12 }).map((_, index) => (
+            <Card key={index} className="overflow-hidden animate-pulse card-modern">
+              <div className="aspect-square bg-muted/60"></div>
+              <div className="p-3 space-y-2">
+                <div className="h-3 bg-muted/60 rounded"></div>
+                <div className="h-2 bg-muted/60 rounded w-3/4"></div>
+                <div className="h-3 bg-muted/60 rounded w-1/2"></div>
               </div>
             </Card>
           ))
         ) : filteredProducts.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-              <Package className="w-8 h-8 text-muted-foreground" />
+          <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-20 h-20 bg-gradient-congo-subtle rounded-full flex items-center justify-center mb-6 shadow-md">
+              <Package className="w-10 h-10 text-congo-red" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Aucun produit trouvé</h3>
-            <p className="text-muted-foreground max-w-sm">
+            <h3 className="font-semibold text-responsive-lg mb-3">Aucun produit trouvé</h3>
+            <p className="text-muted-foreground text-responsive-sm max-w-sm">
               Essayez de modifier vos critères de recherche ou explorez d'autres catégories
             </p>
           </div>

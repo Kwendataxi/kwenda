@@ -171,7 +171,8 @@ export const OptimizedClientApp: React.FC<OptimizedClientAppProps> = ({ onNaviga
           <div className="flex gap-2">
             <Button 
               size="sm" 
-              className="bg-gradient-to-r from-[hsl(var(--congo-red))] to-[hsl(var(--congo-red-electric))] text-white border-none shadow-lg hover:shadow-xl hover:from-[hsl(var(--congo-red-electric))] hover:to-[hsl(var(--congo-red-glow))] transition-all duration-300 font-semibold"
+              variant="congo"
+              className="hover-scale min-touch-target"
               onClick={() => onNavigate('/support')}
             >
               Support

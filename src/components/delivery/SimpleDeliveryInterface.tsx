@@ -137,18 +137,18 @@ export default function SimpleDeliveryInterface({ onSubmit, onCancel }: SimpleDe
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-background relative overflow-hidden responsive-padding">
       {/* Animated background dots */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {[...Array(12)].map((_, i) => (
           <div
             key={i}
             className={cn(
-              "absolute w-2 h-2 rounded-full animate-pulse",
-              i % 4 === 0 && "bg-red-400/30",
-              i % 4 === 1 && "bg-yellow-400/30", 
-              i % 4 === 2 && "bg-green-400/30",
-              i % 4 === 3 && "bg-blue-400/30"
+              "absolute w-1.5 h-1.5 md:w-2 md:h-2 rounded-full animate-pulse opacity-60",
+              i % 4 === 0 && "bg-congo-red/20",
+              i % 4 === 1 && "bg-congo-yellow/20", 
+              i % 4 === 2 && "bg-congo-green/20",
+              i % 4 === 3 && "bg-congo-blue/20"
             )}
             style={{
               top: `${Math.random() * 100}%`,
@@ -159,15 +159,15 @@ export default function SimpleDeliveryInterface({ onSubmit, onCancel }: SimpleDe
         ))}
       </div>
 
-      <div className="relative z-10 p-6">
+      <div className="relative z-10 container-fluid">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-primary rounded-2xl mx-auto mb-4 flex items-center justify-center">
-            <Package className="w-6 h-6 text-primary-foreground" />
+        <div className="text-center mb-6 md:mb-8">
+          <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-hero rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-glow">
+            <Package className="w-7 h-7 md:w-8 md:h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">Adresses</h1>
-          <p className="text-muted-foreground">
-            Définissez les points de collecte et de livraison
+          <h1 className="text-responsive-2xl font-bold text-foreground mb-2">Livraison</h1>
+          <p className="text-responsive-sm text-muted-foreground max-w-sm mx-auto">
+            Définissez les points de collecte et de livraison pour votre colis
           </p>
         </div>
 
@@ -190,26 +190,28 @@ export default function SimpleDeliveryInterface({ onSubmit, onCancel }: SimpleDe
           </div>
         </div>
 
-        <Card className="mx-auto max-w-md bg-card/80 backdrop-blur-sm border-0 shadow-lg">
-          <div className="p-6">
+        <Card className="mx-auto max-w-lg w-full card-modern shadow-elegant backdrop-blur-sm">
+          <div className="p-4 md:p-6">
             {/* Step Title */}
             <div className="mb-6">
               <div className="flex items-center gap-3 mb-2">
-                <Package className="w-5 h-5 text-primary" />
-                <h2 className="text-lg font-semibold">{getStepTitle()}</h2>
+                <div className="p-1.5 bg-congo-red/20 rounded-lg">
+                  <Package className="w-5 h-5 text-congo-red" />
+                </div>
+                <h2 className="text-responsive-lg font-semibold">{getStepTitle()}</h2>
               </div>
-              <p className="text-sm text-muted-foreground ml-8">{getStepSubtitle()}</p>
+              <p className="text-responsive-sm text-muted-foreground ml-10">{getStepSubtitle()}</p>
             </div>
 
             {step !== 'type' && (
               <>
                 {/* Current Location Button */}
                 <Button
-                  variant="outline"
-                  className="w-full justify-start mb-6 h-12 bg-background/50"
+                  variant="congo-soft"
+                  className="w-full justify-start mb-6 h-14 text-responsive-sm hover-scale touch-friendly"
                   onClick={handleCurrentLocation}
                 >
-                  <Navigation className="w-4 h-4 mr-3" />
+                  <Navigation className="w-5 h-5 mr-3" />
                   <span>Utiliser ma position actuelle</span>
                 </Button>
 
@@ -223,22 +225,22 @@ export default function SimpleDeliveryInterface({ onSubmit, onCancel }: SimpleDe
                     <Button
                       key={place.id}
                       variant="ghost"
-                      className="w-full h-auto p-4 justify-start bg-background/30 hover:bg-background/60 transition-all"
+                      className="w-full h-auto p-4 justify-start card-modern hover:shadow-md transition-all hover-scale min-touch-target"
                       onClick={() => handleLocationSelect(place)}
                     >
                       <div className="flex items-start gap-3 w-full">
-                        <Star className="w-4 h-4 text-yellow-500 mt-1 flex-shrink-0" />
+                        <Star className="w-5 h-5 text-congo-yellow mt-1 flex-shrink-0" />
                         <div className="text-left flex-1">
                           <div className="flex items-center justify-between">
-                            <span className="font-medium text-sm">{place.name}</span>
-                            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                            <span className="font-medium text-responsive-sm">{place.name}</span>
+                            <span className="text-xs bg-congo-yellow/20 text-congo-yellow px-2 py-1 rounded-full">
                               Populaire
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-responsive-xs text-muted-foreground mt-1">
                             {place.address}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-responsive-xs text-muted-foreground">
                             {place.category}
                           </p>
                         </div>

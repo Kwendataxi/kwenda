@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Car, Clock, MapPin, Star, Users } from 'lucide-react';
+import { Car, Clock, MapPin, Star, Users, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -150,35 +150,39 @@ const OptimizedTransportInterface: React.FC<OptimizedTransportInterfaceProps> = 
   }, [onNavigate]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 responsive-padding">
       {/* En-tête avec statut */}
-      <Card>
-        <CardHeader className="pb-3">
+      <Card className="card-modern shadow-soft">
+        <CardHeader className="pb-3 md:pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Car className="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2 text-responsive-lg">
+              <div className="p-1.5 bg-gradient-hero rounded-lg">
+                <Car className="w-4 h-4 md:w-5 md:h-5 text-white" />
+              </div>
               Transport VTC
             </CardTitle>
-            <Badge variant="outline" className="flex items-center gap-1">
+            <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
               <Users className="w-3 h-3" />
-              {driverStatus?.reduce((sum, d) => sum + (d.online_drivers || 0), 0) || 0} chauffeurs
+              <span className="text-responsive-xs">
+                {driverStatus?.reduce((sum, d) => sum + (d.online_drivers || 0), 0) || 0} chauffeurs
+              </span>
             </Badge>
           </div>
         </CardHeader>
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="book">Réserver</TabsTrigger>
-          <TabsTrigger value="history">Historique</TabsTrigger>
-          <TabsTrigger value="favorites">Favoris</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 h-12 md:h-auto">
+          <TabsTrigger value="book" className="text-responsive-sm min-touch-target">Réserver</TabsTrigger>
+          <TabsTrigger value="history" className="text-responsive-sm min-touch-target">Historique</TabsTrigger>
+          <TabsTrigger value="favorites" className="text-responsive-sm min-touch-target">Favoris</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="book" className="space-y-4">
+        <TabsContent value="book" className="space-y-4 md:space-y-6 mt-4">
           {/* Types de véhicules */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">Choisir un véhicule</h3>
-            <div className="grid gap-3">
+            <h3 className="text-responsive-lg font-semibold mb-3 md:mb-4">Choisir un véhicule</h3>
+            <div className="grid gap-3 md:gap-4">
               {vehicleTypes.map((vehicle) => (
                 <VehicleTypeCard
                   key={vehicle.id}
@@ -195,8 +199,8 @@ const OptimizedTransportInterface: React.FC<OptimizedTransportInterfaceProps> = 
 
           {/* Destinations rapides */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">Destinations populaires</h3>
-            <div className="grid gap-2">
+            <h3 className="text-responsive-lg font-semibold mb-3 md:mb-4">Destinations populaires</h3>
+            <div className="grid gap-3">
               {quickLocations.map((location, index) => (
                 <QuickLocationCard
                   key={index}
@@ -207,6 +211,19 @@ const OptimizedTransportInterface: React.FC<OptimizedTransportInterfaceProps> = 
                 />
               ))}
             </div>
+          </div>
+
+          {/* Bouton nouvelle course */}
+          <div className="pt-4">
+            <Button
+              onClick={() => onNavigate('/client/transport/book')}
+              className="w-full h-14 text-responsive-lg hover-scale touch-friendly"
+              size="lg"
+              variant="congo"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Nouvelle course
+            </Button>
           </div>
 
           {/* Action principale */}
