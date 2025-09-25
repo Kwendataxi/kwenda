@@ -310,8 +310,6 @@ export const UserProfile = () => {
         case 'settings':
           return <UserSettings />;
         default:
-          setActiveOption(null);
-          setShowModal(false);
           return null;
       }
     } catch (error) {
