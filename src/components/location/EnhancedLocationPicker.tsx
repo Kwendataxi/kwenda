@@ -13,10 +13,28 @@ import { useToast } from '@/hooks/use-toast';
 import { enhancedLocationService } from '@/services/enhancedLocationService';
 import { 
   UnifiedLocation, 
+  LocationSearchResult,
   getCurrentCity,
   SUPPORTED_CITIES 
 } from '@/types/unifiedLocation';
-import type { LocationSearchResult } from '@/hooks/useSmartGeolocation';
+import type { LocationSearchResult as SmartLocationResult } from '@/hooks/useSmartGeolocation';
+
+// Conversion function from SmartLocationResult to unified LocationSearchResult
+const convertToUnifiedResult = (result: SmartLocationResult): LocationSearchResult => ({
+  id: result.id,
+  name: result.name || result.address,
+  address: result.address,
+  coordinates: { lat: result.lat, lng: result.lng },
+  subtitle: result.subtitle,
+  type: result.type === 'default' || result.type === 'gps' || result.type === 'ip' || result.type === 'fallback' ? 'geocoded' : result.type as any || 'geocoded',
+  placeId: result.placeId,
+  accuracy: result.accuracy,
+  confidence: result.confidence,
+  badge: result.isPopular ? 'Populaire' : undefined,
+  relevanceScore: result.relevanceScore || 80,
+  popularityScore: result.isPopular ? 90 : 50,
+  distanceFromUser: result.distance
+});
 
 interface EnhancedLocationPickerProps {
   value?: UnifiedLocation | null;
@@ -68,7 +86,7 @@ export default function EnhancedLocationPicker({
         setIsSearching(true);
         try {
           const results = await enhancedLocationService.searchLocations(query, selectedCity);
-          setSuggestions(results);
+          setSuggestions(results.map(convertToUnifiedResult));
           setShowSuggestions(true);
         } catch (error) {
           console.error('Search error:', error);
@@ -80,7 +98,7 @@ export default function EnhancedLocationPicker({
         // Afficher les lieux populaires si recherche vide
         try {
           const popular = await enhancedLocationService.getPopularLocations(selectedCity, 6);
-          setSuggestions(popular);
+          setSuggestions(popular.map(convertToUnifiedResult));
           setShowSuggestions(query.length === 0 && suggestions.length === 0);
         } catch (error) {
           console.error('Popular places error:', error);
@@ -127,9 +145,9 @@ export default function EnhancedLocationPicker({
       id: location.id,
       name: location.name,
       address: location.address,
-      coordinates: { lat: location.lat, lng: location.lng },
+      coordinates: location.coordinates,
       subtitle: location.subtitle,
-      type: (location.type === 'default' || location.type === 'gps' || location.type === 'ip' || location.type === 'fallback') ? 'geocoded' : location.type || 'geocoded'
+      type: location.type
     };
 
     onChange(unifiedLocation);
@@ -151,7 +169,7 @@ export default function EnhancedLocationPicker({
         fallbackToDefault: true
       });
 
-      handleLocationSelect(currentLocation);
+      handleLocationSelect(convertToUnifiedResult(currentLocation));
 
       toast({
         title: "Position trouvée",
@@ -173,7 +191,7 @@ export default function EnhancedLocationPicker({
     if (suggestions.length === 0 && query.length < 2) {
       try {
         const popular = await enhancedLocationService.getPopularLocations(selectedCity, 6);
-        setSuggestions(popular);
+        setSuggestions(popular.map(convertToUnifiedResult));
         setShowSuggestions(true);
       } catch (error) {
         console.error('Popular places error:', error);
