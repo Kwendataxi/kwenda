@@ -197,17 +197,17 @@ Télécharge l'app : ${baseUrl}`;
   const secondaryButtons = shareButtons.filter(btn => !btn.primary);
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4 sm:space-y-6">
       {/* Principales options de partage */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-foreground">Partage rapide</h3>
-          <Badge variant="secondary" className="bg-congo-green/10 text-congo-green border-congo-green/20">
+          <h3 className="text-sm sm:text-base font-semibold text-foreground">Partage rapide</h3>
+          <Badge variant="secondary" className="bg-congo-green/10 text-congo-green border-congo-green/20 text-xs sm:text-sm">
             {reward} CDF/parrain
           </Badge>
         </div>
         
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {primaryButtons.map((button, index) => {
             const Icon = button.icon;
             return (
@@ -220,17 +220,17 @@ Télécharge l'app : ${baseUrl}`;
                 <Button
                   onClick={button.onClick}
                   variant="outline"
-                  className="h-16 flex-col gap-2 hover:scale-105 transition-all duration-200 border-2"
+                  className="h-20 sm:h-16 flex-col gap-2 hover:scale-105 transition-all duration-200 border-2"
                   style={{
                     backgroundColor: `${button.color}10`,
                     borderColor: `${button.color}30`,
                   }}
                 >
                   <Icon 
-                    className="h-6 w-6" 
+                    className="h-8 w-8 sm:h-6 sm:w-6" 
                     style={{ color: button.color }}
                   />
-                  <span className="text-xs font-medium">{button.name}</span>
+                  <span className="text-sm sm:text-xs font-medium">{button.name}</span>
                 </Button>
               </motion.div>
             );
@@ -240,8 +240,8 @@ Télécharge l'app : ${baseUrl}`;
 
       {/* Options supplémentaires */}
       <div className="space-y-3">
-        <h4 className="text-sm font-medium text-muted-foreground">Plus d'options</h4>
-        <div className="grid grid-cols-2 gap-2">
+        <h4 className="text-xs sm:text-sm font-medium text-muted-foreground">Plus d'options</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {secondaryButtons.map((button, index) => {
             const Icon = button.icon;
             return (
@@ -255,10 +255,10 @@ Télécharge l'app : ${baseUrl}`;
                   onClick={button.onClick}
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-start gap-2 h-10 hover:bg-muted/50"
+                  className="w-full justify-start gap-2 h-12 sm:h-10 hover:bg-muted/50"
                 >
                   <Icon 
-                    className="h-4 w-4" 
+                    className="h-5 w-5 sm:h-4 sm:w-4" 
                     style={{ color: button.color }}
                   />
                   <span className="text-sm">{button.name}</span>
@@ -270,7 +270,7 @@ Télécharge l'app : ${baseUrl}`;
       </div>
 
       {/* Actions principales */}
-      <div className="flex gap-2 pt-2">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-2">
         <motion.div 
           className="flex-1"
           whileHover={{ scale: 1.02 }}
@@ -279,9 +279,9 @@ Télécharge l'app : ${baseUrl}`;
           <CongoButton
             onClick={handleCopyMessage}
             variant="info"
-            className="w-full"
+            className="w-full h-12 sm:h-10 text-sm sm:text-base"
           >
-            <Copy className="h-4 w-4 mr-2" />
+            <Copy className="h-5 w-5 sm:h-4 sm:w-4 mr-2" />
             Copier message
           </CongoButton>
         </motion.div>
@@ -294,9 +294,9 @@ Télécharge l'app : ${baseUrl}`;
           <CongoButton
             onClick={handleNativeShare}
             variant="default"
-            className="w-full animate-pulse-glow"
+            className="w-full h-12 sm:h-10 animate-pulse-glow text-sm sm:text-base"
           >
-            <Share2 className="h-4 w-4 mr-2" />
+            <Share2 className="h-5 w-5 sm:h-4 sm:w-4 mr-2" />
             Partager
           </CongoButton>
         </motion.div>

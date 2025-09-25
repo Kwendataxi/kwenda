@@ -80,58 +80,53 @@ export const QuickShareMenu: React.FC<QuickShareMenuProps> = ({
       <PopoverTrigger asChild>
         {children}
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-4" align="end">
+      <PopoverContent className="w-80 sm:w-64 p-4 sm:p-4" align="end">
         <div className="space-y-3">
-          <h4 className="font-medium text-sm text-foreground mb-3">Partager rapidement</h4>
+          <h4 className="font-medium text-base sm:text-sm text-foreground mb-3">Partager rapidement</h4>
           
           <Button
             onClick={handleWhatsAppShare}
             variant="outline"
-            size="sm"
-            className="w-full justify-start bg-[#25D366]/10 hover:bg-[#25D366]/20 border-[#25D366]/30"
+            className="w-full justify-start h-12 sm:h-9 bg-[#25D366]/10 hover:bg-[#25D366]/20 border-[#25D366]/30 text-sm sm:text-sm"
           >
-            <MessageCircle className="h-4 w-4 mr-2 text-[#25D366]" />
+            <MessageCircle className="h-5 w-5 sm:h-4 sm:w-4 mr-3 sm:mr-2 text-[#25D366]" />
             WhatsApp
           </Button>
 
           <Button
             onClick={handleTelegramShare}
             variant="outline"
-            size="sm"
-            className="w-full justify-start bg-[#0088cc]/10 hover:bg-[#0088cc]/20 border-[#0088cc]/30"
+            className="w-full justify-start h-12 sm:h-9 bg-[#0088cc]/10 hover:bg-[#0088cc]/20 border-[#0088cc]/30 text-sm sm:text-sm"
           >
-            <Send className="h-4 w-4 mr-2 text-[#0088cc]" />
+            <Send className="h-5 w-5 sm:h-4 sm:w-4 mr-3 sm:mr-2 text-[#0088cc]" />
             Telegram
           </Button>
 
           <Button
             onClick={handleSMSShare}
             variant="outline"
-            size="sm"
-            className="w-full justify-start bg-congo-blue/10 hover:bg-congo-blue/20 border-congo-blue/30"
+            className="w-full justify-start h-12 sm:h-9 bg-congo-blue/10 hover:bg-congo-blue/20 border-congo-blue/30 text-sm sm:text-sm"
           >
-            <Smartphone className="h-4 w-4 mr-2 text-congo-blue" />
+            <Smartphone className="h-5 w-5 sm:h-4 sm:w-4 mr-3 sm:mr-2 text-congo-blue" />
             SMS
           </Button>
 
-          <div className="border-t pt-2">
+          <div className="border-t pt-3">
             <Button
               onClick={handleCopyMessage}
               variant="outline"
-              size="sm"
-              className="w-full justify-start"
+              className="w-full justify-start h-12 sm:h-9 text-sm sm:text-sm"
             >
-              <Copy className="h-4 w-4 mr-2" />
+              <Copy className="h-5 w-5 sm:h-4 sm:w-4 mr-3 sm:mr-2" />
               Copier le message
             </Button>
 
             <Button
               onClick={handleNativeShare}
               variant="outline"
-              size="sm"
-              className="w-full justify-start mt-2"
+              className="w-full justify-start h-12 sm:h-9 mt-3 sm:mt-2 text-sm sm:text-sm"
             >
-              <Share2 className="h-4 w-4 mr-2" />
+              <Share2 className="h-5 w-5 sm:h-4 sm:w-4 mr-3 sm:mr-2" />
               Plus d'options
             </Button>
           </div>

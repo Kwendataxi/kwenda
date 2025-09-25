@@ -34,40 +34,40 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto sm:max-w-2xl w-[95vw] sm:w-full">
-        <DialogHeader className="pb-4">
-          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+      <DialogContent className="w-[98vw] sm:max-w-2xl h-[95vh] sm:max-h-[95vh] overflow-y-auto p-3 sm:p-6">
+        <DialogHeader className="pb-3 sm:pb-4">
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
             <Gift className="h-5 w-5 text-congo-green" />
             Système de Parrainage
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm sm:text-base">
             Partagez votre code de parrainage et gagnez des récompenses pour chaque utilisateur invité.
           </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-congo-red/10 to-congo-yellow/10 p-1">
+          <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-congo-red/10 to-congo-yellow/10 p-1 h-12 sm:h-10">
             <TabsTrigger 
               value="overview" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-congo-red data-[state=active]:to-congo-red-glow data-[state=active]:text-white transition-all duration-300"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-congo-red data-[state=active]:to-congo-red-glow data-[state=active]:text-white transition-all duration-300 text-xs sm:text-sm py-3 sm:py-2"
             >
               Aperçu
             </TabsTrigger>
             <TabsTrigger 
               value="invite"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-congo-yellow data-[state=active]:to-congo-yellow-glow data-[state=active]:text-grey-900 transition-all duration-300"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-congo-yellow data-[state=active]:to-congo-yellow-glow data-[state=active]:text-grey-900 transition-all duration-300 text-xs sm:text-sm py-3 sm:py-2"
             >
               Inviter
             </TabsTrigger>
             <TabsTrigger 
               value="rewards"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-congo-green data-[state=active]:to-congo-green-glow data-[state=active]:text-white transition-all duration-300"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-congo-green data-[state=active]:to-congo-green-glow data-[state=active]:text-white transition-all duration-300 text-xs sm:text-sm py-3 sm:py-2"
             >
               Niveaux
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
+          <TabsContent value="overview" className="space-y-4 sm:space-y-6 px-1">
             {/* Code de parrainage avec animations */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -98,22 +98,21 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
                       
                       <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4">
                         <motion.span 
-                          className="text-2xl sm:text-3xl font-bold text-congo-green tracking-wider text-center sm:text-left animate-congo-pulse"
+                          className="text-3xl sm:text-2xl font-bold text-congo-green tracking-wider text-center sm:text-left animate-congo-pulse"
                           animate={{ scale: [1, 1.05, 1] }}
                           transition={{ duration: 2, repeat: Infinity }}
                         >
                           {loading ? '•••••••••' : referralCode}
                         </motion.span>
                         
-                        <div className="flex gap-2 w-full sm:w-auto">
+                        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                           <CongoButton
                             variant="success"
-                            size="sm"
                             onClick={copyReferralCode}
                             disabled={loading}
-                            className="flex-1 sm:flex-none hover:scale-105 transition-transform"
+                            className="flex-1 sm:flex-none h-12 sm:h-9 hover:scale-105 transition-transform text-sm sm:text-base"
                           >
-                            <Copy className="h-4 w-4" />
+                            <Copy className="h-5 w-5 sm:h-4 sm:w-4" />
                           </CongoButton>
                           
                           <QuickShareMenu
@@ -123,11 +122,10 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
                           >
                             <CongoButton
                               variant="default"
-                              size="sm"
                               disabled={loading}
-                              className="flex-1 sm:flex-none bg-gradient-to-r from-congo-red to-congo-red-glow hover:from-congo-red-vibrant hover:to-congo-red-electric hover:scale-105 transition-all duration-300 shadow-glow"
+                              className="flex-1 sm:flex-none h-12 sm:h-9 bg-gradient-to-r from-congo-red to-congo-red-glow hover:from-congo-red-vibrant hover:to-congo-red-electric hover:scale-105 transition-all duration-300 shadow-glow text-sm sm:text-base"
                             >
-                              <Share2 className="h-4 w-4 mr-2" />
+                              <Share2 className="h-5 w-5 sm:h-4 sm:w-4 mr-2" />
                               Partager
                             </CongoButton>
                           </QuickShareMenu>
@@ -141,7 +139,7 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
 
             {/* Statistiques avec animations staggerées */}
             <motion.div 
-              className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+              className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
@@ -153,15 +151,15 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
                 whileHover={{ y: -4 }}
               >
                 <CongoCard variant="info" className="text-center hover:shadow-congo-vibrant transition-all duration-300">
-                  <CardContent className="pt-6 pb-4">
+                  <CardContent className="pt-4 sm:pt-6 pb-4">
                     <motion.div
                       animate={{ scale: [1, 1.1, 1] }}
                       transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
                     >
-                      <Users className="h-8 w-8 mx-auto mb-2 text-congo-blue" />
+                      <Users className="h-10 w-10 sm:h-8 sm:w-8 mx-auto mb-2 text-congo-blue" />
                     </motion.div>
                     <motion.div 
-                      className="text-3xl font-bold text-white"
+                      className="text-4xl sm:text-3xl font-bold text-white"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 300, delay: 0.4 }}
@@ -180,15 +178,15 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
                 whileHover={{ y: -4 }}
               >
                 <CongoCard variant="warning" className="text-center hover:shadow-congo-vibrant transition-all duration-300">
-                  <CardContent className="pt-6 pb-4">
+                  <CardContent className="pt-4 sm:pt-6 pb-4">
                     <motion.div
                       animate={{ rotate: [0, 10, -10, 0] }}
                       transition={{ duration: 3, repeat: Infinity, delay: 1 }}
                     >
-                      <Coins className="h-8 w-8 mx-auto mb-2 text-congo-yellow" />
+                      <Coins className="h-10 w-10 sm:h-8 sm:w-8 mx-auto mb-2 text-congo-yellow" />
                     </motion.div>
                     <motion.div 
-                      className="text-3xl font-bold text-grey-900"
+                      className="text-4xl sm:text-3xl font-bold text-grey-900"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 300, delay: 0.5 }}
@@ -207,15 +205,15 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
                 whileHover={{ y: -4 }}
               >
                 <CongoCard variant="default" className="text-center hover:shadow-congo-vibrant transition-all duration-300">
-                  <CardContent className="pt-6 pb-4">
+                  <CardContent className="pt-4 sm:pt-6 pb-4">
                     <motion.div
                       animate={{ y: [0, -2, 0] }}
                       transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
                     >
-                      <TrendingUp className="h-8 w-8 mx-auto mb-2 text-congo-red" />
+                      <TrendingUp className="h-10 w-10 sm:h-8 sm:w-8 mx-auto mb-2 text-congo-red" />
                     </motion.div>
                     <motion.div 
-                      className="text-3xl font-bold text-white"
+                      className="text-4xl sm:text-3xl font-bold text-white"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 300, delay: 0.6 }}
@@ -261,7 +259,7 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
             </Card>
           </TabsContent>
 
-          <TabsContent value="invite" className="space-y-6">
+          <TabsContent value="invite" className="space-y-4 sm:space-y-6 px-1">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -353,7 +351,7 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
             </Card>
           </TabsContent>
 
-          <TabsContent value="rewards" className="space-y-4">
+          <TabsContent value="rewards" className="space-y-4 px-1">
             <ReferralProgress
               userType={stats.userType}
               totalReferred={stats.totalReferred}
