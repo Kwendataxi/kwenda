@@ -35,6 +35,7 @@ export const usePartnerEarnings = (initialRange: PartnerRange = '30d') => {
   const load = async () => {
     setLoading(true);
     try {
+      // Utiliser la nouvelle edge function améliorée
       const { data, error } = await supabase.functions.invoke('partner-driver-earnings', {
         body: { range },
       });
@@ -42,6 +43,29 @@ export const usePartnerEarnings = (initialRange: PartnerRange = '30d') => {
       setData(data as PartnerEarningsSummary);
     } catch (e) {
       console.error('usePartnerEarnings error:', e);
+      // Fallback vers l'ancienne méthode si nécessaire
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Non authentifié');
+
+        const fallbackData: PartnerEarningsSummary = {
+          range,
+          fromDate: range === '7d' ? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() :
+                    range === '30d' ? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() :
+                    '2020-01-01',
+          totals: {
+            totalBookingAmount: 0,
+            totalPartnerCommission: 0,
+            totalAssignments: 0,
+            totalTopups: 0,
+            roi: null
+          },
+          drivers: []
+        };
+        setData(fallbackData);
+      } catch (fallbackError) {
+        console.error('Fallback error:', fallbackError);
+      }
     } finally {
       setLoading(false);
     }

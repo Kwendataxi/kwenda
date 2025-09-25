@@ -666,6 +666,42 @@ export type Database = {
         }
         Relationships: []
       }
+      commission_configuration: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          driver_commission_rate: number
+          id: string
+          is_active: boolean
+          partner_commission_rate: number
+          platform_commission_rate: number
+          service_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          driver_commission_rate?: number
+          id?: string
+          is_active?: boolean
+          partner_commission_rate?: number
+          platform_commission_rate?: number
+          service_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          driver_commission_rate?: number
+          id?: string
+          is_active?: boolean
+          partner_commission_rate?: number
+          platform_commission_rate?: number
+          service_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       commission_settings: {
         Row: {
           admin_rate: number
@@ -1256,6 +1292,59 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      driver_codes_enhanced: {
+        Row: {
+          code: string
+          code_type: string
+          created_at: string
+          created_by: string | null
+          driver_id: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          partner_id: string | null
+          updated_at: string
+          usage_count: number | null
+          usage_limit: number | null
+        }
+        Insert: {
+          code: string
+          code_type?: string
+          created_at?: string
+          created_by?: string | null
+          driver_id: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          partner_id?: string | null
+          updated_at?: string
+          usage_count?: number | null
+          usage_limit?: number | null
+        }
+        Update: {
+          code?: string
+          code_type?: string
+          created_at?: string
+          created_by?: string | null
+          driver_id?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          partner_id?: string | null
+          updated_at?: string
+          usage_count?: number | null
+          usage_limit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_codes_enhanced_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partenaires"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       driver_credits: {
         Row: {
@@ -8244,6 +8333,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      generate_driver_code_secure: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_lottery_ticket_number: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -8382,6 +8475,24 @@ export type Database = {
       get_notification_stats: {
         Args: { admin_id?: string }
         Returns: Json
+      }
+      get_partner_by_code: {
+        Args: { driver_code: string }
+        Returns: {
+          commission_rate: number
+          is_active: boolean
+          partner_id: string
+          partner_name: string
+        }[]
+      }
+      get_partner_earnings_secure: {
+        Args: { date_range?: string; partner_user_id: string }
+        Returns: {
+          driver_count: number
+          total_bookings: number
+          total_commission: number
+          total_revenue: number
+        }[]
       }
       get_performance_trends: {
         Args: { p_hours_back?: number; p_metric_type?: string }

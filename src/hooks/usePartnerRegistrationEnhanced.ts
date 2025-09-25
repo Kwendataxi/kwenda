@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export interface PartnerRegistrationData {
+export interface PartnerRegistrationDataEnhanced {
   company_name: string;
   contact_email: string;
   phone: string;
@@ -12,12 +12,13 @@ export interface PartnerRegistrationData {
   business_license?: string;
   tax_number?: string;
   commission_rate: number;
+  commission_type: 'percentage' | 'fixed';
 }
 
-export const usePartnerRegistration = () => {
+export const usePartnerRegistrationEnhanced = () => {
   const [loading, setLoading] = useState(false);
 
-  const registerPartner = async (data: PartnerRegistrationData) => {
+  const registerPartner = async (data: PartnerRegistrationDataEnhanced) => {
     setLoading(true);
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -75,6 +76,18 @@ export const usePartnerRegistration = () => {
 
       if (error) throw error;
 
+      // Logger l'inscription
+      await supabase.functions.invoke('smart-notification-dispatcher', {
+        body: {
+          type: 'partner_registration',
+          data: {
+            partner_name: data.company_name,
+            business_type: data.business_type,
+            service_areas: data.service_areas
+          }
+        }
+      });
+
       toast.success('Demande de partenariat envoyée avec succès!');
       return { success: true };
 
@@ -105,9 +118,31 @@ export const usePartnerRegistration = () => {
     }
   };
 
+  const updateCommissionRate = async (newRate: number) => {
+    if (newRate < 0 || newRate > 50) {
+      throw new Error('Le taux de commission doit être entre 0% et 50%');
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Non authentifié');
+
+    const { error } = await supabase
+      .from('partenaires')
+      .update({ 
+        commission_rate: newRate,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+
+    toast.success('Taux de commission mis à jour');
+  };
+
   return {
     registerPartner,
     checkPartnerStatus,
+    updateCommissionRate,
     loading
   };
 };
