@@ -393,7 +393,20 @@ export const useSmartGeolocation = () => {
 
     // Actions principales
     getCurrentPosition,
-    searchLocations,
+    searchLocations: async (query: string, callback?: (results: LocationSearchResult[]) => void) => {
+      if (callback) {
+        // Mode callback pour compatibilité
+        try {
+          const results = await searchLocations(query);
+          callback(results);
+        } catch {
+          callback([]);
+        }
+      } else {
+        // Mode Promise
+        return searchLocations(query);
+      }
+    },
     getPopularPlaces: getPopularPlacesFallback,
     clearError,
     calculateDistance,
@@ -417,21 +430,6 @@ export const useSmartGeolocation = () => {
     position: state.currentLocation,
     currentCity: state.currentCity,
     cityDetectionLoading: state.cityDetectionLoading,
-    
-    // Override searchLocations pour supporter les callbacks
-    searchLocations: (query: string, callback?: (results: LocationSearchResult[]) => void | Promise<LocationSearchResult[]>) => {
-      if (callback) {
-        // Mode callback
-        searchLocations(query).then(results => {
-          callback(results);
-        }).catch(() => {
-          callback([]);
-        });
-      } else {
-        // Mode Promise
-        return searchLocations(query);
-      }
-    },
     
     // Propriété ville sous forme de string pour compatibilité
     currentCityName: state.currentCity?.name || 'Kinshasa'

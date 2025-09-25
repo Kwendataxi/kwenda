@@ -56,10 +56,11 @@ export const MarketplaceHeader: React.FC<MarketplaceHeaderProps> = ({
   );
 
   const formatLocation = () => {
+    const cityName = typeof currentCity === 'string' ? currentCity : currentCity?.name || 'Position non détectée';
     if (latitude && longitude) {
-      return `${currentCity} • ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+      return `${cityName} • ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
     }
-    return currentCity || 'Position non détectée';
+    return cityName;
   };
 
   return (
@@ -68,7 +69,7 @@ export const MarketplaceHeader: React.FC<MarketplaceHeaderProps> = ({
         {/* Location Display */}
         <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
           <MapPin className="w-4 h-4" />
-          <span>{formatLocation()}</span>
+           <span>{formatLocation()}</span>
           {isRealGPS && (
             <Badge variant="secondary" className="text-xs">
               GPS

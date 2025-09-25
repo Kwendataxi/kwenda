@@ -115,7 +115,7 @@ const CongoVehicleSelection: React.FC<CongoVehicleSelectionProps> = ({
   ];
   };
 
-  const congoVehicles = getVehiclesByCity(currentCity || 'kinshasa');
+  const congoVehicles = getVehiclesByCity(typeof currentCity === 'string' ? currentCity : currentCity?.code || 'kinshasa');
 
   const calculatePrice = (vehicle: CongoVehicle): number => {
     const basePrice = vehicle.pricePerKm * distance;
@@ -150,7 +150,7 @@ const CongoVehicleSelection: React.FC<CongoVehicleSelectionProps> = ({
       <div className="text-center mb-6">
         <h3 className="text-lg font-semibold mb-2">Choisissez votre transport</h3>
         <p className="text-sm text-muted-foreground">
-          Distance: {distance.toFixed(1)} km • Options adaptées à {(currentCity || 'Kinshasa').charAt(0).toUpperCase() + (currentCity || 'Kinshasa').slice(1)}
+          Distance: {distance.toFixed(1)} km • Options adaptées à {(typeof currentCity === 'string' ? currentCity : currentCity?.name || 'Kinshasa').charAt(0).toUpperCase() + (typeof currentCity === 'string' ? currentCity : currentCity?.name || 'Kinshasa').slice(1)}
         </p>
       </div>
 
@@ -255,7 +255,7 @@ const CongoVehicleSelection: React.FC<CongoVehicleSelectionProps> = ({
           <div className="flex items-start space-x-3">
             <MapPin className="h-5 w-5 text-primary mt-1" />
             <div>
-              <h4 className="font-medium mb-1">Transport à {(currentCity || 'Kinshasa').charAt(0).toUpperCase() + (currentCity || 'Kinshasa').slice(1)}</h4>
+              <h4 className="font-medium mb-1">Transport à {(typeof currentCity === 'string' ? currentCity : currentCity?.name || 'Kinshasa').charAt(0).toUpperCase() + (typeof currentCity === 'string' ? currentCity : currentCity?.name || 'Kinshasa').slice(1)}</h4>
               <p className="text-sm text-muted-foreground">
                 Nos tarifs sont adaptés au marché local et incluent tous les frais.
                 Paiement en francs congolais (CDF) ou dollars US.
