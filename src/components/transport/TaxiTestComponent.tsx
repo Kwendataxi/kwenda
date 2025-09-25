@@ -8,9 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { ModernLocationInput } from '@/components/location/ModernLocationInput';
+import AutocompleteLocationInput from '@/components/location/AutocompleteLocationInput';
 import { useModernTaxiBooking } from '@/hooks/useModernTaxiBooking';
-import { useSimpleLocation } from '@/hooks/useSimpleLocation';
+import { unifiedToLocationData } from '@/utils/locationConverters';
 import { LocationData } from '@/types/location';
 import { 
   MapPin, 
@@ -43,7 +43,8 @@ export function TaxiTestComponent() {
     error: bookingError 
   } = useModernTaxiBooking();
 
-  const { currentPosition: currentLocation, loading: geoLoading } = useSimpleLocation();
+  const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
+  const [geoLoading, setGeoLoading] = useState(false);
 
   // Test 1: Géolocalisation
   const testGeolocation = () => {
@@ -53,8 +54,36 @@ export function TaxiTestComponent() {
     } else if (geoLoading) {
       setTestResults(prev => ({ ...prev, geolocation: 'pending' }));
     } else {
-      setTestResults(prev => ({ ...prev, geolocation: 'error' }));
-      toast.error('Géolocalisation échoué');
+      setGeoLoading(true);
+      setTestResults(prev => ({ ...prev, geolocation: 'pending' }));
+      
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude: lat, longitude: lng } = position.coords;
+            const location: LocationData = {
+              address: `Position actuelle (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+              lat,
+              lng,
+              accuracy: position.coords.accuracy || 50,
+              type: 'current'
+            };
+            setCurrentLocation(location);
+            setTestResults(prev => ({ ...prev, geolocation: 'success' }));
+            toast.success(`Géolocalisation: ${location.address}`);
+            setGeoLoading(false);
+          },
+          () => {
+            setTestResults(prev => ({ ...prev, geolocation: 'error' }));
+            toast.error('Géolocalisation échoué');
+            setGeoLoading(false);
+          }
+        );
+      } else {
+        setTestResults(prev => ({ ...prev, geolocation: 'error' }));
+        toast.error('Géolocalisation non supportée');
+        setGeoLoading(false);
+      }
     }
   };
 
@@ -223,9 +252,10 @@ export function TaxiTestComponent() {
                 <MapPin className="w-4 h-4" />
                 Point de départ
               </label>
-              <ModernLocationInput
+              <AutocompleteLocationInput
                 placeholder="Rechercher une adresse de départ..."
-                onChange={setPickup}
+                onChange={(location) => setPickup(location ? unifiedToLocationData(location) : null)}
+                types={['establishment', 'geocode']}
               />
               {pickup && (
                 <div className="text-xs text-muted-foreground">
@@ -239,9 +269,10 @@ export function TaxiTestComponent() {
                 <MapPin className="w-4 h-4" />
                 Destination
               </label>
-              <ModernLocationInput
+              <AutocompleteLocationInput
                 placeholder="Rechercher une destination..."
-                onChange={setDestination}
+                onChange={(location) => setDestination(location ? unifiedToLocationData(location) : null)}
+                types={['establishment', 'geocode']}
               />
               {destination && (
                 <div className="text-xs text-muted-foreground">

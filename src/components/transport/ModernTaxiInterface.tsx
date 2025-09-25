@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { ModernLocationInput } from '@/components/location/ModernLocationInput';
-import { useSimpleLocation } from '@/hooks/useSimpleLocation';
+import AutocompleteLocationInput from '@/components/location/AutocompleteLocationInput';
+import { unifiedToLocationData } from '@/utils/locationConverters';
 import { useModernTaxiBooking } from '@/hooks/useModernTaxiBooking';
 import { LocationData } from '@/types/location';
 import { useLocation } from 'react-router-dom';
@@ -67,7 +67,22 @@ const VEHICLE_TYPES = [
 export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiInterfaceProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { calculateDistance, formatDistance, getCurrentPosition } = useSimpleLocation();
+  // Utility functions for distance calculation
+  const calculateDistance = (point1: { lat: number; lng: number }, point2: { lat: number; lng: number }) => {
+    const R = 6371000; // Earth's radius in meters
+    const dLat = (point2.lat - point1.lat) * Math.PI / 180;
+    const dLng = (point2.lng - point1.lng) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  const formatDistance = (distance: number) => {
+    if (distance < 1000) return `${Math.round(distance)}m`;
+    return `${(distance / 1000).toFixed(1)}km`;
+  };
   const location = useLocation();
   
   const {
@@ -127,31 +142,46 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   // Détecter automatiquement la position actuelle comme point de départ
   const detectCurrentLocationAsPickup = async () => {
     try {
-      const position = await getCurrentPosition();
-      if (position) {
-        const pickupLocation: LocationData = {
-          address: position.address,
-          lat: position.lat,
-          lng: position.lng,
-          accuracy: position.accuracy || 50
-        };
-        
-        setBookingData(prev => ({ 
-          ...prev, 
-          pickup: pickupLocation 
-        }));
-        
-        // Aller directement à l'étape des détails
-        setStep('details');
-        
-        toast({
-          title: "Position détectée",
-          description: "Votre position actuelle définie comme point de départ",
-        });
+      // Use geolocation API directly
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude: lat, longitude: lng } = position.coords;
+            
+            // Basic reverse geocoding - you can enhance this
+            const pickupLocation: LocationData = {
+              address: `Position actuelle (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+              lat,
+              lng,
+              accuracy: position.coords.accuracy || 50,
+              type: 'current'
+            };
+            
+            setBookingData(prev => ({ 
+              ...prev, 
+              pickup: pickupLocation 
+            }));
+            
+            setStep('details');
+            
+            toast({
+              title: "Position détectée",
+              description: "Votre position actuelle définie comme point de départ",
+            });
+          },
+          (error) => {
+            console.error('Erreur géolocalisation:', error);
+            setStep('pickup');
+            toast({
+              title: "Géolocalisation échouée",
+              description: "Veuillez saisir manuellement votre point de départ",
+              variant: "destructive",
+            });
+          }
+        );
       }
     } catch (error) {
       console.error('Erreur géolocalisation:', error);
-      // En cas d'erreur, rester sur l'étape pickup pour saisie manuelle
       setStep('pickup');
       toast({
         title: "Géolocalisation échouée",
@@ -182,17 +212,19 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     }
   }, [bookingData.pickup, bookingData.destination, bookingData.vehicleType, calculateDistance]);
 
-  const handlePickupChange = (location: LocationData | null) => {
-    setBookingData(prev => ({ ...prev, pickup: location }));
-    if (location && step === 'pickup') {
+  const handlePickupChange = (location: any) => {
+    const locationData = location ? unifiedToLocationData(location) : null;
+    setBookingData(prev => ({ ...prev, pickup: locationData }));
+    if (locationData && step === 'pickup') {
       // Auto-advance to destination step
       setTimeout(() => setStep('destination'), 500);
     }
   };
 
-  const handleDestinationChange = (location: LocationData | null) => {
-    setBookingData(prev => ({ ...prev, destination: location }));
-    if (location && step === 'destination') {
+  const handleDestinationChange = (location: any) => {
+    const locationData = location ? unifiedToLocationData(location) : null;
+    setBookingData(prev => ({ ...prev, destination: locationData }));
+    if (locationData && step === 'destination') {
       // Auto-advance to details step
       setTimeout(() => setStep('details'), 500);
     }
@@ -292,12 +324,20 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
               </div>
             </div>
             
-            <ModernLocationInput
-              value={bookingData.pickup}
+            <AutocompleteLocationInput
+              value={bookingData.pickup ? {
+                id: bookingData.pickup.placeId || `pickup-${Date.now()}`,
+                name: bookingData.pickup.name || bookingData.pickup.address,
+                address: bookingData.pickup.address,
+                coordinates: {
+                  lat: bookingData.pickup.lat,
+                  lng: bookingData.pickup.lng
+                },
+                type: bookingData.pickup.type as any || 'manual'
+              } : null}
               onChange={handlePickupChange}
               placeholder="D'où partez-vous ?"
-              context="pickup"
-              autoDetect={false}
+              types={['establishment', 'geocode']}
             />
             
             {bookingData.pickup && (
@@ -327,13 +367,12 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
               </div>
             </div>
             
-            <ModernLocationInput
+            <AutocompleteLocationInput
               key="destination-field"
               value={null}
               onChange={handleDestinationChange}
               placeholder="Où allez-vous ?"
-              context="destination"
-              autoDetect={false}
+              types={['establishment', 'geocode']}
             />
 
             {bookingData.pickup && (
