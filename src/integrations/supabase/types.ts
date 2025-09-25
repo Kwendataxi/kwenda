@@ -3365,6 +3365,56 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_audit_logs: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          new_status: string | null
+          old_status: string | null
+          partner_id: string
+          reason: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          new_status?: string | null
+          old_status?: string | null
+          partner_id: string
+          reason?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          new_status?: string | null
+          old_status?: string | null
+          partner_id?: string
+          reason?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_audit_logs_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partenaires"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_commission_tracking: {
         Row: {
           booking_amount: number
@@ -8722,6 +8772,17 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      log_partner_audit_event: {
+        Args: {
+          p_action_type: string
+          p_metadata?: Json
+          p_new_status?: string
+          p_old_status?: string
+          p_partner_id: string
+          p_reason?: string
+        }
+        Returns: string
       }
       log_security_audit: {
         Args: { action_type: string; table_accessed: string; user_data?: Json }

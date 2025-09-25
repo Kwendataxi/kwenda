@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Search, CheckCircle, XCircle, Building2, Mail, Phone, MapPin, Calendar } from 'lucide-react';
+import { PartnerAuditTrail } from './partners/PartnerAuditTrail';
+import { PartnerRegistrationTest } from './partners/PartnerRegistrationTest';
+import { PartnerNotifications } from './partners/PartnerNotifications';
 
 interface Partner {
   id: string;
@@ -235,65 +238,88 @@ const AdminPartnerManager = () => {
         </p>
       </div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <div className="text-sm text-muted-foreground">Total partenaires</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-            <div className="text-sm text-muted-foreground">En attente</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">{stats.approved}</div>
-            <div className="text-sm text-muted-foreground">Approuvés</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-            <div className="text-sm text-muted-foreground">Actifs</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Rechercher un partenaire..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="pending">En attente ({stats.pending})</TabsTrigger>
-          <TabsTrigger value="approved">Approuvés ({stats.approved})</TabsTrigger>
-          <TabsTrigger value="all">Tous ({stats.total})</TabsTrigger>
+      <Tabs defaultValue="partners" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="partners">Partenaires</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="audit">Audit Trail</TabsTrigger>
+          <TabsTrigger value="test">Tests</TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeTab} className="mt-6">
-          {isLoading ? (
-            <div className="text-center py-8">Chargement...</div>
-          ) : filteredPartners.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Aucun partenaire trouvé
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredPartners.map(renderPartnerCard)}
-            </div>
-          )}
+        <TabsContent value="partners" className="space-y-6">
+          {/* Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold">{stats.total}</div>
+                <div className="text-sm text-muted-foreground">Total partenaires</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+                <div className="text-sm text-muted-foreground">En attente</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold text-blue-600">{stats.approved}</div>
+                <div className="text-sm text-muted-foreground">Approuvés</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+                <div className="text-sm text-muted-foreground">Actifs</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher un partenaire..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {/* Partner Status Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList>
+              <TabsTrigger value="pending">En attente ({stats.pending})</TabsTrigger>
+              <TabsTrigger value="approved">Approuvés ({stats.approved})</TabsTrigger>
+              <TabsTrigger value="all">Tous ({stats.total})</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value={activeTab} className="mt-6">
+              {isLoading ? (
+                <div className="text-center py-8">Chargement...</div>
+              ) : filteredPartners.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Aucun partenaire trouvé
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredPartners.map(renderPartnerCard)}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        <TabsContent value="notifications" className="space-y-6">
+          <PartnerNotifications />
+        </TabsContent>
+
+        <TabsContent value="audit" className="space-y-6">
+          <PartnerAuditTrail />
+        </TabsContent>
+
+        <TabsContent value="test" className="space-y-6">
+          <PartnerRegistrationTest />
         </TabsContent>
       </Tabs>
     </div>
