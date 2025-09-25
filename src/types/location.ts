@@ -14,20 +14,18 @@ export interface LocationData {
   subtitle?: string;
 }
 
-// Format de retour pour les résultats de recherche
-export interface SearchResult extends LocationData {
-  id: string;
-  title?: string;
-  subtitle?: string;
-  isPopular?: boolean;
-}
-
+// Format de retour unifié pour les résultats de recherche
 export interface LocationSearchResult extends LocationData {
   id: string;
   title?: string;
   subtitle?: string;
   isPopular?: boolean;
+  relevanceScore?: number;
+  distance?: number;
 }
+
+// Alias pour compatibilité
+export interface SearchResult extends LocationSearchResult {}
 
 export interface GeolocationOptions {
   enableHighAccuracy?: boolean;

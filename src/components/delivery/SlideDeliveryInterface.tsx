@@ -4,14 +4,12 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Package, Truck, Clock, ArrowLeft, ArrowRight, Check, Navigation } from 'lucide-react';
+import { MapPin, Package, Truck, ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { useSimpleLocation } from '@/hooks/useSimpleLocation';
-import { LocationSearchResult } from '@/types/location';
+import { AutocompleteLocationInput } from '@/components/location/AutocompleteLocationInput';
+import { LocationData } from '@/types/location';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,8 +19,8 @@ interface SlideDeliveryInterfaceProps {
 }
 
 interface DeliveryData {
-  pickupLocation: LocationSearchResult | null;
-  deliveryLocation: LocationSearchResult | null;
+  pickupLocation: LocationData | null;
+  deliveryLocation: LocationData | null;
   serviceType: 'flash' | 'flex' | 'maxicharge';
   packageType: string;
   estimatedPrice: number;
@@ -64,7 +62,6 @@ type Step = 'pickup' | 'destination' | 'service' | 'confirm';
 
 export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeliveryInterfaceProps) {
   const { toast } = useToast();
-  const { getCurrentPosition, searchLocations, calculateDistance, formatDistance, currentPosition, loading } = useSimpleLocation();
   
   const [currentStep, setCurrentStep] = useState<Step>('pickup');
   const [deliveryData, setDeliveryData] = useState<DeliveryData>({
@@ -75,57 +72,27 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     estimatedPrice: 3000
   });
 
-  const [pickupQuery, setPickupQuery] = useState('');
-  const [deliveryQuery, setDeliveryQuery] = useState('');
-  const [pickupSuggestions, setPickupSuggestions] = useState<LocationSearchResult[]>([]);
-  const [deliverySuggestions, setDeliverySuggestions] = useState<LocationSearchResult[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
-  // Géolocalisation automatique au chargement
-  useEffect(() => {
-    const initializeLocation = async () => {
-      try {
-        const position = await getCurrentPosition();
-        if (position && currentStep === 'pickup') {
-          // Auto-fill pickup avec la position actuelle
-          const locationResult: LocationSearchResult = {
-            id: `current-${Date.now()}`,
-            title: 'Ma position actuelle',
-            subtitle: position.address,
-            address: position.address,
-            lat: position.lat,
-            lng: position.lng,
-            type: position.type
-          };
-          setDeliveryData(prev => ({ ...prev, pickupLocation: locationResult }));
-          setPickupQuery('Ma position actuelle');
-        }
-      } catch (error) {
-        console.log('Géolocalisation automatique échouée, continuant sans position');
-      }
-    };
-    
-    initializeLocation();
-  }, [getCurrentPosition, currentStep]);
+  // Calculer distance entre deux points
+  const calculateDistance = (point1: { lat: number; lng: number }, point2: { lat: number; lng: number }): number => {
+    const R = 6371000; // Rayon de la Terre en mètres
+    const dLat = (point2.lat - point1.lat) * Math.PI / 180;
+    const dLng = (point2.lng - point1.lng) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
 
-  // Recherche pickup
-  useEffect(() => {
-    if (pickupQuery.length > 2) {
-      searchLocations(pickupQuery, setPickupSuggestions);
-    } else {
-      setPickupSuggestions([]);
+  // Formater distance
+  const formatDistance = (meters: number): string => {
+    if (meters < 1000) {
+      return `${Math.round(meters)}m`;
     }
-  }, [pickupQuery, searchLocations]);
-
-  // Recherche delivery
-  useEffect(() => {
-    if (deliveryQuery.length > 2) {
-      searchLocations(deliveryQuery, setDeliverySuggestions);
-    } else {
-      setDeliverySuggestions([]);
-    }
-  }, [deliveryQuery, searchLocations]);
+    return `${(meters / 1000).toFixed(1)}km`;
+  };
 
   // Calculer le prix quand les locations changent
   useEffect(() => {
@@ -143,7 +110,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     }
   }, [deliveryData.pickupLocation, deliveryData.deliveryLocation, deliveryData.serviceType, calculateDistance]);
 
-  const handleLocationSelect = (location: LocationSearchResult, type: 'pickup' | 'delivery') => {
+  const handleLocationSelect = (location: LocationData, type: 'pickup' | 'delivery') => {
     // Validation améliorée avec vérification des coordonnées
     if (!location || typeof location.lat !== 'number' || typeof location.lng !== 'number' || !location.address) {
       toast({
@@ -156,48 +123,13 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
 
     if (type === 'pickup') {
       setDeliveryData(prev => ({ ...prev, pickupLocation: location }));
-      setPickupQuery(location.title || location.address);
-      setPickupSuggestions([]);
       setCurrentStep('destination');
     } else {
       setDeliveryData(prev => ({ ...prev, deliveryLocation: location }));
-      setDeliveryQuery(location.title || location.address);
-      setDeliverySuggestions([]);
       setCurrentStep('service');
     }
   };
 
-  const handleUseCurrentPosition = async (type: 'pickup' | 'delivery') => {
-    setIsGettingLocation(true);
-    try {
-      const position = await getCurrentPosition();
-      if (position) {
-        const locationResult: LocationSearchResult = {
-          id: `current-${type}-${Date.now()}`,
-          title: 'Ma position actuelle',
-          subtitle: position.address,
-          address: position.address,
-          lat: position.lat,
-          lng: position.lng,
-          type: position.type
-        };
-        handleLocationSelect(locationResult, type);
-        toast({
-          title: "Position détectée",
-          description: "Votre position actuelle a été utilisée",
-          variant: "default"
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Géolocalisation échouée",
-        description: "Impossible d'obtenir votre position. Veuillez saisir l'adresse manuellement.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGettingLocation(false);
-    }
-  };
 
   const handleNext = () => {
     switch (currentStep) {
@@ -328,60 +260,6 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     }
   };
 
-  const LocationInput = ({ 
-    value, 
-    onChange, 
-    suggestions, 
-    onSelect, 
-    placeholder,
-    type
-  }: {
-    value: string;
-    onChange: (value: string) => void;
-    suggestions: LocationSearchResult[];
-    onSelect: (location: LocationSearchResult) => void;
-    placeholder: string;
-    type: 'pickup' | 'delivery';
-  }) => (
-    <div className="relative space-y-4">
-      <div className="space-y-3">
-        <Input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="h-12 text-lg bg-card border border-primary/30 focus:border-primary shadow-lg"
-          autoFocus
-        />
-        
-        <Button
-          variant="outline"
-          onClick={() => handleUseCurrentPosition(type)}
-          disabled={isGettingLocation || loading}
-          className="w-full h-12 bg-card border border-primary/30 hover:border-primary text-primary hover:shadow-glow transition-all shadow-lg"
-        >
-          <Navigation className={`w-5 h-5 mr-2 ${isGettingLocation || loading ? 'animate-spin' : ''}`} />
-          {isGettingLocation || loading ? 'Localisation en cours...' : 'Utiliser ma position actuelle'}
-        </Button>
-      </div>
-      
-      {suggestions.length > 0 && (
-        <div className="bg-card border border-primary/20 rounded-lg overflow-hidden z-50 animate-scaleIn shadow-lg">
-          {suggestions.map((suggestion) => (
-            <div
-              key={suggestion.id}
-              className="p-4 hover:bg-white/5 cursor-pointer transition-colors border-b border-border/10 last:border-b-0"
-              onClick={() => onSelect(suggestion)}
-            >
-              <div className="font-medium text-foreground">{suggestion.title}</div>
-              {suggestion.subtitle && (
-                <div className="text-sm text-muted-foreground mt-1">{suggestion.subtitle}</div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 
   const renderPickupStep = () => (
     <div className="space-y-6 animate-fade-in">
@@ -393,13 +271,17 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         <p className="text-muted-foreground">Où devons-nous récupérer votre colis ?</p>
       </div>
       
-      <LocationInput
-        value={pickupQuery}
-        onChange={setPickupQuery}
-        suggestions={pickupSuggestions}
-        onSelect={(location) => handleLocationSelect(location, 'pickup')}
-        placeholder="Adresse de collecte (n'importe où dans le monde)"
-        type="pickup"
+      <AutocompleteLocationInput
+        placeholder="Adresse de collecte"
+        onChange={(location) => location && handleLocationSelect({
+          address: location.address,
+          lat: location.coordinates.lat,
+          lng: location.coordinates.lng,
+          type: 'google',
+          placeId: location.placeId,
+          name: location.name
+        }, 'pickup')}
+        className="h-12 text-lg bg-card border border-primary/30 focus:border-primary shadow-lg"
       />
     </div>
   );
@@ -414,13 +296,17 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         <p className="text-muted-foreground">Où devons-nous livrer votre colis ?</p>
       </div>
       
-      <LocationInput
-        value={deliveryQuery}
-        onChange={setDeliveryQuery}
-        suggestions={deliverySuggestions}
-        onSelect={(location) => handleLocationSelect(location, 'delivery')}
-        placeholder="Adresse de livraison (partout dans le monde)"
-        type="delivery"
+      <AutocompleteLocationInput
+        placeholder="Adresse de livraison"
+        onChange={(location) => location && handleLocationSelect({
+          address: location.address,
+          lat: location.coordinates.lat,
+          lng: location.coordinates.lng,
+          type: 'google',
+          placeId: location.placeId,
+          name: location.name
+        }, 'delivery')}
+        className="h-12 text-lg bg-card border border-primary/30 focus:border-primary shadow-lg"
       />
     </div>
   );
