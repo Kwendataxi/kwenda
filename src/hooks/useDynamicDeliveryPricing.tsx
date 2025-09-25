@@ -64,7 +64,7 @@ export const useDynamicDeliveryPricing = () => {
   ): Promise<PriceCalculation | null> => {
     try {
       const { data, error } = await supabase.rpc('calculate_delivery_price', {
-        service_type_param: serviceType,
+        delivery_type_param: serviceType,
         distance_km_param: distanceKm,
         city_param: city
       });

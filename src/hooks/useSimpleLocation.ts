@@ -1,10 +1,11 @@
 /**
- * Hook de géolocalisation simplifié - DÉPRÉCIÉ
- * Utiliser useUnifiedLocation à la place
- * @deprecated Utiliser useUnifiedLocation
+ * Hook de géolocalisation simplifié - MIGRÉ VERS useSmartGeolocation
+ * @deprecated Utiliser useSmartGeolocation pour un système unifié et professionnel
  */
 
-// Re-export du nouveau hook unifié pour compatibilité
-export { useUnifiedLocation as useSimpleLocation, type LocationData, type SimpleLocationSearchResult as LocationSearchResult } from './useUnifiedLocation';
-
-// Le contenu a été déplacé vers useUnifiedLocation.ts pour éviter les conflits de types
+// Re-export du système de géolocalisation unifié professionnel
+export { 
+  useSmartGeolocation as useSimpleLocation, 
+  type LocationData, 
+  type LocationSearchResult 
+} from './useSmartGeolocation';

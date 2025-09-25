@@ -382,7 +382,7 @@ export const useSmartGeolocation = () => {
   }, []);
 
   return {
-    // État
+    // État principal
     currentLocation: state.currentLocation,
     loading: state.loading,
     error: state.error,
@@ -391,13 +391,50 @@ export const useSmartGeolocation = () => {
     lastUpdate: state.lastUpdate,
     source: state.source,
 
-    // Actions
+    // Actions principales
     getCurrentPosition,
     searchLocations,
     getPopularPlaces: getPopularPlacesFallback,
     clearError,
     calculateDistance,
-    formatDistance
+    formatDistance,
+
+    // Aliases de compatibilité pour useGeolocation
+    latitude: state.currentLocation?.lat || -4.3217,
+    longitude: state.currentLocation?.lng || 15.3069,
+    accuracy: state.currentLocation?.accuracy || 0,
+    isRealGPS: state.currentLocation?.type === 'gps',
+    currentPosition: state.currentLocation,
+    
+    // Aliases de méthodes pour compatibilité
+    getCurrentLocation: getCurrentPosition,
+    requestLocation: getCurrentPosition,
+    forceRefreshPosition: () => getCurrentPosition(),
+    
+    // Propriétés d'état supplémentaires
+    lastKnownPosition: state.currentLocation,
+    isLoading: state.loading,
+    position: state.currentLocation,
+    currentCity: state.currentCity,
+    cityDetectionLoading: state.cityDetectionLoading,
+    
+    // Override searchLocations pour supporter les callbacks
+    searchLocations: (query: string, callback?: (results: LocationSearchResult[]) => void | Promise<LocationSearchResult[]>) => {
+      if (callback) {
+        // Mode callback
+        searchLocations(query).then(results => {
+          callback(results);
+        }).catch(() => {
+          callback([]);
+        });
+      } else {
+        // Mode Promise
+        return searchLocations(query);
+      }
+    },
+    
+    // Propriété ville sous forme de string pour compatibilité
+    currentCityName: state.currentCity?.name || 'Kinshasa'
   };
 };
 

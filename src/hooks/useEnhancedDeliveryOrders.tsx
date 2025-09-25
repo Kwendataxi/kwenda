@@ -56,7 +56,7 @@ export const useEnhancedDeliveryOrders = () => {
       
       const pricePromise = (async () => {
         const { data: pricingResult, error: pricingError } = await supabase.rpc('calculate_delivery_price', {
-          service_type_param: mode,
+          delivery_type_param: mode,
           distance_km_param: distance,
           city_param: 'Kinshasa'
         });
