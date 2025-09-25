@@ -12,6 +12,7 @@ import AutocompleteLocationInput from '@/components/location/AutocompleteLocatio
 import { LocationData } from '@/types/location';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SlideDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
@@ -62,6 +63,7 @@ type Step = 'pickup' | 'destination' | 'service' | 'confirm';
 
 export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeliveryInterfaceProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const [currentStep, setCurrentStep] = useState<Step>('pickup');
   const [deliveryData, setDeliveryData] = useState<DeliveryData>({
@@ -267,12 +269,12 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
           <MapPin className="w-8 h-8 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground">Point de collecte</h2>
-        <p className="text-muted-foreground">Où devons-nous récupérer votre colis ?</p>
+        <h2 className="text-2xl font-bold text-foreground">{t('delivery.pickup_location')}</h2>
+        <p className="text-muted-foreground">{t('delivery.where_pickup')}</p>
       </div>
       
       <AutocompleteLocationInput
-        placeholder="Adresse de collecte"
+        placeholder={t('delivery.pickup_address')}
         onChange={(location) => location && handleLocationSelect({
           address: location.address,
           lat: location.coordinates.lat,

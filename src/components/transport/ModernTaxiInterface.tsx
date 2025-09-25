@@ -22,6 +22,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TaxiBookingData {
   pickup: LocationData | null;
@@ -37,27 +38,27 @@ interface ModernTaxiInterfaceProps {
   onCancel: () => void;
 }
 
-const VEHICLE_TYPES = [
+const getVehicleTypes = (t: any) => [
   {
     id: 'taxi_standard',
-    name: 'Taxi Standard',
-    description: '4 places, confortable',
+    name: t('transport.taxi_standard'),
+    description: t('transport.taxi_standard_desc'),
     icon: Car,
     basePrice: 2000,
     pricePerKm: 400
   },
   {
     id: 'taxi_premium',
-    name: 'Taxi Premium',  
-    description: '4 places, climatisé',
+    name: t('transport.taxi_premium'),  
+    description: t('transport.taxi_premium_desc'),
     icon: Car,
     basePrice: 3000,
     pricePerKm: 600
   },
   {
     id: 'moto_transport',
-    name: 'Moto-Taxi',
-    description: '1 place, rapide',
+    name: t('transport.moto_taxi'),
+    description: t('transport.moto_taxi_desc'),
     icon: Zap,
     basePrice: 1000,
     pricePerKm: 200
@@ -67,6 +68,7 @@ const VEHICLE_TYPES = [
 export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiInterfaceProps) {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useLanguage();
   // Utility functions for distance calculation
   const calculateDistance = (point1: { lat: number; lng: number }, point2: { lat: number; lng: number }) => {
     const R = 6371000; // Earth's radius in meters
@@ -122,7 +124,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         setStep('destination');
         
         toast({
-          title: "Adresse de départ définie",
+          title: t('transport.pickup_location_set'),
           description: prefilledAddress.address,
         });
       } else if (addressType === 'destination') {
@@ -132,7 +134,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         detectCurrentLocationAsPickup();
         
         toast({
-          title: "Destination définie",
+          title: t('transport.destination_set'),
           description: prefilledAddress.address,
         });
       }
@@ -198,7 +200,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         { lat: bookingData.pickup.lat, lng: bookingData.pickup.lng },
         { lat: bookingData.destination.lat, lng: bookingData.destination.lng }
       );
-      const vehicleInfo = VEHICLE_TYPES.find(v => v.id === bookingData.vehicleType);
+      const vehicleInfo = getVehicleTypes(t).find(v => v.id === bookingData.vehicleType);
       
       if (vehicleInfo && distance > 0) {
         const distanceKm = distance / 1000;
@@ -319,8 +321,8 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
                 <Navigation className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Point de départ</h3>
-                <p className="text-sm text-muted-foreground">D'où partez-vous ?</p>
+                <h3 className="text-lg font-semibold">{t('transport.pickup_location')}</h3>
+                <p className="text-sm text-muted-foreground">{t('transport.where_from')}</p>
               </div>
             </div>
             
@@ -336,7 +338,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
                 type: bookingData.pickup.type as any || 'manual'
               } : null}
               onChange={handlePickupChange}
-              placeholder="D'où partez-vous ?"
+              placeholder={t('transport.where_from')}
               types={['establishment', 'geocode']}
             />
             
@@ -398,7 +400,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
             </div>
 
             <div className="grid gap-3">
-              {VEHICLE_TYPES.map((vehicle) => {
+              {getVehicleTypes(t).map((vehicle) => {
                 const Icon = vehicle.icon;
                 const isSelected = bookingData.vehicleType === vehicle.id;
                 
@@ -493,7 +495,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-muted-foreground">Type de véhicule</span>
                     <span className="font-medium">
-                      {VEHICLE_TYPES.find(v => v.id === bookingData.vehicleType)?.name}
+                      {getVehicleTypes(t).find(v => v.id === bookingData.vehicleType)?.name}
                     </span>
                   </div>
                   
