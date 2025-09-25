@@ -289,7 +289,10 @@ export const UserProfile = () => {
         case 'referral':
           return <ReferralPanel open={true} onClose={() => setActiveOption(null)} />;
         case 'promocode':
-          return <PromoCodePanel open={true} onClose={() => setActiveOption(null)} />;
+          return <PromoCodePanel open={true} onClose={() => {
+            setActiveOption(null);
+            setShowModal(false);
+          }} />;
         case 'history':
           return <ActivityHistory />;
         case 'addresses':
@@ -307,12 +310,9 @@ export const UserProfile = () => {
         case 'settings':
           return <UserSettings />;
         default:
-          return (
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4 capitalize">{activeOption}</h3>
-              <p className="text-muted-foreground">Fonctionnalité en développement...</p>
-            </div>
-          );
+          setActiveOption(null);
+          setShowModal(false);
+          return null;
       }
     } catch (error) {
       console.error('Error rendering modal content:', error);

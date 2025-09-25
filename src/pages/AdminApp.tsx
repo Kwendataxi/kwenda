@@ -28,6 +28,7 @@ import { AdminLotteryDashboard } from '@/components/admin/AdminLotteryDashboard'
 import { AdminRentalManager } from '@/components/admin/AdminRentalManager';
 import { AdminTeamManager } from '@/components/admin/teams/AdminTeamManager';
 import { RoleManagement } from '@/components/admin/roles/RoleManagement';
+import { AdminPromoCodeManager } from '@/components/admin/AdminPromoCodeManager';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -200,6 +201,12 @@ const AdminApp = () => {
         <PermissionGuard requiredPermissions={['analytics_read']}>
           <AdminLotteryDashboard />
         </PermissionGuard>
+       </TabsContent>
+
+       <TabsContent value="promocodes" className="space-y-6">
+         <PermissionGuard requiredPermissions={['marketplace_moderate']}>
+           <AdminPromoCodeManager />
+         </PermissionGuard>
        </TabsContent>
 
        <TabsContent value="roles" className="space-y-6">

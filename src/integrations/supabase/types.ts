@@ -4245,8 +4245,10 @@ export type Database = {
           discount_value: number
           id: string
           is_active: boolean
+          is_published: boolean
           max_discount_amount: number | null
           min_order_amount: number | null
+          scheduled_publish_at: string | null
           title: string
           updated_at: string
           usage_count: number
@@ -4266,8 +4268,10 @@ export type Database = {
           discount_value: number
           id?: string
           is_active?: boolean
+          is_published?: boolean
           max_discount_amount?: number | null
           min_order_amount?: number | null
+          scheduled_publish_at?: string | null
           title: string
           updated_at?: string
           usage_count?: number
@@ -4287,8 +4291,10 @@ export type Database = {
           discount_value?: number
           id?: string
           is_active?: boolean
+          is_published?: boolean
           max_discount_amount?: number | null
           min_order_amount?: number | null
+          scheduled_publish_at?: string | null
           title?: string
           updated_at?: string
           usage_count?: number

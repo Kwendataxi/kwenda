@@ -130,6 +130,7 @@ export const usePromoCode = () => {
         .from('promo_codes')
         .select('*')
         .eq('is_active', true)
+        .eq('is_published', true)
         .gte('valid_until', new Date().toISOString())
         .order('created_at', { ascending: false });
 

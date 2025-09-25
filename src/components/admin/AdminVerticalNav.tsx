@@ -45,6 +45,7 @@ const NAV_ITEMS: Array<{
   { id: 'teams', label: 'Équipes', icon: Users },
   { id: 'roles', label: 'Gestion Rôles', icon: Settings },
   { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
+  { id: 'promocodes', label: 'Codes Promo', icon: Tag },
   { id: 'lottery', label: 'Tombola', icon: Trophy },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'ads', label: 'Publicités', icon: Megaphone },
