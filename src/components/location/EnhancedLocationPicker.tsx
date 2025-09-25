@@ -13,10 +13,10 @@ import { useToast } from '@/hooks/use-toast';
 import { enhancedLocationService } from '@/services/enhancedLocationService';
 import { 
   UnifiedLocation, 
-  LocationSearchResult, 
   getCurrentCity,
   SUPPORTED_CITIES 
 } from '@/types/unifiedLocation';
+import type { LocationSearchResult } from '@/hooks/useSmartGeolocation';
 
 interface EnhancedLocationPickerProps {
   value?: UnifiedLocation | null;
@@ -67,7 +67,7 @@ export default function EnhancedLocationPicker({
       if (query.length >= 2) {
         setIsSearching(true);
         try {
-          const results = await enhancedLocationService.searchLocations(query, selectedCity, 8);
+          const results = await enhancedLocationService.searchLocations(query, selectedCity);
           setSuggestions(results);
           setShowSuggestions(true);
         } catch (error) {
@@ -127,15 +127,9 @@ export default function EnhancedLocationPicker({
       id: location.id,
       name: location.name,
       address: location.address,
-      coordinates: location.coordinates,
+      coordinates: { lat: location.lat, lng: location.lng },
       subtitle: location.subtitle,
-      type: location.type,
-      city: location.city,
-      commune: location.commune,
-      category: location.category,
-      confidence: location.confidence,
-      verified: location.verified,
-      badge: location.badge
+      type: (location.type === 'default' || location.type === 'gps' || location.type === 'ip' || location.type === 'fallback') ? 'geocoded' : location.type || 'geocoded'
     };
 
     onChange(unifiedLocation);
@@ -157,11 +151,7 @@ export default function EnhancedLocationPicker({
         fallbackToDefault: true
       });
 
-      handleLocationSelect({
-        ...currentLocation,
-        relevanceScore: 100,
-        popularityScore: 100
-      } as LocationSearchResult);
+      handleLocationSelect(currentLocation);
 
       toast({
         title: "Position trouvée",
@@ -312,7 +302,7 @@ export default function EnhancedLocationPicker({
                 onClick={() => handleLocationSelect(suggestion)}
               >
                 <div className="flex-shrink-0">
-                  {getLocationIcon(suggestion.type, suggestion.category)}
+                  {getLocationIcon(suggestion.type)}
                 </div>
                 
                 <div className="flex-1 min-w-0">

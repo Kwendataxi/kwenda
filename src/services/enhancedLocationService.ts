@@ -304,6 +304,14 @@ export class EnhancedLocationService {
     return `${(meters / 1000).toFixed(1)}km`;
   }
 
+  // 🏆 LIEUX POPULAIRES (PUBLIC)
+  async getPopularLocations(
+    region: string,
+    maxResults: number = 8
+  ): Promise<LocationSearchResult[]> {
+    return this.getPopularPlaces(region, undefined, undefined);
+  }
+
   // 🏆 LIEUX POPULAIRES
   private async getPopularPlaces(
     region: string,
@@ -371,6 +379,48 @@ export class EnhancedLocationService {
       relevanceScore: 100,
       isPopular: true
     }];
+  }
+
+  // 📍 POSITION ACTUELLE (PUBLIC)
+  async getCurrentPosition(options: any = {}): Promise<LocationSearchResult> {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation non supportée'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          resolve({
+            id: 'current-location',
+            name: 'Ma position',
+            address: 'Position actuelle',
+            lat: latitude,
+            lng: longitude,
+            
+            type: 'current',
+            title: 'Ma position actuelle',
+            subtitle: 'Position GPS',
+            relevanceScore: 100,
+            
+            accuracy: position.coords.accuracy
+          });
+        },
+        (error) => reject(error),
+        {
+          enableHighAccuracy: options.enableHighAccuracy || true,
+          timeout: options.timeout || 15000,
+          maximumAge: options.maximumAge || 300000
+        }
+      );
+    });
+  }
+
+  // 🏙️ VILLE ACTUELLE (PUBLIC)
+  setCurrentCity(city: string): void {
+    // Méthode pour définir la ville actuelle
+    console.log('Ville sélectionnée:', city);
   }
 
   // 🧹 NETTOYER CACHE

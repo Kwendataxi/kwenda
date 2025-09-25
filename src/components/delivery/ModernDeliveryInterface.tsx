@@ -85,8 +85,10 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
   useEffect(() => {
     if (deliveryData.pickupLocation && deliveryData.deliveryLocation) {
       const distance = enhancedLocationService.calculateDistance(
-        deliveryData.pickupLocation.coordinates,
-        deliveryData.deliveryLocation.coordinates
+        deliveryData.pickupLocation.coordinates.lat,
+        deliveryData.pickupLocation.coordinates.lng,
+        deliveryData.deliveryLocation.coordinates.lat,
+        deliveryData.deliveryLocation.coordinates.lng
       );
       
       const basePrice = SERVICE_TYPES[deliveryData.serviceType].basePrice;
@@ -460,8 +462,10 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
                     <span className="font-medium">
                       {enhancedLocationService.formatDistance(
                         enhancedLocationService.calculateDistance(
-                          deliveryData.pickupLocation.coordinates, 
-                          deliveryData.deliveryLocation.coordinates
+                          deliveryData.pickupLocation.coordinates.lat,
+                          deliveryData.pickupLocation.coordinates.lng,
+                          deliveryData.deliveryLocation.coordinates.lat,
+                          deliveryData.deliveryLocation.coordinates.lng
                         )
                       )}
                     </span>
