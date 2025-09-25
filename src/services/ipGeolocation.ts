@@ -22,33 +22,45 @@ export class IPGeolocationService {
   }
 
   async getCurrentLocation(): Promise<IPLocationResult> {
-    // Vérifier le cache (valide 1 heure)
+    // Cache réduit à 5 minutes pour permettre re-détection
     if (this.cache && Date.now() < this.cacheExpiry) {
+      console.log('🏠 Using cached IP location:', this.cache);
       return this.cache;
     }
 
+    console.log('🌍 Detecting IP location...');
+
     try {
-      // Essayer plusieurs providers en parallèle
-      const results = await Promise.allSettled([
-        this.getLocationFromIPAPI(),
-        this.getLocationFromIPInfo(),
-        this.getLocationFromIPStack()
-      ]);
+      // Essayer plusieurs providers avec timeout
+      const promises = [
+        this.timeoutPromise(this.getLocationFromIPAPI(), 3000),
+        this.timeoutPromise(this.getLocationFromIPInfo(), 3000),
+        this.timeoutPromise(this.getLocationFromGeoJS(), 3000)
+      ];
 
       // Prendre le premier résultat réussi
-      for (const result of results) {
-        if (result.status === 'fulfilled') {
-          this.cache = result.value;
-          this.cacheExpiry = Date.now() + (60 * 60 * 1000); // 1 heure
-          return result.value;
-        }
-      }
-
-      throw new Error('Tous les services IP ont échoué');
+      const result = await Promise.race(promises.map(p => p.catch(err => err)))
+        .then(result => {
+          if (result instanceof Error) throw result;
+          return result;
+        });
+      console.log('✅ IP location detected:', result);
+      this.cache = result;
+      this.cacheExpiry = Date.now() + (5 * 60 * 1000); // 5 minutes
+      return result;
     } catch (error) {
-      console.error('IP Geolocation failed:', error);
+      console.warn('❌ All IP geolocation services failed:', error);
       return this.getFallbackLocation();
     }
+  }
+
+  private timeoutPromise<T>(promise: Promise<T>, timeout: number): Promise<T> {
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), timeout)
+      )
+    ]);
   }
 
   private async getLocationFromIPAPI(): Promise<IPLocationResult> {
@@ -108,6 +120,28 @@ export class IPGeolocationService {
       accuracy: 12000,
       provider: 'ipstack.com'
     };
+  }
+
+  private async getLocationFromGeoJS(): Promise<IPLocationResult> {
+    try {
+      const response = await fetch('https://get.geojs.io/v1/ip/geo.json');
+      const data = await response.json();
+      
+      if (data.latitude && data.longitude) {
+        return {
+          latitude: parseFloat(data.latitude),
+          longitude: parseFloat(data.longitude),
+          city: data.city || 'Unknown',
+          country: data.country || 'Unknown',
+          accuracy: 30000,
+          provider: 'geojs'
+        };
+      }
+      throw new Error('Invalid response from GeoJS');
+    } catch (error) {
+      console.error('GeoJS geolocation failed:', error);
+      throw error;
+    }
   }
 
   private getFallbackLocation(): IPLocationResult {
