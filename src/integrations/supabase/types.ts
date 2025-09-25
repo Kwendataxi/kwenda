@@ -25,7 +25,7 @@ export type Database = {
           metadata: Json | null
           reference_id: string | null
           reference_type: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           activity_type: string
@@ -37,7 +37,7 @@ export type Database = {
           metadata?: Json | null
           reference_id?: string | null
           reference_type?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           activity_type?: string
@@ -49,7 +49,7 @@ export type Database = {
           metadata?: Json | null
           reference_id?: string | null
           reference_type?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -8764,6 +8764,14 @@ export type Database = {
               p_table_name: string
             }
         Returns: undefined
+      }
+      log_system_activity: {
+        Args: {
+          p_activity_type: string
+          p_description: string
+          p_metadata?: Json
+        }
+        Returns: string
       }
       maintain_security_compliance: {
         Args: Record<PropertyKey, never>
