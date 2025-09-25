@@ -9,7 +9,7 @@ import { NotificationPanel } from '@/components/notifications/NotificationPanel'
 import NotificationBadge from '@/components/notifications/NotificationBadge';
 import { ReferralPanel } from './ReferralPanel';
 import { PromoCodePanel } from './PromoCodePanel';
-import { SupportPanel } from './SupportPanel';
+
 
 interface ProfileActionButtonsProps {
   onQuickAction?: (action: string) => void;
@@ -23,7 +23,7 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
   const [showNotifications, setShowNotifications] = useState(false);
   const [showReferral, setShowReferral] = useState(false);
   const [showPromoCode, setShowPromoCode] = useState(false);
-  const [showSupport, setShowSupport] = useState(false);
+  
 
   const handleReferral = () => {
     setShowReferral(true);
@@ -36,7 +36,7 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
   };
 
   const handleSupport = () => {
-    setShowSupport(true);
+    console.log('Navigation vers le support unifié');
     onQuickAction?.('support');
   };
 
@@ -210,10 +210,6 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
         onClose={() => setShowPromoCode(false)} 
       />
       
-      <SupportPanel 
-        open={showSupport} 
-        onClose={() => setShowSupport(false)} 
-      />
     </div>
   );
 };

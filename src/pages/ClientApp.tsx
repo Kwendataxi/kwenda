@@ -641,10 +641,17 @@ const ClientApp = () => {
           case 'notifications':
             return <NotificationCenter />;
           case 'referral':
-            return <ReferralPanel open={true} onClose={() => {
-              console.log('Fermeture du panel de parrainage - retour vers home');
-              setCurrentView('home');
-            }} />;
+            return (
+              <div className="min-h-screen bg-background">
+                <ReferralPanel 
+                  open={true} 
+                  onClose={() => {
+                    console.log('Fermeture du panel de parrainage - retour vers home');
+                    setCurrentView('home');
+                  }} 
+                />
+              </div>
+            );
           case 'offline':
             return <OfflineMode />;
           case 'security':
@@ -686,7 +693,8 @@ const ClientApp = () => {
             // Force l'affichage de home pour toute vue non reconnue
             if (currentView !== 'home') {
               console.log('Vue non reconnue:', currentView, '- Redirection vers home');
-              setCurrentView('home');
+              // Petit délai pour éviter le clignotement
+              setTimeout(() => setCurrentView('home'), 0);
             }
             return renderHome();
         }

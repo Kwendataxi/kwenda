@@ -32,8 +32,17 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
 
   const tierInfo = getTierInfo();
 
+  const handleClose = () => {
+    console.log('Fermeture du ReferralPanel - retour navigation');
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) {
+        handleClose();
+      }
+    }}>
       <DialogContent className="w-[98vw] sm:max-w-2xl h-[95vh] sm:max-h-[95vh] overflow-y-auto p-3 sm:p-6">
         <DialogHeader className="pb-3 sm:pb-4">
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
