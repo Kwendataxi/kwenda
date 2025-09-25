@@ -8,6 +8,9 @@ import { RentalSubscriptionManager } from '@/components/partner/rental/RentalSub
 import { usePartnerStats } from '@/hooks/usePartnerStats';
 import { usePartnerActivity } from '@/hooks/usePartnerActivity';
 import { PartnerEarningsCard } from '@/components/partner/PartnerEarningsCard';
+import { PartnerDashboard } from '@/components/partner/PartnerDashboard';
+import { PartnerAnalyticsDashboard } from '@/components/partner/PartnerAnalyticsDashboard';
+import { PartnerNotificationCenter } from '@/components/partner/PartnerNotificationCenter';
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, CalendarIcon, Download, Eye, Filter, Plus, Search, Star, TrendingDown, TrendingUp, UserPlus, Users } from "lucide-react"
 import {
@@ -38,7 +41,7 @@ import { Progress } from "@/components/ui/progress"
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const PartnerApp = () => {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'commissions' | 'subscriptions'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'commissions' | 'subscriptions' | 'analytics' | 'notifications'>('dashboard');
   
   // Use real data hooks
   const { stats, loading: statsLoading } = usePartnerStats();
@@ -47,11 +50,8 @@ const PartnerApp = () => {
   const [dateRange, setDateRange] = useState<Date | undefined>(new Date());
   const isMobile = useIsMobile();
 
-
   const renderDashboard = () => (
-    <div className="space-y-6">
-      {/* Simplified dashboard with only essential content */}
-    </div>
+    <PartnerDashboard onViewChange={(view: string) => setCurrentView(view as any)} />
   );
 
   const renderFleetManagement = () => (
