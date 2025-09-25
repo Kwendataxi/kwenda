@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { universalGeolocation, type CityConfig } from '@/services/universalGeolocation';
 
 // Types unifiés
 export interface LocationData {
@@ -46,6 +47,8 @@ interface SmartGeolocationState {
   searchLoading: boolean;
   lastUpdate: number | null;
   source: string | null;
+  currentCity: CityConfig | null;
+  cityDetectionLoading: boolean;
 }
 
 export const useSmartGeolocation = () => {
@@ -56,13 +59,15 @@ export const useSmartGeolocation = () => {
     searchResults: [],
     searchLoading: false,
     lastUpdate: null,
-    source: null
+    source: null,
+    currentCity: null,
+    cityDetectionLoading: false
   });
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const watchIdRef = useRef<number | null>(null);
 
-  // 🎯 GÉOLOCALISATION PRINCIPALE
+  // 🎯 GÉOLOCALISATION UNIVERSELLE PRINCIPALE
   const getCurrentPosition = useCallback(async (options: GeolocationOptions = {}): Promise<LocationData> => {
     const {
       enableHighAccuracy = true,
@@ -73,18 +78,30 @@ export const useSmartGeolocation = () => {
       fallbackToDefault = true
     } = options;
 
-    setState(prev => ({ ...prev, loading: true, error: null }));
+    setState(prev => ({ ...prev, loading: true, error: null, cityDetectionLoading: true }));
 
     try {
-      // 1. Essayer GPS natif (rapide)
+      // 1. Détecter la ville d'abord
+      let detectedCity: CityConfig;
+      
+      // 2. Essayer GPS natif (rapide) pour détection de ville
       try {
         const gpsPosition = await getGPSPosition({ enableHighAccuracy, timeout, maximumAge });
+        
+        // Détecter la ville avec les coordonnées GPS
+        detectedCity = await universalGeolocation.detectUserCity({
+          lat: gpsPosition.lat,
+          lng: gpsPosition.lng
+        });
+        
         setState(prev => ({
           ...prev,
           currentLocation: gpsPosition,
           loading: false,
           source: 'GPS',
-          lastUpdate: Date.now()
+          lastUpdate: Date.now(),
+          currentCity: detectedCity,
+          cityDetectionLoading: false
         }));
         setCachedPosition(gpsPosition);
         return gpsPosition;
@@ -92,16 +109,25 @@ export const useSmartGeolocation = () => {
         console.log('GPS failed, trying fallbacks:', gpsError);
       }
 
-      // 2. Fallback IP (moyen)
+      // 3. Fallback IP avec détection de ville
       if (fallbackToIP) {
         try {
           const ipPosition = await getIPPosition();
+          
+          // Détecter la ville avec les coordonnées IP
+          detectedCity = await universalGeolocation.detectUserCity({
+            lat: ipPosition.lat,
+            lng: ipPosition.lng
+          });
+          
           setState(prev => ({
             ...prev,
             currentLocation: ipPosition,
             loading: false,
             source: 'IP',
-            lastUpdate: Date.now()
+            lastUpdate: Date.now(),
+            currentCity: detectedCity,
+            cityDetectionLoading: false
           }));
           setCachedPosition(ipPosition);
           return ipPosition;
@@ -110,7 +136,9 @@ export const useSmartGeolocation = () => {
         }
       }
 
-      // 3. Cache local
+      // 4. Détecter la ville même sans position exacte et utiliser cache local
+      detectedCity = await universalGeolocation.detectUserCity();
+      
       const cachedPosition = getCachedPosition();
       if (cachedPosition) {
         setState(prev => ({
@@ -118,12 +146,14 @@ export const useSmartGeolocation = () => {
           currentLocation: cachedPosition,
           loading: false,
           source: 'Cache',
-          lastUpdate: Date.now()
+          lastUpdate: Date.now(),
+          currentCity: detectedCity,
+          cityDetectionLoading: false
         }));
         return cachedPosition;
       }
 
-      // 4. Base de données Supabase
+      // 5. Position de la ville détectée depuis la base de données
       if (fallbackToDatabase) {
         try {
           const dbPosition = await getDatabasePosition();
@@ -132,7 +162,9 @@ export const useSmartGeolocation = () => {
             currentLocation: dbPosition,
             loading: false,
             source: 'Database',
-            lastUpdate: Date.now()
+            lastUpdate: Date.now(),
+            currentCity: detectedCity,
+            cityDetectionLoading: false
           }));
           return dbPosition;
         } catch (dbError) {
@@ -140,7 +172,7 @@ export const useSmartGeolocation = () => {
         }
       }
 
-      // 5. Position par défaut (Kinshasa)
+      // 6. Position par défaut de la ville détectée
       if (fallbackToDefault) {
         const defaultPosition = getDefaultPosition();
         setState(prev => ({
@@ -148,7 +180,9 @@ export const useSmartGeolocation = () => {
           currentLocation: defaultPosition,
           loading: false,
           source: 'Default',
-          lastUpdate: Date.now()
+          lastUpdate: Date.now(),
+          currentCity: detectedCity,
+          cityDetectionLoading: false
         }));
         return defaultPosition;
       }
@@ -166,10 +200,10 @@ export const useSmartGeolocation = () => {
     }
   }, []);
 
-  // 🔍 RECHERCHE INTELLIGENTE
+  // 🔍 RECHERCHE UNIVERSELLE INTELLIGENTE
   const searchLocations = useCallback(async (query: string): Promise<LocationSearchResult[]> => {
     if (!query.trim()) {
-      const popularPlaces = getPopularPlaces();
+      const popularPlaces = await getPopularPlacesForCurrentCity();
       setState(prev => ({ ...prev, searchResults: popularPlaces }));
       return popularPlaces;
     }
@@ -184,8 +218,8 @@ export const useSmartGeolocation = () => {
     return new Promise((resolve) => {
       searchTimeoutRef.current = setTimeout(async () => {
         try {
-          // 1. Recherche dans la base de données locale
-          const dbResults = await searchInDatabase(query);
+          // 1. Recherche universelle dans la base de données
+          const dbResults = await searchInCurrentCityDatabase(query);
           
           // 2. Si pas assez de résultats, chercher via Google
           let allResults = [...dbResults];
@@ -211,7 +245,7 @@ export const useSmartGeolocation = () => {
 
         } catch (error) {
           console.error('Search error:', error);
-          const popularFallback = getPopularPlaces();
+          const popularFallback = getPopularPlacesFallback();
           setState(prev => ({
             ...prev,
             searchResults: popularFallback,
@@ -223,8 +257,29 @@ export const useSmartGeolocation = () => {
     });
   }, []);
 
-  // 🗺️ LIEUX POPULAIRES
-  const getPopularPlaces = useCallback((): LocationSearchResult[] => {
+  // 🗺️ LIEUX POPULAIRES UNIVERSELS
+  const getPopularPlacesForCurrentCity = useCallback(async (): Promise<LocationSearchResult[]> => {
+    try {
+      const results = await universalGeolocation.getPopularPlacesForCurrentCity();
+      return results.map((place: any, index: number) => ({
+        id: `pop-${index}`,
+        name: place.name,
+        address: `${place.commune || ''}, ${place.city || ''}`.replace(/^,\s*/, '').trim() || place.name,
+        lat: place.latitude || place.lat,
+        lng: place.longitude || place.lng,
+        type: 'popular' as const,
+        title: place.name,
+        subtitle: `${place.commune || ''}, ${place.city || ''}`.replace(/^,\s*/, '').trim() || place.name,
+        isPopular: true,
+        relevanceScore: 100 - index * 5
+      }));
+    } catch (error) {
+      console.error('Erreur lieux populaires:', error);
+      return getPopularPlacesFallback();
+    }
+  }, []);
+
+  const getPopularPlacesFallback = useCallback((): LocationSearchResult[] => {
     return [
       {
         id: 'pop-1',
@@ -339,7 +394,7 @@ export const useSmartGeolocation = () => {
     // Actions
     getCurrentPosition,
     searchLocations,
-    getPopularPlaces,
+    getPopularPlaces: getPopularPlacesFallback,
     clearError,
     calculateDistance,
     formatDistance
@@ -439,10 +494,12 @@ async function getIPPosition(): Promise<LocationData> {
 }
 
 async function getDatabasePosition(): Promise<LocationData> {
+  const currentCity = universalGeolocation.getCurrentCity();
+  
   const { data, error } = await supabase
     .rpc('intelligent_places_search', {
       search_query: '',
-      search_city: 'Kinshasa',
+      search_city: currentCity.name,
       max_results: 1
     });
 
@@ -463,15 +520,39 @@ async function getDatabasePosition(): Promise<LocationData> {
 }
 
 function getDefaultPosition(): LocationData {
+  const currentCity = universalGeolocation.getCurrentCity();
+  
   return {
-    address: 'Kinshasa Centre, République Démocratique du Congo',
-    lat: -4.3217,
-    lng: 15.3069,
-    type: 'fallback',
-    name: 'Kinshasa Centre',
-    subtitle: 'Position par défaut',
+    address: `${currentCity.name}, ${currentCity.countryCode === 'CD' ? 'RDC' : 'Côte d\'Ivoire'}`,
+    lat: currentCity.coordinates.lat,
+    lng: currentCity.coordinates.lng,
+    type: 'default',
+    name: currentCity.name,
+    subtitle: 'Ville par défaut',
     confidence: 0.5
   };
+}
+
+// 🔍 RECHERCHE UNIVERSELLE DANS LA BASE DE DONNÉES
+async function searchInCurrentCityDatabase(query: string): Promise<LocationSearchResult[]> {
+  try {
+    const results = await universalGeolocation.searchInCurrentCity(query, 8);
+    return results.map((place: any) => ({
+      id: place.id,
+      name: place.name,
+      address: place.formatted_address || `${place.commune || ''}, ${place.city || ''}`.replace(/^,\s*/, '').trim(),
+      lat: place.latitude,
+      lng: place.longitude,
+      type: 'database' as const,
+      title: place.name,
+      subtitle: place.subtitle || `${place.commune || ''}, ${place.city || ''}`.replace(/^,\s*/, '').trim(),
+      relevanceScore: place.relevance_score || 50,
+      distance: place.distance_meters ? Math.round(place.distance_meters / 1000) : undefined
+    }));
+  } catch (error) {
+    console.error('Erreur recherche base de données:', error);
+    return [];
+  }
 }
 
 async function searchInDatabase(query: string): Promise<LocationSearchResult[]> {
