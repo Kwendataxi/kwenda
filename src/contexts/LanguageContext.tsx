@@ -294,7 +294,7 @@ const translations = {
     'transport.booking_error': 'Erreur lors de la création de la réservation',
 
     // Activity History
-    'activity.title': 'Activité',
+    'activity.title': 'Historique des courses',
     'activity.loading': 'Chargement de l\'historique...',
     'activity.no_rides': 'Aucune course trouvée',
     'activity.driver': 'Chauffeur',
@@ -630,7 +630,7 @@ const translations = {
     'transport.booking_error': 'Error creating booking',
 
     // Activity History
-    'activity.title': 'Activity',
+    'activity.title': 'Ride History',
     'activity.loading': 'Loading history...',
     'activity.no_rides': 'No rides found',
     'activity.driver': 'Driver',
@@ -1229,7 +1229,7 @@ const translations = {
     'profile.error_logout': 'Imeshindwa kutoka',
 
     // Activity History
-    'activity.title': 'Shughuli',
+    'activity.title': 'Historia ya Safari',
     'activity.loading': 'Inapakia historia...',
     'activity.no_rides': 'Hakuna safari iliyopatikana',
     'activity.driver': 'Dereva',
