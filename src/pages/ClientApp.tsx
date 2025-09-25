@@ -286,21 +286,24 @@ const ClientApp = () => {
     setCurrentView('service');
   };
 
-  const renderHome = () => (
-    <div className="content-with-bottom-nav">
-      <ModernHomeScreen
-        onServiceSelect={handleServiceSelect}
-        onSearch={handleUniversalSearch}
-        featuredProducts={homeProducts}
-        onProductSelect={(product) => {
-          setServiceType('marketplace');
-          setCurrentView('service');
-        }}
-        onMarketplaceViewAll={handleMarketplaceViewAll}
-        onNavigateToTestData={() => setCurrentView('test-data')}
-      />
-    </div>
-  );
+  const renderHome = () => {
+    console.log('Rendu de la vue home');
+    return (
+      <div className="content-with-bottom-nav">
+        <ModernHomeScreen
+          onServiceSelect={handleServiceSelect}
+          onSearch={handleUniversalSearch}
+          featuredProducts={homeProducts}
+          onProductSelect={(product) => {
+            setServiceType('marketplace');
+            setCurrentView('service');
+          }}
+          onMarketplaceViewAll={handleMarketplaceViewAll}
+          onNavigateToTestData={() => setCurrentView('test-data')}
+        />
+      </div>
+    );
+  };
 
   // Transport handlers
   const handleTransportSubmit = async (data: any) => {
@@ -638,7 +641,10 @@ const ClientApp = () => {
           case 'notifications':
             return <NotificationCenter />;
           case 'referral':
-            return <ReferralPanel open={true} onClose={() => setCurrentView('home')} />;
+            return <ReferralPanel open={true} onClose={() => {
+              console.log('Fermeture du panel de parrainage - retour vers home');
+              setCurrentView('home');
+            }} />;
           case 'offline':
             return <OfflineMode />;
           case 'security':
@@ -677,6 +683,11 @@ const ClientApp = () => {
               </div>
             );
           default:
+            // Force l'affichage de home pour toute vue non reconnue
+            if (currentView !== 'home') {
+              console.log('Vue non reconnue:', currentView, '- Redirection vers home');
+              setCurrentView('home');
+            }
             return renderHome();
         }
       })()}
