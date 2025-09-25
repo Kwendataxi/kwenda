@@ -7811,8 +7811,8 @@ export type Database = {
       calculate_delivery_price: {
         Args: {
           city_param?: string
+          delivery_type_param: string
           distance_km_param: number
-          service_type_param: string
         }
         Returns: Json
       }
@@ -7913,6 +7913,10 @@ export type Database = {
       cleanup_security_vulnerabilities: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      cleanup_sensitive_data_automated: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       create_support_ticket: {
         Args: {
@@ -8546,6 +8550,10 @@ export type Database = {
           p_notification_data: Json
           p_user_id: string
         }
+        Returns: undefined
+      }
+      log_security_audit: {
+        Args: { action_type: string; table_accessed: string; user_data?: Json }
         Returns: undefined
       }
       log_security_event: {
