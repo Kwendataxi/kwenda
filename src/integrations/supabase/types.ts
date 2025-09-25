@@ -8180,6 +8180,15 @@ export type Database = {
           status: string
         }[]
       }
+      check_security_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action_required: string
+          check_name: string
+          details: string
+          status: string
+        }[]
+      }
       cleanup_expired_location_cache: {
         Args: Record<PropertyKey, never>
         Returns: number
@@ -8660,6 +8669,10 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: string
       }
+      get_user_role_secure: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_user_roles: {
         Args: { p_user_id: string }
         Returns: {
@@ -8821,6 +8834,10 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_user_admin_secure: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
