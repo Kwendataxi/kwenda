@@ -243,11 +243,12 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
         
         {/* Current Location Button */}
         {showCurrentLocationButton && (
-          <div className="absolute right-12 top-1/2 transform -translate-y-1/2">
+          <div className="absolute right-11 top-1/2 transform -translate-y-1/2">
             <CurrentLocationButton
               onLocationSelect={handleCurrentLocationSelect}
               context={locationContext}
-              variant="mini"
+              variant="icon-only"
+              className="h-8 w-8 border-0 bg-primary/10 hover:bg-primary/20 text-primary shadow-sm"
               showAccuracy={false}
             />
           </div>
@@ -258,9 +259,9 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
             variant="ghost"
             size="sm"
             onClick={handleClear}
-            className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted/50"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3 w-3" />
           </Button>
         )}
       </div>

@@ -462,11 +462,18 @@ async function getGPSPosition(options: PositionOptions): Promise<LocationData> {
         const coords = position.coords;
         let address = `${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`;
         
-        // Essayer le géocodage inverse avec timeout
+        // Essayer le géocodage inverse avec timeout optimisé
         try {
-          address = await reverseGeocode(coords.latitude, coords.longitude);
+          const geocodePromise = reverseGeocode(coords.latitude, coords.longitude);
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Geocoding timeout')), 5000)
+          );
+          
+          address = await Promise.race([geocodePromise, timeoutPromise]) as string;
         } catch (error) {
-          console.log('Reverse geocoding failed, using coordinates');
+          console.log('Reverse geocoding failed, using coordinates:', error);
+          // Fallback vers coordonnées formattées
+          address = `${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`;
         }
         
         resolve({

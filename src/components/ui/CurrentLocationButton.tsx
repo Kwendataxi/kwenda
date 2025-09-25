@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { Crosshair, Navigation, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Crosshair, Navigation, CheckCircle, AlertCircle, Loader2, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useSmartGeolocation, type LocationData } from '@/hooks/useSmartGeolocation';
@@ -65,11 +65,36 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
     setLocalState('loading');
     
     try {
+      // Options optimisées pour précision maximale
       const location = await getCurrentPosition({
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000
+        timeout: 15000, // Plus de temps pour l'Afrique
+        maximumAge: 30000, // Position plus récente
+        fallbackToIP: true,
+        fallbackToDatabase: false // Éviter les positions imprécises de la DB
       });
+      
+      // Valider la précision avant d'accepter
+      if (location.accuracy && location.accuracy > 500) {
+        console.warn('Position peu précise:', location.accuracy, 'm');
+        // Retry une fois avec des paramètres plus stricts
+        try {
+          const retryLocation = await getCurrentPosition({
+            enableHighAccuracy: true,
+            timeout: 8000,
+            maximumAge: 0 // Force une nouvelle position
+          });
+          if (retryLocation.accuracy && retryLocation.accuracy < location.accuracy) {
+            setLastAccuracy(retryLocation.accuracy || null);
+            setLocalState('success');
+            onLocationSelect?.(retryLocation);
+            setTimeout(() => setLocalState('idle'), 2500);
+            return;
+          }
+        } catch {
+          // Continue avec la position originale si retry échoue
+        }
+      }
       
       setLastAccuracy(location.accuracy || null);
       setLocalState('success');
@@ -77,8 +102,8 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
       // Callback avec la position
       onLocationSelect?.(location);
       
-      // Reset state après 2 secondes
-      setTimeout(() => setLocalState('idle'), 2000);
+      // Reset state après 2.5 secondes
+      setTimeout(() => setLocalState('idle'), 2500);
       
     } catch (err) {
       console.error('Erreur géolocalisation:', err);
@@ -92,14 +117,36 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
   const getIcon = () => {
     switch (localState) {
       case 'loading':
-        return <Loader2 className="h-4 w-4 animate-spin" />;
+        return <Target className="h-4 w-4 animate-spin text-primary" />;
       case 'success':
-        return <CheckCircle className="h-4 w-4" />;
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'error':
-        return <AlertCircle className="h-4 w-4" />;
+        return <AlertCircle className="h-4 w-4 text-destructive" />;
       default:
-        return <Crosshair className="h-4 w-4" />;
+        return <Crosshair className="h-4 w-4 text-primary" />;
     }
+  };
+
+  const getPrecisionBadge = () => {
+    if (!lastAccuracy || localState !== 'success') return null;
+    
+    const accuracy = Math.round(lastAccuracy);
+    let color = 'text-green-500';
+    let label = 'Excellent';
+    
+    if (accuracy > 200) {
+      color = 'text-destructive';
+      label = 'Faible';
+    } else if (accuracy > 50) {
+      color = 'text-yellow-500';
+      label = 'Bon';
+    }
+    
+    return (
+      <span className={`text-xs ${color} font-medium`}>
+        ±{accuracy}m ({label})
+      </span>
+    );
   };
 
   const getButtonContent = () => {
@@ -169,9 +216,9 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <motion.div
-            whileTap={{ scale: 0.95 }}
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
             <Button
               onClick={handleGetLocation}
@@ -179,45 +226,128 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
               variant={getButtonVariant()}
               size={getButtonSize()}
               className={cn(
-                'relative transition-all duration-200',
-                // Animations de pulsation en mode loading
-                localState === 'loading' && 'animate-pulse',
-                // Glow effect pour success
-                localState === 'success' && 'shadow-glow bg-success text-success-foreground border-success',
-                // Style d'erreur
-                localState === 'error' && 'bg-destructive/10 text-destructive border-destructive/20',
-                // Hover effects
-                'hover:shadow-md hover:border-primary/40',
+                'relative transition-all duration-300 overflow-hidden',
+                // Animation de pulsation modernisée en mode loading
+                localState === 'loading' && 'animate-pulse shadow-lg shadow-primary/25',
+                // Glow effect moderne pour success
+                localState === 'success' && 'shadow-lg shadow-green-500/30 bg-green-50 text-green-600 border-green-200 hover:bg-green-100',
+                // Style d'erreur moderne
+                localState === 'error' && 'shadow-lg shadow-destructive/20 bg-destructive/5 text-destructive border-destructive/30 hover:bg-destructive/10',
+                // État par défaut avec glow subtil
+                localState === 'idle' && 'shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 hover:border-primary/50',
                 className
               )}
             >
+              {/* Effet de background animé */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                initial={{ x: '-100%' }}
+                animate={{ 
+                  x: localState === 'loading' ? '100%' : '-100%'
+                }}
+                transition={{ 
+                  duration: 1,
+                  repeat: localState === 'loading' ? Infinity : 0,
+                  ease: 'linear'
+                }}
+              />
+              
               <AnimatePresence mode="wait">
                 <motion.div
                   key={localState}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.15 }}
+                  initial={{ opacity: 0, scale: 0.7, rotate: -180 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  exit={{ opacity: 0, scale: 0.7, rotate: 180 }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 300, 
+                    damping: 20,
+                    duration: 0.3
+                  }}
+                  className="relative z-10"
                 >
                   {getButtonContent()}
                 </motion.div>
               </AnimatePresence>
+
+              {/* Particules d'effet de succès */}
+              {localState === 'success' && (
+                <motion.div
+                  className="absolute inset-0 pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {[...Array(6)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute w-1 h-1 bg-green-400 rounded-full"
+                      style={{
+                        left: '50%',
+                        top: '50%',
+                      }}
+                      initial={{ scale: 0, x: 0, y: 0 }}
+                      animate={{
+                        scale: [0, 1, 0],
+                        x: Math.cos(i * 60 * Math.PI / 180) * 20,
+                        y: Math.sin(i * 60 * Math.PI / 180) * 20,
+                      }}
+                      transition={{
+                        duration: 0.8,
+                        delay: i * 0.1,
+                        ease: "easeOut"
+                      }}
+                    />
+                  ))}
+                </motion.div>
+              )}
             </Button>
           </motion.div>
         </TooltipTrigger>
         
         <TooltipContent side="top" className="max-w-xs">
-          <div className="space-y-1">
+          <div className="space-y-2">
             <p className="font-medium">{contextTooltips[context]}</p>
-            {error && (
-              <p className="text-xs text-destructive">
-                {typeof error === 'string' ? error : 'Erreur de géolocalisation'}
+            
+            {/* Indicateur de précision */}
+            {getPrecisionBadge() && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Précision:</span>
+                {getPrecisionBadge()}
+              </div>
+            )}
+            
+            {/* Messages d'état */}
+            {localState === 'loading' && (
+              <p className="text-xs text-primary font-medium">
+                🎯 Recherche de votre position...
               </p>
             )}
-            {currentLocation && (
-              <p className="text-xs text-muted-foreground">
-                Dernière position: {currentLocation.address}
+            
+            {localState === 'success' && lastAccuracy && (
+              <p className="text-xs text-green-600">
+                ✅ Position trouvée avec succès
               </p>
+            )}
+            
+            {error && (
+              <div className="space-y-1">
+                <p className="text-xs text-destructive font-medium">
+                  ❌ {typeof error === 'string' ? error : 'Erreur de géolocalisation'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Vérifiez vos paramètres GPS et réessayez
+                </p>
+              </div>
+            )}
+            
+            {currentLocation && localState === 'idle' && (
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Dernière position:</p>
+                <p className="text-xs font-mono bg-muted/50 p-1 rounded text-foreground">
+                  {currentLocation.address}
+                </p>
+              </div>
             )}
           </div>
         </TooltipContent>
