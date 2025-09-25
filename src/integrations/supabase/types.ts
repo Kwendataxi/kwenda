@@ -8373,6 +8373,10 @@ export type Database = {
           verification_status: string
         }[]
       }
+      get_referral_reward_amount: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
       get_safe_user_info: {
         Args: { user_id_param: string }
         Returns: {
@@ -8495,6 +8499,10 @@ export type Database = {
           permissions: string[]
           role: string
         }[]
+      }
+      get_user_type: {
+        Args: { p_user_id: string }
+        Returns: string
       }
       get_vendor_dashboard_data: {
         Args: Record<PropertyKey, never>

@@ -16,6 +16,9 @@ import {
   Award
 } from 'lucide-react';
 import { useReferrals } from '@/hooks/useReferrals';
+import { formatCurrency } from '@/lib/utils';
+import { SocialShareButtons } from '@/components/referral/SocialShareButtons';
+import { ReferralProgress } from '@/components/referral/ReferralProgress';
 
 export const DriverReferrals: React.FC = () => {
   const {
@@ -30,13 +33,6 @@ export const DriverReferrals: React.FC = () => {
 
   const tierInfo = getTierInfo();
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-CD', {
-      style: 'currency',
-      currency: 'CDF',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -208,7 +204,7 @@ export const DriverReferrals: React.FC = () => {
             <CardHeader>
               <CardTitle>Votre Code de Parrainage</CardTitle>
               <CardDescription>
-                Partagez ce code avec vos amis et gagnez des récompenses à chaque inscription
+                Partagez ce code avec de futurs chauffeurs et gagnez {formatCurrency(stats.currentReward)} par inscription
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -221,10 +217,11 @@ export const DriverReferrals: React.FC = () => {
                 </Button>
               </div>
 
-              <Button onClick={shareReferralCode} className="w-full" size="lg">
-                <Share2 className="w-4 h-4 mr-2" />
-                Partager Mon Code
-              </Button>
+              <SocialShareButtons 
+                referralCode={referralCode}
+                userType={stats.userType}
+                reward={stats.currentReward}
+              />
             </CardContent>
           </Card>
 
@@ -265,7 +262,7 @@ export const DriverReferrals: React.FC = () => {
                   <div>
                     <p className="font-medium">Vous gagnez des récompenses</p>
                     <p className="text-sm text-muted-foreground">
-                      Recevez {formatCurrency(tierInfo.reward)} pour chaque parrainage réussi
+                      Recevez {formatCurrency(stats.currentReward)} pour chaque parrainage réussi
                     </p>
                   </div>
                 </div>
@@ -275,50 +272,12 @@ export const DriverReferrals: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="rewards" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Niveaux de Récompenses</CardTitle>
-              <CardDescription>
-                Plus vous parrainez, plus vous gagnez par invitation
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                { tier: 'bronze', min: 1, max: 20, reward: 2000, icon: '🥉' },
-                { tier: 'silver', min: 21, max: 50, reward: 3000, icon: '🥈' },
-                { tier: 'gold', min: 51, max: 100, reward: 5000, icon: '🥇' },
-                { tier: 'platinum', min: 100, max: Infinity, reward: 10000, icon: '💎' }
-              ].map((tier) => (
-                <div 
-                  key={tier.tier} 
-                  className={`p-4 border rounded-lg ${
-                    stats.currentTier === tier.tier ? 'bg-primary/10 border-primary' : ''
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{tier.icon}</span>
-                      <div>
-                        <p className="font-semibold capitalize">{tier.tier}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {tier.min} - {tier.max === Infinity ? '100+' : tier.max} parrainages
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">{formatCurrency(tier.reward)}</p>
-                      <p className="text-sm text-muted-foreground">par parrainage</p>
-                    </div>
-                  </div>
-                  {stats.currentTier === tier.tier && (
-                    <Badge className="mt-2" variant="secondary">
-                      Niveau Actuel
-                    </Badge>
-                  )}
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <ReferralProgress
+            userType={stats.userType}
+            totalReferred={stats.totalReferred}
+            currentTier={stats.currentTier}
+            currentReward={stats.currentReward}
+          />
 
           {/* Reward History */}
           <Card>

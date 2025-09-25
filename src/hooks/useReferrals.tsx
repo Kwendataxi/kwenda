@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
 
+type UserType = 'client' | 'driver' | 'admin' | 'partner';
+
 interface Referral {
   id: string;
   referrer_id: string;
@@ -30,6 +32,8 @@ interface ReferralStats {
   pendingRewards: number;
   currentTier: string;
   recentReferrals: Referral[];
+  userType: UserType;
+  currentReward: number;
 }
 
 export const useReferrals = () => {
@@ -42,7 +46,9 @@ export const useReferrals = () => {
     totalEarned: 0,
     pendingRewards: 0,
     currentTier: 'bronze',
-    recentReferrals: []
+    recentReferrals: [],
+    userType: 'client',
+    currentReward: 500
   });
   const [rewards, setRewards] = useState<ReferralReward[]>([]);
 
@@ -51,6 +57,26 @@ export const useReferrals = () => {
 
     try {
       setLoading(true);
+
+      // Get user type first
+      const { data: userTypeData, error: userTypeError } = await supabase
+        .rpc('get_user_type', { p_user_id: user.id });
+
+      if (userTypeError) {
+        console.error('Error getting user type:', userTypeError);
+      }
+
+      const userType: UserType = (userTypeData as UserType) || 'client';
+
+      // Get reward amount for this user type
+      const { data: rewardAmountData, error: rewardAmountError } = await supabase
+        .rpc('get_referral_reward_amount', { p_user_id: user.id });
+
+      if (rewardAmountError) {
+        console.error('Error getting reward amount:', rewardAmountError);
+      }
+
+      const currentReward = rewardAmountData || (userType === 'client' ? 500 : 2000);
 
       // Get or create user's referral code
       let { data: existingReferral, error: referralError } = await supabase
@@ -112,34 +138,45 @@ export const useReferrals = () => {
       const recentReferrals = referrals?.slice(0, 5) || [];
 
       // Load rewards
-      const { data: rewardData, error: rewardError } = await supabase
+      const { data: rewardsData, error: rewardsError } = await supabase
         .from('referral_rewards')
         .select('*')
         .eq('referrer_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (rewardError) {
-        console.error('Error loading rewards:', rewardError);
+      if (rewardsError) {
+        console.error('Error loading rewards:', rewardsError);
       }
 
-      const totalEarned = rewardData?.reduce((sum, reward) => sum + Number(reward.reward_amount), 0) || 0;
+      const totalEarned = rewardsData?.reduce((sum, reward) => sum + Number(reward.reward_amount), 0) || 0;
       const pendingRewards = referrals?.filter(r => r.status === 'completed' && !r.reward_given_date).length || 0;
 
-      // Determine current tier
+      // Determine current tier based on user type
       let currentTier = 'bronze';
-      if (totalReferred >= 100) currentTier = 'platinum';
-      else if (totalReferred >= 51) currentTier = 'gold';
-      else if (totalReferred >= 21) currentTier = 'silver';
+      
+      if (userType === 'driver' || userType === 'admin' || userType === 'partner') {
+        // Tiers for drivers/partners: smaller thresholds, higher rewards
+        if (totalReferred >= 31) currentTier = 'platinum';
+        else if (totalReferred >= 16) currentTier = 'gold';
+        else if (totalReferred >= 6) currentTier = 'silver';
+      } else {
+        // Tiers for clients: higher thresholds, lower rewards
+        if (totalReferred >= 51) currentTier = 'platinum';
+        else if (totalReferred >= 26) currentTier = 'gold';
+        else if (totalReferred >= 11) currentTier = 'silver';
+      }
 
       setStats({
         totalReferred,
         totalEarned,
         pendingRewards,
         currentTier,
-        recentReferrals
+        recentReferrals,
+        userType,
+        currentReward
       });
 
-      setRewards(rewardData || []);
+      setRewards(rewardsData || []);
 
     } catch (error) {
       console.error('Error in loadReferralData:', error);
@@ -154,26 +191,54 @@ export const useReferrals = () => {
   };
 
   const shareReferralCode = async () => {
-    const referralMessage = `Rejoignez-moi sur Kwenda Taxi Congo avec mon code de parrainage ${referralCode} et recevez des bonus ! Téléchargez l'app: https://kwenda.taxi`;
+    const getShareMessage = () => {
+      const baseUrl = "https://kwenda.taxi";
+      
+      if (stats.userType === 'driver' || stats.userType === 'admin' || stats.userType === 'partner') {
+        return `🚗💼 Deviens chauffeur sur Kwenda Taxi Congo !
+
+Utilise mon code de parrainage : ${referralCode}
+🎁 Gagne ${stats.currentReward} CDF de bonus !
+
+✅ Plus de courses, plus de revenus
+✅ Application moderne et fiable
+✅ Support chauffeur 24/7
+
+Télécharge l'app : ${baseUrl}`;
+      } else {
+        return `🚗💰 Rejoins-moi sur Kwenda Taxi Congo !
+
+Utilise mon code : ${referralCode}
+🎁 Bonus de ${stats.currentReward} CDF pour toi !
+
+✅ Transport sûr et rapide
+✅ Prix transparents
+✅ Chauffeurs vérifiés
+
+Télécharge l'app : ${baseUrl}`;
+      }
+    };
+
+    const referralMessage = getShareMessage();
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Kwenda Taxi Congo',
+          title: stats.userType === 'driver' ? 'Deviens chauffeur sur Kwenda Taxi !' : 'Rejoins-moi sur Kwenda Taxi !',
           text: referralMessage,
         });
       } catch (error) {
         console.log('Error sharing:', error);
         await navigator.clipboard.writeText(referralMessage);
         toast({
-          title: "Lien copié !",
+          title: "Message copié !",
           description: "Le message de parrainage a été copié dans le presse-papiers",
         });
       }
     } else {
       await navigator.clipboard.writeText(referralMessage);
       toast({
-        title: "Lien copié !",
+        title: "Message copié !",
         description: "Le message de parrainage a été copié dans le presse-papiers",
       });
     }
@@ -188,14 +253,23 @@ export const useReferrals = () => {
   };
 
   const getTierInfo = () => {
-    const tiers = {
-      bronze: { min: 1, max: 20, reward: 2000, color: 'text-orange-600' },
-      silver: { min: 21, max: 50, reward: 3000, color: 'text-gray-500' },
-      gold: { min: 51, max: 100, reward: 5000, color: 'text-yellow-500' },
-      platinum: { min: 100, max: Infinity, reward: 10000, color: 'text-purple-600' }
-    };
-
-    return tiers[stats.currentTier as keyof typeof tiers] || tiers.bronze;
+    if (stats.userType === 'driver' || stats.userType === 'admin' || stats.userType === 'partner') {
+      const driverTiers = {
+        bronze: { min: 1, max: 5, reward: 2000, color: 'text-orange-600' },
+        silver: { min: 6, max: 15, reward: 3000, color: 'text-gray-500' },
+        gold: { min: 16, max: 30, reward: 5000, color: 'text-yellow-500' },
+        platinum: { min: 31, max: Infinity, reward: 8000, color: 'text-purple-600' }
+      };
+      return driverTiers[stats.currentTier as keyof typeof driverTiers] || driverTiers.bronze;
+    } else {
+      const clientTiers = {
+        bronze: { min: 1, max: 10, reward: 500, color: 'text-orange-600' },
+        silver: { min: 11, max: 25, reward: 750, color: 'text-gray-500' },
+        gold: { min: 26, max: 50, reward: 1000, color: 'text-yellow-500' },
+        platinum: { min: 51, max: Infinity, reward: 1500, color: 'text-purple-600' }
+      };
+      return clientTiers[stats.currentTier as keyof typeof clientTiers] || clientTiers.bronze;
+    }
   };
 
   useEffect(() => {
