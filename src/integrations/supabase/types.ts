@@ -8205,6 +8205,13 @@ export type Database = {
               radius_km?: number
               service_type_param?: string
             }
+          | {
+              pickup_lat: number
+              pickup_lng: number
+              radius_km?: number
+              service_type_param?: string
+              vehicle_class_filter?: string
+            }
         Returns: {
           distance_km: number
           driver_id: string
@@ -9005,6 +9012,7 @@ export type Database = {
               p_phone_number: string
               p_vehicle_plate?: string
             }
+          | { registration_data: Json }
         Returns: Json
       }
       validate_service_requirements: {

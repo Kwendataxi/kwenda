@@ -348,7 +348,7 @@ async function runPerformanceTest(supabase: any, payload: any) {
 
     if (searchError) throw searchError;
 
-    results.metrics.places_search_ms = Date.now() - searchStart;
+    (results.metrics as any).places_search_ms = Date.now() - searchStart;
 
     // Test 2: Recherche de chauffeurs disponibles
     const driversStart = Date.now();
@@ -362,7 +362,7 @@ async function runPerformanceTest(supabase: any, payload: any) {
 
     if (driversError) throw driversError;
 
-    results.metrics.drivers_search_ms = Date.now() - driversStart;
+    (results.metrics as any).drivers_search_ms = Date.now() - driversStart;
 
     // Test 3: Calcul de prix de livraison
     const pricingStart = Date.now();
@@ -375,7 +375,7 @@ async function runPerformanceTest(supabase: any, payload: any) {
 
     if (pricingError) throw pricingError;
 
-    results.metrics.pricing_calc_ms = Date.now() - pricingStart;
+    (results.metrics as any).pricing_calc_ms = Date.now() - pricingStart;
 
     // Vérifier que tous les tests sont sous 2 secondes
     const allTestsUnder2s = Object.values(results.metrics).every((time: any) => time < 2000);
@@ -386,7 +386,7 @@ async function runPerformanceTest(supabase: any, payload: any) {
   } catch (error) {
     console.error('❌ Performance test failed:', error);
     results.success = false;
-    results.errors.push(error instanceof Error ? error.message : 'Unknown error');
+    (results.errors as any).push(error instanceof Error ? error.message : 'Unknown error');
   }
 
   return results;
