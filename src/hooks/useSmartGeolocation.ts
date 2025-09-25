@@ -557,10 +557,12 @@ async function searchInCurrentCityDatabase(query: string): Promise<LocationSearc
 
 async function searchInDatabase(query: string): Promise<LocationSearchResult[]> {
   try {
+    // Utiliser la ville détectée dynamiquement au lieu de Kinshasa codé en dur
+    const currentCity = universalGeolocation.getCurrentCity();
     const { data, error } = await supabase
       .rpc('intelligent_places_search', {
         search_query: query,
-        search_city: 'Kinshasa',
+        search_city: currentCity.name,
         max_results: 6
       });
 
@@ -585,8 +587,11 @@ async function searchInDatabase(query: string): Promise<LocationSearchResult[]> 
 
 async function searchViaGoogle(query: string): Promise<LocationSearchResult[]> {
   try {
+    // Adapter la recherche Google selon la ville détectée
+    const currentCity = universalGeolocation.getCurrentCity();
+    const cityContext = `${query}, ${currentCity.name}`;
     const { data, error } = await supabase.functions.invoke('geocode-proxy', {
-      body: { query }
+      body: { query: cityContext }
     });
 
     if (error) throw error;

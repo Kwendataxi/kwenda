@@ -1,5 +1,5 @@
 import React from 'react';
-import ModernTracker from '@/components/tracking/ModernTracker';
+import UniversalTaxiTracker from './UniversalTaxiTracker';
 
 interface ModernTaxiTrackerProps {
   bookingId: string;
@@ -8,11 +8,9 @@ interface ModernTaxiTrackerProps {
 
 export default function ModernTaxiTracker({ bookingId, onBack }: ModernTaxiTrackerProps) {
   return (
-    <ModernTracker 
-      trackingId={bookingId}
-      trackingType="taxi"
+    <UniversalTaxiTracker 
+      bookingId={bookingId}
       onBack={onBack}
-      enableRealtimeLocation={true}
     />
   );
 }
