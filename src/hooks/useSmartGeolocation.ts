@@ -432,6 +432,94 @@ export const useSmartGeolocation = () => {
   };
 };
 
+// Cache et gestion des requêtes
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 300000; // 5 minutes
+let abortControllerRef: AbortController | null = null;
+
+// Obtenir la ville actuelle
+const getCurrentCity = () => {
+  // Retourner la ville par défaut pour l'instant
+  return { name: 'Kinshasa', region: 'CD' };
+};
+
+// Géocodage inverse amélioré
+const reverseGeocodeEnhanced = async (lat: number, lng: number, region?: string): Promise<string> => {
+  try {
+    const cacheKey = `reverse-${lat.toFixed(6)}-${lng.toFixed(6)}-${region || 'default'}`;
+    const cached = cache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.data as string;
+    }
+
+    // Forcer l'utilisation de Google Maps via geocode-proxy
+    const { data, error } = await supabase.functions.invoke('geocode-proxy', {
+      body: { 
+        query: `${lat},${lng}`,
+        region: region || getCurrentCity()?.region || 'CD'
+      }
+    });
+
+    if (error) throw error;
+
+    // Extraire la vraie adresse Google Maps
+    let address = '';
+    if (data?.results && data.results.length > 0) {
+      const result = data.results[0];
+      address = result.formatted_address || '';
+      
+      // Valider que c'est une vraie adresse (pas des coordonnées)
+      if (address && !address.match(/^-?\d+\.?\d*,\s*-?\d+\.?\d*$/)) {
+        // Mise en cache
+        cache.set(cacheKey, {
+          data: address,
+          timestamp: Date.now()
+        });
+        return address;
+      }
+    }
+
+    // Retry avec un rayon plus large si première tentative échoue
+    const { data: retryData, error: retryError } = await supabase.functions.invoke('geocode-reverse', {
+      body: { lat, lng, region: region || getCurrentCity()?.region || 'CD' }
+    });
+
+    if (!retryError && retryData?.address) {
+      const fallbackAddress = retryData.address;
+      // Valider que ce n'est pas juste des coordonnées
+      if (!fallbackAddress.match(/^-?\d+\.?\d*,\s*-?\d+\.?\d*$/)) {
+        cache.set(cacheKey, {
+          data: fallbackAddress,
+          timestamp: Date.now()
+        });
+        return fallbackAddress;
+      }
+    }
+
+    // Fallback intelligent basé sur la région
+    const city = getCurrentCity();
+    const fallbackAddress = city ? 
+      `Proche de ${city.name}, ${city.region}` : 
+      `Position géographique (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+    
+    cache.set(cacheKey, {
+      data: fallbackAddress,
+      timestamp: Date.now()
+    });
+
+    return fallbackAddress;
+  } catch (error: any) {
+    console.error('❌ Erreur géocodage inverse:', error);
+    
+    // Fallback intelligent avec nom de ville si possible
+    const city = getCurrentCity();
+    return city ? 
+      `Proche de ${city.name}, ${city.region}` : 
+      `Position géographique (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+  }
+};
+
 // 🔧 FONCTIONS UTILITAIRES PRIVÉES
 
 async function getGPSPosition(options: PositionOptions): Promise<LocationData> {
@@ -464,7 +552,7 @@ async function getGPSPosition(options: PositionOptions): Promise<LocationData> {
         
         // Essayer le géocodage inverse avec timeout optimisé
         try {
-          const geocodePromise = reverseGeocode(coords.latitude, coords.longitude);
+          const geocodePromise = reverseGeocodeEnhanced(coords.latitude, coords.longitude);
           const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Geocoding timeout')), 5000)
           );

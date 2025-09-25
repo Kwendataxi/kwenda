@@ -216,9 +216,28 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.92 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            whileHover={{ 
+              scale: 1.1,
+              boxShadow: "0 0 25px hsl(var(--primary) / 0.6)",
+              rotate: 5
+            }}
+            whileTap={{ 
+              scale: 0.9,
+              rotate: -5
+            }}
+            animate={{
+              boxShadow: localState === 'loading' 
+                ? "0 0 20px hsl(var(--primary) / 0.9)" 
+                : localState === 'success'
+                ? "0 0 30px hsl(var(--success) / 0.8)"
+                : "0 0 5px hsl(var(--primary) / 0.3)",
+              rotate: localState === 'loading' ? [0, 5, -5, 0] : 0
+            }}
+            transition={{
+              rotate: localState === 'loading' 
+                ? { repeat: Infinity, duration: 1, ease: "easeInOut" }
+                : { duration: 0.2 }
+            }}
           >
             <Button
               onClick={handleGetLocation}
@@ -270,36 +289,62 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
                 </motion.div>
               </AnimatePresence>
 
-              {/* Particules d'effet de succès */}
+              {/* Particules de succès améliorées */}
               {localState === 'success' && (
-                <motion.div
-                  className="absolute inset-0 pointer-events-none"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  {[...Array(6)].map((_, i) => (
+                <div className="absolute inset-0 pointer-events-none">
+                  {[...Array(8)].map((_, i) => (
                     <motion.div
                       key={i}
-                      className="absolute w-1 h-1 bg-green-400 rounded-full"
-                      style={{
-                        left: '50%',
-                        top: '50%',
+                      className="absolute w-1.5 h-1.5 bg-success/80 rounded-full"
+                      initial={{
+                        x: "50%",
+                        y: "50%",
+                        scale: 0,
+                        opacity: 1
                       }}
-                      initial={{ scale: 0, x: 0, y: 0 }}
                       animate={{
-                        scale: [0, 1, 0],
-                        x: Math.cos(i * 60 * Math.PI / 180) * 20,
-                        y: Math.sin(i * 60 * Math.PI / 180) * 20,
+                        x: `${50 + (Math.cos((i * 45) * Math.PI / 180) * 50)}%`,
+                        y: `${50 + (Math.sin((i * 45) * Math.PI / 180) * 50)}%`,
+                        scale: [0, 1.5, 0],
+                        opacity: [1, 0.8, 0]
                       }}
                       transition={{
-                        duration: 0.8,
-                        delay: i * 0.1,
+                        duration: 1.2,
+                        delay: i * 0.08,
                         ease: "easeOut"
                       }}
                     />
                   ))}
-                </motion.div>
+                  {/* Effet de pulsation centrale */}
+                  <motion.div
+                    className="absolute inset-1 bg-success/20 rounded-full"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ 
+                      scale: [0, 1.5, 0],
+                      opacity: [0, 0.6, 0]
+                    }}
+                    transition={{
+                      duration: 1,
+                      ease: "easeOut"
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Effet de vibration pour les erreurs */}
+              {localState === 'error' && (
+                <motion.div
+                  className="absolute inset-0 bg-destructive/20 rounded-full"
+                  initial={{ scale: 1 }}
+                  animate={{ 
+                    x: [-2, 2, -2, 2, 0],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    ease: "easeInOut"
+                  }}
+                />
               )}
             </Button>
           </motion.div>

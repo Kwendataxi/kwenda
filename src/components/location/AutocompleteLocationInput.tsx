@@ -236,14 +236,30 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
           onFocus={handleFocus}
           placeholder={placeholder}
           className={cn(
-            "pl-10",
-            showCurrentLocationButton ? "pr-20" : "pr-10"
+            "pl-10 py-3 text-base bg-background/50 border-border/20 focus:border-primary/50 transition-colors",
+            "placeholder:text-muted-foreground/60",
+            showCurrentLocationButton ? (query ? "pr-16" : "pr-12") : (query ? "pr-10" : "pr-4")
           )}
         />
         
-        {/* Current Location Button */}
+        {/* Bouton d'effacement - positionné selon la présence du bouton GPS */}
+        {query && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClear}
+            className={cn(
+              "absolute top-1/2 transform -translate-y-1/2 p-1 h-6 w-6 rounded-full hover:bg-muted/50 transition-all",
+              showCurrentLocationButton ? "right-10" : "right-2"
+            )}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+
+        {/* Bouton de géolocalisation - tout à droite */}
         {showCurrentLocationButton && (
-          <div className="absolute right-11 top-1/2 transform -translate-y-1/2">
+          <div className="absolute right-1 top-1/2 transform -translate-y-1/2">
             <CurrentLocationButton
               onLocationSelect={handleCurrentLocationSelect}
               context={locationContext}
@@ -252,17 +268,6 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
               showAccuracy={false}
             />
           </div>
-        )}
-
-        {query && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClear}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted/50"
-          >
-            <X className="h-3 w-3" />
-          </Button>
         )}
       </div>
 

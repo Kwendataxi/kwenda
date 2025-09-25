@@ -282,6 +282,7 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
               {expandedSection === 'pickup' && (
                 <div className="pl-11 space-y-4 animate-fade-in">
                   <EnhancedLocationPicker
+                    key="pickup-location-picker"
                     value={deliveryData.pickupLocation}
                     onChange={handlePickupLocationChange}
                     placeholder="Où récupérer le colis ?"
@@ -305,6 +306,7 @@ export default function ModernDeliveryInterface({ onSubmit, onCancel }: ModernDe
               {expandedSection === 'delivery' && (
                 <div className="pl-11 space-y-4 animate-fade-in">
                   <EnhancedLocationPicker
+                    key="delivery-location-picker"
                     value={deliveryData.deliveryLocation}
                     onChange={handleDeliveryLocationChange}
                     placeholder="Où livrer le colis ?"
