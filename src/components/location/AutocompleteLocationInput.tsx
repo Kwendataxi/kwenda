@@ -315,3 +315,6 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
     </div>
   );
 };
+
+// Export par défaut pour compatibilité
+export default AutocompleteLocationInput;

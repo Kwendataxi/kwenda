@@ -8,7 +8,7 @@ import { MapPin, Package, Truck, ArrowLeft, ArrowRight, Check } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { AutocompleteLocationInput } from '@/components/location/AutocompleteLocationInput';
+import AutocompleteLocationInput from '@/components/location/AutocompleteLocationInput';
 import { LocationData } from '@/types/location';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
