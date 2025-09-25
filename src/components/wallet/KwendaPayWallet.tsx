@@ -58,36 +58,58 @@ export const KwendaPayWallet = () => {
   }, [user]);
 
   const loadWallet = async () => {
-    try {
-      const { data: existingWallet } = await supabase
-        .from('user_wallets')
-        .select('*')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (!existingWallet) {
-        // Create wallet if it doesn't exist
-        const { data: newWallet, error } = await supabase
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount <= maxRetries) {
+      try {
+        const { data: existingWallet, error: walletError } = await supabase
           .from('user_wallets')
-          .insert({ user_id: user?.id, balance: 0 })
-          .select()
+          .select('*')
+          .eq('user_id', user?.id)
           .single();
 
-        if (error) throw error;
-        setWallet(newWallet);
-      } else {
-        setWallet(existingWallet);
+        if (walletError && walletError.code === 'PGRST116') {
+          // Create wallet if it doesn't exist
+          const { data: newWallet, error: createError } = await supabase
+            .from('user_wallets')
+            .insert({ 
+              user_id: user?.id, 
+              balance: 0,
+              currency: 'CDF',
+              is_active: true
+            })
+            .select()
+            .single();
+
+          if (createError) throw createError;
+          setWallet(newWallet);
+        } else if (walletError) {
+          throw walletError;
+        } else {
+          setWallet(existingWallet);
+        }
+        
+        return; // Success, exit retry loop
+        
+      } catch (error: any) {
+        retryCount++;
+        
+        if (retryCount <= maxRetries) {
+          console.warn(`🔄 Wallet load retry ${retryCount}/${maxRetries}:`, error);
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+        } else {
+          console.error('Error loading wallet:', error);
+          toast({
+            title: "Erreur de connexion",
+            description: "Impossible de charger le portefeuille. Vérifiez votre connexion.",
+            variant: "destructive"
+          });
+        }
       }
-    } catch (error) {
-      console.error('Error loading wallet:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger le portefeuille",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
     }
+    
+    setLoading(false);
   };
 
   const loadTransactions = async () => {

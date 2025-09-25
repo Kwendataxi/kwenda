@@ -22,7 +22,7 @@ export class IPGeolocationService {
   }
 
   async getCurrentLocation(): Promise<IPLocationResult> {
-    // Cache réduit à 5 minutes pour permettre re-détection
+    // Cache réduit à 3 minutes pour permettre re-détection
     if (this.cache && Date.now() < this.cacheExpiry) {
       console.log('🏠 Using cached IP location:', this.cache);
       return this.cache;
@@ -30,27 +30,79 @@ export class IPGeolocationService {
 
     console.log('🌍 Detecting IP location...');
 
-    try {
-      // Essayer plusieurs providers avec timeout
-      const promises = [
-        this.timeoutPromise(this.getLocationFromIPAPI(), 3000),
-        this.timeoutPromise(this.getLocationFromIPInfo(), 3000),
-        this.timeoutPromise(this.getLocationFromGeoJS(), 3000)
-      ];
+    // D'abord essayer le cache local du navigateur
+    const cachedData = this.getLocalStorageCache();
+    if (cachedData) {
+      console.log('📱 Using local storage cache:', cachedData);
+      this.cache = cachedData;
+      this.cacheExpiry = Date.now() + (3 * 60 * 1000);
+      return cachedData;
+    }
 
-      // Prendre le premier résultat réussi
-      const result = await Promise.race(promises.map(p => p.catch(err => err)))
-        .then(result => {
-          if (result instanceof Error) throw result;
-          return result;
-        });
+    try {
+      // Essayer les services de géolocalisation IP avec retry
+      const result = await this.tryMultipleProviders();
       console.log('✅ IP location detected:', result);
+      
       this.cache = result;
-      this.cacheExpiry = Date.now() + (5 * 60 * 1000); // 5 minutes
+      this.cacheExpiry = Date.now() + (3 * 60 * 1000); // 3 minutes
+      this.setLocalStorageCache(result);
       return result;
     } catch (error) {
       console.warn('❌ All IP geolocation services failed:', error);
-      return this.getFallbackLocation();
+      const fallback = this.getFallbackLocation();
+      this.setLocalStorageCache(fallback);
+      return fallback;
+    }
+  }
+
+  private async tryMultipleProviders(): Promise<IPLocationResult> {
+    const providers = [
+      () => this.getLocationFromGeoJS(), // Plus fiable
+      () => this.getLocationFromIPInfo(),
+      () => this.getLocationFromIPAPI()
+    ];
+
+    let lastError: Error | null = null;
+
+    for (const provider of providers) {
+      try {
+        const result = await this.timeoutPromise(provider(), 5000);
+        return result;
+      } catch (error) {
+        lastError = error as Error;
+        console.warn('Provider failed, trying next:', error);
+        continue;
+      }
+    }
+
+    throw lastError || new Error('All providers failed');
+  }
+
+  private getLocalStorageCache(): IPLocationResult | null {
+    try {
+      const cached = localStorage.getItem('kwenda_ip_location');
+      if (cached) {
+        const data = JSON.parse(cached);
+        // Cache valide 10 minutes
+        if (Date.now() - data.timestamp < 10 * 60 * 1000) {
+          return data.location;
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to read location cache:', error);
+    }
+    return null;
+  }
+
+  private setLocalStorageCache(location: IPLocationResult): void {
+    try {
+      localStorage.setItem('kwenda_ip_location', JSON.stringify({
+        location,
+        timestamp: Date.now()
+      }));
+    } catch (error) {
+      console.warn('Failed to save location cache:', error);
     }
   }
 
