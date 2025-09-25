@@ -147,7 +147,7 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
           address: placeDetails.address,
           coordinates: placeDetails.coordinates,
           subtitle: prediction.structuredFormatting.secondaryText,
-          type: 'place',
+          type: 'google' as const,
           placeId: placeDetails.placeId
         };
 

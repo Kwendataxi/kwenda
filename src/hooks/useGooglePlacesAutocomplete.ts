@@ -113,8 +113,7 @@ export const useGooglePlacesAutocomplete = (
               types,
               language,
               sessionToken
-            },
-            signal: abortControllerRef.current.signal
+            }
           }
         );
 
