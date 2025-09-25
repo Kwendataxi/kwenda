@@ -95,7 +95,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString()
       }),
       {
@@ -107,10 +107,11 @@ serve(async (req) => {
 });
 
 async function runTaxiWorkflowTest(supabase: any, payload: any) {
-  const results = {
+  const results: any = {
     success: true,
-    steps: [],
-    errors: []
+    steps: [] as any[],
+    errors: [] as any[],
+    metrics: {} as any
   };
 
   try {
@@ -222,17 +223,18 @@ async function runTaxiWorkflowTest(supabase: any, payload: any) {
   } catch (error) {
     console.error('❌ Taxi workflow test failed:', error);
     results.success = false;
-    results.errors.push(error.message);
+    results.errors.push(error instanceof Error ? error.message : 'Unknown error');
   }
 
   return results;
 }
 
 async function runDeliveryWorkflowTest(supabase: any, payload: any) {
-  const results = {
+  const results: any = {
     success: true,
-    steps: [],
-    errors: []
+    steps: [] as any[],
+    errors: [] as any[],
+    metrics: {} as any
   };
 
   try {
@@ -319,7 +321,7 @@ async function runDeliveryWorkflowTest(supabase: any, payload: any) {
   } catch (error) {
     console.error('❌ Delivery workflow test failed:', error);
     results.success = false;
-    results.errors.push(error.message);
+    results.errors.push(error instanceof Error ? error.message : 'Unknown error');
   }
 
   return results;
@@ -376,7 +378,7 @@ async function runPerformanceTest(supabase: any, payload: any) {
     results.metrics.pricing_calc_ms = Date.now() - pricingStart;
 
     // Vérifier que tous les tests sont sous 2 secondes
-    const allTestsUnder2s = Object.values(results.metrics).every(time => time < 2000);
+    const allTestsUnder2s = Object.values(results.metrics).every((time: any) => time < 2000);
     results.success = allTestsUnder2s;
 
     console.log('📊 Performance metrics:', results.metrics);
@@ -384,7 +386,7 @@ async function runPerformanceTest(supabase: any, payload: any) {
   } catch (error) {
     console.error('❌ Performance test failed:', error);
     results.success = false;
-    results.errors.push(error.message);
+    results.errors.push(error instanceof Error ? error.message : 'Unknown error');
   }
 
   return results;

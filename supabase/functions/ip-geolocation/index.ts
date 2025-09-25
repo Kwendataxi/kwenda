@@ -75,7 +75,7 @@ serve(async (req) => {
         console.log('✅ ipapi.co réussi');
       }
     } catch (error) {
-      console.warn('❌ ipapi.co échoué:', error.message);
+      console.warn('❌ ipapi.co échoué:', error instanceof Error ? error.message : 'Unknown error');
     }
 
     // Service 2: ip-api.com (fallback)
@@ -100,7 +100,7 @@ serve(async (req) => {
           console.log('✅ ip-api.com réussi');
         }
       } catch (error) {
-        console.warn('❌ ip-api.com échoué:', error.message);
+        console.warn('❌ ip-api.com échoué:', error instanceof Error ? error.message : 'Unknown error');
       }
     }
 
@@ -126,7 +126,7 @@ serve(async (req) => {
           console.log('✅ freeipapi.com réussi');
         }
       } catch (error) {
-        console.warn('❌ freeipapi.com échoué:', error.message);
+        console.warn('❌ freeipapi.com échoué:', error instanceof Error ? error.message : 'Unknown error');
       }
     }
 
@@ -160,7 +160,7 @@ serve(async (req) => {
         });
       console.log('💾 Résultat mis en cache');
     } catch (error) {
-      console.warn('⚠️ Échec cache:', error.message);
+      console.warn('⚠️ Échec cache:', error instanceof Error ? error.message : 'Unknown error');
     }
 
     return new Response(JSON.stringify({

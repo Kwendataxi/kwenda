@@ -9,7 +9,7 @@ const corsHeaders = {
 
 interface ConversationalMessage {
   role: 'system' | 'user' | 'assistant';
-  content: string;
+  content: string | Array<{type: string; text?: any; image_url?: {url: string}}>;
 }
 
 serve(async (req) => {
@@ -194,7 +194,7 @@ PROFIL UTILISATEUR:
 }
 
 function getAdvancedTools(context: string) {
-  const baseTools = [
+  const baseTools: any[] = [
     {
       type: 'function',
       function: {

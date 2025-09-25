@@ -168,7 +168,7 @@ Adapte tes réponses selon ce contexte spécifique.`;
 }
 
 function getContextFunctions(context: string) {
-  const baseFunctions = [
+  const baseFunctions: any[] = [
     {
       name: 'get_recommendations',
       description: 'Obtenir des recommandations personnalisées',
