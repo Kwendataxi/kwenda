@@ -3747,6 +3747,36 @@ export type Database = {
           },
         ]
       }
+      partner_security_config: {
+        Row: {
+          config_key: string
+          config_value: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          config_key: string
+          config_value?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          config_key?: string
+          config_value?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       partner_taxi_vehicles: {
         Row: {
           assigned_driver_id: string | null
@@ -8206,7 +8236,7 @@ export type Database = {
         Returns: number
       }
       cleanup_old_audit_logs: {
-        Args: Record<PropertyKey, never> | { p_retention_days?: number }
+        Args: Record<PropertyKey, never> | { retention_days?: number }
         Returns: number
       }
       cleanup_old_notifications: {
@@ -8353,6 +8383,16 @@ export type Database = {
       generate_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      generate_security_report: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          category: string
+          details: string
+          last_check: string
+          recommendations: string
+          status: string
+        }[]
       }
       generate_ticket_number: {
         Args: Record<PropertyKey, never>
@@ -8985,6 +9025,15 @@ export type Database = {
         Args: { p_message_id: string }
         Returns: undefined
       }
+      monitor_security_events: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          event_count: number
+          event_type: string
+          last_occurrence: string
+          severity: string
+        }[]
+      }
       process_escrow_release: {
         Args: { escrow_id: string }
         Returns: boolean
@@ -9141,6 +9190,15 @@ export type Database = {
               p_vehicle_plate?: string
             }
           | { registration_data: Json }
+        Returns: Json
+      }
+      validate_partner_registration_secure: {
+        Args: {
+          p_commission_rate?: number
+          p_company_name: string
+          p_email: string
+          p_phone_number: string
+        }
         Returns: Json
       }
       validate_service_requirements: {

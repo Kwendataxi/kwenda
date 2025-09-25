@@ -355,11 +355,11 @@ class GeolocationAuditService {
   async cleanupOldLogs(retentionDays: number = 90): Promise<number> {
     try {
       const { data, error } = await supabase.rpc('cleanup_old_audit_logs', {
-        p_retention_days: retentionDays
+        retention_days: retentionDays
       });
 
       if (error) throw error;
-      return data || 0;
+      return (data as number) || 0;
     } catch (error) {
       console.error('Erreur nettoyage anciens logs:', error);
       return 0;
