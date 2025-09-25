@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete';
 import type { UnifiedLocation } from '@/types/unifiedLocation';
+import { CurrentLocationButton } from '@/components/ui/CurrentLocationButton';
+import { type LocationData } from '@/hooks/useSmartGeolocation';
 
 interface AutocompleteLocationInputProps {
   value?: UnifiedLocation | null;
@@ -14,6 +16,8 @@ interface AutocompleteLocationInputProps {
   onLocationBias?: { lat: number; lng: number };
   types?: string[];
   showRecentSearches?: boolean;
+  locationContext?: 'pickup' | 'delivery' | 'taxi-start' | 'taxi-destination' | 'general';
+  showCurrentLocationButton?: boolean;
 }
 
 const getPlaceIcon = (types: string[]) => {
@@ -74,7 +78,9 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
   className,
   onLocationBias,
   types = [],
-  showRecentSearches = true
+  showRecentSearches = true,
+  locationContext = 'general',
+  showCurrentLocationButton = true
 }) => {
   const [query, setQuery] = useState(value?.name || '');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -184,6 +190,25 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
     inputRef.current?.focus();
   };
 
+  // Handle current location selection
+  const handleCurrentLocationSelect = (location: LocationData) => {
+    const unifiedLocation: UnifiedLocation = {
+      id: `gps-${Date.now()}`,
+      name: location.address,
+      address: location.address,
+      coordinates: { lat: location.lat, lng: location.lng },
+      type: 'current',
+      placeId: location.placeId
+    };
+    
+    setQuery(location.address);
+    onChange(unifiedLocation);
+    setShowSuggestions(false);
+    
+    // Save to recent searches
+    saveToRecentSearches(unifiedLocation);
+  };
+
   // Click outside to close suggestions
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -210,8 +235,24 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
           onChange={handleInputChange}
           onFocus={handleFocus}
           placeholder={placeholder}
-          className="pl-10 pr-10"
+          className={cn(
+            "pl-10",
+            showCurrentLocationButton ? "pr-20" : "pr-10"
+          )}
         />
+        
+        {/* Current Location Button */}
+        {showCurrentLocationButton && (
+          <div className="absolute right-12 top-1/2 transform -translate-y-1/2">
+            <CurrentLocationButton
+              onLocationSelect={handleCurrentLocationSelect}
+              context={locationContext}
+              variant="mini"
+              showAccuracy={false}
+            />
+          </div>
+        )}
+
         {query && (
           <Button
             variant="ghost"
