@@ -57,12 +57,12 @@ serve(async (req) => {
     // Radius dynamique selon la priorité
     const searchRadius = priority === 'urgent' ? 20 : priority === 'high' ? 15 : 10;
 
-    // Trouver les chauffeurs à proximité avec la nouvelle fonction
+    // Trouver les chauffeurs à proximité avec la fonction RPC corrigée
     const { data: drivers, error: driversError } = await supabase.rpc('find_nearby_drivers', {
-      pickup_lat: pickupLat,
-      pickup_lng: pickupLng,
-      max_distance_km: searchRadius,
-      vehicle_class_filter: vehicleClass || null
+      user_lat: pickupLat,
+      user_lng: pickupLng,
+      search_radius_km: searchRadius,
+      vehicle_class_filter: vehicleClass
     });
 
     if (driversError) {

@@ -146,7 +146,7 @@ export function useModernTaxiBooking() {
       const { pickup: validatedPickup, destination: validatedDestination } = 
         await validateAndCorrectCoordinates(bookingData.pickup, bookingData.destination);
 
-      // 2. Préparer les données de réservation avec champ city
+      // 2. Préparer les données de réservation SANS le champ city
       const bookingPayload = {
         user_id: user.id,
         pickup_location: bookingData.pickup.address,
@@ -158,8 +158,7 @@ export function useModernTaxiBooking() {
         total_distance: bookingData.distance,
         notes: bookingData.notes || null,
         pickup_time: bookingData.scheduledTime?.toISOString() || new Date().toISOString(),
-        status: 'pending',
-        city: 'Kinshasa' // Ajouter le champ city manquant
+        status: 'pending'
       };
 
       console.log('📝 [ModernTaxi] Données préparées:', {

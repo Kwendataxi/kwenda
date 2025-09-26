@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
 import AdvancedTaxiTracker from '@/components/transport/AdvancedTaxiTracker';
 import { TaxiTestComponent } from '@/components/transport/TaxiTestComponent';
+import { DriverDashboard } from '@/components/driver/DriverDashboard';
 import DriverRideNotifications from '@/components/driver/DriverRideNotifications';
 import { useDriverSimulation } from '@/hooks/useDriverSimulation';
 import { Car, ArrowLeft, Users } from 'lucide-react';
@@ -12,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 const TransportPage = () => {
   const navigate = useNavigate();
   const { startDriverSimulation } = useDriverSimulation();
-  const [activeView, setActiveView] = useState<'create' | 'track' | 'test'>('create');
+  const [activeView, setActiveView] = useState<'create' | 'track' | 'test' | 'driver'>('create');
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
 
   const handleBookingCreated = (data: any) => {
@@ -30,6 +31,10 @@ const TransportPage = () => {
 
   const handleShowTest = () => {
     setActiveView('test');
+  };
+
+  const handleShowDriver = () => {
+    setActiveView('driver');
   };
 
   if (activeView === 'track' && activeBookingId) {
@@ -57,6 +62,11 @@ const TransportPage = () => {
         <TaxiTestComponent />
       </div>
     );
+  }
+
+  // Si on est en mode dashboard chauffeur
+  if (activeView === 'driver') {
+    return <DriverDashboard />;
   }
 
   return (
@@ -96,6 +106,12 @@ const TransportPage = () => {
               className="px-3 py-1 text-xs bg-secondary text-secondary-foreground rounded hover:bg-secondary/80"
             >
               Tests Système
+            </button>
+            <button 
+              onClick={handleShowDriver}
+              className="px-3 py-1 text-xs bg-accent text-accent-foreground rounded hover:bg-accent/80"
+            >
+              Dashboard Chauffeur
             </button>
           </div>
         </div>
