@@ -9367,7 +9367,7 @@ export type Database = {
         Returns: number
       }
       validate_booking_coordinates: {
-        Args: { delivery_coords: Json; pickup_coords: Json }
+        Args: { delivery_coords?: Json; pickup_coords: Json }
         Returns: Json
       }
       validate_driver_registration_data: {
