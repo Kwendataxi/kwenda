@@ -499,7 +499,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
               <Button
                 variant="outline"
                 onClick={onCancel}
-                className="flex-1 max-w-32 min-touch-target bg-muted/50 hover:bg-muted border-border"
+                className="flex-1 max-w-40 min-touch-target bg-muted/50 hover:bg-muted border-border"
                 disabled={isSubmitting}
               >
                 Annuler
@@ -508,7 +508,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
               <Button
                 variant="ghost"
                 onClick={handleBack}
-                className="flex-1 max-w-32 min-touch-target bg-muted/50 hover:bg-muted text-foreground"
+                className="flex-1 max-w-40 min-touch-target bg-muted/50 hover:bg-muted text-foreground"
                 disabled={isSubmitting}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -520,7 +520,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             {currentStep !== 'confirm' ? (
               <Button
                 onClick={handleNext}
-                className="flex-1 max-w-48 bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow hover:shadow-congo min-touch-target"
+                className="flex-1 max-w-40 bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow hover:shadow-congo min-touch-target"
                 disabled={
                   (currentStep === 'pickup' && !deliveryData.pickupLocation) || 
                   (currentStep === 'destination' && !deliveryData.deliveryLocation)
@@ -532,7 +532,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             ) : (
               <Button
                 onClick={handleSubmit}
-                className="flex-1 max-w-48 bg-congo-green hover:bg-congo-green/90 text-white shadow-glow hover:shadow-congo min-touch-target"
+                className="flex-1 max-w-40 bg-congo-green hover:bg-congo-green/90 text-white shadow-glow hover:shadow-congo min-touch-target"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Création...' : 'Confirmer'}
