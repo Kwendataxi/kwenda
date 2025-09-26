@@ -8175,6 +8175,15 @@ export type Database = {
         }
         Relationships: []
       }
+      security_configuration_status: {
+        Row: {
+          component: string | null
+          description: string | null
+          security_note: string | null
+          status: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_cancel_subscription: {
@@ -8196,6 +8205,14 @@ export type Database = {
       anonymize_old_location_data: {
         Args: { days_old?: number }
         Returns: number
+      }
+      audit_security_definer_functions: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          function_name: string
+          risk_level: string
+          security_justification: string
+        }[]
       }
       auto_monitor_edge_functions: {
         Args: Record<PropertyKey, never>
