@@ -46,7 +46,11 @@ interface UserRating {
   total_ratings: number;
 }
 
-export const UserProfile = () => {
+interface UserProfileProps {
+  onWalletAccess?: () => void;
+}
+
+export const UserProfile = ({ onWalletAccess }: UserProfileProps = {}) => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -415,7 +419,13 @@ export const UserProfile = () => {
 
       {/* Profile Action Buttons */}
       <div className="px-4 py-4">
-        <ProfileActionButtons onQuickAction={handleQuickAction} />
+        <ProfileActionButtons onQuickAction={(action) => {
+          if (action === 'wallet') {
+            onWalletAccess?.();
+          } else {
+            handleQuickAction(action);
+          }
+        }} />
       </div>
 
       {/* Profile Options List */}

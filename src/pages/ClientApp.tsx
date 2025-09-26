@@ -18,7 +18,7 @@ import SecurityVerification from '@/components/advanced/SecurityVerification';
 import { ResponsiveUserProfile } from '@/components/profile/ResponsiveUserProfile';
 import { ClientWalletPanel } from '@/components/client/ClientWalletPanel';
 import { ModernHomeScreen } from '@/components/home/ModernHomeScreen';
-import { UniversalBottomNavigation } from '@/components/navigation/UniversalBottomNavigation';
+import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
 import { ResponsiveContainer } from '@/components/layout/ResponsiveContainer';
 import { MobileOptimizedLayout } from '@/components/layout/MobileOptimizedLayout';
 import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
@@ -721,28 +721,20 @@ const ClientApp = () => {
       {/* Marketplace components now handled by EnhancedMarketplaceInterface */}
       
 
-      {/* Universal Bottom Navigation - Always visible */}
-      <UniversalBottomNavigation
-        userType="client"
-        activeTab={
-          currentView === 'home' ? 'home' : 
-          currentView === 'history' || currentView === 'activity' ? 'activity' : 
-          currentView === 'wallet' ? 'wallet' :
-          currentView === 'profile' ? 'profile' : 'home'
-        }
+      {/* Modern Bottom Navigation - Always visible */}
+      <ModernBottomNavigation
+        activeTab={currentView === 'profil' ? 'profil' : currentView === 'activity' ? 'activity' : 'home'}
         onTabChange={(tab) => {
-          const preserveScroll = serviceType === 'marketplace';
-          
-          if (tab === 'home') {
-            transitionToView(setCurrentView, 'home', { preserveScroll });
+          if (tab === 'profil') {
+            setCurrentView('profil');
           } else if (tab === 'activity') {
-            transitionToView(setCurrentView, 'history', { preserveScroll });
-          } else if (tab === 'wallet') {
-            transitionToView(setCurrentView, 'wallet', { preserveScroll });
-          } else if (tab === 'profile') {
-            transitionToView(setCurrentView, 'profile', { preserveScroll });
+            setCurrentView('activity');
+          } else {
+            setCurrentView('home');
           }
         }}
+        notificationCount={0}
+        favoritesCount={0}
       />
       
         

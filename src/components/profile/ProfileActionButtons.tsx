@@ -41,10 +41,6 @@ export const ProfileActionButtons = ({ onQuickAction, className }: ProfileAction
   };
 
   const handleWallet = () => {
-    toast({
-      title: "KwendaPay",
-      description: "Ouverture de votre portefeuille...",
-    });
     onQuickAction?.('wallet');
   };
   const quickActions = [
