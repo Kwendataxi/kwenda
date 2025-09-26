@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { logMissingTranslations } from '@/utils/translationValidator';
 
 export type Language = 'fr' | 'en' | 'kg' | 'lua' | 'sw';
 
 // TRADUCTIONS COMPLÈTES - SYSTÈME MULTILINGUE COMPLET
-const translations = {
+export const translations = {
   fr: {
     // Navigation
     'nav.home': 'Accueil',
@@ -12,6 +13,10 @@ const translations = {
     'nav.contact': 'Contact',
     'nav.login': 'Connexion',
     'nav.signup': 'Inscription',
+    'nav.client': 'Client',
+    'nav.driver': 'Chauffeur',
+    'nav.admin': 'Admin',
+    'nav.download_app': 'Télécharger App',
     
     // Common
     'common.loading': 'Chargement...',
@@ -116,10 +121,54 @@ const translations = {
     'services.marketplace.description': 'Boutique en ligne intégrée',
     'services.rental.title': 'Location de véhicules',
     'services.rental.description': 'Louez des véhicules facilement',
+    'services.vtc_standard': 'VTC Standard',
+    'services.vtc_standard_desc': 'Voitures confortables pour vos déplacements quotidiens',
+    'services.vtc_standard_price': 'À partir de 2000 CDF',
+    'services.vtc_standard_feat1': 'Véhicules climatisés',
+    'services.vtc_standard_feat2': 'Chauffeurs professionnels',
+    'services.vtc_standard_feat3': 'Tarifs transparents',
+    'services.vtc_luxe': 'VTC Luxe',
+    'services.vtc_luxe_desc': 'Véhicules haut de gamme pour un confort exceptionnel',
+    'services.vtc_luxe_price': 'À partir de 4000 CDF',
+    'services.vtc_luxe_feat1': 'Véhicules premium',
+    'services.vtc_luxe_feat2': 'Service VIP',
+    'services.vtc_luxe_feat3': 'Eau offerte',
+    'services.shared_rides': 'Courses Partagées',
+    'services.shared_rides_desc': 'Partagez votre trajet et réduisez vos coûts',
+    'services.shared_rides_price': 'À partir de 1000 CDF',
+    'services.shared_rides_feat1': 'Économique',
+    'services.shared_rides_feat2': 'Écologique',
+    'services.shared_rides_feat3': 'Social',
+    'services.moto_delivery': 'Livraison Moto',
+    'services.moto_delivery_desc': 'Livraisons express par moto-taxi',
+    'services.moto_delivery_price': 'À partir de 1500 CDF',
+    'services.moto_delivery_feat1': 'Livraison en 30min',
+    'services.moto_delivery_feat2': 'Évite les embouteillages',
+    'services.moto_delivery_feat3': 'Suivi temps réel',
+    'services.utility_vehicles': 'Véhicules Utilitaires',
+    'services.utility_vehicles_desc': 'Camionnettes pour vos gros colis',
+    'services.utility_vehicles_price': 'À partir de 5000 CDF',
+    'services.utility_vehicles_feat1': 'Grande capacité',
+    'services.utility_vehicles_feat2': 'Chargement assisté',
+    'services.utility_vehicles_feat3': 'Déménagements',
+    'services.advance_booking': 'Réservation Avancée',
+    'services.advance_booking_desc': 'Planifiez vos trajets à l\'avance',
+    'services.advance_booking_price': 'Tarif standard + 500 CDF',
+    'services.advance_booking_feat1': 'Planification flexible',
+    'services.advance_booking_feat2': 'Garantie de disponibilité',
+    'services.advance_booking_feat3': 'Rappel automatique',
+    'services.popular': 'Populaire',
+    'services.book_now': 'Réserver maintenant',
+    'services.cta_title': 'Prêt à commencer ?',
+    'services.cta_subtitle': 'Téléchargez l\'application ou devenez chauffeur partenaire',
+    'services.download_app': 'Télécharger l\'App',
+    'services.become_driver_partner': 'Devenir Chauffeur',
     
     // Features
     'features.title': 'Fonctionnalités Avancées',
     'features.subtitle': 'Une expérience utilisateur exceptionnelle',
+    'features.title_prefix': 'Pourquoi choisir',
+    'features.title_brand': 'Kwenda',
     'features.realtime.title': 'Suivi en temps réel',
     'features.realtime.description': 'Suivez vos courses et livraisons en direct',
     'features.payment.title': 'Paiements sécurisés',
@@ -130,7 +179,23 @@ const translations = {
     'features.support.description': 'Assistance client disponible en permanence',
     'features.stats_cities': '4+ Villes',
     'features.maximum_security': 'Sécurité maximale',
+    'features.maximum_security_desc': 'Protection totale de vos données personnelles et de vos transactions',
     'features.stats_support': 'Support 24/7',
+    'features.stats_vehicles': 'Véhicules',
+    'features.stats_eco': 'Écologique',
+    'features.eco_fleet': 'Flotte Écologique',
+    'features.eco_fleet_desc': 'Véhicules respectueux de l\'environnement pour un transport durable',
+    'features.alt_eco_car': 'Voiture écologique',
+    'features.smart_geolocation': 'Géolocalisation Intelligente',
+    'features.smart_geolocation_desc': 'Localisation précise et rapide pour des trajets optimisés',
+    'features.alt_mobile_app': 'Application mobile',
+    'features.certified_drivers': 'Chauffeurs Certifiés',
+    'features.certified_drivers_desc': 'Conducteurs professionnels vérifiés et formés',
+    'features.alt_professional_drivers': 'Chauffeurs professionnels',
+    'features.flexible_payments': 'Paiements Flexibles',
+    'features.flexible_payments_desc': 'Plusieurs options de paiement adaptées à l\'Afrique',
+    'features.shared_rides': 'Courses Partagées',
+    'features.shared_rides_desc': 'Économisez en partageant vos trajets avec d\'autres passagers',
     
     // Support
     'support.title': 'Support Client',
@@ -1524,7 +1589,16 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [currentLanguage, setCurrentLanguage] = useState<Language>('fr');
 
   const t = (key: string, params?: Record<string, any>): string => {
-    const translation = translations[currentLanguage]?.[key] || translations.fr[key] || key;
+    const translation = translations[currentLanguage]?.[key] || translations.fr[key];
+    
+    // Système anti-régression : Détecter les clés manquantes
+    if (!translation) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`🚨 MISSING TRANSLATION: "${key}" in language "${currentLanguage}"`);
+        return `[MISSING: ${key}]`; // Affichage visible pour les développeurs
+      }
+      return key; // Fallback en production
+    }
     
     if (params) {
       return translation.replace(/\{(\d+)\}/g, (match, index) => {
@@ -1557,6 +1631,9 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     if (savedLanguage && ['fr', 'en', 'kg', 'lua', 'sw'].includes(savedLanguage)) {
       setCurrentLanguage(savedLanguage);
     }
+    
+    // Validation automatique des traductions en mode développement
+    logMissingTranslations();
   }, []);
 
   return (
