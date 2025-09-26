@@ -29,51 +29,52 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let isSubscribed = true;
-
-    // Initialize session check
+    let mounted = true;
+    
     const initializeAuth = async () => {
+      if (!mounted) return;
+      
+      setLoading(true);
+      
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
+        if (!mounted) return;
+        
         if (error) {
           console.error('Auth session error:', error);
-          if (isSubscribed) {
-            setLoading(false);
-          }
-          return;
         }
-
-        if (isSubscribed) {
-          setSession(session);
-          setUser(session?.user ?? null);
-          setLoading(false);
-        }
+        
+        setSession(session);
+        setUser(session?.user ?? null);
       } catch (error) {
         console.error('Auth initialization error:', error);
-        if (isSubscribed) {
+        if (mounted) {
+          setSession(null);
+          setUser(null);
+        }
+      } finally {
+        if (mounted) {
           setLoading(false);
         }
       }
     };
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!isSubscribed) return;
-        
-        console.log('Auth state change:', event, session?.user?.id);
+    initializeAuth();
+
+    // Écouter les changements d'état d'auth
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
       }
-    );
-
-    // Initialize auth
-    initializeAuth();
+    });
 
     return () => {
-      isSubscribed = false;
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useRealTimeDeliveryTracking } from '@/hooks/useRealTimeDeliveryTracking';
-import ModernTracker from '@/components/tracking/ModernTracker';
+import EnhancedDeliveryTracker from '@/components/delivery/EnhancedDeliveryTracker';
 import DriverDeliveryDashboard from '@/components/driver/DriverDeliveryDashboard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -86,13 +86,11 @@ export default function UnifiedDeliveryInterface({ orderId, onBack }: UnifiedDel
     );
   }
 
-  // Interface pour clients - Tracker moderne avec données temps réel
+  // Interface pour clients - Tracker amélioré avec données temps réel
   return (
-    <ModernTracker 
-      trackingId={orderId}
-      trackingType="delivery"
+    <EnhancedDeliveryTracker 
+      orderId={orderId}
       onBack={onBack}
-      enableRealtimeLocation={true}
     />
   );
 }
