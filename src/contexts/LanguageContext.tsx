@@ -281,6 +281,12 @@ export const translations = {
     'escrow.auto_release_on': 'Libération automatique le',
     'escrow.expires_soon': 'Expire bientôt',
     
+    // Cities
+    'city.kinshasa': 'Kinshasa',
+    'city.lubumbashi': 'Lubumbashi', 
+    'city.kolwezi': 'Kolwezi',
+    'city.abidjan': 'Abidjan',
+
     // System
     'system.loading': 'Chargement...',
     'system.error': 'Erreur',
@@ -432,6 +438,10 @@ export const translations = {
     'nav.contact': 'Contact',
     'nav.login': 'Login',
     'nav.signup': 'Sign Up',
+    'nav.client': 'Client',
+    'nav.driver': 'Driver',
+    'nav.admin': 'Admin',
+    'nav.download_app': 'Download App',
     
     // Common
     'common.loading': 'Loading...',
@@ -449,6 +459,7 @@ export const translations = {
     'common.back': 'Back',
     'common.next': 'Next',
     'common.previous': 'Previous',
+    'common.more': 'More',
     
     // Auth
     'auth.login': 'Login',
@@ -772,6 +783,18 @@ export const translations = {
     // Transport additional keys
     'transport.enter_locations': 'Please enter pickup and destination locations',
     'transport.booking_error': 'Error creating booking',
+    'transport.driver_contact': 'Contact driver',
+    'transport.trip_details': 'Trip details',
+    'transport.fare_estimate': 'Fare estimate',
+    'transport.distance': 'Distance',
+    'transport.duration': 'Duration',
+    'transport.pickup_time': 'Pickup time',
+    
+    // Delivery additional keys
+    'delivery.pickup_address': 'Pickup address',
+    'delivery.delivery_address': 'Delivery address',
+    'delivery.package_details': 'Package details',
+    'delivery.special_instructions': 'Special instructions',
 
     // Activity History
     'activity.title': 'Ride History',
@@ -804,6 +827,36 @@ export const translations = {
     'marketplace.nearby': 'Nearby',
     'marketplace.error_load': 'Failed to load products',
     'marketplace.unknown_seller': 'Unknown seller',
+
+    // FAQ - English Complete Section
+    'faq.title': 'Frequently Asked Questions',
+    'faq.subtitle': 'Find answers to common questions about Kwenda services',
+    'faq.how_book_ride': 'How do I book a ride?',
+    'faq.how_book_ride_answer': 'Open the app, enter your destination, choose your vehicle type, and confirm your booking. A driver will be assigned to you automatically.',
+    'faq.payment_methods': 'What payment methods do you accept?',
+    'faq.payment_methods_answer': 'We accept cash, mobile money (Orange Money, Airtel Money), and KwendaPay wallet credits.',
+    'faq.cancel_ride': 'Can I cancel my ride?',
+    'faq.cancel_ride_answer': 'Yes, you can cancel your ride before the driver arrives. Cancellation fees may apply depending on the timing.',
+    'faq.driver_late': 'What if my driver is late?',
+    'faq.driver_late_answer': 'You can contact your driver directly through the app. If there are significant delays, you can cancel and book another ride.',
+    'faq.lost_item': 'I left something in the vehicle, what should I do?',
+    'faq.lost_item_answer': 'Contact our support team immediately with your trip details. We will help you connect with the driver to recover your item.',
+    'faq.pricing': 'How is pricing calculated?',
+    'faq.pricing_answer': 'Pricing is based on distance, time, vehicle type, and current demand. You will see the estimated fare before confirming your booking.',
+    'faq.safety': 'How do you ensure passenger safety?',
+    'faq.safety_answer': 'All our drivers are verified and licensed. You can share your trip details with contacts and track your ride in real-time.',
+    'faq.delivery_tracking': 'How can I track my delivery?',
+    'faq.delivery_tracking_answer': 'You will receive a tracking link after your delivery is dispatched. You can follow the driver\'s location in real-time.',
+    'faq.delivery_time': 'How long does delivery take?',
+    'faq.delivery_time_answer': 'Standard deliveries take 30-60 minutes. Express deliveries are completed within 30 minutes depending on distance and traffic.',
+    'faq.marketplace_return': 'Can I return marketplace items?',
+    'faq.marketplace_return_answer': 'Return policies vary by seller. Check the product page for specific return conditions and timeframes.',
+
+    // Cities - English
+    'city.kinshasa': 'Kinshasa',
+    'city.lubumbashi': 'Lubumbashi', 
+    'city.kolwezi': 'Kolwezi',
+    'city.abidjan': 'Abidjan',
 
     // Profile Messages
     'profile.updated': 'Profile updated',
@@ -1690,7 +1743,37 @@ export const translations = {
     'error.delivery_failed': 'Uwasilishaji umeshindwa',
     'error.location_unavailable': 'Eneo halitapatikani',
     'error.driver_unavailable': 'Dereva hatapatikani',
-    'error.service_unavailable': 'Huduma haitapatikani'
+    'error.service_unavailable': 'Huduma haitapatikani',
+    
+    // FAQ - Swahili Complete Section
+    'faq.title': 'Maswali Yanayoulizwa Mara kwa Mara',
+    'faq.subtitle': 'Pata majibu ya maswali ya kawaida kuhusu huduma za Kwenda',
+    'faq.how_book_ride': 'Ninaagizaje safari?',
+    'faq.how_book_ride_answer': 'Fungua programu, ingiza mahali unakokwenda, chagua aina ya gari, na thibitisha uhifadhi wako. Dereva atakabidhiwa moja kwa moja.',
+    'faq.payment_methods': 'Ni njia gani za malipo mnazokubali?',
+    'faq.payment_methods_answer': 'Tunakubali pesa taslimu, pesa za simu (Orange Money, Airtel Money), na mikopo ya KwendaPay wallet.',
+    'faq.cancel_ride': 'Je, naweza kughairi safari yangu?',
+    'faq.cancel_ride_answer': 'Ndiyo, unaweza kughairi safari yako kabla dereva hajafika. Ada za kughairi zinaweza kutumika kulingana na muda.',
+    'faq.driver_late': 'Je, kama dereva wangu anachelewa?',
+    'faq.driver_late_answer': 'Unaweza kuwasiliana na dereva wako moja kwa moja kupitia programu. Kama kuna kuchelewa kukuu, unaweza kughairi na kuagiza safari nyingine.',
+    'faq.lost_item': 'Niliacha kitu katika gari, nifanye nini?',
+    'faq.lost_item_answer': 'Wasiliana na timu yetu ya msaada mara moja na maelezo ya safari yako. Tutakusaidia kuwasiliana na dereva ili kupata kitu chako.',
+    'faq.pricing': 'Bei inahesabiwaje?',
+    'faq.pricing_answer': 'Bei inategemea umbali, muda, aina ya gari, na mahitaji ya sasa. Utaona bei ya makadirio kabla ya kuthibitisha uhifadhi wako.',
+    'faq.safety': 'Mnahakikishaje usalama wa abiria?',
+    'faq.safety_answer': 'Madereva wetu wote wamethibitishwa na wana leseni. Unaweza kushiriki maelezo ya safari yako na marafiki na kufuatilia safari yako wakati halisi.',
+    'faq.delivery_tracking': 'Ninawezaje kufuatilia uwasilishaji wangu?',
+    'faq.delivery_tracking_answer': 'Utapokea kiungo cha kufuatilia baada ya uwasilishaji wako kutumwa. Unaweza kufuata mahali pa dereva wakati halisi.',
+    'faq.delivery_time': 'Uwasilishaji unachukua muda gani?',
+    'faq.delivery_time_answer': 'Uwasilishaji wa kawaida unachukua dakika 30-60. Uwasilishaji wa haraka unakamilika ndani ya dakika 30 kulingana na umbali na msongamano.',
+    'faq.marketplace_return': 'Je, naweza kurudisha vitu vya soko?',
+    'faq.marketplace_return_answer': 'Sera za kurudisha zinatofautiana kwa muuzaji. Angalia ukurasa wa bidhaa kwa masharti maalum ya kurudisha na muda.',
+    
+    // Cities - Swahili
+    'city.kinshasa': 'Kinshasa',
+    'city.lubumbashi': 'Lubumbashi', 
+    'city.kolwezi': 'Kolwezi',
+    'city.abidjan': 'Abidjan'
   }
 };
 
