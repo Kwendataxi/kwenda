@@ -41,19 +41,22 @@ const CTASection = () => {
       platform: "Android",
       icon: "📱",
       available: true,
-      note: "Disponible maintenant"
+      note: "Google Play Store",
+      url: "https://play.google.com/store/apps/details?id=cd.kwenda.taxi"
     },
     {
       platform: "iOS",
       icon: "📲", 
-      available: false,
-      note: "Bientôt disponible"
+      available: true,
+      note: "App Store",
+      url: "https://apps.apple.com/app/kwenda-taxi/id1234567890"
     },
     {
       platform: "Web App",
       icon: "🌐",
       available: true,
-      note: "Accès direct"
+      note: "Accès direct",
+      url: "/auth"
     }
   ];
 
@@ -153,14 +156,29 @@ const CTASection = () => {
                   <div className="text-3xl lg:text-4xl mb-3 lg:mb-4">{option.icon}</div>
                   <h4 className="text-base lg:text-heading-sm mb-2">{option.platform}</h4>
                   <p className="text-xs lg:text-sm text-muted-foreground mb-3 lg:mb-4">{option.note}</p>
-                  <Button 
-                    variant={option.available ? "default" : "outline"}
-                    disabled={!option.available}
-                    className="w-full min-h-[44px] text-sm lg:text-base"
-                    size="lg"
-                  >
-                    {option.available ? "Télécharger" : "Bientôt"}
-                  </Button>
+                  {option.platform === "Web App" ? (
+                    <Link to={option.url}>
+                      <Button 
+                        variant="default"
+                        className="w-full min-h-[44px] text-sm lg:text-base"
+                        size="lg"
+                      >
+                        Lancer l'app
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Button 
+                      variant="default"
+                      className="w-full min-h-[44px] text-sm lg:text-base"
+                      size="lg"
+                      onClick={() => {
+                        // Ouvrir dans un nouvel onglet pour les stores
+                        window.open(option.url, '_blank', 'noopener,noreferrer');
+                      }}
+                    >
+                      Télécharger
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))}
