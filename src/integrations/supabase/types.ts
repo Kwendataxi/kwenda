@@ -8284,6 +8284,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      check_admin_status_for_rls: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       check_driver_location_access: {
         Args: { target_driver_id: string }
         Returns: boolean
@@ -8308,6 +8312,10 @@ export type Database = {
           details: string
           status: string
         }[]
+      }
+      check_super_admin_status: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
       cleanup_expired_location_cache: {
         Args: Record<PropertyKey, never>
@@ -8766,6 +8774,16 @@ export type Database = {
           total_orders: number
         }[]
       }
+      get_security_alerts_current: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          alert_type: string
+          created_at: string
+          message: string
+          severity: string
+          user_id: string
+        }[]
+      }
       get_security_compliance_report: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -8773,6 +8791,15 @@ export type Database = {
           compliance_level: string
           details: string
           status: string
+        }[]
+      }
+      get_security_dashboard_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          alert_level: string
+          description: string
+          metric_name: string
+          metric_value: string
         }[]
       }
       get_security_metrics: {
@@ -9105,6 +9132,14 @@ export type Database = {
           p_table_name: string
         }
         Returns: undefined
+      }
+      log_sensitive_access_enhanced: {
+        Args: {
+          p_operation: string
+          p_table_name: string
+          p_target_user_id?: string
+        }
+        Returns: boolean
       }
       log_sensitive_data_access: {
         Args:
