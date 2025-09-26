@@ -490,39 +490,41 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         </div>
       </div>
 
-      {/* Navigation Footer SÉCURISÉ - toujours visible */}
+      {/* Navigation Footer SÉCURISÉ - toujours visible avec boutons centrés */}
       <div className="sticky bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border/50 p-4 z-[60] shadow-2xl safe-area-padding">
         <div className="max-w-md mx-auto">
-          <div className="flex justify-between items-center space-x-4 min-touch-target">
-            {currentStep !== 'pickup' && (
-              <Button
-                variant="ghost"
-                onClick={handleBack}
-                className="flex items-center space-x-2 text-muted-foreground hover:text-foreground min-touch-target"
-                disabled={isSubmitting}
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Retour</span>
-              </Button>
-            )}
-            
-            {currentStep === 'pickup' && (
+          <div className="flex items-center justify-center space-x-4 w-full">
+            {/* Bouton gauche - Retour ou Annuler */}
+            {currentStep === 'pickup' ? (
               <Button
                 variant="outline"
                 onClick={onCancel}
-                className="flex-1 min-touch-target bg-card border-border hover:bg-muted"
+                className="flex-1 max-w-32 min-touch-target bg-muted/50 hover:bg-muted border-border"
                 disabled={isSubmitting}
               >
                 Annuler
               </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                onClick={handleBack}
+                className="flex-1 max-w-32 min-touch-target bg-muted/50 hover:bg-muted text-foreground"
+                disabled={isSubmitting}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Retour
+              </Button>
             )}
             
+            {/* Bouton droite - Suivant ou Confirmer */}
             {currentStep !== 'confirm' ? (
               <Button
                 onClick={handleNext}
-                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow hover:shadow-congo min-touch-target"
-                disabled={!deliveryData.pickupLocation && currentStep === 'pickup' || 
-                         !deliveryData.deliveryLocation && currentStep === 'destination'}
+                className="flex-1 max-w-48 bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow hover:shadow-congo min-touch-target"
+                disabled={
+                  (currentStep === 'pickup' && !deliveryData.pickupLocation) || 
+                  (currentStep === 'destination' && !deliveryData.deliveryLocation)
+                }
               >
                 <span>Suivant</span>
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -530,10 +532,10 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             ) : (
               <Button
                 onClick={handleSubmit}
-                className="flex-1 bg-congo-green hover:bg-congo-green/90 text-white shadow-glow hover:shadow-congo min-touch-target"
+                className="flex-1 max-w-48 bg-congo-green hover:bg-congo-green/90 text-white shadow-glow hover:shadow-congo min-touch-target"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Création...' : 'Confirmer la commande'}
+                {isSubmitting ? 'Création...' : 'Confirmer'}
               </Button>
             )}
           </div>
