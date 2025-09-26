@@ -13,7 +13,7 @@ import {
   MapPin, 
   CheckCircle, 
   AlertTriangle, 
-  Refresh,
+  RefreshCw,
   Zap,
   Database
 } from 'lucide-react';
@@ -56,10 +56,10 @@ export const GoogleMapsTest: React.FC = () => {
       driverResults.progress = driverResults.totalRecords > 0 ? 
         (driverResults.withGoogleAddress / driverResults.totalRecords) * 100 : 0;
 
-      // Test transport bookings
+      // Test transport bookings  
       const { data: bookings, error: bookingsError } = await supabase
         .from('transport_bookings')
-        .select('id, pickup_google_address, delivery_google_address, pickup_coordinates, delivery_coordinates')
+        .select('id, pickup_location, delivery_location, pickup_coordinates, pickup_google_address, delivery_google_address')
         .limit(1000);
 
       if (bookingsError) throw bookingsError;
@@ -67,12 +67,12 @@ export const GoogleMapsTest: React.FC = () => {
       const bookingResults = {
         totalRecords: bookings?.length || 0,
         withGoogleAddress: bookings?.filter(b => 
-          isRealGoogleAddress(b.pickup_google_address) || 
-          isRealGoogleAddress(b.delivery_google_address)
+          isRealGoogleAddress((b as any).pickup_google_address) || 
+          isRealGoogleAddress((b as any).delivery_google_address)
         ).length || 0,
         withoutGoogleAddress: bookings?.filter(b => 
-          !isRealGoogleAddress(b.pickup_google_address) && 
-          !isRealGoogleAddress(b.delivery_google_address)
+          !isRealGoogleAddress((b as any).pickup_google_address) && 
+          !isRealGoogleAddress((b as any).delivery_google_address)
         ).length || 0,
         progress: 0
       };
@@ -90,12 +90,12 @@ export const GoogleMapsTest: React.FC = () => {
       const deliveryResults = {
         totalRecords: deliveries?.length || 0,
         withGoogleAddress: deliveries?.filter(d => 
-          isRealGoogleAddress(d.pickup_google_address) || 
-          isRealGoogleAddress(d.delivery_google_address)
+          isRealGoogleAddress((d as any).pickup_google_address) || 
+          isRealGoogleAddress((d as any).delivery_google_address)
         ).length || 0,
         withoutGoogleAddress: deliveries?.filter(d => 
-          !isRealGoogleAddress(d.pickup_google_address) && 
-          !isRealGoogleAddress(d.delivery_google_address)
+          !isRealGoogleAddress((d as any).pickup_google_address) && 
+          !isRealGoogleAddress((d as any).delivery_google_address)
         ).length || 0,
         progress: 0
       };
@@ -162,7 +162,7 @@ export const GoogleMapsTest: React.FC = () => {
               disabled={testing}
               variant="outline"
             >
-              <Refresh className={`h-4 w-4 mr-2 ${testing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 mr-2 ${testing ? 'animate-spin' : ''}`} />
               Actualiser
             </Button>
             <div className="text-sm text-muted-foreground">
