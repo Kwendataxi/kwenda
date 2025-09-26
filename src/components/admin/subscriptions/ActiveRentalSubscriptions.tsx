@@ -24,10 +24,8 @@ export const ActiveRentalSubscriptions = () => {
 
   const filteredSubscriptions = subscriptions.filter(sub => {
     const matchesSearch = 
-      sub.partner?.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sub.vehicle?.make?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sub.vehicle?.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sub.vehicle?.plate_number?.toLowerCase().includes(searchTerm.toLowerCase());
+      sub.partner_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sub.vehicle_id?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || sub.status === statusFilter;
     
@@ -133,22 +131,20 @@ export const ActiveRentalSubscriptions = () => {
                       <TableRow key={subscription.id}>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{subscription.partner?.company_name}</div>
-                            <div className="text-sm text-muted-foreground">{subscription.partner?.contact_person}</div>
+                            <div className="font-medium">Partenaire #{subscription.partner_id.slice(0, 8)}</div>
+                            <div className="text-sm text-muted-foreground">ID: {subscription.partner_id}</div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium">
-                              {subscription.vehicle?.make} {subscription.vehicle?.model} ({subscription.vehicle?.year})
-                            </div>
-                            <div className="text-sm text-muted-foreground">{subscription.vehicle?.plate_number}</div>
+                            <div className="font-medium">Véhicule #{subscription.vehicle_id.slice(0, 8)}</div>
+                            <div className="text-sm text-muted-foreground">ID: {subscription.vehicle_id}</div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="font-medium">{subscription.plan?.name}</div>
+                          <div className="font-medium">Plan #{subscription.plan_id.slice(0, 8)}</div>
                           <div className="text-sm text-muted-foreground">
-                            {subscription.plan?.duration_days} jours
+                            Plan mensuel
                           </div>
                         </TableCell>
                         <TableCell>{getStatusBadge(subscription.status)}</TableCell>
@@ -164,7 +160,7 @@ export const ActiveRentalSubscriptions = () => {
                         </TableCell>
                         <TableCell>
                           <div className="font-medium">
-                            {subscription.plan?.price?.toLocaleString()} {subscription.plan?.currency}
+                            30,000 CDF
                           </div>
                         </TableCell>
                         <TableCell>
@@ -225,8 +221,13 @@ export const ActiveRentalSubscriptions = () => {
         onClose={() => setActionModal({ isOpen: false, subscription: null, action: '' })}
         subscription={actionModal.subscription}
         action={actionModal.action}
-        onExtend={(id, days) => extendSubscription({ id, days })}
-        onCancel={cancelSubscription}
+        onConfirm={(id, data) => {
+          if (actionModal.action === 'extend' && data?.days) {
+            extendSubscription({ id, days: data.days });
+          } else if (actionModal.action === 'cancel') {
+            cancelSubscription(id);
+          }
+        }}
         type="rental"
       />
     </div>

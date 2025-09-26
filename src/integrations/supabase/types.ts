@@ -8177,6 +8177,22 @@ export type Database = {
       }
     }
     Functions: {
+      admin_cancel_subscription: {
+        Args: {
+          p_reason?: string
+          p_subscription_id: string
+          p_subscription_type: string
+        }
+        Returns: Json
+      }
+      admin_extend_subscription: {
+        Args: {
+          p_days: number
+          p_subscription_id: string
+          p_subscription_type: string
+        }
+        Returns: Json
+      }
       anonymize_old_location_data: {
         Args: { days_old?: number }
         Returns: number
@@ -9088,6 +9104,14 @@ export type Database = {
               p_operation: string
               p_table_name: string
             }
+        Returns: undefined
+      }
+      log_subscription_access: {
+        Args: {
+          p_operation: string
+          p_subscription_id?: string
+          p_table_name: string
+        }
         Returns: undefined
       }
       log_system_activity: {

@@ -18,9 +18,9 @@ export const RentalSubscriptionPlans = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    price: 0,
+    monthly_price: 0,
     currency: 'CDF',
-    duration_days: 30,
+    category_id: '',
     features: [] as string[],
     is_active: true
   });
@@ -29,9 +29,9 @@ export const RentalSubscriptionPlans = () => {
     setFormData({
       name: '',
       description: '',
-      price: 0,
+      monthly_price: 0,
       currency: 'CDF',
-      duration_days: 30,
+      category_id: '',
       features: [],
       is_active: true
     });
@@ -59,9 +59,9 @@ export const RentalSubscriptionPlans = () => {
     setFormData({
       name: plan.name,
       description: plan.description || '',
-      price: plan.price,
+      monthly_price: plan.monthly_price,
       currency: plan.currency,
-      duration_days: plan.duration_days,
+      category_id: plan.category_id || '',
       features: plan.features || [],
       is_active: plan.is_active
     });
@@ -125,12 +125,12 @@ export const RentalSubscriptionPlans = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="price">Prix</Label>
+                      <Label htmlFor="monthly_price">Prix Mensuel</Label>
                       <Input
-                        id="price"
+                        id="monthly_price"
                         type="number"
-                        value={formData.price}
-                        onChange={(e) => setFormData(prev => ({ ...prev, price: Number(e.target.value) }))}
+                        value={formData.monthly_price}
+                        onChange={(e) => setFormData(prev => ({ ...prev, monthly_price: Number(e.target.value) }))}
                         placeholder="30000"
                         required
                       />
@@ -149,14 +149,12 @@ export const RentalSubscriptionPlans = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="duration">Durée (jours)</Label>
+                      <Label htmlFor="category_id">Catégorie</Label>
                       <Input
-                        id="duration"
-                        type="number"
-                        value={formData.duration_days}
-                        onChange={(e) => setFormData(prev => ({ ...prev, duration_days: Number(e.target.value) }))}
-                        placeholder="30"
-                        required
+                        id="category_id"
+                        value={formData.category_id}
+                        onChange={(e) => setFormData(prev => ({ ...prev, category_id: e.target.value }))}
+                        placeholder="eco, standard, premium"
                       />
                     </div>
                   </div>
@@ -216,7 +214,7 @@ export const RentalSubscriptionPlans = () => {
                 <TableRow>
                   <TableHead>Nom</TableHead>
                   <TableHead>Prix</TableHead>
-                  <TableHead>Durée</TableHead>
+                  <TableHead>Catégorie</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Fonctionnalités</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -242,11 +240,11 @@ export const RentalSubscriptionPlans = () => {
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">
-                          {plan.price.toLocaleString()} {plan.currency}
+                          {plan.monthly_price.toLocaleString()} {plan.currency}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div>{plan.duration_days} jours</div>
+                        <div>{plan.category_id || 'Non défini'}</div>
                       </TableCell>
                       <TableCell>
                         <Badge variant={plan.is_active ? 'default' : 'secondary'}>

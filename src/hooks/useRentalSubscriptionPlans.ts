@@ -7,11 +7,10 @@ export interface RentalSubscriptionPlan {
   id: string;
   name: string;
   description?: string;
-  price: number;
+  monthly_price: number;
   currency: string;
-  duration_days: number;
-  features: string[];
   category_id?: string;
+  features: string[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -40,7 +39,15 @@ export const useRentalSubscriptionPlans = () => {
     mutationFn: async (planData: Omit<RentalSubscriptionPlan, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('rental_subscription_plans')
-        .insert(planData)
+        .insert({
+          name: planData.name,
+          description: planData.description,
+          monthly_price: planData.monthly_price,
+          currency: planData.currency,
+          category_id: planData.category_id,
+          features: planData.features,
+          is_active: planData.is_active
+        })
         .select()
         .single();
       

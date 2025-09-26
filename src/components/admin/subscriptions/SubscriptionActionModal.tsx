@@ -14,6 +14,7 @@ interface SubscriptionActionModalProps {
   subscription: any;
   action: string;
   type: 'driver' | 'rental';
+  onConfirm?: (id: string, data?: any) => void;
 }
 
 export const SubscriptionActionModal = ({
@@ -21,7 +22,8 @@ export const SubscriptionActionModal = ({
   onClose,
   subscription,
   action,
-  type
+  type,
+  onConfirm
 }: SubscriptionActionModalProps) => {
   const { extendSubscription, cancelSubscriptionAdmin } = useUnifiedSubscriptions();
   const [loading, setLoading] = useState(false);
@@ -37,7 +39,11 @@ export const SubscriptionActionModal = ({
   const handleExtend = async () => {
     setLoading(true);
     try {
-      await extendSubscription(subscription.id, type, parseInt(extensionDays));
+      if (onConfirm) {
+        onConfirm(subscription.id, { days: parseInt(extensionDays) });
+      } else {
+        await extendSubscription(subscription.id, type, parseInt(extensionDays));
+      }
       onClose();
     } catch (error) {
       console.error('Error extending subscription:', error);
@@ -53,7 +59,11 @@ export const SubscriptionActionModal = ({
     
     setLoading(true);
     try {
-      await cancelSubscriptionAdmin(subscription.id, type);
+      if (onConfirm) {
+        onConfirm(subscription.id);
+      } else {
+        await cancelSubscriptionAdmin(subscription.id, type);
+      }
       onClose();
     } catch (error) {
       console.error('Error cancelling subscription:', error);
