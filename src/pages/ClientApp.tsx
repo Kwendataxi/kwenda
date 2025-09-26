@@ -16,8 +16,9 @@ import NotificationCenter from '@/components/advanced/NotificationCenter';
 import OfflineMode from '@/components/advanced/OfflineMode';
 import SecurityVerification from '@/components/advanced/SecurityVerification';
 import { ResponsiveUserProfile } from '@/components/profile/ResponsiveUserProfile';
+import { ClientWalletPanel } from '@/components/client/ClientWalletPanel';
 import { ModernHomeScreen } from '@/components/home/ModernHomeScreen';
-import { ModernBottomNavigation } from '@/components/home/ModernBottomNavigation';
+import { UniversalBottomNavigation } from '@/components/navigation/UniversalBottomNavigation';
 import { ResponsiveContainer } from '@/components/layout/ResponsiveContainer';
 import { MobileOptimizedLayout } from '@/components/layout/MobileOptimizedLayout';
 import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
@@ -527,6 +528,23 @@ const ClientApp = () => {
     <UnifiedActivityScreen onBack={() => setCurrentView('home')} />
   );
 
+  const renderWallet = () => (
+    <div className="min-h-screen bg-background content-with-bottom-nav-scrollable safe-area-inset">
+      <div className="flex items-center gap-4 p-4 mb-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setCurrentView('home')}
+          className="rounded-xl"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h1 className="text-heading-lg text-card-foreground">Portefeuille KwendaPay</h1>
+      </div>
+      <ClientWalletPanel />
+    </div>
+  );
+
   const renderPayment = () => (
     <div className="min-h-screen bg-background content-with-bottom-nav-scrollable safe-area-inset">
       <div className="p-4">
@@ -703,9 +721,15 @@ const ClientApp = () => {
       {/* Marketplace components now handled by EnhancedMarketplaceInterface */}
       
 
-      {/* Modern Bottom Navigation - Always visible */}
-      <ModernBottomNavigation
-        activeTab={currentView === 'home' ? 'home' : currentView === 'history' || currentView === 'activity' ? 'activity' : 'profil'}
+      {/* Universal Bottom Navigation - Always visible */}
+      <UniversalBottomNavigation
+        userType="client"
+        activeTab={
+          currentView === 'home' ? 'home' : 
+          currentView === 'history' || currentView === 'activity' ? 'activity' : 
+          currentView === 'wallet' ? 'wallet' :
+          currentView === 'profile' ? 'profile' : 'home'
+        }
         onTabChange={(tab) => {
           const preserveScroll = serviceType === 'marketplace';
           
@@ -713,12 +737,12 @@ const ClientApp = () => {
             transitionToView(setCurrentView, 'home', { preserveScroll });
           } else if (tab === 'activity') {
             transitionToView(setCurrentView, 'history', { preserveScroll });
-          } else if (tab === 'profil') {
+          } else if (tab === 'wallet') {
+            transitionToView(setCurrentView, 'wallet', { preserveScroll });
+          } else if (tab === 'profile') {
             transitionToView(setCurrentView, 'profile', { preserveScroll });
           }
         }}
-        notificationCount={0}
-        favoritesCount={0}
       />
       
         
