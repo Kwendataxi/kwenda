@@ -1,0 +1,89 @@
+/* Dark Mode Contrast Improvements */
+
+/* Utility classes for better contrast */
+.text-readable {
+  @apply text-foreground/85;
+}
+
+.text-readable-muted {
+  @apply text-foreground/70;
+}
+
+.bg-subtle {
+  @apply bg-card/80 backdrop-blur-sm;
+}
+
+.border-visible {
+  @apply border-border/60;
+}
+
+/* Enhanced dropdowns */
+.dropdown-content {
+  @apply bg-card/95 backdrop-blur-md border border-border/60;
+  z-index: 50;
+}
+
+/* Improved skeleton loading */
+.dark .animate-pulse {
+  @apply bg-muted/60;
+}
+
+/* Better table row hover */
+.dark .table-row-hover:hover {
+  @apply bg-muted/30;
+}
+
+/* Enhanced tabs */
+.dark .tabs-list {
+  @apply bg-muted/40;
+}
+
+.dark .tabs-trigger[data-state="active"] {
+  @apply bg-card text-foreground shadow-sm;
+}
+
+/* Toast notifications improvements */
+.dark .toast {
+  @apply bg-card/95 border-border/60 text-foreground;
+}
+
+/* Form improvements */
+.dark .form-label {
+  @apply text-foreground/90;
+}
+
+.dark .placeholder\:text-muted-foreground::placeholder {
+  @apply text-foreground/50;
+}
+
+/* Modern card enhancements */
+.dark .card-modern {
+  @apply bg-card/90 border-border/40;
+}
+
+.dark .card-modern:hover {
+  @apply border-border/60 bg-card/95;
+}
+
+/* Icon visibility improvements */
+.dark .icon-secondary {
+  @apply text-foreground/70;
+}
+
+.dark .icon-muted {
+  @apply text-foreground/50;
+}
+
+/* Badge improvements */
+.dark .badge-secondary {
+  @apply bg-muted/60 text-foreground/85;
+}
+
+/* Select improvements */
+.dark .select-content {
+  @apply bg-card/95 border-border/60;
+}
+
+.dark .select-item[data-highlighted] {
+  @apply bg-muted/40 text-foreground;
+}

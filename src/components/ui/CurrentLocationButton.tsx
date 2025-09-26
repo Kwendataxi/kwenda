@@ -180,7 +180,7 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
              contextLabels[context]}
           </span>
           {showAccuracy && lastAccuracy && localState === 'success' && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-foreground/60">
               Précision ±{Math.round(lastAccuracy)}m
             </span>
           )}
@@ -357,7 +357,7 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
             {/* Indicateur de précision */}
             {getPrecisionBadge() && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Précision:</span>
+                <span className="text-xs text-foreground/60">Précision:</span>
                 {getPrecisionBadge()}
               </div>
             )}
@@ -380,7 +380,7 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
                 <p className="text-xs text-destructive font-medium">
                   ❌ {typeof error === 'string' ? error : 'Erreur de géolocalisation'}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-foreground/60">
                   Vérifiez vos paramètres GPS et réessayez
                 </p>
               </div>
@@ -388,7 +388,7 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
             
             {currentLocation && localState === 'idle' && (
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Dernière position:</p>
+                <p className="text-xs text-foreground/60">Dernière position:</p>
                 <p className="text-xs font-mono bg-muted/50 p-1 rounded text-foreground">
                   {currentLocation.address}
                 </p>

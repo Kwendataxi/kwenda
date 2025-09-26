@@ -211,7 +211,7 @@ export const KwendaPayWallet = () => {
         <CardContent className="flex items-center justify-center p-8">
           <div className="text-center">
             <Wallet className="h-8 w-8 animate-pulse mx-auto mb-2 text-muted-foreground" />
-            <p className="text-muted-foreground">Chargement du portefeuille...</p>
+            <p className="text-foreground/70">Chargement du portefeuille...</p>
           </div>
         </CardContent>
       </Card>
@@ -335,7 +335,7 @@ export const KwendaPayWallet = () => {
                         {getTransactionIcon(transaction.transaction_type)}
                         <div>
                           <p className="font-medium text-sm">{transaction.description}</p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-foreground/60">
                             {new Date(transaction.created_at).toLocaleString('fr-FR')}
                           </p>
                         </div>
@@ -349,7 +349,7 @@ export const KwendaPayWallet = () => {
                         </p>
                         <div className="flex items-center gap-1">
                           {getStatusIcon(transaction.status)}
-                          <span className="text-xs text-muted-foreground capitalize">
+                          <span className="text-xs text-foreground/60 capitalize">
                             {transaction.status}
                           </span>
                         </div>

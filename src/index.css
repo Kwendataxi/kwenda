@@ -1,6 +1,7 @@
 /* Import performance optimizations */
 @import './styles/performance.css';
 @import './styles/lottery.css';
+@import './styles/dark-mode-improvements.css';
 
 @tailwind base;
 @tailwind components;
@@ -500,8 +501,8 @@ All colors MUST be HSL.
     --secondary-foreground: 220 35% 8%;
     --secondary-light: 42 100% 75%;
 
-    --muted: 220 30% 12%;
-    --muted-foreground: 220 15% 78%;
+    --muted: 220 30% 15%;
+    --muted-foreground: 220 15% 85%;
 
     --accent: 42 98% 68%;
     --accent-foreground: 220 35% 8%;
@@ -554,7 +555,7 @@ All colors MUST be HSL.
     --destructive: 0 85% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 30% 20%;
+    --border: 220 30% 25%;
     --input: 220 30% 15%;
     --ring: 357 88% 65%;
 
