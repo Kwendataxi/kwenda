@@ -721,7 +721,7 @@ const ClientApp = () => {
       {/* Marketplace components now handled by EnhancedMarketplaceInterface */}
       
 
-      {/* Modern Bottom Navigation - Always visible */}
+      {/* Modern Bottom Navigation - Restored original navigation */}
       <ModernBottomNavigation
         activeTab={currentView === 'profil' ? 'profil' : currentView === 'activity' ? 'activity' : 'home'}
         onTabChange={(tab) => {
