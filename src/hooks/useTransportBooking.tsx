@@ -11,6 +11,7 @@ interface BookingData {
   vehicleType: string;
   estimatedPrice: number;
   pickupTime?: string;
+  city?: string; // Ville de la réservation
 }
 
 export const useTransportBooking = () => {
@@ -36,6 +37,7 @@ export const useTransportBooking = () => {
           vehicle_type: data.vehicleType,
           estimated_price: data.estimatedPrice,
           pickup_time: data.pickupTime || new Date().toISOString(),
+          city: data.city || 'Kinshasa', // Ville par défaut Kinshasa
           status: 'pending'
         })
         .select()

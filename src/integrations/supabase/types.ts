@@ -6403,6 +6403,7 @@ export type Database = {
         Row: {
           actual_price: number | null
           booking_time: string
+          city: string | null
           completion_time: string | null
           created_at: string
           delivery_google_address: string | null
@@ -6437,6 +6438,7 @@ export type Database = {
         Insert: {
           actual_price?: number | null
           booking_time?: string
+          city?: string | null
           completion_time?: string | null
           created_at?: string
           delivery_google_address?: string | null
@@ -6471,6 +6473,7 @@ export type Database = {
         Update: {
           actual_price?: number | null
           booking_time?: string
+          city?: string | null
           completion_time?: string | null
           created_at?: string
           delivery_google_address?: string | null

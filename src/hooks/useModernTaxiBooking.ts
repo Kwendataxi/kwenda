@@ -32,6 +32,7 @@ interface ModernBookingData {
   distance?: number;
   notes?: string;
   scheduledTime?: Date;
+  city?: string; // Ville de la réservation
 }
 
 interface BookingResult {
@@ -146,7 +147,7 @@ export function useModernTaxiBooking() {
       const { pickup: validatedPickup, destination: validatedDestination } = 
         await validateAndCorrectCoordinates(bookingData.pickup, bookingData.destination);
 
-      // 2. Préparer les données de réservation SANS le champ city
+      // 2. Préparer les données de réservation avec le champ city
       const bookingPayload = {
         user_id: user.id,
         pickup_location: bookingData.pickup.address,
@@ -158,6 +159,7 @@ export function useModernTaxiBooking() {
         total_distance: bookingData.distance,
         notes: bookingData.notes || null,
         pickup_time: bookingData.scheduledTime?.toISOString() || new Date().toISOString(),
+        city: bookingData.city || 'Kinshasa', // Ville par défaut Kinshasa
         status: 'pending'
       };
 

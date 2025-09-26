@@ -18,6 +18,7 @@ interface BookingData {
   totalDistance?: number;
   surgeMultiplier?: number;
   pickupTime?: string;
+  city?: string; // Ville de la réservation
 }
 
 interface DriverMatch {
@@ -94,6 +95,7 @@ export const useEnhancedTransportBooking = () => {
           total_distance: data.totalDistance,
           surge_multiplier: data.surgeMultiplier || 1.0,
           pickup_time: data.pickupTime || new Date().toISOString(),
+          city: data.city || 'Kinshasa', // Ville par défaut Kinshasa
           status: 'pending'
         })
         .select()
