@@ -278,6 +278,15 @@ export const DriverSubscriptionAdmin = () => {
         onClose={() => setActionModal({ isOpen: false, subscription: null, action: "" })}
         subscription={actionModal.subscription}
         action={actionModal.action}
+        onConfirm={(id, data) => {
+          if (actionModal.action === 'extend' && data?.days) {
+            // Note: This would need to be implemented with proper API calls
+            console.log('Extend subscription:', id, data.days);
+          } else if (actionModal.action === 'cancel') {
+            // Note: This would need to be implemented with proper API calls
+            console.log('Cancel subscription:', id);
+          }
+        }}
         type="driver"
       />
     </div>

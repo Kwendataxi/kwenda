@@ -9,8 +9,8 @@ export interface RentalSubscriptionPlan {
   description?: string;
   monthly_price: number;
   currency: string;
-  category_id?: string;
-  features: string[];
+  category_id: string;
+  features: any;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -30,13 +30,13 @@ export const useRentalSubscriptionPlans = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as RentalSubscriptionPlan[];
+      return data || [];
     }
   });
 
   // Create new plan
   const createPlan = useMutation({
-    mutationFn: async (planData: Omit<RentalSubscriptionPlan, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (planData: any) => {
       const { data, error } = await supabase
         .from('rental_subscription_plans')
         .insert({
@@ -44,7 +44,7 @@ export const useRentalSubscriptionPlans = () => {
           description: planData.description,
           monthly_price: planData.monthly_price,
           currency: planData.currency,
-          category_id: planData.category_id,
+          category_id: planData.category_id || '',
           features: planData.features,
           is_active: planData.is_active
         })
@@ -72,7 +72,7 @@ export const useRentalSubscriptionPlans = () => {
 
   // Update plan
   const updatePlan = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<RentalSubscriptionPlan> }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
       const { data, error } = await supabase
         .from('rental_subscription_plans')
         .update(updates)

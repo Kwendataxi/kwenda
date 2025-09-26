@@ -21,7 +21,7 @@ export const RentalSubscriptionPlans = () => {
     monthly_price: 0,
     currency: 'CDF',
     category_id: '',
-    features: [] as string[],
+    features: [],
     is_active: true
   });
 
@@ -174,7 +174,7 @@ export const RentalSubscriptionPlans = () => {
                     <Label htmlFor="features">Fonctionnalités (une par ligne)</Label>
                     <Textarea
                       id="features"
-                      value={formData.features.join('\n')}
+                      value={Array.isArray(formData.features) ? formData.features.join('\n') : ''}
                       onChange={(e) => handleFeaturesChange(e.target.value)}
                       placeholder="Accès plateforme&#10;Support 24/7&#10;Maintenance incluse"
                       rows={4}
@@ -253,10 +253,12 @@ export const RentalSubscriptionPlans = () => {
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          {plan.features.slice(0, 2).map((feature, index) => (
-                            <div key={index} className="text-sm">• {feature}</div>
-                          ))}
-                          {plan.features.length > 2 && (
+                          {Array.isArray(plan.features) ? plan.features.slice(0, 2).map((feature, index) => (
+                            <div key={index} className="text-sm">• {String(feature)}</div>
+                          )) : (
+                            <div className="text-sm text-muted-foreground">Aucune fonctionnalité</div>
+                          )}
+                          {Array.isArray(plan.features) && plan.features.length > 2 && (
                             <div className="text-sm text-muted-foreground">
                               +{plan.features.length - 2} autres...
                             </div>
