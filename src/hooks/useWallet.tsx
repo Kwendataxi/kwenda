@@ -35,24 +35,30 @@ export const useWallet = () => {
   const [initialized, setInitialized] = useState(false);
   const { user, loading: authLoading } = useAuth();
 
-  const fetchWallet = async (retryCount = 0) => {
-    // Guards stricts pour éviter les appels prématurés
-    if (!user?.id || authLoading) {
+  const fetchWallet = async () => {
+    console.log('🔄 [Wallet] fetchWallet called - User:', user?.id, 'AuthLoading:', authLoading);
+    
+    if (!user?.id) {
+      console.log('⚠️ [Wallet] No user ID, clearing wallet state');
+      setWallet(null);
+      setTransactions([]);
+      setError(null);
       setLoading(false);
+      setInitialized(true);
       return;
     }
 
-    // Éviter les doubles appels
-    if (loading && retryCount === 0) {
+    if (authLoading) {
+      console.log('⏳ [Wallet] Auth still loading, waiting...');
       return;
     }
 
     setLoading(true);
     setError(null);
 
-    console.log(`🔄 [Wallet] Tentative ${retryCount + 1} - User ID: ${user.id}`);
-
     try {
+      console.log('📞 [Wallet] Fetching wallet for user:', user.id);
+      
       const { data, error } = await supabase
         .from('user_wallets')
         .select('*')
@@ -60,11 +66,13 @@ export const useWallet = () => {
         .eq('currency', 'CDF')
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [Wallet] Query error:', error);
+        throw error;
+      }
 
       if (!data) {
-        // Create wallet if it doesn't exist
-        console.log('Creating new wallet for user:', user.id);
+        console.log('💳 [Wallet] No wallet found, creating new one');
         const { data: newWallet, error: createError } = await supabase
           .from('user_wallets')
           .insert({
@@ -76,28 +84,25 @@ export const useWallet = () => {
           .select()
           .single();
 
-        if (createError) throw createError;
+        if (createError) {
+          console.error('❌ [Wallet] Create error:', createError);
+          throw createError;
+        }
+        
         setWallet(newWallet);
-        console.log('Wallet created:', newWallet);
+        console.log('✅ [Wallet] Wallet created:', newWallet);
       } else {
         setWallet(data);
-        console.log('Wallet loaded:', data);
+        console.log('✅ [Wallet] Wallet loaded:', data);
       }
     } catch (error: any) {
-      console.error('Error fetching wallet:', error);
+      console.error('💥 [Wallet] Error in fetchWallet:', error);
       setError(error.message || 'Erreur lors du chargement du portefeuille');
-      
-      // Retry logic
-      if (retryCount < 2) {
-        console.log(`Retrying wallet fetch (${retryCount + 1}/3)...`);
-        setTimeout(() => fetchWallet(retryCount + 1), 1000 * (retryCount + 1));
-        return;
-      }
-      
       toast.error('Erreur lors du chargement du portefeuille');
     } finally {
       setLoading(false);
       setInitialized(true);
+      console.log('🏁 [Wallet] fetchWallet completed');
     }
   };
 
@@ -209,29 +214,18 @@ export const useWallet = () => {
   };
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    console.log('🔄 [Wallet] Effect triggered - User:', user?.id, 'AuthLoading:', authLoading, 'Initialized:', initialized);
     
-    if (!authLoading) {
-      if (user?.id) {
-        // Petit délai pour éviter les race conditions
-        timeoutId = setTimeout(() => {
-          fetchWallet();
-        }, 100);
-      } else {
-        setLoading(false);
-        setInitialized(true);
-        setWallet(null);
-        setTransactions([]);
-        setError(null);
-      }
+    if (authLoading) {
+      console.log('⏳ [Wallet] Auth loading, skipping wallet fetch');
+      return;
     }
 
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [user?.id, authLoading]);
+    if (!initialized) {
+      console.log('🚀 [Wallet] Initializing wallet...');
+      fetchWallet();
+    }
+  }, [user?.id, authLoading, initialized]);
 
   useEffect(() => {
     if (wallet && !loading) {
