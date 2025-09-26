@@ -519,7 +519,7 @@ const ClientApp = () => {
         <h1 className="text-heading-lg text-card-foreground">Mon Profil</h1>
       </div>
       <div className="px-4">
-        <ResponsiveUserProfile userType="client" />
+        <ResponsiveUserProfile userType="client" onWalletAccess={() => setCurrentView('wallet')} />
       </div>
     </div>
   );
