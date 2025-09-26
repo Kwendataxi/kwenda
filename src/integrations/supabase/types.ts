@@ -8175,15 +8175,6 @@ export type Database = {
         }
         Relationships: []
       }
-      security_configuration_status: {
-        Row: {
-          component: string | null
-          description: string | null
-          security_note: string | null
-          status: string | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
       admin_cancel_subscription: {
@@ -9211,6 +9202,15 @@ export type Database = {
         Args: { p_message_id: string }
         Returns: undefined
       }
+      mask_sensitive_data: {
+        Args: {
+          data_owner_id: string
+          data_type: string
+          original_value: string
+          requester_id: string
+        }
+        Returns: string
+      }
       migrate_coordinates_to_google_addresses: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -9221,12 +9221,7 @@ export type Database = {
       }
       monitor_security_events: {
         Args: Record<PropertyKey, never>
-        Returns: {
-          event_count: number
-          event_type: string
-          last_occurrence: string
-          severity: string
-        }[]
+        Returns: undefined
       }
       process_escrow_release: {
         Args: { escrow_id: string }
