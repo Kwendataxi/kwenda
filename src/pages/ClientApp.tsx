@@ -660,6 +660,8 @@ const ClientApp = () => {
           case 'paiement':
           case 'payment':
             return renderPayment();
+          case 'wallet':
+            return renderWallet();
           case 'notifications':
             return <NotificationCenter />;
           case 'referral':
