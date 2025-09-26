@@ -8317,6 +8317,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      check_user_admin_role_secure: {
+        Args: { check_user_id?: string }
+        Returns: boolean
+      }
       cleanup_expired_location_cache: {
         Args: Record<PropertyKey, never>
         Returns: number
@@ -9140,6 +9144,15 @@ export type Database = {
           p_target_user_id?: string
         }
         Returns: boolean
+      }
+      log_sensitive_access_secure: {
+        Args: {
+          p_accessed_user_data?: string
+          p_metadata?: Json
+          p_operation: string
+          p_table_name: string
+        }
+        Returns: string
       }
       log_sensitive_data_access: {
         Args:

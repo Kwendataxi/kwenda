@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Shield, AlertTriangle, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { Shield, AlertTriangle, CheckCircle, XCircle, RefreshCw, Activity, Database, Clock } from 'lucide-react';
 import { useSecurityDashboard } from '@/hooks/useSecurityDashboard';
 
 export const SecurityDashboard = () => {
@@ -69,29 +69,47 @@ export const SecurityDashboard = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'completed':
       case 'secured':
       case 'active':
+      case 'resolved':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'monitored':
+        return <Activity className="h-4 w-4 text-blue-500" />;
       case 'enhanced':
         return <Shield className="h-4 w-4 text-blue-500" />;
-      case 'manual_config':
+      case 'manual_config_required':
+      case 'update_recommended':
         return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      case 'error':
+        return <XCircle className="h-4 w-4 text-red-500" />;
       default:
-        return <AlertTriangle className="h-4 w-4 text-gray-500" />;
+        return <Clock className="h-4 w-4 text-gray-500" />;
     }
   };
 
-  const getAlertSeverityColor = (severity: string) => {
+  const getAlertSeverityColor = (severity: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (severity.toLowerCase()) {
-      case 'high':
+      case 'critical':
         return 'destructive';
-      case 'medium':
+      case 'warning':
         return 'secondary';
-      case 'low':
+      case 'info':
         return 'outline';
       default:
+        return 'default';
+    }
+  };
+
+  const getMetricAlertColor = (alertLevel: string): "default" | "secondary" | "destructive" | "outline" => {
+    switch (alertLevel.toLowerCase()) {
+      case 'critical':
+        return 'destructive';
+      case 'warning':
+        return 'secondary';
+      case 'info':
         return 'outline';
+      default:
+        return 'default';
     }
   };
 
@@ -144,9 +162,16 @@ export const SecurityDashboard = () => {
       {/* Security Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {metrics.map((metric, index) => (
-          <Card key={index}>
+          <Card key={index} className={`border-l-4 ${
+            metric.alert_level === 'critical' ? 'border-l-red-500' :
+            metric.alert_level === 'warning' ? 'border-l-yellow-500' :
+            'border-l-green-500'
+          }`}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                {metric.alert_level === 'critical' && <XCircle className="w-4 h-4 text-red-500" />}
+                {metric.alert_level === 'warning' && <AlertTriangle className="w-4 h-4 text-yellow-500" />}
+                {metric.alert_level === 'info' && <CheckCircle className="w-4 h-4 text-green-500" />}
                 {metric.metric_name.replace(/_/g, ' ').toUpperCase()}
               </CardTitle>
             </CardHeader>
@@ -156,11 +181,10 @@ export const SecurityDashboard = () => {
                 {metric.description}
               </p>
               <Badge 
-                variant={metric.alert_level === 'HIGH' ? 'destructive' : 
-                        metric.alert_level === 'MEDIUM' ? 'secondary' : 'outline'}
+                variant={getMetricAlertColor(metric.alert_level)}
                 className="mt-2"
               >
-                {metric.alert_level}
+                {metric.alert_level.toUpperCase()}
               </Badge>
             </CardContent>
           </Card>
@@ -171,32 +195,37 @@ export const SecurityDashboard = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
+            <Database className="h-5 w-5" />
             État de la Sécurité
           </CardTitle>
           <CardDescription>
-            Vue d'ensemble des mesures de sécurité en place
+            Vérifications de sécurité du système et conformité
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {status.map((item, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div key={index} className={`flex items-center justify-between p-3 rounded-lg border ${
+                item.status.toLowerCase().includes('resolved') || item.status.toLowerCase().includes('secured') ? 'bg-green-50 border-green-200' :
+                item.status.toLowerCase().includes('manual') || item.status.toLowerCase().includes('update') ? 'bg-yellow-50 border-yellow-200' :
+                item.status.toLowerCase().includes('error') ? 'bg-red-50 border-red-200' :
+                'bg-gray-50 border-gray-200'
+              }`}>
                 <div className="flex items-center gap-3">
                   {getStatusIcon(item.status)}
                   <div>
-                    <div className="font-medium">{item.check_type}</div>
+                    <div className="font-medium">{item.check_type.replace(/_/g, ' ')}</div>
                     <div className="text-sm text-muted-foreground">{item.details}</div>
                   </div>
                 </div>
                 <Badge 
                   variant={
-                    item.status === 'COMPLETED' || item.status === 'SECURED' || item.status === 'ACTIVE' ? 'default' :
-                    item.status === 'ENHANCED' ? 'secondary' :
-                    'outline'
+                    item.status.toLowerCase().includes('secured') || item.status.toLowerCase().includes('active') || item.status.toLowerCase().includes('resolved') ? 'default' :
+                    item.status.toLowerCase().includes('warning') || item.status.toLowerCase().includes('manual') || item.status.toLowerCase().includes('update') ? 'secondary' :
+                    'destructive'
                   }
                 >
-                  {item.status}
+                  {item.status.replace(/_/g, ' ')}
                 </Badge>
               </div>
             ))}
