@@ -36,13 +36,21 @@ export const useWallet = () => {
   const { user, loading: authLoading } = useAuth();
 
   const fetchWallet = async (retryCount = 0) => {
-    if (!user || authLoading) {
+    // Guards stricts pour éviter les appels prématurés
+    if (!user?.id || authLoading) {
       setLoading(false);
+      return;
+    }
+
+    // Éviter les doubles appels
+    if (loading && retryCount === 0) {
       return;
     }
 
     setLoading(true);
     setError(null);
+
+    console.log(`🔄 [Wallet] Tentative ${retryCount + 1} - User ID: ${user.id}`);
 
     try {
       const { data, error } = await supabase
@@ -201,17 +209,29 @@ export const useWallet = () => {
   };
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     if (!authLoading) {
-      if (user) {
-        fetchWallet();
+      if (user?.id) {
+        // Petit délai pour éviter les race conditions
+        timeoutId = setTimeout(() => {
+          fetchWallet();
+        }, 100);
       } else {
         setLoading(false);
         setInitialized(true);
         setWallet(null);
         setTransactions([]);
+        setError(null);
       }
     }
-  }, [user, authLoading]);
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [user?.id, authLoading]);
 
   useEffect(() => {
     if (wallet && !loading) {
