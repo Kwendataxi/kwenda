@@ -28,10 +28,11 @@ import { AdminLotteryDashboard } from '@/components/admin/AdminLotteryDashboard'
 import { AdminRentalManager } from '@/components/admin/AdminRentalManager';
 import { AdminTeamManager } from '@/components/admin/teams/AdminTeamManager';
 import { RoleManagement } from '@/components/admin/roles/RoleManagement';
+import { ServiceManagementPanel } from '@/components/admin/ServiceManagementPanel';
+import { UnifiedSubscriptionManager } from '@/components/admin/subscriptions/UnifiedSubscriptionManager';
 import { AdminPromoCodeManager } from '@/components/admin/AdminPromoCodeManager';
 import AdminPartnerManager from '@/components/admin/AdminPartnerManager';
 import { GoogleMigrationPanel } from '@/components/admin/GoogleMigrationPanel';
-import { ServiceManagementPanel } from '@/components/admin/ServiceManagementPanel';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -197,6 +198,12 @@ const AdminApp = () => {
       <TabsContent value="services" className="space-y-6">
         <PermissionGuard requiredPermissions={['transport_admin']}>
           <ServiceManagementPanel />
+        </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="subscriptions" className="space-y-6">
+        <PermissionGuard requiredPermissions={['system_admin']}>
+          <UnifiedSubscriptionManager />
         </PermissionGuard>
       </TabsContent>
 
