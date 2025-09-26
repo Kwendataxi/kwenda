@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { AuthStatusChecker } from './AuthStatusChecker';
+import { ForgotPasswordModal } from './ForgotPasswordModal';
 
 type AuthStep = 'login' | 'role-selection' | 'registration';
 
@@ -30,6 +31,7 @@ export const EnhancedAuth = () => {
     email: '',
     password: ''
   });
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const { user } = useAuth();
   const { userRole, loading: roleLoading, getRedirectPath } = useRoleBasedAuth();
@@ -235,6 +237,15 @@ export const EnhancedAuth = () => {
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Se connecter
                 </Button>
+
+                <Button
+                  type="button"
+                  variant="link"
+                  className="w-full text-sm"
+                  onClick={() => setShowForgotPassword(true)}
+                >
+                  Mot de passe oublié ?
+                </Button>
               </form>
             </TabsContent>
             
@@ -264,6 +275,11 @@ export const EnhancedAuth = () => {
           </div>
         </CardContent>
       </Card>
+
+      <ForgotPasswordModal 
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+      />
     </div>
   );
 };

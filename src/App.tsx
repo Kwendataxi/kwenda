@@ -59,6 +59,7 @@ import EdgeFunctionTest from "./pages/test/EdgeFunctionTest";
 import { ChatProvider } from "@/components/chat/ChatProvider";
 import Onboarding from "./pages/Onboarding";
 import MesAdresses from "./pages/address/MesAdresses";
+import ResetPassword from "./pages/ResetPassword";
 import { OnboardingRedirect } from "@/components/onboarding/OnboardingRedirect";
 import { StartupExperience } from "@/components/splash/StartupExperience";
 import { ScrollToTop } from "@/components/navigation/ScrollToTop";
@@ -116,6 +117,7 @@ const AppContent = () => {
                     <PartnerAuth />
                   </OnboardingRedirect>
                 } />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/client" element={
                   <ProtectedRoute>
                     <ClientApp />

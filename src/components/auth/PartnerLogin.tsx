@@ -7,6 +7,7 @@ import { Building, Lock, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { ForgotPasswordModal } from './ForgotPasswordModal';
 
 interface PartnerLoginProps {
   onSuccess?: () => void;
@@ -17,6 +18,7 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -143,6 +145,15 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
               >
                 {loading ? 'Connexion...' : 'Se connecter'}
               </Button>
+
+              <Button
+                type="button"
+                variant="link"
+                className="w-full text-sm"
+                onClick={() => setShowForgotPassword(true)}
+              >
+                Mot de passe oublié ?
+              </Button>
             </form>
           </CardContent>
         </Card>
@@ -156,6 +167,11 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
             ← Retour à l'accueil
           </Button>
         </div>
+
+        <ForgotPasswordModal 
+          isOpen={showForgotPassword}
+          onClose={() => setShowForgotPassword(false)}
+        />
       </div>
     </div>
   );
