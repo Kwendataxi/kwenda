@@ -9183,6 +9183,15 @@ export type Database = {
         }
         Returns: string
       }
+      log_wallet_error: {
+        Args: {
+          p_error_message: string
+          p_error_type: string
+          p_metadata?: Json
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       maintain_security_compliance: {
         Args: Record<PropertyKey, never>
         Returns: {
