@@ -9,15 +9,17 @@ import { useWallet } from '@/hooks/useWallet';
 import { cn } from '@/lib/utils';
 
 export const DriverWalletPanel: React.FC = () => {
-  const { wallet, transactions, loading, topUpWallet } = useWallet();
+  const { wallet, transactions, loading, error, topUpWallet } = useWallet();
   const [amount, setAmount] = useState<string>('');
   const [provider, setProvider] = useState<'airtel' | 'orange' | 'mpesa' | ''>('');
   const [phone, setPhone] = useState<string>('');
 
   const balanceText = useMemo(() => {
+    if (loading) return 'Chargement...';
+    if (error) return 'Erreur de chargement';
     const value = Number(wallet?.balance || 0);
     return `${value.toLocaleString('fr-CD')} ${wallet?.currency || 'CDF'}`;
-  }, [wallet]);
+  }, [wallet, loading, error]);
 
   const canTopup = useMemo(() => {
     return !!provider && !!phone && Number(amount) > 0 && !loading;
@@ -39,11 +41,19 @@ export const DriverWalletPanel: React.FC = () => {
         <CardContent className="space-y-4">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Solde disponible</p>
-              <p className="text-2xl font-semibold tracking-tight">{balanceText}</p>
+              <p className="text-sm text-muted-foreground">
+                {error ? "Erreur de chargement" : "Solde disponible"}
+              </p>
+              <p className={cn(
+                "text-2xl font-semibold tracking-tight",
+                loading && "animate-pulse",
+                error && "text-destructive"
+              )}>
+                {balanceText}
+              </p>
             </div>
             <div className="text-xs text-muted-foreground">
-              {wallet?.is_active ? 'Actif' : 'Inactif'}
+              {error ? 'Erreur' : wallet?.is_active ? 'Actif' : 'Inactif'}
             </div>
           </div>
 

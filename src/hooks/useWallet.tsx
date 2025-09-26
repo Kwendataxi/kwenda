@@ -30,11 +30,19 @@ interface TransactionData {
 export const useWallet = () => {
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
-  const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
+  const { user, loading: authLoading } = useAuth();
 
-  const fetchWallet = async () => {
-    if (!user) return;
+  const fetchWallet = async (retryCount = 0) => {
+    if (!user || authLoading) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
 
     try {
       const { data, error } = await supabase
@@ -48,6 +56,7 @@ export const useWallet = () => {
 
       if (!data) {
         // Create wallet if it doesn't exist
+        console.log('Creating new wallet for user:', user.id);
         const { data: newWallet, error: createError } = await supabase
           .from('user_wallets')
           .insert({
@@ -61,12 +70,26 @@ export const useWallet = () => {
 
         if (createError) throw createError;
         setWallet(newWallet);
+        console.log('Wallet created:', newWallet);
       } else {
         setWallet(data);
+        console.log('Wallet loaded:', data);
       }
     } catch (error: any) {
       console.error('Error fetching wallet:', error);
+      setError(error.message || 'Erreur lors du chargement du portefeuille');
+      
+      // Retry logic
+      if (retryCount < 2) {
+        console.log(`Retrying wallet fetch (${retryCount + 1}/3)...`);
+        setTimeout(() => fetchWallet(retryCount + 1), 1000 * (retryCount + 1));
+        return;
+      }
+      
       toast.error('Erreur lors du chargement du portefeuille');
+    } finally {
+      setLoading(false);
+      setInitialized(true);
     }
   };
 
@@ -178,13 +201,20 @@ export const useWallet = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      fetchWallet();
+    if (!authLoading) {
+      if (user) {
+        fetchWallet();
+      } else {
+        setLoading(false);
+        setInitialized(true);
+        setWallet(null);
+        setTransactions([]);
+      }
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   useEffect(() => {
-    if (wallet) {
+    if (wallet && !loading) {
       fetchTransactions();
     }
   }, [wallet]);
@@ -192,7 +222,9 @@ export const useWallet = () => {
   return {
     wallet,
     transactions,
-    loading,
+    loading: loading || authLoading,
+    error,
+    initialized,
     fetchWallet,
     fetchTransactions,
     topUpWallet,

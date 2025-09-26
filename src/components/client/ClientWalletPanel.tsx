@@ -9,16 +9,18 @@ import { Wallet, CreditCard, History, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const ClientWalletPanel: React.FC = () => {
-  const { wallet, transactions, loading, topUpWallet } = useWallet();
+  const { wallet, transactions, loading, error, topUpWallet } = useWallet();
   const [amount, setAmount] = useState<string>('');
   const [provider, setProvider] = useState<'airtel' | 'orange' | 'mpesa' | ''>('');
   const [phone, setPhone] = useState<string>('');
   const [isTopping, setIsTopping] = useState(false);
 
   const balanceText = useMemo(() => {
+    if (loading) return 'Chargement...';
+    if (error) return 'Erreur de chargement';
     const value = Number(wallet?.balance || 0);
     return `${value.toLocaleString('fr-CD')} ${wallet?.currency || 'CDF'}`;
-  }, [wallet]);
+  }, [wallet, loading, error]);
 
   const handleTopUp = async () => {
     if (!amount || !provider || !phone) return;
@@ -47,19 +49,31 @@ export const ClientWalletPanel: React.FC = () => {
   return (
     <div className="space-y-6 p-6 pb-24">
       {/* Wallet Balance Card */}
-      <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+      <Card className={cn(
+        "bg-gradient-to-r border-primary/20",
+        error ? "from-destructive/10 to-destructive/5 border-destructive/20" : "from-primary/10 to-primary/5"
+      )}>
         <CardHeader className="text-center pb-2">
-          <div className="mx-auto w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
-            <Wallet className="w-8 h-8 text-primary" />
+          <div className={cn(
+            "mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4",
+            error ? "bg-destructive/20" : "bg-primary/20"
+          )}>
+            <Wallet className={cn("w-8 h-8", error ? "text-destructive" : "text-primary")} />
           </div>
-          <CardTitle className="text-2xl font-bold text-primary">KwendaPay</CardTitle>
+          <CardTitle className={cn("text-2xl font-bold", error ? "text-destructive" : "text-primary")}>
+            KwendaPay
+          </CardTitle>
         </CardHeader>
         <CardContent className="text-center">
-          <div className="text-3xl font-bold text-foreground mb-2">
+          <div className={cn(
+            "text-3xl font-bold mb-2",
+            loading && "animate-pulse",
+            error ? "text-destructive" : "text-foreground"
+          )}>
             {balanceText}
           </div>
           <div className="text-sm text-muted-foreground">
-            Solde disponible
+            {error ? "Impossible de charger le solde" : "Solde disponible"}
           </div>
         </CardContent>
       </Card>
