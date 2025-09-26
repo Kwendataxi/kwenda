@@ -519,7 +519,11 @@ const ClientApp = () => {
         <h1 className="text-heading-lg text-card-foreground">Mon Profil</h1>
       </div>
       <div className="px-4">
-        <ResponsiveUserProfile userType="client" onWalletAccess={() => setCurrentView('wallet')} />
+        <ResponsiveUserProfile userType="client" onWalletAccess={() => {
+          console.log('🚀 [ClientApp] onWalletAccess déclenché, changement vers wallet...');
+          setCurrentView('wallet');
+          console.log('✅ [ClientApp] setCurrentView("wallet") exécuté');
+        }} />
       </div>
     </div>
   );

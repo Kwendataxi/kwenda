@@ -349,7 +349,21 @@ export const UserProfile = ({ onWalletAccess }: UserProfileProps = {}) => {
   };
 
   const handleQuickAction = (action: string) => {
-    handleOptionClick(action);
+    console.log('🔍 [UserProfile] handleQuickAction appelé avec action:', action);
+    console.log('🔍 [UserProfile] onWalletAccess disponible:', !!onWalletAccess);
+    
+    if (action === 'wallet') {
+      console.log('💰 [UserProfile] Action wallet détectée, appel de onWalletAccess...');
+      if (onWalletAccess) {
+        onWalletAccess();
+        console.log('✅ [UserProfile] onWalletAccess() appelé avec succès');
+      } else {
+        console.log('❌ [UserProfile] onWalletAccess non disponible');
+      }
+    } else {
+      console.log('🔀 [UserProfile] Autre action, redirection vers handleOptionClick');
+      handleOptionClick(action);
+    }
   };
 
   return (
@@ -419,13 +433,7 @@ export const UserProfile = ({ onWalletAccess }: UserProfileProps = {}) => {
 
       {/* Profile Action Buttons */}
       <div className="px-4 py-4">
-        <ProfileActionButtons onQuickAction={(action) => {
-          if (action === 'wallet') {
-            onWalletAccess?.();
-          } else {
-            handleQuickAction(action);
-          }
-        }} />
+        <ProfileActionButtons onQuickAction={handleQuickAction} />
       </div>
 
       {/* Profile Options List */}
