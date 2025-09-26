@@ -15,6 +15,7 @@ import {
 import { useDeliveryTracking } from '@/hooks/useDeliveryTracking';
 import { useGoogleMaps } from '@/hooks/useGoogleMaps';
 import { toast } from 'sonner';
+import { formatAddressForDisplay } from '@/utils/googleMapsUnified';
 
 interface DeliveryTrackingMapProps {
   orderId: string;
@@ -64,12 +65,14 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
 
     setMap(newMap);
 
-    // Add pickup marker
-    if (order.pickup_coordinates) {
+    // Add pickup marker  
+    const pickupCoords = await getPickupCoordinates();
+      
+    if (pickupCoords) {
       const pickup = new google.maps.Marker({
         position: {
-          lat: order.pickup_coordinates.lat,
-          lng: order.pickup_coordinates.lng
+          lat: pickupCoords.lat,
+          lng: pickupCoords.lng
         },
         map: newMap,
         title: 'Point de récupération',
@@ -88,11 +91,13 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
     }
 
     // Add delivery marker
-    if (order.delivery_coordinates) {
+    const deliveryCoords = await getDeliveryCoordinates();
+      
+    if (deliveryCoords) {
       const delivery = new google.maps.Marker({
         position: {
-          lat: order.delivery_coordinates.lat,
-          lng: order.delivery_coordinates.lng
+          lat: deliveryCoords.lat,
+          lng: deliveryCoords.lng
         },
         map: newMap,
         title: 'Point de livraison',
@@ -111,7 +116,7 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
     }
 
     // Add route if both coordinates exist
-    if (order.pickup_coordinates && order.delivery_coordinates) {
+    if (pickupCoords && deliveryCoords) {
       const directionsService = new google.maps.DirectionsService();
       const directionsRenderer = new google.maps.DirectionsRenderer({
         map: newMap,
@@ -125,8 +130,8 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
 
       try {
         const result = await directionsService.route({
-          origin: order.pickup_coordinates,
-          destination: order.delivery_coordinates,
+          origin: pickupCoords,
+          destination: deliveryCoords,
           travelMode: google.maps.TravelMode.DRIVING
         });
         
@@ -138,6 +143,29 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
     }
 
   }, [isLoaded, order, map]);
+
+  // Helper function to extract coordinates from Google address
+  const extractCoordinatesFromGoogle = async (googleAddress: string) => {
+    try {
+      const { extractCoordinatesFromFallback } = await import('@/utils/googleMapsUnified');
+      return extractCoordinatesFromFallback(googleAddress);
+    } catch {
+      return null;
+    }
+  };
+
+  // Helper to get coordinates with fallback
+  const getPickupCoordinates = () => {
+    return (order as any)?.pickup_google_address ? 
+      extractCoordinatesFromGoogle((order as any).pickup_google_address) :
+      order?.pickup_coordinates;
+  };
+
+  const getDeliveryCoordinates = () => {
+    return (order as any)?.delivery_google_address ?
+      extractCoordinatesFromGoogle((order as any).delivery_google_address) :
+      order?.delivery_coordinates;
+  };
 
   // Update driver location
   useEffect(() => {
@@ -264,14 +292,14 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
               <div className="font-medium text-muted-foreground">De</div>
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                <span>{order.pickup_location}</span>
+                <span>{formatAddressForDisplay((order as any)?.pickup_google_address || order.pickup_location)}</span>
               </div>
             </div>
             <div>
               <div className="font-medium text-muted-foreground">Vers</div>
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-                <span>{order.delivery_location}</span>
+                <span>{formatAddressForDisplay((order as any)?.delivery_google_address || order.delivery_location)}</span>
               </div>
             </div>
           </div>

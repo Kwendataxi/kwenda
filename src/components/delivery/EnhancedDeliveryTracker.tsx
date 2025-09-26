@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
 import StickyDeliveryProgress from './StickyDeliveryProgress';
+import { formatAddressForDisplay, extractCoordinatesFromFallback } from '@/utils/googleMapsUnified';
 
 interface EnhancedDeliveryTrackerProps {
   orderId: string;
@@ -313,6 +314,13 @@ export default function EnhancedDeliveryTracker({ orderId, onBack }: EnhancedDel
   };
 
   const getPickupCoords = () => {
+    // Prioritize Google address, fallback to raw coordinates
+    const googleAddress = (order as any)?.pickup_google_address;
+    if (googleAddress) {
+      const coords = extractCoordinatesFromFallback(googleAddress);
+      if (coords) return coords;
+    }
+    
     const coords = order?.pickup_coordinates;
     if (coords && typeof coords.lat === 'number' && typeof coords.lng === 'number') {
       return { lat: coords.lat, lng: coords.lng };
@@ -321,6 +329,13 @@ export default function EnhancedDeliveryTracker({ orderId, onBack }: EnhancedDel
   };
 
   const getDestinationCoords = () => {
+    // Prioritize Google address, fallback to raw coordinates
+    const googleAddress = (order as any)?.delivery_google_address;
+    if (googleAddress) {
+      const coords = extractCoordinatesFromFallback(googleAddress);
+      if (coords) return coords;
+    }
+    
     const coords = order?.delivery_coordinates;
     if (coords && typeof coords.lat === 'number' && typeof coords.lng === 'number') {
       return { lat: coords.lat, lng: coords.lng };

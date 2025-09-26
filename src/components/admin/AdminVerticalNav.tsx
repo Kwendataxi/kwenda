@@ -54,6 +54,7 @@ const NAV_ITEMS: Array<{
   { id: 'support', label: 'Support', icon: Headphones },
   { id: 'test-data', label: 'Données de Test', icon: Database },
   { id: 'settings', label: 'Paramètres', icon: Settings },
+  { id: 'migration', label: 'Migration Google', icon: MapPin },
 ];
 
 export const AdminVerticalNav: React.FC<AdminVerticalNavProps> = ({ activeTab, onTabChange, className }) => {

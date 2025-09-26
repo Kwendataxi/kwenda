@@ -27,6 +27,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatAddressForDisplay } from '@/utils/googleMapsUnified';
 
 interface DispatchItem {
   id: string;
@@ -207,19 +208,23 @@ const UnifiedDispatchMonitor: React.FC = () => {
         `)
         .eq('is_online', true);
 
-      const driverStatuses: DriverStatus[] = (drivers || []).map(driver => ({
-        id: driver.driver_id,
-        name: 'Chauffeur',
-        isOnline: driver.is_online,
-        isAvailable: driver.is_available,
-        currentLocation: driver.latitude && driver.longitude ? {
-          lat: driver.latitude,
-          lng: driver.longitude
-        } : undefined,
-        activeOrders: 0, // Would need to count from orders
-        serviceTypes: ['taxi', 'delivery'],
-        lastSeen: driver.last_ping
-      }));
+      const driverStatuses: DriverStatus[] = await Promise.all(
+        (drivers || []).map(async (driver) => ({
+          id: driver.driver_id,
+          name: 'Chauffeur',
+          isOnline: driver.is_online,
+          isAvailable: driver.is_available,
+          currentLocation: (driver as any).google_address ? 
+            await extractGoogleCoordinates((driver as any).google_address) :
+            (driver.latitude && driver.longitude ? {
+              lat: driver.latitude,
+              lng: driver.longitude
+            } : undefined),
+          activeOrders: 0, // Would need to count from orders
+          serviceTypes: ['taxi', 'delivery'],
+          lastSeen: driver.last_ping
+        }))
+      );
 
       setOnlineDrivers(driverStatuses);
 
@@ -232,6 +237,16 @@ const UnifiedDispatchMonitor: React.FC = () => {
 
     } catch (error) {
       console.error('Error loading driver statuses:', error);
+    }
+  };
+
+  // Helper for coordinate extraction from Google addresses
+  const extractGoogleCoordinates = async (googleAddress: string) => {
+    try {
+      const { extractCoordinatesFromFallback } = await import('@/utils/googleMapsUnified');
+      return extractCoordinatesFromFallback(googleAddress);
+    } catch {
+      return undefined;
     }
   };
 
