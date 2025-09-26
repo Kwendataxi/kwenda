@@ -95,6 +95,91 @@ export const useServiceConfigurations = () => {
     },
   });
 
+  const createServiceMutation = useMutation({
+    mutationFn: async (service: Omit<ServiceConfiguration, 'id'>) => {
+      const { data, error } = await supabase
+        .from('service_configurations')
+        .insert(service)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['service-configurations'] });
+      toast({
+        title: "Service créé",
+        description: "Le nouveau service a été créé avec succès.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error creating service:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le service.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateServiceMutation = useMutation({
+    mutationFn: async (service: Partial<ServiceConfiguration> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('service_configurations')
+        .update(service)
+        .eq('id', service.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['service-configurations'] });
+      toast({
+        title: "Service mis à jour",
+        description: "Le service a été mis à jour avec succès.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error updating service:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le service.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const createPricingMutation = useMutation({
+    mutationFn: async (pricing: Omit<ServicePricing, 'id'>) => {
+      const { data, error } = await supabase
+        .from('service_pricing')
+        .insert(pricing)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['service-pricing'] });
+      toast({
+        title: "Tarification créée",
+        description: "La tarification a été créée avec succès.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error creating pricing:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer la tarification.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const getTaxiServices = () => {
     return configurations?.filter(config => config.service_category === 'taxi') || [];
   };
@@ -128,6 +213,9 @@ export const useServiceConfigurations = () => {
     getDeliveryServices,
     getServicePricing,
     updatePricing: updatePricingMutation.mutate,
+    createService: createServiceMutation.mutate,
+    updateService: updateServiceMutation.mutate,
+    createPricing: createPricingMutation.mutate,
     formatPrice,
   };
 };

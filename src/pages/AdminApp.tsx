@@ -31,6 +31,7 @@ import { RoleManagement } from '@/components/admin/roles/RoleManagement';
 import { AdminPromoCodeManager } from '@/components/admin/AdminPromoCodeManager';
 import AdminPartnerManager from '@/components/admin/AdminPartnerManager';
 import { GoogleMigrationPanel } from '@/components/admin/GoogleMigrationPanel';
+import { ServiceManagementPanel } from '@/components/admin/ServiceManagementPanel';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -190,6 +191,12 @@ const AdminApp = () => {
       <TabsContent value="ads" className="space-y-6">
         <PermissionGuard requiredPermissions={['notifications_write']}>
           <PromotionalAdsManager />
+        </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="services" className="space-y-6">
+        <PermissionGuard requiredPermissions={['transport_admin']}>
+          <ServiceManagementPanel />
         </PermissionGuard>
       </TabsContent>
 
