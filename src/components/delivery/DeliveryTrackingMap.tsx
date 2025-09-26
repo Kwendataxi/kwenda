@@ -145,14 +145,14 @@ export const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
 
     if (driverMarker) {
       driverMarker.setPosition({
-        lat: (driverLocation as any).latitude || (driverLocation as any).lat || 0,
-        lng: (driverLocation as any).longitude || (driverLocation as any).lng || 0
+        lat: driverLocation.lat || 0,
+        lng: driverLocation.lng || 0
       });
     } else if (isLoaded) {
       const newDriverMarker = new google.maps.Marker({
         position: {
-          lat: (driverLocation as any).latitude || (driverLocation as any).lat || 0,
-          lng: (driverLocation as any).longitude || (driverLocation as any).lng || 0
+          lat: driverLocation.lat || 0,
+          lng: driverLocation.lng || 0
         },
         map,
         title: 'Chauffeur',

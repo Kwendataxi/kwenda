@@ -2,12 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { validateOrderId } from '@/utils/validation';
 
+// DEPRECATED: Utiliser RealDriverLocation depuis @/types/realLocation
 export interface DriverLocation {
   lat: number;
   lng: number;
   speed?: number | null;
   heading?: number | null;
   updated_at?: string;
+  // Nouveaux champs pour compatibilité
+  googleAddress?: string;
+  googlePlaceName?: string;
 }
 
 export interface DeliveryOrder {
@@ -231,7 +235,7 @@ export const useDeliveryTracking = (orderId: string) => {
     };
   }, [orderId, validationResult]);
 
-  // Realtime: driver live location
+  // Realtime: driver live location avec adresse Google réelle
   useEffect(() => {
     if (!order?.driver_id) return;
 
@@ -240,15 +244,25 @@ export const useDeliveryTracking = (orderId: string) => {
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'driver_locations', filter: `driver_id=eq.${order.driver_id}` },
-        (payload) => {
+        async (payload) => {
           const d = payload.new as any;
-          setDriverLocation({
+          
+          // Position de base
+          const baseLocation = {
             lat: Number(d.latitude),
             lng: Number(d.longitude),
             speed: d.speed,
             heading: d.heading,
             updated_at: d.updated_at,
-          });
+          };
+
+          // Ajouter l'adresse Google si disponible dans la colonne google_address
+          if (d.google_address) {
+            (baseLocation as any).googleAddress = d.google_address;
+            (baseLocation as any).googlePlaceName = d.google_place_name;
+          }
+
+          setDriverLocation(baseLocation);
         }
       )
       .subscribe();
