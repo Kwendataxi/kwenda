@@ -345,6 +345,7 @@ export const translations = {
     'transport.taxi_standard_desc': 'Service de taxi classique, confortable et abordable',
     'transport.taxi_premium': 'Taxi Premium',
     'transport.taxi_premium_desc': 'Service de taxi haut de gamme avec véhicules de luxe',
+    'transport.moto_taxi': 'Moto-taxi',
     'transport.moto_taxi_desc': 'Transport rapide par moto, idéal pour éviter les embouteillages',
     'transport.where_from': 'D\'où partez-vous ?',
 

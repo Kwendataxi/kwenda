@@ -61,8 +61,7 @@ serve(async (req) => {
     const { data: drivers, error: driversError } = await supabase.rpc('find_nearby_drivers', {
       pickup_lat: pickupLat,
       pickup_lng: pickupLng,
-      service_type_param: serviceType === 'taxi' ? 'transport' : serviceType,
-      radius_km: searchRadius,
+      max_distance_km: searchRadius,
       vehicle_class_filter: vehicleClass || null
     });
 
