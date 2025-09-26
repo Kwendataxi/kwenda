@@ -74,6 +74,10 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     estimatedPrice: 3000
   });
 
+  // États pour contrôler les valeurs des champs d'adresse
+  const [pickupInputValue, setPickupInputValue] = useState<string>('');
+  const [deliveryInputValue, setDeliveryInputValue] = useState<string>('');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Calculer distance entre deux points
@@ -125,10 +129,30 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
 
     if (type === 'pickup') {
       setDeliveryData(prev => ({ ...prev, pickupLocation: location }));
+      setPickupInputValue(location.address); // Contrôler la valeur affichée
       setCurrentStep('destination');
     } else {
       setDeliveryData(prev => ({ ...prev, deliveryLocation: location }));
+      setDeliveryInputValue(location.address); // Contrôler la valeur affichée
       setCurrentStep('service');
+    }
+  };
+
+  // Réinitialiser le champ de livraison quand on revient à l'étape de destination
+  const handleBack = () => {
+    switch (currentStep) {
+      case 'destination':
+        setCurrentStep('pickup');
+        break;
+      case 'service':
+        // Réinitialiser le champ de livraison quand on revient en arrière
+        setDeliveryData(prev => ({ ...prev, deliveryLocation: null }));
+        setDeliveryInputValue('');
+        setCurrentStep('destination');
+        break;
+      case 'confirm':
+        setCurrentStep('service');
+        break;
     }
   };
 
@@ -163,19 +187,6 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     }
   };
 
-  const handleBack = () => {
-    switch (currentStep) {
-      case 'destination':
-        setCurrentStep('pickup');
-        break;
-      case 'service':
-        setCurrentStep('destination');
-        break;
-      case 'confirm':
-        setCurrentStep('service');
-        break;
-    }
-  };
 
   const handleSubmit = async () => {
     if (!deliveryData.pickupLocation || !deliveryData.deliveryLocation) {
@@ -284,6 +295,8 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           name: location.name
         }, 'pickup')}
         className="h-12 text-lg bg-card border border-primary/30 focus:border-primary shadow-lg"
+        locationContext="pickup"
+        showRecentSearches={true}
       />
     </div>
   );
@@ -299,6 +312,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
       </div>
       
       <AutocompleteLocationInput
+        key={`delivery-${currentStep}`} // Force re-render pour réinitialiser
         placeholder="Adresse de livraison"
         onChange={(location) => location && handleLocationSelect({
           address: location.address,
@@ -309,6 +323,8 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           name: location.name
         }, 'delivery')}
         className="h-12 text-lg bg-card border border-primary/30 focus:border-primary shadow-lg"
+        locationContext="delivery"
+        showRecentSearches={false} // Pas de recherches récentes pour éviter la confusion
       />
     </div>
   );
