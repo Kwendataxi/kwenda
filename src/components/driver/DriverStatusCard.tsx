@@ -113,12 +113,12 @@ export const DriverStatusCard = () => {
         {stats && (
           <div className="grid grid-cols-3 gap-2 pt-2 border-t">
             <div className="text-center">
-              <div className="text-lg font-semibold text-primary">{stats.totalRides}</div>
+              <div className="text-lg font-semibold text-primary">{stats.total_rides}</div>
               <div className="text-xs text-muted-foreground">Courses</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-semibold text-green-600">
-                {stats.totalEarnings.toLocaleString()} CDF
+                {stats.total_earnings.toLocaleString()} CDF
               </div>
               <div className="text-xs text-muted-foreground">Gains</div>
             </div>

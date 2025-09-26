@@ -157,15 +157,10 @@ export const RideRequestFlow: React.FC<RideRequestFlowProps> = ({
         .insert({
           pickup_location: request.pickup_location,
           destination: request.destination_location,
-          pickup_coordinates: request.pickup_coordinates,
-          destination_coordinates: request.destination_coordinates,
-          vehicle_class: request.vehicle_class,
-          passenger_count: request.passenger_count,
+          vehicle_type: request.vehicle_class,
           estimated_price: estimatedPrice,
-          scheduled_time: request.scheduled_time || null,
-          special_instructions: request.special_instructions || null,
           status: 'pending'
-        })
+        } as any)
         .select()
         .single();
 
