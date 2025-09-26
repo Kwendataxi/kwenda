@@ -270,6 +270,12 @@ const translations = {
     'transport.driver_found': 'Chauffeur trouvé',
     'transport.cancel_ride': 'Annuler la course',
     'transport.ride_in_progress': 'Course en cours',
+    'transport.taxi_standard': 'Taxi Standard',
+    'transport.taxi_standard_desc': 'Service de taxi classique, confortable et abordable',
+    'transport.taxi_premium': 'Taxi Premium',
+    'transport.taxi_premium_desc': 'Service de taxi haut de gamme avec véhicules de luxe',
+    'transport.moto_taxi_desc': 'Transport rapide par moto, idéal pour éviter les embouteillages',
+    'transport.where_from': 'D\'où partez-vous ?',
 
     // Delivery
     'delivery.destination': 'Point de livraison',
@@ -284,6 +290,7 @@ const translations = {
     'delivery.where_pickup': 'Où récupérer le colis ?',
     'delivery.where_delivery': 'Où livrer le colis ?',
     'delivery.contact_info': 'Informations de contact',
+    'delivery.pickup_address': 'Adresse de collecte',
 
     // Driver Navigation
     'driver.rides': 'Courses',
@@ -337,7 +344,19 @@ const translations = {
     'profile.error_update': 'Impossible de mettre à jour le profil',
     'profile.error_update_name': 'Impossible de mettre à jour le nom',
     'profile.error_update_phone': 'Impossible de mettre à jour le téléphone',
-    'profile.error_logout': 'Impossible de se déconnecter'
+    'profile.error_logout': 'Impossible de se déconnecter',
+
+    // FAQ Section
+    'faq.cancel_trip': 'Comment annuler un trajet ?',
+    'faq.cancel_trip_answer': 'Vous pouvez annuler votre trajet directement depuis l\'application dans la section "Mes courses". Un remboursement sera effectué selon nos conditions.',
+    'faq.payment': 'Modes de paiement',
+    'faq.payment_answer': 'Nous acceptons plusieurs modes de paiement : mobile money (Orange Money, M-Pesa), cartes bancaires et paiement en espèces.',
+    'faq.lost_item': 'Objet perdu ou oublié',
+    'faq.lost_item_answer': 'Contactez notre support client immédiatement via le chat ou par téléphone. Nous vous mettrons en relation avec le chauffeur pour récupérer vos affaires.',
+    'faq.become_driver': 'Devenir chauffeur partenaire',
+    'faq.become_driver_answer': 'Pour devenir chauffeur Kwenda, inscrivez-vous via l\'application, soumettez vos documents (permis, assurance, contrôle technique) et passez la validation.',
+    'faq.data_security': 'Sécurité des données',
+    'faq.data_security_answer': 'Vos données sont protégées par cryptage SSL et conformes aux normes internationales. Nous ne partageons jamais vos informations personnelles.'
   },
   
   en: {
