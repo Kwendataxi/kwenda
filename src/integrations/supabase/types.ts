@@ -8163,18 +8163,7 @@ export type Database = {
       }
     }
     Views: {
-      monitoring_stats: {
-        Row: {
-          avg_response_time: number | null
-          error_rate_percent: number | null
-          failed_calls: number | null
-          function_name: string | null
-          last_check: string | null
-          successful_calls: number | null
-          total_calls: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       admin_cancel_subscription: {
@@ -8633,6 +8622,14 @@ export type Database = {
       get_migration_status: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_monitoring_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          description: string
+          stat_name: string
+          stat_value: string
+        }[]
       }
       get_nearby_active_drivers_enhanced: {
         Args: {
