@@ -8321,6 +8321,10 @@ export type Database = {
         Args: { check_user_id?: string }
         Returns: boolean
       }
+      check_user_role_secure: {
+        Args: { p_role: string; p_user_id: string }
+        Returns: boolean
+      }
       cleanup_expired_location_cache: {
         Args: Record<PropertyKey, never>
         Returns: number
@@ -9023,6 +9027,10 @@ export type Database = {
         }[]
       }
       is_current_user_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_current_user_admin_secure: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
