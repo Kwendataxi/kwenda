@@ -1434,6 +1434,11 @@ export type Database = {
           accuracy: number | null
           created_at: string
           driver_id: string
+          geocode_source: string | null
+          google_address: string | null
+          google_geocoded_at: string | null
+          google_place_id: string | null
+          google_place_name: string | null
           heading: number | null
           id: string
           is_available: boolean
@@ -1451,6 +1456,11 @@ export type Database = {
           accuracy?: number | null
           created_at?: string
           driver_id: string
+          geocode_source?: string | null
+          google_address?: string | null
+          google_geocoded_at?: string | null
+          google_place_id?: string | null
+          google_place_name?: string | null
           heading?: number | null
           id?: string
           is_available?: boolean
@@ -1468,6 +1478,11 @@ export type Database = {
           accuracy?: number | null
           created_at?: string
           driver_id?: string
+          geocode_source?: string | null
+          google_address?: string | null
+          google_geocoded_at?: string | null
+          google_place_id?: string | null
+          google_place_name?: string | null
           heading?: number | null
           id?: string
           is_available?: boolean
@@ -8237,6 +8252,10 @@ export type Database = {
       }
       cleanup_old_audit_logs: {
         Args: Record<PropertyKey, never> | { retention_days?: number }
+        Returns: number
+      }
+      cleanup_old_geocode_data: {
+        Args: { days_old?: number }
         Returns: number
       }
       cleanup_old_notifications: {
