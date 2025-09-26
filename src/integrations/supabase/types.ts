@@ -8299,6 +8299,16 @@ export type Database = {
         Args: { p_share_id: string }
         Returns: boolean
       }
+      delivery_status_manager: {
+        Args: {
+          additional_data?: Json
+          driver_id_param?: string
+          location_coords?: Json
+          new_status: string
+          order_id: string
+        }
+        Returns: Json
+      }
       disable_user_notifications: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -8332,12 +8342,6 @@ export type Database = {
               pickup_lng: number
               radius_km?: number
               service_type_param?: string
-            }
-          | {
-              pickup_lat: number
-              pickup_lng: number
-              radius_km?: number
-              service_type_param?: string
               vehicle_class_filter?: string
             }
         Returns: {
@@ -8349,12 +8353,20 @@ export type Database = {
         }[]
       }
       find_nearby_drivers_secure: {
-        Args: {
-          max_distance_km?: number
-          user_lat: number
-          user_lng: number
-          vehicle_class_filter?: string
-        }
+        Args:
+          | {
+              max_distance_km?: number
+              user_lat: number
+              user_lng: number
+              vehicle_class_filter?: string
+            }
+          | {
+              pickup_lat: number
+              pickup_lng: number
+              radius_km?: number
+              service_type_param: string
+              vehicle_class_filter?: string
+            }
         Returns: {
           distance_km: number
           driver_id: string
@@ -8520,6 +8532,22 @@ export type Database = {
       get_migration_status: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_nearby_active_drivers_enhanced: {
+        Args: {
+          max_results?: number
+          radius_km?: number
+          search_lat: number
+          search_lng: number
+          vehicle_class_filter?: string
+        }
+        Returns: {
+          distance_km: number
+          driver_id: string
+          is_verified: boolean
+          last_ping: string
+          vehicle_class: string
+        }[]
       }
       get_notification_stats: {
         Args: { admin_id?: string }
@@ -9171,7 +9199,7 @@ export type Database = {
         Returns: number
       }
       validate_booking_coordinates: {
-        Args: { delivery_coords?: Json; pickup_coords: Json }
+        Args: { delivery_coords: Json; pickup_coords: Json }
         Returns: Json
       }
       validate_driver_registration_data: {
