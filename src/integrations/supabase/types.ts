@@ -8437,8 +8437,9 @@ export type Database = {
         Returns: {
           distance_km: number
           driver_id: string
-          estimated_arrival_minutes: number
+          is_verified: boolean
           rating_average: number
+          total_rides: number
           vehicle_class: string
         }[]
       }

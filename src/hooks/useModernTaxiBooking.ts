@@ -146,7 +146,7 @@ export function useModernTaxiBooking() {
       const { pickup: validatedPickup, destination: validatedDestination } = 
         await validateAndCorrectCoordinates(bookingData.pickup, bookingData.destination);
 
-      // 2. Préparer les données de réservation
+      // 2. Préparer les données de réservation avec champ city
       const bookingPayload = {
         user_id: user.id,
         pickup_location: bookingData.pickup.address,
@@ -158,7 +158,8 @@ export function useModernTaxiBooking() {
         total_distance: bookingData.distance,
         notes: bookingData.notes || null,
         pickup_time: bookingData.scheduledTime?.toISOString() || new Date().toISOString(),
-        status: 'pending'
+        status: 'pending',
+        city: 'Kinshasa' // Ajouter le champ city manquant
       };
 
       console.log('📝 [ModernTaxi] Données préparées:', {
@@ -260,15 +261,14 @@ export function useModernTaxiBooking() {
         attempts++;
         
         try {
-          const { data, error } = await supabase.functions.invoke('ride-dispatcher', {
+          const { data, error } = await supabase.functions.invoke('smart-ride-dispatcher', {
             body: {
-              booking_id: bookingId,
-              pickup_coordinates: {
-                lat: pickupCoords.lat,
-                lng: pickupCoords.lng
-              },
-              service_type: 'taxi',
-              radius_km: 15
+              bookingId: bookingId, // Corriger le nom du paramètre
+              pickupLat: pickupCoords.lat, // Corriger le format
+              pickupLng: pickupCoords.lng, // Corriger le format
+              serviceType: 'taxi',
+              vehicleClass: 'standard',
+              priority: 'normal'
             }
           });
 

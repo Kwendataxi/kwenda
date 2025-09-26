@@ -3,12 +3,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
 import AdvancedTaxiTracker from '@/components/transport/AdvancedTaxiTracker';
 import { TaxiTestComponent } from '@/components/transport/TaxiTestComponent';
-import { Car, ArrowLeft } from 'lucide-react';
+import DriverRideNotifications from '@/components/driver/DriverRideNotifications';
+import { useDriverSimulation } from '@/hooks/useDriverSimulation';
+import { Car, ArrowLeft, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 const TransportPage = () => {
   const navigate = useNavigate();
+  const { startDriverSimulation } = useDriverSimulation();
   const [activeView, setActiveView] = useState<'create' | 'track' | 'test'>('create');
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
 
@@ -80,12 +83,21 @@ const TransportPage = () => {
               <p className="text-sm text-muted-foreground">Service de taxi VTC</p>
             </div>
           </div>
-          <button 
-            onClick={handleShowTest}
-            className="px-3 py-1 text-xs bg-secondary text-secondary-foreground rounded hover:bg-secondary/80"
-          >
-            Tests Système
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={startDriverSimulation}
+              className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/80 flex items-center gap-1"
+            >
+              <Users className="h-3 w-3" />
+              Créer Chauffeurs Test
+            </button>
+            <button 
+              onClick={handleShowTest}
+              className="px-3 py-1 text-xs bg-secondary text-secondary-foreground rounded hover:bg-secondary/80"
+            >
+              Tests Système
+            </button>
+          </div>
         </div>
       </div>
 
@@ -94,6 +106,9 @@ const TransportPage = () => {
         onSubmit={handleBookingCreated}
         onCancel={handleBackToCreate}
       />
+
+      {/* Notifications pour les chauffeurs */}
+      <DriverRideNotifications />
     </div>
   );
 };

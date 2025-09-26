@@ -44,6 +44,9 @@ verify_jwt = false
 [functions.ride-dispatcher]
 verify_jwt = false
 
+[functions.smart-ride-dispatcher]
+verify_jwt = false
+
 [functions.rental-moderation]
 verify_jwt = true
 
