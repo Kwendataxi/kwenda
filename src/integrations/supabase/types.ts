@@ -1021,6 +1021,9 @@ export type Database = {
           created_at: string
           delivered_at: string | null
           delivery_coordinates: Json | null
+          delivery_google_address: string | null
+          delivery_google_place_id: string | null
+          delivery_google_place_name: string | null
           delivery_location: string
           delivery_photo_url: string | null
           delivery_proof: Json | null
@@ -1030,6 +1033,7 @@ export type Database = {
           driver_id: string | null
           driver_notes: string | null
           estimated_price: number | null
+          google_geocoded_at: string | null
           id: string
           in_transit_at: string | null
           loading_assistance: boolean | null
@@ -1038,6 +1042,9 @@ export type Database = {
           package_weight: number | null
           picked_up_at: string | null
           pickup_coordinates: Json | null
+          pickup_google_address: string | null
+          pickup_google_place_id: string | null
+          pickup_google_place_name: string | null
           pickup_location: string
           pickup_time: string | null
           recipient_name: string | null
@@ -1057,6 +1064,9 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           delivery_coordinates?: Json | null
+          delivery_google_address?: string | null
+          delivery_google_place_id?: string | null
+          delivery_google_place_name?: string | null
           delivery_location: string
           delivery_photo_url?: string | null
           delivery_proof?: Json | null
@@ -1066,6 +1076,7 @@ export type Database = {
           driver_id?: string | null
           driver_notes?: string | null
           estimated_price?: number | null
+          google_geocoded_at?: string | null
           id?: string
           in_transit_at?: string | null
           loading_assistance?: boolean | null
@@ -1074,6 +1085,9 @@ export type Database = {
           package_weight?: number | null
           picked_up_at?: string | null
           pickup_coordinates?: Json | null
+          pickup_google_address?: string | null
+          pickup_google_place_id?: string | null
+          pickup_google_place_name?: string | null
           pickup_location: string
           pickup_time?: string | null
           recipient_name?: string | null
@@ -1093,6 +1107,9 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           delivery_coordinates?: Json | null
+          delivery_google_address?: string | null
+          delivery_google_place_id?: string | null
+          delivery_google_place_name?: string | null
           delivery_location?: string
           delivery_photo_url?: string | null
           delivery_proof?: Json | null
@@ -1102,6 +1119,7 @@ export type Database = {
           driver_id?: string | null
           driver_notes?: string | null
           estimated_price?: number | null
+          google_geocoded_at?: string | null
           id?: string
           in_transit_at?: string | null
           loading_assistance?: boolean | null
@@ -1110,6 +1128,9 @@ export type Database = {
           package_weight?: number | null
           picked_up_at?: string | null
           pickup_coordinates?: Json | null
+          pickup_google_address?: string | null
+          pickup_google_place_id?: string | null
+          pickup_google_place_name?: string | null
           pickup_location?: string
           pickup_time?: string | null
           recipient_name?: string | null
@@ -6384,16 +6405,23 @@ export type Database = {
           booking_time: string
           completion_time: string | null
           created_at: string
+          delivery_google_address: string | null
+          delivery_google_place_id: string | null
+          delivery_google_place_name: string | null
           destination: string
           destination_coordinates: Json | null
           driver_arrived_at: string | null
           driver_assigned_at: string | null
           driver_id: string | null
           estimated_price: number | null
+          google_geocoded_at: string | null
           id: string
           intermediate_stops: Json | null
           notes: string | null
           pickup_coordinates: Json | null
+          pickup_google_address: string | null
+          pickup_google_place_id: string | null
+          pickup_google_place_name: string | null
           pickup_location: string
           pickup_time: string | null
           rated: boolean | null
@@ -6411,16 +6439,23 @@ export type Database = {
           booking_time?: string
           completion_time?: string | null
           created_at?: string
+          delivery_google_address?: string | null
+          delivery_google_place_id?: string | null
+          delivery_google_place_name?: string | null
           destination: string
           destination_coordinates?: Json | null
           driver_arrived_at?: string | null
           driver_assigned_at?: string | null
           driver_id?: string | null
           estimated_price?: number | null
+          google_geocoded_at?: string | null
           id?: string
           intermediate_stops?: Json | null
           notes?: string | null
           pickup_coordinates?: Json | null
+          pickup_google_address?: string | null
+          pickup_google_place_id?: string | null
+          pickup_google_place_name?: string | null
           pickup_location: string
           pickup_time?: string | null
           rated?: boolean | null
@@ -6438,16 +6473,23 @@ export type Database = {
           booking_time?: string
           completion_time?: string | null
           created_at?: string
+          delivery_google_address?: string | null
+          delivery_google_place_id?: string | null
+          delivery_google_place_name?: string | null
           destination?: string
           destination_coordinates?: Json | null
           driver_arrived_at?: string | null
           driver_assigned_at?: string | null
           driver_id?: string | null
           estimated_price?: number | null
+          google_geocoded_at?: string | null
           id?: string
           intermediate_stops?: Json | null
           notes?: string | null
           pickup_coordinates?: Json | null
+          pickup_google_address?: string | null
+          pickup_google_place_id?: string | null
+          pickup_google_place_name?: string | null
           pickup_location?: string
           pickup_time?: string | null
           rated?: boolean | null
@@ -9072,6 +9114,14 @@ export type Database = {
         Args: { p_message_id: string }
         Returns: undefined
       }
+      migrate_coordinates_to_google_addresses: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          processed_bookings: number
+          processed_deliveries: number
+          processed_drivers: number
+        }[]
+      }
       monitor_security_events: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -9238,6 +9288,10 @@ export type Database = {
             }
           | { registration_data: Json }
         Returns: Json
+      }
+      validate_google_address: {
+        Args: { address_text: string }
+        Returns: boolean
       }
       validate_partner_registration_secure: {
         Args: {
