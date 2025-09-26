@@ -1017,6 +1017,7 @@ export type Database = {
         Row: {
           actual_price: number | null
           cancelled_at: string | null
+          city: string | null
           confirmed_at: string | null
           created_at: string
           delivered_at: string | null
@@ -1060,6 +1061,7 @@ export type Database = {
         Insert: {
           actual_price?: number | null
           cancelled_at?: string | null
+          city?: string | null
           confirmed_at?: string | null
           created_at?: string
           delivered_at?: string | null
@@ -1103,6 +1105,7 @@ export type Database = {
         Update: {
           actual_price?: number | null
           cancelled_at?: string | null
+          city?: string | null
           confirmed_at?: string | null
           created_at?: string
           delivered_at?: string | null

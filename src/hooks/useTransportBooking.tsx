@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+import { cityDetectionService } from '@/services/cityDetectionService';
 
 interface BookingData {
   pickupLocation: string;
@@ -26,6 +27,15 @@ export const useTransportBooking = () => {
 
     setLoading(true);
     try {
+      // Détecter intelligemment la ville
+      const cityDetection = cityDetectionService.detectCity({
+        coordinates: data.pickupCoordinates,
+        address: data.pickupLocation,
+        userSelection: data.city
+      });
+
+      console.log('🏙️ [Transport] Ville détectée:', cityDetection.city.name, 'Confiance:', cityDetection.confidence);
+
       const { data: booking, error } = await supabase
         .from('transport_bookings')
         .insert({
@@ -37,7 +47,7 @@ export const useTransportBooking = () => {
           vehicle_type: data.vehicleType,
           estimated_price: data.estimatedPrice,
           pickup_time: data.pickupTime || new Date().toISOString(),
-          city: data.city || 'Kinshasa', // Ville par défaut Kinshasa
+          city: cityDetection.city.name, // Ville détectée intelligemment
           status: 'pending'
         })
         .select()

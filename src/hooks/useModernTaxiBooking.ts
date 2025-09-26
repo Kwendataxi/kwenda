@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 import { LocationData } from '@/types/location';
+import { cityDetectionService } from '@/services/cityDetectionService';
 
 // Interface compatible avec l'ancien UltimateLocationData
 interface UltimateLocationData {
@@ -147,7 +148,16 @@ export function useModernTaxiBooking() {
       const { pickup: validatedPickup, destination: validatedDestination } = 
         await validateAndCorrectCoordinates(bookingData.pickup, bookingData.destination);
 
-      // 2. Préparer les données de réservation avec le champ city
+      // 2. Détecter intelligemment la ville
+      const cityDetection = cityDetectionService.detectCity({
+        coordinates: validatedPickup,
+        address: bookingData.pickup.address,
+        userSelection: bookingData.city
+      });
+
+      console.log('🏙️ [ModernTaxi] Ville détectée:', cityDetection.city.name, 'Confiance:', cityDetection.confidence);
+
+      // 3. Préparer les données de réservation avec ville détectée
       const bookingPayload = {
         user_id: user.id,
         pickup_location: bookingData.pickup.address,
@@ -159,7 +169,7 @@ export function useModernTaxiBooking() {
         total_distance: bookingData.distance,
         notes: bookingData.notes || null,
         pickup_time: bookingData.scheduledTime?.toISOString() || new Date().toISOString(),
-        city: bookingData.city || 'Kinshasa', // Ville par défaut Kinshasa
+        city: cityDetection.city.name, // Ville détectée intelligemment
         status: 'pending'
       };
 
