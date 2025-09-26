@@ -370,60 +370,60 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
   );
 
   const renderConfirmStep = () => (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 animate-fade-in">
       <div className="text-center space-y-2">
-        <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
-          <Check className="w-8 h-8 text-green-500" />
+        <div className="w-12 h-12 bg-congo-green/10 rounded-full flex items-center justify-center mx-auto">
+          <Check className="w-6 h-6 text-congo-green" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground">Confirmation</h2>
-        <p className="text-muted-foreground">Vérifiez les détails de votre commande</p>
+        <h2 className="text-xl font-bold text-foreground">Confirmation</h2>
+        <p className="text-sm text-muted-foreground">Vérifiez et validez votre commande</p>
       </div>
       
-      <div className="bg-card border border-congo-green/30 p-6 rounded-xl shadow-soft">
-        <div className="space-y-4">
-          <div className="flex items-start gap-3">
-            <div className="w-3 h-3 bg-green-500 rounded-full mt-1.5 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">Collecte</p>
-              <p className="text-sm text-muted-foreground truncate">
-                {deliveryData.pickupLocation?.address}
-              </p>
+      <div className="bg-card border border-primary/20 p-4 rounded-xl shadow-soft">
+        <div className="space-y-3">
+          {/* Itinéraire compact */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-congo-green rounded-full flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground">Collecte</p>
+                <p className="text-sm font-medium truncate">{deliveryData.pickupLocation?.address}</p>
+              </div>
+            </div>
+            
+            <div className="ml-1 border-l border-dashed border-border h-3" />
+            
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-congo-red rounded-full flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground">Livraison</p>
+                <p className="text-sm font-medium truncate">{deliveryData.deliveryLocation?.address}</p>
+              </div>
             </div>
           </div>
           
-          <div className="ml-1.5 border-l border-dashed border-border h-6" />
-          
-          <div className="flex items-start gap-3">
-            <div className="w-3 h-3 bg-red-500 rounded-full mt-1.5 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">Livraison</p>
-              <p className="text-sm text-muted-foreground truncate">
-                {deliveryData.deliveryLocation?.address}
-              </p>
+          {/* Détails en grille */}
+          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border text-sm">
+            <div>
+              <p className="text-xs text-muted-foreground">Service</p>
+              <p className="font-medium">{SERVICE_TYPES[deliveryData.serviceType].name}</p>
             </div>
-          </div>
-          
-          <div className="pt-4 border-t border-border space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Service</span>
-              <span className="font-medium">{SERVICE_TYPES[deliveryData.serviceType].name}</span>
+            <div>
+              <p className="text-xs text-muted-foreground">Type</p>
+              <p className="font-medium">{deliveryData.packageType}</p>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Type de colis</span>
-              <span className="font-medium">{deliveryData.packageType}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Distance</span>
-              <span className="font-medium">
+            <div>
+              <p className="text-xs text-muted-foreground">Distance</p>
+              <p className="font-medium">
                 {deliveryData.pickupLocation && deliveryData.deliveryLocation
                   ? formatDistance(calculateDistance(deliveryData.pickupLocation, deliveryData.deliveryLocation))
                   : '—'
                 }
-              </span>
+              </p>
             </div>
-            <div className="flex justify-between text-lg font-bold border-t border-border pt-2">
-              <span>Prix estimé</span>
-              <span className="text-congo-green">{deliveryData.estimatedPrice.toLocaleString()} CDF</span>
+            <div>
+              <p className="text-xs text-muted-foreground">Prix estimé</p>
+              <p className="font-bold text-congo-green">{deliveryData.estimatedPrice.toLocaleString()} CDF</p>
             </div>
           </div>
         </div>
@@ -442,9 +442,9 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/5 relative">
-      {/* Content avec padding pour éviter que le footer masque le contenu */}
-      <div className="pb-28 px-4 pt-6">
+    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/5 relative flex flex-col">
+      {/* Content scrollable avec espace pour le footer */}
+      <div className="flex-1 content-scrollable px-4 pt-6 pb-36">
         <div className="max-w-md mx-auto">
           {/* Progress Indicator */}
           <div className="mb-6">
@@ -481,8 +481,8 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             </p>
           </div>
 
-          {/* Step Content */}
-          <Card className="shadow-lg">
+          {/* Step Content optimisé pour mobile */}
+          <Card className="shadow-lg mb-6">
             <div className="p-6">
               {renderCurrentStep()}
             </div>
@@ -490,19 +490,19 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         </div>
       </div>
 
-      {/* Navigation Footer FIXE avec meilleur z-index et padding */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border/50 p-4 z-50 shadow-2xl">
+      {/* Navigation Footer SÉCURISÉ - toujours visible */}
+      <div className="sticky bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border/50 p-4 z-[60] shadow-2xl safe-area-padding">
         <div className="max-w-md mx-auto">
-          <div className="flex justify-between items-center space-x-4">
+          <div className="flex justify-between items-center space-x-4 min-touch-target">
             {currentStep !== 'pickup' && (
               <Button
                 variant="ghost"
                 onClick={handleBack}
-                className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
+                className="flex items-center space-x-2 text-muted-foreground hover:text-foreground min-touch-target"
                 disabled={isSubmitting}
               >
                 <ArrowLeft className="w-4 h-4" />
-                Retour
+                <span className="hidden sm:inline">Retour</span>
               </Button>
             )}
             
@@ -510,7 +510,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
               <Button
                 variant="outline"
                 onClick={onCancel}
-                className="flex-1 btn-congo-soft"
+                className="flex-1 min-touch-target bg-card border-border hover:bg-muted"
                 disabled={isSubmitting}
               >
                 Annuler
@@ -520,17 +520,17 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             {currentStep !== 'confirm' ? (
               <Button
                 onClick={handleNext}
-                className="flex-1 btn-congo shadow-glow hover:shadow-congo"
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow hover:shadow-congo min-touch-target"
                 disabled={!deliveryData.pickupLocation && currentStep === 'pickup' || 
                          !deliveryData.deliveryLocation && currentStep === 'destination'}
               >
-                Suivant
+                <span>Suivant</span>
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
               <Button
                 onClick={handleSubmit}
-                className="flex-1 btn-congo shadow-glow hover:shadow-congo"
+                className="flex-1 bg-congo-green hover:bg-congo-green/90 text-white shadow-glow hover:shadow-congo min-touch-target"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Création...' : 'Confirmer la commande'}

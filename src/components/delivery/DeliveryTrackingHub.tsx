@@ -131,9 +131,9 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header avec statut principal */}
-      <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-4">
+      <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-4 sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`w-3 h-3 rounded-full ${getStatusColor(order.status)} animate-pulse`} />
@@ -167,20 +167,20 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
       </div>
 
       {/* Contenu principal avec onglets */}
-      <div className="p-4">
+      <div className="flex-1 content-scrollable p-4 pb-24">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-card border border-border shadow-lg">
+          <TabsList className="grid w-full grid-cols-3 bg-card border border-border shadow-lg sticky top-0 z-10 mb-4">
             <TabsTrigger value="tracking" className="flex items-center gap-2">
               <MapPin className="w-4 h-4" />
-              Carte
+              <span className="hidden sm:inline">Carte</span>
             </TabsTrigger>
             <TabsTrigger value="details" className="flex items-center gap-2">
               <Package className="w-4 h-4" />
-              Détails
+              <span className="hidden sm:inline">Détails</span>
             </TabsTrigger>
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="w-4 h-4" />
-              Alertes
+              <span className="hidden sm:inline">Alertes</span>
               {unreadNotifications > 0 && (
                 <Badge variant="destructive" className="w-5 h-5 text-xs rounded-full">
                   {unreadNotifications}
@@ -373,7 +373,7 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
 
       {/* Actions chauffeur si connecté en tant que chauffeur */}
       {userRole === 'chauffeur' && (
-        <div className="p-4 border-t bg-background/95 backdrop-blur">
+        <div className="sticky bottom-0 p-4 border-t bg-background/98 backdrop-blur-xl z-20 safe-area-padding">
           <DriverDeliveryActions 
             order={{ 
               id: orderId,
@@ -391,10 +391,10 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
         </div>
       )}
 
-      {/* Bouton retour */}
+      {/* Bouton retour - toujours visible */}
       {onBack && (
-        <div className={`p-4 ${userRole === 'chauffeur' ? '' : 'border-t'}`}>
-          <Button onClick={onBack} variant="outline" className="w-full">
+        <div className={`sticky bottom-0 p-4 bg-background/98 backdrop-blur-xl z-20 safe-area-padding ${userRole === 'chauffeur' ? '' : 'border-t'}`}>
+          <Button onClick={onBack} variant="outline" className="w-full min-touch-target bg-card hover:bg-muted">
             Retour à l'accueil
           </Button>
         </div>
