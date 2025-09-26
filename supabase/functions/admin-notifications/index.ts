@@ -11,8 +11,15 @@ interface NotificationRequest {
   template_id?: string;
   title: string;
   content: string;
-  target_type: 'all_users' | 'user_role' | 'specific_users' | 'zone_users';
-  target_criteria?: any;
+  target_type: 'all_users' | 'all_clients' | 'all_drivers' | 'all_partners' | 'all_admins' | 'specific_users' | 'active_drivers' | 'verified_drivers' | 'zone_users';
+  target_criteria?: {
+    user_ids?: string[];
+    role?: string;
+    status?: string;
+    zone?: string;
+    city?: string;
+    verification_status?: string;
+  };
   priority?: 'low' | 'normal' | 'high' | 'urgent';
   scheduled_for?: string;
   action_url?: string;
@@ -130,20 +137,69 @@ async function handleSendNotification(req: Request, supabase: any, senderId: str
   try {
     switch (notificationData.target_type) {
       case 'all_users':
+        // Tous les utilisateurs avec limite de sécurité
         const { data: allUsers } = await supabase
-          .from('profiles')
+          .from('clients')
           .select('user_id')
-          .limit(1000); // Limiter pour éviter les surcharges
+          .eq('is_active', true)
+          .limit(1000);
         targetUsers = allUsers || [];
         break;
 
-      case 'user_role':
-        const { data: roleUsers } = await supabase
-          .from('user_roles')
+      case 'all_clients':
+        const { data: clients } = await supabase
+          .from('clients')
           .select('user_id')
-          .eq('role', notificationData.target_criteria?.role)
-          .eq('is_active', true);
-        targetUsers = roleUsers || [];
+          .eq('is_active', true)
+          .limit(1000);
+        targetUsers = clients || [];
+        break;
+
+      case 'all_drivers':
+        const { data: drivers } = await supabase
+          .from('chauffeurs')
+          .select('user_id')
+          .eq('is_active', true)
+          .limit(1000);
+        targetUsers = drivers || [];
+        break;
+
+      case 'all_partners':
+        const { data: partners } = await supabase
+          .from('partenaires')
+          .select('user_id')
+          .eq('is_active', true)
+          .limit(1000);
+        targetUsers = partners || [];
+        break;
+
+      case 'all_admins':
+        const { data: admins } = await supabase
+          .from('admins')
+          .select('user_id')
+          .eq('is_active', true)
+          .limit(100);
+        targetUsers = admins || [];
+        break;
+
+      case 'active_drivers':
+        const { data: activeDrivers } = await supabase
+          .from('chauffeurs')
+          .select('user_id')
+          .eq('is_active', true)
+          .in('verification_status', ['verified', 'approved'])
+          .limit(1000);
+        targetUsers = activeDrivers || [];
+        break;
+
+      case 'verified_drivers':
+        const { data: verifiedDrivers } = await supabase
+          .from('chauffeurs')
+          .select('user_id')
+          .eq('verification_status', 'verified')
+          .eq('is_active', true)
+          .limit(1000);
+        targetUsers = verifiedDrivers || [];
         break;
 
       case 'specific_users':
@@ -151,13 +207,15 @@ async function handleSendNotification(req: Request, supabase: any, senderId: str
         break;
 
       case 'zone_users':
-        // Logique complexe pour les utilisateurs par zone
-        // Pour l'instant, on utilise tous les utilisateurs
-        const { data: zoneUsers } = await supabase
-          .from('profiles')
+        // Ciblage par zone géographique pour les chauffeurs
+        const city = notificationData.target_criteria?.city || 'Kinshasa';
+        const { data: zoneDrivers } = await supabase
+          .from('chauffeurs')
           .select('user_id')
+          .contains('service_areas', [city])
+          .eq('is_active', true)
           .limit(1000);
-        targetUsers = zoneUsers || [];
+        targetUsers = zoneDrivers || [];
         break;
     }
 
