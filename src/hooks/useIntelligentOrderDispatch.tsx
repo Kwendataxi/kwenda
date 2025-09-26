@@ -71,121 +71,126 @@ export const useIntelligentOrderDispatch = () => {
     };
   }, []);
 
-  // Écouter les nouvelles commandes en temps réel
+  // Écouter les notifications d'assignation automatique
   useEffect(() => {
     if (!user || !isListening) return;
 
-    console.log('🚀 Démarrage écoute intelligente des commandes...');
+    console.log('🎯 Démarrage écoute notifications dispatch...');
 
-    const channels = [
-      // Transport bookings
-      supabase
-        .channel('transport_bookings_channel')
-        .on('postgres_changes', 
-          { event: 'INSERT', schema: 'public', table: 'transport_bookings' },
-          (payload) => {
-            const newOrder: OrderRequest = {
-              id: payload.new.id,
-              type: 'taxi',
-              pickup_location: payload.new.pickup_location,
-              delivery_location: payload.new.delivery_location,
-              pickup_coordinates: payload.new.pickup_coordinates,
-              delivery_coordinates: payload.new.delivery_coordinates,
-              estimated_price: payload.new.estimated_price || 0,
-              priority: 'normal',
-              created_at: payload.new.created_at,
-              customer_id: payload.new.user_id,
-              distance_km: payload.new.distance_km
+    // Canal pour les notifications d'assignation
+    const notificationChannel = supabase
+      .channel('driver_notifications')
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'delivery_notifications' },
+        (payload) => {
+          const notification = payload.new as any;
+          
+          // Vérifier si c'est une notification d'assignation pour ce chauffeur
+          if (notification.user_id === user.id && 
+              notification.notification_type === 'assignment') {
+            console.log('📱 Assignation automatique reçue:', notification);
+            
+            const order: OrderRequest = {
+              id: notification.metadata?.booking_id || notification.metadata?.order_id || notification.id,
+              type: notification.metadata?.booking_id ? 'taxi' : 'delivery',
+              pickup_location: 'Lieu de prise en charge',
+              delivery_location: notification.metadata?.booking_id ? 'Destination' : 'Lieu de livraison',
+              pickup_coordinates: null,
+              delivery_coordinates: null,
+              estimated_price: 0,
+              priority: notification.metadata?.priority || 'normal',
+              created_at: notification.created_at,
+              customer_id: 'system'
             };
             
-            console.log('📋 Nouvelle course taxi reçue:', newOrder);
-            setPendingOrders(prev => [...prev, newOrder]);
+            setPendingOrders(prev => [...prev, order]);
             
-            // Notification sonore et visuelle
-            toast.success('Nouvelle course disponible!', {
-              description: `De ${newOrder.pickup_location}`,
-              duration: 10000
+            // Notification push
+            toast.success(notification.title, {
+              description: notification.message,
+              duration: 15000
             });
-          }
-        ),
-
-      // Delivery orders  
-      supabase
-        .channel('delivery_orders_channel')
-        .on('postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'delivery_orders' },
-          (payload) => {
-            const newOrder: OrderRequest = {
-              id: payload.new.id,
-              type: 'delivery',
-              pickup_location: payload.new.pickup_location,
-              delivery_location: payload.new.delivery_location,
-              pickup_coordinates: payload.new.pickup_coordinates,
-              delivery_coordinates: payload.new.delivery_coordinates,
-              estimated_price: payload.new.estimated_price || 0,
-              priority: payload.new.delivery_type === 'flash' ? 'urgent' : 'normal',
-              created_at: payload.new.created_at,
-              customer_id: payload.new.user_id,
-              special_requirements: payload.new.driver_notes
-            };
             
-            console.log('📦 Nouvelle livraison reçue:', newOrder);
-            setPendingOrders(prev => [...prev, newOrder]);
-            
-            toast.success('Nouvelle livraison disponible!', {
-              description: `${newOrder.delivery_location}`,
-              duration: 10000
-            });
-          }
-        ),
-
-      // Marketplace delivery assignments
-      supabase
-        .channel('marketplace_assignments_channel')
-        .on('postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'marketplace_delivery_assignments' },
-          async (payload) => {
-            // Récupérer les détails de la commande marketplace
-            const { data: orderData } = await supabase
-              .from('marketplace_orders')
-              .select('*')
-              .eq('id', payload.new.order_id)
-              .single();
-
-            if (orderData) {
-              const newOrder: OrderRequest = {
-                id: payload.new.id,
-                type: 'marketplace',
-                pickup_location: payload.new.pickup_address || 'Collecte vendeur',
-                delivery_location: payload.new.delivery_address || 'Livraison client',
-                pickup_coordinates: payload.new.pickup_coordinates,
-                delivery_coordinates: payload.new.delivery_coordinates,
-                estimated_price: payload.new.delivery_fee || 0,
-                priority: 'high', // Marketplace prioritaire
-                created_at: payload.new.created_at,
-                customer_id: orderData.buyer_id,
-                special_requirements: payload.new.special_requirements,
-                distance_km: payload.new.distance_km
-              };
-              
-              console.log('🛒 Nouvelle livraison marketplace reçue:', newOrder);
-              setPendingOrders(prev => [...prev, newOrder]);
-              
-              toast.success('Nouvelle livraison marketplace!', {
-                description: `Gains majorés: ${newOrder.estimated_price} CDF`,
-                duration: 10000
+            // Notification navigateur
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification(notification.title, {
+                body: notification.message,
+                icon: '/favicon.ico'
               });
             }
           }
-        )
-    ];
+        }
+      )
+      .subscribe();
 
-    // Souscrire aux channels
-    channels.forEach(channel => channel.subscribe());
+    // Déclencher le dispatch automatique pour les nouvelles commandes
+    const transportChannel = supabase
+      .channel('auto_dispatch_transport')
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'transport_bookings' },
+        async (payload) => {
+          const booking = payload.new as any;
+          if (booking.status === 'pending' && !booking.driver_id && booking.pickup_coordinates) {
+            console.log('🚗 Auto-dispatch transport:', booking.id);
+            
+            // Lancer le dispatch automatique via Edge Function
+            try {
+              const { error } = await supabase.functions.invoke('auto-dispatch-system', {
+                body: {
+                  booking_id: booking.id,
+                  type: 'transport',
+                  pickup_lat: booking.pickup_coordinates.lat,
+                  pickup_lng: booking.pickup_coordinates.lng,
+                  city: booking.city || 'Kinshasa',
+                  priority: booking.is_urgent ? 'urgent' : 'normal',
+                  service_type: booking.service_type
+                }
+              });
+              
+              if (error) console.error('❌ Erreur auto-dispatch transport:', error);
+            } catch (err) {
+              console.error('❌ Exception auto-dispatch transport:', err);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    const deliveryChannel = supabase
+      .channel('auto_dispatch_delivery')
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'delivery_orders' },
+        async (payload) => {
+          const delivery = payload.new as any;
+          if (delivery.status === 'pending' && !delivery.driver_id && delivery.pickup_coordinates) {
+            console.log('📦 Auto-dispatch livraison:', delivery.id);
+            
+            try {
+              const { error } = await supabase.functions.invoke('auto-dispatch-system', {
+                body: {
+                  order_id: delivery.id,
+                  type: 'delivery',
+                  pickup_lat: delivery.pickup_coordinates.lat,
+                  pickup_lng: delivery.pickup_coordinates.lng,
+                  priority: delivery.delivery_type === 'flash' ? 'urgent' : 'normal',
+                  delivery_type: delivery.delivery_type
+                }
+              });
+              
+              if (error) console.error('❌ Erreur auto-dispatch livraison:', error);
+            } catch (err) {
+              console.error('❌ Exception auto-dispatch livraison:', err);
+            }
+          }
+        }
+      )
+      .subscribe();
 
     return () => {
-      console.log('🔌 Arrêt écoute des commandes');
-      channels.forEach(channel => supabase.removeChannel(channel));
+      console.log('🔌 Arrêt écoute dispatch...');
+      supabase.removeChannel(notificationChannel);
+      supabase.removeChannel(transportChannel);
+      supabase.removeChannel(deliveryChannel);
     };
   }, [user, isListening]);
 
