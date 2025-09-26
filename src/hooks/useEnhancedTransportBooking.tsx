@@ -151,13 +151,14 @@ export const useEnhancedTransportBooking = () => {
     try {
       console.log('🚗 Déclenchement ride-dispatcher pour:', bookingId);
       
-      const { data, error } = await supabase.functions.invoke('ride-dispatcher', {
+      const { data, error } = await supabase.functions.invoke('dynamic-ride-dispatcher', {
         body: {
-          rideRequestId: bookingId,
+          bookingId: bookingId,
           pickupLat: pickupCoordinates.lat,
           pickupLng: pickupCoordinates.lng,
           serviceType: 'taxi',
-          vehicleClass: 'standard'
+          vehicleClass: 'standard',
+          priority: 'normal'
         }
       });
 

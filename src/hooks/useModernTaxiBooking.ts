@@ -272,11 +272,11 @@ export function useModernTaxiBooking() {
         attempts++;
         
         try {
-          const { data, error } = await supabase.functions.invoke('smart-ride-dispatcher', {
+          const { data, error } = await supabase.functions.invoke('dynamic-ride-dispatcher', {
             body: {
-              bookingId: bookingId, // Corriger le nom du paramètre
-              pickupLat: pickupCoords.lat, // Corriger le format
-              pickupLng: pickupCoords.lng, // Corriger le format
+              bookingId: bookingId,
+              pickupLat: pickupCoords.lat,
+              pickupLng: pickupCoords.lng,
               serviceType: 'taxi',
               vehicleClass: 'standard',
               priority: 'normal'

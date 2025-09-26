@@ -59,9 +59,9 @@ serve(async (req) => {
 
     // Trouver les chauffeurs à proximité avec la fonction RPC corrigée
     const { data: drivers, error: driversError } = await supabase.rpc('find_nearby_drivers', {
-      user_lat: pickupLat,
-      user_lng: pickupLng,
-      search_radius_km: searchRadius,
+      pickup_lat: pickupLat,
+      pickup_lng: pickupLng,
+      max_distance_km: searchRadius,
       vehicle_class_filter: vehicleClass
     });
 
