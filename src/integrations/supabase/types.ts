@@ -9410,6 +9410,20 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      register_partner_with_metadata: {
+        Args: {
+          p_address?: string
+          p_business_license?: string
+          p_business_type?: string
+          p_company_name: string
+          p_email: string
+          p_password: string
+          p_phone_number: string
+          p_service_areas?: string[]
+          p_tax_number?: string
+        }
+        Returns: Json
+      }
       run_security_maintenance: {
         Args: Record<PropertyKey, never>
         Returns: string

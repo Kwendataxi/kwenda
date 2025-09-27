@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export interface PartnerRegistrationDataSecure {
+export interface PartnerRegistrationData {
   company_name: string;
   contact_email: string;
   phone: string;
@@ -11,227 +11,86 @@ export interface PartnerRegistrationDataSecure {
   service_areas: string[];
   business_license?: string;
   tax_number?: string;
-  commission_rate?: number;
-  commission_type?: 'percentage' | 'fixed';
+  password: string;
 }
 
 export const usePartnerRegistrationSecure = () => {
   const [loading, setLoading] = useState(false);
 
-  const registerPartner = async (data: PartnerRegistrationDataSecure) => {
+  const registerPartner = async (data: PartnerRegistrationData) => {
     setLoading(true);
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        throw new Error('Utilisateur non authentifié');
-      }
-
-      // Vérifier si l'utilisateur a déjà un profil partenaire
-      const { data: existingPartner } = await supabase
-        .from('partenaires')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (existingPartner) {
-        throw new Error('Vous avez déjà un profil partenaire');
-      }
-
-      // Utiliser la fonction de validation sécurisée
-      const { data: validationResult } = await supabase
-        .rpc('validate_partner_registration_secure', {
-          p_company_name: data.company_name,
+      // Use the secure registration function with metadata
+      const { data: registrationResult, error } = await supabase.rpc(
+        'register_partner_with_metadata',
+        {
           p_email: data.contact_email,
+          p_password: data.password,
+          p_company_name: data.company_name,
           p_phone_number: data.phone,
-          p_commission_rate: data.commission_rate || 15.00
-        });
-
-      const validation = validationResult as any;
-      if (!validation?.valid) {
-        const errors = validation?.errors || [];
-        throw new Error(`Erreur de validation: ${errors.join(', ')}`);
-      }
-
-      // Validation des zones de service
-      if (!data.service_areas || data.service_areas.length === 0) {
-        throw new Error('Au moins une zone de service est requise');
-      }
-
-      // Obtenir la configuration commission par défaut de manière sécurisée
-      const { data: commissionConfig } = await supabase
-        .from('commission_configuration')
-        .select('partner_commission_rate')
-        .eq('service_type', 'transport')
-        .eq('is_active', true)
-        .maybeSingle();
-
-      const defaultCommissionRate = commissionConfig?.partner_commission_rate || 15.00;
-
-      // Créer le profil partenaire avec toutes les données
-      const { error } = await supabase
-        .from('partenaires')
-        .insert([{
-          user_id: user.id,
-          display_name: data.company_name,
-          company_name: data.company_name,
-          phone_number: data.phone,
-          email: data.contact_email,
-          address: data.address || '',
-          business_type: data.business_type,
-          business_license: data.business_license,
-          tax_number: data.tax_number,
-          commission_rate: data.commission_rate || defaultCommissionRate,
-          verification_status: 'pending',
-          is_active: false,
-          service_areas: data.service_areas
-        }]);
+          p_business_type: data.business_type,
+          p_service_areas: data.service_areas,
+          p_address: data.address || null,
+          p_business_license: data.business_license || null,
+          p_tax_number: data.tax_number || null
+        }
+      );
 
       if (error) {
-        // Logger l'échec d'inscription pour le monitoring de sécurité
-        await supabase.rpc('log_system_activity', {
-          p_activity_type: 'partner_registration_failed',
-          p_description: 'Failed partner registration attempt',
-          p_metadata: { 
-            error: error.message,
-            company_name: data.company_name,
-            email: data.contact_email
-          }
-        });
-        throw error;
+        console.error('Registration error:', error);
+        throw new Error(error.message || 'Erreur lors de l\'inscription');
       }
 
-      // Logger le succès d'inscription
-      await supabase.rpc('log_system_activity', {
-        p_activity_type: 'partner_registration_success',
-        p_description: 'New partner registered successfully',
-        p_metadata: { 
-          company_name: data.company_name,
-          business_type: data.business_type,
-          service_areas: data.service_areas
-        }
-      });
-
-      // Envoyer une notification aux admins via edge function sécurisée
-      try {
-        await supabase.functions.invoke('smart-notification-dispatcher', {
-          body: {
-            type: 'partner_registration',
-            data: {
-              partner_name: data.company_name,
-              business_type: data.business_type,
-              service_areas: data.service_areas,
-              user_id: user.id
+      // Check if the registration was successful
+      const result = registrationResult as any;
+      if (result?.user) {
+        toast.success('Inscription réussie ! Votre demande est en cours de traitement par nos équipes.');
+        
+        // Try to send admin notification (non-blocking)
+        try {
+          await supabase.functions.invoke('smart-notification-dispatcher', {
+            body: {
+              type: 'partner_registration',
+              data: {
+                partner_name: data.company_name,
+                business_type: data.business_type,
+                service_areas: data.service_areas,
+                email: data.contact_email
+              }
             }
-          }
-        });
-      } catch (notificationError) {
-        // Ne pas faire échouer l'inscription si la notification échoue
-        console.warn('Notification failed:', notificationError);
-      }
-
-      toast.success('Demande de partenariat envoyée avec succès! Votre demande est en cours de traitement.');
-      return { success: true };
-
-    } catch (error: any) {
-      console.error('Erreur lors de l\'inscription partenaire:', error);
-      toast.error(error.message || 'Erreur lors de l\'inscription');
-      return { success: false, error: error.message };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const checkPartnerStatus = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
-
-      const { data: partner } = await supabase
-        .from('partenaires')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      return partner;
-    } catch (error) {
-      console.error('Erreur lors de la vérification du statut partenaire:', error);
-      return null;
-    }
-  };
-
-  const updateCommissionRate = async (newRate: number) => {
-    setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error('Vous devez être connecté');
-      }
-
-      // Valider le nouveau taux via la fonction sécurisée
-      const { data: validationResult } = await supabase
-        .rpc('validate_partner_registration_secure', {
-          p_company_name: 'dummy', // Requis mais pas utilisé pour la validation du taux
-          p_email: 'dummy@test.com', // Requis mais pas utilisé pour la validation du taux
-          p_phone_number: '+243999999999', // Requis mais pas utilisé pour la validation du taux
-          p_commission_rate: newRate
-        });
-
-      const validation = validationResult as any;
-      if (!validation?.valid) {
-        const errors = validation?.errors || [];
-        throw new Error(`Taux de commission invalide: ${errors.join(', ')}`);
-      }
-
-      const { error } = await supabase
-        .from('partenaires')
-        .update({ 
-          commission_rate: newRate,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      // Logger la mise à jour
-      await supabase.rpc('log_system_activity', {
-        p_activity_type: 'partner_commission_updated',
-        p_description: 'Partner commission rate updated',
-        p_metadata: { 
-          new_rate: newRate,
-          user_id: user.id
+          });
+        } catch (notificationError) {
+          console.warn('Admin notification failed:', notificationError);
         }
-      });
 
-      toast.success('Taux de commission mis à jour avec succès');
-      return true;
+        return { success: true, user: result.user };
+      } else {
+        throw new Error('Erreur lors de la création du compte');
+      }
+
     } catch (error: any) {
-      console.error('Error updating commission rate:', error);
-      toast.error(error.message || 'Erreur lors de la mise à jour');
-      return false;
+      console.error('Partner registration error:', error);
+      let errorMessage = 'Erreur lors de l\'inscription';
+      
+      if (error.message.includes('duplicate key')) {
+        errorMessage = 'Cette adresse email est déjà utilisée';
+      } else if (error.message.includes('invalid email')) {
+        errorMessage = 'Adresse email invalide';
+      } else if (error.message.includes('password')) {
+        errorMessage = 'Le mot de passe doit contenir au moins 6 caractères';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
-    }
-  };
-
-  const getSecurityStatus = async () => {
-    try {
-      const { data: securityStatus } = await supabase
-        .rpc('check_security_status');
-
-      return securityStatus;
-    } catch (error) {
-      console.error('Error checking security status:', error);
-      return null;
     }
   };
 
   return {
     registerPartner,
-    checkPartnerStatus,
-    updateCommissionRate,
-    getSecurityStatus,
     loading
   };
 };

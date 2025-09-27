@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,71 +8,51 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Building2, Mail, Phone, MapPin, FileText, CreditCard } from 'lucide-react';
+import { Building2, Mail, Phone, MapPin, FileText, CreditCard, Lock } from 'lucide-react';
+import { usePartnerRegistrationSecure, PartnerRegistrationData } from '@/hooks/usePartnerRegistrationSecure';
 
 const PartnerRegistration = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const { registerPartner, loading } = usePartnerRegistrationSecure();
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<PartnerRegistrationData>({
     company_name: '',
     contact_email: '',
     phone: '',
     address: '',
-    business_type: 'transport',
+    business_type: 'individual',
     service_areas: ['Kinshasa'],
     business_license: '',
     tax_number: '',
-    commission_rate: 15.00
+    password: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    
+    if (currentStep < 2) {
+      setCurrentStep(prev => prev + 1);
+      return;
+    }
 
-    try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        toast.error('Vous devez être connecté pour vous inscrire comme partenaire');
-        navigate('/auth');
-        return;
-      }
+    // Validation des champs requis
+    if (!formData.company_name || !formData.contact_email || !formData.phone || !formData.password) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
 
-      // Créer le profil partenaire
-      const { error: partnerError } = await supabase
-        .from('partenaires')
-        .insert([{
-          user_id: user.id,
-          display_name: formData.company_name,
-          phone_number: formData.phone,
-          email: formData.contact_email,
-          address: formData.address,
-          business_type: formData.business_type,
-          company_name: formData.company_name,
-          commission_rate: formData.commission_rate,
-          verification_status: 'pending',
-          is_active: false
-        } as any]);
+    if (formData.password.length < 6) {
+      toast.error('Le mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
 
-      if (partnerError) {
-        console.error('Erreur création partenaire:', partnerError);
-        toast.error('Erreur lors de l\'inscription: ' + partnerError.message);
-        return;
-      }
-
-      toast.success('Inscription partenaire envoyée! Nous examinerons votre demande sous 24-48h.');
-      navigate('/partner');
-
-    } catch (error) {
-      console.error('Erreur:', error);
-      toast.error('Une erreur est survenue');
-    } finally {
-      setLoading(false);
+    const result = await registerPartner(formData);
+    if (result.success) {
+      navigate('/partner/auth');
     }
   };
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: keyof PartnerRegistrationData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -124,6 +103,22 @@ const PartnerRegistration = () => {
         </div>
 
         <div>
+          <Label htmlFor="password" className="flex items-center gap-2">
+            <Lock className="h-4 w-4" />
+            Mot de passe *
+          </Label>
+          <Input
+            id="password"
+            type="password"
+            value={formData.password}
+            onChange={(e) => handleChange('password', e.target.value)}
+            placeholder="Minimum 6 caractères"
+            required
+            minLength={6}
+          />
+        </div>
+
+        <div>
           <Label htmlFor="address" className="flex items-center gap-2">
             <MapPin className="h-4 w-4" />
             Adresse
@@ -143,16 +138,16 @@ const PartnerRegistration = () => {
   const renderStep2 = () => (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="business_type">Type d'activité</Label>
-        <Select value={formData.business_type} onValueChange={(value) => handleChange('business_type', value)}>
+        <Label htmlFor="business_type">Type d'entreprise</Label>
+        <Select value={formData.business_type} onValueChange={(value: any) => handleChange('business_type', value)}>
           <SelectTrigger>
-            <SelectValue placeholder="Sélectionnez votre type d'activité" />
+            <SelectValue placeholder="Sélectionnez votre type d'entreprise" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="transport">Transport</SelectItem>
-            <SelectItem value="delivery">Livraison</SelectItem>
-            <SelectItem value="rental">Location de véhicules</SelectItem>
-            <SelectItem value="marketplace">Marketplace</SelectItem>
+            <SelectItem value="individual">Individuel</SelectItem>
+            <SelectItem value="company">Entreprise</SelectItem>
+            <SelectItem value="cooperative">Coopérative</SelectItem>
+            <SelectItem value="association">Association</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -184,12 +179,10 @@ const PartnerRegistration = () => {
       </div>
 
       <div className="bg-blue-50 p-4 rounded-lg">
-        <h4 className="font-medium text-blue-900 mb-2">Commission</h4>
-        <p className="text-sm text-blue-700">
-          Taux de commission standard: <strong>{formData.commission_rate}%</strong>
-        </p>
-        <p className="text-xs text-blue-600 mt-1">
-          Ce taux peut être négocié en fonction du volume d'affaires
+        <h4 className="font-medium text-blue-900 mb-2">Zones de service</h4>
+        <Badge variant="secondary" className="mb-2">Kinshasa</Badge>
+        <p className="text-xs text-blue-600">
+          Zones de service supplémentaires peuvent être ajoutées après validation
         </p>
       </div>
     </div>
@@ -233,7 +226,7 @@ const PartnerRegistration = () => {
                     <Button 
                       type="button"
                       onClick={() => setCurrentStep(2)}
-                      disabled={!formData.company_name || !formData.contact_email || !formData.phone}
+                      disabled={!formData.company_name || !formData.contact_email || !formData.phone || !formData.password}
                     >
                       Suivant
                     </Button>
@@ -243,7 +236,7 @@ const PartnerRegistration = () => {
 
               {currentStep === 2 && (
                 <>
-                  <h3 className="text-lg font-semibold mb-4">Détails de l'activité</h3>
+                  <h3 className="text-lg font-semibold mb-4">Détails de l'entreprise</h3>
                   {renderStep2()}
                   <div className="flex justify-between mt-6">
                     <Button 
@@ -254,7 +247,7 @@ const PartnerRegistration = () => {
                       Précédent
                     </Button>
                     <Button type="submit" disabled={loading}>
-                      {loading ? 'Envoi en cours...' : 'Soumettre la demande'}
+                      {loading ? 'Inscription en cours...' : 'Créer le compte partenaire'}
                     </Button>
                   </div>
                 </>
@@ -263,13 +256,12 @@ const PartnerRegistration = () => {
 
             {/* Info section */}
             <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-medium mb-2">Avantages partenaire Kwenda:</h4>
+              <h4 className="font-medium mb-2">Après inscription:</h4>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Accès à notre plateforme de gestion complète</li>
-                <li>• Support technique 24/7</li>
-                <li>• Commissions attractives</li>
-                <li>• Formation et accompagnement</li>
-                <li>• Visibilité sur notre application client</li>
+                <li>• Votre demande sera examinée par nos équipes</li>
+                <li>• Vous recevrez une réponse sous 24-48h</li>
+                <li>• Une fois validé, vous aurez accès à votre espace partenaire</li>
+                <li>• Support et formation seront fournis</li>
               </ul>
             </div>
           </CardContent>
