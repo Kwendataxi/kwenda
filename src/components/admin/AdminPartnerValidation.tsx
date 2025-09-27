@@ -21,9 +21,11 @@ interface PartnerApplication {
   tax_number?: string;
   verification_status: 'pending' | 'approved' | 'rejected';
   created_at: string;
-  service_areas: string[];
+  service_areas?: string[];
   commission_rate: number;
   user_id: string;
+  admin_comments?: string;
+  reviewed_at?: string;
 }
 
 interface ValidationDialogProps {
@@ -103,14 +105,14 @@ const ValidationDialog = ({ partner, onValidate, loading }: ValidationDialogProp
                 <Badge variant="secondary">{partner.business_type}</Badge>
               </div>
               
-              <div>
-                <p className="text-sm font-medium">Zones de service</p>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {partner.service_areas.map((area, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">{area}</Badge>
-                  ))}
-                </div>
-              </div>
+               <div>
+                 <p className="text-sm font-medium">Zones de service</p>
+                 <div className="flex flex-wrap gap-1 mt-1">
+                   {(partner.service_areas || ['Kinshasa']).map((area, index) => (
+                     <Badge key={index} variant="outline" className="text-xs">{area}</Badge>
+                   ))}
+                 </div>
+               </div>
             </div>
           </div>
 
@@ -219,7 +221,10 @@ const AdminPartnerValidation = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as PartnerApplication[];
+      return (data || []).map(partner => ({
+        ...partner,
+        service_areas: partner.service_areas || ['Kinshasa']
+      })) as PartnerApplication[];
     }
   });
 
@@ -345,10 +350,10 @@ const AdminPartnerValidation = () => {
                     <p className="text-xs font-medium text-gray-500 uppercase">Commission</p>
                     <p className="text-sm font-medium">{partner.commission_rate}%</p>
                   </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase">Zones</p>
-                    <p className="text-sm">{partner.service_areas.join(', ')}</p>
-                  </div>
+                   <div>
+                     <p className="text-xs font-medium text-gray-500 uppercase">Zones</p>
+                     <p className="text-sm">{(partner.service_areas || ['Kinshasa']).join(', ')}</p>
+                   </div>
                   <div>
                     <p className="text-xs font-medium text-gray-500 uppercase">Demandé le</p>
                     <p className="text-sm">{new Date(partner.created_at).toLocaleDateString('fr-FR')}</p>

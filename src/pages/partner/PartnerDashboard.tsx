@@ -232,7 +232,7 @@ const PartnerDashboard = () => {
                   <div>
                     <p className="text-sm font-medium">Zones de service</p>
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {partnerStatus.service_areas?.map((area: string, index: number) => (
+                      {(partnerStatus?.service_areas || ['Kinshasa']).map((area: string, index: number) => (
                         <Badge key={index} variant="outline" className="text-xs">{area}</Badge>
                       ))}
                     </div>
@@ -257,7 +257,7 @@ const PartnerDashboard = () => {
           </Card>
 
           {/* Commentaires admin */}
-          {partnerStatus.admin_comments && (
+          {partnerStatus?.admin_comments && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

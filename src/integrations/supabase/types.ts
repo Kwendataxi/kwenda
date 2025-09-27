@@ -3460,6 +3460,7 @@ export type Database = {
       partenaires: {
         Row: {
           address: string
+          admin_comments: string | null
           bank_account_number: string | null
           business_type: string
           city: string | null
@@ -3477,6 +3478,8 @@ export type Database = {
           id: string
           is_active: boolean | null
           phone_number: string
+          reviewed_at: string | null
+          service_areas: string[] | null
           tax_number: string | null
           updated_at: string | null
           user_id: string
@@ -3484,6 +3487,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          admin_comments?: string | null
           bank_account_number?: string | null
           business_type: string
           city?: string | null
@@ -3501,6 +3505,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           phone_number: string
+          reviewed_at?: string | null
+          service_areas?: string[] | null
           tax_number?: string | null
           updated_at?: string | null
           user_id: string
@@ -3508,6 +3514,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          admin_comments?: string | null
           bank_account_number?: string | null
           business_type?: string
           city?: string | null
@@ -3525,6 +3532,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           phone_number?: string
+          reviewed_at?: string | null
+          service_areas?: string[] | null
           tax_number?: string | null
           updated_at?: string | null
           user_id?: string
