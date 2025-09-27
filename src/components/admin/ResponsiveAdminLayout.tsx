@@ -3,6 +3,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileAdminHeader } from './MobileAdminHeader';
 import { MobileKPIGrid } from './MobileKPIGrid';
 import { AdminVerticalNav } from './AdminVerticalNav';
+import { AdminPermissionSettings, AdminPermissionProvider, useAdminPermissions } from './AdminPermissionContext';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 
 interface ResponsiveAdminLayoutProps {
@@ -12,7 +13,7 @@ interface ResponsiveAdminLayoutProps {
   onTabChange: (value: string) => void;
 }
 
-export const ResponsiveAdminLayout: React.FC<ResponsiveAdminLayoutProps> = ({
+const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
   children,
   realTimeStats,
   activeTab,
@@ -20,6 +21,7 @@ export const ResponsiveAdminLayout: React.FC<ResponsiveAdminLayoutProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { devMode, showAllSections } = useAdminPermissions();
 
   if (isMobile) {
     return (
@@ -31,10 +33,15 @@ export const ResponsiveAdminLayout: React.FC<ResponsiveAdminLayoutProps> = ({
           <SheetContent side="left" className="p-0 w-80">
             <div className="p-4">
               <h2 className="text-lg font-semibold mb-4">Navigation</h2>
-              <AdminVerticalNav activeTab={activeTab} onTabChange={(value) => {
-                onTabChange(value);
-                setMobileMenuOpen(false);
-              }} />
+              <AdminPermissionSettings />
+              <AdminVerticalNav 
+                activeTab={activeTab} 
+                onTabChange={(value) => {
+                  onTabChange(value);
+                  setMobileMenuOpen(false);
+                }}
+                devMode={devMode}
+              />
             </div>
           </SheetContent>
         </Sheet>
@@ -56,7 +63,8 @@ export const ResponsiveAdminLayout: React.FC<ResponsiveAdminLayoutProps> = ({
       <div className="container py-4">
         <div className="flex gap-6">
           <aside className="w-64 shrink-0">
-            <AdminVerticalNav activeTab={activeTab} onTabChange={onTabChange} />
+            <AdminPermissionSettings />
+            <AdminVerticalNav activeTab={activeTab} onTabChange={onTabChange} devMode={devMode} />
           </aside>
           <section className="flex-1">
             {/* KPI Grid - only on overview */}
@@ -68,5 +76,13 @@ export const ResponsiveAdminLayout: React.FC<ResponsiveAdminLayoutProps> = ({
         </div>
       </div>
     </div>
+  );
+};
+
+export const ResponsiveAdminLayout: React.FC<ResponsiveAdminLayoutProps> = (props) => {
+  return (
+    <AdminPermissionProvider>
+      <ResponsiveAdminLayoutInner {...props} />
+    </AdminPermissionProvider>
   );
 };

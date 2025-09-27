@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ResponsiveAdminLayout } from '@/components/admin/ResponsiveAdminLayout';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { PermissionGuard } from '@/components/auth/PermissionGuard';
+import { FlexiblePermissionGuard } from '@/components/auth/FlexiblePermissionGuard';
 import { DriverCreditsManager } from '@/components/admin/DriverCreditsManager';
 import { CommissionManager } from '@/components/admin/CommissionManager';
 import { FinancialDashboard } from '@/components/admin/FinancialDashboard';
@@ -87,7 +88,7 @@ const AdminApp = () => {
   const renderContent = () => (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
       <TabsContent value="overview" className="space-y-6">
-        <PermissionGuard requiredPermissions={['analytics_read']}>
+        <FlexiblePermissionGuard requiredPermissions={['analytics_read']}>
           <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -110,7 +111,7 @@ const AdminApp = () => {
           />
 
           <EnhancedDashboard />
-        </PermissionGuard>
+        </FlexiblePermissionGuard>
       </TabsContent>
 
       <TabsContent value="test-data" className="space-y-6">
@@ -121,9 +122,9 @@ const AdminApp = () => {
           </div>
         </div>
         
-        <PermissionGuard requiredPermissions={['analytics_read']}>
+        <FlexiblePermissionGuard requiredPermissions={['analytics_read']}>
           <TestDataManager />
-        </PermissionGuard>
+        </FlexiblePermissionGuard>
       </TabsContent>
 
       <TabsContent value="credits" className="space-y-6">
