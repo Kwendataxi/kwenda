@@ -20,6 +20,14 @@ export const usePartnerRegistrationSecure = () => {
   const registerPartner = async (data: PartnerRegistrationData) => {
     setLoading(true);
     try {
+      console.log('Starting partner registration with data:', {
+        email: data.contact_email,
+        company_name: data.company_name,
+        business_type: data.business_type,
+        service_areas: data.service_areas,
+        address: data.address
+      });
+
       // Use the secure registration function with metadata
       const { data: registrationResult, error } = await supabase.rpc(
         'register_partner_with_metadata',
@@ -30,20 +38,23 @@ export const usePartnerRegistrationSecure = () => {
           p_phone_number: data.phone,
           p_business_type: data.business_type,
           p_service_areas: data.service_areas,
-          p_address: data.address || null,
+          p_address: data.address || 'Adresse non spécifiée',
           p_business_license: data.business_license || null,
           p_tax_number: data.tax_number || null
         }
       );
 
+      console.log('Registration RPC result:', { registrationResult, error });
+
       if (error) {
         console.error('Registration error:', error);
-        throw new Error(error.message || 'Erreur lors de l\'inscription');
+        throw new Error(error.message || 'Erreur lors de l\'inscription du partenaire');
       }
 
       // Check if the registration was successful
       const result = registrationResult as any;
-      if (result?.user) {
+      if (result?.user?.id) {
+        console.log('Registration successful, user created:', result.user.id);
         toast.success('Inscription réussie ! Votre demande est en cours de traitement par nos équipes.');
         
         // Try to send admin notification (non-blocking)
@@ -55,17 +66,20 @@ export const usePartnerRegistrationSecure = () => {
                 partner_name: data.company_name,
                 business_type: data.business_type,
                 service_areas: data.service_areas,
-                email: data.contact_email
+                email: data.contact_email,
+                user_id: result.user.id
               }
             }
           });
+          console.log('Admin notification sent successfully');
         } catch (notificationError) {
           console.warn('Admin notification failed:', notificationError);
         }
 
         return { success: true, user: result.user };
       } else {
-        throw new Error('Erreur lors de la création du compte');
+        console.error('No user returned from registration:', result);
+        throw new Error('Erreur lors de la création du compte partenaire');
       }
 
     } catch (error: any) {
