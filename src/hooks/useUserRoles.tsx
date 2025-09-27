@@ -37,6 +37,13 @@ export const useUserRoles = (): UseUserRolesReturn => {
       setLoading(true);
       setError(null);
 
+      // Vérifier d'abord si l'utilisateur est admin directement
+      const { data: isAdmin, error: adminError } = await supabase.rpc('is_current_user_admin');
+      
+      if (adminError) {
+        console.error('Error checking admin status:', adminError);
+      }
+
       // Appeler la fonction PostgreSQL sécurisée pour obtenir les rôles et permissions
       const { data, error: rolesError } = await supabase.rpc('get_user_roles', {
         p_user_id: user.id
@@ -44,6 +51,16 @@ export const useUserRoles = (): UseUserRolesReturn => {
 
       if (rolesError) {
         console.error('Error fetching user roles:', rolesError);
+        // Si on ne peut pas récupérer les rôles mais qu'on sait que c'est un admin
+        if (isAdmin) {
+          setUserRoles([{
+            role: 'admin',
+            admin_role: 'moderator',
+            permissions: ['system_admin', 'analytics_read', 'analytics_admin']
+          }]);
+          setPermissions(['system_admin', 'analytics_read', 'analytics_admin']);
+          return;
+        }
         setError('Erreur lors du chargement des rôles');
         return;
       }

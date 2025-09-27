@@ -46,18 +46,11 @@ serve(async (req) => {
       })
     }
 
-    // Check permissions using role/permission system
-    const [permRead, permAdmin, permSystem, permFinanceRead, permFinanceAdmin] = await Promise.all([
-      supabaseClient.rpc('has_permission', { _user_id: user.id, _permission: 'analytics_read' }),
-      supabaseClient.rpc('has_permission', { _user_id: user.id, _permission: 'analytics_admin' }),
-      supabaseClient.rpc('has_permission', { _user_id: user.id, _permission: 'system_admin' }),
-      supabaseClient.rpc('has_permission', { _user_id: user.id, _permission: 'finance_read' }),
-      supabaseClient.rpc('has_permission', { _user_id: user.id, _permission: 'finance_admin' }),
-    ])
+    // Check admin status using existing function
+    const { data: isAdmin, error: adminError } = await supabaseClient.rpc('is_current_user_admin')
 
-    const hasAccess = [permRead, permAdmin, permSystem, permFinanceRead, permFinanceAdmin].some((res) => res.data === true)
-
-    if (!hasAccess) {
+    if (adminError || !isAdmin) {
+      console.log('Admin check failed:', { isAdmin, adminError })
       return new Response(JSON.stringify({ error: 'Admin access required' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -77,32 +70,33 @@ serve(async (req) => {
 
     switch (type) {
       case 'dashboard':
-        // Get overall platform statistics
+        // Get overall platform statistics using actual tables
         const [
           { count: totalUsers },
           { count: totalDrivers },
           { count: activeSubscriptions },
           { count: pendingSupport },
-          revenueData,
-          topZones
+          revenueData
         ] = await Promise.all([
-          supabaseService.from('profiles').select('*', { count: 'exact', head: true }),
-          supabaseService.from('driver_profiles').select('*', { count: 'exact', head: true }),
+          supabaseService.from('clients').select('*', { count: 'exact', head: true }),
+          supabaseService.from('chauffeurs').select('*', { count: 'exact', head: true }),
           supabaseService.from('driver_subscriptions').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-          supabaseService.from('enhanced_support_tickets').select('*', { count: 'exact', head: true }).eq('status', 'open'),
-          supabaseService.from('payment_transactions')
+          supabaseService.from('booking_reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+          supabaseService.from('wallet_transactions')
             .select('amount, currency, created_at')
-            .gte('created_at', startDate)
-            .lte('created_at', endDate),
-          supabaseService.from('zone_analytics')
-            .select('zone_name, total_revenue, total_rides')
+            .eq('transaction_type', 'deposit')
             .gte('created_at', startDate)
             .lte('created_at', endDate)
-            .order('total_revenue', { ascending: false })
-            .limit(5)
         ])
 
         const totalRevenue = revenueData.data?.reduce((sum, transaction) => sum + (transaction.amount || 0), 0) || 0
+
+        // Get top zones from service_zones with activity
+        const { data: topZones } = await supabaseService
+          .from('service_zones')
+          .select('name, city, country_code')
+          .eq('is_active', true)
+          .limit(5)
 
         return new Response(JSON.stringify({
           success: true,
@@ -114,7 +108,7 @@ serve(async (req) => {
               pending_support_tickets: pendingSupport || 0,
               total_revenue: totalRevenue
             },
-            top_zones: topZones.data || [],
+            top_zones: topZones || [],
             revenue_trend: revenueData.data || []
           }
         }), {
@@ -123,21 +117,19 @@ serve(async (req) => {
         })
 
       case 'zones':
-        // Get zone analytics
+        // Get zone analytics from service_zones
         let zoneQuery = supabaseService
-          .from('zone_analytics')
+          .from('service_zones')
           .select('*')
-          .gte('created_at', startDate)
-          .lte('created_at', endDate)
 
         if (zone_name) {
-          zoneQuery = zoneQuery.eq('zone_name', zone_name)
+          zoneQuery = zoneQuery.eq('name', zone_name)
         }
         if (country_code) {
           zoneQuery = zoneQuery.eq('country_code', country_code)
         }
 
-        const { data: zoneAnalytics, error: zoneError } = await zoneQuery.order('date', { ascending: false })
+        const { data: zoneAnalytics, error: zoneError } = await zoneQuery.order('created_at', { ascending: false })
 
         if (zoneError) {
           throw zoneError
@@ -152,52 +144,22 @@ serve(async (req) => {
         })
 
       case 'drivers':
-        // Get driver statistics without relying on implicit FK relationships
-        const { data: profiles, error: profilesError } = await supabaseService
-          .from('driver_profiles')
-          .select('*')
+        // Get driver statistics
+        const { data: drivers, error: driversError } = await supabaseService
+          .from('chauffeurs')
+          .select(`
+            *,
+            driver_subscriptions!left(id, status, plan_type),
+            driver_credits!left(balance, total_earned, total_spent)
+          `)
 
-        if (profilesError) {
-          throw profilesError
+        if (driversError) {
+          throw driversError
         }
-
-        const driverIds = (profiles || [])
-          .map((p: any) => p.user_id)
-          .filter((id: string | null) => !!id)
-
-        // Fetch subscriptions and credits separately and merge on driver_id/user_id
-        const [subsRes, creditsRes] = await Promise.all([
-          driverIds.length
-            ? supabaseService
-                .from('driver_subscriptions')
-                .select('driver_id, status, plan_id')
-                .in('driver_id', driverIds)
-            : Promise.resolve({ data: [], error: null } as any),
-          driverIds.length
-            ? supabaseService
-                .from('driver_credits')
-                .select('driver_id, balance, total_earned, total_spent')
-                .in('driver_id', driverIds)
-            : Promise.resolve({ data: [], error: null } as any)
-        ])
-
-        if (subsRes.error) throw subsRes.error
-        if (creditsRes.error) throw creditsRes.error
-
-        const subsByDriver: Record<string, any> = {}
-        for (const s of subsRes.data || []) subsByDriver[s.driver_id] = s
-        const creditsByDriver: Record<string, any> = {}
-        for (const c of creditsRes.data || []) creditsByDriver[c.driver_id] = c
-
-        const merged = (profiles || []).map((p: any) => ({
-          ...p,
-          driver_subscription: subsByDriver[p.user_id] || null,
-          driver_credits: creditsByDriver[p.user_id] || null,
-        }))
 
         return new Response(JSON.stringify({
           success: true,
-          data: merged
+          data: drivers
         }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -209,8 +171,7 @@ serve(async (req) => {
           .from('driver_subscriptions')
           .select(`
             *,
-            subscription_plans(name, price, duration_type),
-            profiles(display_name)
+            chauffeurs!inner(display_name, email)
           `)
           .gte('created_at', startDate)
           .lte('created_at', endDate)
@@ -230,8 +191,9 @@ serve(async (req) => {
       case 'revenue':
         // Get detailed revenue analytics
         const { data: transactions, error: revError } = await supabaseService
-          .from('payment_transactions')
+          .from('wallet_transactions')
           .select('*')
+          .eq('transaction_type', 'deposit')
           .gte('created_at', startDate)
           .lte('created_at', endDate)
           .order('created_at', { ascending: false })
@@ -274,8 +236,7 @@ serve(async (req) => {
         const [walletTxRes, activitiesRes, bookingsRes, deliveriesRes, activeDriversCountRes, prevWalletTxRes] = await Promise.all([
           supabaseService
             .from('wallet_transactions')
-            .select('amount, transaction_type, description, created_at, status')
-            .eq('status', 'completed')
+            .select('amount, transaction_type, description, created_at')
             .gte('created_at', startDate)
             .lte('created_at', endDate),
           supabaseService
@@ -304,8 +265,7 @@ serve(async (req) => {
           supabaseService
             .from('wallet_transactions')
             .select('amount')
-            .eq('transaction_type', 'debit')
-            .eq('status', 'completed')
+            .eq('transaction_type', 'withdrawal')
             .gte('created_at', prevStart.toISOString())
             .lte('created_at', prevEnd.toISOString()),
         ])
@@ -322,11 +282,11 @@ serve(async (req) => {
         const deliveries = deliveriesRes.data || []
 
         const totalRevenue = walletTx
-          .filter((t: any) => t.transaction_type === 'debit' && (t.description || '').includes('Paiement'))
+          .filter((t: any) => t.transaction_type === 'deposit')
           .reduce((sum: number, t: any) => sum + Number(t.amount || 0), 0)
 
         const driverEarnings = walletTx
-          .filter((t: any) => t.transaction_type === 'credit' && (t.description || '').includes('Gains'))
+          .filter((t: any) => t.transaction_type === 'credit')
           .reduce((sum: number, t: any) => sum + Number(t.amount || 0), 0)
 
         const transportRevenue = bookings.reduce((sum: number, b: any) => sum + Number(b.actual_price || 0), 0)
@@ -410,7 +370,10 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Admin analytics error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
