@@ -25,26 +25,28 @@ export const usePartnerRegistrationSecure = () => {
         company_name: data.company_name,
         business_type: data.business_type,
         service_areas: data.service_areas,
-        address: data.address
+        address: data.address || 'Adresse non spécifiée'
       });
 
-      // Use the secure registration function with metadata
-      const { data: registrationResult, error } = await supabase.rpc(
-        'register_partner_with_metadata',
-        {
-          p_email: data.contact_email,
-          p_password: data.password,
-          p_company_name: data.company_name,
-          p_phone_number: data.phone,
-          p_business_type: data.business_type,
-          p_service_areas: data.service_areas,
-          p_address: data.address || 'Adresse non spécifiée',
-          p_business_license: data.business_license || null,
-          p_tax_number: data.tax_number || null
+      // Use client-side signup with metadata for trigger
+      const { data: authResult, error } = await supabase.auth.signUp({
+        email: data.contact_email,
+        password: data.password,
+        options: {
+          data: {
+            role: 'partner',
+            company_name: data.company_name,
+            phone_number: data.phone,
+            business_type: data.business_type,
+            service_areas: data.service_areas,
+            address: data.address || 'Adresse non spécifiée',
+            business_license: data.business_license,
+            tax_number: data.tax_number
+          }
         }
-      );
+      });
 
-      console.log('Registration RPC result:', { registrationResult, error });
+      console.log('Auth signup result:', { authResult, error });
 
       if (error) {
         console.error('Registration error:', error);
@@ -52,9 +54,8 @@ export const usePartnerRegistrationSecure = () => {
       }
 
       // Check if the registration was successful
-      const result = registrationResult as any;
-      if (result?.user?.id) {
-        console.log('Registration successful, user created:', result.user.id);
+      if (authResult?.user?.id) {
+        console.log('Registration successful, user created:', authResult.user.id);
         toast.success('Inscription réussie ! Votre demande est en cours de traitement par nos équipes.');
         
         // Try to send admin notification (non-blocking)
@@ -67,7 +68,7 @@ export const usePartnerRegistrationSecure = () => {
                 business_type: data.business_type,
                 service_areas: data.service_areas,
                 email: data.contact_email,
-                user_id: result.user.id
+                user_id: authResult.user.id
               }
             }
           });
@@ -76,9 +77,9 @@ export const usePartnerRegistrationSecure = () => {
           console.warn('Admin notification failed:', notificationError);
         }
 
-        return { success: true, user: result.user };
+        return { success: true, user: authResult.user };
       } else {
-        console.error('No user returned from registration:', result);
+        console.error('No user returned from registration:', authResult);
         throw new Error('Erreur lors de la création du compte partenaire');
       }
 
