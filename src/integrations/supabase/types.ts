@@ -9087,6 +9087,14 @@ export type Database = {
         Args: { payment_id: string; subscription_id: string }
         Returns: boolean
       }
+      log_admin_access: {
+        Args: {
+          p_access_reason?: string
+          p_access_type: string
+          p_target_admin_id: string
+        }
+        Returns: undefined
+      }
       log_driver_location_access: {
         Args: {
           p_access_reason?: string
