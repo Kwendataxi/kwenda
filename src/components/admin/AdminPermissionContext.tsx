@@ -28,7 +28,7 @@ interface AdminPermissionProviderProps {
 
 export const AdminPermissionProvider: React.FC<AdminPermissionProviderProps> = ({ children }) => {
   const [devMode, setDevMode] = useState(true);
-  const [showAllSections, setShowAllSections] = useState(false);
+  const [showAllSections, setShowAllSections] = useState(true);
 
   return (
     <AdminPermissionContext.Provider value={{

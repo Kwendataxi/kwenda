@@ -85,9 +85,11 @@ const AdminApp = () => {
     );
   }
 
-  const renderContent = () => (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-      <TabsContent value="overview" className="space-y-6">
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return (
+          <div className="space-y-6">
         <FlexiblePermissionGuard requiredPermissions={['analytics_read']}>
           <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
             <CardContent className="p-6">
@@ -112,9 +114,12 @@ const AdminApp = () => {
 
           <EnhancedDashboard />
         </FlexiblePermissionGuard>
-      </TabsContent>
+        </div>
+        );
 
-      <TabsContent value="test-data" className="space-y-6">
+      case 'test-data':
+        return (
+          <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Données de Test</h1>
@@ -125,147 +130,224 @@ const AdminApp = () => {
         <FlexiblePermissionGuard requiredPermissions={['analytics_read']}>
           <TestDataManager />
         </FlexiblePermissionGuard>
-      </TabsContent>
+        </div>
+        );
 
-      <TabsContent value="credits" className="space-y-6">
-        <PermissionGuard requiredPermissions={['finance_write']}>
+      case 'credits':
+        return (
+          <div className="space-y-6">
+        <FlexiblePermissionGuard requiredPermissions={['finance_write']}>
           <DriverCreditsManager />
-        </PermissionGuard>
-      </TabsContent>
+        </FlexiblePermissionGuard>
+        </div>
+        );
 
-      <TabsContent value="commissions" className="space-y-6">
-        <PermissionGuard requiredPermissions={['finance_admin']}>
+      case 'commissions':
+        return (
+          <div className="space-y-6">
+        <FlexiblePermissionGuard requiredPermissions={['finance_admin']}>
           <CommissionManager />
-        </PermissionGuard>
-      </TabsContent>
+        </FlexiblePermissionGuard>
+        </div>
+        );
 
-      <TabsContent value="financial" className="space-y-6">
-        <PermissionGuard requiredPermissions={['finance_read']}>
+      case 'financial':
+        return (
+          <div className="space-y-6">
+        <FlexiblePermissionGuard requiredPermissions={['finance_read']}>
           <FinancialDashboard />
-        </PermissionGuard>
-      </TabsContent>
+        </FlexiblePermissionGuard>
+        </div>
+        );
 
-      <TabsContent value="tarifs" className="space-y-6">
-        <PermissionGuard requiredPermissions={['transport_admin']}>
+      case 'tarifs':
+        return (
+          <div className="space-y-6">
+        <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
           <AdminPricingManager />
-        </PermissionGuard>
-      </TabsContent>
+        </FlexiblePermissionGuard>
+        </div>
+        );
 
-      <TabsContent value="zones" className="space-y-6">
-        <PermissionGuard requiredPermissions={['transport_admin']}>
+      case 'zones':
+        return (
+          <div className="space-y-6">
+        <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
           <ModernZoneManagementDashboard />
-        </PermissionGuard>
-      </TabsContent>
+        </FlexiblePermissionGuard>
+        </div>
+        );
 
-      <TabsContent value="dispatch" className="space-y-6">
-        <PermissionGuard requiredPermissions={['transport_admin']}>
+      case 'dispatch':
+        return (
+          <div className="space-y-6">
+        <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
           <UnifiedDispatchMonitor />
-        </PermissionGuard>
-      </TabsContent>
+        </FlexiblePermissionGuard>
+        </div>
+        );
 
-        <TabsContent value="users" className="space-y-6">
-          <PermissionGuard requiredPermissions={['users_read']}>
+      case 'users':
+        return (
+          <div className="space-y-6">
+          <FlexiblePermissionGuard requiredPermissions={['users_read']}>
             <EnhancedUserManagement />
-          </PermissionGuard>
-        </TabsContent>
+          </FlexiblePermissionGuard>
+        </div>
+        );
 
-      <TabsContent value="drivers" className="space-y-6">
-        <PermissionGuard requiredPermissions={['users_read']}>
+      case 'drivers':
+        return (
+          <div className="space-y-6">
+        <FlexiblePermissionGuard requiredPermissions={['users_read']}>
           <DriverManagement />
-        </PermissionGuard>
-      </TabsContent>
+        </FlexiblePermissionGuard>
+        </div>
+        );
 
-      <TabsContent value="partners" className="space-y-6">
-        <PermissionGuard requiredPermissions={['users_read']}>
+      case 'partners':
+        return (
+          <div className="space-y-6">
+        <FlexiblePermissionGuard requiredPermissions={['users_read']}>
           <AdminPartnerManager />
-        </PermissionGuard>
-      </TabsContent>
+        </FlexiblePermissionGuard>
+        </div>
+        );
 
-      <TabsContent value="teams" className="space-y-6">
-        <PermissionGuard requiredPermissions={['users_write']}>
+      case 'teams':
+        return (
+          <div className="space-y-6">
+        <FlexiblePermissionGuard requiredPermissions={['users_write']}>
           <EnhancedTeamManager onBack={() => setActiveTab('overview')} />
-        </PermissionGuard>
-      </TabsContent>
+        </FlexiblePermissionGuard>
+        </div>
+        );
 
-      <TabsContent value="marketplace" className="space-y-6">
-        <PermissionGuard requiredPermissions={['marketplace_moderate']}>
-          <EnhancedMarketplaceManagerFixed onBack={() => setActiveTab('overview')} />
-        </PermissionGuard>
-      </TabsContent>
+      case 'marketplace':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['marketplace_moderate']}>
+              <EnhancedMarketplaceManagerFixed onBack={() => setActiveTab('overview')} />
+            </FlexiblePermissionGuard>
+          </div>
+        );
 
-      <TabsContent value="notifications" className="space-y-6">
-        <PermissionGuard requiredPermissions={['notifications_write']}>
-          <CentralizedNotificationCenter onBack={() => setActiveTab('overview')} />
-        </PermissionGuard>
-      </TabsContent>
+      case 'notifications':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['notifications_write']}>
+              <CentralizedNotificationCenter onBack={() => setActiveTab('overview')} />
+            </FlexiblePermissionGuard>
+          </div>
+        );
 
-      <TabsContent value="ads" className="space-y-6">
-        <PermissionGuard requiredPermissions={['notifications_write']}>
-          <PromotionalAdsManager />
-        </PermissionGuard>
-      </TabsContent>
+      case 'ads':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['notifications_write']}>
+              <PromotionalAdsManager />
+            </FlexiblePermissionGuard>
+          </div>
+        );
 
-      <TabsContent value="services" className="space-y-6">
-        <PermissionGuard requiredPermissions={['transport_admin']}>
-          <ServiceManagementPanel />
-        </PermissionGuard>
-      </TabsContent>
+      case 'services':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
+              <ServiceManagementPanel />
+            </FlexiblePermissionGuard>
+          </div>
+        );
 
-      <TabsContent value="subscriptions" className="space-y-6">
-        <PermissionGuard requiredPermissions={['system_admin']}>
-          <UnifiedSubscriptionManager />
-        </PermissionGuard>
-      </TabsContent>
+      case 'subscriptions':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+              <UnifiedSubscriptionManager />
+            </FlexiblePermissionGuard>
+          </div>
+        );
 
-        <TabsContent value="support" className="space-y-6">
-          <PermissionGuard requiredPermissions={['support_admin']}>
-            <EnhancedSupportCenter />
-          </PermissionGuard>
-        </TabsContent>
+      case 'support':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['support_admin']}>
+              <EnhancedSupportCenter />
+            </FlexiblePermissionGuard>
+          </div>
+        );
 
-      <TabsContent value="location" className="space-y-6">
-        <PermissionGuard requiredPermissions={['transport_admin']}>
-          <AdminRentalManager />
-        </PermissionGuard>
-      </TabsContent>
+      case 'location':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
+              <AdminRentalManager />
+            </FlexiblePermissionGuard>
+          </div>
+        );
 
-      <TabsContent value="lottery" className="space-y-6">
-        <PermissionGuard requiredPermissions={['analytics_read']}>
-          <AdminLotteryDashboard />
-        </PermissionGuard>
-       </TabsContent>
+      case 'lottery':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['analytics_read']}>
+              <AdminLotteryDashboard />
+            </FlexiblePermissionGuard>
+          </div>
+        );
 
-       <TabsContent value="promocodes" className="space-y-6">
-         <PermissionGuard requiredPermissions={['marketplace_moderate']}>
-           <AdminPromoCodeManager />
-         </PermissionGuard>
-       </TabsContent>
+      case 'promocodes':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['marketplace_moderate']}>
+              <AdminPromoCodeManager />
+            </FlexiblePermissionGuard>
+          </div>
+        );
 
-        <TabsContent value="roles" className="space-y-6">
-          <PermissionGuard requiredPermissions={['system_admin']}>
-            <EnhancedRoleManagement />
-          </PermissionGuard>
-        </TabsContent>
+      case 'roles':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+              <EnhancedRoleManagement />
+            </FlexiblePermissionGuard>
+          </div>
+        );
 
-      <TabsContent value="migration" className="space-y-6">
-        <PermissionGuard requiredPermissions={['system_admin']}>
-          <EnhancedGoogleMigrationPanel onBack={() => setActiveTab('overview')} />
-        </PermissionGuard>
-      </TabsContent>
+      case 'migration':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+              <EnhancedGoogleMigrationPanel onBack={() => setActiveTab('overview')} />
+            </FlexiblePermissionGuard>
+          </div>
+        );
 
-      <TabsContent value="settings" className="space-y-6">
-        <PermissionGuard requiredPermissions={['system_admin']}>
-          <AdminSettings />
-        </PermissionGuard>
-      </TabsContent>
+      case 'settings':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+              <AdminSettings />
+            </FlexiblePermissionGuard>
+          </div>
+        );
 
-      <TabsContent value="mission-control" className="space-y-6">
-        <PermissionGuard requiredPermissions={['system_admin']}>
-          <MissionControlCenter onBack={() => setActiveTab('overview')} />
-        </PermissionGuard>
-      </TabsContent>
-    </Tabs>
-   );
+      case 'mission-control':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+              <MissionControlCenter onBack={() => setActiveTab('overview')} />
+            </FlexiblePermissionGuard>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Section non trouvée</p>
+          </div>
+        );
+    }
+  };
 
   return (
     <ResponsiveAdminLayout

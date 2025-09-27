@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRoleInfo, Permission, UserRole, AdminRole } from '@/types/roles';
+import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 
 interface UseUserRolesReturn {
   userRoles: UserRoleInfo[];
@@ -20,6 +21,7 @@ interface UseUserRolesReturn {
 
 export const useUserRoles = (): UseUserRolesReturn => {
   const { user } = useAuth();
+  const { showAllSections } = useAdminPermissions();
   const [userRoles, setUserRoles] = useState<UserRoleInfo[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,10 +116,14 @@ export const useUserRoles = (): UseUserRolesReturn => {
 
   // Utilitaires pour vérifier les permissions
   const hasPermission = (permission: Permission): boolean => {
+    // Si le mode "Ignorer les permissions" est activé, autoriser tout
+    if (showAllSections) return true;
     return permissions.includes(permission);
   };
 
   const hasAnyPermission = (requiredPermissions: Permission[]): boolean => {
+    // Si le mode "Ignorer les permissions" est activé, autoriser tout
+    if (showAllSections) return true;
     return requiredPermissions.some(permission => permissions.includes(permission));
   };
 
