@@ -4,15 +4,49 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import AdminPartnerManager from './AdminPartnerManager';
 import { AdminRentalModeration } from './AdminRentalModeration';
-import { Building2, Car, Users, Activity, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { AdminMarketplaceManager } from './AdminMarketplaceManager';
+import { AdminLocationManager } from './AdminLocationManager';
+import { AdminServiceManager } from './AdminServiceManager';
+import { AdminAnalyticsDashboard } from './AdminAnalyticsDashboard';
+import { Building2, Car, Users, Activity, MapPin, Package, Settings, BarChart } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminDashboard = () => {
+  // Fetch real-time dashboard data
+  const { data: dashboardData, isLoading } = useQuery({
+    queryKey: ['adminDashboard'],
+    queryFn: async () => {
+      const [usersRes, driversRes, bookingsRes] = await Promise.all([
+        supabase.from('profiles').select('id, user_type, created_at'),
+        supabase.from('chauffeurs').select('id, is_active'),
+        supabase.from('transport_bookings').select('id, status, actual_price')
+      ]);
+
+      const users = usersRes.data || [];
+      const drivers = driversRes.data || [];
+      const bookings = bookingsRes.data || [];
+
+      return {
+        totalUsers: users.length,
+        activeDrivers: drivers.filter(d => d.is_active).length,
+        totalBookings: bookings.length,
+        totalRevenue: bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.actual_price || 0), 0)
+      };
+    },
+    refetchInterval: 30000
+  });
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center p-8">Chargement...</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Tableau de bord Admin</h1>
+        <h1 className="text-3xl font-bold">Administration Kwenda</h1>
         <p className="text-muted-foreground">
-          Vue d'ensemble de la plateforme Kwenda
+          Tableau de bord complet de gestion de la plateforme
         </p>
       </div>
 
@@ -23,8 +57,8 @@ const AdminDashboard = () => {
             <div className="flex items-center space-x-2">
               <Users className="h-8 w-8 text-blue-600" />
               <div>
-                <p className="text-2xl font-bold">1,247</p>
-                <p className="text-sm text-muted-foreground">Utilisateurs actifs</p>
+                <p className="text-2xl font-bold">{dashboardData?.totalUsers || 0}</p>
+                <p className="text-sm text-muted-foreground">Utilisateurs total</p>
               </div>
             </div>
           </CardContent>
@@ -33,10 +67,10 @@ const AdminDashboard = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Building2 className="h-8 w-8 text-green-600" />
+              <Car className="h-8 w-8 text-green-600" />
               <div>
-                <p className="text-2xl font-bold">45</p>
-                <p className="text-sm text-muted-foreground">Partenaires actifs</p>
+                <p className="text-2xl font-bold">{dashboardData?.activeDrivers || 0}</p>
+                <p className="text-sm text-muted-foreground">Chauffeurs actifs</p>
               </div>
             </div>
           </CardContent>
@@ -45,10 +79,10 @@ const AdminDashboard = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Car className="h-8 w-8 text-purple-600" />
+              <Package className="h-8 w-8 text-purple-600" />
               <div>
-                <p className="text-2xl font-bold">234</p>
-                <p className="text-sm text-muted-foreground">Véhicules en location</p>
+                <p className="text-2xl font-bold">{dashboardData?.totalBookings || 0}</p>
+                <p className="text-sm text-muted-foreground">Commandes total</p>
               </div>
             </div>
           </CardContent>
@@ -59,8 +93,8 @@ const AdminDashboard = () => {
             <div className="flex items-center space-x-2">
               <Activity className="h-8 w-8 text-orange-600" />
               <div>
-                <p className="text-2xl font-bold">89%</p>
-                <p className="text-sm text-muted-foreground">Taux de satisfaction</p>
+                <p className="text-2xl font-bold">{(dashboardData?.totalRevenue || 0).toLocaleString()} CDF</p>
+                <p className="text-sm text-muted-foreground">Revenus total</p>
               </div>
             </div>
           </CardContent>
@@ -69,9 +103,12 @@ const AdminDashboard = () => {
 
       {/* Main Management Tabs */}
       <Tabs defaultValue="partners" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="partners">Partenaires</TabsTrigger>
           <TabsTrigger value="moderation">Modération</TabsTrigger>
+          <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
+          <TabsTrigger value="location">Location</TabsTrigger>
+          <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
@@ -83,74 +120,20 @@ const AdminDashboard = () => {
           <AdminRentalModeration />
         </TabsContent>
 
+        <TabsContent value="marketplace" className="mt-6">
+          <AdminMarketplaceManager />
+        </TabsContent>
+
+        <TabsContent value="location" className="mt-6">
+          <AdminLocationManager />
+        </TabsContent>
+
+        <TabsContent value="services" className="mt-6">
+          <AdminServiceManager />
+        </TabsContent>
+
         <TabsContent value="analytics" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Analytics & Rapports</CardTitle>
-              <CardDescription>
-                Statistiques détaillées de performance
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Activité récente</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                        <div>
-                          <p className="text-sm font-medium">Nouveau partenaire approuvé</p>
-                          <p className="text-xs text-muted-foreground">Transport Elite SARL</p>
-                        </div>
-                      </div>
-                      <Badge variant="default">Aujourd'hui</Badge>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Clock className="h-5 w-5 text-yellow-600" />
-                        <div>
-                          <p className="text-sm font-medium">Véhicule en attente</p>
-                          <p className="text-xs text-muted-foreground">Toyota Corolla 2022</p>
-                        </div>
-                      </div>
-                      <Badge variant="secondary">Il y a 2h</Badge>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <XCircle className="h-5 w-5 text-red-600" />
-                        <div>
-                          <p className="text-sm font-medium">Signalement résolu</p>
-                          <p className="text-xs text-muted-foreground">Problème technique</p>
-                        </div>
-                      </div>
-                      <Badge variant="outline">Hier</Badge>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Métriques clés</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-sm font-medium">Revenus ce mois</span>
-                      <span className="text-lg font-bold text-green-600">2,450,000 CDF</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-sm font-medium">Nouvelles réservations</span>
-                      <span className="text-lg font-bold text-blue-600">+23%</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-sm font-medium">Taux d'occupation</span>
-                      <span className="text-lg font-bold text-purple-600">76%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <AdminAnalyticsDashboard />
         </TabsContent>
       </Tabs>
     </div>

@@ -6082,6 +6082,7 @@ export type Database = {
           base_price_multiplier: number
           city: string
           coordinates: Json
+          country_code: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -6101,6 +6102,7 @@ export type Database = {
           base_price_multiplier?: number
           city?: string
           coordinates: Json
+          country_code?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -6120,6 +6122,7 @@ export type Database = {
           base_price_multiplier?: number
           city?: string
           coordinates?: Json
+          country_code?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -8993,7 +8996,7 @@ export type Database = {
         Returns: string
       }
       get_user_role_secure: {
-        Args: Record<PropertyKey, never>
+        Args: Record<PropertyKey, never> | { p_user_id: string }
         Returns: string
       }
       get_user_roles: {
