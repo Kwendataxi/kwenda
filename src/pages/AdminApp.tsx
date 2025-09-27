@@ -34,6 +34,9 @@ import { AdminPromoCodeManager } from '@/components/admin/AdminPromoCodeManager'
 import AdminPartnerManager from '@/components/admin/AdminPartnerManager';
 import { GoogleMigrationPanel } from '@/components/admin/GoogleMigrationPanel';
 import { AdminSettings } from '@/components/admin/AdminSettings';
+import { EnhancedRoleManagement } from '@/components/admin/roles/EnhancedRoleManagement';
+import { EnhancedSupportCenter } from '@/components/admin/support/EnhancedSupportCenter';
+import { EnhancedUserManagement } from '@/components/admin/users/EnhancedUserManagement';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -154,11 +157,11 @@ const AdminApp = () => {
         </PermissionGuard>
       </TabsContent>
 
-      <TabsContent value="users" className="space-y-6">
-        <PermissionGuard requiredPermissions={['users_read']}>
-          <AdvancedUserManagement />
-        </PermissionGuard>
-      </TabsContent>
+        <TabsContent value="users" className="space-y-6">
+          <PermissionGuard requiredPermissions={['users_read']}>
+            <EnhancedUserManagement />
+          </PermissionGuard>
+        </TabsContent>
 
       <TabsContent value="drivers" className="space-y-6">
         <PermissionGuard requiredPermissions={['users_read']}>
@@ -208,11 +211,11 @@ const AdminApp = () => {
         </PermissionGuard>
       </TabsContent>
 
-      <TabsContent value="support" className="space-y-6">
-        <PermissionGuard requiredPermissions={['support_admin']}>
-          <AdvancedSupportCenter />
-        </PermissionGuard>
-      </TabsContent>
+        <TabsContent value="support" className="space-y-6">
+          <PermissionGuard requiredPermissions={['support_admin']}>
+            <EnhancedSupportCenter />
+          </PermissionGuard>
+        </TabsContent>
 
       <TabsContent value="location" className="space-y-6">
         <PermissionGuard requiredPermissions={['transport_admin']}>
@@ -232,11 +235,11 @@ const AdminApp = () => {
          </PermissionGuard>
        </TabsContent>
 
-       <TabsContent value="roles" className="space-y-6">
-         <PermissionGuard requiredPermissions={['system_admin']}>
-           <RoleManagement />
-         </PermissionGuard>
-       </TabsContent>
+        <TabsContent value="roles" className="space-y-6">
+          <PermissionGuard requiredPermissions={['system_admin']}>
+            <EnhancedRoleManagement />
+          </PermissionGuard>
+        </TabsContent>
 
       <TabsContent value="migration" className="space-y-6">
         <PermissionGuard requiredPermissions={['system_admin']}>
