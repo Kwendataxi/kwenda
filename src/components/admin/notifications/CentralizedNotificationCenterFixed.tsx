@@ -38,6 +38,9 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { NotificationAnalytics } from './NotificationAnalytics';
+import { AudienceSegments } from './AudienceSegments';
+import { NotificationSender } from './NotificationSender';
 
 interface NotificationTemplate {
   id: string;
@@ -221,9 +224,9 @@ export const CentralizedNotificationCenterFixed: React.FC<CentralizedNotificatio
               <Plus className="h-4 w-4 mr-1" />
               Template
             </Button>
-            <Button size="sm">
+            <Button size="sm" onClick={() => setActiveTab('sender')}>
               <Send className="h-4 w-4 mr-1" />
-              Campagne
+              Envoi Rapide
             </Button>
           </div>
         </div>
@@ -251,6 +254,10 @@ export const CentralizedNotificationCenterFixed: React.FC<CentralizedNotificatio
             <TabsTrigger value="analytics">
               <TrendingUp className="h-4 w-4 mr-1" />
               Analytics
+            </TabsTrigger>
+            <TabsTrigger value="sender">
+              <Send className="h-4 w-4 mr-1" />
+              Envoi Rapide
             </TabsTrigger>
           </TabsList>
 
@@ -542,41 +549,20 @@ export const CentralizedNotificationCenterFixed: React.FC<CentralizedNotificatio
                       <Badge variant="default">Dynamique</Badge>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                 </div>
+               </CardContent>
+             </Card>
+           </TabsContent>
 
-          <TabsContent value="analytics" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance des Notifications</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{mockStats.delivery_rate}%</div>
-                    <p className="text-sm text-muted-foreground">Taux de livraison</p>
-                    <Progress value={mockStats.delivery_rate} className="mt-2" />
-                  </div>
-                  
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{mockStats.open_rate}%</div>
-                    <p className="text-sm text-muted-foreground">Taux d'ouverture</p>
-                    <Progress value={mockStats.open_rate} className="mt-2" />
-                  </div>
-                  
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">{mockStats.click_rate}%</div>
-                    <p className="text-sm text-muted-foreground">Taux de clic</p>
-                    <Progress value={mockStats.click_rate} className="mt-2" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  );
-};
+           <TabsContent value="analytics" className="space-y-4">
+             <NotificationAnalytics />
+           </TabsContent>
+
+           <TabsContent value="sender" className="space-y-4">
+             <NotificationSender />
+           </TabsContent>
+         </Tabs>
+       </div>
+     </div>
+   );
+ };
