@@ -30,18 +30,27 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
         
         {/* Mobile Menu Sheet */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetContent side="left" className="p-0 w-80">
-            <div className="p-4">
-              <h2 className="text-lg font-semibold mb-4">Navigation</h2>
-              <AdminPermissionSettings />
-              <AdminVerticalNav 
-                activeTab={activeTab} 
-                onTabChange={(value) => {
-                  onTabChange(value);
-                  setMobileMenuOpen(false);
-                }}
-                devMode={devMode}
-              />
+          <SheetContent 
+            side="left" 
+            className="p-0 w-[90vw] max-w-sm sm:max-w-md flex flex-col h-full"
+          >
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="p-4 border-b border-border/60 bg-card/50">
+                <h2 className="text-lg font-semibold mb-3">Navigation Admin</h2>
+                <AdminPermissionSettings />
+              </div>
+              
+              <div className="flex-1 overflow-hidden">
+                <AdminVerticalNav 
+                  activeTab={activeTab} 
+                  onTabChange={(value) => {
+                    onTabChange(value);
+                    setMobileMenuOpen(false);
+                  }}
+                  devMode={devMode}
+                  isMobile={true}
+                />
+              </div>
             </div>
           </SheetContent>
         </Sheet>
