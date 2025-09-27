@@ -8,7 +8,9 @@ import { AdminMarketplaceManager } from './AdminMarketplaceManager';
 import { AdminLocationManager } from './AdminLocationManager';
 import { AdminServiceManager } from './AdminServiceManager';
 import { AdminAnalyticsDashboard } from './AdminAnalyticsDashboard';
-import { Building2, Car, Users, Activity, MapPin, Package, Settings, BarChart } from 'lucide-react';
+import { AdminSecurityManager } from './AdminSecurityManager';
+import { AdminNotificationManager } from './AdminNotificationManager';
+import { Building2, Car, Users, Activity, MapPin, Package, Settings, BarChart, Shield, Bell } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -103,13 +105,15 @@ const AdminDashboard = () => {
 
       {/* Main Management Tabs */}
       <Tabs defaultValue="partners" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="partners">Partenaires</TabsTrigger>
           <TabsTrigger value="moderation">Modération</TabsTrigger>
           <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
           <TabsTrigger value="location">Location</TabsTrigger>
           <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="security">Sécurité</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
         </TabsList>
 
         <TabsContent value="partners" className="mt-6">
@@ -134,6 +138,14 @@ const AdminDashboard = () => {
 
         <TabsContent value="analytics" className="mt-6">
           <AdminAnalyticsDashboard />
+        </TabsContent>
+
+        <TabsContent value="security" className="mt-6">
+          <AdminSecurityManager />
+        </TabsContent>
+
+        <TabsContent value="notifications" className="mt-6">
+          <AdminNotificationManager />
         </TabsContent>
       </Tabs>
     </div>
