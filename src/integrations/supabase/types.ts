@@ -8169,7 +8169,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      admin_directory_safe: {
+        Row: {
+          admin_level: string | null
+          created_at: string | null
+          department: string | null
+          display_name: string | null
+          email: string | null
+          employee_id: string | null
+          id: string | null
+          is_active: boolean | null
+          phone_number: string | null
+          user_id: string | null
+        }
+        Insert: {
+          admin_level?: string | null
+          created_at?: string | null
+          department?: string | null
+          display_name?: string | null
+          email?: never
+          employee_id?: never
+          id?: string | null
+          is_active?: boolean | null
+          phone_number?: never
+          user_id?: string | null
+        }
+        Update: {
+          admin_level?: string | null
+          created_at?: string | null
+          department?: string | null
+          display_name?: string | null
+          email?: never
+          employee_id?: never
+          id?: string | null
+          is_active?: boolean | null
+          phone_number?: never
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_cancel_subscription: {
@@ -9026,6 +9064,10 @@ export type Database = {
         Returns: boolean
       }
       is_current_user_admin_secure: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_current_user_super_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
