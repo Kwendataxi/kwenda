@@ -67,6 +67,8 @@ import { ThemeNotification } from "@/components/theme/ThemeNotification";
 import { useOrderCleanup } from "@/hooks/useOrderCleanup";
 import { DebugHelper } from "@/utils/debugHelper";
 import { DriverFindPartner } from "./pages/DriverFindPartner";
+import PublicPartnerRegistration from "./pages/partner/PublicPartnerRegistration";
+import PartnerDashboard from "./pages/partner/PartnerDashboard";
 
 const queryClient = new QueryClient();
 
@@ -188,6 +190,12 @@ const AppContent = () => {
                 {/* New Pages */}
                 <Route path="/demo" element={<Demo />} />
                 <Route path="/partner" element={<ProgrammePartenaire />} />
+                <Route path="/partner/register" element={<PublicPartnerRegistration />} />
+                <Route path="/partner/dashboard" element={
+                  <ProtectedRoute>
+                    <PartnerDashboard />
+                  </ProtectedRoute>
+                } />
                 <Route path="/locations/coverage-map" element={<CarteCouverture />} />
                 <Route path="/marketplace" element={<Marketplace />} />
                 
