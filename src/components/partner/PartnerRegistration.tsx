@@ -274,6 +274,25 @@ const PartnerRegistration = () => {
             </div>
           </CardContent>
         </Card>
+
+        <div className="text-center mt-6">
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/partner/auth')}
+              className="text-blue-600 border-blue-200 hover:bg-blue-50"
+            >
+              Déjà partenaire ? Se connecter
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/auth')}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              ← Retour à l'accueil
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

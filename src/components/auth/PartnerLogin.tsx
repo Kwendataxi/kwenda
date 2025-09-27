@@ -159,13 +159,22 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
         </Card>
 
         <div className="text-center mt-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/auth')}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            ← Retour à l'accueil
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/partner/register')}
+              className="text-green-600 border-green-200 hover:bg-green-50"
+            >
+              Pas encore partenaire ? S'inscrire
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/auth')}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              ← Retour à l'accueil
+            </Button>
+          </div>
         </div>
 
         <ForgotPasswordModal 
