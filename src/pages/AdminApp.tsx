@@ -40,6 +40,7 @@ import { EnhancedUserManagement } from '@/components/admin/users/EnhancedUserMan
 import { EnhancedTeamManager } from '@/components/admin/teams/EnhancedTeamManager';
 import { EnhancedMarketplaceManagerFixed } from '@/components/marketplace/EnhancedMarketplaceManagerFixed';
 import { EnhancedGoogleMigrationPanel } from '@/components/admin/migration/EnhancedGoogleMigrationPanel';
+import { CentralizedNotificationCenterFixed as CentralizedNotificationCenter } from '@/components/admin/notifications/CentralizedNotificationCenterFixed';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -192,7 +193,7 @@ const AdminApp = () => {
 
       <TabsContent value="notifications" className="space-y-6">
         <PermissionGuard requiredPermissions={['notifications_write']}>
-          <AdminNotificationCenter />
+          <CentralizedNotificationCenter onBack={() => setActiveTab('overview')} />
         </PermissionGuard>
       </TabsContent>
 
