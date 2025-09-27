@@ -38,7 +38,7 @@ import { EnhancedRoleManagement } from '@/components/admin/roles/EnhancedRoleMan
 import { EnhancedSupportCenter } from '@/components/admin/support/EnhancedSupportCenter';
 import { EnhancedUserManagement } from '@/components/admin/users/EnhancedUserManagement';
 import { EnhancedTeamManager } from '@/components/admin/teams/EnhancedTeamManager';
-import { EnhancedMarketplaceManager } from '@/components/marketplace/EnhancedMarketplaceManager';
+import { EnhancedMarketplaceManagerFixed } from '@/components/marketplace/EnhancedMarketplaceManagerFixed';
 import { EnhancedGoogleMigrationPanel } from '@/components/admin/migration/EnhancedGoogleMigrationPanel';
 
 const AdminApp = () => {
@@ -180,13 +180,13 @@ const AdminApp = () => {
 
       <TabsContent value="teams" className="space-y-6">
         <PermissionGuard requiredPermissions={['users_write']}>
-          <AdminTeamManager />
+          <EnhancedTeamManager onBack={() => setActiveTab('overview')} />
         </PermissionGuard>
       </TabsContent>
 
       <TabsContent value="marketplace" className="space-y-6">
         <PermissionGuard requiredPermissions={['marketplace_moderate']}>
-          <AdminMarketplaceManager onBack={() => {}} />
+          <EnhancedMarketplaceManagerFixed onBack={() => setActiveTab('overview')} />
         </PermissionGuard>
       </TabsContent>
 
@@ -246,7 +246,7 @@ const AdminApp = () => {
 
       <TabsContent value="migration" className="space-y-6">
         <PermissionGuard requiredPermissions={['system_admin']}>
-          <GoogleMigrationPanel />
+          <EnhancedGoogleMigrationPanel onBack={() => setActiveTab('overview')} />
         </PermissionGuard>
       </TabsContent>
 
