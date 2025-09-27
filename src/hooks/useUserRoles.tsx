@@ -37,62 +37,72 @@ export const useUserRoles = (): UseUserRolesReturn => {
       setLoading(true);
       setError(null);
 
-      // Vérifier d'abord si l'utilisateur est admin directement
-      const { data: isAdmin, error: adminError } = await supabase.rpc('is_current_user_admin');
-      
-      if (adminError) {
-        console.error('Error checking admin status:', adminError);
+      // Vérifier d'abord directement dans la table admins pour éviter les problèmes RLS
+      const { data: adminData, error: adminError } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .limit(1);
+
+      if (!adminError && adminData && adminData.length > 0) {
+        // Utilisateur admin trouvé - configurer les permissions admin
+        const adminPermissions = (adminData[0].permissions || ['system_admin', 'user_management', 'content_moderation']) as Permission[];
+        const adminRole = {
+          role: 'admin' as UserRole,
+          admin_role: (adminData[0].admin_level || 'moderator') as AdminRole,
+          permissions: adminPermissions
+        };
+        setUserRoles([adminRole]);
+        setPermissions(adminPermissions);
+        return;
       }
 
-      // Appeler la fonction PostgreSQL sécurisée pour obtenir les rôles et permissions
-      const { data, error: rolesError } = await supabase.rpc('get_user_roles', {
-        p_user_id: user.id
-      });
+      // Essayer la fonction RPC si disponible
+      try {
+        const { data: rolesData, error: rolesError } = await supabase.rpc('get_user_roles', {
+          p_user_id: user.id
+        });
 
-      if (rolesError) {
-        console.error('Error fetching user roles:', rolesError);
-        // Si on ne peut pas récupérer les rôles mais qu'on sait que c'est un admin
-        if (isAdmin) {
-          setUserRoles([{
-            role: 'admin',
-            admin_role: 'moderator',
-            permissions: ['system_admin', 'analytics_read', 'analytics_admin']
-          }]);
-          setPermissions(['system_admin', 'analytics_read', 'analytics_admin']);
+        if (!rolesError && rolesData && rolesData.length > 0) {
+          const rolesWithTypedInfo: UserRoleInfo[] = rolesData.map((item: any) => ({
+            role: item.role as UserRole,
+            admin_role: item.admin_role as AdminRole || undefined,
+            permissions: item.permissions || []
+          }));
+
+          const allPermissions = Array.from(
+            new Set(rolesWithTypedInfo.flatMap(role => role.permissions))
+          ) as Permission[];
+
+          setUserRoles(rolesWithTypedInfo);
+          setPermissions(allPermissions);
           return;
         }
-        setError('Erreur lors du chargement des rôles');
-        return;
+      } catch (rpcError) {
+        console.warn('RPC get_user_roles failed, using fallback:', rpcError);
       }
 
-      if (!data || data.length === 0) {
-        // Si aucun rôle trouvé, assigner le rôle client par défaut
-        setUserRoles([{
-          role: 'client',
-          admin_role: undefined,
-          permissions: ['transport_read', 'marketplace_read']
-        }]);
-        setPermissions(['transport_read', 'marketplace_read']);
-        return;
-      }
-
-      const rolesData: UserRoleInfo[] = data.map((item: any) => ({
-        role: item.role,
-        admin_role: item.admin_role || undefined,
-        permissions: item.permissions || []
-      }));
-
-      // Collecter toutes les permissions uniques
-      const allPermissions = Array.from(
-        new Set(rolesData.flatMap(role => role.permissions))
-      ) as Permission[];
-
-      setUserRoles(rolesData);
-      setPermissions(allPermissions);
+      // Fallback : assigner un rôle client par défaut
+      const defaultRole = {
+        role: 'client' as UserRole,
+        admin_role: undefined,
+        permissions: ['transport_read', 'marketplace_read'] as Permission[]
+      };
+      setUserRoles([defaultRole]);
+      setPermissions(['transport_read', 'marketplace_read']);
 
     } catch (err) {
       console.error('Error in fetchUserRoles:', err);
       setError('Erreur lors du chargement des rôles');
+      // Fallback en cas d'erreur
+      const defaultRole = {
+        role: 'client' as UserRole,
+        admin_role: undefined,
+        permissions: ['transport_read', 'marketplace_read'] as Permission[]
+      };
+      setUserRoles([defaultRole]);
+      setPermissions(['transport_read', 'marketplace_read']);
     } finally {
       setLoading(false);
     }

@@ -46,11 +46,16 @@ serve(async (req) => {
       })
     }
 
-    // Check admin status using existing function
-    const { data: isAdmin, error: adminError } = await supabaseClient.rpc('is_current_user_admin')
+    // Vérifier l'accès admin - approche directe pour éviter les problèmes RLS
+    const { data: adminCheck, error: adminError } = await supabaseClient
+      .from('admins')
+      .select('id, is_active')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .limit(1);
 
-    if (adminError || !isAdmin) {
-      console.log('Admin check failed:', { isAdmin, adminError })
+    if (adminError || !adminCheck || adminCheck.length === 0) {
+      console.log('Admin check failed:', { adminCheck, adminError })
       return new Response(JSON.stringify({ error: 'Admin access required' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
