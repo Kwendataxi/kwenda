@@ -37,6 +37,9 @@ import { AdminSettings } from '@/components/admin/AdminSettings';
 import { EnhancedRoleManagement } from '@/components/admin/roles/EnhancedRoleManagement';
 import { EnhancedSupportCenter } from '@/components/admin/support/EnhancedSupportCenter';
 import { EnhancedUserManagement } from '@/components/admin/users/EnhancedUserManagement';
+import { EnhancedTeamManager } from '@/components/admin/teams/EnhancedTeamManager';
+import { EnhancedMarketplaceManager } from '@/components/marketplace/EnhancedMarketplaceManager';
+import { EnhancedGoogleMigrationPanel } from '@/components/admin/migration/EnhancedGoogleMigrationPanel';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
