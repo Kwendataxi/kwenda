@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRoleInfo, Permission, UserRole, AdminRole } from '@/types/roles';
-import { useAdminPermissions } from '@/components/admin/AdminPermissionContext';
 
 interface UseUserRolesReturn {
   userRoles: UserRoleInfo[];
@@ -21,11 +20,21 @@ interface UseUserRolesReturn {
 
 export const useUserRoles = (): UseUserRolesReturn => {
   const { user } = useAuth();
-  const { showAllSections } = useAdminPermissions();
   const [userRoles, setUserRoles] = useState<UserRoleInfo[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Utiliser le context admin de manière optionnelle avec un fallback
+  let showAllSections = false;
+  try {
+    const { useAdminPermissions } = require('@/components/admin/AdminPermissionContext');
+    const adminPermissions = useAdminPermissions();
+    showAllSections = adminPermissions?.showAllSections || false;
+  } catch {
+    // Le context n'est pas disponible, utiliser la valeur par défaut
+    showAllSections = false;
+  }
 
   const fetchUserRoles = async () => {
     if (!user?.id) {
