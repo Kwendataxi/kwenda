@@ -193,6 +193,45 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_settings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          requires_restart: boolean
+          setting_key: string
+          setting_type: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          requires_restart?: boolean
+          setting_key: string
+          setting_type?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          requires_restart?: boolean
+          setting_key?: string
+          setting_type?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admins: {
         Row: {
           admin_level: string | null
@@ -3999,6 +4038,51 @@ export type Database = {
           provider?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      payment_settings: {
+        Row: {
+          commission_rate: number
+          created_at: string
+          created_by: string | null
+          id: string
+          is_enabled: boolean
+          is_test_mode: boolean
+          maximum_amount: number | null
+          minimum_amount: number
+          provider_config: Json
+          provider_name: string
+          supported_currencies: string[]
+          updated_at: string
+        }
+        Insert: {
+          commission_rate?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_enabled?: boolean
+          is_test_mode?: boolean
+          maximum_amount?: number | null
+          minimum_amount?: number
+          provider_config?: Json
+          provider_name: string
+          supported_currencies?: string[]
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_enabled?: boolean
+          is_test_mode?: boolean
+          maximum_amount?: number | null
+          minimum_amount?: number
+          provider_config?: Json
+          provider_name?: string
+          supported_currencies?: string[]
+          updated_at?: string
         }
         Relationships: []
       }

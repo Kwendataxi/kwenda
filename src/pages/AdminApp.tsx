@@ -33,6 +33,7 @@ import { UnifiedSubscriptionManager } from '@/components/admin/subscriptions/Uni
 import { AdminPromoCodeManager } from '@/components/admin/AdminPromoCodeManager';
 import AdminPartnerManager from '@/components/admin/AdminPartnerManager';
 import { GoogleMigrationPanel } from '@/components/admin/GoogleMigrationPanel';
+import { AdminSettings } from '@/components/admin/AdminSettings';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -237,11 +238,17 @@ const AdminApp = () => {
          </PermissionGuard>
        </TabsContent>
 
-       <TabsContent value="migration" className="space-y-6">
-         <PermissionGuard requiredPermissions={['system_admin']}>
-           <GoogleMigrationPanel />
-         </PermissionGuard>
-       </TabsContent>
+      <TabsContent value="migration" className="space-y-6">
+        <PermissionGuard requiredPermissions={['system_admin']}>
+          <GoogleMigrationPanel />
+        </PermissionGuard>
+      </TabsContent>
+
+      <TabsContent value="settings" className="space-y-6">
+        <PermissionGuard requiredPermissions={['system_admin']}>
+          <AdminSettings />
+        </PermissionGuard>
+      </TabsContent>
      </Tabs>
    );
 
