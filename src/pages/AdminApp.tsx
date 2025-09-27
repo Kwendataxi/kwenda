@@ -41,6 +41,7 @@ import { EnhancedTeamManager } from '@/components/admin/teams/EnhancedTeamManage
 import { EnhancedMarketplaceManagerFixed } from '@/components/marketplace/EnhancedMarketplaceManagerFixed';
 import { EnhancedGoogleMigrationPanel } from '@/components/admin/migration/EnhancedGoogleMigrationPanel';
 import { CentralizedNotificationCenterFixed as CentralizedNotificationCenter } from '@/components/admin/notifications/CentralizedNotificationCenterFixed';
+import { MissionControlCenter } from '@/components/admin/monitoring/MissionControlCenter';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -256,7 +257,13 @@ const AdminApp = () => {
           <AdminSettings />
         </PermissionGuard>
       </TabsContent>
-     </Tabs>
+
+      <TabsContent value="mission-control" className="space-y-6">
+        <PermissionGuard requiredPermissions={['system_admin']}>
+          <MissionControlCenter onBack={() => setActiveTab('overview')} />
+        </PermissionGuard>
+      </TabsContent>
+    </Tabs>
    );
 
   return (

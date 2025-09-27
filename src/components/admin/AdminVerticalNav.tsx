@@ -20,6 +20,7 @@ import {
   Megaphone,
   Trophy,
   Building,
+  Shield,
 } from 'lucide-react';
 
 interface AdminVerticalNavProps {
@@ -55,6 +56,7 @@ const NAV_ITEMS: Array<{
   { id: 'test-data', label: 'Données de Test', icon: Database },
   { id: 'settings', label: 'Paramètres', icon: Settings },
   { id: 'migration', label: 'Migration Google', icon: MapPin },
+  { id: 'mission-control', label: 'Mission Control', icon: Shield },
 ];
 
 export const AdminVerticalNav: React.FC<AdminVerticalNavProps> = ({ activeTab, onTabChange, className }) => {
