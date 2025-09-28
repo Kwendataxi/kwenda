@@ -19,10 +19,10 @@ export const AdminRentalModeration = () => {
         .from('rental_vehicles')
         .select(`
           *,
-          partner_profiles!inner(
+          partenaires!inner(
             company_name,
-            contact_email,
-            phone,
+            email,
+            phone_number,
             id
           )
         `)
@@ -40,10 +40,10 @@ export const AdminRentalModeration = () => {
         .from('partner_taxi_vehicles')
         .select(`
           *,
-          partner_profiles!inner(
+          partenaires!inner(
             company_name,
-            contact_email,
-            phone,
+            email,
+            phone_number,
             id
           )
         `)
@@ -140,16 +140,16 @@ export const AdminRentalModeration = () => {
                     </CardTitle>
                   </CardHeader>
                    <CardContent className="space-y-4">
-                     {vehicle.partner_profiles && (
+                     {vehicle.partenaires && (
                        <div className="p-3 bg-muted rounded-md">
                          <p className="text-sm font-medium text-primary">
-                           Partenaire: {vehicle.partner_profiles.company_name}
+                           Partenaire: {vehicle.partenaires.company_name}
                          </p>
                          <p className="text-xs text-muted-foreground">
-                           {vehicle.partner_profiles.contact_email}
+                           {vehicle.partenaires.email}
                          </p>
                          <p className="text-xs text-muted-foreground">
-                           {vehicle.partner_profiles.phone}
+                           {vehicle.partenaires.phone_number}
                          </p>
                        </div>
                      )}
@@ -225,16 +225,16 @@ export const AdminRentalModeration = () => {
                     </CardTitle>
                   </CardHeader>
                    <CardContent className="space-y-4">
-                     {vehicle.partner_profiles && (
+                     {vehicle.partenaires && (
                        <div className="p-3 bg-muted rounded-md">
                          <p className="text-sm font-medium text-primary">
-                           Partenaire: {vehicle.partner_profiles.company_name}
+                           Partenaire: {vehicle.partenaires.company_name}
                          </p>
                          <p className="text-xs text-muted-foreground">
-                           {vehicle.partner_profiles.contact_email}
+                           {vehicle.partenaires.email}
                          </p>
                          <p className="text-xs text-muted-foreground">
-                           {vehicle.partner_profiles.phone}
+                           {vehicle.partenaires.phone_number}
                          </p>
                        </div>
                      )}
