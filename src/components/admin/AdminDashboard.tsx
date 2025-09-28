@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import AdminPartnerManager from './AdminPartnerManager';
+import { AdminRentalManager } from './AdminRentalManager';
+import { AdminSubscriptionManager } from './AdminSubscriptionManager';
 import { AdminRentalModeration } from './AdminRentalModeration';
 import { AdminMarketplaceManager } from './AdminMarketplaceManager';
 import { AdminLocationManager } from './AdminLocationManager';
@@ -108,9 +110,9 @@ const AdminDashboard = () => {
         <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="partners">Partenaires</TabsTrigger>
           <TabsTrigger value="moderation">Modération</TabsTrigger>
+          <TabsTrigger value="rental">Location</TabsTrigger>
+          <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
           <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
-          <TabsTrigger value="location">Location</TabsTrigger>
-          <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="security">Sécurité</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -124,16 +126,16 @@ const AdminDashboard = () => {
           <AdminRentalModeration />
         </TabsContent>
 
+        <TabsContent value="rental" className="mt-6">
+          <AdminRentalManager />
+        </TabsContent>
+
+        <TabsContent value="subscriptions" className="mt-6">
+          <AdminSubscriptionManager />
+        </TabsContent>
+
         <TabsContent value="marketplace" className="mt-6">
           <AdminMarketplaceManager />
-        </TabsContent>
-
-        <TabsContent value="location" className="mt-6">
-          <AdminLocationManager />
-        </TabsContent>
-
-        <TabsContent value="services" className="mt-6">
-          <AdminServiceManager />
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-6">

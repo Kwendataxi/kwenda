@@ -13,7 +13,7 @@ export interface VehicleCategory {
   recommended_price_range?: {
     min: number;
     max: number;
-  };
+  } | any;
   is_active: boolean;
   sort_order?: number;
   priority?: number;

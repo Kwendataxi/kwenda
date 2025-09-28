@@ -5372,36 +5372,51 @@ export type Database = {
       }
       rental_vehicle_categories: {
         Row: {
+          base_price: number | null
           city: string | null
+          color_class: string | null
           created_at: string
           description: string | null
           icon: string
+          icon_name: string | null
           id: string
           is_active: boolean
           name: string
           priority: number | null
+          recommended_price_range: Json | null
+          sort_order: number | null
           updated_at: string
         }
         Insert: {
+          base_price?: number | null
           city?: string | null
+          color_class?: string | null
           created_at?: string
           description?: string | null
           icon?: string
+          icon_name?: string | null
           id?: string
           is_active?: boolean
           name: string
           priority?: number | null
+          recommended_price_range?: Json | null
+          sort_order?: number | null
           updated_at?: string
         }
         Update: {
+          base_price?: number | null
           city?: string | null
+          color_class?: string | null
           created_at?: string
           description?: string | null
           icon?: string
+          icon_name?: string | null
           id?: string
           is_active?: boolean
           name?: string
           priority?: number | null
+          recommended_price_range?: Json | null
+          sort_order?: number | null
           updated_at?: string
         }
         Relationships: []
