@@ -5237,6 +5237,50 @@ export type Database = {
         }
         Relationships: []
       }
+      rental_moderation_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          moderated_at: string
+          moderator_id: string
+          new_status: string
+          previous_status: string | null
+          rejection_reason: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          moderated_at?: string
+          moderator_id: string
+          new_status: string
+          previous_status?: string | null
+          rejection_reason?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          moderated_at?: string
+          moderator_id?: string
+          new_status?: string
+          previous_status?: string | null
+          rejection_reason?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_moderation_logs_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "rental_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rental_payment_access_logs: {
         Row: {
           access_reason: string | null

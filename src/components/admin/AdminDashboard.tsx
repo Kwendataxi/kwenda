@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import AdminPartnerManager from './AdminPartnerManager';
 import { AdminRentalManager } from './AdminRentalManager';
 import { AdminSubscriptionManager } from './AdminSubscriptionManager';
-import { AdminRentalModeration } from './AdminRentalModeration';
+import { AdminRentalModerationFixed } from './AdminRentalModerationFixed';
+import { VehicleCategoryManager } from './VehicleCategoryManager';
 import { AdminMarketplaceManager } from './AdminMarketplaceManager';
 import { AdminLocationManager } from './AdminLocationManager';
 import { AdminServiceManager } from './AdminServiceManager';
@@ -122,9 +123,13 @@ const AdminDashboard = () => {
           <AdminPartnerManager />
         </TabsContent>
 
-        <TabsContent value="moderation" className="mt-6">
-          <AdminRentalModeration />
-        </TabsContent>
+          <TabsContent value="moderation" className="mt-6">
+            <AdminRentalModerationFixed />
+          </TabsContent>
+          
+          <TabsContent value="categories" className="mt-6">
+            <VehicleCategoryManager />
+          </TabsContent>
 
         <TabsContent value="rental" className="mt-6">
           <AdminRentalManager />
