@@ -79,9 +79,11 @@ serve(async (req) => {
 
     if (body.action === "approve") {
       updates.moderation_status = "approved";
+      updates.is_active = true;
     } else if (body.action === "reject") {
       updates.moderation_status = "rejected";
       updates.rejection_reason = body.rejection_reason || "Non spécifié";
+      updates.is_active = false;
     }
 
     const { data: updated, error: upErr } = await service
@@ -98,6 +100,18 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Log the moderation action
+    await service.from("activity_logs").insert({
+      user_id: adminId,
+      activity_type: "rental_moderation",
+      description: `Véhicule de location ${body.action === "approve" ? "approuvé" : "rejeté"}`,
+      metadata: {
+        vehicle_id: body.vehicle_id,
+        action: body.action,
+        rejection_reason: body.rejection_reason
+      }
+    });
 
     return new Response(JSON.stringify({ success: true, vehicle: updated }), {
       status: 200,
