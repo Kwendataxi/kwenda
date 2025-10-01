@@ -91,10 +91,20 @@ export function usePartnerRentals() {
     queryKey: ["partner-rental-vehicles", userId],
     queryFn: async () => {
       if (!userId) return [] as RentalVehicle[];
+      
+      // First get partner_id from user_id
+      const { data: partnerData, error: partnerError } = await supabase
+        .from("partenaires")
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+      
+      if (partnerError || !partnerData) return [] as RentalVehicle[];
+      
       const { data, error } = await (supabase as any)
         .from("rental_vehicles")
         .select("*")
-        .eq("partner_user_id", userId)
+        .eq("partner_id", partnerData.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data || []).map((v: any) => ({
@@ -111,10 +121,19 @@ export function usePartnerRentals() {
     queryFn: async () => {
       if (!userId) return [] as RentalBooking[];
 
+      // First get partner_id
+      const { data: partnerData, error: partnerError } = await supabase
+        .from("partenaires")
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+      
+      if (partnerError || !partnerData) return [] as RentalBooking[];
+
       const { data: vehicleIdsData, error: idsErr } = await (supabase as any)
         .from("rental_vehicles")
         .select("id")
-        .eq("partner_user_id", userId);
+        .eq("partner_id", partnerData.id);
 
       if (idsErr) throw idsErr;
 
@@ -137,9 +156,19 @@ export function usePartnerRentals() {
   const createVehicle = useMutation({
     mutationFn: async (payload: Partial<RentalVehicle>) => {
       if (!userId) throw new Error("Not authenticated");
+      
+      // Get partner_id first
+      const { data: partnerData, error: partnerError } = await supabase
+        .from("partenaires")
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+      
+      if (partnerError || !partnerData) throw new Error("Partner not found");
+      
       const insert = {
         ...payload,
-        partner_user_id: userId,
+        partner_id: partnerData.id,
         features: payload.features || [],
         images: payload.images || [],
       };
