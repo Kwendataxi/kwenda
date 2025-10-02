@@ -38,21 +38,32 @@ export function AdminAnalyticsDashboard() {
 
       // Fetch multiple datasets in parallel
       const [
-        usersRes,
+        clientsRes,
         driversRes,
+        partnersRes,
+        adminsRes,
         transportRes,
         deliveryRes,
         marketplaceRes
       ] = await Promise.all([
-        supabase.from('profiles').select('id, created_at, user_type').gte('created_at', startDate.toISOString()),
+        supabase.from('clients').select('id, created_at').gte('created_at', startDate.toISOString()),
         supabase.from('chauffeurs').select('id, created_at, is_active').gte('created_at', startDate.toISOString()),
+        supabase.from('partenaires').select('id, created_at').gte('created_at', startDate.toISOString()),
+        supabase.from('admins').select('id, created_at').gte('created_at', startDate.toISOString()),
         supabase.from('transport_bookings').select('id, created_at, status, actual_price').gte('created_at', startDate.toISOString()),
         supabase.from('delivery_orders').select('id, created_at, status, actual_price').gte('created_at', startDate.toISOString()),
         supabase.from('marketplace_orders').select('id, created_at, status, total_amount').gte('created_at', startDate.toISOString())
       ]);
 
-      const users = usersRes.data || [];
+      // Combine all users from different tables
+      const users = [
+        ...(clientsRes.data || []),
+        ...(driversRes.data || []),
+        ...(partnersRes.data || []),
+        ...(adminsRes.data || [])
+      ];
       const drivers = driversRes.data || [];
+      const clients = clientsRes.data || [];
       const transports = transportRes.data || [];
       const deliveries = deliveryRes.data || [];
       const marketplace = marketplaceRes.data || [];

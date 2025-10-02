@@ -19,101 +19,86 @@ export function AdminMarketplaceManager() {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['marketplaceStats'],
     queryFn: async () => {
-      // Use existing tables with mock data for marketplace stats
-      const [profilesRes, ordersRes] = await Promise.all([
-        supabase.from('profiles').select('id, user_type'),
-        supabase.from('activity_logs').select('id, activity_type, amount').eq('activity_type', 'marketplace_order')
+      const [productsRes, ordersRes] = await Promise.all([
+        supabase.from('marketplace_products').select('id, status', { count: 'exact' }),
+        supabase.from('marketplace_orders').select('id, status, total_amount', { count: 'exact' })
       ]);
 
-      const profiles = profilesRes.data || [];
+      const products = productsRes.data || [];
       const orders = ordersRes.data || [];
 
       return {
-        totalProducts: 45, // Mock data
-        pendingProducts: 12, // Mock data  
-        totalOrders: orders.length,
-        pendingOrders: Math.floor(orders.length * 0.3),
-        totalSellers: profiles.filter(p => p.user_type === 'seller').length || 8,
-        totalRevenue: orders.reduce((sum, o) => sum + (o.amount || 0), 0)
+        totalProducts: productsRes.count || 0,
+        pendingProducts: products.filter(p => p.status === 'pending').length,
+        totalOrders: ordersRes.count || 0,
+        pendingOrders: orders.filter(o => o.status === 'pending').length,
+        totalSellers: 8, // À implémenter avec une vraie table vendeurs
+        totalRevenue: orders.filter(o => o.status === 'completed').reduce((sum, o) => sum + (o.total_amount || 0), 0)
       };
     },
     refetchInterval: 30000
   });
 
-  // Fetch mock products data
+  // Fetch real products data
   const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ['marketplaceProducts', searchTerm],
     queryFn: async () => {
-      // Mock products data
-      const mockProducts = [
-        {
-          id: '1',
-          name: 'Téléphone Samsung Galaxy',
-          price: 450000,
-          status: 'pending',
-          created_at: new Date().toISOString(),
-          profiles: { display_name: 'Jean Mukendi', email: 'jean@example.com' }
-        },
-        {
-          id: '2', 
-          name: 'Ordinateur Dell Laptop',
-          price: 800000,
-          status: 'approved',
-          created_at: new Date().toISOString(),
-          profiles: { display_name: 'Marie Tshala', email: 'marie@example.com' }
-        },
-        {
-          id: '3',
-          name: 'Chaussures Nike Air',
-          price: 120000,
-          status: 'pending',
-          created_at: new Date().toISOString(),
-          profiles: { display_name: 'Paul Mbuyi', email: 'paul@example.com' }
-        }
-      ];
+      let query = supabase
+        .from('marketplace_products')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
 
       if (searchTerm) {
-        return mockProducts.filter(p => 
-          p.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        query = query.ilike('title', `%${searchTerm}%`);
       }
 
-      return mockProducts;
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return data?.map(p => ({
+        id: p.id,
+        name: p.title,
+        price: p.price,
+        status: p.status,
+        created_at: p.created_at,
+        profiles: { display_name: 'Vendeur', email: '' } // Simplifié pour éviter les erreurs de relation
+      })) || [];
     }
   });
 
-  // Fetch mock orders data
+  // Fetch real orders data
   const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ['marketplaceOrders'],
     queryFn: async () => {
-      // Mock orders data
-      return [
-        {
-          id: '1',
-          total_amount: 450000,
-          status: 'completed',
-          created_at: new Date().toISOString(),
-          profiles: { display_name: 'Client A', email: 'clienta@example.com' },
-          products: { name: 'Téléphone Samsung', price: 450000 }
-        },
-        {
-          id: '2',
-          total_amount: 120000,
-          status: 'pending',
-          created_at: new Date().toISOString(),
-          profiles: { display_name: 'Client B', email: 'clientb@example.com' },
-          products: { name: 'Chaussures Nike', price: 120000 }
-        }
-      ];
+      const { data, error } = await supabase
+        .from('marketplace_orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      return data?.map(o => ({
+        id: o.id,
+        total_amount: o.total_amount,
+        status: o.status,
+        created_at: o.created_at,
+        profiles: { display_name: 'Acheteur', email: '' },
+        products: { name: 'Produit', price: o.total_amount }
+      })) || [];
     }
   });
 
-  // Update product status (mock)
+  // Update product status
   const updateProductStatus = useMutation({
     mutationFn: async ({ productId, status }: { productId: string; status: string }) => {
-      // Mock update - in real implementation would update the products table
-      console.log('Updating product', productId, 'to status', status);
-      return Promise.resolve();
+      const { error } = await supabase
+        .from('marketplace_products')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', productId);
+
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['marketplaceProducts'] });

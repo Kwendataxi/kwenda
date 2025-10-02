@@ -29,15 +29,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
 
   const loadDashboardData = async () => {
     try {
-      // Load statistics
-      const [usersResult, productsResult, ordersResult] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact' }),
+      // Load statistics from real user tables
+      const [clientsResult, driversResult, partnersResult, productsResult, ordersResult] = await Promise.all([
+        supabase.from('clients').select('id', { count: 'exact' }),
+        supabase.from('chauffeurs').select('id', { count: 'exact' }),
+        supabase.from('partenaires').select('id', { count: 'exact' }),
         supabase.from('marketplace_products').select('id, price', { count: 'exact' }),
         supabase.from('marketplace_orders').select('*', { count: 'exact' })
       ]);
 
+      const totalUsers = (clientsResult.count || 0) + (driversResult.count || 0) + (partnersResult.count || 0);
+
       setStats({
-        totalUsers: usersResult.count || 0,
+        totalUsers,
         totalProducts: productsResult.count || 0,
         pendingOrders: ordersResult.data?.filter(order => order.status === 'pending').length || 0,
         totalRevenue: ordersResult.data?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0

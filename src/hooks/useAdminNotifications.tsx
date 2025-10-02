@@ -28,19 +28,14 @@ export interface NotificationTemplate {
 
 export interface AdminNotification {
   id: string;
-  type_id: string;
-  template_id?: string;
+  type: string;
   title: string;
-  content: string;
-  target_type: string;
-  target_criteria: any;
-  priority: string;
-  status: string;
-  total_recipients: number;
-  successful_sends: number;
-  failed_sends: number;
-  sent_at?: string;
+  message: string;
+  severity: string;
+  data?: any;
+  is_read: boolean;
   created_at: string;
+  updated_at?: string;
 }
 
 export const useAdminNotifications = () => {
@@ -80,15 +75,14 @@ export const useAdminNotifications = () => {
   };
 
   const loadNotifications = async () => {
-    // Temporarily disabled to avoid conflicts with admin_notifications table
-    // const { data, error } = await supabase
-    //   .from('admin_notifications')
-    //   .select('*')
-    //   .order('created_at', { ascending: false })
-    //   .limit(50);
+    const { data, error } = await supabase
+      .from('admin_notifications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50);
 
-    // if (error) throw error;
-    setNotifications([]);
+    if (error) throw error;
+    setNotifications(data || []);
   };
 
   const loadStats = async () => {

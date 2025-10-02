@@ -244,23 +244,21 @@ export function AdminNotificationManager() {
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
                           <h4 className="font-medium">{notification.title}</h4>
-                          {getTargetTypeBadge(notification.target_type)}
-                          {getPriorityBadge(notification.priority)}
-                        </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {notification.content}
-                        </p>
-                        <div className="flex items-center space-x-4 text-xs text-gray-500">
-                          <span>Envoyé: {new Date(notification.created_at).toLocaleString('fr-FR')}</span>
-                          <span>Destinataires: {notification.total_recipients}</span>
-                          <span>Succès: {notification.successful_sends}</span>
-                          {notification.failed_sends > 0 && (
-                            <span className="text-red-600">Échecs: {notification.failed_sends}</span>
+                          <Badge variant="outline">{notification.type}</Badge>
+                          {notification.severity === 'error' && (
+                            <Badge variant="destructive">Critique</Badge>
                           )}
                         </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {notification.message}
+                        </p>
+                        <div className="flex items-center space-x-4 text-xs text-gray-500">
+                          <span>Créé: {new Date(notification.created_at).toLocaleString('fr-FR')}</span>
+                          <span>{notification.is_read ? 'Lu' : 'Non lu'}</span>
+                        </div>
                       </div>
-                      <Badge variant={notification.status === 'sent' ? "default" : "secondary"}>
-                        {notification.status === 'sent' ? 'Envoyé' : notification.status}
+                      <Badge variant={notification.is_read ? "secondary" : "default"}>
+                        {notification.is_read ? 'Lu' : 'Non lu'}
                       </Badge>
                     </div>
                   ))
