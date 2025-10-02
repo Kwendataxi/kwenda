@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
+import DriverSearchDialog from './DriverSearchDialog';
 
 interface TaxiBookingData {
   pickup: LocationData | null;
@@ -106,6 +107,13 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [loading, setLoading] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState<number>(0);
   const [estimatedDuration, setEstimatedDuration] = useState<string>('');
+  
+  // Driver search dialog state
+  const [showSearchDialog, setShowSearchDialog] = useState(false);
+  const [searchStatus, setSearchStatus] = useState<'searching' | 'analyzing' | 'selecting' | 'found' | 'error'>('searching');
+  const [driversFound, setDriversFound] = useState(0);
+  const [searchRadius, setSearchRadius] = useState(3);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   // Gérer l'adresse pré-remplie depuis la navigation
   useEffect(() => {
@@ -244,6 +252,15 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
 
     try {
       setLoading(true);
+      setShowSearchDialog(true);
+      setSearchStatus('searching');
+      setElapsedTime(0);
+      setDriversFound(0);
+      
+      // Simulate elapsed time counter
+      const timeCounter = setInterval(() => {
+        setElapsedTime(prev => prev + 1);
+      }, 1000);
       
       // Convert LocationData to UltimateLocationData format for createBooking
       const pickupFormatted = {
@@ -270,6 +287,13 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         placeId: bookingData.destination.placeId
       };
 
+      // Simulate search progress
+      setTimeout(() => setSearchStatus('analyzing'), 2000);
+      setTimeout(() => {
+        setDriversFound(3);
+        setSearchStatus('selecting');
+      }, 4000);
+
       const result = await createBooking({
         pickup: pickupFormatted,
         destination: destinationFormatted,
@@ -284,31 +308,39 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         scheduledTime: bookingData.scheduledAt
       });
 
+      clearInterval(timeCounter);
+
       if (result) {
-        toast({
-          title: "Réservation confirmée!",
-          description: "Recherche d'un chauffeur en cours...",
-        });
+        setSearchStatus('found');
         
-        onSubmit({ 
-          bookingId: result.id,
-          status: result.status,
-          driverAssigned: result.driverAssigned,
-          estimatedDuration,
-          ...bookingData
-        });
+        setTimeout(() => {
+          setShowSearchDialog(false);
+          onSubmit({ 
+            bookingId: result.id,
+            status: result.status,
+            driverAssigned: result.driverAssigned,
+            estimatedDuration,
+            ...bookingData
+          });
+        }, 2000);
       }
 
     } catch (error) {
       console.error('❌ [TaxiInterface] Erreur réservation:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de créer la réservation. Veuillez réessayer.",
-        variant: "destructive"
-      });
+      setSearchStatus('error');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRetrySearch = () => {
+    setShowSearchDialog(false);
+    setTimeout(() => handleSubmitBooking(), 500);
+  };
+
+  const handleExpandRadius = () => {
+    setSearchRadius(prev => prev + 5);
+    handleRetrySearch();
   };
 
   const renderStepContent = () => {
@@ -667,6 +699,19 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
           </CardContent>
         </Card>
       )}
+
+      {/* Driver Search Dialog */}
+      <DriverSearchDialog
+        isOpen={showSearchDialog}
+        onClose={() => setShowSearchDialog(false)}
+        searchStatus={searchStatus}
+        driversFound={driversFound}
+        searchRadius={searchRadius}
+        elapsedTime={elapsedTime}
+        estimatedTime={10}
+        onRetry={handleRetrySearch}
+        onExpandRadius={handleExpandRadius}
+      />
     </div>
   );
 }
