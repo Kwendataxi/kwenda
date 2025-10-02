@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ModernHeader } from './ModernHeader';
 import { ServiceGrid } from './ServiceGrid';
-// Removed obsolete components
+import { PromoSlider } from './PromoSlider';
 import { MarketplacePreview } from './MarketplacePreview';
 import { ModernBottomNavigation } from './ModernBottomNavigation';
 import { HomeTrendsSheet } from './HomeTrendsSheet';
@@ -72,14 +72,17 @@ export const ModernHomeScreen = ({
       <div className="relative z-10">
         <ModernHeader />
         
-        <div className="space-y-6 pb-32">
+        <div className="space-y-4 pb-32">
+          {/* Slider publicitaire moderne */}
+          <PromoSlider />
+          
+          {/* Services compacts */}
           <ServiceGrid 
             onServiceSelect={onServiceSelect} 
             serviceNotifications={serviceNotifications}
           />
           
-          {/* Simplified home interface - search removed temporarily */}
-          
+          {/* Marketplace preview */}
           <MarketplacePreview
             featuredProducts={featuredProducts}
             onProductSelect={onProductSelect}

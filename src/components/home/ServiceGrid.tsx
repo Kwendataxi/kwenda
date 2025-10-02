@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import { Car, Truck, ShoppingBag, Zap } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useServiceConfigurations } from '@/hooks/useServiceConfigurations';
-import NotificationBadge from '@/components/notifications/NotificationBadge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 interface ServiceGridProps {
   onServiceSelect: (service: string) => void;
@@ -90,12 +90,12 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
   // Skeleton loader pendant le chargement
   if (loading) {
     return (
-      <div className="px-4 mb-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 justify-items-center">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-3 animate-pulse">
-              <Skeleton className="w-20 h-20 md:w-24 md:h-24 rounded-2xl" />
-              <Skeleton className="h-4 w-16 rounded" />
+      <div className="px-4">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex flex-col items-center gap-2 animate-fade-in">
+              <Skeleton className="w-16 h-16 md:w-18 md:h-18 rounded-2xl" />
+              <Skeleton className="h-3 w-14" />
             </div>
           ))}
         </div>
@@ -104,62 +104,56 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
   }
 
   return (
-    <div className="px-4 mb-6">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 justify-items-center">
+    <div className="px-4">
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
         {mainServices.map((service, index) => {
           const Icon = service.icon;
           const notificationCount = serviceNotifications?.[service.id as keyof typeof serviceNotifications] || 0;
-          
+
           return (
-            <div 
-              key={service.id} 
-              className="flex flex-col items-center animate-fade-in"
-              style={{ animationDelay: `${index * 100}ms` }}
+            <button
+              key={service.id}
+              onClick={() => onServiceSelect(service.id)}
+              className={cn(
+                'group relative flex flex-col items-center gap-2 p-3',
+                'transition-all duration-300 ease-out',
+                'hover:scale-105 focus:scale-105',
+                'animate-fade-in'
+              )}
+              style={{
+                animationDelay: `${index * 100}ms`,
+              }}
             >
-              <div className="relative group">
-                <button
-                  onClick={() => onServiceSelect(service.id)}
-                  className={`
-                    w-20 h-20 md:w-24 md:h-24
-                    bg-gradient-to-br ${service.gradient}
-                    rounded-2xl
-                    flex items-center justify-center
-                    text-white
-                    
-                    shadow-xl
-                    ring-2 ring-white/20
-                    border border-white/10
-                    
-                    transition-all duration-300 ease-out
-                    
-                    hover:scale-110
-                    hover:rotate-2
-                    hover:shadow-2xl
-                    
-                    active:scale-95
-                    active:rotate-0
-                  `}
-                >
-                  <Icon className="h-9 w-9 md:h-11 md:w-11 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3" />
-                </button>
+              {/* Icon container with gradient */}
+              <div
+                className={cn(
+                  'relative flex items-center justify-center',
+                  'w-16 h-16 md:w-18 md:h-18',
+                  'rounded-2xl shadow-lg',
+                  'bg-gradient-to-br',
+                  service.gradient,
+                  'ring-2 ring-white/20',
+                  'border border-white/10',
+                  'transition-all duration-300',
+                  'group-hover:scale-110 group-hover:rotate-2 group-hover:shadow-2xl',
+                  'group-focus:scale-110 group-focus:rotate-2'
+                )}
+              >
+                <Icon className="h-7 w-7 md:h-8 md:w-8 text-white transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3" />
                 
-                {/* Badge de notification premium */}
+                {/* Notification badge */}
                 {notificationCount > 0 && (
-                  <div className="absolute -top-1 -right-1 animate-pulse">
-                    <NotificationBadge 
-                      count={notificationCount}
-                      variant="destructive"
-                      size="sm"
-                      pulse={true}
-                      className="shadow-lg shadow-red-500/50"
-                    />
+                  <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 animate-pulse shadow-lg shadow-red-500/50 ring-2 ring-background">
+                    {notificationCount > 9 ? '9+' : notificationCount}
                   </div>
                 )}
               </div>
-              <span className="text-sm md:text-base font-semibold tracking-tight text-foreground mt-3 text-center line-clamp-2 transition-colors group-hover:text-primary">
+
+              {/* Service name */}
+              <span className="text-xs md:text-sm font-semibold text-foreground/90 tracking-tight text-center leading-tight">
                 {service.name}
               </span>
-            </div>
+            </button>
           );
         })}
       </div>
