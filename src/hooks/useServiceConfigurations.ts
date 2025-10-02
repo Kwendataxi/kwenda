@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export type ServiceCategory = 'taxi' | 'delivery';
+export type ServiceCategory = 'taxi' | 'delivery' | 'rental' | 'marketplace' | 'lottery';
 
 export interface ServiceConfiguration {
   id: string;
@@ -188,6 +188,18 @@ export const useServiceConfigurations = () => {
     return configurations?.filter(config => config.service_category === 'delivery') || [];
   };
 
+  const getRentalServices = () => {
+    return configurations?.filter(config => config.service_category === 'rental') || [];
+  };
+
+  const getMarketplaceServices = () => {
+    return configurations?.filter(config => config.service_category === 'marketplace') || [];
+  };
+
+  const getLotteryServices = () => {
+    return configurations?.filter(config => config.service_category === 'lottery') || [];
+  };
+
   const getServicePricing = (serviceType: string, serviceCategory: ServiceCategory, city = 'Kinshasa') => {
     return pricing?.find(p => 
       p.service_type === serviceType && 
@@ -211,11 +223,14 @@ export const useServiceConfigurations = () => {
     loading: configurationsLoading || pricingLoading,
     getTaxiServices,
     getDeliveryServices,
+    getRentalServices,
+    getMarketplaceServices,
+    getLotteryServices,
     getServicePricing,
+    formatPrice,
     updatePricing: updatePricingMutation.mutate,
     createService: createServiceMutation.mutate,
     updateService: updateServiceMutation.mutate,
     createPricing: createPricingMutation.mutate,
-    formatPrice,
   };
 };

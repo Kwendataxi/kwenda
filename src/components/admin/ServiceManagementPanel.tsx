@@ -10,6 +10,9 @@ import { Switch } from '@/components/ui/switch';
 import { useServiceConfigurations } from '@/hooks/useServiceConfigurations';
 import { ServiceCreationModal } from './services/ServiceCreationModal';
 import { CityPricingManager } from './services/CityPricingManager';
+import { RentalServiceTab } from './services/RentalServiceTab';
+import { MarketplaceServiceTab } from './services/MarketplaceServiceTab';
+import { LotteryServiceTab } from './services/LotteryServiceTab';
 import { Settings, DollarSign, Users, TrendingUp, Plus, Edit, Power } from 'lucide-react';
 
 export const ServiceManagementPanel: React.FC = () => {
@@ -93,7 +96,7 @@ export const ServiceManagementPanel: React.FC = () => {
     });
   };
 
-  const getServicesByCategory = (category: 'taxi' | 'delivery') => {
+  const getServicesByCategory = (category: 'taxi' | 'delivery' | 'rental' | 'marketplace' | 'lottery') => {
     return configurations.filter(config => config.service_category === category);
   };
 
@@ -113,10 +116,13 @@ export const ServiceManagementPanel: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="management">Gestion Services</TabsTrigger>
-          <TabsTrigger value="taxi">Services Taxi</TabsTrigger>
-          <TabsTrigger value="delivery">Services Livraison</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="management">Gestion</TabsTrigger>
+          <TabsTrigger value="taxi">Taxi</TabsTrigger>
+          <TabsTrigger value="delivery">Livraison</TabsTrigger>
+          <TabsTrigger value="rental">Location</TabsTrigger>
+          <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
+          <TabsTrigger value="lottery">Loterie</TabsTrigger>
         </TabsList>
 
         <TabsContent value="management" className="space-y-6">
@@ -198,6 +204,78 @@ export const ServiceManagementPanel: React.FC = () => {
                         <Edit className="h-3 w-3" />
                       </Button>
                     </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Rental Services Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  Location Véhicules
+                  <Badge variant="outline">{getServicesByCategory('rental').length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {getServicesByCategory('rental').map((service) => (
+                  <div key={service.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="font-medium">{service.display_name}</div>
+                      <div className="text-sm text-muted-foreground">Commission: 15%</div>
+                    </div>
+                    <Switch
+                      checked={service.is_active}
+                      onCheckedChange={() => toggleServiceStatus(service.id, service.is_active)}
+                    />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Marketplace Services Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  Marketplace
+                  <Badge variant="outline">{getServicesByCategory('marketplace').length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {getServicesByCategory('marketplace').map((service) => (
+                  <div key={service.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="font-medium">{service.display_name}</div>
+                      <div className="text-sm text-muted-foreground">Commission: 10%</div>
+                    </div>
+                    <Switch
+                      checked={service.is_active}
+                      onCheckedChange={() => toggleServiceStatus(service.id, service.is_active)}
+                    />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Lottery Services Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  Loterie
+                  <Badge variant="outline">{getServicesByCategory('lottery').length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {getServicesByCategory('lottery').map((service) => (
+                  <div key={service.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="font-medium">{service.display_name}</div>
+                      <div className="text-sm text-muted-foreground">Système de récompenses</div>
+                    </div>
+                    <Switch
+                      checked={service.is_active}
+                      onCheckedChange={() => toggleServiceStatus(service.id, service.is_active)}
+                    />
                   </div>
                 ))}
               </CardContent>
@@ -598,6 +676,33 @@ export const ServiceManagementPanel: React.FC = () => {
               </div>
             </TabsContent>
           </Tabs>
+        </TabsContent>
+
+        {/* Rental Services Tab */}
+        <TabsContent value="rental" className="space-y-6">
+          <RentalServiceTab
+            services={getServicesByCategory('rental')}
+            pricing={pricing}
+            onEditService={handleEditService}
+            onToggleStatus={toggleServiceStatus}
+          />
+        </TabsContent>
+
+        {/* Marketplace Services Tab */}
+        <TabsContent value="marketplace" className="space-y-6">
+          <MarketplaceServiceTab
+            services={getServicesByCategory('marketplace')}
+            pricing={pricing}
+            onToggleStatus={toggleServiceStatus}
+          />
+        </TabsContent>
+
+        {/* Lottery Services Tab */}
+        <TabsContent value="lottery" className="space-y-6">
+          <LotteryServiceTab
+            services={getServicesByCategory('lottery')}
+            onToggleStatus={toggleServiceStatus}
+          />
         </TabsContent>
       </Tabs>
     </div>
