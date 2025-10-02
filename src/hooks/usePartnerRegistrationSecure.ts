@@ -33,30 +33,76 @@ export const usePartnerRegistrationSecure = () => {
         email: data.contact_email,
         password: data.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/partner/auth`,
           data: {
             role: 'partner',
             company_name: data.company_name,
             phone_number: data.phone,
             business_type: data.business_type,
-            service_areas: data.service_areas,
+            service_areas: JSON.stringify(data.service_areas), // Convert array to string
             address: data.address || 'Adresse non spécifiée',
-            business_license: data.business_license,
-            tax_number: data.tax_number
+            business_license: data.business_license || '',
+            tax_number: data.tax_number || ''
           }
         }
       });
 
-      console.log('Auth signup result:', { authResult, error });
+      console.log('Full Auth Result:', JSON.stringify(authResult, null, 2));
+      console.log('Full Error:', JSON.stringify(error, null, 2));
 
       if (error) {
         console.error('Registration error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          status: error.status,
+          name: error.name
+        });
         throw new Error(error.message || 'Erreur lors de l\'inscription du partenaire');
       }
 
       // Check if the registration was successful
       if (authResult?.user?.id) {
         console.log('Registration successful, user created:', authResult.user.id);
-        toast.success('Inscription réussie ! Votre demande est en cours de traitement par nos équipes.');
+        
+        // Wait for trigger to execute
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Verify partner was created by trigger
+        const { data: partnerCheck, error: checkError } = await supabase
+          .from('partenaires')
+          .select('id, verification_status')
+          .eq('user_id', authResult.user.id)
+          .maybeSingle();
+        
+        console.log('Partner verification:', { partnerCheck, checkError });
+        
+        if (!partnerCheck && !checkError) {
+          console.error('Partner not created by trigger, attempting manual creation');
+          
+          // Manual creation if trigger failed
+          const { error: insertError } = await supabase
+            .from('partenaires')
+            .insert({
+              user_id: authResult.user.id,
+              email: data.contact_email,
+              display_name: data.company_name,
+              company_name: data.company_name,
+              phone_number: data.phone,
+              business_type: data.business_type,
+              service_areas: data.service_areas,
+              address: data.address || 'Adresse non spécifiée',
+              company_registration_number: data.business_license,
+              tax_number: data.tax_number,
+              verification_status: 'pending'
+            });
+          
+          if (insertError) {
+            console.error('Manual partner creation failed:', insertError);
+            throw new Error('Erreur lors de la création du profil partenaire');
+          }
+          
+          console.log('Partner created manually');
+        }
         
         // Try to send admin notification (non-blocking)
         try {
@@ -77,6 +123,13 @@ export const usePartnerRegistrationSecure = () => {
           console.warn('Admin notification failed:', notificationError);
         }
 
+        // Check if email confirmation is required
+        if (authResult.user && !authResult.session) {
+          toast.success('Inscription réussie ! Veuillez vérifier votre email pour confirmer votre compte.');
+          return { success: true, user: authResult.user, emailConfirmationRequired: true };
+        }
+        
+        toast.success('Inscription réussie ! Votre demande est en cours de traitement par nos équipes.');
         return { success: true, user: authResult.user };
       } else {
         console.error('No user returned from registration:', authResult);
@@ -85,14 +138,18 @@ export const usePartnerRegistrationSecure = () => {
 
     } catch (error: any) {
       console.error('Partner registration error:', error);
+      console.error('Error stack:', error.stack);
+      
       let errorMessage = 'Erreur lors de l\'inscription';
       
-      if (error.message.includes('duplicate key')) {
+      if (error.message.includes('duplicate key') || error.message.includes('already registered')) {
         errorMessage = 'Cette adresse email est déjà utilisée';
-      } else if (error.message.includes('invalid email')) {
+      } else if (error.message.includes('invalid email') || error.message.includes('Invalid email')) {
         errorMessage = 'Adresse email invalide';
-      } else if (error.message.includes('password')) {
+      } else if (error.message.includes('password') || error.message.includes('Password')) {
         errorMessage = 'Le mot de passe doit contenir au moins 6 caractères';
+      } else if (error.message.includes('Email not confirmed')) {
+        errorMessage = 'Veuillez confirmer votre email avant de vous connecter';
       } else if (error.message) {
         errorMessage = error.message;
       }
