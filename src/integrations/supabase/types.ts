@@ -8598,6 +8598,17 @@ export type Database = {
         }
         Returns: string
       }
+      create_user_notification: {
+        Args: {
+          p_action_url?: string
+          p_message: string
+          p_metadata?: Json
+          p_notification_type: string
+          p_title: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       deactivate_old_tokens: {
         Args: { p_platform: string; p_user_id: string }
         Returns: undefined

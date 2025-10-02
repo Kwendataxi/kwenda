@@ -115,8 +115,48 @@ serve(async (req) => {
       }
     });
 
-    // TODO: Envoyer une notification à l'utilisateur
-    console.log(`📧 Notification à envoyer à l'utilisateur ${user_id}`);
+    // Créer une notification pour l'utilisateur
+    const notificationData = {
+      approved: {
+        type: 'verification_approved',
+        title: 'Compte vérifié avec succès',
+        message: 'Votre compte a été approuvé par notre équipe. Vous pouvez maintenant profiter de toutes les fonctionnalités de Kwenda.',
+        action_url: '/profile'
+      },
+      rejected: {
+        type: 'verification_rejected',
+        title: 'Vérification refusée',
+        message: rejection_reason || 'Votre demande de vérification a été refusée. Veuillez vérifier vos documents et réessayer.',
+        action_url: '/profile'
+      },
+      request_info: {
+        type: 'verification_info_requested',
+        title: 'Informations supplémentaires requises',
+        message: admin_notes || 'Des informations supplémentaires sont nécessaires pour compléter votre vérification.',
+        action_url: '/profile'
+      }
+    };
+
+    const notifConfig = notificationData[action];
+    
+    const { error: notifError } = await supabaseClient.rpc('create_user_notification', {
+      p_user_id: user_id,
+      p_notification_type: notifConfig.type,
+      p_title: notifConfig.title,
+      p_message: notifConfig.message,
+      p_metadata: {
+        verification_status: updateData.verification_status,
+        admin_id: user.id,
+        reviewed_at: new Date().toISOString()
+      },
+      p_action_url: notifConfig.action_url
+    });
+
+    if (notifError) {
+      console.error('❌ Error creating notification:', notifError);
+    } else {
+      console.log(`✅ Notification créée pour l'utilisateur ${user_id}`);
+    }
 
     return new Response(
       JSON.stringify({
