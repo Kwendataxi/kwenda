@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Search, Car, CheckCircle, AlertCircle } from 'lucide-react';
+import { Search, Car, CheckCircle, AlertCircle, X } from 'lucide-react';
 
 interface DriverSearchDialogProps {
   isOpen: boolean;
@@ -96,78 +96,179 @@ export default function DriverSearchDialog({
 
     if (searchStatus === 'error') {
       return (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ 
-            scale: 1,
-            x: [0, -5, 5, -5, 5, 0]
-          }}
-          transition={{ 
-            scale: { duration: 0.3 },
-            x: { duration: 0.4, delay: 0.3 }
-          }}
-          className="flex items-center justify-center mb-8"
-        >
-          <div className="w-20 h-20 bg-gradient-to-br from-congo-red/90 to-red-500 rounded-full flex items-center justify-center shadow-lg">
-            <AlertCircle className="h-10 w-10 text-white" />
-          </div>
-        </motion.div>
+        <div className="relative h-28 mb-8 flex items-center justify-center">
+          {/* Alert ripples */}
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              className="absolute w-24 h-24 rounded-full border-2 border-congo-red/40"
+              animate={{
+                scale: [1, 2],
+                opacity: [0.6, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                delay: i * 0.6,
+                ease: "easeOut"
+              }}
+            />
+          ))}
+
+          {/* Falling particles */}
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={`particle-${i}`}
+              className="absolute w-1.5 h-1.5 bg-congo-red/60 rounded-full"
+              initial={{
+                x: (Math.random() - 0.5) * 60,
+                y: -20,
+                opacity: 0.8
+              }}
+              animate={{
+                y: 40,
+                opacity: 0,
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                delay: i * 0.3,
+                ease: "easeIn"
+              }}
+            />
+          ))}
+
+          {/* Car with diagonal bar (barred car effect) */}
+          <motion.div
+            initial={{ scale: 0, rotate: 0 }}
+            animate={{ 
+              scale: 1,
+              rotate: [0, -5, 5, -5, 0]
+            }}
+            transition={{ 
+              scale: { duration: 0.4, type: "spring", stiffness: 200 },
+              rotate: { duration: 0.5, delay: 0.4 }
+            }}
+            className="relative z-10"
+          >
+            <div className="w-20 h-20 bg-gradient-to-br from-congo-red/20 to-red-500/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-[0_0_30px_hsl(var(--congo-red)/0.3)] border border-congo-red/30">
+              {/* Car icon */}
+              <Car className="h-10 w-10 text-congo-red/70" />
+              
+              {/* Diagonal bar (prohibition symbol) */}
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.3, delay: 0.6 }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <div className="w-[110%] h-1 bg-congo-red rotate-45 shadow-lg" />
+              </motion.div>
+
+              {/* Alert badge */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.8, type: "spring" }}
+                className="absolute -top-2 -right-2 w-7 h-7 bg-congo-red rounded-full flex items-center justify-center shadow-lg border-2 border-background"
+              >
+                <span className="text-white text-xs font-bold">!</span>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
       );
     }
 
-    // Searching animation - Simplified radar
+    // Searching animation - Enhanced radar with orbiting points
     return (
       <div className="relative h-28 mb-8 flex items-center justify-center">
-        {/* Simplified radar circles - only 2 */}
-        {[0, 1].map((i) => (
+        {/* 3 radar circles with improved undulations */}
+        {[0, 1, 2].map((i) => (
           <motion.div
             key={i}
             className="absolute w-20 h-20 rounded-full border border-congo-red/30"
+            style={{ willChange: 'transform, opacity' }}
             animate={{
-              scale: [1, 1.6],
-              opacity: [0.5, 0],
+              scale: [1, 1.8],
+              opacity: [0.6, 0],
             }}
             transition={{
               duration: 3,
               repeat: Infinity,
-              delay: i * 1.5,
+              delay: i * 1,
               ease: [0.4, 0, 0.2, 1]
             }}
           />
         ))}
 
-        {/* Center icon with subtle glow */}
+        {/* Orbiting luminous points */}
+        {[0, 1, 2, 3].map((i) => (
+          <motion.div
+            key={`orbit-${i}`}
+            className="absolute w-2 h-2 bg-congo-yellow rounded-full shadow-[0_0_8px_hsl(var(--congo-yellow)/0.8)]"
+            style={{ willChange: 'transform' }}
+            animate={{
+              rotate: 360,
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              delay: i * 1,
+              ease: "linear"
+            }}
+          >
+            <motion.div
+              className="w-full h-full"
+              style={{
+                transformOrigin: '50% 50%',
+                transform: `translateX(${35 + i * 5}px)`
+              }}
+            />
+          </motion.div>
+        ))}
+
+        {/* Center icon - larger with enhanced glow */}
         <motion.div
           animate={{
             rotate: 360,
+            scale: [1, 1.05, 1]
           }}
           transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "linear"
+            rotate: { duration: 4, repeat: Infinity, ease: "linear" },
+            scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
           }}
-          className="w-14 h-14 bg-gradient-to-br from-congo-red via-congo-yellow to-congo-red rounded-full flex items-center justify-center shadow-[0_0_20px_hsl(var(--congo-red)/0.3)] z-10"
-          style={{
-            backgroundSize: '200% 200%',
-          }}
+          style={{ willChange: 'transform' }}
+          className="w-20 h-20 bg-gradient-to-br from-congo-red via-congo-yellow to-congo-red rounded-full flex items-center justify-center shadow-[0_0_35px_hsl(var(--congo-red)/0.5),0_0_60px_hsl(var(--congo-yellow)/0.3)] z-10 border-2 border-white/20"
         >
-          <Search className="h-7 w-7 text-white" />
+          <motion.div
+            animate={{
+              scale: [1, 1.1, 1]
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <Search className="h-10 w-10 text-white drop-shadow-lg" />
+          </motion.div>
         </motion.div>
 
-        {/* Subtle moving car */}
+        {/* Subtle moving car indicator */}
         <motion.div
           className="absolute"
           animate={{
-            x: [-25, 25],
+            x: [-30, 30],
+            opacity: [0.6, 1, 0.6]
           }}
           transition={{
-            duration: 3,
-            repeat: Infinity,
-            repeatType: "reverse",
-            ease: "easeInOut"
+            x: { duration: 3, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" },
+            opacity: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
           }}
+          style={{ willChange: 'transform, opacity' }}
         >
-          <Car className="h-5 w-5 text-congo-yellow/80" />
+          <Car className="h-6 w-6 text-congo-yellow/90 drop-shadow" />
         </motion.div>
       </div>
     );
