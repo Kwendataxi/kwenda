@@ -52,3 +52,18 @@ verify_jwt = true
 
 [functions.taxi-moderation]
 verify_jwt = true
+
+[functions.subscription-manager]
+verify_jwt = true
+
+[functions.admin-grant-trial]
+verify_jwt = true
+
+[functions.auto-grant-trial-new-drivers]
+verify_jwt = false
+
+[functions.mobile-money-subscription]
+verify_jwt = true
+
+[functions.consume-ride]
+verify_jwt = true

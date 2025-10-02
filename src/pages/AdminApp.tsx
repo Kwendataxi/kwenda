@@ -7,7 +7,6 @@ import { ResponsiveAdminLayout } from '@/components/admin/ResponsiveAdminLayout'
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { PermissionGuard } from '@/components/auth/PermissionGuard';
 import { FlexiblePermissionGuard } from '@/components/auth/FlexiblePermissionGuard';
-import { DriverCreditsManager } from '@/components/admin/DriverCreditsManager';
 import { CommissionManager } from '@/components/admin/CommissionManager';
 import { FinancialDashboard } from '@/components/admin/FinancialDashboard';
 import { ADMIN_ROLE_LABELS } from '@/types/roles';
@@ -136,10 +135,19 @@ const AdminApp = () => {
       case 'credits':
         return (
           <div className="space-y-6">
-        <FlexiblePermissionGuard requiredPermissions={['finance_write']}>
-          <DriverCreditsManager />
-        </FlexiblePermissionGuard>
-        </div>
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="text-2xl font-bold mb-4">⚠️ Système de Crédits Obsolète</h2>
+                <p className="text-muted-foreground">
+                  Le système de crédits a été remplacé par le système d'abonnements par courses.
+                  Veuillez utiliser l'onglet "Abonnements" pour gérer les souscriptions des chauffeurs.
+                </p>
+                <Button onClick={() => setActiveTab('subscriptions')} className="mt-4">
+                  Accéder aux Abonnements
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         );
 
       case 'commissions':

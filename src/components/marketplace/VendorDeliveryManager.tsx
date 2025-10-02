@@ -7,7 +7,6 @@ import { MapPin, Package, Clock, Truck, Phone, Eye, Search } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { MarketplaceDriverSearch } from './MarketplaceDriverSearch';
 
 interface VendorOrder {
   id: string;
@@ -32,7 +31,6 @@ export const VendorDeliveryManager = () => {
   const [orders, setOrders] = useState<VendorOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
-  const [searchingDriverFor, setSearchingDriverFor] = useState<string | null>(null);
   const { user } = useAuth();
 
   const loadOrders = async () => {
@@ -100,17 +98,8 @@ export const VendorDeliveryManager = () => {
   };
 
   const handleDriverSearch = (orderId: string) => {
-    setSearchingDriverFor(orderId);
-  };
-
-  const handleDriverSearchClose = () => {
-    setSearchingDriverFor(null);
-  };
-
-  const handleAssignmentComplete = (assignmentId: string) => {
-    toast.success('Livreur assigné avec succès!');
-    loadOrders(); // Recharger les commandes pour voir l'assignation
-    setSearchingDriverFor(null);
+    toast.info('Recherche de livreur automatique en cours...');
+    // L'assignation automatique se fait via l'Edge Function delivery-dispatcher
   };
 
   const getStatusColor = (status: string) => {
@@ -295,17 +284,6 @@ export const VendorDeliveryManager = () => {
         ))}
       </div>
 
-      {/* Driver Search Modal */}
-      {searchingDriverFor && (
-        <MarketplaceDriverSearch
-          isOpen={!!searchingDriverFor}
-          onClose={handleDriverSearchClose}
-          orderId={searchingDriverFor}
-          pickupLocation="Boutique vendeur" // À améliorer avec la vraie localisation
-          deliveryLocation={orders.find(o => o.id === searchingDriverFor)?.delivery_address || "Adresse de livraison"}
-          onAssignmentComplete={handleAssignmentComplete}
-        />
-      )}
     </div>
   );
 };

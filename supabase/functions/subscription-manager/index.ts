@@ -127,7 +127,7 @@ serve(async (req) => {
       })
     }
 
-    // Create subscription record
+    // Create subscription record with rides
     const { data: subscription, error: subscriptionError } = await supabaseService
       .from('driver_subscriptions')
       .insert({
@@ -138,7 +138,10 @@ serve(async (req) => {
         end_date: endDate.toISOString(),
         payment_method,
         last_payment_date: startDate.toISOString(),
-        next_payment_date: endDate.toISOString()
+        next_payment_date: endDate.toISOString(),
+        rides_used: 0,
+        rides_remaining: plan.rides_included,
+        is_trial: plan.is_trial || false
       })
       .select()
       .single()
@@ -150,54 +153,44 @@ serve(async (req) => {
       })
     }
 
-    // Initialize driver credits if not exists
-    const { data: existingCredits } = await supabaseService
-      .from('driver_credits')
-      .select('*')
-      .eq('driver_id', driver_id)
-      .single()
-
-    if (!existingCredits) {
-      await supabaseService
-        .from('driver_credits')
-        .insert({
-          driver_id,
-          balance: 10000, // Bonus initial credits
-          total_earned: 10000,
-          currency: plan.currency
-        })
-
-      // Log initial credit bonus
-      await supabaseService.from('credit_transactions').insert({
-        driver_id,
-        transaction_type: 'bonus',
-        amount: 10000,
-        currency: plan.currency,
-        description: 'Bonus crédits d\'activation d\'abonnement',
-        reference_type: 'subscription',
-        reference_id: subscription.id,
-        balance_before: 0,
-        balance_after: 10000
+    // Validation: vérifier qu'il a des courses disponibles
+    if (plan.rides_included === 0) {
+      return new Response(JSON.stringify({ 
+        error: 'Invalid plan: no rides included' 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    // Log successful subscription
+    // Log successful subscription with rides
     await supabaseService.from('activity_logs').insert({
       user_id: driver_id,
       activity_type: 'subscription_activated',
-      description: `Activated subscription plan: ${plan.name}`,
+      description: `Activated subscription plan: ${plan.name} (${plan.rides_included} courses)`,
       amount: plan.price,
       currency: plan.currency,
-      metadata: { plan_id, subscription_id: subscription.id, payment_method }
+      metadata: { 
+        plan_id, 
+        subscription_id: subscription.id, 
+        payment_method,
+        rides_included: plan.rides_included,
+        rides_remaining: plan.rides_included
+      }
     })
 
-    // Send system notification
+    // Send system notification with rides info
     await supabaseService.from('system_notifications').insert({
       user_id: driver_id,
       notification_type: 'subscription_activated',
       title: 'Abonnement Activé',
-      message: `Votre abonnement ${plan.name} a été activé avec succès !`,
-      data: { subscription_id: subscription.id, plan_name: plan.name },
+      message: `Votre abonnement ${plan.name} a été activé avec ${plan.rides_included} courses incluses !`,
+      data: { 
+        subscription_id: subscription.id, 
+        plan_name: plan.name,
+        rides_included: plan.rides_included,
+        end_date: endDate.toISOString()
+      },
       priority: 'high'
     })
 

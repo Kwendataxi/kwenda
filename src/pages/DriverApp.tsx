@@ -6,8 +6,8 @@ import DriverMoreSheet from '@/components/driver/DriverMoreSheet';
 import MobileDriverInterface from '@/components/mobile/MobileDriverInterface';
 // Removed obsolete DriverDeliveryDashboard
 import { DriverWalletPanel } from '@/components/driver/DriverWalletPanel';
-import { DriverCreditManager } from '@/components/driver/DriverCreditManager';
 import { DriverChallenges } from '@/components/driver/DriverChallenges';
+import { SubscriptionPlans } from '@/components/driver/SubscriptionPlans';
 import { DriverCodeManager } from '@/components/driver/DriverCodeManager';
 import { DriverReferrals } from '@/components/driver/DriverReferrals';
 import ProductionDriverInterface from '@/components/driver/ProductionDriverInterface';
@@ -49,7 +49,7 @@ const DriverApp = () => {
           {tab === 'rides' && <MobileDriverInterface onNavigateToEarnings={() => setTab('earnings')} onNavigateToCredits={() => setTab('credits')} onNavigateToNavigation={() => {}} />}
           {tab === 'deliveries' && <ProductionDriverInterface />}
           {tab === 'earnings' && <DriverWalletPanel />}
-          {tab === 'credits' && <DriverCreditManager />}
+          {tab === 'credits' && <SubscriptionPlans />}
           {tab === 'challenges' && <DriverChallenges />}
           {tab === 'partner' && <DriverCodeManager />}
           {tab === 'referrals' && <DriverReferrals />}
