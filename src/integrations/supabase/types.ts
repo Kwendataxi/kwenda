@@ -9259,21 +9259,13 @@ export type Database = {
         Returns: undefined
       }
       log_driver_registration_attempt: {
-        Args:
-          | {
-              p_email: string
-              p_error_message?: string
-              p_license_number: string
-              p_phone_number: string
-              p_success: boolean
-            }
-          | { p_email: string; p_error_message?: string; p_success: boolean }
-          | {
-              p_error_message?: string
-              p_registration_data?: Json
-              p_success: boolean
-              p_user_id: string
-            }
+        Args: {
+          p_email: string
+          p_error_message?: string
+          p_license_number: string
+          p_phone_number: string
+          p_success: boolean
+        }
         Returns: undefined
       }
       log_edge_function_performance: {
