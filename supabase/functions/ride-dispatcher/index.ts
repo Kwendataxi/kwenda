@@ -31,10 +31,13 @@ function calculateDriverScore(driver: any, priority: string = 'normal'): number 
   const experienceScore = Math.min(50, (driver.total_rides || 0) * 0.5); // Max 50 points
   const verificationBonus = driver.is_verified ? 20 : 0;
   
+  // ✅ NOUVEAU : Bonus pour courses restantes élevées
+  const ridesBonus = Math.min(15, (driver.rides_remaining || 0) * 1.5);
+  
   // Adjust by priority
   const priorityMultiplier = priority === 'urgent' ? 1.3 : priority === 'high' ? 1.2 : 1.0;
   
-  return (distanceScore + ratingScore + experienceScore + verificationBonus) * priorityMultiplier;
+  return (distanceScore + ratingScore + experienceScore + verificationBonus + ridesBonus) * priorityMultiplier;
 }
 
 serve(async (req) => {
@@ -71,12 +74,12 @@ serve(async (req) => {
     }
 
     if (!drivers || drivers.length === 0) {
-      console.log('❌ Aucun chauffeur disponible');
+      console.log('❌ Aucun chauffeur disponible avec courses restantes');
       
       // Log de l'échec pour analytics
       await supabase.from('activity_logs').insert([{
         activity_type: 'ride_dispatch_failed',
-        description: `Aucun chauffeur trouvé pour le booking ${bookingId}`,
+        description: `Aucun chauffeur avec courses restantes pour ${bookingId}`,
         metadata: {
           bookingId,
           pickupLat,
@@ -84,15 +87,17 @@ serve(async (req) => {
           serviceType,
           vehicleClass,
           priority,
-          searchRadius
+          searchRadius,
+          reason: 'no_rides_remaining'
         }
       }]);
 
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: 'Aucun chauffeur disponible dans votre zone',
+          message: 'Aucun chauffeur disponible avec des courses restantes. Veuillez réessayer.',
           drivers_searched: 0,
+          reason: 'no_rides_remaining',
           retry_suggested: true,
           retry_delay_seconds: priority === 'urgent' ? 30 : 60
         }),
@@ -100,7 +105,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`✅ ${drivers.length} chauffeurs trouvés`);
+    console.log(`✅ ${drivers.length} chauffeurs trouvés avec courses restantes`);
 
     // Calculer le score pour chaque chauffeur et trier
     const scoredDrivers = drivers.map((driver: any) => ({
@@ -111,7 +116,7 @@ serve(async (req) => {
     // Sélectionner le meilleur chauffeur
     const selectedDriver = scoredDrivers[0];
     
-    console.log(`🎯 Chauffeur sélectionné: ${selectedDriver.driver_id} (Score: ${selectedDriver.score.toFixed(1)}, Distance: ${selectedDriver.distance_km}km)`);
+    console.log(`🎯 Chauffeur sélectionné: ${selectedDriver.driver_id} (Score: ${selectedDriver.score.toFixed(1)}, Distance: ${selectedDriver.distance_km}km, rides_remaining: ${selectedDriver.rides_remaining || 0})`);
 
     // Mettre à jour la réservation avec l'assignation du chauffeur
     const { error: updateError } = await supabase
@@ -137,6 +142,25 @@ serve(async (req) => {
         updated_at: new Date().toISOString()
       })
       .eq('driver_id', selectedDriver.driver_id);
+
+    // ✅ NOUVEAU : Consommer une course
+    try {
+      const { data: consumeResult, error: consumeError } = await supabase.functions.invoke('consume-ride', {
+        body: {
+          driver_id: selectedDriver.driver_id,
+          booking_id: bookingId,
+          service_type: 'transport'
+        }
+      });
+
+      if (consumeError) {
+        console.warn('⚠️ Erreur consommation course:', consumeError);
+      } else {
+        console.log(`✅ Course consommée. Courses restantes: ${consumeResult?.rides_remaining || 0}`);
+      }
+    } catch (consumeErr) {
+      console.error('❌ Erreur critique consume-ride:', consumeErr);
+    }
 
     // Récupérer les détails de la réservation pour la notification
     const { data: bookingDetails, error: bookingError } = await supabase
@@ -165,7 +189,8 @@ serve(async (req) => {
         score: selectedDriver.score,
         estimatedPrice: bookingDetails?.estimated_price,
         pickupLocation: bookingDetails?.pickup_location,
-        destinationLocation: bookingDetails?.destination_location
+        destinationLocation: bookingDetails?.destination_location,
+        rides_remaining: selectedDriver.rides_remaining || 0
       }
     };
 
@@ -182,7 +207,8 @@ serve(async (req) => {
         score: selectedDriver.score,
         priority,
         serviceType,
-        driversConsidered: drivers.length
+        driversConsidered: drivers.length,
+        rides_remaining: selectedDriver.rides_remaining || 0
       }
     }]);
 
@@ -196,7 +222,8 @@ serve(async (req) => {
           distance: selectedDriver.distance_km,
           vehicle_class: selectedDriver.vehicle_class,
           rating: selectedDriver.rating_average,
-          score: selectedDriver.score
+          score: selectedDriver.score,
+          rides_remaining: selectedDriver.rides_remaining || 0
         },
         assignment_details: {
           priority_level: priority,

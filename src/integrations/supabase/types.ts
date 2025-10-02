@@ -1229,6 +1229,47 @@ export type Database = {
           },
         ]
       }
+      dispatcher_rejections: {
+        Row: {
+          booking_id: string | null
+          booking_type: string | null
+          created_at: string | null
+          driver_id: string | null
+          id: string
+          rejection_reason: string
+          rides_remaining: number | null
+          subscription_status: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          booking_type?: string | null
+          created_at?: string | null
+          driver_id?: string | null
+          id?: string
+          rejection_reason: string
+          rides_remaining?: number | null
+          subscription_status?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          booking_type?: string | null
+          created_at?: string | null
+          driver_id?: string | null
+          id?: string
+          rejection_reason?: string
+          rides_remaining?: number | null
+          subscription_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_rejections_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "chauffeurs"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       driver_challenges: {
         Row: {
           challenge_id: string
@@ -8607,6 +8648,12 @@ export type Database = {
               pickup_lat: number
               pickup_lng: number
               vehicle_class_filter?: string
+            }
+          | {
+              pickup_lat: number
+              pickup_lng: number
+              radius_km?: number
+              service_type_param?: string
             }
           | {
               pickup_lat: number

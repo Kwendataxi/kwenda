@@ -66,123 +66,31 @@ serve(async (req) => {
     console.log('🔍 Found drivers:', drivers?.length || 0);
 
     if (!drivers || drivers.length === 0) {
-      // Aucun chauffeur trouvé - utiliser simulation pour les tests
-      console.log('📱 No drivers found, checking for test drivers');
+      console.log('❌ No drivers with remaining rides');
       
-      // Essayer de récupérer n'importe quel chauffeur en ligne pour les tests
-      const { data: testDrivers, error: testError } = await supabase
-        .from('driver_locations')
-        .select(`
-          driver_id,
-          latitude,
-          longitude,
-          vehicle_class,
-          is_available
-        `)
-        .eq('is_online', true)
-        .eq('is_available', true)
-        .limit(1);
-
-      if (testError || !testDrivers || testDrivers.length === 0) {
-        // Mettre à jour le statut de la réservation
-        await supabase
-          .from('transport_bookings')
-          .update({ 
-            status: 'no_driver_available',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', rideRequestId);
-
-        return new Response(JSON.stringify({ 
-          success: false, 
-          message: 'Aucun chauffeur disponible pour le moment',
-          availableDrivers: 0
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-
-      // Utiliser le premier chauffeur de test trouvé
-      const testDriver = testDrivers[0];
-      
-      // Attribuer la course au chauffeur de test
-      const { error: assignError } = await supabase
+      await supabase
         .from('transport_bookings')
-        .update({
-          driver_id: testDriver.driver_id,
-          status: 'driver_assigned',
-          driver_assigned_at: new Date().toISOString(),
+        .update({ 
+          status: 'no_driver_available',
           updated_at: new Date().toISOString()
         })
         .eq('id', rideRequestId);
 
-      if (assignError) {
-        console.error('❌ Assignment error:', assignError);
-        return new Response(JSON.stringify({ error: 'Failed to assign driver' }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-
-      // Marquer le chauffeur comme indisponible
-      await supabase
-        .from('driver_locations')
-        .update({ 
-          is_available: false,
-          last_ping: new Date().toISOString()
-        })
-        .eq('driver_id', testDriver.driver_id);
-
-      // Créer une notification pour le chauffeur
-      await supabase
-        .from('driver_ride_notifications')
-        .insert({
-          driver_id: testDriver.driver_id,
-          ride_request_id: rideRequestId,
-          notification_type: 'ride_offer',
-          title: 'Nouvelle course disponible',
-          message: 'Une nouvelle course vous a été attribuée',
-          metadata: {
-            pickup_lat: finalPickupLat,
-            pickup_lng: finalPickupLng,
-            vehicle_class: vehicleClass,
-            service_type: serviceType
-          }
-        });
-
-      // Logger l'activité
-      await supabase
-        .from('activity_logs')
-        .insert({
-          user_id: testDriver.driver_id,
-          activity_type: 'ride_assigned',
-          description: `Course attribuée automatiquement (test)`,
-          reference_id: rideRequestId,
-          reference_type: 'transport_booking',
-          metadata: {
-            pickup_coordinates: { lat: finalPickupLat, lng: finalPickupLng },
-            assignment_method: 'test_simulation'
-          }
-        });
-
-      console.log('✅ Test driver assigned:', testDriver.driver_id);
-
-      return new Response(JSON.stringify({
-        success: true,
-        message: 'Chauffeur attribué avec succès',
-        driver: {
-          id: testDriver.driver_id,
-          distance: 0.5, // Distance simulée
-          eta: 3, // ETA simulée en minutes
-          vehicle_class: testDriver.vehicle_class
-        }
+      return new Response(JSON.stringify({ 
+        success: false, 
+        message: 'Aucun chauffeur disponible avec des courses restantes',
+        availableDrivers: 0,
+        reason: 'no_rides_remaining'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
+    console.log(`✅ Found ${drivers.length} drivers with rides remaining`);
     // 3. Sélectionner le chauffeur le plus proche
     const closestDriver = drivers[0];
+    
+    console.log(`🎯 Assigning driver ${closestDriver.driver_id} (${closestDriver.distance_km}km away, rides_remaining: ${closestDriver.rides_remaining || 0})`);
     
     // 4. Attribuer la course au chauffeur
     const { error: assignError } = await supabase
@@ -212,6 +120,25 @@ serve(async (req) => {
       })
       .eq('driver_id', closestDriver.driver_id);
 
+    // ✅ NOUVEAU : Consommer une course
+    try {
+      const { data: consumeResult, error: consumeError } = await supabase.functions.invoke('consume-ride', {
+        body: {
+          driver_id: closestDriver.driver_id,
+          booking_id: rideRequestId,
+          service_type: serviceType || 'transport'
+        }
+      });
+
+      if (consumeError) {
+        console.warn('⚠️ Erreur consommation course:', consumeError);
+      } else {
+        console.log(`✅ Course consommée. Courses restantes: ${consumeResult?.rides_remaining || 0}`);
+      }
+    } catch (consumeErr) {
+      console.error('❌ Erreur critique consume-ride:', consumeErr);
+    }
+
     // 6. Créer une notification pour le chauffeur
     await supabase
       .from('driver_ride_notifications')
@@ -226,7 +153,8 @@ serve(async (req) => {
           pickup_lng: finalPickupLng,
           distance_km: closestDriver.distance_km,
           vehicle_class: vehicleClass,
-          service_type: serviceType
+          service_type: serviceType,
+          rides_remaining: closestDriver.rides_remaining || 0
         }
       });
 
@@ -242,7 +170,8 @@ serve(async (req) => {
         metadata: {
           pickup_coordinates: { lat: finalPickupLat, lng: finalPickupLng },
           driver_coordinates: { lat: closestDriver.latitude, lng: closestDriver.longitude },
-          distance_km: closestDriver.distance_km
+          distance_km: closestDriver.distance_km,
+          rides_remaining: closestDriver.rides_remaining || 0
         }
       });
 
@@ -256,6 +185,7 @@ serve(async (req) => {
         distance: closestDriver.distance_km,
         eta: Math.ceil(closestDriver.distance_km * 2), // Estimation simple: 2 min par km
         vehicle_class: closestDriver.vehicle_class,
+        rides_remaining: closestDriver.rides_remaining || 0,
         coordinates: {
           lat: closestDriver.latitude,
           lng: closestDriver.longitude

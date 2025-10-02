@@ -31,10 +31,13 @@ function calculateDriverScore(driver: any, priority: string = 'normal'): number 
   const experienceScore = Math.min(50, (driver.total_rides || 0) * 0.5); // Max 50 points
   const verificationBonus = driver.is_verified ? 20 : 0;
   
+  // ✅ NOUVEAU : Bonus pour courses restantes élevées
+  const ridesBonus = Math.min(15, (driver.rides_remaining || 0) * 1.5);
+  
   // Adjust by priority
   const priorityMultiplier = priority === 'urgent' ? 1.3 : priority === 'high' ? 1.2 : 1.0;
   
-  return (distanceScore + ratingScore + experienceScore + verificationBonus) * priorityMultiplier;
+  return (distanceScore + ratingScore + experienceScore + verificationBonus + ridesBonus) * priorityMultiplier;
 }
 
 serve(async (req) => {
@@ -100,7 +103,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`✅ ${drivers.length} chauffeurs trouvés`);
+    console.log(`✅ ${drivers.length} chauffeurs trouvés avec courses restantes`);
 
     // Calculer le score pour chaque chauffeur et trier
     const scoredDrivers = drivers.map((driver: any) => ({
@@ -111,7 +114,7 @@ serve(async (req) => {
     // Sélectionner le meilleur chauffeur
     const selectedDriver = scoredDrivers[0];
     
-    console.log(`🎯 Chauffeur sélectionné: ${selectedDriver.driver_id} (Score: ${selectedDriver.score.toFixed(1)}, Distance: ${selectedDriver.distance_km}km)`);
+    console.log(`🎯 Chauffeur sélectionné: ${selectedDriver.driver_id} (Score: ${selectedDriver.score.toFixed(1)}, Distance: ${selectedDriver.distance_km}km, rides_remaining: ${selectedDriver.rides_remaining || 0})`);
 
     // Mettre à jour la réservation avec l'assignation du chauffeur
     const { error: updateError } = await supabase
@@ -138,6 +141,25 @@ serve(async (req) => {
       })
       .eq('driver_id', selectedDriver.driver_id);
 
+    // ✅ NOUVEAU : Consommer une course
+    try {
+      const { data: consumeResult, error: consumeError } = await supabase.functions.invoke('consume-ride', {
+        body: {
+          driver_id: selectedDriver.driver_id,
+          booking_id: bookingId,
+          service_type: 'transport'
+        }
+      });
+
+      if (consumeError) {
+        console.warn('⚠️ Erreur consommation course:', consumeError);
+      } else {
+        console.log(`✅ Course consommée. Courses restantes: ${consumeResult?.rides_remaining || 0}`);
+      }
+    } catch (consumeErr) {
+      console.error('❌ Erreur critique consume-ride:', consumeErr);
+    }
+
     // Créer une notification EXCLUSIVE pour le chauffeur avec expiration
     const notificationData = {
       driver_id: selectedDriver.driver_id,
@@ -152,7 +174,8 @@ serve(async (req) => {
         distance: selectedDriver.distance_km,
         priority,
         score: selectedDriver.score,
-        estimatedArrivalMinutes: Math.ceil(selectedDriver.distance_km * 2.5) // ~25 km/h avg
+        estimatedArrivalMinutes: Math.ceil(selectedDriver.distance_km * 2.5), // ~25 km/h avg
+        rides_remaining: selectedDriver.rides_remaining || 0
       },
       status: 'pending',
       expires_at: new Date(Date.now() + 2 * 60 * 1000).toISOString() // 2 minutes
@@ -177,7 +200,8 @@ serve(async (req) => {
         score: selectedDriver.score,
         priority,
         serviceType,
-        driversConsidered: drivers.length
+        driversConsidered: drivers.length,
+        rides_remaining: selectedDriver.rides_remaining || 0
       }
     }]);
 
@@ -192,7 +216,8 @@ serve(async (req) => {
           vehicle_class: selectedDriver.vehicle_class,
           rating_average: selectedDriver.rating_average,
           score: selectedDriver.score,
-          estimated_arrival_minutes: Math.ceil(selectedDriver.distance_km * 2.5)
+          estimated_arrival_minutes: Math.ceil(selectedDriver.distance_km * 2.5),
+          rides_remaining: selectedDriver.rides_remaining || 0
         },
         assignment_details: {
           priority_level: priority,

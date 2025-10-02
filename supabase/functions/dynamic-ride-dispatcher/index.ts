@@ -91,7 +91,7 @@ serve(async (req) => {
           continue;
         }
 
-        // Filtrage strict des chauffeurs vraiment disponibles
+        // Filtrage strict des chauffeurs vraiment disponibles WITH RIDES VERIFICATION
         const availableDrivers = (drivers || []).filter((driver: any) => {
           const lastPing = new Date(driver.last_ping || 0);
           const pingAgeMinutes = (Date.now() - lastPing.getTime()) / (1000 * 60);
@@ -99,7 +99,8 @@ serve(async (req) => {
           return driver.is_online && 
                  driver.is_available && 
                  pingAgeMinutes < 2 && // Ping obligatoire < 2 minutes
-                 (driver.balance || 0) >= (driver.minimum_balance || 1000); // Solde suffisant
+                 (driver.balance || 0) >= (driver.minimum_balance || 1000) && // Solde suffisant
+                 (driver.rides_remaining || 0) > 0; // ✅ NOUVEAU : Courses restantes
         });
 
         const searchTime = Date.now() - attemptStart;
@@ -179,6 +180,25 @@ serve(async (req) => {
         .update({ is_available: false })
         .eq('driver_id', finalDriver.driver_id);
 
+      // ✅ NOUVEAU : Consommer une course
+      try {
+        const { data: consumeResult, error: consumeError } = await supabase.functions.invoke('consume-ride', {
+          body: {
+            driver_id: finalDriver.driver_id,
+            booking_id: bookingId,
+            service_type: serviceType
+          }
+        });
+
+        if (consumeError) {
+          console.warn('⚠️ Erreur consommation course:', consumeError);
+        } else {
+          console.log(`✅ Course consommée. Courses restantes: ${consumeResult?.rides_remaining || 0}`);
+        }
+      } catch (consumeErr) {
+        console.error('❌ Erreur critique consume-ride:', consumeErr);
+      }
+
       // Notification succès
       await supabase.from('delivery_notifications').insert([{
         user_id: (await supabase.from(updateTable)
@@ -192,7 +212,8 @@ serve(async (req) => {
           bookingId, 
           driverId: finalDriver.driver_id,
           distance: finalDriver.distance_km,
-          searchAttempts: searchAttempts.length + 1
+          searchAttempts: searchAttempts.length + 1,
+          rides_remaining: finalDriver.rides_remaining || 0
         }
       }]);
 
@@ -217,7 +238,8 @@ serve(async (req) => {
           driver_id: finalDriver.driver_id,
           distance_km: finalDriver.distance_km,
           estimated_arrival_minutes: Math.ceil(finalDriver.distance_km * 2.5),
-          score: finalDriver.score
+          score: finalDriver.score,
+          rides_remaining: finalDriver.rides_remaining || 0
         },
         searchDetails: {
           attempts: searchAttempts.length + 1,
@@ -292,7 +314,10 @@ function calculateDriverScore(driver: any, priority: string, searchRadius: numbe
   const availabilityBonus = driver.is_verified ? 20 : 0;
   const proximityBonus = searchRadius <= 10 ? 15 : searchRadius <= 25 ? 10 : 5;
   
+  // ✅ NOUVEAU : Bonus pour courses restantes élevées
+  const ridesBonus = Math.min(15, (driver.rides_remaining || 0) * 1.5);
+  
   const priorityMultiplier = priority === 'urgent' ? 1.4 : priority === 'high' ? 1.2 : 1.0;
   
-  return (distanceScore + ratingScore + experienceScore + availabilityBonus + proximityBonus) * priorityMultiplier;
+  return (distanceScore + ratingScore + experienceScore + availabilityBonus + proximityBonus + ridesBonus) * priorityMultiplier;
 }

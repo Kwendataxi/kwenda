@@ -61,12 +61,12 @@ serve(async (req) => {
       );
     }
 
-    console.log(`✅ Found ${drivers.length} available drivers`);
+    console.log(`✅ Found ${drivers.length} available drivers with rides remaining`);
     
     // Select the closest driver
     const selectedDriver = drivers[0];
     
-    console.log(`🎯 Assigning driver ${selectedDriver.driver_id} (${selectedDriver.distance_km}km away)`);
+    console.log(`🎯 Assigning driver ${selectedDriver.driver_id} (${selectedDriver.distance_km}km away, rides_remaining: ${selectedDriver.rides_remaining || 0})`);
 
     // Update the delivery order with driver assignment
     const { error: updateError } = await supabase
@@ -97,6 +97,25 @@ serve(async (req) => {
       console.warn('⚠️ Could not update driver availability:', locationError);
     }
 
+    // ✅ NOUVEAU : Consommer une course de livraison
+    try {
+      const { data: consumeResult, error: consumeError } = await supabase.functions.invoke('consume-ride', {
+        body: {
+          driver_id: selectedDriver.driver_id,
+          booking_id: orderId,
+          service_type: 'delivery'
+        }
+      });
+
+      if (consumeError) {
+        console.warn('⚠️ Erreur lors de la consommation de la livraison:', consumeError);
+      } else {
+        console.log(`✅ Livraison consommée. Courses restantes: ${consumeResult?.rides_remaining || 0}`);
+      }
+    } catch (consumeErr) {
+      console.error('❌ Erreur critique consume-ride:', consumeErr);
+    }
+
     // Get delivery order details for notification
     const { data: orderDetails, error: orderError } = await supabase
       .from('delivery_orders')
@@ -125,7 +144,8 @@ serve(async (req) => {
         senderName: orderDetails?.sender_name,
         senderPhone: orderDetails?.sender_phone,
         recipientName: orderDetails?.recipient_name,
-        recipientPhone: orderDetails?.recipient_phone
+        recipientPhone: orderDetails?.recipient_phone,
+        rides_remaining: selectedDriver.rides_remaining || 0
       }
     };
 
@@ -165,7 +185,8 @@ serve(async (req) => {
         driver: {
           id: selectedDriver.driver_id,
           distance: selectedDriver.distance_km,
-          vehicle_class: selectedDriver.vehicle_class
+          vehicle_class: selectedDriver.vehicle_class,
+          rides_remaining: selectedDriver.rides_remaining || 0
         },
         message: 'Livreur assigné avec succès'
       }),
