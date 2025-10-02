@@ -56,7 +56,7 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
   return (
     <div className="space-y-6">
       {/* Type de service */}
-      <Card>
+      <Card className="overflow-visible">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             {serviceCategory === 'taxi' ? (
@@ -67,7 +67,7 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
             {serviceCategory === 'taxi' ? 'Service de transport' : 'Service de livraison'}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-visible">
           <div className="space-y-4">
             <div>
               <Label htmlFor="serviceType">
@@ -80,7 +80,7 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                 <SelectTrigger>
                   <SelectValue placeholder={`Sélectionnez le type de ${serviceCategory === 'taxi' ? 'transport' : 'livraison'}`} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" className="bg-background">
                   {getServiceTypeOptions().map(option => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -102,7 +102,7 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionnez la capacité" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper" className="bg-background">
                     <SelectItem value="small">Petits colis (jusqu'à 10kg)</SelectItem>
                     <SelectItem value="medium">Colis moyens (jusqu'à 50kg)</SelectItem>
                     <SelectItem value="large">Gros colis (jusqu'à 200kg)</SelectItem>
@@ -117,11 +117,11 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
 
       {/* Informations véhicule si propriétaire */}
       {hasOwnVehicle && (
-        <Card>
+        <Card className="overflow-visible">
           <CardHeader>
             <CardTitle>Informations du véhicule</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-visible">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="vehicleType">Type de véhicule *</Label>
@@ -132,7 +132,7 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                   <SelectTrigger>
                     <SelectValue placeholder="Type de véhicule" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper" className="bg-background">
                     {getVehicleTypeOptions().map(option => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
