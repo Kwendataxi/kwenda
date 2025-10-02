@@ -310,7 +310,9 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
 
       clearInterval(timeCounter);
 
-      if (result) {
+      // Check actual result of driver search
+      if (result && result.status === 'driver_assigned' && result.driverAssigned) {
+        // Driver found!
         setSearchStatus('found');
         
         setTimeout(() => {
@@ -323,6 +325,10 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
             ...bookingData
           });
         }, 2000);
+      } else {
+        // No driver available
+        setSearchStatus('error');
+        setDriversFound(0);
       }
 
     } catch (error) {
@@ -707,8 +713,6 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         searchStatus={searchStatus}
         driversFound={driversFound}
         searchRadius={searchRadius}
-        elapsedTime={elapsedTime}
-        estimatedTime={10}
         onRetry={handleRetrySearch}
         onExpandRadius={handleExpandRadius}
       />

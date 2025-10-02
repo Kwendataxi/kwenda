@@ -317,10 +317,13 @@ const ClientApp = () => {
       // Award lottery tickets for transport
       await lotteryTickets.awardTransportTickets(data.bookingId);
       
-      toast({
-        title: "Réservation confirmée",
-        description: "Votre chauffeur arrive dans quelques minutes",
-      });
+      // Only show success toast if a driver is actually assigned
+      if (data.status === 'driver_assigned' && data.driverAssigned) {
+        toast({
+          title: "Réservation confirmée",
+          description: `Votre chauffeur arrive dans ${data.driverAssigned.estimatedArrival || 5} minutes`,
+        });
+      }
       
       console.log('Transport réservé:', data);
     } catch (error) {
