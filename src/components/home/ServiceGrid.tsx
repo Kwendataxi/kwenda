@@ -30,11 +30,11 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
   };
   
   const gradientMap: Record<string, string> = {
-    taxi: 'from-pink-500 via-rose-500 to-pink-600',
-    delivery: 'from-yellow-400 via-amber-400 to-yellow-500',
-    rental: 'from-green-500 via-emerald-500 to-green-600',
-    marketplace: 'from-yellow-300 via-amber-300 to-yellow-400',
-    lottery: 'from-purple-500 via-pink-500 to-purple-600'
+    taxi: 'from-congo-red-electric via-congo-red to-congo-red-vibrant',
+    delivery: 'from-congo-yellow-electric via-congo-yellow to-congo-yellow-vibrant',
+    rental: 'from-congo-green-electric via-congo-green to-congo-green-vibrant',
+    marketplace: 'from-secondary via-accent to-secondary-light',
+    lottery: 'from-primary via-primary-glow to-primary-light'
   };
 
   const nameMap: Record<string, string> = {
@@ -129,13 +129,19 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
                 className={cn(
                   'relative flex items-center justify-center',
                   'w-16 h-16 md:w-18 md:h-18',
-                  'rounded-2xl shadow-lg',
+                  'rounded-2xl',
                   'bg-gradient-to-br',
                   service.gradient,
                   'ring-2 ring-white/20',
                   'border border-white/10',
                   'transition-all duration-300',
-                  'group-hover:scale-110 group-hover:rotate-2 group-hover:shadow-2xl',
+                  'shadow-lg',
+                  service.id === 'transport' && 'shadow-congo-red/30 group-hover:shadow-congo-red/50',
+                  service.id === 'delivery' && 'shadow-congo-yellow/30 group-hover:shadow-congo-yellow/50',
+                  service.id === 'rental' && 'shadow-congo-green/30 group-hover:shadow-congo-green/50',
+                  service.id === 'marketplace' && 'shadow-secondary/30 group-hover:shadow-secondary/50',
+                  service.id === 'lottery' && 'shadow-primary/30 group-hover:shadow-primary/50',
+                  'group-hover:scale-110 group-hover:rotate-2 group-hover:animate-congo-pulse',
                   'group-focus:scale-110 group-focus:rotate-2'
                 )}
               >
