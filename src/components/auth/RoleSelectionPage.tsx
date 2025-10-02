@@ -13,21 +13,21 @@ const roles = [
     name: 'Client',
     description: 'Réserver des courses et commander des livraisons',
     icon: User,
-    color: 'bg-primary/10 hover:bg-primary/20'
+    color: 'bg-primary/10 hover:bg-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30'
   },
   {
     id: 'taxi_driver',
     name: 'Chauffeur Taxi',
     description: 'Transport de passagers • Services moto, eco, confort, premium',
     icon: Car,
-    color: 'bg-blue-50 hover:bg-blue-100'
+    color: 'bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:hover:bg-blue-900/40'
   },
   {
     id: 'delivery_driver',
     name: 'Livreur',
     description: 'Livraison de colis • Services flash, flex, maxicharge',
     icon: Package,
-    color: 'bg-green-50 hover:bg-green-100'
+    color: 'bg-green-50 hover:bg-green-100 dark:bg-green-950/30 dark:hover:bg-green-900/40'
   }
 ];
 
@@ -59,13 +59,13 @@ export const RoleSelectionPage = ({ onRoleSelect }: RoleSelectionPageProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 dark:from-gray-900 dark:to-gray-950 flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Choisissez votre type de compte
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground dark:text-gray-400">
             Sélectionnez le type de compte qui correspond à votre utilisation
           </p>
         </div>
@@ -78,17 +78,17 @@ export const RoleSelectionPage = ({ onRoleSelect }: RoleSelectionPageProps) => {
                 key={role.id}
                 className={`cursor-pointer transition-all duration-200 ${
                   selectedRole === role.id
-                    ? 'ring-2 ring-primary shadow-lg'
-                    : 'hover:shadow-md'
+                    ? 'ring-2 ring-primary dark:ring-primary/80 shadow-lg dark:shadow-primary/20'
+                    : 'hover:shadow-md dark:hover:shadow-lg'
                 } ${role.color}`}
                 onClick={() => setSelectedRole(role.id)}
               >
                 <CardHeader className="text-center">
-                  <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-white/80 flex items-center justify-center">
-                    <Icon className="h-8 w-8 text-primary" />
+                  <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-white/90 dark:bg-gray-800/90 flex items-center justify-center backdrop-blur-sm">
+                    <Icon className="h-8 w-8 text-primary dark:text-primary" />
                   </div>
-                  <CardTitle className="text-xl">{role.name}</CardTitle>
-                  <CardDescription className="text-center">
+                  <CardTitle className="text-xl text-foreground">{role.name}</CardTitle>
+                  <CardDescription className="text-center text-muted-foreground dark:text-gray-300">
                     {role.description}
                   </CardDescription>
                 </CardHeader>
