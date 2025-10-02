@@ -5998,6 +5998,7 @@ export type Database = {
           requirements: Json | null
           service_category: string
           service_type: string
+          sort_order: number | null
           updated_at: string
           vehicle_requirements: Json | null
         }
@@ -6011,6 +6012,7 @@ export type Database = {
           requirements?: Json | null
           service_category: string
           service_type: string
+          sort_order?: number | null
           updated_at?: string
           vehicle_requirements?: Json | null
         }
@@ -6024,6 +6026,7 @@ export type Database = {
           requirements?: Json | null
           service_category?: string
           service_type?: string
+          sort_order?: number | null
           updated_at?: string
           vehicle_requirements?: Json | null
         }

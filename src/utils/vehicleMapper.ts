@@ -15,8 +15,8 @@ export const VEHICLE_TYPE_MAPPING: Record<string, VehicleConfig> = {
     description: 'Économique et pratique',
     color: '#10B981'
   },
-  'taxi_standard': {
-    displayName: 'Taxi Standard',
+  'taxi_confort': {
+    displayName: 'Confort',
     icon: 'Car',
     gradient: 'from-blue-500 via-sky-500 to-blue-600',
     description: 'Service de taxi classique, confortable et abordable',

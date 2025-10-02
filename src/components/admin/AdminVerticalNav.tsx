@@ -60,6 +60,7 @@ const NAV_ITEMS: Array<{
   { id: 'zones', label: 'Zones', icon: MapPin, group: 'transport' },
   { id: 'dispatch', label: 'Dispatch NG', icon: Zap, group: 'transport' },
   { id: 'location', label: 'Location', icon: Car, group: 'transport' },
+  { id: 'vehicle-types', label: 'Types de véhicules', icon: Car, group: 'transport' },
   { id: 'services', label: 'Services', icon: Cog, group: 'transport' },
   
   // Gestion des utilisateurs

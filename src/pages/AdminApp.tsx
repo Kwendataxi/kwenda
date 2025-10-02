@@ -42,6 +42,7 @@ import { EnhancedMarketplaceManagerFixed } from '@/components/marketplace/Enhanc
 import { EnhancedGoogleMigrationPanel } from '@/components/admin/migration/EnhancedGoogleMigrationPanel';
 import { CentralizedNotificationCenterFixed as CentralizedNotificationCenter } from '@/components/admin/notifications/CentralizedNotificationCenterFixed';
 import { MissionControlCenter } from '@/components/admin/monitoring/MissionControlCenter';
+import { VehicleTypeManager } from '@/components/admin/VehicleTypeManager';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -182,6 +183,15 @@ const AdminApp = () => {
           <div className="space-y-6">
         <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
           <ModernZoneManagementDashboard />
+        </FlexiblePermissionGuard>
+        </div>
+        );
+
+      case 'vehicle-types':
+        return (
+          <div className="space-y-6">
+        <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
+          <VehicleTypeManager />
         </FlexiblePermissionGuard>
         </div>
         );
