@@ -80,17 +80,27 @@ export const useDriverRegistration = () => {
 
       console.log('✅ Validation réussie, création du compte...');
 
-      // 2. Créer le compte Supabase Auth avec métadonnées
+      // 2. Créer le compte Supabase Auth avec TOUTES les métadonnées
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
+            // Métadonnées utilisées par le trigger handle_new_driver()
             role: 'driver',
             service_category: data.serviceCategory,
             display_name: data.displayName,
             phone_number: data.phoneNumber,
+            // Données complémentaires pour update ultérieur
+            license_number: data.licenseNumber,
+            license_expiry: data.licenseExpiry,
+            has_own_vehicle: data.hasOwnVehicle,
+            service_type: data.serviceType,
+            vehicle_type: data.hasOwnVehicle ? data.vehicleType : null,
+            vehicle_make: data.hasOwnVehicle ? data.vehicleMake : null,
+            vehicle_model: data.hasOwnVehicle ? data.vehicleModel : null,
+            vehicle_plate: data.hasOwnVehicle ? data.vehiclePlate : null,
           }
         }
       });
