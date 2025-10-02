@@ -9260,6 +9260,13 @@ export type Database = {
       }
       log_driver_registration_attempt: {
         Args:
+          | {
+              p_email: string
+              p_error_message?: string
+              p_license_number: string
+              p_phone_number: string
+              p_success: boolean
+            }
           | { p_email: string; p_error_message?: string; p_success: boolean }
           | {
               p_error_message?: string
@@ -9582,21 +9589,12 @@ export type Database = {
         Returns: Json
       }
       validate_driver_registration_data: {
-        Args:
-          | {
-              p_email: string
-              p_license_number: string
-              p_phone_number: string
-              p_user_id?: string
-              p_vehicle_plate: string
-            }
-          | {
-              p_email: string
-              p_license_number: string
-              p_phone_number: string
-              p_vehicle_plate?: string
-            }
-          | { registration_data: Json }
+        Args: {
+          p_email: string
+          p_license_number: string
+          p_phone_number: string
+          p_vehicle_plate?: string
+        }
         Returns: Json
       }
       validate_google_address: {
