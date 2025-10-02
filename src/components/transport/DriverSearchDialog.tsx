@@ -315,7 +315,7 @@ export default function DriverSearchDialog({
             </div>
           )}
 
-          {/* Compact stats */}
+          {/* Compact stats - Message dynamique basé sur les vraies données */}
           {searchStatus !== 'found' && searchStatus !== 'error' && (
             <div className="flex justify-center gap-6 mb-5 text-sm">
               <motion.div 
@@ -325,7 +325,13 @@ export default function DriverSearchDialog({
               >
                 <Car className="h-4 w-4 text-congo-red" />
                 <span className="text-muted-foreground">
-                  <span className="font-semibold text-foreground">{driversFound || 0}</span> trouvés
+                  {driversFound === 0 ? (
+                    'Recherche en cours...'
+                  ) : driversFound === 1 ? (
+                    <><span className="font-semibold text-foreground">1</span> chauffeur trouvé</>
+                  ) : (
+                    <><span className="font-semibold text-foreground">{driversFound}</span> chauffeurs analysés</>
+                  )}
                 </span>
               </motion.div>
             </div>

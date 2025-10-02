@@ -9,6 +9,7 @@ import { unifiedToLocationData } from '@/utils/locationConverters';
 import { useModernTaxiBooking } from '@/hooks/useModernTaxiBooking';
 import { LocationData } from '@/types/location';
 import { useLocation } from 'react-router-dom';
+import { useRideDispatchProgress } from '@/hooks/useRideDispatchProgress';
 import { 
   MapPin, 
   Navigation, 
@@ -114,6 +115,20 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [driversFound, setDriversFound] = useState(0);
   const [searchRadius, setSearchRadius] = useState(3);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [currentBookingId, setCurrentBookingId] = useState<string | null>(null);
+  
+  // 🔥 Hook pour suivre la progression RÉELLE du dispatcher
+  const dispatchProgress = useRideDispatchProgress(currentBookingId);
+
+  // 🔥 Écouter les updates en temps réel du dispatcher
+  useEffect(() => {
+    if (dispatchProgress.driversFound > 0 || dispatchProgress.status !== 'searching') {
+      console.log('📊 [TaxiInterface] Update dispatch:', dispatchProgress);
+      setDriversFound(dispatchProgress.driversFound);
+      setSearchRadius(dispatchProgress.currentRadius);
+      setSearchStatus(dispatchProgress.status);
+    }
+  }, [dispatchProgress]);
 
   // Gérer l'adresse pré-remplie depuis la navigation
   useEffect(() => {
@@ -287,13 +302,6 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         placeId: bookingData.destination.placeId
       };
 
-      // Simulate search progress
-      setTimeout(() => setSearchStatus('analyzing'), 2000);
-      setTimeout(() => {
-        setDriversFound(3);
-        setSearchStatus('selecting');
-      }, 4000);
-
       const result = await createBooking({
         pickup: pickupFormatted,
         destination: destinationFormatted,
@@ -307,6 +315,11 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         notes: bookingData.notes,
         scheduledTime: bookingData.scheduledAt
       });
+
+      // 🔥 Activer l'écoute temps réel
+      if (result?.id) {
+        setCurrentBookingId(result.id);
+      }
 
       clearInterval(timeCounter);
 

@@ -115,6 +115,23 @@ serve(async (req) => {
 
         console.log(`📊 [DynamicDispatch] Rayon ${radius}km: ${availableDrivers.length} chauffeurs actifs`);
 
+        // 🔥 Envoyer une notification temps réel avec le nombre RÉEL de chauffeurs
+        await supabase.from('delivery_notifications').insert([{
+          user_id: (await supabase.from(`${serviceType === 'taxi' ? 'transport_bookings' : 'delivery_orders'}`)
+            .select('user_id')
+            .eq('id', bookingId)
+            .single()).data?.user_id,
+          title: availableDrivers.length > 0 ? `${availableDrivers.length} chauffeur(s) trouvé(s)` : 'Recherche en cours',
+          message: `${availableDrivers.length} chauffeur(s) disponible(s) dans un rayon de ${radius}km`,
+          notification_type: 'search_progress',
+          metadata: { 
+            bookingId, 
+            driversFound: availableDrivers.length,
+            searchRadius: radius,
+            attempt: i + 1
+          }
+        }]);
+
         if (availableDrivers.length > 0) {
           // Calculer score et sélectionner le meilleur
           const scoredDrivers = availableDrivers.map((driver: any) => ({
