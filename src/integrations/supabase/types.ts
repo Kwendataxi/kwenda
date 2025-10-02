@@ -1923,12 +1923,17 @@ export type Database = {
           end_date: string
           grace_period_end: string | null
           id: string
+          is_trial: boolean | null
           last_payment_date: string | null
           next_payment_date: string | null
           payment_method: string
           plan_id: string
+          rides_remaining: number | null
+          rides_used: number | null
           start_date: string
           status: string
+          trial_granted_at: string | null
+          trial_granted_by: string | null
           updated_at: string
         }
         Insert: {
@@ -1938,12 +1943,17 @@ export type Database = {
           end_date: string
           grace_period_end?: string | null
           id?: string
+          is_trial?: boolean | null
           last_payment_date?: string | null
           next_payment_date?: string | null
           payment_method: string
           plan_id: string
+          rides_remaining?: number | null
+          rides_used?: number | null
           start_date?: string
           status?: string
+          trial_granted_at?: string | null
+          trial_granted_by?: string | null
           updated_at?: string
         }
         Update: {
@@ -1953,12 +1963,17 @@ export type Database = {
           end_date?: string
           grace_period_end?: string | null
           id?: string
+          is_trial?: boolean | null
           last_payment_date?: string | null
           next_payment_date?: string | null
           payment_method?: string
           plan_id?: string
+          rides_remaining?: number | null
+          rides_used?: number | null
           start_date?: string
           status?: string
+          trial_granted_at?: string | null
+          trial_granted_by?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -6208,10 +6223,15 @@ export type Database = {
           features: Json
           id: string
           is_active: boolean
+          is_trial: boolean | null
           max_rides_per_day: number | null
           name: string
           price: number
+          price_per_extra_ride: number | null
           priority_level: number
+          rides_included: number
+          service_type: string | null
+          trial_duration_days: number | null
           updated_at: string
         }
         Insert: {
@@ -6222,10 +6242,15 @@ export type Database = {
           features?: Json
           id?: string
           is_active?: boolean
+          is_trial?: boolean | null
           max_rides_per_day?: number | null
           name: string
           price: number
+          price_per_extra_ride?: number | null
           priority_level?: number
+          rides_included?: number
+          service_type?: string | null
+          trial_duration_days?: number | null
           updated_at?: string
         }
         Update: {
@@ -6236,13 +6261,62 @@ export type Database = {
           features?: Json
           id?: string
           is_active?: boolean
+          is_trial?: boolean | null
           max_rides_per_day?: number | null
           name?: string
           price?: number
+          price_per_extra_ride?: number | null
           priority_level?: number
+          rides_included?: number
+          service_type?: string | null
+          trial_duration_days?: number | null
           updated_at?: string
         }
         Relationships: []
+      }
+      subscription_ride_logs: {
+        Row: {
+          booking_id: string | null
+          booking_type: string | null
+          created_at: string | null
+          driver_id: string
+          extra_charge: number | null
+          id: string
+          rides_after: number
+          rides_before: number
+          subscription_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          booking_type?: string | null
+          created_at?: string | null
+          driver_id: string
+          extra_charge?: number | null
+          id?: string
+          rides_after: number
+          rides_before: number
+          subscription_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          booking_type?: string | null
+          created_at?: string | null
+          driver_id?: string
+          extra_charge?: number | null
+          id?: string
+          rides_after?: number
+          rides_before?: number
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_ride_logs_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "driver_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_categories: {
         Row: {
@@ -8587,6 +8661,14 @@ export type Database = {
       deactivate_trip_share_link: {
         Args: { p_share_id: string }
         Returns: boolean
+      }
+      decrement_subscription_rides: {
+        Args: {
+          p_booking_id: string
+          p_booking_type: string
+          p_driver_id: string
+        }
+        Returns: Json
       }
       delivery_status_manager: {
         Args: {
