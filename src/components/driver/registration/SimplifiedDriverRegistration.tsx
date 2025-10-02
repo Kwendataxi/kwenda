@@ -114,14 +114,14 @@ export const SimplifiedDriverRegistration: React.FC<SimplifiedDriverRegistration
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6">
-      <Card>
+    <div className="w-full max-w-2xl mx-auto p-6 overflow-visible">
+      <Card className="overflow-visible">
         <CardHeader>
           <CardTitle className="text-center">
             Inscription {serviceCategory === 'taxi' ? 'Chauffeur' : 'Livreur'}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-visible">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Sélection mode véhicule */}
             {!vehicleMode && (

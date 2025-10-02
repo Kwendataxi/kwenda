@@ -69,18 +69,21 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
         </CardHeader>
         <CardContent className="overflow-visible">
           <div className="space-y-4">
-            <div>
+            <div className="relative z-50 overflow-visible">
               <Label htmlFor="serviceType">
                 Type de service *
               </Label>
               <Select 
                 value={formData.serviceType} 
-                onValueChange={(value) => onFieldChange('serviceType', value)}
+                onValueChange={(value) => {
+                  console.log('🔍 Service sélectionné:', value);
+                  onFieldChange('serviceType', value);
+                }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="relative z-50">
                   <SelectValue placeholder={`Sélectionnez le type de ${serviceCategory === 'taxi' ? 'transport' : 'livraison'}`} />
                 </SelectTrigger>
-                <SelectContent position="popper" className="bg-background">
+                <SelectContent position="popper" sideOffset={5}>
                   {getServiceTypeOptions().map(option => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -91,18 +94,21 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
             </div>
 
             {serviceCategory === 'delivery' && (
-              <div>
+              <div className="relative z-50 overflow-visible">
                 <Label htmlFor="deliveryCapacity">
                   Capacité de chargement
                 </Label>
                 <Select 
                   value={formData.deliveryCapacity} 
-                  onValueChange={(value) => onFieldChange('deliveryCapacity', value)}
+                  onValueChange={(value) => {
+                    console.log('🔍 Capacité sélectionnée:', value);
+                    onFieldChange('deliveryCapacity', value);
+                  }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="relative z-50">
                     <SelectValue placeholder="Sélectionnez la capacité" />
                   </SelectTrigger>
-                  <SelectContent position="popper" className="bg-background">
+                  <SelectContent position="popper" sideOffset={5}>
                     <SelectItem value="small">Petits colis (jusqu'à 10kg)</SelectItem>
                     <SelectItem value="medium">Colis moyens (jusqu'à 50kg)</SelectItem>
                     <SelectItem value="large">Gros colis (jusqu'à 200kg)</SelectItem>
@@ -123,16 +129,19 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
           </CardHeader>
           <CardContent className="overflow-visible">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              <div className="relative z-50 overflow-visible">
                 <Label htmlFor="vehicleType">Type de véhicule *</Label>
                 <Select 
                   value={formData.vehicleType} 
-                  onValueChange={(value) => onFieldChange('vehicleType', value)}
+                  onValueChange={(value) => {
+                    console.log('🔍 Type de véhicule sélectionné:', value);
+                    onFieldChange('vehicleType', value);
+                  }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="relative z-50">
                     <SelectValue placeholder="Type de véhicule" />
                   </SelectTrigger>
-                  <SelectContent position="popper" className="bg-background">
+                  <SelectContent position="popper" sideOffset={5}>
                     {getVehicleTypeOptions().map(option => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
