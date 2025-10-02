@@ -70,8 +70,8 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
         <CardContent className="overflow-visible">
           <div className="space-y-4">
             <div className="relative z-50 overflow-visible">
-              <Label htmlFor="serviceType">
-                Type de service *
+              <Label htmlFor="serviceType" className="flex items-center gap-1">
+                Type de service <span className="text-destructive">*</span>
               </Label>
               <Select 
                 value={formData.serviceType} 
@@ -80,7 +80,7 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                   onFieldChange('serviceType', value);
                 }}
               >
-                <SelectTrigger className="relative z-50">
+                <SelectTrigger className="relative z-50 bg-background">
                   <SelectValue placeholder={`Sélectionnez le type de ${serviceCategory === 'taxi' ? 'transport' : 'livraison'}`} />
                 </SelectTrigger>
                 <SelectContent position="popper" sideOffset={5}>
@@ -91,12 +91,17 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                   ))}
                 </SelectContent>
               </Select>
+              {!formData.serviceType && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Ce champ est obligatoire
+                </p>
+              )}
             </div>
 
             {serviceCategory === 'delivery' && (
               <div className="relative z-50 overflow-visible">
-                <Label htmlFor="deliveryCapacity">
-                  Capacité de chargement
+                <Label htmlFor="deliveryCapacity" className="flex items-center gap-1">
+                  Capacité de chargement <span className="text-destructive">*</span>
                 </Label>
                 <Select 
                   value={formData.deliveryCapacity} 
@@ -105,7 +110,7 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                     onFieldChange('deliveryCapacity', value);
                   }}
                 >
-                  <SelectTrigger className="relative z-50">
+                  <SelectTrigger className="relative z-50 bg-background">
                     <SelectValue placeholder="Sélectionnez la capacité" />
                   </SelectTrigger>
                   <SelectContent position="popper" sideOffset={5}>
@@ -115,6 +120,11 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                     <SelectItem value="extra-large">Très gros colis (plus de 200kg)</SelectItem>
                   </SelectContent>
                 </Select>
+                {!formData.deliveryCapacity && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Ce champ est obligatoire
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -130,7 +140,9 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
           <CardContent className="overflow-visible">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="relative z-50 overflow-visible">
-                <Label htmlFor="vehicleType">Type de véhicule *</Label>
+                <Label htmlFor="vehicleType" className="flex items-center gap-1">
+                  Type de véhicule <span className="text-destructive">*</span>
+                </Label>
                 <Select 
                   value={formData.vehicleType} 
                   onValueChange={(value) => {
@@ -138,7 +150,7 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                     onFieldChange('vehicleType', value);
                   }}
                 >
-                  <SelectTrigger className="relative z-50">
+                  <SelectTrigger className="relative z-50 bg-background">
                     <SelectValue placeholder="Type de véhicule" />
                   </SelectTrigger>
                   <SelectContent position="popper" sideOffset={5}>
@@ -149,6 +161,11 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                     ))}
                   </SelectContent>
                 </Select>
+                {!formData.vehicleType && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Ce champ est obligatoire
+                  </p>
+                )}
               </div>
 
               <div>

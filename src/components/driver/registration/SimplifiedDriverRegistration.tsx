@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,7 +32,7 @@ export const SimplifiedDriverRegistration: React.FC<SimplifiedDriverRegistration
     emergencyContactName: '',
     emergencyContactPhone: '',
     serviceCategory,
-    serviceType: serviceCategory,
+    serviceType: '',
     hasOwnVehicle: false,
     vehicleType: '',
     vehicleMake: '',
@@ -45,6 +45,11 @@ export const SimplifiedDriverRegistration: React.FC<SimplifiedDriverRegistration
     deliveryCapacity: '',
     acceptsTerms: false
   });
+
+  // Debug: tracker les changements de formData
+  useEffect(() => {
+    console.log('🔄 FormData mis à jour:', formData);
+  }, [formData]);
 
   const handleFieldChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -73,8 +78,24 @@ export const SimplifiedDriverRegistration: React.FC<SimplifiedDriverRegistration
       return false;
     }
 
+    // Validation du type de service (obligatoire)
+    if (!formData.serviceType) {
+      toast.error('Veuillez sélectionner un type de service');
+      return false;
+    }
+
+    // Validation de la capacité de livraison pour les livreurs
+    if (serviceCategory === 'delivery' && !formData.deliveryCapacity) {
+      toast.error('Veuillez sélectionner une capacité de chargement');
+      return false;
+    }
+
     if (vehicleMode === 'own') {
-      if (!formData.vehicleType || !formData.vehicleMake || !formData.vehicleModel || 
+      if (!formData.vehicleType) {
+        toast.error('Veuillez sélectionner un type de véhicule');
+        return false;
+      }
+      if (!formData.vehicleMake || !formData.vehicleModel || 
           !formData.vehiclePlate || !formData.insuranceNumber || !formData.insuranceExpiry) {
         toast.error('Veuillez remplir toutes les informations du véhicule');
         return false;
@@ -92,6 +113,15 @@ export const SimplifiedDriverRegistration: React.FC<SimplifiedDriverRegistration
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('📦 Données d\'inscription soumises:', {
+      serviceType: formData.serviceType,
+      vehicleType: formData.vehicleType,
+      deliveryCapacity: formData.deliveryCapacity,
+      hasOwnVehicle: formData.hasOwnVehicle,
+      serviceCategory: formData.serviceCategory,
+      allData: formData
+    });
+
     if (!validateForm()) {
       return;
     }
