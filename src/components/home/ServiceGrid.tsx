@@ -34,7 +34,7 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
     delivery: 'from-congo-yellow-electric via-congo-yellow to-congo-yellow-vibrant',
     rental: 'from-congo-green-electric via-congo-green to-congo-green-vibrant',
     marketplace: 'from-secondary via-accent to-secondary-light',
-    lottery: 'from-primary via-primary-glow to-primary-light'
+    lottery: 'from-purple-500 via-pink-500 to-purple-600'
   };
 
   const nameMap: Record<string, string> = {
