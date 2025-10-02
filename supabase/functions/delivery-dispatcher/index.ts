@@ -36,87 +36,68 @@ serve(async (req) => {
     console.log(`📍 Pickup location: ${pickupLat}, ${pickupLng}`);
     console.log(`🚛 Delivery type: ${deliveryType}`);
 
-    // Find nearby available drivers within 15km - Using correct parameters
-    const { data: drivers, error: driversError } = await supabase.rpc('find_nearby_drivers', {
-      pickup_lat: pickupLat,
-      pickup_lng: pickupLng,
-      service_type_param: 'delivery',
-      radius_km: 15
-    });
+    // Phase 4: Recherche en cascade 5km → 10km → 15km → 20km
+    const radiusLevels = [5, 10, 15, 20];
+    let drivers: any[] = [];
+    let finalRadius = 5;
 
-    if (driversError) {
-      console.error('❌ Error finding drivers:', driversError);
-      throw driversError;
+    for (const radius of radiusLevels) {
+      console.log(`🔍 Searching drivers within ${radius}km...`);
+      
+      const { data, error } = await supabase.rpc('find_nearby_drivers', {
+        pickup_lat: pickupLat,
+        pickup_lng: pickupLng,
+        service_type_param: 'delivery',
+        radius_km: radius
+      });
+
+      if (error) {
+        console.error(`❌ Error finding drivers at ${radius}km:`, error);
+        continue;
+      }
+
+      if (data && data.length > 0) {
+        drivers = data;
+        finalRadius = radius;
+        console.log(`✅ Found ${drivers.length} drivers at ${radius}km`);
+        break;
+      }
     }
 
     if (!drivers || drivers.length === 0) {
-      console.log('❌ No drivers available for delivery');
+      console.log('❌ No drivers available for delivery in 20km radius');
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: 'Aucun livreur disponible dans votre zone',
+          message: 'Aucun livreur disponible dans votre zone (rayon 20km)',
           drivers_searched: 0
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`✅ Found ${drivers.length} available drivers with rides remaining`);
+    console.log(`✅ Found ${drivers.length} available drivers at ${finalRadius}km`);
     
-    // Select the closest driver
-    const selectedDriver = drivers[0];
+    // Phase 4: Scoring multi-critères pour sélectionner le meilleur
+    const scoredDrivers = drivers.map(driver => {
+      const distanceScore = (1 / (driver.distance_km + 0.1)) * 40; // 40% du score
+      const ratingScore = (driver.rating_average || 0) * 4; // 20% (rating sur 5)
+      const ridesScore = Math.min((driver.rides_remaining || 0) * 2, 20); // 20%
+      const timeScore = 10; // 10% pour l'instant (TODO: calculer temps depuis dernière course)
+      const refusalScore = 10; // 10% (TODO: historique de refus)
+      
+      return {
+        ...driver,
+        total_score: distanceScore + ratingScore + ridesScore + timeScore + refusalScore
+      };
+    }).sort((a, b) => b.total_score - a.total_score);
+
+    // Phase 4: Notifier les TOP 5 chauffeurs (pas juste le meilleur)
+    const topDrivers = scoredDrivers.slice(0, Math.min(5, scoredDrivers.length));
     
-    console.log(`🎯 Assigning driver ${selectedDriver.driver_id} (${selectedDriver.distance_km}km away, rides_remaining: ${selectedDriver.rides_remaining || 0})`);
+    console.log(`🎯 Notifying top ${topDrivers.length} drivers`);
 
-    // Update the delivery order with driver assignment
-    const { error: updateError } = await supabase
-      .from('delivery_orders')
-      .update({
-        driver_id: selectedDriver.driver_id,
-        status: 'driver_assigned',
-        driver_assigned_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', orderId);
-
-    if (updateError) {
-      console.error('❌ Error updating delivery order:', updateError);
-      throw updateError;
-    }
-
-    // Mark driver as unavailable
-    const { error: locationError } = await supabase
-      .from('driver_locations')
-      .update({
-        is_available: false,
-        updated_at: new Date().toISOString()
-      })
-      .eq('driver_id', selectedDriver.driver_id);
-
-    if (locationError) {
-      console.warn('⚠️ Could not update driver availability:', locationError);
-    }
-
-    // ✅ NOUVEAU : Consommer une course de livraison
-    try {
-      const { data: consumeResult, error: consumeError } = await supabase.functions.invoke('consume-ride', {
-        body: {
-          driver_id: selectedDriver.driver_id,
-          booking_id: orderId,
-          service_type: 'delivery'
-        }
-      });
-
-      if (consumeError) {
-        console.warn('⚠️ Erreur lors de la consommation de la livraison:', consumeError);
-      } else {
-        console.log(`✅ Livraison consommée. Courses restantes: ${consumeResult?.rides_remaining || 0}`);
-      }
-    } catch (consumeErr) {
-      console.error('❌ Erreur critique consume-ride:', consumeErr);
-    }
-
-    // Get delivery order details for notification
+    // Récupérer les détails de la commande
     const { data: orderDetails, error: orderError } = await supabase
       .from('delivery_orders')
       .select('*')
@@ -127,68 +108,57 @@ serve(async (req) => {
       console.warn('⚠️ Could not get order details:', orderError);
     }
 
-    // Create notification for the driver with contact information
-    const notificationData = {
-      user_id: selectedDriver.driver_id,
-      title: `Nouvelle livraison ${deliveryType.toUpperCase()}`,
-      message: `Nouvelle commande de livraison assignée. Distance: ${selectedDriver.distance_km.toFixed(1)}km`,
-      notification_type: 'delivery_assignment',
-      delivery_order_id: orderId,
-      metadata: {
-        orderId,
-        deliveryType,
-        distance: selectedDriver.distance_km,
-        estimatedPrice: orderDetails?.estimated_price,
-        pickupLocation: orderDetails?.pickup_location,
-        deliveryLocation: orderDetails?.delivery_location,
-        senderName: orderDetails?.sender_name,
-        senderPhone: orderDetails?.sender_phone,
-        recipientName: orderDetails?.recipient_name,
-        recipientPhone: orderDetails?.recipient_phone,
-        rides_remaining: selectedDriver.rides_remaining || 0
+    // Envoyer des alertes à tous les top chauffeurs
+    const alertPromises = topDrivers.map(async (driver, index) => {
+      const { error: alertError } = await supabase
+        .from('delivery_driver_alerts')
+        .insert([{
+          order_id: orderId,
+          driver_id: driver.driver_id,
+          alert_type: 'new_delivery_request',
+          distance_km: driver.distance_km,
+          response_status: 'sent',
+          order_details: {
+            pickup_location: orderDetails?.pickup_location,
+            delivery_location: orderDetails?.delivery_location,
+            estimated_price: orderDetails?.estimated_price,
+            delivery_type: deliveryType
+          }
+        }]);
+
+      if (alertError) {
+        console.warn(`⚠️ Could not create alert for driver ${driver.driver_id}:`, alertError);
+      } else {
+        console.log(`✅ Alert sent to driver #${index + 1} (${driver.driver_id}) - Distance: ${driver.distance_km.toFixed(1)}km - Score: ${driver.total_score.toFixed(1)}`);
       }
-    };
+    });
 
-    const { error: notificationError } = await supabase
-      .from('delivery_notifications')
-      .insert([notificationData]);
+    await Promise.all(alertPromises);
+    
+    // Sélectionner le meilleur chauffeur pour l'assignation par défaut (si pas de réponse)
+    const selectedDriver = topDrivers[0];
+    
+    console.log(`🎯 Selected best driver ${selectedDriver.driver_id} - Score: ${selectedDriver.total_score.toFixed(1)}`);
 
-    if (notificationError) {
-      console.warn('⚠️ Could not create notification:', notificationError);
-    }
+    // Note: Ne pas assigner automatiquement, attendre l'acceptation via les alertes
+    // L'assignation se fera dans le hook useDriverOrderNotifications.acceptOrder()
 
-    // Log the assignment in delivery status history
-    const { error: historyError } = await supabase
-      .from('delivery_status_history')
-      .insert([{
-        delivery_order_id: orderId,
-        status: 'driver_assigned',
-        previous_status: 'pending',
-        changed_by: null, // System assignment
-        metadata: {
-          driver_id: selectedDriver.driver_id,
-          assignment_method: 'automatic',
-          distance_km: selectedDriver.distance_km
-        },
-        notes: `Livreur assigné automatiquement - Distance: ${selectedDriver.distance_km.toFixed(1)}km`
-      }]);
 
-    if (historyError) {
-      console.warn('⚠️ Could not log status history:', historyError);
-    }
-
-    console.log('✅ Driver assignment completed successfully');
+    console.log('✅ Driver notifications sent successfully');
 
     return new Response(
       JSON.stringify({
         success: true,
-        driver: {
+        drivers_notified: topDrivers.length,
+        selected_driver: {
           id: selectedDriver.driver_id,
           distance: selectedDriver.distance_km,
+          score: selectedDriver.total_score,
           vehicle_class: selectedDriver.vehicle_class,
           rides_remaining: selectedDriver.rides_remaining || 0
         },
-        message: 'Livreur assigné avec succès'
+        search_radius: finalRadius,
+        message: `${topDrivers.length} livreur(s) notifié(s) - En attente d'acceptation`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

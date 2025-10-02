@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DriverRideNotifications from './DriverRideNotifications';
-import { Car, MapPin, Clock, Star } from 'lucide-react';
+import DemandHeatmapView from './DemandHeatmapView';
+import { Car, MapPin, Clock, Star, TrendingUp } from 'lucide-react';
 
 export function DriverDashboard() {
   return (
@@ -40,8 +42,29 @@ export function DriverDashboard() {
           </CardContent>
         </Card>
 
-        {/* Ride Notifications - This is the key component */}
-        <DriverRideNotifications />
+        {/* Tabs: Courses vs Zones Rentables */}
+        <Tabs defaultValue="rides" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="rides">
+              <Car className="h-4 w-4 mr-2" />
+              Mes Courses
+            </TabsTrigger>
+            <TabsTrigger value="heatmap">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Zones Rentables
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="rides" className="space-y-4">
+            {/* Ride Notifications */}
+            <DriverRideNotifications />
+          </TabsContent>
+
+          <TabsContent value="heatmap">
+            {/* Demand Heatmap */}
+            <DemandHeatmapView />
+          </TabsContent>
+        </Tabs>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

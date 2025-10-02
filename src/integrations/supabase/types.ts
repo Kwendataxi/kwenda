@@ -8301,6 +8301,53 @@ export type Database = {
         }
         Relationships: []
       }
+      zone_demand_cache: {
+        Row: {
+          available_drivers: number
+          avg_price: number | null
+          calculated_at: string
+          city: string
+          created_at: string
+          demand_ratio: number
+          id: string
+          peak_hours: Json | null
+          pending_requests: number
+          zone_id: string
+        }
+        Insert: {
+          available_drivers?: number
+          avg_price?: number | null
+          calculated_at?: string
+          city: string
+          created_at?: string
+          demand_ratio?: number
+          id?: string
+          peak_hours?: Json | null
+          pending_requests?: number
+          zone_id: string
+        }
+        Update: {
+          available_drivers?: number
+          avg_price?: number | null
+          calculated_at?: string
+          city?: string
+          created_at?: string
+          demand_ratio?: number
+          id?: string
+          peak_hours?: Json | null
+          pending_requests?: number
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zone_demand_cache_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "service_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       zone_pricing_rules: {
         Row: {
           base_price: number
@@ -8533,6 +8580,18 @@ export type Database = {
           distance_km_param: number
         }
         Returns: Json
+      }
+      calculate_demand_heatmap: {
+        Args: { city_param?: string; time_range_minutes?: number }
+        Returns: {
+          available_drivers: number
+          avg_price: number
+          demand_ratio: number
+          peak_hours: Json
+          pending_requests: number
+          zone_id: string
+          zone_name: string
+        }[]
       }
       calculate_distance_km: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
