@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Car, Clock, MapPin, Star, Users, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { ModernVehicleSelector } from './ModernVehicleSelector';
 
 interface OptimizedTransportInterfaceProps {
   onNavigate: (path: string) => void;
@@ -179,23 +180,15 @@ const OptimizedTransportInterface: React.FC<OptimizedTransportInterfaceProps> = 
         </TabsList>
 
         <TabsContent value="book" className="space-y-4 md:space-y-6 mt-4">
-          {/* Types de véhicules */}
-          <div>
-            <h3 className="text-responsive-lg font-semibold mb-3 md:mb-4">Choisir un véhicule</h3>
-            <div className="grid gap-3 md:gap-4">
-              {vehicleTypes.map((vehicle) => (
-                <VehicleTypeCard
-                  key={vehicle.id}
-                  type={vehicle.name}
-                  description={vehicle.description}
-                  price={vehicle.basePrice}
-                  eta={vehicle.eta}
-                  available={vehicle.available}
-                  onSelect={() => handleVehicleSelect(vehicle.id)}
-                />
-              ))}
-            </div>
-          </div>
+          {/* Modern Vehicle Selector */}
+          <ModernVehicleSelector
+            distance={5}
+            onVehicleSelect={(vehicle) => {
+              setSelectedVehicle(vehicle.id);
+              onNavigate(`/client/transport/book?vehicle=${vehicle.id}`);
+            }}
+            selectedVehicleId={selectedVehicle || undefined}
+          />
 
           {/* Destinations rapides */}
           <div>
