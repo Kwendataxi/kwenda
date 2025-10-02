@@ -69,6 +69,7 @@ import { DebugHelper } from "@/utils/debugHelper";
 import { DriverFindPartner } from "./pages/DriverFindPartner";
 import PublicPartnerRegistration from "./pages/partner/PublicPartnerRegistration";
 import PartnerDashboard from "./pages/partner/PartnerDashboard";
+import UnifiedTracking from "./pages/UnifiedTracking";
 
 const queryClient = new QueryClient();
 
@@ -201,6 +202,9 @@ const AppContent = () => {
                 
                 {/* Address Pages */}
                 <Route path="/mes-adresses" element={<MesAdresses />} />
+                
+                {/* Tracking Routes */}
+                <Route path="/tracking/:type/:id" element={<UnifiedTracking />} />
                 
                 {/* Test Routes */}
                 <Route path="/test/auth-system" element={<AuthSystemTest />} />
