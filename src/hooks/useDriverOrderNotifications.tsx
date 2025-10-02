@@ -37,7 +37,7 @@ export const useDriverOrderNotifications = () => {
 
     try {
       const { data, error } = await supabase
-        .from('delivery_driver_alerts' as any)
+        .from('delivery_driver_alerts')
         .select('*')
         .eq('driver_id', user.id)
         .in('response_status', ['sent', 'seen'])
@@ -45,7 +45,7 @@ export const useDriverOrderNotifications = () => {
 
       if (error) throw error;
 
-      setPendingAlerts((data || []) as any);
+      setPendingAlerts((data || []) as unknown as DriverAlert[]);
     } catch (error) {
       console.error('Error loading pending alerts:', error);
     }
@@ -55,7 +55,7 @@ export const useDriverOrderNotifications = () => {
   const markAlertAsSeen = useCallback(async (alertId: string) => {
     try {
       const { error } = await supabase
-        .from('delivery_driver_alerts' as any)
+        .from('delivery_driver_alerts')
         .update({
           response_status: 'seen',
           seen_at: new Date().toISOString()
@@ -82,7 +82,7 @@ export const useDriverOrderNotifications = () => {
     try {
       // Marquer l'alerte comme acceptée
       const { error: updateError } = await supabase
-        .from('delivery_driver_alerts' as any)
+        .from('delivery_driver_alerts')
         .update({
           response_status: 'accepted',
           responded_at: new Date().toISOString()
@@ -124,7 +124,7 @@ export const useDriverOrderNotifications = () => {
   const ignoreOrder = useCallback(async (alertId: string) => {
     try {
       const { error } = await supabase
-        .from('delivery_driver_alerts' as any)
+        .from('delivery_driver_alerts')
         .update({
           response_status: 'ignored',
           responded_at: new Date().toISOString()
