@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import PerformanceOptimizer from "@/components/performance/PerformanceOptimizer";
@@ -77,7 +77,7 @@ const AppContent = () => {
   useOrderCleanup();
   
   // Diagnostic de debug en développement
-  React.useEffect(() => {
+  useEffect(() => {
     if (import.meta.env.DEV) {
       console.log('🔍 [Debug] Mode développement - Diagnostic disponible');
       console.log('🔍 [Debug] Utilise window.debugKwenda.runFullDiagnostic() pour un diagnostic complet');
