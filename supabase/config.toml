@@ -67,3 +67,6 @@ verify_jwt = true
 
 [functions.consume-ride]
 verify_jwt = true
+
+[functions.moderate-product]
+verify_jwt = true
