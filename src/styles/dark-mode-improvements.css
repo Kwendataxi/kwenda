@@ -87,3 +87,33 @@
 .dark .select-item[data-highlighted] {
   @apply bg-muted/40 text-foreground;
 }
+
+/* Additional utility classes for better visibility */
+.text-secondary-visible {
+  @apply text-foreground/80;
+}
+
+.bg-elevated {
+  @apply bg-card/95 backdrop-blur-xl;
+}
+
+.border-elevated {
+  @apply border-border/70;
+}
+
+.dropdown-visible {
+  @apply bg-popover border-border/60 backdrop-blur-xl;
+}
+
+.card-shadow {
+  @apply shadow-lg dark:shadow-2xl;
+}
+
+/* Improved contrast for interactive elements */
+.dark .interactive-hover:hover {
+  @apply bg-muted/50 text-foreground;
+}
+
+.dark .text-emphasis {
+  @apply text-foreground/95;
+}

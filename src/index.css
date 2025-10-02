@@ -483,13 +483,13 @@ All colors MUST be HSL.
 
   .dark {
     /* Dark Mode Congo Design System - OPTIMIZED & CLEAN */
-    --background: 0 0% 0%;
+    --background: 220 25% 6%;
     --foreground: 42 15% 98%;
 
-    --card: 220 30% 7%;
+    --card: 220 25% 10%;
     --card-foreground: 42 15% 96%;
 
-    --popover: 220 30% 7%;
+    --popover: 220 25% 12%;
     --popover-foreground: 42 15% 96%;
 
     --primary: 357 88% 65%;
@@ -501,8 +501,8 @@ All colors MUST be HSL.
     --secondary-foreground: 220 35% 8%;
     --secondary-light: 42 100% 75%;
 
-    --muted: 220 30% 15%;
-    --muted-foreground: 220 15% 85%;
+    --muted: 220 25% 18%;
+    --muted-foreground: 220 10% 75%;
 
     --accent: 42 98% 68%;
     --accent-foreground: 220 35% 8%;
@@ -555,8 +555,8 @@ All colors MUST be HSL.
     --destructive: 0 85% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 30% 25%;
-    --input: 220 30% 15%;
+    --border: 220 25% 30%;
+    --input: 220 25% 18%;
     --ring: 357 88% 65%;
 
     /* Enhanced Dark mode gradients */
