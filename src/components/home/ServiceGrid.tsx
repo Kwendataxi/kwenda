@@ -3,6 +3,7 @@ import { Car, Truck, ShoppingBag, Zap } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useServiceConfigurations } from '@/hooks/useServiceConfigurations';
 import NotificationBadge from '@/components/notifications/NotificationBadge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ServiceGridProps {
   onServiceSelect: (service: string) => void;
@@ -29,11 +30,11 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
   };
   
   const gradientMap: Record<string, string> = {
-    taxi: 'from-primary to-primary-glow',
-    delivery: 'from-secondary to-secondary-light',
-    rental: 'from-green-500 to-green-600',
-    marketplace: 'from-accent to-accent-light',
-    lottery: 'from-purple-500 to-pink-500'
+    taxi: 'from-pink-500 via-rose-500 to-pink-600',
+    delivery: 'from-yellow-400 via-amber-400 to-yellow-500',
+    rental: 'from-green-500 via-emerald-500 to-green-600',
+    marketplace: 'from-yellow-300 via-amber-300 to-yellow-400',
+    lottery: 'from-purple-500 via-pink-500 to-purple-600'
   };
 
   const nameMap: Record<string, string> = {
@@ -86,41 +87,78 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
     }>;
   }, [configurations, loading, t]);
 
+  // Skeleton loader pendant le chargement
+  if (loading) {
+    return (
+      <div className="px-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 justify-items-center">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex flex-col items-center gap-3 animate-pulse">
+              <Skeleton className="w-20 h-20 md:w-24 md:h-24 rounded-2xl" />
+              <Skeleton className="h-4 w-16 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="px-4 mb-6">
-      <div className="grid grid-cols-4 gap-4 justify-items-center">
-        {mainServices.map((service) => {
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 justify-items-center">
+        {mainServices.map((service, index) => {
           const Icon = service.icon;
           const notificationCount = serviceNotifications?.[service.id as keyof typeof serviceNotifications] || 0;
           
           return (
-            <div key={service.id} className="flex flex-col items-center">
-              <div className="relative">
+            <div 
+              key={service.id} 
+              className="flex flex-col items-center animate-fade-in"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className="relative group">
                 <button
                   onClick={() => onServiceSelect(service.id)}
                   className={`
-                    w-16 h-16 bg-gradient-to-br ${service.gradient} 
-                    rounded-xl flex items-center justify-center text-white 
-                    transition-all duration-200 hover:scale-105 active:scale-95
-                    shadow-md hover:shadow-lg
+                    w-20 h-20 md:w-24 md:h-24
+                    bg-gradient-to-br ${service.gradient}
+                    rounded-2xl
+                    flex items-center justify-center
+                    text-white
+                    
+                    shadow-xl
+                    ring-2 ring-white/20
+                    border border-white/10
+                    
+                    transition-all duration-300 ease-out
+                    
+                    hover:scale-110
+                    hover:rotate-2
+                    hover:shadow-2xl
+                    
+                    active:scale-95
+                    active:rotate-0
                   `}
                 >
-                  <Icon className="h-7 w-7" />
+                  <Icon className="h-9 w-9 md:h-11 md:w-11 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3" />
                 </button>
                 
-                {/* Badge de notification */}
+                {/* Badge de notification premium */}
                 {notificationCount > 0 && (
-                  <div className="absolute -top-1 -right-1">
+                  <div className="absolute -top-1 -right-1 animate-pulse">
                     <NotificationBadge 
                       count={notificationCount}
                       variant="destructive"
                       size="sm"
                       pulse={true}
+                      className="shadow-lg shadow-red-500/50"
                     />
                   </div>
                 )}
               </div>
-              <span className="text-xs font-medium text-foreground mt-2 text-center line-clamp-2">{service.name}</span>
+              <span className="text-sm md:text-base font-semibold tracking-tight text-foreground mt-3 text-center line-clamp-2 transition-colors group-hover:text-primary">
+                {service.name}
+              </span>
             </div>
           );
         })}
