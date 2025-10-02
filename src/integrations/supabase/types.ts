@@ -818,56 +818,6 @@ export type Database = {
           },
         ]
       }
-      credit_transactions: {
-        Row: {
-          amount: number
-          balance_after: number
-          balance_before: number
-          created_at: string
-          currency: string
-          description: string
-          driver_id: string
-          id: string
-          reference_id: string | null
-          reference_type: string | null
-          transaction_type: string
-        }
-        Insert: {
-          amount: number
-          balance_after: number
-          balance_before: number
-          created_at?: string
-          currency?: string
-          description: string
-          driver_id: string
-          id?: string
-          reference_id?: string | null
-          reference_type?: string | null
-          transaction_type: string
-        }
-        Update: {
-          amount?: number
-          balance_after?: number
-          balance_before?: number
-          created_at?: string
-          currency?: string
-          description?: string
-          driver_id?: string
-          id?: string
-          reference_id?: string | null
-          reference_type?: string | null
-          transaction_type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "credit_transactions_driver_id_fkey"
-            columns: ["driver_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
       data_migration_logs: {
         Row: {
           created_at: string | null
@@ -1406,56 +1356,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "partenaires"
             referencedColumns: ["id"]
-          },
-        ]
-      }
-      driver_credits: {
-        Row: {
-          balance: number
-          created_at: string
-          currency: string
-          driver_id: string
-          id: string
-          is_active: boolean
-          last_topup_date: string | null
-          low_balance_alert_sent: boolean
-          total_earned: number
-          total_spent: number
-          updated_at: string
-        }
-        Insert: {
-          balance?: number
-          created_at?: string
-          currency?: string
-          driver_id: string
-          id?: string
-          is_active?: boolean
-          last_topup_date?: string | null
-          low_balance_alert_sent?: boolean
-          total_earned?: number
-          total_spent?: number
-          updated_at?: string
-        }
-        Update: {
-          balance?: number
-          created_at?: string
-          currency?: string
-          driver_id?: string
-          id?: string
-          is_active?: boolean
-          last_topup_date?: string | null
-          low_balance_alert_sent?: boolean
-          total_earned?: number
-          total_spent?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "driver_credits_driver_id_fkey"
-            columns: ["driver_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
           },
         ]
       }
