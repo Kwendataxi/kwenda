@@ -898,6 +898,7 @@ export type Database = {
           created_at: string
           distance_km: number
           driver_id: string
+          expires_at: string | null
           id: string
           order_details: Json | null
           order_id: string
@@ -912,6 +913,7 @@ export type Database = {
           created_at?: string
           distance_km: number
           driver_id: string
+          expires_at?: string | null
           id?: string
           order_details?: Json | null
           order_id: string
@@ -926,6 +928,7 @@ export type Database = {
           created_at?: string
           distance_km?: number
           driver_id?: string
+          expires_at?: string | null
           id?: string
           order_details?: Json | null
           order_id?: string
@@ -1058,6 +1061,7 @@ export type Database = {
       delivery_orders: {
         Row: {
           actual_price: number | null
+          assignment_version: number
           cancelled_at: string | null
           city: string | null
           confirmed_at: string | null
@@ -1102,6 +1106,7 @@ export type Database = {
         }
         Insert: {
           actual_price?: number | null
+          assignment_version?: number
           cancelled_at?: string | null
           city?: string | null
           confirmed_at?: string | null
@@ -1146,6 +1151,7 @@ export type Database = {
         }
         Update: {
           actual_price?: number | null
+          assignment_version?: number
           cancelled_at?: string | null
           city?: string | null
           confirmed_at?: string | null
@@ -6681,6 +6687,7 @@ export type Database = {
       transport_bookings: {
         Row: {
           actual_price: number | null
+          assignment_version: number
           booking_time: string
           city: string | null
           completion_time: string | null
@@ -6716,6 +6723,7 @@ export type Database = {
         }
         Insert: {
           actual_price?: number | null
+          assignment_version?: number
           booking_time?: string
           city?: string | null
           completion_time?: string | null
@@ -6751,6 +6759,7 @@ export type Database = {
         }
         Update: {
           actual_price?: number | null
+          assignment_version?: number
           booking_time?: string
           city?: string | null
           completion_time?: string | null
@@ -8531,6 +8540,19 @@ export type Database = {
         }
         Relationships: []
       }
+      assignment_conflicts_view: {
+        Row: {
+          created_at: string | null
+          current_driver_id: string | null
+          current_status: string | null
+          description: string | null
+          driver_id: string | null
+          order_id: string | null
+          order_type: string | null
+          reason: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_cancel_subscription: {
@@ -9455,6 +9477,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_assignment_conflict: {
+        Args: {
+          p_conflict_reason: string
+          p_driver_id: string
+          p_order_id: string
+          p_order_type: string
+        }
+        Returns: undefined
+      }
       log_driver_location_access: {
         Args: {
           p_access_reason?: string
@@ -9619,6 +9650,10 @@ export type Database = {
       map_legacy_data_to_service: {
         Args: { p_delivery_capacity?: string; p_vehicle_type?: string }
         Returns: string
+      }
+      mark_expired_delivery_alerts: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       mark_message_as_read: {
         Args: { p_message_id: string }

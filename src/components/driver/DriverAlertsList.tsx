@@ -3,11 +3,11 @@
  * Affiche et gère les notifications temps réel
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, MapPin, Clock, DollarSign, Package, X } from 'lucide-react';
+import { Bell, MapPin, Clock, DollarSign, Package, X, AlertCircle } from 'lucide-react';
 import { useDriverOrderNotifications } from '@/hooks/useDriverOrderNotifications';
 
 export default function DriverAlertsList() {
@@ -18,30 +18,82 @@ export default function DriverAlertsList() {
     acceptOrder,
     ignoreOrder
   } = useDriverOrderNotifications();
+  
+  const [timeRemaining, setTimeRemaining] = useState<Record<string, number>>({});
+
+  // PHASE 5: Calculer le temps restant
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newTimeRemaining: Record<string, number> = {};
+      
+      pendingAlerts.forEach(alert => {
+        if (alert.expires_at) {
+          const expiresAt = new Date(alert.expires_at).getTime();
+          const now = Date.now();
+          const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
+          newTimeRemaining[alert.id] = remaining;
+        }
+      });
+      
+      setTimeRemaining(newTimeRemaining);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [pendingAlerts]);
 
   if (pendingAlerts.length === 0) {
     return null;
   }
 
+  const formatTimeRemaining = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="fixed bottom-20 left-4 right-4 z-50 space-y-3 max-w-md mx-auto">
-      {pendingAlerts.map((alert) => (
-        <Card 
-          key={alert.id}
-          className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary shadow-glow animate-fade-in"
-          onClick={() => markAlertAsSeen(alert.id)}
-        >
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-base">
-              <div className="flex items-center gap-2">
-                <Bell className="h-4 w-4 text-primary animate-pulse" />
-                <span>Nouvelle course {alert.order_details?.delivery_type?.toUpperCase()}</span>
-              </div>
-              <Badge variant="destructive" className="text-xs">
-                {alert.distance_km.toFixed(1)}km
-              </Badge>
-            </CardTitle>
-          </CardHeader>
+      {pendingAlerts.map((alert) => {
+        const remaining = timeRemaining[alert.id] || 0;
+        const isExpired = remaining === 0;
+        const isExpiringSoon = remaining > 0 && remaining <= 30;
+
+        return (
+          <Card 
+            key={alert.id}
+            className={`border-2 shadow-glow ${
+              isExpired 
+                ? 'bg-destructive/10 border-destructive' 
+                : isExpiringSoon
+                ? 'bg-warning/10 border-warning animate-pulse'
+                : 'bg-gradient-to-r from-primary/10 to-secondary/10 border-primary animate-fade-in'
+            }`}
+            onClick={() => !isExpired && markAlertAsSeen(alert.id)}
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center justify-between text-base">
+                <div className="flex items-center gap-2">
+                  {isExpired ? (
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                  ) : (
+                    <Bell className={`h-4 w-4 text-primary ${!isExpiringSoon && 'animate-pulse'}`} />
+                  )}
+                  <span>
+                    {isExpired ? 'Course expirée' : `Nouvelle course ${alert.order_details?.delivery_type?.toUpperCase()}`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="destructive" className="text-xs">
+                    {alert.distance_km.toFixed(1)}km
+                  </Badge>
+                  {!isExpired && (
+                    <Badge variant={isExpiringSoon ? "destructive" : "default"} className="font-mono text-xs">
+                      ⏱️ {formatTimeRemaining(remaining)}
+                    </Badge>
+                  )}
+                </div>
+              </CardTitle>
+            </CardHeader>
           
           <CardContent className="space-y-3">
             <div className="space-y-2 text-sm">
@@ -71,17 +123,18 @@ export default function DriverAlertsList() {
               </div>
             </div>
 
+            {/* PHASE 5: Boutons avec état d'expiration */}
             <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
                   acceptOrder(alert.id, alert.order_id);
                 }}
-                disabled={loading}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                disabled={loading || isExpired}
+                className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
               >
                 <Package className="h-4 w-4 mr-1" />
-                Accepter
+                {isExpired ? '❌ Expirée' : 'Accepter'}
               </Button>
               <Button
                 onClick={(e) => {
@@ -89,6 +142,7 @@ export default function DriverAlertsList() {
                   ignoreOrder(alert.id);
                 }}
                 variant="outline"
+                disabled={isExpired}
               >
                 <X className="h-4 w-4 mr-1" />
                 Ignorer
@@ -96,7 +150,8 @@ export default function DriverAlertsList() {
             </div>
           </CardContent>
         </Card>
-      ))}
+        );
+      })}
     </div>
   );
 }

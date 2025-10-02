@@ -78,26 +78,7 @@ serve(async (req) => {
 
     console.log(`✅ Found ${drivers.length} available drivers at ${finalRadius}km`);
     
-    // Phase 4: Scoring multi-critères pour sélectionner le meilleur
-    const scoredDrivers = drivers.map(driver => {
-      const distanceScore = (1 / (driver.distance_km + 0.1)) * 40; // 40% du score
-      const ratingScore = (driver.rating_average || 0) * 4; // 20% (rating sur 5)
-      const ridesScore = Math.min((driver.rides_remaining || 0) * 2, 20); // 20%
-      const timeScore = 10; // 10% pour l'instant (TODO: calculer temps depuis dernière course)
-      const refusalScore = 10; // 10% (TODO: historique de refus)
-      
-      return {
-        ...driver,
-        total_score: distanceScore + ratingScore + ridesScore + timeScore + refusalScore
-      };
-    }).sort((a, b) => b.total_score - a.total_score);
-
-    // Phase 4: Notifier les TOP 5 chauffeurs (pas juste le meilleur)
-    const topDrivers = scoredDrivers.slice(0, Math.min(5, scoredDrivers.length));
-    
-    console.log(`🎯 Notifying top ${topDrivers.length} drivers`);
-
-    // Récupérer les détails de la commande
+    // PHASE 3: Récupérer les détails et vérifier si déjà assigné
     const { data: orderDetails, error: orderError } = await supabase
       .from('delivery_orders')
       .select('*')
@@ -105,10 +86,58 @@ serve(async (req) => {
       .single();
 
     if (orderError) {
-      console.warn('⚠️ Could not get order details:', orderError);
+      console.error('❌ Could not get order details:', orderError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Order not found'
+        }),
+        { 
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    // Envoyer des alertes à tous les top chauffeurs
+    // PHASE 3: Ne pas notifier si déjà assigné
+    if (orderDetails.driver_id) {
+      console.log(`⚠️ Order ${orderId} already assigned to driver ${orderDetails.driver_id}`);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Order already assigned',
+          orderId,
+          assignedDriverId: orderDetails.driver_id
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    // Phase 4: Scoring multi-critères pour sélectionner le meilleur
+    const scoredDrivers = drivers.map(driver => {
+      const distanceScore = (1 / (driver.distance_km + 0.1)) * 40;
+      const ratingScore = (driver.rating_average || 0) * 4;
+      const ridesScore = Math.min((driver.rides_remaining || 0) * 2, 20);
+      const timeScore = 10;
+      const refusalScore = 10;
+      
+      return {
+        ...driver,
+        total_score: distanceScore + ratingScore + ridesScore + timeScore + refusalScore
+      };
+    }).sort((a, b) => b.total_score - a.total_score);
+
+    // Phase 4: Notifier les TOP 5 chauffeurs
+    const topDrivers = scoredDrivers.slice(0, Math.min(5, scoredDrivers.length));
+    
+    console.log(`🎯 Notifying top ${topDrivers.length} drivers`);
+
+    // PHASE 3 & 4: Envoyer des alertes avec expiration
+    const expiresAt = new Date(Date.now() + 3 * 60 * 1000).toISOString(); // 3 minutes
+    
     const alertPromises = topDrivers.map(async (driver, index) => {
       const { error: alertError } = await supabase
         .from('delivery_driver_alerts')
@@ -118,6 +147,7 @@ serve(async (req) => {
           alert_type: 'new_delivery_request',
           distance_km: driver.distance_km,
           response_status: 'sent',
+          expires_at: expiresAt,
           order_details: {
             pickup_location: orderDetails?.pickup_location,
             delivery_location: orderDetails?.delivery_location,
@@ -129,7 +159,7 @@ serve(async (req) => {
       if (alertError) {
         console.warn(`⚠️ Could not create alert for driver ${driver.driver_id}:`, alertError);
       } else {
-        console.log(`✅ Alert sent to driver #${index + 1} (${driver.driver_id}) - Distance: ${driver.distance_km.toFixed(1)}km - Score: ${driver.total_score.toFixed(1)}`);
+        console.log(`✅ Alert sent to driver #${index + 1} (${driver.driver_id}) - Expires in 3min - Distance: ${driver.distance_km.toFixed(1)}km - Score: ${driver.total_score.toFixed(1)}`);
       }
     });
 

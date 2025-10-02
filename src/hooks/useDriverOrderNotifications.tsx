@@ -14,10 +14,11 @@ interface DriverAlert {
   driver_id: string;
   alert_type: string;
   distance_km: number;
-  response_status: 'sent' | 'seen' | 'accepted' | 'ignored';
+  response_status: 'sent' | 'seen' | 'accepted' | 'ignored' | 'expired';
   sent_at: string;
   seen_at?: string | null;
   responded_at?: string | null;
+  expires_at?: string | null;
   order_details?: {
     pickup_location: string;
     delivery_location: string;
@@ -76,44 +77,127 @@ export const useDriverOrderNotifications = () => {
     }
   }, []);
 
-  // Accepter une commande
+  // PHASE 2: Accepter avec protection atomique et versioning
   const acceptOrder = useCallback(async (alertId: string, orderId: string) => {
+    if (!user) {
+      toast.error('Vous devez être connecté');
+      return false;
+    }
+
     setLoading(true);
     try {
-      // Marquer l'alerte comme acceptée
-      const { error: updateError } = await supabase
+      // 1. Vérifier l'état actuel de la commande
+      const { data: currentOrder, error: checkError } = await supabase
+        .from('delivery_orders')
+        .select('id, driver_id, assignment_version, status')
+        .eq('id', orderId)
+        .single();
+
+      if (checkError) {
+        console.error('Error checking order:', checkError);
+        throw new Error('Impossible de vérifier la commande');
+      }
+
+      // 2. Si déjà assignée, refuser immédiatement
+      if (currentOrder.driver_id) {
+        await supabase.rpc('log_assignment_conflict', {
+          p_order_type: 'delivery_order',
+          p_order_id: orderId,
+          p_driver_id: user.id,
+          p_conflict_reason: 'Course déjà assignée à un autre chauffeur'
+        });
+
+        await supabase
+          .from('delivery_driver_alerts')
+          .update({ 
+            response_status: 'ignored',
+            responded_at: new Date().toISOString()
+          })
+          .eq('id', alertId);
+
+        setPendingAlerts(prev => prev.filter(alert => alert.id !== alertId));
+        toast.error('⚠️ Course déjà prise par un autre chauffeur');
+        return false;
+      }
+
+      // 3. Tentative d'assignation atomique avec versioning
+      const { data: updateResult, error: orderError } = await supabase
+        .from('delivery_orders')
+        .update({ 
+          driver_id: user.id,
+          status: 'driver_assigned',
+          driver_assigned_at: new Date().toISOString()
+        })
+        .eq('id', orderId)
+        .eq('assignment_version', currentOrder.assignment_version)
+        .is('driver_id', null)
+        .select();
+
+      // 4. Vérifier si l'update a réussi
+      if (!updateResult || updateResult.length === 0) {
+        await supabase.rpc('log_assignment_conflict', {
+          p_order_type: 'delivery_order',
+          p_order_id: orderId,
+          p_driver_id: user.id,
+          p_conflict_reason: 'Conflit de version (race condition)'
+        });
+
+        await supabase
+          .from('delivery_driver_alerts')
+          .update({ 
+            response_status: 'ignored',
+            responded_at: new Date().toISOString()
+          })
+          .eq('id', alertId);
+
+        setPendingAlerts(prev => prev.filter(alert => alert.id !== alertId));
+        toast.error('⚠️ Un autre chauffeur a accepté en même temps');
+        return false;
+      }
+
+      if (orderError) throw orderError;
+
+      // 5. Marquer cette alerte comme acceptée
+      const { error: alertError } = await supabase
         .from('delivery_driver_alerts')
-        .update({
+        .update({ 
           response_status: 'accepted',
           responded_at: new Date().toISOString()
         })
         .eq('id', alertId);
 
-      if (updateError) throw updateError;
+      if (alertError) throw alertError;
 
-      // Assigner le chauffeur à la commande
-      const { error: assignError } = await supabase
-        .from('delivery_orders')
-        .update({
-          driver_id: user?.id,
-          status: 'driver_assigned',
-          driver_assigned_at: new Date().toISOString()
+      // 6. Annuler toutes les autres alertes pour cette même commande
+      await supabase
+        .from('delivery_driver_alerts')
+        .update({ 
+          response_status: 'ignored',
+          responded_at: new Date().toISOString()
         })
-        .eq('id', orderId)
-        .is('driver_id', null); // Seulement si pas déjà assigné
+        .eq('order_id', orderId)
+        .neq('id', alertId)
+        .eq('response_status', 'sent');
 
-      if (assignError) throw assignError;
+      // 7. Logger le succès
+      await supabase.from('activity_logs').insert({
+        user_id: user.id,
+        activity_type: 'order_accepted',
+        description: 'Course de livraison acceptée avec succès',
+        reference_type: 'delivery_order',
+        reference_id: orderId
+      });
 
       setPendingAlerts(prev => prev.filter(alert => alert.id !== alertId));
-
-      toast.success('Commande acceptée ! 🎉', {
+      
+      toast.success('✅ Course acceptée !', {
         description: 'Vous pouvez maintenant démarrer la livraison'
       });
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error accepting order:', error);
-      toast.error('Erreur lors de l\'acceptation de la commande');
+      toast.error('❌ Erreur: ' + (error.message || 'Erreur inconnue'));
       return false;
     } finally {
       setLoading(false);
