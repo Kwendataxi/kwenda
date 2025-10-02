@@ -16,14 +16,14 @@ interface DriverAlert {
   distance_km: number;
   response_status: 'sent' | 'seen' | 'accepted' | 'ignored';
   sent_at: string;
-  seen_at?: string;
-  responded_at?: string;
+  seen_at?: string | null;
+  responded_at?: string | null;
   order_details?: {
     pickup_location: string;
     delivery_location: string;
     estimated_price: number;
     delivery_type: string;
-  };
+  } | null;
 }
 
 export const useDriverOrderNotifications = () => {
@@ -37,7 +37,7 @@ export const useDriverOrderNotifications = () => {
 
     try {
       const { data, error } = await supabase
-        .from('delivery_driver_alerts')
+        .from('delivery_driver_alerts' as any)
         .select('*')
         .eq('driver_id', user.id)
         .in('response_status', ['sent', 'seen'])
@@ -45,7 +45,7 @@ export const useDriverOrderNotifications = () => {
 
       if (error) throw error;
 
-      setPendingAlerts(data || []);
+      setPendingAlerts((data || []) as any);
     } catch (error) {
       console.error('Error loading pending alerts:', error);
     }
@@ -55,7 +55,7 @@ export const useDriverOrderNotifications = () => {
   const markAlertAsSeen = useCallback(async (alertId: string) => {
     try {
       const { error } = await supabase
-        .from('delivery_driver_alerts')
+        .from('delivery_driver_alerts' as any)
         .update({
           response_status: 'seen',
           seen_at: new Date().toISOString()
@@ -67,7 +67,7 @@ export const useDriverOrderNotifications = () => {
       setPendingAlerts(prev =>
         prev.map(alert =>
           alert.id === alertId
-            ? { ...alert, response_status: 'seen', seen_at: new Date().toISOString() }
+            ? { ...alert, response_status: 'seen' as const, seen_at: new Date().toISOString() }
             : alert
         )
       );
@@ -82,7 +82,7 @@ export const useDriverOrderNotifications = () => {
     try {
       // Marquer l'alerte comme acceptée
       const { error: updateError } = await supabase
-        .from('delivery_driver_alerts')
+        .from('delivery_driver_alerts' as any)
         .update({
           response_status: 'accepted',
           responded_at: new Date().toISOString()
@@ -124,7 +124,7 @@ export const useDriverOrderNotifications = () => {
   const ignoreOrder = useCallback(async (alertId: string) => {
     try {
       const { error } = await supabase
-        .from('delivery_driver_alerts')
+        .from('delivery_driver_alerts' as any)
         .update({
           response_status: 'ignored',
           responded_at: new Date().toISOString()
@@ -158,12 +158,12 @@ export const useDriverOrderNotifications = () => {
           filter: `driver_id=eq.${user.id}`
         },
         (payload) => {
-          const newAlert = payload.new as DriverAlert;
+          const newAlert = payload.new as any;
           
-          setPendingAlerts(prev => [newAlert, ...prev]);
+          setPendingAlerts(prev => [newAlert as DriverAlert, ...prev]);
 
           // Afficher une notification toast avec son
-          toast.success(`🔔 Nouvelle course ${newAlert.order_details?.delivery_type?.toUpperCase()}`, {
+          toast.success(`🔔 Nouvelle course ${newAlert.order_details?.delivery_type?.toUpperCase() || ''}`, {
             description: `À ${newAlert.distance_km.toFixed(1)}km - ${newAlert.order_details?.estimated_price} FC`,
             action: {
               label: 'Accepter',
@@ -175,7 +175,7 @@ export const useDriverOrderNotifications = () => {
           // Jouer un son de notification
           try {
             const audio = new Audio('/notification.mp3');
-            audio.play();
+            audio.play().catch(() => {});
           } catch (error) {
             console.error('Error playing notification sound:', error);
           }

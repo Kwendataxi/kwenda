@@ -892,6 +892,59 @@ export type Database = {
           },
         ]
       }
+      delivery_driver_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          distance_km: number
+          driver_id: string
+          id: string
+          order_details: Json | null
+          order_id: string
+          responded_at: string | null
+          response_status: string
+          seen_at: string | null
+          sent_at: string
+          updated_at: string
+        }
+        Insert: {
+          alert_type?: string
+          created_at?: string
+          distance_km: number
+          driver_id: string
+          id?: string
+          order_details?: Json | null
+          order_id: string
+          responded_at?: string | null
+          response_status?: string
+          seen_at?: string | null
+          sent_at?: string
+          updated_at?: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          distance_km?: number
+          driver_id?: string
+          id?: string
+          order_details?: Json | null
+          order_id?: string
+          responded_at?: string | null
+          response_status?: string
+          seen_at?: string | null
+          sent_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_driver_alerts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_fees: {
         Row: {
           base_fee: number

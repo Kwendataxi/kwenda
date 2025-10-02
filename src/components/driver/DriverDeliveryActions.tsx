@@ -260,15 +260,17 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
 
         {/* Actions secondaires */}
         <div className="flex gap-2 pt-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={openNavigation}
-            className="flex-1"
-          >
-            <Navigation className="w-4 h-4 mr-1" />
-            Navigation
-          </Button>
+          {['in_transit', 'picked_up'].includes(order.status) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={openNavigation}
+              className="flex-1"
+            >
+              <Navigation className="w-4 h-4 mr-1" />
+              Navigation GPS
+            </Button>
+          )}
           
           <Button 
             variant="outline" 
