@@ -145,9 +145,9 @@ export const SimplifiedDriverRegistration: React.FC<SimplifiedDriverRegistration
 
   return (
     <div className="w-full max-w-2xl mx-auto p-6 overflow-visible">
-      <Card className="overflow-visible">
+      <Card className="overflow-visible dark:bg-gray-900/50 dark:border-gray-700">
         <CardHeader>
-          <CardTitle className="text-center">
+          <CardTitle className="text-center dark:text-gray-200">
             Inscription {serviceCategory === 'taxi' ? 'Chauffeur' : 'Livreur'}
           </CardTitle>
         </CardHeader>
@@ -167,7 +167,7 @@ export const SimplifiedDriverRegistration: React.FC<SimplifiedDriverRegistration
                 {/* Informations personnelles */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold">Informations personnelles</h3>
+                    <h3 className="text-lg font-semibold dark:text-gray-200">Informations personnelles</h3>
                     <Button 
                       type="button" 
                       variant="ghost" 
@@ -179,72 +179,78 @@ export const SimplifiedDriverRegistration: React.FC<SimplifiedDriverRegistration
                   </div>
                   
                   <div>
-                    <Label htmlFor="displayName">Nom complet *</Label>
+                    <Label htmlFor="displayName" className="dark:text-gray-200">Nom complet *</Label>
                     <Input
                       id="displayName"
                       value={formData.displayName}
                       onChange={(e) => handleFieldChange('displayName', e.target.value)}
                       required
+                      className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="email">Email *</Label>
+                      <Label htmlFor="email" className="dark:text-gray-200">Email *</Label>
                       <Input
                         id="email"
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleFieldChange('email', e.target.value)}
                         required
+                        className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="password">Mot de passe *</Label>
+                      <Label htmlFor="password" className="dark:text-gray-200">Mot de passe *</Label>
                       <Input
                         id="password"
                         type="password"
                         value={formData.password}
                         onChange={(e) => handleFieldChange('password', e.target.value)}
                         required
+                        className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="phoneNumber">Numéro de téléphone *</Label>
+                    <Label htmlFor="phoneNumber" className="dark:text-gray-200">Numéro de téléphone *</Label>
                     <Input
                       id="phoneNumber"
                       value={formData.phoneNumber}
                       onChange={(e) => handleFieldChange('phoneNumber', e.target.value)}
                       placeholder="+243 XXX XXX XXX"
                       required
+                      className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                     />
                   </div>
                 </div>
 
                 {/* Informations du permis */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Permis de conduire</h3>
+                  <h3 className="text-lg font-semibold dark:text-gray-200">Permis de conduire</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="licenseNumber">Numéro de permis *</Label>
+                      <Label htmlFor="licenseNumber" className="dark:text-gray-200">Numéro de permis *</Label>
                       <Input
                         id="licenseNumber"
                         value={formData.licenseNumber}
                         onChange={(e) => handleFieldChange('licenseNumber', e.target.value)}
                         required
+                        className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="licenseExpiry">Date d'expiration *</Label>
+                      <Label htmlFor="licenseExpiry" className="dark:text-gray-200">Date d'expiration *</Label>
                       <Input
                         id="licenseExpiry"
                         type="date"
                         value={formData.licenseExpiry}
                         onChange={(e) => handleFieldChange('licenseExpiry', e.target.value)}
                         required
+                        className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                       />
                     </div>
                   </div>
@@ -260,24 +266,26 @@ export const SimplifiedDriverRegistration: React.FC<SimplifiedDriverRegistration
 
                 {/* Contact d'urgence */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Contact d'urgence</h3>
+                  <h3 className="text-lg font-semibold dark:text-gray-200">Contact d'urgence</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="emergencyContactName">Nom du contact</Label>
+                      <Label htmlFor="emergencyContactName" className="dark:text-gray-200">Nom du contact</Label>
                       <Input
                         id="emergencyContactName"
                         value={formData.emergencyContactName}
                         onChange={(e) => handleFieldChange('emergencyContactName', e.target.value)}
+                        className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="emergencyContactPhone">Téléphone du contact</Label>
+                      <Label htmlFor="emergencyContactPhone" className="dark:text-gray-200">Téléphone du contact</Label>
                       <Input
                         id="emergencyContactPhone"
                         value={formData.emergencyContactPhone}
                         onChange={(e) => handleFieldChange('emergencyContactPhone', e.target.value)}
                         placeholder="+243 XXX XXX XXX"
+                        className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                       />
                     </div>
                   </div>

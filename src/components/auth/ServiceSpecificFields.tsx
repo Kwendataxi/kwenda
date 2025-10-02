@@ -56,9 +56,9 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
   return (
     <div className="space-y-6">
       {/* Type de service */}
-      <Card className="overflow-visible">
+      <Card className="overflow-visible dark:bg-gray-900/50 dark:border-gray-700">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 dark:text-gray-200">
             {serviceCategory === 'taxi' ? (
               <Car className="h-5 w-5" />
             ) : (
@@ -70,7 +70,7 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
         <CardContent className="overflow-visible">
           <div className="space-y-4">
             <div className="relative z-50 overflow-visible">
-              <Label htmlFor="serviceType" className="flex items-center gap-1">
+              <Label htmlFor="serviceType" className="flex items-center gap-1 dark:text-gray-200">
                 Type de service <span className="text-destructive">*</span>
               </Label>
               <Select 
@@ -80,7 +80,7 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                   onFieldChange('serviceType', value);
                 }}
               >
-                <SelectTrigger className="relative z-50 bg-background">
+                <SelectTrigger className="relative z-50 bg-background dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100">
                   <SelectValue placeholder={`Sélectionnez le type de ${serviceCategory === 'taxi' ? 'transport' : 'livraison'}`} />
                 </SelectTrigger>
                 <SelectContent position="popper" sideOffset={5}>
@@ -100,7 +100,7 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
 
             {serviceCategory === 'delivery' && (
               <div className="relative z-50 overflow-visible">
-                <Label htmlFor="deliveryCapacity" className="flex items-center gap-1">
+                <Label htmlFor="deliveryCapacity" className="flex items-center gap-1 dark:text-gray-200">
                   Capacité de chargement <span className="text-destructive">*</span>
                 </Label>
                 <Select 
@@ -110,7 +110,7 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                     onFieldChange('deliveryCapacity', value);
                   }}
                 >
-                  <SelectTrigger className="relative z-50 bg-background">
+                  <SelectTrigger className="relative z-50 bg-background dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100">
                     <SelectValue placeholder="Sélectionnez la capacité" />
                   </SelectTrigger>
                   <SelectContent position="popper" sideOffset={5}>
@@ -133,14 +133,14 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
 
       {/* Informations véhicule si propriétaire */}
       {hasOwnVehicle && (
-        <Card className="overflow-visible">
+        <Card className="overflow-visible dark:bg-gray-900/50 dark:border-gray-700">
           <CardHeader>
-            <CardTitle>Informations du véhicule</CardTitle>
+            <CardTitle className="dark:text-gray-200">Informations du véhicule</CardTitle>
           </CardHeader>
           <CardContent className="overflow-visible">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="relative z-50 overflow-visible">
-                <Label htmlFor="vehicleType" className="flex items-center gap-1">
+                <Label htmlFor="vehicleType" className="flex items-center gap-1 dark:text-gray-200">
                   Type de véhicule <span className="text-destructive">*</span>
                 </Label>
                 <Select 
@@ -150,7 +150,7 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                     onFieldChange('vehicleType', value);
                   }}
                 >
-                  <SelectTrigger className="relative z-50 bg-background">
+                  <SelectTrigger className="relative z-50 bg-background dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100">
                     <SelectValue placeholder="Type de véhicule" />
                   </SelectTrigger>
                   <SelectContent position="popper" sideOffset={5}>
@@ -169,29 +169,31 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
               </div>
 
               <div>
-                <Label htmlFor="vehicleMake">Marque *</Label>
+                <Label htmlFor="vehicleMake" className="dark:text-gray-200">Marque *</Label>
                 <Input
                   id="vehicleMake"
                   value={formData.vehicleMake}
                   onChange={(e) => onFieldChange('vehicleMake', e.target.value)}
                   placeholder="Ex: Toyota, Honda"
                   required={hasOwnVehicle}
+                  className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                 />
               </div>
 
               <div>
-                <Label htmlFor="vehicleModel">Modèle *</Label>
+                <Label htmlFor="vehicleModel" className="dark:text-gray-200">Modèle *</Label>
                 <Input
                   id="vehicleModel"
                   value={formData.vehicleModel}
                   onChange={(e) => onFieldChange('vehicleModel', e.target.value)}
                   placeholder="Ex: Corolla, Civic"
                   required={hasOwnVehicle}
+                  className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                 />
               </div>
 
               <div>
-                <Label htmlFor="vehicleYear">Année *</Label>
+                <Label htmlFor="vehicleYear" className="dark:text-gray-200">Année *</Label>
                 <Input
                   id="vehicleYear"
                   type="number"
@@ -201,48 +203,53 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                   min="1990"
                   max={new Date().getFullYear()}
                   required={hasOwnVehicle}
+                  className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                 />
               </div>
 
               <div>
-                <Label htmlFor="vehiclePlate">Plaque d'immatriculation *</Label>
+                <Label htmlFor="vehiclePlate" className="dark:text-gray-200">Plaque d'immatriculation *</Label>
                 <Input
                   id="vehiclePlate"
                   value={formData.vehiclePlate}
                   onChange={(e) => onFieldChange('vehiclePlate', e.target.value.toUpperCase())}
                   placeholder="Ex: CD-123-ABC"
                   required={hasOwnVehicle}
+                  className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                 />
               </div>
 
               <div>
-                <Label htmlFor="vehicleColor">Couleur</Label>
+                <Label htmlFor="vehicleColor" className="dark:text-gray-200">Couleur</Label>
                 <Input
                   id="vehicleColor"
                   value={formData.vehicleColor}
                   onChange={(e) => onFieldChange('vehicleColor', e.target.value)}
                   placeholder="Ex: Rouge, Blanc"
+                  className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                 />
               </div>
 
               <div>
-                <Label htmlFor="insuranceNumber">Numéro d'assurance *</Label>
+                <Label htmlFor="insuranceNumber" className="dark:text-gray-200">Numéro d'assurance *</Label>
                 <Input
                   id="insuranceNumber"
                   value={formData.insuranceNumber}
                   onChange={(e) => onFieldChange('insuranceNumber', e.target.value)}
                   placeholder="Numéro de police d'assurance"
                   required={hasOwnVehicle}
+                  className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                 />
               </div>
 
               <div>
-                <Label htmlFor="insuranceExpiry">Expiration assurance</Label>
+                <Label htmlFor="insuranceExpiry" className="dark:text-gray-200">Expiration assurance</Label>
                 <Input
                   id="insuranceExpiry"
                   type="date"
                   value={formData.insuranceExpiry}
                   onChange={(e) => onFieldChange('insuranceExpiry', e.target.value)}
+                  className="dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100"
                 />
               </div>
             </div>
