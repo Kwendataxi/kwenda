@@ -1,132 +1,175 @@
-
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useWallet } from '@/hooks/useWallet';
-import { cn } from '@/lib/utils';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+import { useWalletValidation } from '@/hooks/useWalletValidation';
+import { EnhancedWalletCard } from '@/components/wallet/EnhancedWalletCard';
+import { QuickAmountSelector } from '@/components/wallet/QuickAmountSelector';
+import { OperatorSelector } from '@/components/wallet/OperatorSelector';
+import { AnimatedTopUpButton } from '@/components/wallet/AnimatedTopUpButton';
+import { TransactionCard } from '@/components/wallet/TransactionCard';
+import { EmptyTransactions } from '@/components/wallet/EmptyTransactions';
+import { SuccessConfetti } from '@/components/wallet/SuccessConfetti';
+import { WalletSkeleton } from '@/components/wallet/WalletSkeleton';
+
+type Operator = 'airtel' | 'orange' | 'mpesa';
+
+const QUICK_AMOUNTS = [1000, 5000, 10000, 25000, 50000];
 
 export const DriverWalletPanel: React.FC = () => {
   const { wallet, transactions, loading, error, topUpWallet } = useWallet();
+  const { triggerSuccess, triggerError } = useHapticFeedback();
+  const { validateAmount, validatePhone, amountError, phoneError } = useWalletValidation();
+  
   const [amount, setAmount] = useState<string>('');
-  const [provider, setProvider] = useState<'airtel' | 'orange' | 'mpesa' | ''>('');
+  const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(null);
+  const [provider, setProvider] = useState<Operator | ''>('');
   const [phone, setPhone] = useState<string>('');
+  const [showConfetti, setShowConfetti] = useState(false);
 
-  const balanceText = useMemo(() => {
-    if (loading) return 'Chargement...';
-    if (error) return 'Erreur de chargement';
-    const value = Number(wallet?.balance || 0);
-    return `${value.toLocaleString('fr-CD')} ${wallet?.currency || 'CDF'}`;
-  }, [wallet, loading, error]);
+  const handleQuickAmountSelect = (quickAmount: number) => {
+    setAmount(quickAmount.toString());
+    setSelectedQuickAmount(quickAmount);
+    validateAmount(quickAmount.toString());
+  };
 
-  const canTopup = useMemo(() => {
-    return !!provider && !!phone && Number(amount) > 0 && !loading;
-  }, [provider, phone, amount, loading]);
+  const handleAmountChange = (value: string) => {
+    setAmount(value);
+    setSelectedQuickAmount(null);
+    validateAmount(value);
+  };
+
+  const handlePhoneChange = (value: string) => {
+    setPhone(value);
+    validatePhone(value);
+  };
 
   const handleTopup = async () => {
-    const ok = await topUpWallet(Number(amount), provider, phone);
-    if (ok) {
+    if (!provider) return;
+
+    const amountValidation = validateAmount(amount);
+    const phoneValidation = validatePhone(phone);
+
+    if (!amountValidation.isValid || !phoneValidation.isValid) {
+      triggerError();
+      return;
+    }
+
+    const success = await topUpWallet(Number(amount), provider, phone);
+    
+    if (success) {
+      triggerSuccess();
+      setShowConfetti(true);
       setAmount('');
+      setSelectedQuickAmount(null);
+      setProvider('');
+      setPhone('');
+    } else {
+      triggerError();
     }
   };
 
+  if (loading) {
+    return <WalletSkeleton />;
+  }
+
   return (
-    <div className="space-y-4">
-      <Card className="border-border">
-        <CardHeader>
-          <CardTitle>Kwenda Pay</CardTitle>
+    <div className="space-y-6">
+      <SuccessConfetti show={showConfetti} onComplete={() => setShowConfetti(false)} />
+
+      {/* Enhanced Wallet Balance Card */}
+      <EnhancedWalletCard
+        balance={wallet?.balance || 0}
+        currency={wallet?.currency || 'CDF'}
+        loading={loading}
+        compact={false}
+      />
+
+      {/* Modern Top-up Section */}
+      <Card className="border-border overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
+          <CardTitle className="text-xl">Recharger mon compte</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">
-                {error ? "Erreur de chargement" : "Solde disponible"}
-              </p>
-              <p className={cn(
-                "text-2xl font-semibold tracking-tight",
-                loading && "animate-pulse",
-                error && "text-destructive"
-              )}>
-                {balanceText}
-              </p>
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {error ? 'Erreur' : wallet?.is_active ? 'Actif' : 'Inactif'}
-            </div>
+        <CardContent className="space-y-6 pt-6">
+          {/* Quick Amount Selector */}
+          <QuickAmountSelector
+            amounts={QUICK_AMOUNTS}
+            selectedAmount={selectedQuickAmount}
+            onSelect={handleQuickAmountSelect}
+            currency={wallet?.currency || 'CDF'}
+          />
+
+          {/* Custom Amount Input */}
+          <div className="space-y-2">
+            <Label>Montant personnalisé</Label>
+            <Input
+              type="number"
+              inputMode="numeric"
+              placeholder="Entrez un montant"
+              value={amount}
+              onChange={(e) => handleAmountChange(e.target.value)}
+              className={amountError ? 'border-destructive' : ''}
+            />
+            {amountError && (
+              <p className="text-xs text-destructive">{amountError}</p>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="space-y-2">
-              <Label>Montant</Label>
-              <Input
-                type="number"
-                inputMode="numeric"
-                placeholder="5000"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Opérateur</Label>
-              <Select value={provider} onValueChange={(v) => setProvider(v as any)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choisir" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="airtel">Airtel Money</SelectItem>
-                  <SelectItem value="orange">Orange Money</SelectItem>
-                  <SelectItem value="mpesa">M-Pesa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Téléphone</Label>
-              <Input
-                type="tel"
-                inputMode="tel"
-                placeholder="099xxxxxxx"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
+          {/* Operator Selector */}
+          <OperatorSelector
+            selected={provider}
+            onSelect={(op) => setProvider(op)}
+          />
+
+          {/* Phone Input */}
+          <div className="space-y-2">
+            <Label>Numéro de téléphone</Label>
+            <Input
+              type="tel"
+              inputMode="tel"
+              placeholder="0991234567"
+              value={phone}
+              onChange={(e) => handlePhoneChange(e.target.value)}
+              className={phoneError ? 'border-destructive' : ''}
+            />
+            {phoneError && (
+              <p className="text-xs text-destructive">{phoneError}</p>
+            )}
           </div>
 
-          <div className="flex justify-end">
-            <Button onClick={handleTopup} disabled={!canTopup} className={cn(loading && 'opacity-70')}>
-              {loading ? 'Traitement...' : 'Recharger'}
-            </Button>
-          </div>
+          {/* Animated Top-up Button */}
+          <AnimatedTopUpButton
+            onClick={handleTopup}
+            disabled={!amount || !provider || !phone || loading}
+            loading={loading}
+          />
         </CardContent>
       </Card>
 
+      {/* Transaction History */}
       <Card className="border-border">
         <CardHeader>
-          <CardTitle>Dernières transactions</CardTitle>
+          <CardTitle className="text-xl">Historique des transactions</CardTitle>
         </CardHeader>
         <CardContent>
           {transactions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Aucune transaction pour l’instant.</p>
+            <EmptyTransactions />
           ) : (
             <div className="space-y-3">
-              {transactions.slice(0, 10).map((t) => {
-                const isCredit = t.transaction_type === 'credit';
-                return (
-                  <div key={t.id} className="flex items-center justify-between border-b last:border-b-0 py-2">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{t.description}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(t.created_at).toLocaleString('fr-FR')}
-                      </p>
-                    </div>
-                    <div className={cn('text-sm font-semibold', isCredit ? 'text-green-600' : 'text-red-600')}>
-                      {isCredit ? '+' : '-'}
-                      {Number(t.amount).toLocaleString('fr-CD')} {t.currency}
-                    </div>
-                  </div>
-                );
-              })}
+              {transactions.slice(0, 10).map((transaction, index) => (
+                <TransactionCard
+                  key={transaction.id}
+                  id={transaction.id}
+                  type={transaction.transaction_type as 'credit' | 'debit'}
+                  amount={Number(transaction.amount)}
+                  currency={transaction.currency}
+                  description={transaction.description}
+                  date={transaction.created_at}
+                  index={index}
+                />
+              ))}
             </div>
           )}
         </CardContent>
