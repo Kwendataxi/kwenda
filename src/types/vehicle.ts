@@ -19,4 +19,5 @@ export interface VehicleConfig {
   icon: 'Car' | 'Bike' | 'Bus' | 'Truck';
   gradient: string;
   description: string;
+  color: string;
 }
