@@ -7573,72 +7573,72 @@ export type Database = {
       }
       user_verification: {
         Row: {
+          admin_notes: string | null
           created_at: string | null
-          id: string
-          identity_verified: boolean | null
-          phone_verified: boolean | null
-          updated_at: string | null
-          user_id: string
-          verification_documents: Json | null
-          verification_level: string | null
-          verified_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          identity_verified?: boolean | null
-          phone_verified?: boolean | null
-          updated_at?: string | null
-          user_id: string
-          verification_documents?: Json | null
-          verification_level?: string | null
-          verified_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          identity_verified?: boolean | null
-          phone_verified?: boolean | null
-          updated_at?: string | null
-          user_id?: string
-          verification_documents?: Json | null
-          verification_level?: string | null
-          verified_at?: string | null
-        }
-        Relationships: []
-      }
-      user_verifications: {
-        Row: {
-          created_at: string
           id: string
           identity_document_url: string | null
           identity_verified: boolean | null
           phone_verified: boolean | null
-          updated_at: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          updated_at: string | null
           user_id: string
+          verification_documents: Json | null
+          verification_level: string | null
           verification_status: string | null
+          verified_at: string | null
         }
         Insert: {
-          created_at?: string
+          admin_notes?: string | null
+          created_at?: string | null
           id?: string
           identity_document_url?: string | null
           identity_verified?: boolean | null
           phone_verified?: boolean | null
-          updated_at?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          updated_at?: string | null
           user_id: string
+          verification_documents?: Json | null
+          verification_level?: string | null
           verification_status?: string | null
+          verified_at?: string | null
         }
         Update: {
-          created_at?: string
+          admin_notes?: string | null
+          created_at?: string | null
           id?: string
           identity_document_url?: string | null
           identity_verified?: boolean | null
           phone_verified?: boolean | null
-          updated_at?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          updated_at?: string | null
           user_id?: string
+          verification_documents?: Json | null
+          verification_level?: string | null
           verification_status?: string | null
+          verified_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_verification_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "admin_directory_safe"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_verification_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "admins"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       user_wallets: {
         Row: {
