@@ -16,6 +16,7 @@ interface GoogleMapsKwendaProps {
   height?: string;
   deliveryMode?: 'flash' | 'flex' | 'maxicharge';
   driverLocation?: { lat: number; lng: number; heading?: number | null };
+  additionalMarkers?: Array<{ lat: number; lng: number; icon?: string; label?: string }>;
 }
 
 const render = (status: Status) => {
