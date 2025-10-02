@@ -21,16 +21,16 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
   const getServiceTypeOptions = () => {
     if (serviceCategory === 'taxi') {
       return [
-        { value: 'taxi-standard', label: 'Taxi Standard' },
-        { value: 'taxi-premium', label: 'Taxi Premium' },
-        { value: 'taxi-bus', label: 'Taxi Bus' },
-        { value: 'vtc', label: 'VTC' }
+        { value: 'moto', label: 'Moto Taxi' },
+        { value: 'eco', label: 'ECO' },
+        { value: 'confort', label: 'CONFORT' },
+        { value: 'premium', label: 'PREMIUM' }
       ];
     } else {
       return [
-        { value: 'moto-flash', label: 'Moto Flash (Express)' },
-        { value: 'vehicule-flex', label: 'Véhicule Flex (Standard)' },
-        { value: 'maxicharge', label: 'Maxicharge (Gros volumes)' }
+        { value: 'flash', label: 'Flash (Livraison Express)' },
+        { value: 'flex', label: 'Flex (Standard)' },
+        { value: 'maxicharge', label: 'MaxiCharge (Colis Lourds)' }
       ];
     }
   };
@@ -38,15 +38,13 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
   const getVehicleTypeOptions = () => {
     if (serviceCategory === 'taxi') {
       return [
-        { value: 'berline', label: 'Berline' },
-        { value: 'suv', label: 'SUV' },
-        { value: 'minibus', label: 'Minibus' },
-        { value: 'break', label: 'Break' }
+        { value: 'voiture', label: 'Voiture' },
+        { value: 'moto', label: 'Moto' }
       ];
     } else {
       return [
         { value: 'moto', label: 'Moto' },
-        { value: 'scooter', label: 'Scooter' },
+        { value: 'voiture', label: 'Voiture' },
         { value: 'camionnette', label: 'Camionnette' },
         { value: 'camion', label: 'Camion' }
       ];
@@ -76,16 +74,21 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
               <Select 
                 value={formData.serviceType} 
                 onValueChange={(value) => {
-                  console.log('🔍 Service sélectionné:', value);
+                  console.log('🚗 Service Type sélectionné:', value, '| ServiceCategory:', serviceCategory);
+                  console.log('📋 FormData complet après sélection:', { ...formData, serviceType: value });
                   onFieldChange('serviceType', value);
                 }}
               >
-                <SelectTrigger className="relative z-50 bg-background dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100">
-                  <SelectValue placeholder={`Sélectionnez le type de ${serviceCategory === 'taxi' ? 'transport' : 'livraison'}`} />
+                <SelectTrigger className="relative z-50 bg-background dark:bg-card/95 dark:border-border/60 dark:text-foreground">
+                  <SelectValue placeholder={`Sélectionnez le type de ${serviceCategory === 'taxi' ? 'transport' : 'livraison'}`} className="dark:placeholder:text-foreground/50" />
                 </SelectTrigger>
-                <SelectContent position="popper" sideOffset={5}>
+                <SelectContent position="popper" sideOffset={5} className="dark:bg-card/95 dark:border-border/60 z-[100]">
                   {getServiceTypeOptions().map(option => (
-                    <SelectItem key={option.value} value={option.value}>
+                    <SelectItem 
+                      key={option.value} 
+                      value={option.value}
+                      className="dark:text-foreground dark:hover:bg-muted/40"
+                    >
                       {option.label}
                     </SelectItem>
                   ))}
@@ -106,18 +109,18 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                 <Select 
                   value={formData.deliveryCapacity} 
                   onValueChange={(value) => {
-                    console.log('🔍 Capacité sélectionnée:', value);
+                    console.log('📦 Capacité de livraison:', value);
                     onFieldChange('deliveryCapacity', value);
                   }}
                 >
-                  <SelectTrigger className="relative z-50 bg-background dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100">
-                    <SelectValue placeholder="Sélectionnez la capacité" />
+                  <SelectTrigger className="relative z-50 bg-background dark:bg-card/95 dark:border-border/60 dark:text-foreground">
+                    <SelectValue placeholder="Sélectionnez la capacité" className="dark:placeholder:text-foreground/50" />
                   </SelectTrigger>
-                  <SelectContent position="popper" sideOffset={5}>
-                    <SelectItem value="small">Petits colis (jusqu'à 10kg)</SelectItem>
-                    <SelectItem value="medium">Colis moyens (jusqu'à 50kg)</SelectItem>
-                    <SelectItem value="large">Gros colis (jusqu'à 200kg)</SelectItem>
-                    <SelectItem value="extra-large">Très gros colis (plus de 200kg)</SelectItem>
+                  <SelectContent position="popper" sideOffset={5} className="dark:bg-card/95 dark:border-border/60 z-[100]">
+                    <SelectItem value="small" className="dark:text-foreground dark:hover:bg-muted/40">Petits colis (jusqu'à 10kg)</SelectItem>
+                    <SelectItem value="medium" className="dark:text-foreground dark:hover:bg-muted/40">Colis moyens (jusqu'à 50kg)</SelectItem>
+                    <SelectItem value="large" className="dark:text-foreground dark:hover:bg-muted/40">Gros colis (jusqu'à 200kg)</SelectItem>
+                    <SelectItem value="extra-large" className="dark:text-foreground dark:hover:bg-muted/40">Très gros colis (plus de 200kg)</SelectItem>
                   </SelectContent>
                 </Select>
                 {!formData.deliveryCapacity && (
@@ -146,16 +149,21 @@ export const ServiceSpecificFields: React.FC<ServiceSpecificFieldsProps> = ({
                 <Select 
                   value={formData.vehicleType} 
                   onValueChange={(value) => {
-                    console.log('🔍 Type de véhicule sélectionné:', value);
+                    console.log('🚙 Type de véhicule sélectionné:', value, '| ServiceCategory:', serviceCategory);
+                    console.log('📋 FormData après sélection véhicule:', { ...formData, vehicleType: value });
                     onFieldChange('vehicleType', value);
                   }}
                 >
-                  <SelectTrigger className="relative z-50 bg-background dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-100">
-                    <SelectValue placeholder="Type de véhicule" />
+                  <SelectTrigger className="relative z-50 bg-background dark:bg-card/95 dark:border-border/60 dark:text-foreground">
+                    <SelectValue placeholder="Type de véhicule" className="dark:placeholder:text-foreground/50" />
                   </SelectTrigger>
-                  <SelectContent position="popper" sideOffset={5}>
+                  <SelectContent position="popper" sideOffset={5} className="dark:bg-card/95 dark:border-border/60 z-[100]">
                     {getVehicleTypeOptions().map(option => (
-                      <SelectItem key={option.value} value={option.value}>
+                      <SelectItem 
+                        key={option.value} 
+                        value={option.value}
+                        className="dark:text-foreground dark:hover:bg-muted/40"
+                      >
                         {option.label}
                       </SelectItem>
                     ))}
