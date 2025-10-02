@@ -36,25 +36,25 @@ export const UserVerification = () => {
   const loadVerificationStatus = async () => {
     try {
       const { data, error } = await supabase
-        .from('user_verifications')
+        .from('user_verification')
         .select('*')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
 
       if (!data) {
         // Create initial verification record
         const { data: newData, error: insertError } = await supabase
-          .from('user_verifications')
+          .from('user_verification')
           .insert({ user_id: user?.id })
           .select()
           .single();
 
         if (insertError) throw insertError;
-        setVerification(newData);
+        setVerification(newData as unknown as UserVerificationData);
       } else {
-        setVerification(data);
+        setVerification(data as unknown as UserVerificationData);
       }
     } catch (error) {
       console.error('Error loading verification status:', error);
@@ -77,7 +77,7 @@ export const UserVerification = () => {
       // For demo purposes, we'll auto-verify after 3 seconds
       setTimeout(async () => {
         await supabase
-          .from('user_verifications')
+          .from('user_verification')
           .update({ phone_verified: true })
           .eq('user_id', user?.id);
         
@@ -121,7 +121,7 @@ export const UserVerification = () => {
 
       // Update verification with document URL
       const { error: updateError } = await supabase
-        .from('user_verifications')
+        .from('user_verification')
         .update({ 
           identity_document_url: data.publicUrl,
           verification_status: 'pending_review'

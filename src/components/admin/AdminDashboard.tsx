@@ -13,7 +13,8 @@ import { AdminServiceManager } from './AdminServiceManager';
 import { AdminAnalyticsDashboard } from './AdminAnalyticsDashboard';
 import { AdminSecurityManager } from './AdminSecurityManager';
 import { AdminNotificationManager } from './AdminNotificationManager';
-import { Building2, Car, Users, Activity, MapPin, Package, Settings, BarChart, Shield, Bell } from 'lucide-react';
+import { AdminUserVerificationManager } from './AdminUserVerificationManager';
+import { Building2, Car, Users, Activity, MapPin, Package, Settings, BarChart, Shield, Bell, CheckCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -22,21 +23,24 @@ const AdminDashboard = () => {
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['adminDashboard'],
     queryFn: async () => {
-      const [usersRes, driversRes, bookingsRes] = await Promise.all([
+      const [usersRes, driversRes, bookingsRes, verificationsRes] = await Promise.all([
         supabase.from('profiles').select('id, user_type, created_at'),
         supabase.from('chauffeurs').select('id, is_active'),
-        supabase.from('transport_bookings').select('id, status, actual_price')
+        supabase.from('transport_bookings').select('id, status, actual_price'),
+        supabase.from('user_verification').select('verification_status')
       ]);
 
       const users = usersRes.data || [];
       const drivers = driversRes.data || [];
       const bookings = bookingsRes.data || [];
+      const verifications = verificationsRes.data || [];
 
       return {
         totalUsers: users.length,
         activeDrivers: drivers.filter(d => d.is_active).length,
         totalBookings: bookings.length,
-        totalRevenue: bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.actual_price || 0), 0)
+        totalRevenue: bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.actual_price || 0), 0),
+        pendingVerifications: verifications.filter(v => v.verification_status === 'pending_review').length
       };
     },
     refetchInterval: 30000
@@ -108,12 +112,20 @@ const AdminDashboard = () => {
 
       {/* Main Management Tabs */}
       <Tabs defaultValue="partners" className="w-full">
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="partners">Partenaires</TabsTrigger>
           <TabsTrigger value="moderation">Modération</TabsTrigger>
           <TabsTrigger value="rental">Location</TabsTrigger>
           <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
           <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
+          <TabsTrigger value="verifications" className="relative">
+            Vérifications
+            {(dashboardData?.pendingVerifications ?? 0) > 0 && (
+              <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                {dashboardData?.pendingVerifications}
+              </Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="security">Sécurité</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -141,6 +153,10 @@ const AdminDashboard = () => {
 
         <TabsContent value="marketplace" className="mt-6">
           <AdminMarketplaceManager />
+        </TabsContent>
+
+        <TabsContent value="verifications" className="mt-6">
+          <AdminUserVerificationManager />
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-6">
