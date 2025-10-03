@@ -73,21 +73,21 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:via-background dark:to-orange-950/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
-            <Shield className="h-10 w-10 text-red-600" />
+          <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/30 dark:border dark:border-primary/30 flex items-center justify-center backdrop-blur-sm">
+            <Shield className="h-10 w-10 text-red-600 dark:text-red-400" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+          <h1 className="text-3xl font-bold text-foreground dark:text-foreground/95 mb-2">
             Administration Kwenda
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground dark:text-foreground/80">
             Accès sécurisé pour les administrateurs
           </p>
         </div>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-lg dark:bg-card/95 dark:border-border/60 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5" />
@@ -100,7 +100,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="dark:text-foreground/90">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -108,11 +108,12 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="dark:bg-background/50 dark:border-border/60"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password">Mot de passe</Label>
+                <Label htmlFor="password" className="dark:text-foreground/90">Mot de passe</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -121,6 +122,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    className="dark:bg-background/50 dark:border-border/60"
                   />
                   <Button
                     type="button"

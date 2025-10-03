@@ -117,3 +117,34 @@
 .dark .text-emphasis {
   @apply text-foreground/95;
 }
+
+/* Admin login page improvements */
+.dark .admin-login-bg {
+  @apply bg-gradient-to-br from-background via-card/50 to-background;
+}
+
+.dark .admin-login-icon-bg {
+  @apply bg-primary/20 backdrop-blur-md border border-primary/30;
+}
+
+.dark .admin-login-card {
+  @apply bg-card/95 border-border/60 backdrop-blur-xl;
+}
+
+/* Enhanced text readability for auth pages */
+.dark .auth-description {
+  @apply text-foreground/85;
+}
+
+.dark .auth-title {
+  @apply text-foreground/95;
+}
+
+/* Improved dropdown and popover visibility */
+.dark .dropdown-menu {
+  @apply bg-card/95 border-border/60 backdrop-blur-xl;
+}
+
+.dark .popover-content {
+  @apply bg-card/95 border-border/60 backdrop-blur-xl text-foreground/95;
+}
