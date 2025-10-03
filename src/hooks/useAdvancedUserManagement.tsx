@@ -133,32 +133,44 @@ export const useAdvancedUserManagement = (): UseAdvancedUserManagementReturn => 
         throw profilesError;
       }
 
-      // Fetch auth users data for email and connection status
+      // Fetch auth metadata via Edge Function
       const userIds = profilesData?.map(p => p.user_id) || [];
-      let authUsers: any[] = [];
-      
+      let authMetadata: Record<string, any> = {};
+
       if (userIds.length > 0) {
-        const { data: authData } = await supabase.auth.admin.listUsers();
-        authUsers = authData?.users?.filter((u: any) => userIds.includes(u.id)) || [];
+        try {
+          const { data: metadataResponse, error: metadataError } = await supabase.functions.invoke('admin-get-user-metadata', {
+            body: { user_ids: userIds }
+          });
+
+          if (metadataError) {
+            console.error('Error fetching auth metadata:', metadataError);
+          } else {
+            authMetadata = metadataResponse?.metadata || {};
+            console.log(`✅ Fetched metadata for ${Object.keys(authMetadata).length} users`);
+          }
+        } catch (err) {
+          console.error('Exception fetching auth metadata:', err);
+        }
       }
 
       // Transform data to match UserProfile interface
       const transformedUsers: UserProfile[] = (profilesData || []).map((profile: any) => {
-        const authUser = authUsers.find(u => u.id === profile.user_id);
-        const lastSignIn = authUser?.last_sign_in_at;
+        const authMeta = authMetadata[profile.user_id] || {};
+        const lastSignIn = authMeta.last_sign_in_at;
         const isOnline = lastSignIn && (new Date().getTime() - new Date(lastSignIn).getTime()) < 15 * 60 * 1000; // 15 minutes
 
         return {
           id: profile.user_id,
           display_name: profile.display_name || 'N/A',
-          email: profile.email || authUser?.email || 'N/A',
+          email: profile.email || authMeta.email || 'N/A',
           phone_number: profile.phone_number,
           avatar_url: profile.avatar_url,
           created_at: profile.created_at,
           user_type: profile.user_type || 'client',
           status: profile.is_active ? (isOnline ? 'active' : 'inactive') : 'suspended',
           last_activity: lastSignIn,
-          verification_status: profile.verification_status || (authUser?.email_confirmed_at ? 'verified' : 'pending'),
+          verification_status: profile.verification_status || (authMeta.email_confirmed_at ? 'verified' : 'pending'),
           rating: Math.random() * 2 + 3, // Random rating between 3-5
           total_orders: Math.floor(Math.random() * 50),
         };
@@ -186,52 +198,72 @@ export const useAdvancedUserManagement = (): UseAdvancedUserManagementReturn => 
   // Fetch statistics
   const fetchStats = useCallback(async () => {
     try {
-      // Get total counts by user type
-      const { data: profileStats } = await supabase
+      // Get all users from view
+      const { data: allUsers } = await supabase
         .from('user_profiles_view')
-        .select('user_type')
-        .not('user_type', 'is', null);
+        .select('user_type, created_at, user_id');
 
-      // Get auth users for connection data
-      const { data: authData } = await supabase.auth.admin.listUsers();
-      const authUsers = authData?.users || [];
+      if (!allUsers) {
+        throw new Error('No users data');
+      }
 
-      // Count active users (connected in last 15 minutes)
-      const now = new Date().getTime();
-      const activeUsers = authUsers.filter(user => {
-        const lastSignIn = user.last_sign_in_at;
-        return lastSignIn && (now - new Date(lastSignIn).getTime()) < 15 * 60 * 1000;
-      });
+      const totalUsers = allUsers.length;
+      const totalClients = allUsers.filter(u => u.user_type === 'client').length;
+      const totalDrivers = allUsers.filter(u => u.user_type === 'driver').length;
+      const totalPartners = allUsers.filter(u => u.user_type === 'partner').length;
+
+      // Fetch auth metadata for active users count
+      const userIds = allUsers.map(u => u.user_id);
+      let activeUsersCount = 0;
+
+      if (userIds.length > 0) {
+        try {
+          const { data: metadataResponse, error: metadataError } = await supabase.functions.invoke('admin-get-user-metadata', {
+            body: { user_ids: userIds }
+          });
+
+          if (!metadataError && metadataResponse?.metadata) {
+            const now = new Date().getTime();
+            activeUsersCount = Object.values(metadataResponse.metadata).filter((meta: any) => {
+              const lastSignIn = meta.last_sign_in_at;
+              return lastSignIn && (now - new Date(lastSignIn).getTime()) < 15 * 60 * 1000;
+            }).length;
+          }
+        } catch (err) {
+          console.error('Error fetching active users metadata:', err);
+        }
+      }
 
       // Count new users today
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const newUsersToday = authUsers.filter(user => {
-        return new Date(user.created_at) >= today;
-      });
-
-      // Calculate stats by user type
-      const totalUsers = profileStats?.length || 0;
-      const totalClients = profileStats?.filter(p => p.user_type === 'client').length || 0;
-      const totalDrivers = profileStats?.filter(p => p.user_type === 'driver').length || 0;
-      const totalPartners = profileStats?.filter(p => p.user_type === 'partner').length || 0;
+      const newUsersToday = allUsers.filter(u => new Date(u.created_at) >= today).length;
 
       setStats({
         totalUsers,
         totalClients,
         totalDrivers,
         totalPartners,
-        activeUsers: activeUsers.length,
-        newUsersToday: newUsersToday.length,
+        activeUsers: activeUsersCount,
+        newUsersToday,
       });
     } catch (err) {
       console.error('Error fetching stats:', err);
-      // Fallback to default stats
+      // Fallback to basic stats without auth metadata
+      const { data: allUsers } = await supabase
+        .from('user_profiles_view')
+        .select('user_type, created_at');
+
+      const totalUsers = allUsers?.length || 0;
+      const totalClients = allUsers?.filter(u => u.user_type === 'client').length || 0;
+      const totalDrivers = allUsers?.filter(u => u.user_type === 'driver').length || 0;
+      const totalPartners = allUsers?.filter(u => u.user_type === 'partner').length || 0;
+
       setStats({
-        totalUsers: 0,
-        totalClients: 0,
-        totalDrivers: 0,
-        totalPartners: 0,
+        totalUsers,
+        totalClients,
+        totalDrivers,
+        totalPartners,
         activeUsers: 0,
         newUsersToday: 0,
       });
