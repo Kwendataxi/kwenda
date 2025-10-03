@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useMemo } from 'react';
 
 interface UnifiedSubscriptionStats {
   totalActiveSubscriptions: number;
@@ -63,7 +64,7 @@ export const useUnifiedSubscriptions = () => {
   const { toast } = useToast();
 
   // Fetch all driver subscriptions for admin
-  const { data: driverSubscriptions = [], isLoading: driverLoading } = useQuery({
+  const { data: driverSubscriptions = [], isLoading: driverLoading, error: driverError } = useQuery({
     queryKey: ['admin-driver-subscriptions'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -79,13 +80,16 @@ export const useUnifiedSubscriptions = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching driver subscriptions:', error);
+        throw error;
+      }
       return (data || []) as any[];
     },
   });
 
   // Fetch all rental subscriptions for admin
-  const { data: rentalSubscriptions = [], isLoading: rentalLoading } = useQuery({
+  const { data: rentalSubscriptions = [], isLoading: rentalLoading, error: rentalError } = useQuery({
     queryKey: ['admin-rental-subscriptions'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -104,56 +108,55 @@ export const useUnifiedSubscriptions = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching rental subscriptions:', error);
+        throw error;
+      }
       return (data || []) as any[];
     },
   });
 
-  // Calculate unified statistics
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['unified-subscription-stats'],
-    queryFn: async (): Promise<UnifiedSubscriptionStats> => {
-      const now = new Date();
-      const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  // Calculate unified statistics using useMemo for client-side computation
+  const stats = useMemo((): UnifiedSubscriptionStats => {
+    const now = new Date();
+    const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-      // Active driver subscriptions
-      const activeDriverSubs = driverSubscriptions.filter(
-        sub => sub.status === 'active' && new Date(sub.end_date) > now
-      );
+    // Active driver subscriptions
+    const activeDriverSubs = driverSubscriptions.filter(
+      sub => sub.status === 'active' && new Date(sub.end_date) > now
+    );
 
-      // Active rental subscriptions
-      const activeRentalSubs = rentalSubscriptions.filter(
-        sub => sub.status === 'active' && new Date(sub.end_date) > now
-      );
+    // Active rental subscriptions
+    const activeRentalSubs = rentalSubscriptions.filter(
+      sub => sub.status === 'active' && new Date(sub.end_date) > now
+    );
 
-      // Calculate monthly revenue
-      const driverRevenue = activeDriverSubs.reduce(
-        (sum, sub) => sum + (sub.subscription_plans?.price || 0), 0
-      );
-      const rentalRevenue = activeRentalSubs.reduce(
-        (sum, sub) => sum + (sub.rental_subscription_plans?.monthly_price || 0), 0
-      );
+    // Calculate monthly revenue
+    const driverRevenue = activeDriverSubs.reduce(
+      (sum, sub) => sum + (sub.subscription_plans?.price || 0), 0
+    );
+    const rentalRevenue = activeRentalSubs.reduce(
+      (sum, sub) => sum + (sub.rental_subscription_plans?.monthly_price || 0), 0
+    );
 
-      // Count expiring subscriptions
-      const expiringDriver = activeDriverSubs.filter(
-        sub => new Date(sub.end_date) <= weekFromNow
-      ).length;
-      const expiringRental = activeRentalSubs.filter(
-        sub => new Date(sub.end_date) <= weekFromNow
-      ).length;
+    // Count expiring subscriptions
+    const expiringDriver = activeDriverSubs.filter(
+      sub => new Date(sub.end_date) <= weekFromNow
+    ).length;
+    const expiringRental = activeRentalSubs.filter(
+      sub => new Date(sub.end_date) <= weekFromNow
+    ).length;
 
-      return {
-        totalActiveSubscriptions: activeDriverSubs.length + activeRentalSubs.length,
-        monthlyRevenue: driverRevenue + rentalRevenue,
-        driverSubscriptions: activeDriverSubs.length,
-        rentalSubscriptions: activeRentalSubs.length,
-        expiringInWeek: expiringDriver + expiringRental,
-        failedPayments: 0, // TODO: Calculate from payment history
-        currency: 'CDF'
-      };
-    },
-    enabled: !driverLoading && !rentalLoading,
-  });
+    return {
+      totalActiveSubscriptions: activeDriverSubs.length + activeRentalSubs.length,
+      monthlyRevenue: driverRevenue + rentalRevenue,
+      driverSubscriptions: activeDriverSubs.length,
+      rentalSubscriptions: activeRentalSubs.length,
+      expiringInWeek: expiringDriver + expiringRental,
+      failedPayments: 0, // TODO: Calculate from payment history
+      currency: 'CDF'
+    };
+  }, [driverSubscriptions, rentalSubscriptions]);
 
   // Admin actions
   // Admin : Prolonger un abonnement
@@ -236,11 +239,28 @@ export const useUnifiedSubscriptions = () => {
     }
   };
 
+  // Show error toasts if queries fail
+  if (driverError) {
+    toast({
+      title: "Erreur de chargement",
+      description: "Impossible de charger les abonnements chauffeurs",
+      variant: "destructive"
+    });
+  }
+
+  if (rentalError) {
+    toast({
+      title: "Erreur de chargement",
+      description: "Impossible de charger les abonnements location",
+      variant: "destructive"
+    });
+  }
+
   return {
     driverSubscriptions,
     rentalSubscriptions,
     stats,
-    loading: driverLoading || rentalLoading || statsLoading,
+    loading: driverLoading || rentalLoading,
     extendSubscription,
     cancelSubscriptionAdmin,
   };
