@@ -83,9 +83,6 @@ export const ModernHomeScreen = ({
             serviceNotifications={serviceNotifications}
           />
           
-          {/* Rental Preview */}
-          <ModernRentalPreview onOpenRental={() => onServiceSelect('rental')} />
-          
           {/* Marketplace preview */}
           <MarketplacePreview
             featuredProducts={featuredProducts}
