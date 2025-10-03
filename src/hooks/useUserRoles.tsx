@@ -54,19 +54,22 @@ export const useUserRoles = (): UseUserRolesReturn => {
         .select('*')
         .eq('user_id', user.id)
         .eq('is_active', true)
-        .limit(1);
+        .maybeSingle();
 
-      if (!adminError && adminData && adminData.length > 0) {
+      if (!adminError && adminData) {
         // Utilisateur admin trouvé - configurer les permissions admin
-        const adminPermissions = (adminData[0].permissions || ['system_admin', 'user_management', 'content_moderation']) as Permission[];
+        console.log('✅ Admin user detected:', adminData);
+        const adminPermissions = (adminData.permissions || ['system_admin', 'user_management', 'content_moderation']) as Permission[];
         const adminRole = {
           role: 'admin' as UserRole,
-          admin_role: (adminData[0].admin_level || 'moderator') as AdminRole,
+          admin_role: (adminData.admin_level || 'moderator') as AdminRole,
           permissions: adminPermissions
         };
         setUserRoles([adminRole]);
         setPermissions(adminPermissions);
         return;
+      } else if (adminError) {
+        console.error('❌ Error fetching admin data:', adminError);
       }
 
       // Essayer la fonction RPC si disponible
