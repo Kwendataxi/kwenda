@@ -8688,6 +8688,22 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profiles_view: {
+        Row: {
+          admin_level: string | null
+          created_at: string | null
+          display_name: string | null
+          email: string | null
+          id: string | null
+          is_active: boolean | null
+          phone_number: string | null
+          updated_at: string | null
+          user_id: string | null
+          user_type: string | null
+          verification_status: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_cancel_subscription: {
