@@ -106,15 +106,15 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
               </div>
             </div>
             
-            {/* Greeting avec couleur gradient */}
-            <p className="text-sm font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-1">
-              {getGreeting()} ✨
-            </p>
-            
-            {/* Nom utilisateur plus imposant */}
-            <p className="text-lg font-bold text-foreground truncate">
-              {profileLoading ? '...' : displayName.split(' ')[0]}
-            </p>
+            {/* Greeting et nom sur la même ligne */}
+            <div className="flex items-baseline gap-2 mb-1">
+              <p className="text-lg font-bold text-[#E31E24]">
+                {getGreeting()},
+              </p>
+              <p className="text-3xl font-black text-foreground">
+                {profileLoading ? '...' : displayName.split(' ')[0]}
+              </p>
+            </div>
             
             {/* Location visible avec icône */}
             {geolocation.latitude && geolocation.longitude && (
