@@ -7,6 +7,7 @@ import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
 import { useEnhancedRealTimeStats } from '@/hooks/useEnhancedRealTimeStats';
 import { Loader2 } from 'lucide-react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
+import { OverviewDashboard } from '@/components/admin/OverviewDashboard';
 import { AdminNotificationCenter } from '@/components/admin/AdminNotificationCenter';
 import { AdvancedSupportCenter } from '@/components/admin/AdvancedSupportCenter';
 import { ModernZoneManagementDashboard } from '@/components/admin/zones/ModernZoneManagementDashboard';
@@ -58,7 +59,7 @@ const AdminApp = () => {
         return (
           <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['analytics_read']}>
-              <AdminDashboard />
+              <OverviewDashboard />
             </FlexiblePermissionGuard>
           </Suspense>
         );
@@ -76,7 +77,10 @@ const AdminApp = () => {
         return (
           <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
-              <AdminDashboard />
+              <div className="p-6">
+                <h2 className="text-2xl font-bold mb-4">Dispatch & Répartition</h2>
+                <p className="text-muted-foreground">Module de dispatch en développement</p>
+              </div>
             </FlexiblePermissionGuard>
           </Suspense>
         );
