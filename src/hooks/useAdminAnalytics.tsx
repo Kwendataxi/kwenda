@@ -76,6 +76,11 @@ export const useAdminAnalytics = () => {
 
       if (error) {
         console.error('🔴 Edge function error:', error)
+        toast({
+          title: "Erreur de connexion",
+          description: "Impossible de charger les analytics. Veuillez réessayer.",
+          variant: "destructive"
+        })
         throw error
       }
 

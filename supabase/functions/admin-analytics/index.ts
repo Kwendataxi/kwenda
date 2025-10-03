@@ -56,32 +56,80 @@ serve(async (req) => {
 
   console.log('✅ User authenticated:', user.id)
 
-  // Vérifier l'accès admin via user_roles (système unifié)
-  const { data: adminCheck, error: adminError } = await supabaseClient
-    .from('user_roles')
-    .select('id')
-    .eq('user_id', user.id)
-    .eq('role', 'admin')
-    .eq('is_active', true)
-    .maybeSingle();
+  // Vérifier l'accès admin avec retry et fallback
+  let adminCheck = null
+  let adminError = null
+  let attempts = 0
+  const maxAttempts = 3
+
+  while (attempts < maxAttempts && !adminCheck) {
+    attempts++
+    console.log(`🔄 Admin check attempt ${attempts}/${maxAttempts}`)
+    
+    try {
+      const { data, error } = await Promise.race([
+        supabaseClient
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .eq('is_active', true)
+          .maybeSingle(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 3000)
+        )
+      ]) as any
+      
+      if (!error && data) {
+        adminCheck = data
+        break
+      }
+      adminError = error
+      
+      if (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
+    } catch (timeoutError) {
+      console.warn(`⏱️ Timeout on attempt ${attempts}:`, timeoutError)
+      adminError = timeoutError
+    }
+  }
+
+  // Fallback : vérifier dans la table admins si user_roles échoue
+  if (!adminCheck) {
+    console.log('⚠️ Fallback to admins table check')
+    const { data: adminFallback, error: fallbackError } = await supabaseClient
+      .from('admins')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .maybeSingle()
+      
+    if (!fallbackError && adminFallback) {
+      console.log('✅ Admin verified via fallback:', { adminId: adminFallback.id, userId: user.id })
+      adminCheck = adminFallback
+      adminError = null
+    }
+  }
 
   if (adminError || !adminCheck) {
-    console.error('🔴 Admin check failed:', { 
+    console.error('🔴 Admin check failed after retries:', { 
       userId: user.id,
       errorMessage: adminError?.message,
       hasAdminRole: !!adminCheck,
-      email: user.email
+      email: user.email,
+      attempts
     })
     return new Response(JSON.stringify({ 
       error: 'Admin access required',
-      details: 'User does not have admin role'
+      details: 'User does not have admin role or database connection issue'
     }), {
       status: 403,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
-  console.log('✅ Admin verified:', { roleId: adminCheck.id, userId: user.id })
+  console.log('✅ Admin verified:', { userId: user.id, attempts })
 
     const { type, date_range, zone_name, country_code } = await req.json() as AnalyticsRequest
 
