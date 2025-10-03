@@ -29,9 +29,9 @@ export const ProductChatTab: React.FC<ProductChatTabProps> = ({
 
   return (
     <div className="h-full flex flex-col">
-      {/* Quick actions header */}
+      {/* Header with unread count */}
       <div className="p-3 border-b bg-muted/30">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2">
           <MessageCircle className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium text-foreground">
             Discuter avec le vendeur
@@ -42,26 +42,10 @@ export const ProductChatTab: React.FC<ProductChatTabProps> = ({
             </Badge>
           )}
         </div>
-        
-        {/* Quick message templates */}
-        <div className="flex flex-wrap gap-1.5">
-          <button className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors">
-            Est-il disponible ?
-          </button>
-          <button className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors">
-            Meilleur prix ?
-          </button>
-          <button className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors">
-            Où se trouve-t-il ?
-          </button>
-          <button className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors">
-            Peut-on se rencontrer ?
-          </button>
-        </div>
       </div>
 
-      {/* Chat interface - Fixed height */}
-      <div className="flex-1 overflow-hidden">
+      {/* Chat interface - Increased height */}
+      <div className="flex-1 overflow-hidden min-h-[500px]">
         <ModernChatInterface
           productId={productId}
           sellerId={sellerId}

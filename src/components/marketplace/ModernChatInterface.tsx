@@ -123,7 +123,7 @@ export const ModernChatInterface: React.FC<ModernChatInterfaceProps> = ({
         ) : (
           <Card className={cn(
             "bg-card shadow-2xl border border-border/50 overflow-hidden backdrop-blur-xl",
-            isCompact ? "w-80 md:w-96 h-96" : "w-80 h-[32rem]"
+            isCompact ? "w-full max-w-md h-[500px]" : "w-80 md:w-96 h-[80vh] md:h-[600px]"
           )}>
             {/* Floating chat header - Compact */}
             <div className="flex items-center justify-between px-3 py-2 border-b bg-card/95 backdrop-blur-sm">
@@ -256,19 +256,23 @@ const ConversationsList: React.FC<{
           onClick={() => onSelectConversation(conversation.id)}
         >
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              {conversation.other_participant?.avatar_url ? (
-                <img
-                  src={conversation.other_participant.avatar_url}
-                  alt={conversation.other_participant.display_name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white font-semibold text-sm">
-                  {conversation.other_participant?.display_name?.[0]?.toUpperCase()}
-                </div>
-              )}
-            </Avatar>
+            <div className="relative">
+              <Avatar className="h-12 w-12">
+                {conversation.other_participant?.avatar_url ? (
+                  <img
+                    src={conversation.other_participant.avatar_url}
+                    alt={conversation.other_participant.display_name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white font-semibold">
+                    {conversation.other_participant?.display_name?.[0]?.toUpperCase()}
+                  </div>
+                )}
+              </Avatar>
+              {/* Online status indicator */}
+              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-card"></span>
+            </div>
             
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
@@ -287,13 +291,15 @@ const ConversationsList: React.FC<{
                 {conversation.product?.title}
               </p>
               
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-primary">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-medium text-primary truncate">
                   {conversation.product?.price?.toLocaleString()} FC
                 </span>
-                <Badge variant="outline" className="text-xs">
-                  {conversation.status}
-                </Badge>
+                {conversation.unread_count > 0 && (
+                  <Badge variant="destructive" className="h-5 px-1.5 text-xs shrink-0">
+                    {conversation.unread_count}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
@@ -359,14 +365,14 @@ const ChatView: React.FC<{
         </div>
 
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm">
-            <Phone className="h-4 w-4" />
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <Phone className="h-5 w-5 text-primary" />
           </Button>
-          <Button variant="ghost" size="sm">
-            <MapPin className="h-4 w-4" />
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <MapPin className="h-5 w-5 text-primary" />
           </Button>
-          <Button variant="ghost" size="sm">
-            <MoreVertical className="h-4 w-4" />
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <MoreVertical className="h-5 w-5" />
           </Button>
         </div>
       </div>
@@ -414,38 +420,24 @@ const ChatView: React.FC<{
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick messages */}
-      {showQuickMessages && (
-        <div className="p-2 border-t bg-muted/50">
-          <div className="grid grid-cols-2 gap-1">
-            {quickMessages.map((msg, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                className="text-xs h-8 justify-start"
-                onClick={() => {
-                  setNewMessage(msg);
-                  setShowQuickMessages(false);
-                }}
-              >
-                {msg}
-              </Button>
-            ))}
-          </div>
+      {/* Quick messages - Always visible */}
+      <div className="px-3 py-2 border-t bg-muted/30 overflow-x-auto">
+        <div className="flex gap-2 pb-1">
+          {quickMessages.map((msg, index) => (
+            <button
+              key={index}
+              className="flex-shrink-0 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs hover:bg-primary/20 transition-colors whitespace-nowrap"
+              onClick={() => setNewMessage(msg)}
+            >
+              {msg}
+            </button>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* Message input */}
       <div className="p-3 border-t bg-card">
         <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowQuickMessages(!showQuickMessages)}
-          >
-            <MoreVertical className="h-4 w-4" />
-          </Button>
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
@@ -453,7 +445,7 @@ const ChatView: React.FC<{
             placeholder="Tapez votre message..."
             className="flex-1"
           />
-          <Button onClick={onSendMessage} disabled={!newMessage.trim()} size="sm">
+          <Button onClick={onSendMessage} disabled={!newMessage.trim()} size="sm" className="px-4">
             <Send className="h-4 w-4" />
           </Button>
         </div>

@@ -118,24 +118,6 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
             >
               <Eye className="h-3 w-3 text-grey-700" />
             </Button>
-            
-            {/* Chat icon - appears on hover */}
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 w-7 p-0 bg-white/90 hover:bg-white"
-              onClick={(e) => {
-                e.stopPropagation();
-                openChat({
-                  contextType: 'marketplace',
-                  contextId: product.id,
-                  participantId: product.sellerId,
-                  title: product.name
-                });
-              }}
-            >
-              <MessageCircle className="h-3 w-3 text-primary" />
-            </Button>
           </div>
 
           {/* Quick Buy Button */}
@@ -153,6 +135,25 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
               J'achète
             </Button>
           </div>
+        </div>
+
+        {/* Chat button - Always visible in bottom right */}
+        <div className="absolute bottom-2 right-2 z-10">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              openChat({
+                contextType: 'marketplace',
+                contextId: product.id,
+                participantId: product.sellerId,
+                title: product.name
+              });
+            }}
+            className="group/chat h-9 w-9 rounded-full bg-card/90 backdrop-blur-sm shadow-md hover:shadow-lg border border-border/30 flex items-center justify-center transition-all active:scale-95 hover:scale-105"
+            aria-label="Contacter le vendeur"
+          >
+            <MessageCircle className="h-4 w-4 text-primary group-hover/chat:text-primary/80 transition-colors" />
+          </button>
         </div>
 
         {/* Badges - Top Left */}
