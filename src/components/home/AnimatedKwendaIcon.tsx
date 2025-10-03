@@ -63,23 +63,6 @@ export const AnimatedKwendaIcon: React.FC = () => {
             style={{ willChange: 'transform' }}
           />
 
-          {/* Shine effect subtil adaptatif */}
-          <motion.div
-            className="absolute inset-0 rounded-full overflow-hidden"
-            initial={{ x: '-100%' }}
-            animate={{ x: '200%' }}
-            transition={{
-              duration: 3.5,
-              repeat: Infinity,
-              repeatDelay: 3,
-              ease: "easeInOut"
-            }}
-            style={{
-              background: 'linear-gradient(90deg, transparent, hsl(var(--primary) / 0.15), transparent)',
-              pointerEvents: 'none',
-              mixBlendMode: 'overlay'
-            }}
-          />
         </motion.div>
 
         {/* Mini particules scintillantes */}
