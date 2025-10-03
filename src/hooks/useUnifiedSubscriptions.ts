@@ -156,6 +156,7 @@ export const useUnifiedSubscriptions = () => {
   });
 
   // Admin actions
+  // Admin : Prolonger un abonnement
   const extendSubscription = async (
     subscriptionId: string, 
     type: 'driver' | 'rental', 
@@ -201,6 +202,7 @@ export const useUnifiedSubscriptions = () => {
     }
   };
 
+  // Admin : Annuler un abonnement
   const cancelSubscriptionAdmin = async (
     subscriptionId: string, 
     type: 'driver' | 'rental'
