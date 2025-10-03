@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Zap, ArrowRight, Check, Loader2 } from 'lucide-react';
 import { OperatorSelector } from './OperatorSelector';
+
+type Operator = 'airtel' | 'orange' | 'mpesa';
 import { useWalletValidation } from '@/hooks/useWalletValidation';
 import { SuccessConfetti } from './SuccessConfetti';
 import { toast } from 'sonner';
@@ -36,7 +38,7 @@ export const ModernTopUpModal: React.FC<ModernTopUpModalProps> = ({
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [amount, setAmount] = useState(initialAmount?.toString() || '');
-  const [selectedOperator, setSelectedOperator] = useState<string>('');
+  const [selectedOperator, setSelectedOperator] = useState<Operator | ''>('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);

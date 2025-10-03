@@ -106,13 +106,16 @@ export const AdminTopUpWidget = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Non authentifié');
 
-      // Log admin action
-      await supabase.from('admin_wallet_actions').insert({
-        admin_id: user.id,
-        target_user_id: selectedUser.id,
-        action_type: 'topup',
+      // Log admin action in activity_logs
+      await supabase.from('activity_logs').insert({
+        user_id: user.id,
+        activity_type: 'admin_wallet_topup',
+        description: `Recharge de ${parseFloat(amount)} ${selectedUser.wallet_currency} pour ${selectedUser.display_name}`,
         amount: parseFloat(amount),
-        reason: reason
+        currency: selectedUser.wallet_currency,
+        reference_id: selectedUser.id,
+        reference_type: 'wallet_topup',
+        metadata: { reason, target_user: selectedUser.email }
       });
 
       // Update wallet
@@ -128,15 +131,20 @@ export const AdminTopUpWidget = () => {
           .update({ balance: wallet.balance + parseFloat(amount) })
           .eq('id', wallet.id);
 
-        // Create transaction record
-        await supabase.from('wallet_transactions').insert({
-          wallet_id: wallet.id,
+        // Create transaction record in activity_logs
+        await supabase.from('activity_logs').insert({
           user_id: selectedUser.id,
-          transaction_type: 'admin_topup',
+          activity_type: 'wallet_topup',
+          description: `Recharge admin: ${reason}`,
           amount: parseFloat(amount),
           currency: selectedUser.wallet_currency,
-          description: `Recharge admin: ${reason}`,
-          reference_type: 'admin_action'
+          reference_type: 'admin_topup',
+          metadata: {
+            admin_id: user.id,
+            reason,
+            balance_before: wallet.balance,
+            balance_after: wallet.balance + parseFloat(amount)
+          }
         });
       }
 
