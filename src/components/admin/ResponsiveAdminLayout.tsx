@@ -32,13 +32,15 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetContent 
             side="left" 
-            className="p-0 w-[90vw] max-w-sm sm:max-w-md flex flex-col h-full"
+            className="p-0 w-[85vw] max-w-sm sm:max-w-md flex flex-col h-full"
           >
             <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="p-4 border-b border-border/60 bg-card/50">
-                <h2 className="text-lg font-semibold mb-3">Navigation Admin</h2>
-                <AdminPermissionSettings />
-              </div>
+              {process.env.NODE_ENV === 'development' && (
+                <div className="p-4 border-b border-border/60 bg-card/50">
+                  <h2 className="text-lg font-semibold mb-3">Navigation Admin</h2>
+                  <AdminPermissionSettings />
+                </div>
+              )}
               
               <div className="flex-1 overflow-hidden">
                 <AdminVerticalNav 
@@ -59,7 +61,7 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
         {activeTab === 'overview' && <MobileKPIGrid realTimeStats={realTimeStats} />}
         
         {/* Content */}
-        <main className="p-4">
+        <main className="p-2 sm:p-4">
           {children}
         </main>
       </div>
@@ -71,8 +73,8 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
       <MobileAdminHeader />
       <div className="container py-4">
         <div className="flex gap-6">
-          <aside className="w-64 shrink-0">
-            <AdminPermissionSettings />
+          <aside className="w-56 lg:w-64 xl:w-72 shrink-0 sticky top-4 self-start">
+            {process.env.NODE_ENV === 'development' && <AdminPermissionSettings />}
             <AdminVerticalNav activeTab={activeTab} onTabChange={onTabChange} devMode={devMode} />
           </aside>
           <section className="flex-1">
