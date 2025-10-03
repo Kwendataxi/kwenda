@@ -32,12 +32,18 @@ export const DriverSubscriptionAdmin = () => {
     action: string;
   }>({ isOpen: false, subscription: null, action: "" });
 
-  // Filter subscriptions
+  // Filter subscriptions - Robuste avec valeurs par défaut
   const filteredSubscriptions = driverSubscriptions.filter(sub => {
+    const driverName = sub.chauffeurs?.display_name || '';
+    const driverEmail = sub.chauffeurs?.email || '';
+    const planName = sub.subscription_plans?.name || '';
+    
+    // Si recherche vide, tout correspond
     const matchesSearch = 
-      sub.chauffeurs?.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sub.chauffeurs?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sub.subscription_plans?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      searchTerm === '' ||
+      driverName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      driverEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      planName.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || sub.status === statusFilter;
     
@@ -270,10 +276,24 @@ export const DriverSubscriptionAdmin = () => {
           </div>
 
           {filteredSubscriptions.length === 0 && (
-            <div className="text-center py-8">
+            <div className="text-center py-8 space-y-2">
               <p className="text-muted-foreground">
-                Aucun abonnement trouvé avec les filtres sélectionnés
+                {driverSubscriptions.length > 0 
+                  ? `${driverSubscriptions.length} abonnement(s) chargé(s) mais masqué(s) par les filtres actuels`
+                  : 'Aucun abonnement trouvé'
+                }
               </p>
+              {driverSubscriptions.length > 0 && (
+                <Button 
+                  variant="link" 
+                  onClick={() => {
+                    setSearchTerm('');
+                    setStatusFilter('all');
+                  }}
+                >
+                  Réinitialiser les filtres
+                </Button>
+              )}
             </div>
           )}
         </CardContent>
