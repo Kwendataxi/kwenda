@@ -135,7 +135,7 @@ export const DriverSubscriptionPlans = () => {
               Nouveau Plan
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto pointer-events-auto w-[95vw] sm:w-full p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle>{editingPlan ? 'Modifier le plan' : 'Créer un nouveau plan'}</DialogTitle>
               <DialogDescription>
