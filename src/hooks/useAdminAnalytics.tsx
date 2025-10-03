@@ -50,13 +50,14 @@ export const useAdminAnalytics = () => {
       return
     }
 
-    // Vérifier si l'utilisateur est admin
+    // Vérifier si l'utilisateur est admin via user_roles
     const { data: adminCheck, error: adminError } = await supabase
-      .from('admins')
+      .from('user_roles')
       .select('id')
       .eq('user_id', user.id)
+      .eq('role', 'admin')
       .eq('is_active', true)
-      .single()
+      .maybeSingle()
     
     if (adminError || !adminCheck) {
       console.error('❌ User is not an admin:', adminError?.message)
