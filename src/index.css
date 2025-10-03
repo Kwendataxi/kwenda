@@ -319,6 +319,36 @@ All colors MUST be HSL.
     scroll-behavior: smooth;
   }
 
+  /* Admin smooth scroll */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar for admin */
+  .admin-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .admin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .admin-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  .admin-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.5);
+  }
+
+  /* Firefox scrollbar */
+  .admin-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
   /* Mobile optimizations - simplified */
   @media (max-width: 768px) {
     .content-scrollable {

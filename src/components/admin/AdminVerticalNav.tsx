@@ -172,8 +172,13 @@ export const AdminVerticalNav: React.FC<AdminVerticalNavProps> = ({
         </div>
       )}
 
-      <ScrollArea className="flex-1 h-full">
-        <nav role="navigation" aria-label="Navigation admin" className="space-y-1 p-2">
+      <ScrollArea 
+        className="flex-1 relative admin-scrollbar" 
+        style={{ 
+          maxHeight: isMobile ? 'calc(100vh - 180px)' : 'calc(100vh - 220px)' 
+        }}
+      >
+        <nav role="navigation" aria-label="Navigation admin" className="space-y-1 p-2 smooth-scroll">
           {Object.entries(filteredGroups).map(([groupKey, items], groupIndex) => {
             const isExpanded = isGroupExpanded(groupKey);
             const groupLabel = GROUP_LABELS[groupKey as keyof typeof GROUP_LABELS] || groupKey;
@@ -237,6 +242,9 @@ export const AdminVerticalNav: React.FC<AdminVerticalNavProps> = ({
             );
           })}
         </nav>
+        
+        {/* Gradient fade indicator */}
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent pointer-events-none" />
       </ScrollArea>
     </div>
   );
