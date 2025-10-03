@@ -261,7 +261,7 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="center" className="z-[100] w-56 bg-background/95 backdrop-blur-sm border-2">
                         <DropdownMenuItem onClick={() => onViewUser?.(user)}>
                           <Eye className="h-4 w-4 mr-2" />
                           Voir le profil

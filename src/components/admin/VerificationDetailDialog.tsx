@@ -74,14 +74,14 @@ export const VerificationDetailDialog = ({ verification, open, onClose, onSucces
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">
-            Vérification du compte : {verification.clients?.display_name}
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto sm:max-w-[90vw]">
+        <DialogHeader className="border-b pb-4 mb-4">
+          <DialogTitle className="text-2xl font-bold text-center">
+            Vérification du compte
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* User Information */}
           <div className="space-y-4">
             <div className="p-4 bg-muted rounded-lg space-y-3">
@@ -218,35 +218,65 @@ export const VerificationDetailDialog = ({ verification, open, onClose, onSucces
             </div>
 
             {/* Actions */}
-            <div className="space-y-3 pt-4">
-              <Button
-                onClick={() => handleAction('approve')}
-                disabled={isProcessing || !verification.identity_document_url}
-                className="w-full bg-green-600 hover:bg-green-700"
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Approuver le compte
-              </Button>
+            <div className="border-t pt-6 mt-6 bg-muted/30 -mx-6 px-6 pb-0 rounded-b-lg">
+              <h3 className="font-semibold text-lg mb-4 text-center">Actions de validation</h3>
+              <div className="space-y-4">
+                <Button
+                  onClick={() => handleAction('approve')}
+                  disabled={isProcessing || !verification.identity_document_url}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold h-12 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessing ? (
+                    <>
+                      <div className="h-5 w-5 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Traitement...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-5 w-5 mr-2" />
+                      Approuver le compte
+                    </>
+                  )}
+                </Button>
 
-              <Button
-                onClick={() => handleAction('reject')}
-                disabled={isProcessing || !rejectionReason}
-                variant="destructive"
-                className="w-full"
-              >
-                <XCircle className="h-4 w-4 mr-2" />
-                Rejeter avec raison
-              </Button>
+                <Button
+                  onClick={() => handleAction('reject')}
+                  disabled={isProcessing || !rejectionReason}
+                  variant="destructive"
+                  className="w-full font-semibold h-12 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessing ? (
+                    <>
+                      <div className="h-5 w-5 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Traitement...
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="h-5 w-5 mr-2" />
+                      Rejeter avec raison
+                    </>
+                  )}
+                </Button>
 
-              <Button
-                onClick={() => handleAction('request_info')}
-                disabled={isProcessing}
-                variant="outline"
-                className="w-full border-orange-200 text-orange-700 hover:bg-orange-50"
-              >
-                <AlertCircle className="h-4 w-4 mr-2" />
-                Demander plus d'infos
-              </Button>
+                <Button
+                  onClick={() => handleAction('request_info')}
+                  disabled={isProcessing}
+                  variant="outline"
+                  className="w-full border-2 border-orange-300 text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-950 font-semibold h-12 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessing ? (
+                    <>
+                      <div className="h-5 w-5 mr-2 animate-spin rounded-full border-2 border-orange-700 border-t-transparent" />
+                      Traitement...
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="h-5 w-5 mr-2" />
+                      Demander plus d'infos
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
