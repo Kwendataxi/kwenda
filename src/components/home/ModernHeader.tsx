@@ -93,7 +93,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
       {/* Fond gradient animé subtil */}
       <div className="absolute inset-0 bg-gradient-to-r from-congo-red/5 via-congo-yellow/5 to-congo-green/5 opacity-50 animate-congo-gradient bg-[length:200%_100%]" />
       
-      <div className="relative px-6 py-4 pt-12 z-10">
+      <div className="relative px-6 py-3 pt-8 z-10">
         {/* Structure en 2 colonnes améliorée */}
         <div className="flex items-center justify-between">
           {/* Salutation personnalisée et localisation */}
