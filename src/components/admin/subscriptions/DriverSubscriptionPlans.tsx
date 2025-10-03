@@ -128,14 +128,22 @@ export const DriverSubscriptionPlans = () => {
           <h2 className="text-2xl font-bold">Plans Chauffeurs/Livreurs</h2>
           <p className="text-muted-foreground">Gérez les plans d'abonnement pour les chauffeurs et livreurs</p>
         </div>
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <Dialog open={isModalOpen} onOpenChange={(open) => {
+          setIsModalOpen(open);
+          if (open) {
+            setTimeout(() => {
+              const dialogElement = document.querySelector('[role="dialog"]');
+              dialogElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+          }
+        }}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
               <Plus className="mr-2 h-4 w-4" />
               Nouveau Plan
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingPlan ? 'Modifier le plan' : 'Créer un nouveau plan'}</DialogTitle>
               <DialogDescription>

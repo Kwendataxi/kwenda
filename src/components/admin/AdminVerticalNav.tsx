@@ -172,7 +172,7 @@ export const AdminVerticalNav: React.FC<AdminVerticalNavProps> = ({
         </div>
       )}
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 h-full">
         <nav role="navigation" aria-label="Navigation admin" className="space-y-1 p-2">
           {Object.entries(filteredGroups).map(([groupKey, items], groupIndex) => {
             const isExpanded = isGroupExpanded(groupKey);

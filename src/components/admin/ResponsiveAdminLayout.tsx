@@ -42,7 +42,7 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
                 </div>
               )}
               
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-y-auto">
                 <AdminVerticalNav 
                   activeTab={activeTab} 
                   onTabChange={(value) => {
@@ -73,7 +73,7 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
       <MobileAdminHeader />
       <div className="container py-4">
         <div className="flex gap-6">
-          <aside className="w-56 lg:w-64 xl:w-72 shrink-0 sticky top-4 self-start">
+          <aside className="w-56 lg:w-64 xl:w-72 shrink-0 sticky top-4 self-start max-h-[calc(100vh-2rem)] overflow-hidden">
             {process.env.NODE_ENV === 'development' && <AdminPermissionSettings />}
             <AdminVerticalNav activeTab={activeTab} onTabChange={onTabChange} devMode={devMode} />
           </aside>

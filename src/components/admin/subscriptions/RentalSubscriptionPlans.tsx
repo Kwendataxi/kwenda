@@ -99,14 +99,22 @@ export const RentalSubscriptionPlans = () => {
                 Gérez les plans d'abonnement pour les partenaires location
               </p>
             </div>
-            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+            <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
+              setIsCreateModalOpen(open);
+              if (open) {
+                setTimeout(() => {
+                  const dialogElement = document.querySelector('[role="dialog"]');
+                  dialogElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+              }
+            }}>
               <DialogTrigger asChild>
                 <Button onClick={resetForm}>
                   <Plus className="h-4 w-4 mr-2" />
                   Nouveau Plan
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>
                     {editingPlan ? 'Modifier le Plan' : 'Créer un Nouveau Plan'}
