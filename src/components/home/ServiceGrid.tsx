@@ -114,7 +114,7 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
 
   return (
     <div className="px-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8">
         {mainServices.map((service, index) => {
           const Icon = service.icon;
           const notificationCount = serviceNotifications?.[service.id as keyof typeof serviceNotifications] || 0;
@@ -123,30 +123,30 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
             <button
               key={service.id}
               onClick={() => onServiceSelect(service.id)}
-              className="relative flex flex-col items-center gap-2.5 group transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in"
+              className="relative flex flex-col items-center gap-3 group transition-all duration-500 hover:scale-110 active:scale-95 animate-fade-in"
               style={{
                 animationDelay: `${index * 80}ms`,
               }}
             >
-              {/* Icon container - design flat avec couleurs vives */}
+              {/* Icon container - design soft avec ombre douce */}
               <div
-                className="relative flex items-center justify-center w-24 h-24 rounded-3xl shadow-lg group-hover:shadow-xl transition-all duration-300"
+                className="relative flex items-center justify-center w-20 h-20 rounded-[40px] shadow-[0_8px_24px_rgba(0,0,0,0.12)] group-hover:shadow-[0_12px_32px_rgba(0,0,0,0.18)] transition-all duration-500 group-hover:-translate-y-1 group-active:translate-y-0"
                 style={{
                   background: serviceColors[service.id] || serviceColors.transport
                 }}
               >
-                <Icon className="w-12 h-12 text-white" strokeWidth={2.5} />
+                <Icon className="w-10 h-10 text-white transition-transform duration-500 group-hover:scale-110" strokeWidth={2.5} />
                 
                 {/* Notification badge */}
                 {notificationCount > 0 && (
-                  <div className="absolute -top-2 -right-2 min-w-[28px] h-[28px] px-1.5 bg-[#E31E24] text-white rounded-full flex items-center justify-center text-xs font-black shadow-lg border-2 border-white animate-bounce">
+                  <div className="absolute -top-2 -right-2 min-w-[26px] h-[26px] px-1.5 bg-[#E31E24] text-white rounded-full flex items-center justify-center text-xs font-black shadow-lg border-2 border-white animate-bounce">
                     {notificationCount > 9 ? '9+' : notificationCount}
                   </div>
                 )}
               </div>
               
               {/* Service name - typographie moderne */}
-              <span className="text-sm font-black text-center leading-tight text-gray-900 dark:text-white">
+              <span className="text-sm font-black text-center leading-tight text-gray-900 dark:text-white transition-all duration-300 group-hover:text-primary">
                 {service.name}
               </span>
             </button>
