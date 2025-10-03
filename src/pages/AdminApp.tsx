@@ -265,7 +265,7 @@ const AdminApp = () => {
       case 'subscription-config':
         return (
           <div className="space-y-6">
-            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+            <FlexiblePermissionGuard requiredPermissions={['finance_admin']}>
               <SubscriptionPlansConfig />
             </FlexiblePermissionGuard>
           </div>
