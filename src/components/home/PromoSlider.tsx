@@ -3,8 +3,13 @@ import Autoplay from 'embla-carousel-autoplay';
 import { Carousel, CarouselContent, CarouselItem, CarouselApi } from '@/components/ui/carousel';
 import { defaultPromos } from '@/data/promos';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
-export const PromoSlider = () => {
+interface PromoSliderProps {
+  onServiceSelect: (service: string) => void;
+}
+
+export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
 
@@ -17,6 +22,20 @@ export const PromoSlider = () => {
       setCurrent(api.selectedScrollSnap());
     });
   }, [api]);
+
+  const handlePromoClick = (promo: typeof defaultPromos[0]) => {
+    // Gestion code promo BIENVENUE30
+    if (promo.id === '1') {
+      localStorage.setItem('activePromoCode', 'BIENVENUE30');
+      localStorage.setItem('promoDiscount', '30');
+      toast.success('Code promo BIENVENUE30 appliqué automatiquement!');
+    }
+
+    // Redirection vers le service
+    if (promo.service) {
+      onServiceSelect(promo.service);
+    }
+  };
 
   return (
     <div className="w-full px-4 pt-4">
@@ -52,7 +71,10 @@ export const PromoSlider = () => {
                   <p className="text-xs sm:text-sm opacity-95 mb-3 drop-shadow">
                     {promo.description}
                   </p>
-                  <button className="px-4 py-2 bg-white/95 hover:bg-white text-gray-900 rounded-lg font-semibold text-xs sm:text-sm w-fit transition-all hover:scale-105 shadow-lg">
+                  <button 
+                    onClick={() => handlePromoClick(promo)}
+                    className="px-4 py-2 bg-white/95 hover:bg-white text-gray-900 rounded-lg font-semibold text-xs sm:text-sm w-fit transition-all hover:scale-105 shadow-lg"
+                  >
                     {promo.cta}
                   </button>
                 </div>

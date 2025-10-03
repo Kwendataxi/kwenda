@@ -75,7 +75,7 @@ export const ModernHomeScreen = ({
         
         <div className="space-y-4 pb-32">
           {/* Slider publicitaire moderne */}
-          <PromoSlider />
+          <PromoSlider onServiceSelect={onServiceSelect} />
           
           {/* Services compacts */}
           <ServiceGrid 
