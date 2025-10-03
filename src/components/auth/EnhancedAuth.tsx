@@ -188,8 +188,22 @@ export const EnhancedAuth = () => {
       <div className="w-full max-w-md relative z-10">
         {/* En-tête impactant avec logo Kwenda */}
         <div className="text-center mb-8 space-y-4 animate-fade-in">
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-red-600 to-red-500 dark:from-red-500 dark:to-red-600 shadow-2xl shadow-red-600/60 dark:shadow-red-500/60 mb-4 animate-scale-in ring-4 ring-red-500/20 dark:ring-red-400/30">
-            <BrandLogo size={56} className="animate-pulse" />
+          {/* Conteneur du logo agrandi avec effets scintillants */}
+          <div className="relative inline-flex items-center justify-center w-32 h-32 rounded-3xl bg-gradient-to-br from-red-600 via-red-500 to-rose-600 dark:from-red-500 dark:via-red-600 dark:to-rose-500 shadow-2xl shadow-red-600/80 dark:shadow-red-500/80 mb-6 animate-gradient ring-8 ring-red-500/30 dark:ring-red-400/40 hover:scale-110 hover:rotate-3 transition-all duration-500 group cursor-pointer">
+            
+            {/* Effet de lueur pulsante */}
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-white/20 to-transparent opacity-50 animate-pulse" />
+            
+            {/* Particules scintillantes */}
+            <div className="absolute -top-2 -right-2 text-2xl animate-bounce delay-100">✨</div>
+            <div className="absolute -bottom-2 -left-2 text-xl animate-bounce delay-300">⭐</div>
+            <div className="absolute top-0 left-1/2 text-lg animate-bounce delay-500">💫</div>
+            
+            {/* Logo avec effet de shimmer */}
+            <BrandLogo 
+              size={80} 
+              className="relative z-10 drop-shadow-2xl filter brightness-110 group-hover:brightness-125 transition-all duration-300 animate-[shimmer_3s_ease-in-out_infinite]" 
+            />
           </div>
           
           <h1 className="text-6xl font-bold animate-gradient bg-gradient-to-r from-red-700 via-red-600 to-red-500 dark:from-red-500 dark:via-red-400 dark:to-rose-400 bg-clip-text text-transparent mb-2 tracking-tight drop-shadow-lg">

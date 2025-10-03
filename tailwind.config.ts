@@ -238,6 +238,16 @@ export default {
 					'50%': { 
 						boxShadow: '0 0 40px hsl(var(--congo-red) / 0.5), 0 0 60px hsl(var(--congo-yellow) / 0.4)' 
 					}
+				},
+				'shimmer': {
+					'0%, 100%': { 
+						opacity: '1',
+						filter: 'brightness(1) drop-shadow(0 0 10px rgba(220, 38, 38, 0.5))'
+					},
+					'50%': { 
+						opacity: '0.85',
+						filter: 'brightness(1.2) drop-shadow(0 0 20px rgba(220, 38, 38, 0.8))'
+					}
 				}
 			},
 			animation: {
@@ -250,7 +260,7 @@ export default {
 				'congo-gradient': 'congo-gradient 4s ease-in-out infinite',
 				'congo-pulse': 'congo-pulse 3s ease-in-out infinite',
 				'congo-wave': 'congo-wave 6s ease-in-out infinite',
-				'shimmer': 'shimmer 2s ease-in-out infinite',
+				'shimmer': 'shimmer 3s ease-in-out infinite',
 				'bounce-subtle': 'bounce-subtle 2s ease-in-out infinite'
 			}
 		}
