@@ -54,31 +54,35 @@ Deno.serve(async (req) => {
 
     console.log(`📊 Fetching metadata for ${user_ids.length} users`);
 
-    // Récupérer les métadonnées auth pour chaque utilisateur
+    // Récupérer tous les utilisateurs via admin.listUsers()
+    const { data: { users: allUsers }, error: listUsersError } = await supabaseAdmin.auth.admin.listUsers();
+
+    if (listUsersError) {
+      console.error('❌ Error listing users:', listUsersError);
+      throw new Error(`Failed to list users: ${listUsersError.message}`);
+    }
+
+    console.log(`📊 Total auth users found: ${allUsers.length}`);
+
+    // Filtrer uniquement les users demandés et construire les métadonnées
     const metadata: Record<string, any> = {};
     const errors: string[] = [];
 
     for (const userId of user_ids) {
-      try {
-        const { data: authUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(userId);
-        
-        if (getUserError) {
-          console.error(`❌ Error fetching user ${userId}:`, getUserError);
-          errors.push(`User ${userId}: ${getUserError.message}`);
-          continue;
-        }
-
-        if (authUser?.user) {
-          metadata[userId] = {
-            last_sign_in_at: authUser.user.last_sign_in_at,
-            email_confirmed_at: authUser.user.email_confirmed_at,
-            created_at: authUser.user.created_at,
-            email: authUser.user.email,
-          };
-        }
-      } catch (err) {
-        console.error(`❌ Exception fetching user ${userId}:`, err);
-        errors.push(`User ${userId}: ${err.message}`);
+      const authUser = allUsers.find(u => u.id === userId);
+      
+      if (authUser) {
+        metadata[userId] = {
+          last_sign_in_at: authUser.last_sign_in_at,
+          email_confirmed_at: authUser.email_confirmed_at,
+          created_at: authUser.created_at,
+          email: authUser.email,
+          phone: authUser.phone,
+          updated_at: authUser.updated_at,
+        };
+      } else {
+        console.warn(`⚠️ User ${userId} not found in auth.users`);
+        errors.push(`User ${userId}: Not found in auth system`);
       }
     }
 
