@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Check, Zap, Gift } from 'lucide-react';
+import { Zap, Gift, Truck, Car, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,6 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { SubscriptionTicketCard } from './SubscriptionTicketCard';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 interface SubscriptionPlan {
   id: string;
@@ -57,6 +59,7 @@ export const SubscriptionPlans: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [paymentProvider, setPaymentProvider] = useState<'orange_money' | 'm_pesa' | 'airtel_money'>('orange_money');
   const [processing, setProcessing] = useState(false);
+  const [serviceFilter, setServiceFilter] = useState<'all' | 'transport' | 'delivery'>('all');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -158,21 +161,34 @@ export const SubscriptionPlans: React.FC = () => {
     }
   };
 
+  const filteredPlans = plans.filter(plan => {
+    if (serviceFilter === 'all') return true;
+    return plan.service_type === serviceFilter;
+  });
+
+  // Détecter le plan le plus populaire (celui avec le plus de courses au meilleur prix)
+  const popularPlanId = filteredPlans.reduce((prev, current) => {
+    if (!prev) return current;
+    const prevValue = prev.rides_included / (prev.price || 1);
+    const currentValue = current.rides_included / (current.price || 1);
+    return currentValue > prevValue ? current : prev;
+  }, filteredPlans[0])?.id;
+
   if (loading) {
     return <div className="text-center py-8">Chargement des abonnements...</div>;
   }
 
   return (
     <div className="space-y-6">
-      {/* Abonnement actif */}
+      {/* Abonnement actif avec nouveau design */}
       {activeSubscription && (
-        <Card className="border-primary bg-primary/5">
+        <Card className="border-primary bg-gradient-to-br from-primary/5 via-accent/5 to-primary/5 shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-primary" />
-              Abonnement Actif
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Zap className="h-6 w-6 text-primary" />
+              🎫 Ticket d'Abonnement Actif
               {activeSubscription.is_trial && (
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="ml-auto">
                   <Gift className="h-3 w-3 mr-1" />
                   Essai Gratuit
                 </Badge>
@@ -180,90 +196,79 @@ export const SubscriptionPlans: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Courses restantes</p>
-                <p className="text-2xl font-bold">{activeSubscription.rides_remaining}</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-success/10 to-success/5 border border-success/20">
+                <p className="text-xs text-muted-foreground mb-1">Courses restantes</p>
+                <p className="text-3xl font-black text-success">{activeSubscription.rides_remaining}</p>
               </div>
-              <div>
-                <p className="text-muted-foreground">Courses utilisées</p>
-                <p className="text-2xl font-bold">{activeSubscription.rides_used}</p>
+              <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                <p className="text-xs text-muted-foreground mb-1">Courses utilisées</p>
+                <p className="text-3xl font-black text-primary">{activeSubscription.rides_used}</p>
               </div>
-              <div>
-                <p className="text-muted-foreground">Date de fin</p>
-                <p className="font-medium">
-                  {new Date(activeSubscription.end_date).toLocaleDateString('fr-FR')}
+              <div className="p-4 rounded-xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20">
+                <p className="text-xs text-muted-foreground mb-1">Expire le</p>
+                <p className="text-sm font-bold text-foreground">
+                  {new Date(activeSubscription.end_date).toLocaleDateString('fr-FR', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                  })}
                 </p>
               </div>
-              <div>
-                <p className="text-muted-foreground">Statut</p>
-                <Badge variant="default">{activeSubscription.status}</Badge>
+              <div className="p-4 rounded-xl bg-gradient-to-br from-info/10 to-info/5 border border-info/20">
+                <p className="text-xs text-muted-foreground mb-1">Statut</p>
+                <Badge variant="default" className="mt-1">{activeSubscription.status}</Badge>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Plans disponibles */}
-      <div>
-        <h2 className="text-2xl font-bold mb-4">Plans d'Abonnement</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {plans.map((plan) => (
-            <Card key={plan.id} className={plan.is_trial ? 'border-green-500' : ''}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-xl">{plan.name}</CardTitle>
-                  {plan.is_trial && (
-                    <Badge variant="default" className="bg-green-600">
-                      <Gift className="h-3 w-3 mr-1" />
-                      Gratuit
-                    </Badge>
-                  )}
-                </div>
-                <CardDescription>{plan.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="text-3xl font-bold">
-                    {plan.price === 0 ? 'Gratuit' : `${plan.price.toLocaleString()} ${plan.currency}`}
-                  </div>
-                  {plan.price > 0 && plan.price_per_extra_ride > 0 && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Course supplémentaire: {plan.price_per_extra_ride} {plan.currency}
-                    </p>
-                  )}
-                </div>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-green-600" />
-                    {plan.rides_included} courses incluses
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-green-600" />
-                    Valable {plan.trial_duration_days || 30} jours
-                  </li>
-                  {plan.is_trial && (
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-600" />
-                      Période d'essai gratuite
-                    </li>
-                  )}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  className="w-full"
-                  onClick={() => handleSubscribe(plan)}
-                  disabled={!!activeSubscription || plan.is_trial}
-                  variant={plan.is_trial ? 'outline' : 'default'}
-                >
-                  {plan.is_trial ? 'Contactez un admin' : 'Souscrire'}
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+      {/* Header avec filtres */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            🎫 Tickets d'Abonnement
+          </h2>
         </div>
+
+        {/* Filtres par type de service */}
+        <Tabs value={serviceFilter} onValueChange={(v: any) => setServiceFilter(v)} className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-3">
+            <TabsTrigger value="all" className="gap-2">
+              <Filter className="h-4 w-4" />
+              Tous
+            </TabsTrigger>
+            <TabsTrigger value="transport" className="gap-2">
+              <Car className="h-4 w-4" />
+              Taxi
+            </TabsTrigger>
+            <TabsTrigger value="delivery" className="gap-2">
+              <Truck className="h-4 w-4" />
+              Livraison
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
+
+      {/* Grille de tickets modernes */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {filteredPlans.map((plan) => (
+          <SubscriptionTicketCard
+            key={plan.id}
+            plan={plan}
+            onSubscribe={() => handleSubscribe(plan)}
+            isDisabled={!!activeSubscription || plan.is_trial}
+            isPopular={plan.id === popularPlanId && !plan.is_trial}
+          />
+        ))}
+      </div>
+
+      {filteredPlans.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
+          <p className="text-lg">Aucun plan disponible pour ce type de service</p>
+        </div>
+      )}
 
       {/* Dialog de paiement Mobile Money */}
       <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
