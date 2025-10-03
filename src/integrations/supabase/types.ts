@@ -8963,6 +8963,10 @@ export type Database = {
         Args: { p_share_id: string }
         Returns: boolean
       }
+      debug_user_verification: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       decrement_driver_rides: {
         Args: { driver_user_id: string }
         Returns: Json
