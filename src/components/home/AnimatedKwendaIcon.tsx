@@ -18,26 +18,27 @@ export const AnimatedKwendaIcon: React.FC = () => {
       >
         {/* Glow effect pulsant */}
         <motion.div
-          className="absolute inset-0 -inset-2 rounded-full bg-primary/20 dark:bg-primary/30 blur-2xl"
+          className="absolute inset-0 -inset-2 rounded-full bg-primary/20 dark:bg-primary/25 blur-xl"
           animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.4, 0.7, 0.4],
+            scale: [1, 1.2, 1],
+            opacity: [0.4, 0.6, 0.4],
           }}
           transition={{
             duration: 2.5,
             repeat: Infinity,
             ease: "easeInOut"
           }}
+          style={{ willChange: 'transform, opacity' }}
         />
 
         {/* Icône principale avec backdrop élégant */}
         <motion.div
-          className="relative z-10 bg-gradient-to-br from-background/95 to-background/80 backdrop-blur-md rounded-full p-3 border border-primary/30 shadow-lg"
+          className="relative z-10 bg-card/95 backdrop-blur-md rounded-full p-3 border border-primary/20 shadow-xl"
           animate={{
             boxShadow: [
-              '0 4px 20px rgba(139, 92, 246, 0.3)',
-              '0 4px 30px rgba(139, 92, 246, 0.5)',
-              '0 4px 20px rgba(139, 92, 246, 0.3)',
+              '0 4px 20px hsl(var(--primary) / 0.3)',
+              '0 4px 30px hsl(var(--primary) / 0.5)',
+              '0 4px 20px hsl(var(--primary) / 0.3)',
             ],
           }}
           transition={{
@@ -45,22 +46,24 @@ export const AnimatedKwendaIcon: React.FC = () => {
             repeat: Infinity,
             ease: "easeInOut"
           }}
+          style={{ willChange: 'box-shadow', transform: 'translateZ(0)' }}
         >
           <motion.img
             src={kwendaIcon}
             alt="Kwenda"
-            className="h-11 w-11 sm:h-12 sm:w-12 object-contain drop-shadow-lg"
+            className="h-12 w-12 sm:h-14 sm:w-14 object-contain drop-shadow-lg"
             animate={{
-              scale: [1, 1.08, 1],
+              scale: [1, 1.05, 1],
             }}
             transition={{
               duration: 2.5,
               repeat: Infinity,
               ease: "easeInOut"
             }}
+            style={{ willChange: 'transform' }}
           />
 
-          {/* Shine effect subtil */}
+          {/* Shine effect subtil adaptatif */}
           <motion.div
             className="absolute inset-0 rounded-full overflow-hidden"
             initial={{ x: '-100%' }}
@@ -72,30 +75,32 @@ export const AnimatedKwendaIcon: React.FC = () => {
               ease: "easeInOut"
             }}
             style={{
-              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
-              pointerEvents: 'none'
+              background: 'linear-gradient(90deg, transparent, hsl(var(--primary) / 0.15), transparent)',
+              pointerEvents: 'none',
+              mixBlendMode: 'overlay'
             }}
           />
         </motion.div>
 
         {/* Mini particules scintillantes */}
-        {[...Array(4)].map((_, i) => (
+        {[...Array(3)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1.5 h-1.5 bg-primary/70 rounded-full blur-[1px]"
+            className="absolute w-1.5 h-1.5 bg-primary/60 rounded-full blur-[1px]"
             style={{
-              top: `${15 + i * 25}%`,
-              left: `${5 + i * 30}%`,
+              top: `${20 + i * 25}%`,
+              left: `${10 + i * 30}%`,
+              willChange: 'transform, opacity'
             }}
             animate={{
-              y: [0, -15, 0],
-              opacity: [0, 1, 0],
-              scale: [0.3, 1.2, 0.3],
+              y: [0, -12, 0],
+              opacity: [0, 0.8, 0],
+              scale: [0.4, 1, 0.4],
             }}
             transition={{
-              duration: 2.5 + i * 0.4,
+              duration: 2.3 + i * 0.3,
               repeat: Infinity,
-              delay: i * 0.4,
+              delay: i * 0.35,
               ease: "easeInOut"
             }}
           />
