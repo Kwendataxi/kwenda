@@ -124,50 +124,72 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
   }, []);
 
   return (
-    <div className="relative overflow-hidden">
-      {/* Fond moderne avec gradient adaptatif */}
-      <div className="px-6 py-4 pt-12 relative z-10 bg-background">
-
+    <div className="relative overflow-hidden border-b border-border/40 shadow-md backdrop-blur-xl bg-gradient-to-r from-primary/5 via-background/95 to-secondary/5">
+      {/* Fond gradient animé subtil */}
+      <div className="absolute inset-0 bg-gradient-to-r from-congo-red/5 via-congo-yellow/5 to-congo-green/5 opacity-50 animate-congo-gradient bg-[length:200%_100%]" />
+      
+      <div className="relative px-6 py-4 pt-12 z-10">
         {/* Structure en 2 colonnes améliorée */}
         <div className="flex items-center justify-between">
           {/* Salutation personnalisée et localisation */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
+            {/* Logo Kwenda avec effet shimmer */}
             <div className="flex items-center gap-3 mb-3">
-              <AnimatedKwendaIcon />
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full blur-md animate-pulse" />
+                <AnimatedKwendaIcon />
+              </div>
             </div>
-            <p className="text-foreground font-bold text-lg">
-              {getGreeting()}, {profileLoading ? '...' : displayName.split(' ')[0]}
+            
+            {/* Greeting avec couleur gradient */}
+            <p className="text-sm font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-1">
+              {getGreeting()} ✨
             </p>
-            <div className="hidden">
-              <div className="flex items-center gap-1">
-                {geolocation.isRealGPS ? (
-                  <Navigation className="h-4 w-4 text-green-500" />
+            
+            {/* Nom utilisateur plus imposant */}
+            <p className="text-lg font-bold text-foreground truncate">
+              {profileLoading ? '...' : displayName.split(' ')[0]}
+            </p>
+            
+            {/* Location visible avec icône */}
+            {geolocation.latitude && geolocation.longitude && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                <MapPin className="h-3 w-3 text-primary animate-pulse flex-shrink-0" />
+                {geocodingLoading ? (
+                  <span className="animate-pulse">Localisation...</span>
+                ) : currentAddress ? (
+                  <span className="truncate max-w-[180px] font-medium">{currentAddress}</span>
                 ) : (
-                  <MapPin className="h-4 w-4 text-orange-500" />
-                )}
-                {geolocation.error && !geolocation.loading && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={geolocation.forceRefreshPosition}
-                    className="h-6 px-2 ml-1"
-                  >
-                    <RefreshCw className="h-3 w-3" />
-                  </Button>
+                  <span>Position détectée</span>
                 )}
               </div>
-              <span className="hidden" />
-            </div>
+            )}
           </div>
           
           {/* Actions à droite */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Battery indicator with badge */}
+            {batteryLevel !== null && (
+              <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${
+                batteryLevel < 20 ? 'bg-destructive/10' :
+                batteryLevel < 50 ? 'bg-warning/10' :
+                'bg-success/10'
+              }`}>
+                <Battery 
+                  className={`h-4 w-4 ${
+                    batteryLevel < 20 ? 'text-destructive' :
+                    batteryLevel < 50 ? 'text-warning' :
+                    'text-success'
+                  }`}
+                />
+              </div>
+            )}
+            
             <ThemeToggle variant="icon" size="md" className="bg-card border border-border shadow-lg" />
             <LanguageSelector />
           </div>
         </div>
       </div>
-
     </div>
   );
 };

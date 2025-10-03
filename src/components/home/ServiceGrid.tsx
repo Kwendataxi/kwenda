@@ -105,7 +105,7 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
 
   return (
     <div className="px-4">
-      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+      <div className="grid grid-cols-4 gap-4">
         {mainServices.map((service, index) => {
           const Icon = service.icon;
           const notificationCount = serviceNotifications?.[service.id as keyof typeof serviceNotifications] || 0;
@@ -114,49 +114,45 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
             <button
               key={service.id}
               onClick={() => onServiceSelect(service.id)}
-              className={cn(
-                'group relative flex flex-col items-center gap-2 p-3',
-                'transition-all duration-300 ease-out',
-                'hover:scale-105 focus:scale-105',
-                'animate-fade-in'
-              )}
+              className="relative flex flex-col items-center gap-2.5 p-4 rounded-2xl group transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in"
               style={{
-                animationDelay: `${index * 100}ms`,
+                animationDelay: `${index * 80}ms`,
               }}
             >
-              {/* Icon container with gradient */}
+              {/* Card background with hover effect */}
+              <div className="absolute inset-0 rounded-2xl bg-card border border-border/50 shadow-sm group-hover:shadow-lg transition-all duration-300" />
+              
+              {/* Icon with gradient background and shimmer */}
               <div
                 className={cn(
                   'relative flex items-center justify-center',
-                  'w-16 h-16 md:w-18 md:h-18',
-                  'rounded-2xl',
+                  'w-16 h-16',
+                  'rounded-xl',
                   'bg-gradient-to-br',
                   service.gradient,
-                  'ring-2 ring-white/20',
-                  'border border-white/10',
+                  'shadow-lg group-hover:shadow-xl',
                   'transition-all duration-300',
-                  'shadow-lg',
-                  service.id === 'transport' && 'shadow-congo-red/30 group-hover:shadow-congo-red/50',
-                  service.id === 'delivery' && 'shadow-congo-yellow/30 group-hover:shadow-congo-yellow/50',
-                  service.id === 'rental' && 'shadow-congo-green/30 group-hover:shadow-congo-green/50',
-                  service.id === 'marketplace' && 'shadow-secondary/30 group-hover:shadow-secondary/50',
-                  service.id === 'lottery' && 'shadow-primary/30 group-hover:shadow-primary/50',
-                  'group-hover:scale-110 group-hover:rotate-2 group-hover:animate-congo-pulse',
-                  'group-focus:scale-110 group-focus:rotate-2'
+                  'overflow-hidden'
                 )}
               >
-                <Icon className="h-7 w-7 md:h-8 md:w-8 text-white transition-transform duration-200 group-hover:scale-110 group-hover:rotate-3" />
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 
-                {/* Notification badge */}
+                <Icon className="w-7 h-7 text-white relative z-10 drop-shadow-md" />
+                
+                {/* Notification badge - more visible */}
                 {notificationCount > 0 && (
-                  <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 animate-pulse shadow-lg shadow-red-500/50 ring-2 ring-background">
+                  <div className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1.5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-xs font-black shadow-lg border-2 border-background animate-pulse">
                     {notificationCount > 9 ? '9+' : notificationCount}
                   </div>
                 )}
+                
+                {/* Subtle pattern overlay */}
+                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.3),transparent_70%)]" />
               </div>
-
-              {/* Service name */}
-              <span className="text-xs md:text-sm font-semibold text-foreground/90 tracking-tight text-center leading-tight">
+              
+              {/* Service name - more prominent */}
+              <span className="relative text-xs font-bold text-center leading-tight text-foreground z-10">
                 {service.name}
               </span>
             </button>
