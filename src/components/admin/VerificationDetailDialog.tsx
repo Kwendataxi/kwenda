@@ -74,9 +74,9 @@ export const VerificationDetailDialog = ({ verification, open, onClose, onSucces
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] sm:max-w-[90vw] lg:max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader className="border-b pb-4 mb-4">
-          <DialogTitle className="text-2xl font-bold text-center">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-center">
             Vérification du compte
           </DialogTitle>
         </DialogHeader>
@@ -218,9 +218,9 @@ export const VerificationDetailDialog = ({ verification, open, onClose, onSucces
             </div>
 
             {/* Actions */}
-            <div className="border-t pt-6 mt-6 bg-muted/30 rounded-lg px-4 pb-4">
+            <div className="border-t pt-6 mt-6 bg-muted/30 rounded-lg p-4">
               <h3 className="font-semibold text-lg mb-4 text-center">Actions de validation</h3>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <Button
                   onClick={() => handleAction('approve')}
                   disabled={isProcessing || !verification.identity_document_url}
