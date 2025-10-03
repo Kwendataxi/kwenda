@@ -4,6 +4,8 @@ import { UserDataTable } from './UserDataTable';
 import { UserFilters } from './UserFilters';
 import { UserStatsCards } from './UserStatsCards';
 import { BulkActions } from './BulkActions';
+import { UserProfileDialog } from './UserProfileDialog';
+import { UserEditDialog } from './UserEditDialog';
 import { useAdvancedUserManagement } from '@/hooks/useAdvancedUserManagement';
 import { Button } from '@/components/ui/button';
 import { Download, RefreshCw, Users } from 'lucide-react';
@@ -25,6 +27,8 @@ export const AdvancedUserManagement: React.FC = () => {
   } = useAdvancedUserManagement();
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [viewingUser, setViewingUser] = useState<any>(null);
+  const [editingUser, setEditingUser] = useState<any>(null);
 
   const handleSelectUser = (userId: string, selected: boolean) => {
     if (selected) {
@@ -134,9 +138,25 @@ export const AdvancedUserManagement: React.FC = () => {
             onSortChange={(sortBy, sortOrder) => 
               setFilters({ sortBy, sortOrder })
             }
+            onViewUser={setViewingUser}
+            onEditUser={setEditingUser}
           />
         </CardContent>
       </Card>
+
+      {/* Dialogues */}
+      <UserProfileDialog
+        user={viewingUser}
+        open={!!viewingUser}
+        onOpenChange={(open) => !open && setViewingUser(null)}
+      />
+
+      <UserEditDialog
+        user={editingUser}
+        open={!!editingUser}
+        onOpenChange={(open) => !open && setEditingUser(null)}
+        onSuccess={refreshData}
+      />
     </div>
   );
 };

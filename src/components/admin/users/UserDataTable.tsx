@@ -43,6 +43,8 @@ interface UserDataTableProps {
   onSelectAll: (selected: boolean) => void;
   filters: UserFilters;
   onSortChange: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
+  onViewUser?: (user: UserProfile) => void;
+  onEditUser?: (user: UserProfile) => void;
 }
 
 export const UserDataTable: React.FC<UserDataTableProps> = ({
@@ -57,6 +59,8 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
   onSelectAll,
   filters,
   onSortChange,
+  onViewUser,
+  onEditUser,
 }) => {
   const handleSort = (column: string) => {
     if (filters.sortBy === column) {
@@ -256,11 +260,11 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onViewUser?.(user)}>
                           <Eye className="h-4 w-4 mr-2" />
                           Voir le profil
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEditUser?.(user)}>
                           <Edit className="h-4 w-4 mr-2" />
                           Modifier
                         </DropdownMenuItem>

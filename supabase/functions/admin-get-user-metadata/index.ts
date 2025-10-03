@@ -30,13 +30,14 @@ Deno.serve(async (req) => {
 
     console.log('✅ User authenticated:', user.id);
 
-    // Vérifier que l'utilisateur est admin
+    // Vérifier que l'utilisateur est admin via user_roles (système unifié)
     const { data: adminCheck, error: adminError } = await supabaseAdmin
-      .from('admins')
-      .select('id, admin_level')
+      .from('user_roles')
+      .select('id')
       .eq('user_id', user.id)
+      .eq('role', 'admin')
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
     if (adminError || !adminCheck) {
       console.error('❌ Admin check failed:', adminError);
