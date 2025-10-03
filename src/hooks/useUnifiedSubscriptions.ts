@@ -82,18 +82,53 @@ export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
         console.error('Error fetching unified subscriptions:', error);
         throw error;
       }
-      return (data || []) as any[];
+
+      // Transform RPC data to match expected component format
+      return (data || []).map((sub: any) => ({
+        id: sub.subscription_id,
+        status: sub.status,
+        start_date: sub.start_date,
+        end_date: sub.end_date,
+        auto_renew: sub.auto_renew,
+        created_at: sub.created_at,
+        updated_at: sub.updated_at,
+        rides_remaining: sub.rides_remaining,
+        payment_method: 'RPC', // Default value
+        service_type: sub.subscription_type === 'driver' ? 'transport' : 'rental',
+        // Nested objects for compatibility with existing components
+        chauffeurs: sub.subscription_type === 'driver' ? {
+          display_name: sub.user_name || 'N/A',
+          email: sub.user_email || 'N/A',
+        } : null,
+        partenaires: sub.subscription_type === 'rental' ? {
+          company_name: sub.user_name || 'N/A',
+          email: sub.user_email || 'N/A',
+        } : null,
+        subscription_plans: sub.subscription_type === 'driver' ? {
+          id: sub.plan_id,
+          name: sub.plan_name || 'N/A',
+          price: sub.plan_price || 0,
+          currency: sub.currency || 'CDF',
+          rides_included: sub.rides_included || 0,
+        } : null,
+        rental_subscription_plans: sub.subscription_type === 'rental' ? {
+          id: sub.plan_id,
+          name: sub.plan_name || 'N/A',
+          monthly_price: sub.plan_price || 0,
+          currency: sub.currency || 'CDF',
+        } : null,
+      }));
     },
   });
 
   // Separate subscriptions by type
   const driverSubscriptions = useMemo(() => 
-    allSubscriptions.filter(sub => sub.subscription_type === 'driver'),
+    allSubscriptions.filter(sub => sub.service_type === 'transport'),
     [allSubscriptions]
   );
 
   const rentalSubscriptions = useMemo(() => 
-    allSubscriptions.filter(sub => sub.subscription_type === 'rental'),
+    allSubscriptions.filter(sub => sub.service_type === 'rental'),
     [allSubscriptions]
   );
 
@@ -115,12 +150,12 @@ export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
       sub => sub.status === 'active' && new Date(sub.end_date) > now
     );
 
-    // Calculate monthly revenue (using plan_price from RPC)
+    // Calculate monthly revenue (using plan data from transformed objects)
     const driverRevenue = activeDriverSubs.reduce(
-      (sum, sub) => sum + (sub.plan_price || 0), 0
+      (sum, sub) => sum + (sub.subscription_plans?.price || 0), 0
     );
     const rentalRevenue = activeRentalSubs.reduce(
-      (sum, sub) => sum + (sub.plan_price || 0), 0
+      (sum, sub) => sum + (sub.rental_subscription_plans?.monthly_price || 0), 0
     );
 
     // Count expiring subscriptions
@@ -138,7 +173,9 @@ export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
       rentalSubscriptions: activeRentalSubs.length,
       expiringInWeek: expiringDriver + expiringRental,
       failedPayments: 0, // TODO: Calculate from payment history
-      currency: driverSubscriptions[0]?.currency || rentalSubscriptions[0]?.currency || 'CDF'
+      currency: driverSubscriptions[0]?.subscription_plans?.currency || 
+                rentalSubscriptions[0]?.rental_subscription_plans?.currency || 
+                'CDF'
     };
   }, [driverSubscriptions, rentalSubscriptions, isLoading]);
 
