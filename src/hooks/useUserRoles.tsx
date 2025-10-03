@@ -37,56 +37,38 @@ export const useUserRoles = (): UseUserRolesReturn => {
       setLoading(true);
       setError(null);
 
-      // Vérifier d'abord directement dans la table admins pour éviter les problèmes RLS
-      const { data: adminData, error: adminError } = await supabase
-        .from('admins')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .maybeSingle();
+      console.log('🔍 [UserRoles] Fetching roles via RPC for user:', user.id);
 
-      if (!adminError && adminData) {
-        // Utilisateur admin trouvé - configurer les permissions admin
-        console.log('✅ Admin user detected:', adminData);
-        const adminPermissions = (adminData.permissions || ['system_admin', 'user_management', 'content_moderation']) as Permission[];
-        const adminRole = {
-          role: 'admin' as UserRole,
-          admin_role: (adminData.admin_level || 'moderator') as AdminRole,
-          permissions: adminPermissions
-        };
-        setUserRoles([adminRole]);
-        setPermissions(adminPermissions);
-        return;
-      } else if (adminError) {
-        console.error('❌ Error fetching admin data:', adminError);
+      // Utiliser uniquement get_user_roles qui vérifie user_roles
+      const { data: rolesData, error: rolesError } = await supabase.rpc('get_user_roles', {
+        p_user_id: user.id
+      });
+
+      if (rolesError) {
+        console.error('❌ [UserRoles] RPC Error:', rolesError);
+        throw rolesError;
       }
 
-      // Essayer la fonction RPC si disponible
-      try {
-        const { data: rolesData, error: rolesError } = await supabase.rpc('get_user_roles', {
-          p_user_id: user.id
-        });
+      if (rolesData && rolesData.length > 0) {
+        console.log('✅ [UserRoles] Roles retrieved:', rolesData);
+        
+        const rolesWithTypedInfo: UserRoleInfo[] = rolesData.map((item: any) => ({
+          role: item.role as UserRole,
+          admin_role: item.admin_role as AdminRole || undefined,
+          permissions: item.permissions || []
+        }));
 
-        if (!rolesError && rolesData && rolesData.length > 0) {
-          const rolesWithTypedInfo: UserRoleInfo[] = rolesData.map((item: any) => ({
-            role: item.role as UserRole,
-            admin_role: item.admin_role as AdminRole || undefined,
-            permissions: item.permissions || []
-          }));
+        const allPermissions = Array.from(
+          new Set(rolesWithTypedInfo.flatMap(role => role.permissions))
+        ) as Permission[];
 
-          const allPermissions = Array.from(
-            new Set(rolesWithTypedInfo.flatMap(role => role.permissions))
-          ) as Permission[];
-
-          setUserRoles(rolesWithTypedInfo);
-          setPermissions(allPermissions);
-          return;
-        }
-      } catch (rpcError) {
-        console.warn('RPC get_user_roles failed, using fallback:', rpcError);
+        setUserRoles(rolesWithTypedInfo);
+        setPermissions(allPermissions);
+        return;
       }
 
       // Fallback : assigner un rôle client par défaut
+      console.log('⚠️ [UserRoles] No roles found, defaulting to client');
       const defaultRole = {
         role: 'client' as UserRole,
         admin_role: undefined,
@@ -96,7 +78,7 @@ export const useUserRoles = (): UseUserRolesReturn => {
       setPermissions(['transport_read', 'marketplace_read']);
 
     } catch (err) {
-      console.error('Error in fetchUserRoles:', err);
+      console.error('❌ [UserRoles] Error in fetchUserRoles:', err);
       setError('Erreur lors du chargement des rôles');
       // Fallback en cas d'erreur
       const defaultRole = {

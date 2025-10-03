@@ -9141,10 +9141,6 @@ export type Database = {
           vehicle_class: string
         }[]
       }
-      get_current_user_admin_status: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -9638,10 +9634,6 @@ export type Database = {
         }[]
       }
       is_current_user_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_current_user_admin_secure: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }

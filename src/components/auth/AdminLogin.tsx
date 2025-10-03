@@ -37,15 +37,11 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
 
       if (error) throw error;
 
-      // Vérifier si l'utilisateur est bien un administrateur
-      const { data: adminData } = await supabase
-        .from('admins')
-        .select('*')
-        .eq('user_id', data.user.id)
-        .eq('is_active', true)
-        .single();
+      // Vérifier si l'utilisateur est admin via user_roles
+      const { data: isAdmin, error: roleError } = await supabase
+        .rpc('is_current_user_admin');
 
-      if (!adminData) {
+      if (roleError || !isAdmin) {
         await supabase.auth.signOut();
         toast.error('Accès non autorisé', {
           description: 'Ce compte n\'est pas autorisé à accéder à l\'administration'
