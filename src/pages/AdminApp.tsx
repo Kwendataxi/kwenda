@@ -7,10 +7,9 @@ import { ResponsiveAdminLayout } from '@/components/admin/ResponsiveAdminLayout'
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { PermissionGuard } from '@/components/auth/PermissionGuard';
 import { FlexiblePermissionGuard } from '@/components/auth/FlexiblePermissionGuard';
-import { CommissionManager } from '@/components/admin/CommissionManager';
 import { FinancialDashboard } from '@/components/admin/FinancialDashboard';
 import { ADMIN_ROLE_LABELS } from '@/types/roles';
-import { AdminPricingManager } from '@/components/admin/AdminPricingManager';
+import { UnifiedPricingPanel } from '@/components/admin/pricing/UnifiedPricingPanel';
 import { AdminFiltersBar } from '@/components/admin/AdminFiltersBar';
 import { AdvancedUserManagement } from '@/components/admin/users/AdvancedUserManagement';
 import { DriverManagement } from '@/components/admin/drivers/DriverManagement';
@@ -140,7 +139,7 @@ const AdminApp = () => {
         return (
           <div className="space-y-6">
         <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
-          <AdminPricingManager />
+          <UnifiedPricingPanel />
         </FlexiblePermissionGuard>
         </div>
         );
