@@ -44,15 +44,15 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
         <div className="absolute -bottom-20 -right-10 h-72 w-72 rounded-full bg-accent/20 blur-3xl animate-fade-in" />
       </div>
       <div className="absolute inset-0 bg-gradient-to-br from-primary/15 to-background/80 backdrop-blur-sm" aria-hidden="true" />
-      <div className="relative mx-6 w-full max-w-sm rounded-2xl border border-border bg-card/80 p-8 text-center shadow-xl animate-enter">
-        <div className="relative mx-auto mb-6 h-20 w-20 rounded-2xl">
-          <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-primary/30 to-accent/20 blur-2xl" aria-hidden="true" />
+      <div className="relative mx-6 w-full max-w-sm rounded-2xl border border-border bg-card/80 p-6 text-center shadow-xl animate-enter">
+        <div className="relative mx-auto mb-4 h-16 w-16 rounded-2xl">
+          <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-primary/30 to-accent/20 blur-2xl" aria-hidden="true" />
           <div className="absolute inset-0 rounded-2xl border border-border/60 bg-card/60 backdrop-blur" aria-hidden="true" />
-          <BrandLogo size={80} className="relative z-10 mx-auto" alt={`Logo ${meta.title}`} />
+          <BrandLogo size={64} className="relative z-10 mx-auto" alt={`Logo ${meta.title}`} />
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{meta.title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{meta.subtitle}</p>
-        <div className="mt-6 mx-auto h-1 w-28 overflow-hidden rounded-full bg-primary/30">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">{meta.title}</h1>
+        <p className="mt-1.5 text-sm text-muted-foreground leading-snug">{meta.subtitle}</p>
+        <div className="mt-4 mx-auto h-1 w-24 overflow-hidden rounded-full bg-primary/30">
           <div className="h-full w-1/2 bg-primary animate-[slide-in-right_1.2s_ease-in-out_infinite_alternate]" />
         </div>
       </div>
