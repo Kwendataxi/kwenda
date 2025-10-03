@@ -86,7 +86,7 @@ export const SubscriptionOverview = () => {
       )}
 
       {/* KPIs principaux avec nouveaux composants */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <SubscriptionStatCard
           title="Abonnements Actifs"
           value={String(stats?.totalActiveSubscriptions || 0)}
@@ -124,7 +124,7 @@ export const SubscriptionOverview = () => {
       </div>
 
       {/* Graphiques */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -133,7 +133,7 @@ export const SubscriptionOverview = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={200} className="md:h-[250px]">
               <PieChart>
                 <Pie
                   data={serviceTypeData}
@@ -165,7 +165,7 @@ export const SubscriptionOverview = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={200} className="md:h-[250px]">
               <BarChart data={statusData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
@@ -188,7 +188,7 @@ export const SubscriptionOverview = () => {
       </div>
 
       {/* Tableaux détaillés */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

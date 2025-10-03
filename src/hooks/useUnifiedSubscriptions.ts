@@ -26,20 +26,44 @@ interface UseUnifiedSubscriptionsReturn {
 export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
   const { toast } = useToast();
 
-  // Fetch all subscriptions using the secure RPC function
-  const { data: allSubscriptions = [], isLoading, error } = useQuery({
+  // Fetch all subscriptions using the secure RPC function with enhanced error handling
+  const { data: subscriptionsData, isLoading, error: queryError } = useQuery({
     queryKey: ['admin-unified-subscriptions'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc('get_admin_subscriptions_unified');
+      console.log('🔍 Fetching unified subscriptions via RPC...');
+      
+      const { data, error } = await supabase.rpc('get_admin_subscriptions_unified');
 
       if (error) {
-        console.error('Error fetching unified subscriptions:', error);
+        console.error('❌ RPC Error:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
-      return (data || []) as any[];
+      
+      console.log('✅ Subscriptions loaded successfully:', data);
+      return data || { driverSubscriptions: [], rentalSubscriptions: [], stats: null };
     },
+    retry: 2,
+    retryDelay: 1000,
   });
+
+  // Extract subscriptions from the RPC response with type safety
+  const allSubscriptions = useMemo(() => {
+    if (!subscriptionsData || typeof subscriptionsData !== 'object') return [];
+    
+    const data = subscriptionsData as any;
+    const driverSubs = Array.isArray(data.driverSubscriptions) ? data.driverSubscriptions : [];
+    const rentalSubs = Array.isArray(data.rentalSubscriptions) ? data.rentalSubscriptions : [];
+    
+    return [
+      ...driverSubs.map((sub: any) => ({ ...sub, subscription_type: 'driver' })),
+      ...rentalSubs.map((sub: any) => ({ ...sub, subscription_type: 'rental' }))
+    ];
+  }, [subscriptionsData]);
 
   // Séparer les abonnements par type
   const driverSubscriptions = useMemo(() => 
@@ -179,10 +203,11 @@ export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
   };
 
   // Show error toast if query fails
-  if (error) {
+  if (queryError) {
+    console.error('❌ Query Error:', queryError);
     toast({
       title: "Erreur de chargement",
-      description: "Impossible de charger les abonnements",
+      description: `Impossible de charger les abonnements: ${(queryError as any).message || 'Erreur inconnue'}`,
       variant: "destructive"
     });
   }

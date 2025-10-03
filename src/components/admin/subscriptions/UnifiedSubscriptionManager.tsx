@@ -33,7 +33,7 @@ export const UnifiedSubscriptionManager = () => {
         </div>
         
         {stats && (
-          <div className="flex gap-4">
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             <Card className="p-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
@@ -72,34 +72,39 @@ export const UnifiedSubscriptionManager = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 h-auto p-1">
+          <TabsTrigger value="overview" className="flex items-center gap-2 text-xs sm:text-sm px-2 py-2">
             <TrendingUp className="h-4 w-4" />
-            Vue d'ensemble
+            <span className="hidden sm:inline">Vue d'ensemble</span>
+            <span className="sm:hidden">Vue</span>
           </TabsTrigger>
-          <TabsTrigger value="drivers" className="flex items-center gap-2">
+          <TabsTrigger value="drivers" className="flex items-center gap-2 text-xs sm:text-sm px-2 py-2">
             <Users className="h-4 w-4" />
-            Chauffeurs
+            <span className="hidden sm:inline">Chauffeurs</span>
+            <span className="sm:hidden">Drivers</span>
             {stats && stats.driverSubscriptions > 0 && (
               <Badge variant="secondary" className="ml-1">
                 {stats.driverSubscriptions}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="rentals" className="flex items-center gap-2">
+          <TabsTrigger value="rentals" className="flex items-center gap-2 text-xs sm:text-sm px-2 py-2">
             <Car className="h-4 w-4" />
-            Location
+            <span className="hidden sm:inline">Location</span>
+            <span className="sm:hidden">Loc.</span>
             {stats && stats.rentalSubscriptions > 0 && (
               <Badge variant="secondary" className="ml-1">
                 {stats.rentalSubscriptions}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            📊 Analytics
+          <TabsTrigger value="analytics" className="flex items-center gap-2 text-xs sm:text-sm px-2 py-2">
+            <span>📊</span>
+            <span className="hidden lg:inline">Analytics</span>
           </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            Plans & Config
+          <TabsTrigger value="settings" className="flex items-center gap-2 text-xs sm:text-sm px-2 py-2">
+            <span className="hidden sm:inline">Plans & Config</span>
+            <span className="sm:hidden">⚙️</span>
           </TabsTrigger>
         </TabsList>
 

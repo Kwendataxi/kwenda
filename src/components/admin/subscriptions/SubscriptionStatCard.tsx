@@ -54,8 +54,8 @@ export const SubscriptionStatCard: React.FC<SubscriptionStatCardProps> = ({
       )}
       style={{ borderLeftColor: borderColor }}
     >
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4 sm:px-6 sm:pt-6">
+        <CardTitle className="text-xs sm:text-sm font-medium">{title}</CardTitle>
         <div className="flex items-center gap-2">
           {badge && (
             <Badge variant={badge.variant || 'secondary'} className="text-xs">
@@ -65,8 +65,8 @@ export const SubscriptionStatCard: React.FC<SubscriptionStatCardProps> = ({
           <Icon className={cn('h-4 w-4', borderColor ? `text-[${borderColor}]` : 'text-muted-foreground')} />
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+      <CardContent className="pt-2">
+        <div className="text-xl sm:text-2xl font-bold">{value}</div>
         
         {(description || trend) && (
           <div className="mt-1 flex items-center gap-2">

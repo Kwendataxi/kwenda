@@ -9129,25 +9129,7 @@ export type Database = {
       }
       get_admin_subscriptions_unified: {
         Args: Record<PropertyKey, never>
-        Returns: {
-          auto_renew: boolean
-          created_at: string
-          currency: string
-          end_date: string
-          plan_id: string
-          plan_name: string
-          plan_price: number
-          rides_included: number
-          rides_remaining: number
-          start_date: string
-          status: string
-          subscription_id: string
-          subscription_type: string
-          updated_at: string
-          user_email: string
-          user_id: string
-          user_name: string
-        }[]
+        Returns: Json
       }
       get_anonymized_vendor_performance: {
         Args: Record<PropertyKey, never>
