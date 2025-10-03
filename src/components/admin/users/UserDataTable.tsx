@@ -21,7 +21,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 import { UserProfile, UserFilters } from '@/hooks/useAdvancedUserManagement';
-import { ArrowUpDown, ArrowUp, ArrowDown, Eye, Edit, MoreHorizontal } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Eye, Edit, MoreHorizontal, Shield } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +45,7 @@ interface UserDataTableProps {
   onSortChange: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
   onViewUser?: (user: UserProfile) => void;
   onEditUser?: (user: UserProfile) => void;
+  onVerifyUser?: (user: UserProfile) => void;
 }
 
 export const UserDataTable: React.FC<UserDataTableProps> = ({
@@ -61,6 +62,7 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
   onSortChange,
   onViewUser,
   onEditUser,
+  onVerifyUser,
 }) => {
   const handleSort = (column: string) => {
     if (filters.sortBy === column) {
@@ -267,6 +269,10 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
                         <DropdownMenuItem onClick={() => onEditUser?.(user)}>
                           <Edit className="h-4 w-4 mr-2" />
                           Modifier
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onVerifyUser?.(user)}>
+                          <Shield className="h-4 w-4 mr-2" />
+                          Vérifier le compte
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

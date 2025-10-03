@@ -6,6 +6,7 @@ import { UserStatsCards } from './UserStatsCards';
 import { BulkActions } from './BulkActions';
 import { UserProfileDialog } from './UserProfileDialog';
 import { UserEditDialog } from './UserEditDialog';
+import { VerificationDetailDialog } from '../VerificationDetailDialog';
 import { useAdvancedUserManagement } from '@/hooks/useAdvancedUserManagement';
 import { Button } from '@/components/ui/button';
 import { Download, RefreshCw, Users } from 'lucide-react';
@@ -29,6 +30,7 @@ export const AdvancedUserManagement: React.FC = () => {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [viewingUser, setViewingUser] = useState<any>(null);
   const [editingUser, setEditingUser] = useState<any>(null);
+  const [verifyingUser, setVerifyingUser] = useState<any>(null);
 
   const handleSelectUser = (userId: string, selected: boolean) => {
     if (selected) {
@@ -140,6 +142,7 @@ export const AdvancedUserManagement: React.FC = () => {
             }
             onViewUser={setViewingUser}
             onEditUser={setEditingUser}
+            onVerifyUser={setVerifyingUser}
           />
         </CardContent>
       </Card>
@@ -157,6 +160,36 @@ export const AdvancedUserManagement: React.FC = () => {
         onOpenChange={(open) => !open && setEditingUser(null)}
         onSuccess={refreshData}
       />
+
+      {verifyingUser && (
+        <VerificationDetailDialog
+          verification={{
+            id: crypto.randomUUID(),
+            user_id: verifyingUser.id,
+            user_type: verifyingUser.user_type || 'client',
+            verification_type: 'identity',
+            status: 'pending',
+            phone_verified: false,
+            identity_verified: false,
+            verification_level: 'none',
+            verification_data: {},
+            verification_documents: [],
+            documents: [],
+            verified_by: null,
+            verified_at: null,
+            expires_at: null,
+            rejection_reason: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }}
+          open={!!verifyingUser}
+          onClose={() => setVerifyingUser(null)}
+          onSuccess={() => {
+            setVerifyingUser(null);
+            refreshData();
+          }}
+        />
+      )}
     </div>
   );
 };
