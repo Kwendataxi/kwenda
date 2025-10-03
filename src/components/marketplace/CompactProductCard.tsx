@@ -3,8 +3,9 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Star, Eye, Heart } from 'lucide-react';
+import { Star, Eye, Heart, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useChat } from '@/components/chat/ChatProvider';
 
 interface Product {
   id: string;
@@ -35,6 +36,7 @@ interface CompactProductCardProps {
   onAddToCart: (product: Product) => void;
   onViewDetails: (product: Product) => void;
   onViewSeller?: (sellerId: string) => void;
+  onStartChat?: (sellerId: string, productId: string) => void;
   userLocation?: { lat: number; lng: number };
   className?: string;
 }
@@ -44,11 +46,13 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
   onAddToCart,
   onViewDetails,
   onViewSeller,
+  onStartChat,
   userLocation,
   className
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const { openChat } = useChat();
 
   const calculateDistance = useCallback((
     lat1: number,
@@ -102,7 +106,7 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
         
         {/* Overlay Actions - Minimal */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300">
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <Button
               size="sm"
               variant="ghost"
@@ -113,6 +117,24 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
               }}
             >
               <Eye className="h-3 w-3 text-grey-700" />
+            </Button>
+            
+            {/* Chat icon - appears on hover */}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 w-7 p-0 bg-white/90 hover:bg-white"
+              onClick={(e) => {
+                e.stopPropagation();
+                openChat({
+                  contextType: 'marketplace',
+                  contextId: product.id,
+                  participantId: product.sellerId,
+                  title: product.name
+                });
+              }}
+            >
+              <MessageCircle className="h-3 w-3 text-primary" />
             </Button>
           </div>
 

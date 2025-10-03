@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ChatProvider } from '@/components/chat/ChatProvider';
 
 // Components
 import { CategoryFilter } from './CategoryFilter';
@@ -25,6 +26,7 @@ import { DeliveryCalculator } from './DeliveryCalculator';
 import { OrderTracker } from './OrderTracker';
 import { AdvancedOrderTracker } from './AdvancedOrderTracker';
 import { VerifiedSellerGuard } from './VerifiedSellerGuard';
+import { FloatingChatButton } from './FloatingChatButton';
 
 // Hooks
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
@@ -81,6 +83,14 @@ interface EnhancedMarketplaceInterfaceProps {
 }
 
 export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterfaceProps> = ({ onNavigate }) => {
+  return (
+    <ChatProvider>
+      <EnhancedMarketplaceContent onNavigate={onNavigate} />
+    </ChatProvider>
+  );
+};
+
+const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t, formatCurrency } = useLanguage();
@@ -680,6 +690,9 @@ export const EnhancedMarketplaceInterface: React.FC<EnhancedMarketplaceInterface
           userLocation={coordinates}
         />
       )}
+
+      {/* Floating Chat Button - Marketplace */}
+      <FloatingChatButton />
     </div>
   );
 };

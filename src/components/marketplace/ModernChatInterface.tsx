@@ -19,11 +19,13 @@ import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDistance } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface ModernChatInterfaceProps {
   productId?: string;
   sellerId?: string;
   isFloating?: boolean;
+  isCompact?: boolean;
   onClose?: () => void;
 }
 
@@ -31,6 +33,7 @@ export const ModernChatInterface: React.FC<ModernChatInterfaceProps> = ({
   productId,
   sellerId,
   isFloating = false,
+  isCompact = false,
   onClose
 }) => {
   const { t } = useLanguage();
@@ -100,40 +103,58 @@ export const ModernChatInterface: React.FC<ModernChatInterfaceProps> = ({
 
   if (isFloating) {
     return (
-      <div className="fixed bottom-4 right-4 z-50">
+      <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-bottom-4 duration-300">
         {isMinimized ? (
           <Button
             onClick={() => setIsMinimized(false)}
-            className="relative bg-primary text-primary-foreground shadow-lg hover:shadow-xl rounded-full w-14 h-14"
+            className="relative bg-card/80 backdrop-blur-xl border border-border/50 text-foreground shadow-lg hover:shadow-xl rounded-full w-12 h-12 transition-all hover:scale-105"
             size="icon"
           >
-            <MessageCircle className="h-6 w-6" />
+            <MessageCircle className="h-5 w-5 text-primary" />
             {unreadCount > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs"
-              >
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </Badge>
+              <div className="absolute -top-0.5 -right-0.5">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></span>
+                </span>
+              </div>
             )}
           </Button>
         ) : (
-          <Card className="w-80 h-96 bg-card shadow-xl border-0 overflow-hidden">
-            {/* Floating chat header */}
-            <div className="flex items-center justify-between p-3 bg-primary text-primary-foreground">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="h-5 w-5" />
-                <span className="font-medium text-sm">
+          <Card className={cn(
+            "bg-card shadow-2xl border border-border/50 overflow-hidden backdrop-blur-xl",
+            isCompact ? "w-80 md:w-96 h-96" : "w-80 h-[32rem]"
+          )}>
+            {/* Floating chat header - Compact */}
+            <div className="flex items-center justify-between px-3 py-2 border-b bg-card/95 backdrop-blur-sm">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <MessageCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                <span className="font-medium text-sm text-foreground truncate">
                   {selectedConversation ? currentConversation?.other_participant?.display_name : 'Messages'}
                 </span>
+                {unreadCount > 0 && !selectedConversation && (
+                  <Badge variant="destructive" className="h-5 px-1.5 text-xs flex-shrink-0">
+                    {unreadCount}
+                  </Badge>
+                )}
               </div>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="sm" onClick={() => setIsMinimized(true)}>
-                  <Minimize2 className="h-4 w-4" />
+              <div className="flex items-center gap-0.5 flex-shrink-0">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setIsMinimized(true)}
+                  className="h-7 w-7 p-0"
+                >
+                  <Minimize2 className="h-3.5 w-3.5" />
                 </Button>
                 {onClose && (
-                  <Button variant="ghost" size="sm" onClick={onClose}>
-                    <X className="h-4 w-4" />
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={onClose}
+                    className="h-7 w-7 p-0"
+                  >
+                    <X className="h-3.5 w-3.5" />
                   </Button>
                 )}
               </div>
