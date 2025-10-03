@@ -1,22 +1,16 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Battery, Wifi, WifiOff, Signal, RefreshCw, Navigation } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { MapPin } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
-import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { useProfile } from '@/hooks/useProfile';
 import { AnimatedKwendaIcon } from './AnimatedKwendaIcon';
-
 import { GooglePlacesService } from '@/services/googlePlacesService';
-import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 interface ModernHeaderProps {}
 
 export const ModernHeader = ({}: ModernHeaderProps) => {
-  const { user } = useAuth();
-  
   // Safely access language context with fallback
   let t: (key: string) => string;
   let language: string;
@@ -34,9 +28,6 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
   const geolocation = useGeolocation();
   const [currentAddress, setCurrentAddress] = useState(t('city.kinshasa') + ', RD Congo');
   const [geocodingLoading, setGeocodingLoading] = useState(false);
-  const { metrics, isSlowConnection } = usePerformanceMonitor();
-  const [batteryLevel, setBatteryLevel] = useState(100);
-  const [isCharging, setIsCharging] = useState(false);
   const { displayName, loading: profileLoading } = useProfile();
   
   
@@ -96,32 +87,6 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
     }
   }, [geolocation.latitude, geolocation.longitude, geolocation.error]);
 
-  // Battery status monitoring
-  useEffect(() => {
-    const getBatteryInfo = async () => {
-      if ('getBattery' in navigator) {
-        try {
-          // @ts-ignore
-          const battery = await navigator.getBattery();
-          setBatteryLevel(Math.round(battery.level * 100));
-          setIsCharging(battery.charging);
-          
-          // Listen for battery changes
-          battery.addEventListener('levelchange', () => {
-            setBatteryLevel(Math.round(battery.level * 100));
-          });
-          battery.addEventListener('chargingchange', () => {
-            setIsCharging(battery.charging);
-          });
-        } catch (error) {
-          // Fallback for unsupported browsers
-          setBatteryLevel(85);
-        }
-      }
-    };
-    
-    getBatteryInfo();
-  }, []);
 
   return (
     <div className="relative overflow-hidden border-b border-border/40 shadow-md backdrop-blur-xl bg-gradient-to-r from-primary/5 via-background/95 to-secondary/5">
@@ -166,25 +131,8 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
             )}
           </div>
           
-          {/* Actions à droite */}
+          {/* Actions à droite - uniquement thème et langue */}
           <div className="flex items-center gap-2">
-            {/* Battery indicator with badge */}
-            {batteryLevel !== null && (
-              <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${
-                batteryLevel < 20 ? 'bg-destructive/10' :
-                batteryLevel < 50 ? 'bg-warning/10' :
-                'bg-success/10'
-              }`}>
-                <Battery 
-                  className={`h-4 w-4 ${
-                    batteryLevel < 20 ? 'text-destructive' :
-                    batteryLevel < 50 ? 'text-warning' :
-                    'text-success'
-                  }`}
-                />
-              </div>
-            )}
-            
             <ThemeToggle variant="icon" size="md" className="bg-card border border-border shadow-lg" />
             <LanguageSelector />
           </div>
