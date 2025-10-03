@@ -2,6 +2,9 @@ project_id = "wddlktajnhwhyquwcdgf"
 
 # Configuration optimisée Kwenda - Fonctions actives uniquement
 
+[functions.verify-user-account]
+verify_jwt = true
+
 [functions.geocode-proxy]
 verify_jwt = false
 

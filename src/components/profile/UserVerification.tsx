@@ -90,48 +90,93 @@ export const UserVerification = () => {
   };
 
   const uploadIdentityDocument = async (file: File) => {
-    if (!user) return;
+    if (!user) {
+      console.error('❌ No user authenticated');
+      toast.error("Vous devez être connecté pour uploader un document");
+      return;
+    }
 
     try {
       setUploadingDocument(true);
+      
+      console.log('📤 Starting document upload...', {
+        userId: user.id,
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type
+      });
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/identity.${fileExt}`;
-      const timestamp = Date.now();
-
-      // Upload to the correct identity-documents bucket
-      const { error: uploadError } = await supabase.storage
-        .from('identity-documents')
-        .upload(`${user.id}/identity_${timestamp}.${fileExt}`, file, { upsert: true });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw uploadError;
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+      if (!validTypes.includes(file.type)) {
+        throw new Error('Format de fichier non supporté. Utilisez JPG, PNG ou PDF.');
       }
 
-      // Get the file path (not public URL since bucket is private)
+      const fileExt = file.name.split('.').pop();
+      const timestamp = Date.now();
       const filePath = `${user.id}/identity_${timestamp}.${fileExt}`;
+      
+      console.log('📁 File path:', filePath);
 
-      // Update verification with document path
-      const { error: updateError } = await supabase
+      // Upload to the identity-documents bucket
+      console.log('⬆️ Uploading to storage...');
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('identity-documents')
+        .upload(filePath, file, { 
+          upsert: true,
+          contentType: file.type
+        });
+
+      if (uploadError) {
+        console.error('❌ Upload error:', uploadError);
+        throw new Error(`Erreur upload: ${uploadError.message}`);
+      }
+
+      console.log('✅ Upload successful:', uploadData);
+
+      // Update verification record with document path
+      console.log('💾 Updating database...');
+      const { data: updateData, error: updateError } = await supabase
         .from('user_verification')
         .update({ 
           identity_document_url: filePath,
-          verification_status: 'pending_review'
+          verification_status: 'pending_review',
+          updated_at: new Date().toISOString()
         })
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .select();
 
       if (updateError) {
-        console.error('Update error:', updateError);
-        throw updateError;
+        console.error('❌ Database update error:', updateError);
+        throw new Error(`Erreur DB: ${updateError.message}`);
       }
 
-      toast.success("📄 Document téléchargé avec succès! Un admin va vérifier votre identité sous 24-48h.");
+      console.log('✅ Database updated:', updateData);
 
-      loadVerificationStatus();
+      // Log activity
+      await supabase.from('activity_logs').insert({
+        user_id: user.id,
+        activity_type: 'identity_verification_submitted',
+        description: 'Document d\'identité soumis pour validation',
+        metadata: {
+          file_path: filePath,
+          file_size: file.size,
+          file_type: file.type
+        }
+      });
+
+      toast.success("📄 Document téléchargé avec succès! Un admin va vérifier votre identité sous 24-48h.", {
+        duration: 5000
+      });
+
+      console.log('🎉 Upload process completed successfully');
+      await loadVerificationStatus();
+      
     } catch (error: any) {
-      console.error('Error uploading document:', error);
-      toast.error(error.message || "Impossible de télécharger le document");
+      console.error('❌ Error uploading document:', error);
+      toast.error(error.message || "Impossible de télécharger le document. Veuillez réessayer.", {
+        duration: 5000
+      });
     } finally {
       setUploadingDocument(false);
     }

@@ -1,23 +1,22 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface VerifyUserAccountRequest {
+interface VerificationRequest {
   user_id: string;
   action: 'approve' | 'reject' | 'request_info';
-  phone_verified: boolean;
-  identity_verified: boolean;
-  verification_level: 'basic' | 'verified' | 'premium';
+  phone_verified?: boolean;
+  identity_verified?: boolean;
+  verification_level?: string;
   admin_notes?: string;
   rejection_reason?: string;
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -25,148 +24,138 @@ serve(async (req) => {
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
       }
     );
 
-    // Vérifier que l'appelant est un admin
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
+    // Get admin user from JWT
+    const authHeader = req.headers.get('Authorization')!;
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+
+    if (userError || !user) {
       throw new Error('Non authentifié');
     }
 
-    const { data: isAdmin, error: adminCheckError } = await supabaseClient
-      .rpc('is_current_user_admin');
+    console.log('Admin user:', user.id);
 
-    if (adminCheckError || !isAdmin) {
-      throw new Error('Accès refusé : privilèges admin requis');
+    // Verify admin status
+    const { data: adminData, error: adminError } = await supabaseClient
+      .from('admins')
+      .select('id, is_active')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .single();
+
+    if (adminError || !adminData) {
+      throw new Error('Accès refusé: Privilèges admin requis');
     }
 
-    const body: VerifyUserAccountRequest = await req.json();
+    console.log('Admin verified:', adminData.id);
+
+    const body: VerificationRequest = await req.json();
     const { user_id, action, phone_verified, identity_verified, verification_level, admin_notes, rejection_reason } = body;
 
-    console.log(`🔍 Admin ${user.id} processing ${action} for user ${user_id}`);
+    console.log('Processing verification action:', { user_id, action });
 
+    // Update verification status based on action
+    let verification_status = 'pending_review';
     let updateData: any = {
-      updated_at: new Date().toISOString(),
-      admin_notes,
       reviewed_by: user.id,
       reviewed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     if (action === 'approve') {
+      verification_status = 'approved';
       updateData = {
         ...updateData,
-        phone_verified: true,
-        identity_verified: true,
-        verification_level: 'verified',
-        verification_status: 'approved',
-        verified_at: new Date().toISOString(),
+        verification_status,
+        phone_verified: phone_verified ?? true,
+        identity_verified: identity_verified ?? true,
+        verification_level: verification_level || 'verified',
+        admin_notes,
+        verified_at: new Date().toISOString()
       };
     } else if (action === 'reject') {
+      verification_status = 'rejected';
       updateData = {
         ...updateData,
-        verification_status: 'rejected',
-        rejection_reason,
-        verification_level: 'basic',
+        verification_status,
+        admin_notes: rejection_reason || admin_notes,
+        rejection_reason
       };
     } else if (action === 'request_info') {
+      verification_status = 'additional_info_required';
       updateData = {
         ...updateData,
-        verification_status: 'info_requested',
+        verification_status,
+        admin_notes
       };
     }
 
-    // Mettre à jour le statut de vérification
-    const { data: verificationData, error: updateError } = await supabaseClient
+    // Update user_verification table
+    const { data: verificationData, error: verificationError } = await supabaseClient
       .from('user_verification')
       .update(updateData)
       .eq('user_id', user_id)
       .select()
       .single();
 
-    if (updateError) {
-      console.error('❌ Verification update error:', updateError);
-      throw updateError;
+    if (verificationError) {
+      console.error('Verification update error:', verificationError);
+      throw verificationError;
     }
 
-    console.log('✅ Verification updated successfully:', verificationData);
+    console.log('Verification updated:', verificationData);
 
-    // Logger l'action dans activity_logs
+    // Log admin action
     await supabaseClient.from('activity_logs').insert({
-      user_id,
-      activity_type: 'verification_status_change',
-      description: action === 'approve' 
-        ? 'Compte approuvé par l\'administrateur' 
-        : action === 'reject'
-        ? 'Compte rejeté par l\'administrateur'
-        : 'Informations supplémentaires demandées',
+      user_id: user.id,
+      activity_type: `admin_verification_${action}`,
+      description: `Admin ${action} verification for user ${user_id}`,
       metadata: {
+        target_user_id: user_id,
         action,
-        admin_id: user.id,
-        admin_notes,
-        rejection_reason,
-        old_status: 'pending_review',
-        new_status: updateData.verification_status,
+        verification_status,
+        admin_notes
       }
     });
 
-    // Créer une notification pour l'utilisateur
-    const notificationData = {
-      approved: {
-        type: 'verification_approved',
-        title: 'Compte vérifié avec succès',
-        message: 'Votre compte a été approuvé par notre équipe. Vous pouvez maintenant profiter de toutes les fonctionnalités de Kwenda.',
-        action_url: '/profile'
-      },
-      rejected: {
-        type: 'verification_rejected',
-        title: 'Vérification refusée',
-        message: rejection_reason || 'Votre demande de vérification a été refusée. Veuillez vérifier vos documents et réessayer.',
-        action_url: '/profile'
-      },
-      request_info: {
-        type: 'verification_info_requested',
-        title: 'Informations supplémentaires requises',
-        message: admin_notes || 'Des informations supplémentaires sont nécessaires pour compléter votre vérification.',
-        action_url: '/profile'
-      }
+    // Send notification to user
+    const notificationMessages = {
+      approve: '✅ Votre compte a été vérifié! Vous pouvez maintenant vendre sur la marketplace.',
+      reject: `❌ Votre demande de vérification a été rejetée. Raison: ${rejection_reason || 'Non spécifiée'}`,
+      request_info: '⚠️ Des informations supplémentaires sont requises pour votre vérification.'
     };
 
-    const notifConfig = notificationData[action];
-    
-    const { error: notifError } = await supabaseClient.rpc('create_user_notification', {
-      p_user_id: user_id,
-      p_notification_type: notifConfig.type,
-      p_title: notifConfig.title,
-      p_message: notifConfig.message,
-      p_metadata: {
-        verification_status: updateData.verification_status,
-        admin_id: user.id,
-        reviewed_at: new Date().toISOString()
-      },
-      p_action_url: notifConfig.action_url
+    await supabaseClient.from('delivery_notifications').insert({
+      user_id: user_id,
+      title: action === 'approve' ? 'Compte vérifié' : 
+             action === 'reject' ? 'Vérification rejetée' : 
+             'Informations supplémentaires requises',
+      message: notificationMessages[action],
+      notification_type: 'account_verification',
+      metadata: {
+        verification_status,
+        admin_notes,
+        rejection_reason
+      }
     });
 
-    if (notifError) {
-      console.error('❌ Error creating notification:', notifError);
-    } else {
-      console.log(`✅ Notification créée pour l'utilisateur ${user_id}`);
-    }
+    console.log('Notification sent to user:', user_id);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: action === 'approve' 
-          ? 'Compte approuvé avec succès'
-          : action === 'reject'
-          ? 'Compte rejeté avec succès'
-          : 'Demande d\'informations envoyée',
-        verification: verificationData
+        action,
+        verification_status,
+        message: `Vérification ${action} avec succès`
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -175,11 +164,11 @@ serve(async (req) => {
     );
 
   } catch (error: any) {
-    console.error('❌ Error in verify-user-account:', error);
+    console.error('Error:', error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || 'Erreur lors du traitement de la vérification'
+        error: error.message
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
