@@ -58,7 +58,18 @@ const BookingActions: React.FC<BookingActionsProps> = ({ booking, onBookingUpdat
         description: "Votre réservation a été annulée avec succès",
       });
 
-      onBack();
+      // Redirection + notification encourageante
+      setTimeout(() => {
+        onBack(); // Retour à l'interface de réservation
+        
+        // Notification polie et encourageante
+        toast({
+          title: "📍 Prêt pour une nouvelle aventure ?",
+          description: "Nous sommes toujours là pour vous ! Où souhaitez-vous aller ?",
+          duration: 4000,
+        });
+      }, 500);
+
     } catch (error) {
       console.error('Erreur annulation:', error);
       toast({

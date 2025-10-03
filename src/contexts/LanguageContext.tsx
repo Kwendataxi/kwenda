@@ -348,6 +348,9 @@ export const translations = {
     'transport.moto_taxi': 'Moto-taxi',
     'transport.moto_taxi_desc': 'Transport rapide par moto, idéal pour éviter les embouteillages',
     'transport.where_from': 'D\'où partez-vous ?',
+    'transport.booking_cancelled': 'Réservation annulée',
+    'transport.rebook_prompt': 'Pas de souci ! Nous sommes toujours là pour vous. Souhaitez-vous effectuer une nouvelle course ?',
+    'transport.new_ride_button': 'Nouvelle course',
 
     // Delivery
     'delivery.destination': 'Point de livraison',

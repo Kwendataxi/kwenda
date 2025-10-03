@@ -94,6 +94,7 @@ import { useLotteryNotifications } from '@/hooks/useLotteryNotifications';
 import { LotteryNotification } from '@/components/transport/LotteryNotification';
 import { LotteryTicketFloater } from '@/components/lottery/LotteryTicketFloater';
 import { UnifiedActivityScreen } from '@/components/activity/UnifiedActivityScreen';
+import { CancellationNotification } from '@/components/notifications/CancellationNotification';
 
 interface Location {
   address: string;
@@ -140,6 +141,9 @@ const ClientApp = () => {
   // Transport states
   const [activeBooking, setActiveBooking] = useState<any>(null);
   const [isTripChatOpen, setIsTripChatOpen] = useState(false);
+  
+  // Cancellation notification state
+  const [showCancellationPrompt, setShowCancellationPrompt] = useState(false);
 
   // Prefill for taxi when coming from home search
   type TaxiPrefill = {
@@ -800,6 +804,16 @@ const ClientApp = () => {
         
         {/* Toast notifications */}
         <div id="toast-container" />
+        
+        {/* Cancellation notification */}
+        <CancellationNotification 
+          isOpen={showCancellationPrompt}
+          onClose={() => setShowCancellationPrompt(false)}
+          onNewRide={() => {
+            setShowCancellationPrompt(false);
+            setCurrentView('transport');
+          }}
+        />
       </div>
     </ChatProvider>
   );

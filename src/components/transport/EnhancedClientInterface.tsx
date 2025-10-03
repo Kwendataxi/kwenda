@@ -96,10 +96,25 @@ const EnhancedClientInterface: React.FC<EnhancedClientInterfaceProps> = ({ class
 
   const handleCancelRequest = async () => {
     if (activeBooking) {
-      const success = await cancelBooking(activeBooking.id);
-      if (success) {
+      const result = await cancelBooking(activeBooking.id);
+      
+      if (result.success) {
+        // Réinitialiser les champs
         setPickupLocation('');
         setDestination('');
+        
+        // Afficher notification encourageante si recommandé
+        if (result.shouldShowRebookPrompt) {
+          setTimeout(() => {
+            toast.success(
+              "Pas de souci ! 🚗 Où souhaitez-vous aller maintenant ?",
+              {
+                duration: 4000,
+                description: "Nous sommes toujours là pour vous accompagner.",
+              }
+            );
+          }, 800);
+        }
       }
     }
   };

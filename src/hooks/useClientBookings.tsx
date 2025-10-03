@@ -177,6 +177,7 @@ export const useClientBookings = () => {
         .from('transport_bookings')
         .update({ 
           status: 'cancelled',
+          cancelled_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .eq('id', bookingId);
@@ -184,13 +185,20 @@ export const useClientBookings = () => {
       if (error) throw error;
 
       setActiveBooking(null);
-      toast.success('Course annulée');
-      return true;
+      
+      // Return structured object for notification handling
+      return {
+        success: true,
+        shouldShowRebookPrompt: true
+      };
 
     } catch (error: any) {
       console.error('Error cancelling booking:', error);
       toast.error('Erreur lors de l\'annulation');
-      return false;
+      return {
+        success: false,
+        shouldShowRebookPrompt: false
+      };
     } finally {
       setLoading(false);
     }
