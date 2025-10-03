@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useUserVerification } from '@/hooks/useUserVerification';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,19 @@ interface VerifiedSellerGuardProps {
 }
 
 export const VerifiedSellerGuard: React.FC<VerifiedSellerGuardProps> = ({ children }) => {
+  const navigate = useNavigate();
   const { verification, loading, isVerifiedForSelling, getVerificationProgress } = useUserVerification();
+
+  const handleStartVerification = () => {
+    navigate('/client', { state: { scrollTo: 'security' } });
+    // Scroll to security section after navigation
+    setTimeout(() => {
+      const securitySection = document.getElementById('security-section');
+      if (securitySection) {
+        securitySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
 
   if (loading) {
     return (
@@ -93,7 +106,7 @@ export const VerifiedSellerGuard: React.FC<VerifiedSellerGuardProps> = ({ childr
           </div>
 
           <div className="pt-4 border-t">
-            <Button className="w-full" onClick={() => window.location.href = '#security'}>
+            <Button className="w-full" onClick={handleStartVerification}>
               <Shield className="w-4 h-4 mr-2" />
               Commencer la vérification
             </Button>

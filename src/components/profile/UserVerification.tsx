@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Shield, Phone, FileText, CheckCircle, Upload, Camera } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Shield, Phone, FileText, CheckCircle, Upload, Camera, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface UserVerificationData {
   id: string;
@@ -20,7 +20,6 @@ interface UserVerificationData {
 
 export const UserVerification = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [verification, setVerification] = useState<UserVerificationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [verificationCode, setVerificationCode] = useState('');
@@ -69,10 +68,7 @@ export const UserVerification = () => {
       // Simulate sending SMS verification code
       // In real implementation, this would trigger an SMS service
       
-      toast({
-        title: "Code envoyé",
-        description: "Un code de vérification a été envoyé à votre numéro.",
-      });
+      toast.success("Code de vérification envoyé à votre numéro");
 
       // For demo purposes, we'll auto-verify after 3 seconds
       setTimeout(async () => {
@@ -83,18 +79,11 @@ export const UserVerification = () => {
         
         loadVerificationStatus();
         
-        toast({
-          title: "Téléphone vérifié",
-          description: "Votre numéro de téléphone a été vérifié avec succès.",
-        });
+        toast.success("✅ Numéro de téléphone vérifié avec succès!");
       }, 3000);
     } catch (error) {
       console.error('Error sending verification code:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible d'envoyer le code de vérification.",
-        variant: "destructive",
-      });
+      toast.error("Impossible d'envoyer le code de vérification");
     } finally {
       setSendingCode(false);
     }
@@ -130,19 +119,12 @@ export const UserVerification = () => {
 
       if (updateError) throw updateError;
 
-      toast({
-        title: "Document téléchargé",
-        description: "Votre document d'identité est en cours de vérification.",
-      });
+      toast.success("📄 Document téléchargé! Un admin va vérifier votre identité sous 24-48h.");
 
       loadVerificationStatus();
     } catch (error) {
       console.error('Error uploading document:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de télécharger le document.",
-        variant: "destructive",
-      });
+      toast.error("Impossible de télécharger le document");
     } finally {
       setUploadingDocument(false);
     }
@@ -152,11 +134,7 @@ export const UserVerification = () => {
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: "Fichier trop volumineux",
-          description: "La taille maximum autorisée est de 10MB.",
-          variant: "destructive",
-        });
+        toast.error("Fichier trop volumineux (max 10MB)");
         return;
       }
       uploadIdentityDocument(file);
@@ -176,7 +154,23 @@ export const UserVerification = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div id="security-section" className="space-y-4">
+      {verification?.verification_status === 'pending_review' && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-blue-600" />
+              <div>
+                <p className="font-medium text-blue-900">Vérification en cours</p>
+                <p className="text-sm text-blue-700">
+                  Votre document est en cours de vérification par notre équipe. Vous recevrez une notification sous 24-48h.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

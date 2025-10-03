@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Users, Package, AlertTriangle, DollarSign } from 'lucide-react';
+import { ArrowLeft, Users, Package, AlertTriangle, DollarSign, Shield } from 'lucide-react';
+import { AdminUserVerificationManager } from '@/components/admin/AdminUserVerificationManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -179,9 +180,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
 
         {/* Tabs for different sections */}
         <Tabs defaultValue="products" className="space-y-4">
-          <TabsList>
+          <TabsList className="grid grid-cols-4 w-full">
             <TabsTrigger value="products">Produits</TabsTrigger>
             <TabsTrigger value="orders">Commandes</TabsTrigger>
+            <TabsTrigger value="verifications">
+              <Shield className="w-4 h-4 mr-1" />
+              Vérifications
+            </TabsTrigger>
             <TabsTrigger value="users">Utilisateurs</TabsTrigger>
           </TabsList>
 
@@ -254,6 +259,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="verifications" className="space-y-4">
+            <AdminUserVerificationManager />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-4">
