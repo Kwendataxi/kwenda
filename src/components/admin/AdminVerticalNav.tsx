@@ -65,6 +65,7 @@ const NAV_ITEMS: Array<{
   
   // Gestion des utilisateurs
   { id: 'drivers', label: 'Chauffeurs', icon: Car, group: 'users' },
+  { id: 'subscriptions', label: 'Abonnements', icon: Package, group: 'users' },
   { id: 'partners', label: 'Partenaires', icon: Building, group: 'users' },
   { id: 'users', label: 'Utilisateurs', icon: Users, group: 'users' },
   { id: 'teams', label: 'Équipes', icon: Users, group: 'users' },
@@ -74,7 +75,6 @@ const NAV_ITEMS: Array<{
   { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag, group: 'commerce' },
   { id: 'promocodes', label: 'Codes Promo', icon: Tag, group: 'commerce' },
   { id: 'lottery', label: 'Tombola', icon: Trophy, group: 'commerce' },
-  { id: 'subscriptions', label: 'Abonnements', icon: Package, group: 'commerce' },
   
   // Communication
   { id: 'notifications', label: 'Notifications', icon: Bell, group: 'communication' },

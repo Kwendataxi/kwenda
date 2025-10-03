@@ -13,8 +13,8 @@ export const AdminSubscriptionManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Abonnements chauffeurs simplifiés
-  const { data: driverSubscriptions = [] } = useQuery({
+  // Abonnements chauffeurs avec détails complets
+  const { data: driverSubscriptions = [], isLoading: loadingDriverSubs } = useQuery({
     queryKey: ['admin-driver-subscriptions'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -23,12 +23,27 @@ export const AdminSubscriptionManager = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data || [];
+      
+      // Enrichir avec les données des chauffeurs et plans
+      const enriched = await Promise.all((data || []).map(async (sub: any) => {
+        const [driverData, planData] = await Promise.all([
+          supabase.from('chauffeurs').select('display_name, email, phone_number').eq('user_id', sub.driver_id).single(),
+          supabase.from('subscription_plans').select('name, price, currency').eq('id', sub.plan_id).single()
+        ]);
+        
+        return {
+          ...sub,
+          chauffeurs: driverData.data,
+          subscription_plans: planData.data
+        };
+      }));
+      
+      return enriched;
     }
   });
 
-  // Abonnements location simplifiés
-  const { data: rentalSubscriptions = [] } = useQuery({
+  // Abonnements location avec détails complets
+  const { data: rentalSubscriptions = [], isLoading: loadingRentalSubs } = useQuery({
     queryKey: ['admin-rental-subscriptions'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -37,7 +52,24 @@ export const AdminSubscriptionManager = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data || [];
+      
+      // Enrichir avec les données des partenaires, plans et véhicules
+      const enriched = await Promise.all((data || []).map(async (sub: any) => {
+        const [partnerData, planData, vehicleData] = await Promise.all([
+          supabase.from('partenaires').select('company_name, email, phone_number').eq('id', sub.partner_id).single(),
+          supabase.from('rental_subscription_plans').select('name, monthly_price, currency').eq('id', sub.plan_id).single(),
+          supabase.from('rental_vehicles').select('name, license_plate').eq('id', sub.vehicle_id).maybeSingle()
+        ]);
+        
+        return {
+          ...sub,
+          partenaires: partnerData.data,
+          rental_subscription_plans: planData.data,
+          rental_vehicles: vehicleData.data
+        };
+      }));
+      
+      return enriched;
     }
   });
 
@@ -83,6 +115,19 @@ export const AdminSubscriptionManager = () => {
     const daysUntilExpiry = Math.ceil((new Date(endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
     return daysUntilExpiry <= 7 && daysUntilExpiry > 0;
   };
+
+  const isLoading = loadingDriverSubs || loadingRentalSubs;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center space-y-3">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Chargement des abonnements...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -149,9 +194,9 @@ export const AdminSubscriptionManager = () => {
               <Card key={subscription.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
-                    <div className="space-y-2">
+                    <div className="space-y-2 flex-1">
                       <div className="flex items-center gap-4">
-                        <h3 className="font-semibold">Chauffeur ID: {subscription.driver_id}</h3>
+                        <h3 className="font-semibold">{subscription.chauffeurs?.display_name || 'N/A'}</h3>
                         {getStatusBadge(subscription.status)}
                         {subscription.status === 'active' && isExpiringSoon(subscription.end_date) && (
                           <Badge variant="outline" className="text-orange-600">
@@ -160,8 +205,10 @@ export const AdminSubscriptionManager = () => {
                           </Badge>
                         )}
                       </div>
+                      <p className="text-sm text-muted-foreground">{subscription.chauffeurs?.email}</p>
                       <div className="flex items-center gap-4 text-sm">
-                        <span><strong>Plan ID:</strong> {subscription.plan_id}</span>
+                        <span><strong>Plan:</strong> {subscription.subscription_plans?.name}</span>
+                        <span><strong>Montant:</strong> {subscription.subscription_plans?.price?.toLocaleString()} {subscription.subscription_plans?.currency}</span>
                         <span><strong>Début:</strong> {new Date(subscription.start_date).toLocaleDateString()}</span>
                         <span><strong>Fin:</strong> {new Date(subscription.end_date).toLocaleDateString()}</span>
                         <span><strong>Auto-renew:</strong> {subscription.auto_renew ? 'Oui' : 'Non'}</span>
@@ -180,9 +227,9 @@ export const AdminSubscriptionManager = () => {
               <Card key={subscription.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
-                    <div className="space-y-2">
+                    <div className="space-y-2 flex-1">
                       <div className="flex items-center gap-4">
-                        <h3 className="font-semibold">Partenaire ID: {subscription.partner_id}</h3>
+                        <h3 className="font-semibold">{subscription.partenaires?.company_name || 'N/A'}</h3>
                         {getStatusBadge(subscription.status)}
                         {subscription.status === 'active' && isExpiringSoon(subscription.end_date) && (
                           <Badge variant="outline" className="text-orange-600">
@@ -191,9 +238,11 @@ export const AdminSubscriptionManager = () => {
                           </Badge>
                         )}
                       </div>
+                      <p className="text-sm text-muted-foreground">{subscription.partenaires?.email}</p>
                       <div className="flex items-center gap-4 text-sm">
-                        <span><strong>Véhicule ID:</strong> {subscription.vehicle_id}</span>
-                        <span><strong>Plan ID:</strong> {subscription.plan_id}</span>
+                        <span><strong>Véhicule:</strong> {subscription.rental_vehicles?.name || 'N/A'} ({subscription.rental_vehicles?.license_plate})</span>
+                        <span><strong>Plan:</strong> {subscription.rental_subscription_plans?.name}</span>
+                        <span><strong>Prix:</strong> {subscription.rental_subscription_plans?.monthly_price?.toLocaleString()} {subscription.rental_subscription_plans?.currency}/mois</span>
                         <span><strong>Début:</strong> {new Date(subscription.start_date).toLocaleDateString()}</span>
                         <span><strong>Fin:</strong> {new Date(subscription.end_date).toLocaleDateString()}</span>
                       </div>
