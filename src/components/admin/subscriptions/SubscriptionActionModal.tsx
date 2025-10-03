@@ -122,6 +122,38 @@ export const SubscriptionActionModal = ({
 
   const renderActionContent = () => {
     switch (action) {
+      case 'renew':
+        return (
+          <div className="space-y-4">
+            <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                Un nouvel abonnement sera créé à partir d'aujourd'hui avec les mêmes paramètres. 
+                L'abonnement actuel sera marqué comme expiré.
+              </p>
+            </div>
+
+            {renderSubscriptionInfo()}
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => onClose()}
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={() => {
+                  setLoading(true);
+                  onConfirm?.(subscription?.id);
+                }}
+                disabled={loading}
+              >
+                {loading ? "Renouvellement..." : "Confirmer le renouvellement"}
+              </Button>
+            </DialogFooter>
+          </div>
+        );
+
       case 'extend':
         return (
           <>

@@ -16,14 +16,25 @@ import {
   Users,
   TrendingUp,
   Clock,
-  Ticket
+  Ticket,
+  RefreshCw,
+  Ban
 } from "lucide-react";
 import { ServiceTypeBadge } from './ServiceTypeBadge';
 import { RidesProgressBar } from './RidesProgressBar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const DriverSubscriptionAdmin = () => {
-  const { driverSubscriptions, loading } = useUnifiedSubscriptions();
+  const { 
+    driverSubscriptions, 
+    loading,
+    extendSubscription,
+    cancelSubscriptionAdmin,
+    renewSubscription
+  } = useUnifiedSubscriptions();
+  
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [actionModal, setActionModal] = useState<{
@@ -87,6 +98,27 @@ export const DriverSubscriptionAdmin = () => {
       subscription,
       action
     });
+  };
+
+  const handleActionConfirm = async (data?: any) => {
+    if (!actionModal.subscription?.id) return;
+    
+    const id = actionModal.subscription.id;
+    let result;
+    
+    if (actionModal.action === 'extend' && data?.days) {
+      result = await extendSubscription(id, 'driver', data.days);
+    } else if (actionModal.action === 'cancel') {
+      result = await cancelSubscriptionAdmin(id, 'driver');
+    } else if (actionModal.action === 'renew') {
+      result = await renewSubscription(id, 'driver');
+    }
+    
+    if (result?.success) {
+      queryClient.invalidateQueries({ queryKey: ['admin-unified-subscriptions'] });
+    }
+    
+    setActionModal({ isOpen: false, subscription: null, action: "" });
   };
 
   return (
@@ -256,10 +288,18 @@ export const DriverSubscriptionAdmin = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleAction(subscription, 'extend')}>
-                              <Calendar className="mr-2 h-4 w-4" />
+                              <Clock className="mr-2 h-4 w-4" />
                               Prolonger
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleAction(subscription, 'cancel')}>
+                            <DropdownMenuItem onClick={() => handleAction(subscription, 'renew')}>
+                              <RefreshCw className="mr-2 h-4 w-4" />
+                              Renouveler
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleAction(subscription, 'cancel')}
+                              className="text-destructive"
+                            >
+                              <Ban className="mr-2 h-4 w-4" />
                               Annuler
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleAction(subscription, 'details')}>
@@ -305,15 +345,7 @@ export const DriverSubscriptionAdmin = () => {
         onClose={() => setActionModal({ isOpen: false, subscription: null, action: "" })}
         subscription={actionModal.subscription}
         action={actionModal.action}
-        onConfirm={(id, data) => {
-          if (actionModal.action === 'extend' && data?.days) {
-            // Note: This would need to be implemented with proper API calls
-            console.log('Extend subscription:', id, data.days);
-          } else if (actionModal.action === 'cancel') {
-            // Note: This would need to be implemented with proper API calls
-            console.log('Cancel subscription:', id);
-          }
-        }}
+        onConfirm={handleActionConfirm}
         type="driver"
       />
     </div>

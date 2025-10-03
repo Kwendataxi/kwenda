@@ -20,6 +20,7 @@ interface UseUnifiedSubscriptionsReturn {
   loading: boolean;
   extendSubscription: (subscriptionId: string, type: 'driver' | 'rental', days: number) => Promise<{ success: boolean; error?: string }>;
   cancelSubscriptionAdmin: (subscriptionId: string, type: 'driver' | 'rental') => Promise<{ success: boolean; error?: string }>;
+  renewSubscription: (subscriptionId: string, type: 'driver' | 'rental') => Promise<{ success: boolean; error?: string }>;
 }
 
 export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
@@ -186,6 +187,80 @@ export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
     });
   }
 
+  // Admin : Renouveler un abonnement
+  const renewSubscription = async (
+    subscriptionId: string, 
+    type: 'driver' | 'rental'
+  ) => {
+    try {
+      const table = type === 'driver' ? 'driver_subscriptions' : 'partner_rental_subscriptions';
+      
+      // Get current subscription
+      const { data: current, error: fetchError } = await supabase
+        .from(table)
+        .select('*')
+        .eq('id', subscriptionId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Calculate new dates
+      const now = new Date();
+      const planDuration = 30; // Default 30 days
+      const newEndDate = new Date(now.getTime() + planDuration * 24 * 60 * 60 * 1000);
+
+      // Create new subscription with correct fields per type
+      const newSubscriptionData: any = {
+        plan_id: current.plan_id,
+        start_date: now.toISOString(),
+        end_date: newEndDate.toISOString(),
+        status: 'active',
+        auto_renew: current.auto_renew,
+        payment_method: current.payment_method || 'cash'
+      };
+
+      // Add type-specific fields
+      if (type === 'driver') {
+        newSubscriptionData.driver_id = (current as any).driver_id;
+        newSubscriptionData.rides_remaining = (current as any).rides_remaining || 0;
+        newSubscriptionData.service_type = (current as any).service_type || 'transport';
+      } else {
+        newSubscriptionData.partner_id = (current as any).partner_id;
+        newSubscriptionData.vehicle_id = (current as any).vehicle_id;
+      }
+
+      const { data: newSub, error: createError } = await supabase
+        .from(table)
+        .insert(newSubscriptionData)
+        .select()
+        .single();
+
+      if (createError) throw createError;
+
+      // Mark old subscription as expired
+      const { error: updateError } = await supabase
+        .from(table)
+        .update({ status: 'expired' })
+        .eq('id', subscriptionId);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Abonnement renouvelé",
+        description: "Un nouvel abonnement a été créé avec succès",
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Erreur lors du renouvellement",
+        variant: "destructive"
+      });
+      return { success: false, error: error.message };
+    }
+  };
+
   return {
     driverSubscriptions,
     rentalSubscriptions,
@@ -193,5 +268,6 @@ export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
     loading: isLoading,
     extendSubscription,
     cancelSubscriptionAdmin,
+    renewSubscription,
   };
 };
