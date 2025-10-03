@@ -56,31 +56,32 @@ serve(async (req) => {
 
   console.log('✅ User authenticated:', user.id)
 
-  // Vérifier l'accès admin - approche directe pour éviter les problèmes RLS
+  // Vérifier l'accès admin via user_roles (système unifié)
   const { data: adminCheck, error: adminError } = await supabaseClient
-    .from('admins')
-    .select('id, is_active')
+    .from('user_roles')
+    .select('id')
     .eq('user_id', user.id)
+    .eq('role', 'admin')
     .eq('is_active', true)
-    .limit(1);
+    .maybeSingle();
 
-  if (adminError || !adminCheck || adminCheck.length === 0) {
+  if (adminError || !adminCheck) {
     console.error('🔴 Admin check failed:', { 
       userId: user.id,
       errorMessage: adminError?.message,
-      adminCheckLength: adminCheck?.length,
+      hasAdminRole: !!adminCheck,
       email: user.email
     })
     return new Response(JSON.stringify({ 
       error: 'Admin access required',
-      details: 'User is not an active admin'
+      details: 'User does not have admin role'
     }), {
       status: 403,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 
-  console.log('✅ Admin verified:', { adminId: adminCheck[0].id, userId: user.id })
+  console.log('✅ Admin verified:', { roleId: adminCheck.id, userId: user.id })
 
     const { type, date_range, zone_name, country_code } = await req.json() as AnalyticsRequest
 
