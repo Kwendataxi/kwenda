@@ -73,7 +73,7 @@ export const ModernHomeScreen = ({
       <div className="relative z-10">
         <ModernHeader />
         
-        <div className="space-y-4 pb-32">
+        <div className="space-y-2 pb-24">
           {/* Slider publicitaire moderne */}
           <PromoSlider onServiceSelect={onServiceSelect} />
           

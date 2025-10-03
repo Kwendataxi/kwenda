@@ -27,12 +27,12 @@ export const MarketplacePreview = ({
 }: MarketplacePreviewProps) => {
   const { t } = useLanguage();
   return (
-    <div className="px-4 mb-4">
+    <div className="px-4 mb-2">
       {/* Section header simplifiée */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <ShoppingBag className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold text-foreground">Marketplace</h3>
+          <h3 className="text-base font-semibold text-foreground">Marketplace</h3>
         </div>
         <Button 
           variant="ghost" 
@@ -45,11 +45,11 @@ export const MarketplacePreview = ({
         </Button>
       </div>
       
-      <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+      <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-2">
         {featuredProducts.slice(0, 4).map((product) => (
           <Card 
             key={product.id}
-            className="min-w-[160px] cursor-pointer border-0 rounded-xl hover:shadow-md transition-all duration-200"
+            className="min-w-[140px] cursor-pointer border-0 rounded-xl hover:shadow-md transition-all duration-200"
             onClick={() => onProductSelect(product)}
           >
             <div className="aspect-square rounded-t-xl relative overflow-hidden bg-grey-50">

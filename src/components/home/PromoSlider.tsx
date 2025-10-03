@@ -38,7 +38,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   };
 
   return (
-    <div className="w-full px-4 pt-4">
+    <div className="w-full px-4 pt-2">
       <Carousel
         setApi={setApi}
         opts={{ loop: true }}
@@ -56,7 +56,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
               <div
                 onClick={() => handlePromoClick(promo)}
                 className={cn(
-                  'relative h-48 rounded-3xl overflow-hidden shadow-xl cursor-pointer group',
+                  'relative h-28 rounded-2xl overflow-hidden shadow-lg cursor-pointer group',
                   'bg-gradient-to-br',
                   promo.gradient,
                   'transition-transform duration-300 hover:scale-[1.02]'
@@ -72,40 +72,40 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 
                 {/* Content */}
-                <div className="absolute inset-0 flex flex-col justify-end p-6 text-white">
-                  <h3 className="text-2xl font-black mb-2 drop-shadow-lg tracking-tight">
+                <div className="absolute inset-0 flex flex-col justify-end p-4 text-white">
+                  <h3 className="text-lg font-black mb-1 drop-shadow-lg tracking-tight">
                     {promo.title}
                   </h3>
-                  <p className="text-sm font-medium opacity-95 mb-4 drop-shadow leading-relaxed max-w-[85%]">
+                  <p className="text-xs font-medium opacity-90 mb-2 drop-shadow leading-snug max-w-[85%] line-clamp-1">
                     {promo.description}
                   </p>
                   
-                  {/* CTA Button - more prominent */}
-                  <div className="flex items-center gap-3 px-5 py-3 bg-white/20 backdrop-blur-md rounded-xl w-fit shadow-lg border border-white/30 group-hover:bg-white/30 group-hover:shadow-xl transition-all duration-300">
-                    <span className="text-sm font-bold">{promo.cta}</span>
-                    <span className="text-lg group-hover:translate-x-1 transition-transform">→</span>
+                  {/* CTA Button - compact */}
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg w-fit shadow-md border border-white/30 group-hover:bg-white/30 transition-all duration-300">
+                    <span className="text-xs font-bold">{promo.cta}</span>
+                    <span className="text-sm group-hover:translate-x-1 transition-transform">→</span>
                   </div>
                 </div>
 
-                {/* Decorative circles */}
-                <div className="absolute top-4 right-4 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
-                <div className="absolute bottom-10 left-10 w-16 h-16 bg-white/5 rounded-full blur-xl" />
+                {/* Decorative circles - reduced */}
+                <div className="absolute top-2 right-2 w-12 h-12 bg-white/10 rounded-full blur-xl" />
+                <div className="absolute bottom-4 left-6 w-10 h-10 bg-white/5 rounded-full blur-lg" />
               </div>
             </CarouselItem>
           ))}
         </CarouselContent>
 
-        {/* Pagination dots - more visible */}
-        <div className="flex justify-center gap-2 mt-5">
+        {/* Pagination dots - compact */}
+        <div className="flex justify-center gap-1.5 mt-3">
           {defaultPromos.map((_, index) => (
             <button
               key={index}
               onClick={() => api?.scrollTo(index)}
               className={cn(
-                'h-2 rounded-full transition-all duration-300 shadow-md',
+                'h-1.5 rounded-full transition-all duration-300',
                 current === index
-                  ? 'w-8 bg-primary scale-110 shadow-lg'
-                  : 'w-2 bg-muted-foreground/40 hover:bg-muted-foreground/60'
+                  ? 'w-6 bg-primary'
+                  : 'w-1.5 bg-muted-foreground/40 hover:bg-muted-foreground/60'
               )}
               aria-label={`Go to slide ${index + 1}`}
             />
