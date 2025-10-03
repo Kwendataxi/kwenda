@@ -60,7 +60,16 @@ interface RentalSubscriptionWithDetails {
   };
 }
 
-export const useUnifiedSubscriptions = () => {
+interface UseUnifiedSubscriptionsReturn {
+  driverSubscriptions: any[];
+  rentalSubscriptions: any[];
+  stats: UnifiedSubscriptionStats | null;
+  loading: boolean;
+  extendSubscription: (subscriptionId: string, type: 'driver' | 'rental', days: number) => Promise<{ success: boolean; error?: string }>;
+  cancelSubscriptionAdmin: (subscriptionId: string, type: 'driver' | 'rental') => Promise<{ success: boolean; error?: string }>;
+}
+
+export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
   const { toast } = useToast();
 
   // Fetch all driver subscriptions for admin
