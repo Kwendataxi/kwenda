@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff, AlertCircle, Mail, Lock, Sparkles } from 'lucide-react';
+import BrandLogo from '@/components/brand/BrandLogo';
 import { AuthStatusChecker } from './AuthStatusChecker';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
 
@@ -175,23 +176,23 @@ export const EnhancedAuth = () => {
   // Page de connexion/inscription
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
-      {/* Arrière-plan dynamique avec gradient animé */}
-      <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 via-orange-500/20 to-pink-500/20 dark:from-red-600/30 dark:via-orange-600/30 dark:to-pink-600/30" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(244,63,94,0.1),transparent_50%)] dark:bg-[radial-gradient(circle_at_50%_120%,rgba(244,63,94,0.2),transparent_50%)]" />
+      {/* Arrière-plan dynamique avec dominante rouge */}
+      <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 via-red-500/15 to-rose-500/20 dark:from-red-700/30 dark:via-red-600/25 dark:to-rose-600/30" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(220,38,38,0.15),transparent_50%)] dark:bg-[radial-gradient(circle_at_50%_120%,rgba(220,38,38,0.25),transparent_50%)]" />
       
-      {/* Formes géométriques flottantes */}
-      <div className="absolute top-20 left-10 w-64 h-64 bg-red-400/10 dark:bg-red-500/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 right-10 w-80 h-80 bg-orange-400/10 dark:bg-orange-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
-      <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-pink-400/10 dark:bg-pink-500/20 rounded-full blur-2xl animate-pulse delay-500" />
+      {/* Formes géométriques rouge intense */}
+      <div className="absolute top-20 left-10 w-64 h-64 bg-red-500/15 dark:bg-red-600/25 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-20 right-10 w-80 h-80 bg-red-600/15 dark:bg-red-700/25 rounded-full blur-3xl animate-pulse delay-1000" />
+      <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-rose-500/15 dark:bg-rose-600/25 rounded-full blur-2xl animate-pulse delay-500" />
 
       <div className="w-full max-w-md relative z-10">
-        {/* En-tête impactant avec logo animé */}
+        {/* En-tête impactant avec logo Kwenda */}
         <div className="text-center mb-8 space-y-4 animate-fade-in">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-red-500 to-orange-500 dark:from-red-400 dark:to-orange-400 shadow-lg shadow-red-500/50 dark:shadow-red-400/50 mb-4 animate-scale-in">
-            <Sparkles className="w-10 h-10 text-white animate-pulse" />
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-red-600 to-red-500 dark:from-red-500 dark:to-red-600 shadow-2xl shadow-red-600/60 dark:shadow-red-500/60 mb-4 animate-scale-in ring-4 ring-red-500/20 dark:ring-red-400/30">
+            <BrandLogo size={56} className="animate-pulse" />
           </div>
           
-          <h1 className="text-6xl font-bold animate-gradient bg-gradient-to-r from-red-600 via-orange-600 to-pink-600 dark:from-red-400 dark:via-orange-400 dark:to-pink-400 bg-clip-text text-transparent mb-2 tracking-tight">
+          <h1 className="text-6xl font-bold animate-gradient bg-gradient-to-r from-red-700 via-red-600 to-red-500 dark:from-red-500 dark:via-red-400 dark:to-rose-400 bg-clip-text text-transparent mb-2 tracking-tight drop-shadow-lg">
             Kwenda
           </h1>
           
@@ -205,8 +206,8 @@ export const EnhancedAuth = () => {
 
         {/* Carte de connexion ultra-moderne avec glass-morphism */}
         <Card className="relative shadow-2xl backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-white/10 overflow-hidden animate-scale-in">
-          {/* Bordure lumineuse gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 via-orange-500/20 to-pink-500/20 dark:from-red-400/30 dark:via-orange-400/30 dark:to-pink-400/30 opacity-50 pointer-events-none" />
+          {/* Bordure lumineuse gradient rouge */}
+          <div className="absolute inset-0 bg-gradient-to-br from-red-600/25 via-red-500/20 to-rose-500/25 dark:from-red-500/35 dark:via-red-600/30 dark:to-rose-500/35 opacity-50 pointer-events-none" />
           
           <CardContent className="pt-8 pb-6 relative z-10">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -214,13 +215,13 @@ export const EnhancedAuth = () => {
               <TabsList className="grid w-full grid-cols-2 mb-8 p-1.5 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-inner">
                 <TabsTrigger 
                   value="login"
-                  className="relative rounded-lg font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-500/50 dark:data-[state=active]:shadow-red-400/50 data-[state=active]:scale-[1.02]"
+                  className="relative rounded-lg font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/60 dark:data-[state=active]:shadow-red-500/60 data-[state=active]:scale-[1.02]"
                 >
                   Connexion
                 </TabsTrigger>
                 <TabsTrigger 
                   value="register"
-                  className="relative rounded-lg font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-500/50 dark:data-[state=active]:shadow-red-400/50 data-[state=active]:scale-[1.02]"
+                  className="relative rounded-lg font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/60 dark:data-[state=active]:shadow-red-500/60 data-[state=active]:scale-[1.02]"
                 >
                   Inscription
                 </TabsTrigger>
@@ -234,7 +235,7 @@ export const EnhancedAuth = () => {
                       Adresse email
                     </Label>
                     <div className="relative group">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-red-500 dark:group-focus-within:text-red-400 transition-colors" />
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-red-600 dark:group-focus-within:text-red-500 transition-colors" />
                       <Input
                         id="email"
                         type="email"
@@ -242,7 +243,7 @@ export const EnhancedAuth = () => {
                         value={loginForm.email}
                         onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
                         required
-                        className="h-14 pl-12 pr-4 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-700 rounded-xl text-base font-medium text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/20 dark:focus:ring-red-400/20 transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-600"
+                        className="h-14 pl-12 pr-4 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-700 rounded-xl text-base font-medium text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-red-600 dark:focus:border-red-500 focus:ring-4 focus:ring-red-600/25 dark:focus:ring-red-500/25 transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-600"
                       />
                     </div>
                   </div>
@@ -253,7 +254,7 @@ export const EnhancedAuth = () => {
                       Mot de passe
                     </Label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-red-500 dark:group-focus-within:text-red-400 transition-colors" />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-red-600 dark:group-focus-within:text-red-500 transition-colors" />
                       <Input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
@@ -261,7 +262,7 @@ export const EnhancedAuth = () => {
                         value={loginForm.password}
                         onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                         required
-                        className="h-14 pl-12 pr-14 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-700 rounded-xl text-base font-medium text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-red-500 dark:focus:border-red-400 focus:ring-4 focus:ring-red-500/20 dark:focus:ring-red-400/20 transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-600"
+                        className="h-14 pl-12 pr-14 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-700 rounded-xl text-base font-medium text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-red-600 dark:focus:border-red-500 focus:ring-4 focus:ring-red-600/25 dark:focus:ring-red-500/25 transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-600"
                       />
                       <Button
                         type="button"
@@ -292,7 +293,7 @@ export const EnhancedAuth = () => {
                   {/* Bouton CTA premium avec gradient animé */}
                   <Button 
                     type="submit" 
-                    className="relative w-full h-14 bg-gradient-to-r from-red-500 via-orange-500 to-pink-500 hover:from-red-600 hover:via-orange-600 hover:to-pink-600 dark:from-red-500 dark:via-orange-500 dark:to-pink-500 dark:hover:from-red-400 dark:hover:via-orange-400 dark:hover:to-pink-400 text-white text-base font-bold rounded-xl shadow-xl shadow-red-500/40 dark:shadow-red-400/40 hover:shadow-2xl hover:shadow-red-500/50 dark:hover:shadow-red-400/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden group" 
+                    className="relative w-full h-14 bg-gradient-to-r from-red-600 via-red-500 to-rose-500 hover:from-red-700 hover:via-red-600 hover:to-rose-600 dark:from-red-600 dark:via-red-500 dark:to-rose-500 dark:hover:from-red-500 dark:hover:via-red-400 dark:hover:to-rose-400 text-white text-base font-bold rounded-xl shadow-xl shadow-red-600/50 dark:shadow-red-500/50 hover:shadow-2xl hover:shadow-red-600/60 dark:hover:shadow-red-500/60 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden group" 
                     disabled={loading}
                   >
                     <span className="relative z-10 flex items-center justify-center">
@@ -320,21 +321,21 @@ export const EnhancedAuth = () => {
               <TabsContent value="register" className="space-y-6 animate-fade-in">
                 <div className="text-center space-y-6 py-6">
                   {/* Badge d'inscription moderne */}
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-red-100 to-orange-100 dark:from-red-900/30 dark:to-orange-900/30 border border-red-200 dark:border-red-800/50">
-                    <Sparkles className="w-4 h-4 text-red-600 dark:text-red-400" />
-                    <span className="text-sm font-bold text-red-700 dark:text-red-300">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-red-100 to-rose-100 dark:from-red-900/40 dark:to-rose-900/40 border-2 border-red-300 dark:border-red-700/60">
+                    <Sparkles className="w-4 h-4 text-red-700 dark:text-red-400" />
+                    <span className="text-sm font-bold text-red-800 dark:text-red-300">
                       Rejoignez-nous gratuitement
                     </span>
                   </div>
 
-                  <div className="p-8 rounded-2xl bg-gradient-to-br from-red-50 via-orange-50 to-pink-50 dark:from-red-900/20 dark:via-orange-900/20 dark:to-pink-900/20 border-2 border-red-100 dark:border-red-800/50 backdrop-blur-sm">
+                  <div className="p-8 rounded-2xl bg-gradient-to-br from-red-50 via-rose-50 to-red-100 dark:from-red-900/25 dark:via-rose-900/25 dark:to-red-900/30 border-2 border-red-200 dark:border-red-800/60 backdrop-blur-sm">
                     <p className="text-base text-gray-800 dark:text-gray-100 font-semibold mb-6 leading-relaxed">
                       Choisissez votre profil et commencez<br/>
                       votre aventure Kwenda ! 🚀
                     </p>
                     <Button
                       onClick={() => setStep('role-selection')}
-                      className="relative w-full h-14 bg-gradient-to-r from-red-500 via-orange-500 to-pink-500 hover:from-red-600 hover:via-orange-600 hover:to-pink-600 dark:from-red-500 dark:via-orange-500 dark:to-pink-500 dark:hover:from-red-400 dark:hover:via-orange-400 dark:hover:to-pink-400 text-white text-base font-bold rounded-xl shadow-xl shadow-red-500/40 dark:shadow-red-400/40 hover:shadow-2xl hover:shadow-red-500/50 dark:hover:shadow-red-400/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden group"
+                      className="relative w-full h-14 bg-gradient-to-r from-red-600 via-red-500 to-rose-500 hover:from-red-700 hover:via-red-600 hover:to-rose-600 dark:from-red-600 dark:via-red-500 dark:to-rose-500 dark:hover:from-red-500 dark:hover:via-red-400 dark:hover:to-rose-400 text-white text-base font-bold rounded-xl shadow-xl shadow-red-600/50 dark:shadow-red-500/50 hover:shadow-2xl hover:shadow-red-600/60 dark:hover:shadow-red-500/60 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden group"
                     >
                       <span className="relative z-10">Créer mon compte</span>
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
