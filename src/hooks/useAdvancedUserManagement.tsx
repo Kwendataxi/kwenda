@@ -378,7 +378,8 @@ export const useAdvancedUserManagement = (): UseAdvancedUserManagementReturn => 
   // Initial data fetch
   useEffect(() => {
     refreshData();
-  }, [refreshData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, filters.search, filters.userType, filters.status, filters.dateFrom, filters.dateTo, filters.sortBy, filters.sortOrder]);
 
   return {
     users,
