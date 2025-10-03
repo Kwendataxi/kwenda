@@ -20,6 +20,7 @@ import {
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { RealtimeFinancialWidget } from './RealtimeFinancialWidget';
+import { CommissionDeprecationBanner } from './CommissionDeprecationBanner';
 
 interface FinancialMetrics {
   totalRevenue: number;
@@ -219,6 +220,9 @@ export const FinancialDashboard = () => {
           </Button>
         </div>
       </div>
+
+      {/* Commission Deprecation Banner */}
+      <CommissionDeprecationBanner />
 
       {/* Real-time Financial Widget */}
       <RealtimeFinancialWidget />

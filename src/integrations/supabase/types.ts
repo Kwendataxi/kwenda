@@ -709,6 +709,9 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          deprecated: boolean | null
+          deprecated_at: string | null
+          deprecation_reason: string | null
           driver_commission_rate: number
           id: string
           is_active: boolean
@@ -720,6 +723,9 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
+          deprecated?: boolean | null
+          deprecated_at?: string | null
+          deprecation_reason?: string | null
           driver_commission_rate?: number
           id?: string
           is_active?: boolean
@@ -731,6 +737,9 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
+          deprecated?: boolean | null
+          deprecated_at?: string | null
+          deprecation_reason?: string | null
           driver_commission_rate?: number
           id?: string
           is_active?: boolean
@@ -746,6 +755,9 @@ export type Database = {
           admin_rate: number
           created_at: string
           created_by: string | null
+          deprecated: boolean | null
+          deprecated_at: string | null
+          deprecation_reason: string | null
           driver_rate: number
           id: string
           is_active: boolean
@@ -757,6 +769,9 @@ export type Database = {
           admin_rate?: number
           created_at?: string
           created_by?: string | null
+          deprecated?: boolean | null
+          deprecated_at?: string | null
+          deprecation_reason?: string | null
           driver_rate?: number
           id?: string
           is_active?: boolean
@@ -768,6 +783,9 @@ export type Database = {
           admin_rate?: number
           created_at?: string
           created_by?: string | null
+          deprecated?: boolean | null
+          deprecated_at?: string | null
+          deprecation_reason?: string | null
           driver_rate?: number
           id?: string
           is_active?: boolean
@@ -776,6 +794,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      commission_to_subscription_log: {
+        Row: {
+          created_at: string | null
+          driver_id: string
+          id: string
+          migration_notes: string | null
+          new_subscription_plan_id: string | null
+          old_commission_rate: number | null
+          status: string | null
+          transition_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          driver_id: string
+          id?: string
+          migration_notes?: string | null
+          new_subscription_plan_id?: string | null
+          old_commission_rate?: number | null
+          status?: string | null
+          transition_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          driver_id?: string
+          id?: string
+          migration_notes?: string | null
+          new_subscription_plan_id?: string | null
+          old_commission_rate?: number | null
+          status?: string | null
+          transition_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_to_subscription_log_new_subscription_plan_id_fkey"
+            columns: ["new_subscription_plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       conversations: {
         Row: {
@@ -6270,6 +6332,51 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          alert_type: string
+          created_at: string | null
+          id: string
+          is_acknowledged: boolean | null
+          is_sent: boolean | null
+          message: string
+          metadata: Json | null
+          sent_at: string | null
+          severity: string
+          subscription_id: string
+          subscription_type: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          alert_type: string
+          created_at?: string | null
+          id?: string
+          is_acknowledged?: boolean | null
+          is_sent?: boolean | null
+          message: string
+          metadata?: Json | null
+          sent_at?: string | null
+          severity?: string
+          subscription_id: string
+          subscription_type: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          is_acknowledged?: boolean | null
+          is_sent?: boolean | null
+          message?: string
+          metadata?: Json | null
+          sent_at?: string | null
+          severity?: string
+          subscription_id?: string
+          subscription_type?: string
+        }
+        Relationships: []
+      }
       subscription_plans: {
         Row: {
           created_at: string
@@ -6327,6 +6434,63 @@ export type Database = {
           service_type?: string | null
           trial_duration_days?: number | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_renewal_history: {
+        Row: {
+          amount_charged: number | null
+          created_at: string | null
+          currency: string | null
+          failure_reason: string | null
+          id: string
+          new_end_date: string
+          next_retry_at: string | null
+          old_end_date: string
+          payment_method: string | null
+          payment_reference: string | null
+          payment_status: string | null
+          renewal_date: string | null
+          retry_count: number | null
+          subscription_id: string
+          subscription_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount_charged?: number | null
+          created_at?: string | null
+          currency?: string | null
+          failure_reason?: string | null
+          id?: string
+          new_end_date: string
+          next_retry_at?: string | null
+          old_end_date: string
+          payment_method?: string | null
+          payment_reference?: string | null
+          payment_status?: string | null
+          renewal_date?: string | null
+          retry_count?: number | null
+          subscription_id: string
+          subscription_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount_charged?: number | null
+          created_at?: string | null
+          currency?: string | null
+          failure_reason?: string | null
+          id?: string
+          new_end_date?: string
+          next_retry_at?: string | null
+          old_end_date?: string
+          payment_method?: string | null
+          payment_reference?: string | null
+          payment_status?: string | null
+          renewal_date?: string | null
+          retry_count?: number | null
+          subscription_id?: string
+          subscription_type?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -8720,6 +8884,17 @@ export type Database = {
       cleanup_sensitive_data_automated: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      create_subscription_alert: {
+        Args: {
+          p_alert_type: string
+          p_message: string
+          p_metadata?: Json
+          p_severity?: string
+          p_subscription_id: string
+          p_subscription_type: string
+        }
+        Returns: string
       }
       create_support_ticket: {
         Args: {

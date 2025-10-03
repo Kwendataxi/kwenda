@@ -50,6 +50,9 @@ verify_jwt = false
 [functions.rental-moderation]
 verify_jwt = true
 
+[functions.auto-renew-subscriptions]
+verify_jwt = false  # Sera appelé par CRON, pas par les utilisateurs
+
 [functions.taxi-moderation]
 verify_jwt = true
 
