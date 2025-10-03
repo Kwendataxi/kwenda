@@ -7740,13 +7740,6 @@ export type Database = {
             foreignKeyName: "user_verification_reviewed_by_fkey"
             columns: ["reviewed_by"]
             isOneToOne: false
-            referencedRelation: "admin_directory_safe"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "user_verification_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
             referencedRelation: "admins"
             referencedColumns: ["user_id"]
           },
@@ -8501,45 +8494,6 @@ export type Database = {
       }
     }
     Views: {
-      admin_directory_safe: {
-        Row: {
-          admin_level: string | null
-          created_at: string | null
-          department: string | null
-          display_name: string | null
-          email: string | null
-          employee_id: string | null
-          id: string | null
-          is_active: boolean | null
-          phone_number: string | null
-          user_id: string | null
-        }
-        Insert: {
-          admin_level?: string | null
-          created_at?: string | null
-          department?: string | null
-          display_name?: string | null
-          email?: never
-          employee_id?: never
-          id?: string | null
-          is_active?: boolean | null
-          phone_number?: never
-          user_id?: string | null
-        }
-        Update: {
-          admin_level?: string | null
-          created_at?: string | null
-          department?: string | null
-          display_name?: string | null
-          email?: never
-          employee_id?: never
-          id?: string | null
-          is_active?: boolean | null
-          phone_number?: never
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       assignment_conflicts_view: {
         Row: {
           created_at: string | null
