@@ -106,14 +106,14 @@ export const RentalSubscriptionPlans = () => {
                   Nouveau Plan
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto pointer-events-auto w-[95vw] sm:w-full p-4 sm:p-6">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>
                     {editingPlan ? 'Modifier le Plan' : 'Créer un Nouveau Plan'}
                   </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="name">Nom du Plan</Label>
                       <Input
@@ -137,7 +137,7 @@ export const RentalSubscriptionPlans = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="currency">Devise</Label>
                       <Input

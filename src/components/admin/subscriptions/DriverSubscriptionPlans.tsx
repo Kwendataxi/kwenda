@@ -135,7 +135,7 @@ export const DriverSubscriptionPlans = () => {
               Nouveau Plan
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto pointer-events-auto w-[95vw] sm:w-full p-4 sm:p-6">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingPlan ? 'Modifier le plan' : 'Créer un nouveau plan'}</DialogTitle>
               <DialogDescription>
@@ -144,7 +144,7 @@ export const DriverSubscriptionPlans = () => {
             </DialogHeader>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nom du plan *</Label>
                   <Input
@@ -180,7 +180,7 @@ export const DriverSubscriptionPlans = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="price">Prix *</Label>
                   <Input
