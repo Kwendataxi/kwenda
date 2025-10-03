@@ -31,6 +31,7 @@ import { RoleManagement } from '@/components/admin/roles/RoleManagement';
 import { ServiceManagementPanel } from '@/components/admin/ServiceManagementPanel';
 import { UnifiedSubscriptionManager } from '@/components/admin/subscriptions/UnifiedSubscriptionManager';
 import { SubscriptionPlansConfig } from '@/components/admin/subscriptions/SubscriptionPlansConfig';
+import { FinancialSubscriptionDashboard } from '@/components/admin/subscriptions/FinancialSubscriptionDashboard';
 import { AdminPromoCodeManager } from '@/components/admin/AdminPromoCodeManager';
 import AdminPartnerManager from '@/components/admin/AdminPartnerManager';
 import { GoogleMigrationPanel } from '@/components/admin/GoogleMigrationPanel';
@@ -257,6 +258,15 @@ const AdminApp = () => {
           <div className="space-y-6">
             <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
               <SubscriptionPlansConfig />
+            </FlexiblePermissionGuard>
+          </div>
+        );
+
+      case 'financial-stats':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['finance_read']}>
+              <FinancialSubscriptionDashboard />
             </FlexiblePermissionGuard>
           </div>
         );

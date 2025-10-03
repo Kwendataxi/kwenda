@@ -50,6 +50,11 @@ const NAV_ITEMS: Array<{
   // Tableau de bord
   { id: 'overview', label: "Vue d'ensemble", icon: BarChart3, group: 'dashboard' },
   
+  // Finances & Abonnements
+  { id: 'financial-stats', label: 'Statistiques Revenus', icon: PieChart, group: 'finance' },
+  { id: 'subscriptions', label: 'Abonnements', icon: Package, group: 'finance' },
+  { id: 'subscription-config', label: 'Configuration Plans', icon: Cog, group: 'finance' },
+  
   // Transport
   { id: 'tarifs', label: 'Tarifs', icon: Tag, group: 'transport' },
   { id: 'zones', label: 'Zones', icon: MapPin, group: 'transport' },
@@ -60,8 +65,6 @@ const NAV_ITEMS: Array<{
   
   // Gestion des utilisateurs
   { id: 'drivers', label: 'Chauffeurs', icon: Car, group: 'users' },
-  { id: 'subscriptions', label: 'Abonnements 🎫', icon: Package, group: 'users' },
-  { id: 'subscription-config', label: 'Configuration Plans', icon: Cog, group: 'users' },
   { id: 'partners', label: 'Partenaires', icon: Building, group: 'users' },
   { id: 'users', label: 'Utilisateurs', icon: Users, group: 'users' },
   { id: 'teams', label: 'Équipes', icon: Users, group: 'users' },
@@ -86,7 +89,7 @@ const NAV_ITEMS: Array<{
 
 const GROUP_LABELS = {
   dashboard: 'Tableau de bord',
-  finance: 'Finances',
+  finance: 'Finances & Abonnements',
   transport: 'Transport & Logistique',
   users: 'Gestion des utilisateurs',
   commerce: 'Commerce & Marketing',
