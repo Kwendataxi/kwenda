@@ -35,28 +35,30 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
           <SheetContent 
             side="left" 
             className={cn(
-              "p-0 flex flex-col h-full",
-              "w-[85vw] max-w-sm sm:max-w-md md:max-w-lg",
-              "backdrop-blur-sm"
+              "p-0 w-[85vw] max-w-sm sm:max-w-md md:max-w-lg",
+              "overflow-hidden"
             )}
           >
-            {process.env.NODE_ENV === 'development' && (
-              <div className="p-4 border-b border-border/60 bg-card/50 shrink-0">
-                <h2 className="text-lg font-semibold mb-3">Navigation Admin</h2>
-                <AdminPermissionSettings />
+            <div className="flex flex-col h-full max-h-screen">
+              {process.env.NODE_ENV === 'development' && (
+                <div className="shrink-0 p-4 border-b border-border/60 bg-card/50">
+                  <h2 className="text-lg font-semibold mb-3">Navigation Admin</h2>
+                  <AdminPermissionSettings />
+                </div>
+              )}
+              
+              <div className="flex-1 min-h-0 overflow-hidden">
+                <AdminVerticalNav 
+                  activeTab={activeTab} 
+                  onTabChange={(value) => {
+                    onTabChange(value);
+                    setMobileMenuOpen(false);
+                  }}
+                  devMode={devMode}
+                  isMobile={true}
+                />
               </div>
-            )}
-            
-            <AdminVerticalNav 
-              className="flex-1 min-h-0"
-              activeTab={activeTab} 
-              onTabChange={(value) => {
-                onTabChange(value);
-                setMobileMenuOpen(false);
-              }}
-              devMode={devMode}
-              isMobile={true}
-            />
+            </div>
           </SheetContent>
         </Sheet>
 
@@ -85,11 +87,15 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
           <aside className={cn(
             "shrink-0 sticky top-4 self-start",
             "w-56 lg:w-64 xl:w-72",
-            "max-h-[calc(100vh-3rem)]",
+            "max-h-[calc(100vh-2rem)]",
             "overflow-hidden rounded-lg border border-border/40 bg-card/50",
-            "shadow-sm transition-all duration-300"
+            "shadow-md transition-all duration-300"
           )}>
-            {process.env.NODE_ENV === 'development' && <AdminPermissionSettings />}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="p-3 border-b border-border/60 shrink-0">
+                <AdminPermissionSettings />
+              </div>
+            )}
             <AdminVerticalNav activeTab={activeTab} onTabChange={onTabChange} devMode={devMode} />
           </aside>
           <section className="flex-1">

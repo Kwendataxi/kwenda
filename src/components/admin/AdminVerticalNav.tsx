@@ -156,78 +156,67 @@ export const AdminVerticalNav: React.FC<AdminVerticalNavProps> = ({
   };
 
   return (
-    <div className={cn('h-full flex flex-col', className)}>
-      {/* Barre de recherche */}
+    <div className={cn('flex flex-col h-full w-full', className)}>
+      {/* Barre de recherche mobile - fixe */}
       {isMobile && (
-        <div className="p-3 border-b border-border/60">
+        <div className="shrink-0 p-3 border-b border-border/60 bg-background/95 backdrop-blur-sm sticky top-0 z-10">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher..."
+              placeholder="Rechercher une section..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 bg-background/50"
+              className="pl-9 h-10 bg-background/50"
             />
           </div>
         </div>
       )}
 
-      <ScrollArea className="flex-1 h-full relative admin-scrollbar">
-        <nav role="navigation" aria-label="Navigation admin" className="space-y-1 p-2 pb-10 smooth-scroll">
+      <ScrollArea className="flex-1 w-full admin-scrollbar">
+        <nav role="navigation" aria-label="Navigation admin" className="p-3 pb-20 space-y-2 smooth-scroll">
           {Object.entries(filteredGroups).map(([groupKey, items], groupIndex) => {
             const isExpanded = isGroupExpanded(groupKey);
             const groupLabel = GROUP_LABELS[groupKey as keyof typeof GROUP_LABELS] || groupKey;
             
             return (
               <Collapsible key={groupKey} open={isExpanded} onOpenChange={() => toggleGroup(groupKey)}>
-                {groupIndex > 0 && <Separator className="my-2" />}
+                {groupIndex > 0 && <Separator className="my-3" />}
                 
                 <CollapsibleTrigger asChild>
                   <Button
                     variant="ghost"
                     className={cn(
-                      'w-full justify-between p-2 h-8 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:bg-muted/30',
-                      isMobile && 'h-10 text-sm'
+                      'w-full justify-between px-3 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:bg-muted/40 rounded-md',
+                      isMobile && 'h-11 text-sm'
                     )}
                   >
                     <span>{groupLabel}</span>
-                    {isExpanded ? (
-                      <ChevronDown className="h-3 w-3" />
-                    ) : (
-                      <ChevronRight className="h-3 w-3" />
-                    )}
+                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   </Button>
                 </CollapsibleTrigger>
                 
-                <CollapsibleContent className="space-y-1 pl-1">
+                <CollapsibleContent className="space-y-1 mt-1 pl-2">
                   {items.map(({ id, label, icon: Icon, devMode: isDevMode }) => {
                     const active = activeTab === id;
                     return (
                       <Button
                         key={id}
-                        variant="ghost"
+                        variant={active ? "secondary" : "ghost"}
                         className={cn(
-                          'w-full justify-start gap-2 rounded-lg px-3 py-2 transition-all duration-200',
-                          isMobile ? 'h-11 text-sm' : 'h-9 text-sm',
+                          'w-full justify-start gap-3 px-3 py-2 h-auto text-sm font-medium rounded-md transition-all',
                           active 
-                            ? 'bg-primary/10 text-primary font-medium shadow-sm border border-primary/20' 
-                            : 'hover:bg-muted/50 hover:scale-[1.02]'
+                            ? 'bg-secondary text-secondary-foreground shadow-sm' 
+                            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                          isMobile && 'py-2.5 text-base'
                         )}
-                        aria-current={active ? 'page' : undefined}
                         onClick={() => onTabChange(id)}
                       >
-                        <Icon className={cn(
-                          isMobile ? 'h-5 w-5' : 'h-4 w-4', 
-                          active ? 'text-primary' : 'text-muted-foreground'
-                        )} />
-                        <span className="truncate flex-1 text-left">{label}</span>
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{label}</span>
                         {isDevMode && (
-                          <Badge variant="secondary" className={cn(
-                            'text-xs px-1',
-                            isMobile ? 'h-5' : 'h-4'
-                          )}>
+                          <span className="ml-auto px-1.5 py-0.5 text-[10px] font-semibold bg-blue-500/20 text-blue-400 rounded">
                             DEV
-                          </Badge>
+                          </span>
                         )}
                       </Button>
                     );
@@ -238,8 +227,8 @@ export const AdminVerticalNav: React.FC<AdminVerticalNavProps> = ({
           })}
         </nav>
         
-        {/* Gradient fade indicator */}
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+        {/* Gradient fade indicator at bottom - plus visible */}
+        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none z-10" />
       </ScrollArea>
     </div>
   );
