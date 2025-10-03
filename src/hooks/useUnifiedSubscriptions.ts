@@ -117,7 +117,10 @@ export const useUnifiedSubscriptions = () => {
   });
 
   // Calculate unified statistics using useMemo for client-side computation
-  const stats = useMemo((): UnifiedSubscriptionStats => {
+  const stats = useMemo((): UnifiedSubscriptionStats | null => {
+    // Return null during loading to maintain same behavior as before
+    if (driverLoading || rentalLoading) return null;
+
     const now = new Date();
     const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -156,7 +159,7 @@ export const useUnifiedSubscriptions = () => {
       failedPayments: 0, // TODO: Calculate from payment history
       currency: 'CDF'
     };
-  }, [driverSubscriptions, rentalSubscriptions]);
+  }, [driverSubscriptions, rentalSubscriptions, driverLoading, rentalLoading]);
 
   // Admin actions
   // Admin : Prolonger un abonnement
