@@ -134,41 +134,6 @@ const AdminApp = () => {
         </div>
         );
 
-      case 'credits':
-        return (
-          <div className="space-y-6">
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-2xl font-bold mb-4">⚠️ Système de Crédits Obsolète</h2>
-                <p className="text-muted-foreground">
-                  Le système de crédits a été remplacé par le système d'abonnements par courses.
-                  Veuillez utiliser l'onglet "Abonnements" pour gérer les souscriptions des chauffeurs.
-                </p>
-                <Button onClick={() => setActiveTab('subscriptions')} className="mt-4">
-                  Accéder aux Abonnements
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        );
-
-      case 'commissions':
-        return (
-          <div className="space-y-6">
-        <FlexiblePermissionGuard requiredPermissions={['finance_admin']}>
-          <CommissionManager />
-        </FlexiblePermissionGuard>
-        </div>
-        );
-
-      case 'financial':
-        return (
-          <div className="space-y-6">
-        <FlexiblePermissionGuard requiredPermissions={['finance_read']}>
-          <FinancialDashboard />
-        </FlexiblePermissionGuard>
-        </div>
-        );
 
       case 'tarifs':
         return (

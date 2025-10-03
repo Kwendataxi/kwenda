@@ -50,11 +50,6 @@ const NAV_ITEMS: Array<{
   // Tableau de bord
   { id: 'overview', label: "Vue d'ensemble", icon: BarChart3, group: 'dashboard' },
   
-  // Finances
-  { id: 'credits', label: 'Crédits Chauffeurs', icon: CreditCard, group: 'finance' },
-  { id: 'commissions', label: 'Commissions', icon: Percent, group: 'finance' },
-  { id: 'financial', label: 'Dashboard Financier', icon: PieChart, group: 'finance' },
-  
   // Transport
   { id: 'tarifs', label: 'Tarifs', icon: Tag, group: 'transport' },
   { id: 'zones', label: 'Zones', icon: MapPin, group: 'transport' },
