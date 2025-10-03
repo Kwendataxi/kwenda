@@ -276,7 +276,9 @@ export const SubscriptionOverview = () => {
                     </div>
                     <div className="text-right">
                       <div className="font-semibold text-green-600">
-                        {sub.subscription_plans?.price?.toLocaleString()} CDF
+                        {typeof sub.subscription_plans?.price === 'number' 
+                          ? sub.subscription_plans.price.toLocaleString() 
+                          : '0'} CDF
                       </div>
                       {sub.auto_renew && (
                         <Badge variant="secondary" className="text-xs mt-1">
