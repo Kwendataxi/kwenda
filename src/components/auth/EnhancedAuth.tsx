@@ -189,7 +189,7 @@ export const EnhancedAuth = () => {
         {/* En-tête impactant avec logo Kwenda */}
         <div className="text-center mb-8 space-y-4 animate-fade-in">
           {/* Logo dynamique dans fond noir */}
-          <div className="relative inline-flex items-center justify-center w-32 h-32 rounded-2xl bg-black dark:bg-black shadow-2xl shadow-red-600/50 dark:shadow-red-500/60 mb-6 ring-2 ring-red-500/40 dark:ring-red-400/50 overflow-hidden group cursor-pointer hover:scale-105 transition-all duration-500">
+          <div className="relative inline-flex items-center justify-center w-32 h-32 rounded-2xl bg-white dark:bg-black shadow-2xl shadow-red-600/50 dark:shadow-red-500/60 mb-6 ring-2 ring-red-500/40 dark:ring-red-400/50 overflow-hidden group cursor-pointer hover:scale-105 transition-all duration-500">
             {/* Gradient animé en arrière-plan */}
             <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 via-transparent to-red-500/20 animate-pulse" />
             
