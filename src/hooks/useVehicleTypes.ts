@@ -31,7 +31,7 @@ export const useVehicleTypes = ({ distance = 0, city = 'Kinshasa' }: UseVehicleT
         .from('pricing_rules')
         .select('*')
         .eq('service_type', 'transport')
-        .eq('city', city)
+        .ilike('city', city) // Case-insensitive city matching
         .eq('is_active', true);
 
       if (pricingError) throw pricingError;
