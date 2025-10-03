@@ -46,10 +46,10 @@ const DriverApp = () => {
       
       <main className="flex-1 overflow-y-auto content-scrollable responsive-padding">
         <div className="container-fluid space-y-6">
-          {tab === 'rides' && <MobileDriverInterface onNavigateToEarnings={() => setTab('earnings')} onNavigateToCredits={() => setTab('credits')} onNavigateToNavigation={() => {}} />}
+          {tab === 'rides' && <MobileDriverInterface onNavigateToEarnings={() => setTab('earnings')} onNavigateToCredits={() => setTab('subscription')} onNavigateToNavigation={() => {}} />}
           {tab === 'deliveries' && <ProductionDriverInterface />}
           {tab === 'earnings' && <DriverWalletPanel />}
-          {tab === 'credits' && <SubscriptionPlans />}
+          {tab === 'subscription' && <SubscriptionPlans />}
           {tab === 'challenges' && <DriverChallenges />}
           {tab === 'partner' && <DriverCodeManager />}
           {tab === 'referrals' && <DriverReferrals />}

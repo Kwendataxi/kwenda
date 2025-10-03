@@ -44,28 +44,7 @@ export const useRealtimeFinancialUpdates = (): UseRealtimeFinancialUpdatesReturn
           handleWalletInsert(payload.new);
         }
       )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'credit_transactions'
-        },
-        (payload) => {
-          handleCreditUpdate(payload.new);
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'driver_credits'
-        },
-        (payload) => {
-          handleDriverCreditUpdate(payload);
-        }
-      )
+      // ✅ Suppression des listeners obsolètes pour driver_credits et credit_transactions
       .subscribe((status) => {
         setIsConnected(status === 'SUBSCRIBED');
       });
@@ -125,55 +104,7 @@ export const useRealtimeFinancialUpdates = (): UseRealtimeFinancialUpdatesReturn
     }
   };
 
-  const handleCreditUpdate = (record: any) => {
-    const update: FinancialUpdate = {
-      type: 'credit_transaction',
-      amount: parseFloat(record.amount),
-      currency: record.currency || 'CDF',
-      timestamp: record.created_at,
-      metadata: {
-        transactionId: record.id,
-        driverId: record.driver_id,
-        transactionType: record.transaction_type,
-        description: record.description,
-        balanceBefore: record.balance_before,
-        balanceAfter: record.balance_after
-      }
-    };
-
-    setUpdates(prev => [update, ...prev.slice(0, 99)]);
-    
-    if (record.transaction_type === 'credit') {
-      setTotalCredits(prev => prev + update.amount);
-    } else if (record.transaction_type === 'debit') {
-      setTotalCredits(prev => prev - update.amount);
-    }
-  };
-
-  const handleDriverCreditUpdate = (payload: any) => {
-    const { eventType, new: newRecord, old: oldRecord } = payload;
-    
-    if (eventType === 'UPDATE' && oldRecord && newRecord) {
-      const balanceChange = parseFloat(newRecord.balance) - parseFloat(oldRecord.balance);
-      
-      if (Math.abs(balanceChange) > 0) {
-        const update: FinancialUpdate = {
-          type: 'wallet_update',
-          amount: balanceChange,
-          currency: newRecord.currency || 'CDF',
-          timestamp: newRecord.updated_at,
-          metadata: {
-            driverId: newRecord.driver_id,
-            balanceChange,
-            newBalance: newRecord.balance,
-            oldBalance: oldRecord.balance
-          }
-        };
-
-        setUpdates(prev => [update, ...prev.slice(0, 99)]);
-      }
-    }
-  };
+  // ✅ Fonctions obsolètes supprimées (système de crédits remplacé par abonnements)
 
   const clearUpdates = () => {
     setUpdates([]);
