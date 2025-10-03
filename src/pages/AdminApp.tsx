@@ -1,7 +1,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { AdvancedUserManagement } from '@/components/admin/users/AdvancedUserManagement';
-import { ResponsiveAdminLayout } from '@/components/admin/ResponsiveAdminLayout';
+import { AdminPermissionProvider } from '@/components/admin/AdminPermissionContext';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { FlexiblePermissionGuard } from '@/components/auth/FlexiblePermissionGuard';
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
@@ -315,13 +315,15 @@ const AdminApp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsContent value={activeTab} className="mt-0">
-          {renderContent()}
-        </TabsContent>
-      </Tabs>
-    </div>
+    <AdminPermissionProvider>
+      <div className="min-h-screen bg-background">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsContent value={activeTab} className="mt-0">
+            {renderContent()}
+          </TabsContent>
+        </Tabs>
+      </div>
+    </AdminPermissionProvider>
   );
 };
 
