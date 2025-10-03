@@ -89,7 +89,7 @@ export const SubscriptionOverview = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <SubscriptionStatCard
           title="Abonnements Actifs"
-          value={stats?.totalActiveSubscriptions || 0}
+          value={String(stats?.totalActiveSubscriptions || 0)}
           icon={Users}
           description={`${stats?.driverSubscriptions || 0} chauffeurs + ${stats?.rentalSubscriptions || 0} location`}
           trend={{ value: 12, label: 'vs mois dernier' }}
@@ -98,7 +98,7 @@ export const SubscriptionOverview = () => {
 
         <SubscriptionStatCard
           title="Revenus Mensuels"
-          value={`${(stats?.monthlyRevenue || 0).toLocaleString()} CDF`}
+          value={`${((stats?.monthlyRevenue || 0) as number).toLocaleString()} CDF`}
           icon={DollarSign}
           description="Revenus récurrents mensuels"
           trend={{ value: 8, label: 'vs mois dernier' }}
@@ -107,7 +107,7 @@ export const SubscriptionOverview = () => {
 
         <SubscriptionStatCard
           title="Courses Restantes"
-          value={totalRidesRemaining.toLocaleString()}
+          value={String(totalRidesRemaining)}
           icon={Zap}
           description="Total tickets disponibles"
           badge={{ text: '🎫 Actifs', variant: 'secondary' }}
