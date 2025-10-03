@@ -74,14 +74,14 @@ export const VerificationDetailDialog = ({ verification, open, onClose, onSucces
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto sm:max-w-[90vw]">
+      <DialogContent className="max-w-[95vw] sm:max-w-[90vw] lg:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="border-b pb-4 mb-4">
           <DialogTitle className="text-2xl font-bold text-center">
             Vérification du compte
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* User Information */}
           <div className="space-y-4">
             <div className="p-4 bg-muted rounded-lg space-y-3">
@@ -218,7 +218,7 @@ export const VerificationDetailDialog = ({ verification, open, onClose, onSucces
             </div>
 
             {/* Actions */}
-            <div className="border-t pt-6 mt-6 bg-muted/30 -mx-6 px-6 pb-0 rounded-b-lg">
+            <div className="border-t pt-6 mt-6 bg-muted/30 rounded-lg px-4 pb-4">
               <h3 className="font-semibold text-lg mb-4 text-center">Actions de validation</h3>
               <div className="space-y-4">
                 <Button

@@ -255,27 +255,34 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
                      )}
                    </TableCell>
                   <TableCell className="sticky right-0 bg-background">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="center" className="z-[100] w-56 bg-background/95 backdrop-blur-sm border-2">
-                        <DropdownMenuItem onClick={() => onViewUser?.(user)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Voir le profil
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEditUser?.(user)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onVerifyUser?.(user)}>
-                          <Shield className="h-4 w-4 mr-2" />
-                          Vérifier le compte
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="relative">
+                      <DropdownMenu modal={false}>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent 
+                          align="end" 
+                          side="bottom"
+                          sideOffset={5}
+                          className="z-[100] w-56 bg-background border-2"
+                        >
+                          <DropdownMenuItem onClick={() => onViewUser?.(user)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Voir le profil
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onEditUser?.(user)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onVerifyUser?.(user)}>
+                            <Shield className="h-4 w-4 mr-2" />
+                            Vérifier le compte
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
