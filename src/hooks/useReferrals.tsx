@@ -59,26 +59,41 @@ export const useReferrals = () => {
       setLoading(true);
 
       // Get user type first
+      console.log('🔍 Récupération du type utilisateur pour:', user.id);
       const { data: userTypeData, error: userTypeError } = await supabase
         .rpc('get_user_type', { p_user_id: user.id });
 
       if (userTypeError) {
-        console.error('Error getting user type:', userTypeError);
+        console.error('❌ Erreur RPC get_user_type:', {
+          message: userTypeError.message,
+          details: userTypeError.details,
+          hint: userTypeError.hint,
+          code: userTypeError.code
+        });
       }
 
       const userType: UserType = (userTypeData as UserType) || 'client';
+      console.log('✅ Type utilisateur:', userType);
 
       // Get reward amount for this user type
+      console.log('💰 Récupération du montant de récompense...');
       const { data: rewardAmountData, error: rewardAmountError } = await supabase
         .rpc('get_referral_reward_amount', { p_user_id: user.id });
 
       if (rewardAmountError) {
-        console.error('Error getting reward amount:', rewardAmountError);
+        console.error('❌ Erreur RPC get_referral_reward_amount:', {
+          message: rewardAmountError.message,
+          details: rewardAmountError.details,
+          hint: rewardAmountError.hint,
+          code: rewardAmountError.code
+        });
       }
 
       const currentReward = rewardAmountData || (userType === 'client' ? 500 : 2000);
+      console.log('✅ Montant de récompense:', currentReward);
 
       // Get or create user's referral code
+      console.log('🔍 Recherche du code de parrainage existant...');
       let { data: existingReferral, error: referralError } = await supabase
         .from('referrals')
         .select('referral_code')
@@ -88,22 +103,35 @@ export const useReferrals = () => {
       let userReferralCode = '';
 
       if (referralError && referralError.code !== 'PGRST116') {
-        console.error('Error fetching referral:', referralError);
+        console.error('❌ Erreur SELECT referrals:', {
+          message: referralError.message,
+          details: referralError.details,
+          hint: referralError.hint,
+          code: referralError.code
+        });
       }
 
       if (!existingReferral) {
+        console.log('➕ Aucun code existant, génération d\'un nouveau code...');
         // Generate new referral code
         const { data: codeData, error: codeError } = await supabase
           .rpc('generate_referral_code');
 
         if (codeError) {
-          console.error('Error generating code:', codeError);
+          console.error('❌ Erreur RPC generate_referral_code:', {
+            message: codeError.message,
+            details: codeError.details,
+            hint: codeError.hint,
+            code: codeError.code
+          });
           throw codeError;
         }
 
         userReferralCode = codeData;
+        console.log('✅ Nouveau code généré:', userReferralCode);
 
         // Create referral entry
+        console.log('💾 Création de l\'entrée de parrainage...');
         const { error: insertError } = await supabase
           .from('referrals')
           .insert({
@@ -113,16 +141,24 @@ export const useReferrals = () => {
           });
 
         if (insertError) {
-          console.error('Error creating referral:', insertError);
+          console.error('❌ Erreur INSERT referrals:', {
+            message: insertError.message,
+            details: insertError.details,
+            hint: insertError.hint,
+            code: insertError.code
+          });
           throw insertError;
         }
+        console.log('✅ Code de parrainage créé avec succès');
       } else {
         userReferralCode = existingReferral.referral_code;
+        console.log('✅ Code existant trouvé:', userReferralCode);
       }
 
       setReferralCode(userReferralCode);
 
       // Load referral statistics
+      console.log('📊 Chargement des statistiques de parrainage...');
       const { data: referrals, error: statsError } = await supabase
         .from('referrals')
         .select('*')
@@ -130,14 +166,21 @@ export const useReferrals = () => {
         .order('created_at', { ascending: false });
 
       if (statsError) {
-        console.error('Error loading referral stats:', statsError);
+        console.error('❌ Erreur SELECT referrals (stats):', {
+          message: statsError.message,
+          details: statsError.details,
+          hint: statsError.hint,
+          code: statsError.code
+        });
         throw statsError;
       }
+      console.log('✅ Statistiques chargées:', referrals?.length || 0, 'parrainages');
 
       const totalReferred = referrals?.filter(r => r.status === 'completed').length || 0;
       const recentReferrals = referrals?.slice(0, 5) || [];
 
       // Load rewards
+      console.log('🎁 Chargement des récompenses...');
       const { data: rewardsData, error: rewardsError } = await supabase
         .from('referral_rewards')
         .select('*')
@@ -145,7 +188,14 @@ export const useReferrals = () => {
         .order('created_at', { ascending: false });
 
       if (rewardsError) {
-        console.error('Error loading rewards:', rewardsError);
+        console.error('❌ Erreur SELECT referral_rewards:', {
+          message: rewardsError.message,
+          details: rewardsError.details,
+          hint: rewardsError.hint,
+          code: rewardsError.code
+        });
+      } else {
+        console.log('✅ Récompenses chargées:', rewardsData?.length || 0);
       }
 
       const totalEarned = rewardsData?.reduce((sum, reward) => sum + Number(reward.reward_amount), 0) || 0;
