@@ -8901,6 +8901,32 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      create_driver_profile_secure: {
+        Args: {
+          p_delivery_capacity?: string
+          p_display_name: string
+          p_email: string
+          p_has_own_vehicle?: boolean
+          p_license_number?: string
+          p_phone_number: string
+          p_service_type?: string
+          p_user_id: string
+          p_vehicle_class?: string
+          p_vehicle_plate?: string
+        }
+        Returns: Json
+      }
+      create_partner_profile_secure: {
+        Args: {
+          p_business_type: string
+          p_company_name: string
+          p_email: string
+          p_phone_number: string
+          p_service_areas?: string[]
+          p_user_id: string
+        }
+        Returns: Json
+      }
       create_subscription_alert: {
         Args: {
           p_alert_type: string
