@@ -43,7 +43,7 @@ export const AdminUserVerificationManager = () => {
         .from('user_verification')
         .select(`
           *,
-          clients:user_id (
+          clients!user_verification_user_id_fkey (
             display_name,
             email,
             phone_number

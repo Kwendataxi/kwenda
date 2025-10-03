@@ -9217,6 +9217,10 @@ export type Database = {
           total_calls: number
         }[]
       }
+      get_identity_document_url: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
       get_manual_security_tasks: {
         Args: Record<PropertyKey, never>
         Returns: {

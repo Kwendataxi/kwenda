@@ -10,6 +10,7 @@ import { CheckCircle, XCircle, AlertCircle, Phone, Mail, Calendar, ZoomIn, Rotat
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { VerificationHistoryTimeline } from './VerificationHistoryTimeline';
+import { DocumentPreview } from './DocumentPreview';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -113,40 +114,50 @@ export const VerificationDetailDialog = ({ verification, open, onClose, onSucces
             </div>
 
             {/* Document Preview */}
-            {verification.identity_document_url && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">Document d'identité</h3>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setImageZoom(prev => Math.min(prev + 0.25, 2))}
-                    >
-                      <ZoomIn className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setImageRotation(prev => (prev + 90) % 360)}
-                    >
-                      <RotateCw className="h-4 w-4" />
-                    </Button>
+            <div className="space-y-2">
+              <h3 className="font-semibold">Document d'identité</h3>
+              {verification.identity_document_url ? (
+                <>
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge variant="outline" className="bg-green-50 text-green-700">
+                      Document fourni
+                    </Badge>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setImageZoom(prev => Math.min(prev + 0.25, 2))}
+                      >
+                        <ZoomIn className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setImageRotation(prev => (prev + 90) % 360)}
+                      >
+                        <RotateCw className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <div className="border rounded-lg overflow-hidden bg-muted p-2">
-                  <img
-                    src={verification.identity_document_url}
-                    alt="Document d'identité"
-                    className="w-full h-auto transition-transform"
-                    style={{
-                      transform: `scale(${imageZoom}) rotate(${imageRotation}deg)`,
-                      transformOrigin: 'center'
-                    }}
+                  <DocumentPreview 
+                    documentPath={verification.identity_document_url}
+                    userId={verification.user_id}
+                    zoom={imageZoom}
+                    rotation={imageRotation}
                   />
+                </>
+              ) : (
+                <div className="border-2 border-dashed rounded-lg p-8 text-center bg-muted/50">
+                  <AlertCircle className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Aucun document d'identité fourni
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    L'utilisateur n'a pas encore téléchargé son document
+                  </p>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* History Timeline */}
             <VerificationHistoryTimeline userId={verification.user_id} />

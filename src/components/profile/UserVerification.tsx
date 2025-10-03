@@ -97,34 +97,41 @@ export const UserVerification = () => {
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/identity.${fileExt}`;
+      const timestamp = Date.now();
 
+      // Upload to the correct identity-documents bucket
       const { error: uploadError } = await supabase.storage
-        .from('profile-pictures')
-        .upload(fileName, file, { upsert: true });
+        .from('identity-documents')
+        .upload(`${user.id}/identity_${timestamp}.${fileExt}`, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
-      const { data } = supabase.storage
-        .from('profile-pictures')
-        .getPublicUrl(fileName);
+      // Get the file path (not public URL since bucket is private)
+      const filePath = `${user.id}/identity_${timestamp}.${fileExt}`;
 
-      // Update verification with document URL
+      // Update verification with document path
       const { error: updateError } = await supabase
         .from('user_verification')
         .update({ 
-          identity_document_url: data.publicUrl,
+          identity_document_url: filePath,
           verification_status: 'pending_review'
         })
         .eq('user_id', user.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Update error:', updateError);
+        throw updateError;
+      }
 
-      toast.success("📄 Document téléchargé! Un admin va vérifier votre identité sous 24-48h.");
+      toast.success("📄 Document téléchargé avec succès! Un admin va vérifier votre identité sous 24-48h.");
 
       loadVerificationStatus();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading document:', error);
-      toast.error("Impossible de télécharger le document");
+      toast.error(error.message || "Impossible de télécharger le document");
     } finally {
       setUploadingDocument(false);
     }
