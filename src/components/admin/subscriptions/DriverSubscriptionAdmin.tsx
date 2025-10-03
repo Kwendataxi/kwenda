@@ -15,8 +15,11 @@ import {
   MoreHorizontal,
   Users,
   TrendingUp,
-  Clock
+  Clock,
+  Ticket
 } from "lucide-react";
+import { ServiceTypeBadge } from './ServiceTypeBadge';
+import { RidesProgressBar } from './RidesProgressBar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export const DriverSubscriptionAdmin = () => {
@@ -172,11 +175,11 @@ export const DriverSubscriptionAdmin = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Chauffeur</TableHead>
-                  <TableHead>Plan</TableHead>
+                  <TableHead>Plan / Service</TableHead>
+                  <TableHead>Courses Restantes</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Date de fin</TableHead>
                   <TableHead>Prix</TableHead>
-                  <TableHead>Auto-renew</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -198,14 +201,23 @@ export const DriverSubscriptionAdmin = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div>
+                        <div className="space-y-1">
                           <div className="font-medium">
                             {subscription.subscription_plans?.name}
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            Depuis le {formatDate(subscription.start_date)}
-                          </div>
+                          <ServiceTypeBadge 
+                            serviceType={subscription.service_type || 'transport'} 
+                            size="sm"
+                          />
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <RidesProgressBar 
+                          ridesRemaining={subscription.rides_remaining || 0}
+                          ridesIncluded={subscription.subscription_plans?.rides_included || 0}
+                          size="sm"
+                          showLabel={false}
+                        />
                       </TableCell>
                       <TableCell>
                         {getStatusBadge(subscription.status)}
@@ -224,14 +236,9 @@ export const DriverSubscriptionAdmin = () => {
                         <div className="font-medium">
                           {subscription.subscription_plans?.price?.toLocaleString()} {subscription.subscription_plans?.currency}
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          {subscription.payment_method}
+                        <div className="text-sm text-muted-foreground flex items-center gap-1">
+                          {subscription.auto_renew ? '🔄 Auto-renew' : subscription.payment_method}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={subscription.auto_renew ? "default" : "secondary"}>
-                          {subscription.auto_renew ? "Oui" : "Non"}
-                        </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>

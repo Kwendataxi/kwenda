@@ -1930,6 +1930,7 @@ export type Database = {
           plan_id: string
           rides_remaining: number | null
           rides_used: number | null
+          service_type: string | null
           start_date: string
           status: string
           trial_granted_at: string | null
@@ -1950,6 +1951,7 @@ export type Database = {
           plan_id: string
           rides_remaining?: number | null
           rides_used?: number | null
+          service_type?: string | null
           start_date?: string
           status?: string
           trial_granted_at?: string | null
@@ -1970,6 +1972,7 @@ export type Database = {
           plan_id?: string
           rides_remaining?: number | null
           rides_used?: number | null
+          service_type?: string | null
           start_date?: string
           status?: string
           trial_granted_at?: string | null
@@ -8507,6 +8510,20 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_stats_by_service: {
+        Row: {
+          active_count: number | null
+          avg_rides_remaining: number | null
+          cancelled_count: number | null
+          expired_count: number | null
+          expiring_month: number | null
+          expiring_week: number | null
+          monthly_revenue: number | null
+          service_type: string | null
+          total_rides_remaining: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_cancel_subscription: {
@@ -8754,6 +8771,10 @@ export type Database = {
       deactivate_trip_share_link: {
         Args: { p_share_id: string }
         Returns: boolean
+      }
+      decrement_driver_rides: {
+        Args: { driver_user_id: string }
+        Returns: Json
       }
       decrement_subscription_rides: {
         Args: {

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { SubscriptionOverview } from "./SubscriptionOverview";
 import { DriverSubscriptionAdmin } from "./DriverSubscriptionAdmin";
 import { RentalSubscriptionAdmin } from "./RentalSubscriptionAdmin";
+import { SubscriptionAnalytics } from "./SubscriptionAnalytics";
 import { useUnifiedSubscriptions } from "@/hooks/useUnifiedSubscriptions";
 import { Loader2, Users, Car, AlertTriangle, TrendingUp } from "lucide-react";
 
@@ -71,7 +72,7 @@ export const UnifiedSubscriptionManager = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Vue d'ensemble
@@ -94,6 +95,9 @@ export const UnifiedSubscriptionManager = () => {
               </Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            📊 Analytics
+          </TabsTrigger>
           <TabsTrigger value="settings" className="flex items-center gap-2">
             Plans & Config
           </TabsTrigger>
@@ -109,6 +113,10 @@ export const UnifiedSubscriptionManager = () => {
 
         <TabsContent value="rentals" className="space-y-6">
           <RentalSubscriptionAdmin />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <SubscriptionAnalytics />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">
