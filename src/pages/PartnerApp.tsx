@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { PartnerDriverManager } from '@/components/partner/PartnerDriverManager';
 import PartnerRentalManager from '@/components/partner/rental/PartnerRentalManager';
 import { ResponsivePartnerLayout } from '@/components/partner/ResponsivePartnerLayout';
-import { PartnerCommissionDashboard } from '@/components/partner/PartnerCommissionDashboard';
-import { CommissionWithdrawal } from '@/components/partner/CommissionWithdrawal';
 import { RentalSubscriptionManager } from '@/components/partner/rental/RentalSubscriptionManager';
 import { usePartnerStats } from '@/hooks/usePartnerStats';
 import { usePartnerActivity } from '@/hooks/usePartnerActivity';
@@ -41,7 +39,7 @@ import { Progress } from "@/components/ui/progress"
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const PartnerApp = () => {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'commissions' | 'subscriptions' | 'analytics' | 'notifications'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'subscriptions' | 'analytics' | 'notifications'>('dashboard');
   
   // Use real data hooks
   const { stats, loading: statsLoading } = usePartnerStats();
@@ -420,42 +418,6 @@ const PartnerApp = () => {
   );
 
 
-  const renderCommissions = () => (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Mobile Header */}
-      {isMobile && (
-        <div className="sticky top-0 bg-background border-b border-grey-100 px-4 py-3 z-10">
-          <h1 className="text-heading-lg text-card-foreground">Commissions</h1>
-        </div>
-      )}
-
-      {/* Desktop Header */}
-      {!isMobile && (
-        <div className="flex items-center mb-6">
-          <h1 className="text-display-sm text-card-foreground">Commissions</h1>
-        </div>
-      )}
-
-      <div className={`${isMobile ? 'px-4' : ''} space-y-6`}>
-        <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="dashboard">Tableau de bord</TabsTrigger>
-            <TabsTrigger value="withdrawals">Retraits</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="dashboard" className="mt-6">
-            <PartnerEarningsCard range="30d" />
-            <PartnerCommissionDashboard />
-          </TabsContent>
-
-          <TabsContent value="withdrawals" className="mt-6">
-            <CommissionWithdrawal />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  );
-
   const renderSubscriptions = () => (
     <div className="min-h-screen bg-background pb-20">
       {isMobile && (
@@ -480,10 +442,12 @@ const PartnerApp = () => {
         return renderFleetManagement();
       case 'drivers':
         return <PartnerDriverManager />;
-      case 'commissions':
-        return renderCommissions();
       case 'subscriptions':
         return renderSubscriptions();
+      case 'analytics':
+        return <PartnerAnalyticsDashboard />;
+      case 'notifications':
+        return <PartnerNotificationCenter />;
       default:
         return renderDashboard();
     }
@@ -494,10 +458,12 @@ const PartnerApp = () => {
         return 'Mes véhicules';
       case 'drivers': 
         return 'Chauffeurs';
-      case 'commissions':
-        return 'Commissions';
       case 'subscriptions':
         return 'Abonnements';
+      case 'analytics':
+        return 'Analytiques';
+      case 'notifications':
+        return 'Notifications';
       default: 
         return 'Tableau de bord';
     }

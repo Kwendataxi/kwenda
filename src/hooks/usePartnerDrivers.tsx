@@ -8,7 +8,6 @@ interface PartnerDriver {
   partner_id: string;
   driver_id: string;
   driver_code: string;
-  commission_rate: number;
   status: string;
   added_at: string;
   driver_name?: string;
@@ -62,7 +61,7 @@ export const usePartnerDrivers = () => {
     }
   };
 
-  const addDriverByCode = async (driverCode: string, commissionRate: number) => {
+  const addDriverByCode = async (driverCode: string) => {
     if (!user || !driverCode.trim()) return;
 
     try {
@@ -125,17 +124,13 @@ export const usePartnerDrivers = () => {
         return false;
       }
 
-      // Clamp commission to [0, 2.5]
-      const clampedRate = Math.min(Math.max(commissionRate, 0), 2.5);
-
-      // Add the driver to the partner's fleet
+      // Add the driver to the partner's fleet (no commission needed)
       const { data, error } = await supabase
         .from('partner_drivers')
         .insert({
           partner_id: user.id,
           driver_id: codeData.driver_id,
           driver_code: driverCode.toUpperCase(),
-          commission_rate: clampedRate,
           status: 'active'
         })
         .select()
@@ -156,34 +151,6 @@ export const usePartnerDrivers = () => {
       return false;
     } finally {
       setAddingDriver(false);
-    }
-  };
-
-  const updateDriverCommission = async (driverId: string, newRate: number) => {
-    if (!user) return;
-
-    try {
-      const clamped = Math.min(Math.max(newRate, 0), 2.5);
-
-      const { error } = await supabase
-        .from('partner_drivers')
-        .update({ commission_rate: clamped })
-        .eq('partner_id', user.id)
-        .eq('id', driverId);
-
-      if (error) {
-        console.error('Error updating commission:', error);
-        toast.error('Erreur lors de la mise à jour');
-        return false;
-      }
-
-      toast.success('Taux de commission mis à jour!');
-      await fetchPartnerDrivers(); // Refresh the list
-      return true;
-    } catch (error) {
-      console.error('Error updating driver commission:', error);
-      toast.error('Erreur lors de la mise à jour');
-      return false;
     }
   };
 
@@ -224,7 +191,6 @@ export const usePartnerDrivers = () => {
     drivers,
     addingDriver,
     addDriverByCode,
-    updateDriverCommission,
     removeDriver,
     fetchPartnerDrivers
   };

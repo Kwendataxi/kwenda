@@ -17,43 +17,22 @@ export const PartnerDriverManager = () => {
     drivers, 
     addingDriver, 
     addDriverByCode, 
-    updateDriverCommission, 
     removeDriver 
   } = usePartnerDrivers();
 
   const [newDriverCode, setNewDriverCode] = useState('');
-  const [newCommissionRate, setNewCommissionRate] = useState(2.0);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingDriver, setEditingDriver] = useState<string | null>(null);
-  const [editCommission, setEditCommission] = useState(2.0);
 
   const handleAddDriver = async () => {
     if (newDriverCode.length !== 8) {
       return;
     }
 
-    const clamped = Math.min(Math.max(newCommissionRate, 0), 2.5);
-    if (clamped !== newCommissionRate) {
-      setNewCommissionRate(clamped);
-      toast({ title: 'Taux ajusté', description: 'Le taux a été limité à 2,5%.' });
-    }
-
-    const success = await addDriverByCode(newDriverCode, clamped);
+    const success = await addDriverByCode(newDriverCode);
     if (success) {
       setNewDriverCode('');
-      setNewCommissionRate(2.0);
       setShowAddDialog(false);
-    }
-  };
-
-  const handleUpdateCommission = async (driverId: string) => {
-    const clamped = Math.min(Math.max(editCommission, 0), 2.5);
-    if (clamped !== editCommission) {
-      toast({ title: 'Taux ajusté', description: 'Le taux a été limité à 2,5%.' });
-    }
-    const success = await updateDriverCommission(driverId, clamped);
-    if (success) {
-      setEditingDriver(null);
     }
   };
 
@@ -68,7 +47,7 @@ export const PartnerDriverManager = () => {
         <div className="w-full sm:w-auto">
           <h2 className="text-xl sm:text-2xl font-bold">Gestion des Chauffeurs</h2>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Gérez votre flotte de chauffeurs et leurs commissions
+            Gérez votre flotte de chauffeurs et leurs abonnements
           </p>
         </div>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
@@ -83,7 +62,7 @@ export const PartnerDriverManager = () => {
             <DialogHeader>
               <DialogTitle>Ajouter un nouveau chauffeur</DialogTitle>
               <DialogDescription>
-                Entrez le code unique du chauffeur et définissez son taux de commission
+                Entrez le code unique du chauffeur pour l'ajouter à votre flotte
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -99,21 +78,6 @@ export const PartnerDriverManager = () => {
                 />
                 <p className="text-xs text-muted-foreground">
                   Le chauffeur doit vous communiquer son code unique
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="commission-rate">Taux de commission (%) <span className="text-muted-foreground">(max 2,5%)</span></Label>
-                <Input
-                  id="commission-rate"
-                  type="number"
-                  min="0"
-                  max="2.5"
-                  step="0.1"
-                  value={newCommissionRate}
-                  onChange={(e) => setNewCommissionRate(Number(e.target.value))}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Taux partenaire (max 2,5%)
                 </p>
               </div>
             </div>
@@ -159,17 +123,14 @@ export const PartnerDriverManager = () => {
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center">
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <span className="text-sm sm:text-base font-bold text-green-600">%</span>
+                <Users className="h-5 w-5 text-green-600" />
               </div>
               <div className="ml-3 sm:ml-4">
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Commission Moyenne
+                  Chauffeurs Actifs
                 </p>
                 <p className="text-xl sm:text-2xl font-bold">
-                  {drivers.length > 0 
-                    ? (drivers.reduce((acc, d) => acc + d.commission_rate, 0) / drivers.length).toFixed(1)
-                    : '0'
-                  }%
+                  {drivers.filter(d => d.status === 'active').length}
                 </p>
               </div>
             </div>
@@ -250,42 +211,6 @@ export const PartnerDriverManager = () => {
                   </div>
                   
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-                    <div className="flex items-center justify-between sm:justify-end">
-                      {editingDriver === driver.id ? (
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            min="0"
-                            max="2.5"
-                            step="0.1"
-                            value={editCommission}
-                            onChange={(e) => setEditCommission(Number(e.target.value))}
-                            className="w-16 sm:w-20 h-8"
-                          />
-                          <span className="text-sm">%</span>
-                          <Button
-                            size="sm"
-                            onClick={() => handleUpdateCommission(driver.id)}
-                            className="h-8 px-2"
-                          >
-                            OK
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setEditingDriver(null)}
-                            className="h-8 px-2"
-                          >
-                            ✕
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="text-right">
-                          <p className="font-medium text-sm sm:text-base">{driver.commission_rate}%</p>
-                          <p className="text-xs text-muted-foreground">Commission</p>
-                        </div>
-                      )}
-                    </div>
                     
                     <div className="flex items-center justify-between sm:justify-end gap-3">
                       <Badge 
@@ -296,17 +221,6 @@ export const PartnerDriverManager = () => {
                       </Badge>
                       
                       <div className="flex gap-1 sm:gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setEditingDriver(driver.id);
-                            setEditCommission(driver.commission_rate);
-                          }}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
