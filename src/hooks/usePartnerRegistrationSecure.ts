@@ -39,7 +39,7 @@ export const usePartnerRegistrationSecure = () => {
             company_name: data.company_name,
             phone_number: data.phone,
             business_type: data.business_type,
-            service_areas: JSON.stringify(data.service_areas), // Convert array to string
+            service_areas: data.service_areas,
             address: data.address || 'Adresse non spécifiée',
             business_license: data.business_license || '',
             tax_number: data.tax_number || ''
