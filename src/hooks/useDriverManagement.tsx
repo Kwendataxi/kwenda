@@ -96,22 +96,14 @@ export const useDriverManagement = (): UseDriverManagementReturn => {
       setLoading(true);
       setError(null);
 
-      // Build query for driver profiles
+      // ✅ CORRECTION: Utiliser la table 'chauffeurs' au lieu de 'driver_profiles'
       let query = supabase
-        .from('driver_profiles')
-        .select(`
-          *,
-          profiles!inner(
-            user_id,
-            display_name,
-            phone_number,
-            avatar_url
-          )
-        `, { count: 'exact' });
+        .from('chauffeurs')
+        .select('*', { count: 'exact' });
 
       // Apply filters
       if (filters.search) {
-        query = query.or(`vehicle_plate.ilike.%${filters.search}%,license_number.ilike.%${filters.search}%,profiles.display_name.ilike.%${filters.search}%`);
+        query = query.or(`display_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,phone_number.ilike.%${filters.search}%,license_number.ilike.%${filters.search}%,vehicle_plate.ilike.%${filters.search}%`);
       }
 
       if (filters.serviceType !== 'all') {
@@ -168,13 +160,14 @@ export const useDriverManagement = (): UseDriverManagementReturn => {
         const isOnline = location?.is_online && location?.last_ping && 
           (new Date().getTime() - new Date(location.last_ping).getTime()) < 10 * 60 * 1000; // 10 minutes
 
+        // ✅ CORRECTION: Utiliser directement les données de 'chauffeurs'
         return {
           id: driver.id,
           user_id: driver.user_id,
-          display_name: driver.profiles?.display_name || 'N/A',
-          email: authUser?.email || 'N/A',
-          phone_number: driver.profiles?.phone_number,
-          avatar_url: driver.profiles?.avatar_url || driver.profile_photo_url,
+          display_name: driver.display_name || 'N/A',
+          email: driver.email || authUser?.email || 'N/A',
+          phone_number: driver.phone_number,
+          avatar_url: driver.profile_photo_url,
           vehicle_make: driver.vehicle_make,
           vehicle_model: driver.vehicle_model,
           vehicle_plate: driver.vehicle_plate,
