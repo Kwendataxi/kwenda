@@ -44,6 +44,7 @@ import { EnhancedGoogleMigrationPanel } from '@/components/admin/migration/Enhan
 import { CentralizedNotificationCenterFixed as CentralizedNotificationCenter } from '@/components/admin/notifications/CentralizedNotificationCenterFixed';
 import { MissionControlCenter } from '@/components/admin/monitoring/MissionControlCenter';
 import { VehicleTypeManager } from '@/components/admin/VehicleTypeManager';
+import ServiceTogglePanel from '@/components/admin/ServiceTogglePanel';
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -239,6 +240,15 @@ const AdminApp = () => {
           <div className="space-y-6">
             <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
               <ServiceManagementPanel />
+            </FlexiblePermissionGuard>
+          </div>
+        );
+
+      case 'services-toggle':
+        return (
+          <div className="space-y-6">
+            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+              <ServiceTogglePanel />
             </FlexiblePermissionGuard>
           </div>
         );

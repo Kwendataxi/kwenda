@@ -9,6 +9,7 @@ import { HomeRecentPlacesSheet } from './HomeRecentPlacesSheet';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { useServiceNotifications } from '@/hooks/useServiceNotifications';
+import ModernRentalPreview from './ModernRentalPreview';
 
 interface ModernHomeScreenProps {
   onServiceSelect: (service: string) => void;
@@ -81,6 +82,9 @@ export const ModernHomeScreen = ({
             onServiceSelect={onServiceSelect} 
             serviceNotifications={serviceNotifications}
           />
+          
+          {/* Rental Preview */}
+          <ModernRentalPreview onOpenRental={() => onServiceSelect('rental')} />
           
           {/* Marketplace preview */}
           <MarketplacePreview
