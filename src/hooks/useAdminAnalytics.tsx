@@ -60,11 +60,6 @@ export const useAdminAnalytics = () => {
     
     if (adminError || !adminCheck) {
       console.error('❌ User is not an admin:', adminError?.message)
-      toast({
-        title: "Accès refusé",
-        description: "Vous devez être administrateur pour accéder aux analytics",
-        variant: "destructive"
-      })
       return
     }
 
