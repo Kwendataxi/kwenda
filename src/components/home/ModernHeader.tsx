@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { useProfile } from '@/hooks/useProfile';
+import kwendaIcon from '@/assets/kwenda-icon.png';
 
 import { GooglePlacesService } from '@/services/googlePlacesService';
 import { Button } from '@/components/ui/button';
@@ -131,6 +132,13 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
         <div className="flex items-center justify-between">
           {/* Salutation personnalisée et localisation */}
           <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <img 
+                src={kwendaIcon} 
+                alt="Kwenda" 
+                className="h-10 w-10 object-contain"
+              />
+            </div>
             <p className="text-foreground font-bold text-lg">
               {getGreeting()}, {profileLoading ? '...' : displayName.split(' ')[0]}
             </p>
