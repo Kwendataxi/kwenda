@@ -1,10 +1,10 @@
 import { useState, useEffect, Suspense } from 'react';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { ResponsiveAdminLayout } from '@/components/admin/ResponsiveAdminLayout';
 import { AdvancedUserManagement } from '@/components/admin/users/AdvancedUserManagement';
-import { AdminPermissionProvider } from '@/components/admin/AdminPermissionContext';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { FlexiblePermissionGuard } from '@/components/auth/FlexiblePermissionGuard';
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
+import { useEnhancedRealTimeStats } from '@/hooks/useEnhancedRealTimeStats';
 import { Loader2 } from 'lucide-react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import { AdminNotificationCenter } from '@/components/admin/AdminNotificationCenter';
@@ -37,10 +37,11 @@ const LoadingFallback = () => (
 );
 
 const AdminApp = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('overview');
   
   const { adminRole, loading: rolesLoading } = useUserRoles();
   const { fetchDashboardAnalytics } = useAdminAnalytics();
+  const { stats, loading: statsLoading } = useEnhancedRealTimeStats();
 
   useEffect(() => {
     fetchDashboardAnalytics();
@@ -52,7 +53,7 @@ const AdminApp = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard':
+      case 'overview':
         return (
           <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['analytics_read']}>
@@ -61,49 +62,40 @@ const AdminApp = () => {
           </Suspense>
         );
 
-      case 'analytics':
+      case 'financial-stats':
         return (
-          <div className="space-y-6">
-            <FlexiblePermissionGuard requiredPermissions={['analytics_read']}>
-              <AdminDashboard />
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['finance_read']}>
+              <FinancialSubscriptionDashboard />
             </FlexiblePermissionGuard>
-          </div>
+          </Suspense>
         );
 
-      case 'transports':
+      case 'dispatch':
         return (
-          <div className="space-y-6">
+          <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
               <AdminDashboard />
             </FlexiblePermissionGuard>
-          </div>
+          </Suspense>
         );
 
-      case 'deliveries':
+      case 'location':
         return (
-          <div className="space-y-6">
+          <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
-              <AdminDashboard />
+              <AdminRentalManager />
             </FlexiblePermissionGuard>
-          </div>
+          </Suspense>
         );
 
-      case 'drivers':
+      case 'services':
         return (
-          <div className="space-y-6">
-            <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
-              <AdminDashboard />
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+              <ServiceManagementPanel />
             </FlexiblePermissionGuard>
-          </div>
-        );
-
-      case 'driver-analytics':
-        return (
-          <div className="space-y-6">
-            <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
-              <AdminDashboard />
-            </FlexiblePermissionGuard>
-          </div>
+          </Suspense>
         );
 
       case 'users':
@@ -115,22 +107,22 @@ const AdminApp = () => {
           </div>
         );
 
-      case 'marketplace':
+      case 'promocodes':
         return (
-          <div className="space-y-6">
-            <FlexiblePermissionGuard requiredPermissions={['users_read']}>
-              <AdminDashboard />
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['analytics_read']}>
+              <AdminPromoCodeManager />
             </FlexiblePermissionGuard>
-          </div>
+          </Suspense>
         );
 
-      case 'verification':
+      case 'marketplace':
         return (
-          <div className="space-y-6">
-            <FlexiblePermissionGuard requiredPermissions={['users_read']}>
-              <AdminUserVerificationManager />
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['marketplace_moderate']}>
+              <AdminDashboard />
             </FlexiblePermissionGuard>
-          </div>
+          </Suspense>
         );
 
       case 'roles':
@@ -142,188 +134,122 @@ const AdminApp = () => {
           </div>
         );
 
-      case 'moderate-products':
-        return (
-          <div className="space-y-6">
-            <FlexiblePermissionGuard requiredPermissions={['marketplace_moderate']}>
-              <AdminDashboard />
-            </FlexiblePermissionGuard>
-          </div>
-        );
-
       case 'notifications':
         return (
-          <div className="space-y-6">
+          <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['notifications_write']}>
               <AdminNotificationCenter />
             </FlexiblePermissionGuard>
-          </div>
-        );
-
-      case 'notification-monitoring':
-        return (
-          <div className="space-y-6">
-            <FlexiblePermissionGuard requiredPermissions={['notifications_write']}>
-              <AdminDashboard />
-            </FlexiblePermissionGuard>
-          </div>
-        );
-
-      case 'zones':
-        return (
-          <div className="space-y-6">
-            <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
-              <ModernZoneManagementDashboard />
-            </FlexiblePermissionGuard>
-          </div>
-        );
-
-      case 'service-toggle':
-        return (
-          <div className="space-y-6">
-            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
-              <ServiceManagementPanel />
-            </FlexiblePermissionGuard>
-          </div>
-        );
-
-      case 'subscriptions':
-        return (
-          <div className="space-y-6">
-            <Suspense fallback={<LoadingFallback />}>
-              <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
-                <UnifiedSubscriptionManager />
-              </FlexiblePermissionGuard>
-            </Suspense>
-          </div>
-        );
-
-      case 'subscription-config':
-        return (
-          <div className="space-y-6">
-            <Suspense fallback={<LoadingFallback />}>
-              <FlexiblePermissionGuard requiredPermissions={['finance_admin']}>
-                <SubscriptionPlansConfig />
-              </FlexiblePermissionGuard>
-            </Suspense>
-          </div>
-        );
-
-      case 'subscription-analytics':
-        return (
-          <div className="space-y-6">
-            <Suspense fallback={<LoadingFallback />}>
-              <FlexiblePermissionGuard requiredPermissions={['finance_read']}>
-                <FinancialSubscriptionDashboard />
-              </FlexiblePermissionGuard>
-            </Suspense>
-          </div>
-        );
-
-      case 'support':
-        return (
-          <div className="space-y-6">
-            <Suspense fallback={<LoadingFallback />}>
-              <FlexiblePermissionGuard requiredPermissions={['support_admin']}>
-                <AdvancedSupportCenter />
-              </FlexiblePermissionGuard>
-            </Suspense>
-          </div>
-        );
-
-      case 'rental':
-        return (
-          <div className="space-y-6">
-            <Suspense fallback={<LoadingFallback />}>
-              <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
-                <AdminRentalManager />
-              </FlexiblePermissionGuard>
-            </Suspense>
-          </div>
-        );
-
-      case 'promo-codes':
-        return (
-          <div className="space-y-6">
-            <FlexiblePermissionGuard requiredPermissions={['analytics_read']}>
-              <AdminPromoCodeManager />
-            </FlexiblePermissionGuard>
-          </div>
+          </Suspense>
         );
 
       case 'ads':
         return (
-          <div className="space-y-6">
+          <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['marketplace_moderate']}>
               <PromotionalAdsManager />
             </FlexiblePermissionGuard>
-          </div>
+          </Suspense>
         );
 
       case 'lottery':
         return (
-          <div className="space-y-6">
+          <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
               <AdminLotteryDashboard />
             </FlexiblePermissionGuard>
-          </div>
+          </Suspense>
+        );
+
+      case 'zones':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
+              <ModernZoneManagementDashboard />
+            </FlexiblePermissionGuard>
+          </Suspense>
+        );
+
+      case 'subscriptions':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+              <UnifiedSubscriptionManager />
+            </FlexiblePermissionGuard>
+          </Suspense>
+        );
+
+      case 'subscription-config':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['finance_admin']}>
+              <SubscriptionPlansConfig />
+            </FlexiblePermissionGuard>
+          </Suspense>
+        );
+
+      case 'support':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['support_admin']}>
+              <EnhancedSupportCenter />
+            </FlexiblePermissionGuard>
+          </Suspense>
         );
 
       case 'partners':
         return (
-          <div className="space-y-6">
+          <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
               <AdminPartnerManager />
             </FlexiblePermissionGuard>
-          </div>
+          </Suspense>
         );
 
       case 'teams':
         return (
-          <div className="space-y-6">
+          <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
               <AdminTeamManager />
             </FlexiblePermissionGuard>
-          </div>
+          </Suspense>
         );
 
-      case 'google-migration':
+      case 'migration':
         return (
-          <div className="space-y-6">
+          <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
               <GoogleMigrationPanel />
             </FlexiblePermissionGuard>
-          </div>
+          </Suspense>
         );
 
       case 'settings':
         return (
-          <div className="space-y-6">
+          <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
               <AdminSettings />
             </FlexiblePermissionGuard>
-          </div>
+          </Suspense>
         );
 
       default:
         return (
-          <div className="space-y-6">
+          <Suspense fallback={<LoadingFallback />}>
             <AdminDashboard />
-          </div>
+          </Suspense>
         );
     }
   };
 
   return (
-    <AdminPermissionProvider>
-      <div className="min-h-screen bg-background">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsContent value={activeTab} className="mt-0">
-            {renderContent()}
-          </TabsContent>
-        </Tabs>
-      </div>
-    </AdminPermissionProvider>
+    <ResponsiveAdminLayout 
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      realTimeStats={stats}
+    >
+      {renderContent()}
+    </ResponsiveAdminLayout>
   );
 };
 
