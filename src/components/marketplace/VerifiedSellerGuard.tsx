@@ -42,22 +42,22 @@ export const VerifiedSellerGuard: React.FC<VerifiedSellerGuardProps> = ({ childr
 
   return (
     <div className="space-y-6">
-      <Card className="border-orange-200 bg-orange-50/50">
+      <Card className="border-orange-500/30 bg-orange-500/10 dark:border-orange-400/30 dark:bg-orange-900/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-orange-800">
+          <CardTitle className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
             <Shield className="w-5 h-5" />
             Vérification de compte requise
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-orange-700">
+          <p className="text-orange-700 dark:text-orange-300">
             Pour vendre sur notre marketplace, vous devez vérifier votre compte. 
             Cela garantit la sécurité et la confiance de tous nos utilisateurs.
           </p>
           
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Progression de la vérification</span>
+              <span className="text-sm font-medium text-foreground">Progression de la vérification</span>
               <Badge variant={progress === 100 ? "default" : "secondary"}>
                 {progress}%
               </Badge>
@@ -66,14 +66,14 @@ export const VerifiedSellerGuard: React.FC<VerifiedSellerGuardProps> = ({ childr
           </div>
 
           <div className="space-y-3">
-            <h4 className="font-medium text-gray-900">Étapes de vérification :</h4>
+            <h4 className="font-medium text-foreground">Étapes de vérification :</h4>
             
             <div className="space-y-2">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-white border">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border">
                 {verification?.phone_verified ? (
                   <CheckCircle className="w-5 h-5 text-green-600" />
                 ) : (
-                  <Phone className="w-5 h-5 text-gray-400" />
+                  <Phone className="w-5 h-5 text-muted-foreground" />
                 )}
                 <div className="flex-1">
                   <p className="font-medium text-sm">Vérification du téléphone</p>
@@ -86,11 +86,11 @@ export const VerifiedSellerGuard: React.FC<VerifiedSellerGuardProps> = ({ childr
                 </Badge>
               </div>
 
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-white border">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border">
                 {verification?.identity_verified ? (
                   <CheckCircle className="w-5 h-5 text-green-600" />
                 ) : (
-                  <FileText className="w-5 h-5 text-gray-400" />
+                  <FileText className="w-5 h-5 text-muted-foreground" />
                 )}
                 <div className="flex-1">
                   <p className="font-medium text-sm">Vérification d'identité</p>
@@ -117,13 +117,13 @@ export const VerifiedSellerGuard: React.FC<VerifiedSellerGuardProps> = ({ childr
         </CardContent>
       </Card>
 
-      <Card className="border-blue-200 bg-blue-50/50">
+      <Card className="border-blue-500/30 bg-blue-500/10 dark:border-blue-400/30 dark:bg-blue-900/20">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
             <div>
-              <h4 className="font-medium text-blue-900 mb-1">Pourquoi vérifier mon compte ?</h4>
-              <ul className="text-sm text-blue-800 space-y-1">
+              <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Pourquoi vérifier mon compte ?</h4>
+              <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
                 <li>• Protection contre la fraude</li>
                 <li>• Accès à toutes les fonctionnalités de vente</li>
                 <li>• Badge de vendeur vérifié</li>
