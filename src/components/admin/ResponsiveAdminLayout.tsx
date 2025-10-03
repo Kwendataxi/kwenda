@@ -40,26 +40,23 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
               "backdrop-blur-sm"
             )}
           >
-            <div className="flex-1 flex flex-col overflow-hidden">
-              {process.env.NODE_ENV === 'development' && (
-                <div className="p-4 border-b border-border/60 bg-card/50">
-                  <h2 className="text-lg font-semibold mb-3">Navigation Admin</h2>
-                  <AdminPermissionSettings />
-                </div>
-              )}
-              
-              <div className="flex-1 overflow-y-auto smooth-scroll admin-scrollbar">
-                <AdminVerticalNav 
-                  activeTab={activeTab} 
-                  onTabChange={(value) => {
-                    onTabChange(value);
-                    setMobileMenuOpen(false);
-                  }}
-                  devMode={devMode}
-                  isMobile={true}
-                />
+            {process.env.NODE_ENV === 'development' && (
+              <div className="p-4 border-b border-border/60 bg-card/50 shrink-0">
+                <h2 className="text-lg font-semibold mb-3">Navigation Admin</h2>
+                <AdminPermissionSettings />
               </div>
-            </div>
+            )}
+            
+            <AdminVerticalNav 
+              className="flex-1 min-h-0"
+              activeTab={activeTab} 
+              onTabChange={(value) => {
+                onTabChange(value);
+                setMobileMenuOpen(false);
+              }}
+              devMode={devMode}
+              isMobile={true}
+            />
           </SheetContent>
         </Sheet>
 
