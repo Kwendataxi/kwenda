@@ -72,63 +72,35 @@ interface UseUnifiedSubscriptionsReturn {
 export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
   const { toast } = useToast();
 
-  // Fetch all driver subscriptions for admin
-  const { data: driverSubscriptions = [], isLoading: driverLoading, error: driverError } = useQuery({
-    queryKey: ['admin-driver-subscriptions'],
+  // Fetch all subscriptions using the secure RPC function
+  const { data: allSubscriptions = [], isLoading, error } = useQuery({
+    queryKey: ['admin-unified-subscriptions'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('driver_subscriptions')
-        .select(`
-          *,
-          subscription_plans (
-            id, name, price, currency
-          ),
-          chauffeurs (
-            display_name, email
-          )
-        `)
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('get_admin_subscriptions_unified');
 
       if (error) {
-        console.error('Error fetching driver subscriptions:', error);
+        console.error('Error fetching unified subscriptions:', error);
         throw error;
       }
       return (data || []) as any[];
     },
   });
 
-  // Fetch all rental subscriptions for admin
-  const { data: rentalSubscriptions = [], isLoading: rentalLoading, error: rentalError } = useQuery({
-    queryKey: ['admin-rental-subscriptions'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('partner_rental_subscriptions')
-        .select(`
-          *,
-          rental_subscription_plans (
-            id, name, monthly_price, currency
-          ),
-          partenaires (
-            company_name, email
-          ),
-          rental_vehicles (
-            name, brand, model
-          )
-        `)
-        .order('created_at', { ascending: false });
+  // Separate subscriptions by type
+  const driverSubscriptions = useMemo(() => 
+    allSubscriptions.filter(sub => sub.subscription_type === 'driver'),
+    [allSubscriptions]
+  );
 
-      if (error) {
-        console.error('Error fetching rental subscriptions:', error);
-        throw error;
-      }
-      return (data || []) as any[];
-    },
-  });
+  const rentalSubscriptions = useMemo(() => 
+    allSubscriptions.filter(sub => sub.subscription_type === 'rental'),
+    [allSubscriptions]
+  );
 
   // Calculate unified statistics using useMemo for client-side computation
   const stats = useMemo((): UnifiedSubscriptionStats | null => {
     // Return null during loading to maintain same behavior as before
-    if (driverLoading || rentalLoading) return null;
+    if (isLoading) return null;
 
     const now = new Date();
     const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -143,12 +115,12 @@ export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
       sub => sub.status === 'active' && new Date(sub.end_date) > now
     );
 
-    // Calculate monthly revenue
+    // Calculate monthly revenue (using plan_price from RPC)
     const driverRevenue = activeDriverSubs.reduce(
-      (sum, sub) => sum + (sub.subscription_plans?.price || 0), 0
+      (sum, sub) => sum + (sub.plan_price || 0), 0
     );
     const rentalRevenue = activeRentalSubs.reduce(
-      (sum, sub) => sum + (sub.rental_subscription_plans?.monthly_price || 0), 0
+      (sum, sub) => sum + (sub.plan_price || 0), 0
     );
 
     // Count expiring subscriptions
@@ -166,9 +138,9 @@ export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
       rentalSubscriptions: activeRentalSubs.length,
       expiringInWeek: expiringDriver + expiringRental,
       failedPayments: 0, // TODO: Calculate from payment history
-      currency: 'CDF'
+      currency: driverSubscriptions[0]?.currency || rentalSubscriptions[0]?.currency || 'CDF'
     };
-  }, [driverSubscriptions, rentalSubscriptions, driverLoading, rentalLoading]);
+  }, [driverSubscriptions, rentalSubscriptions, isLoading]);
 
   // Admin actions
   // Admin : Prolonger un abonnement
@@ -251,19 +223,11 @@ export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
     }
   };
 
-  // Show error toasts if queries fail
-  if (driverError) {
+  // Show error toast if query fails
+  if (error) {
     toast({
       title: "Erreur de chargement",
-      description: "Impossible de charger les abonnements chauffeurs",
-      variant: "destructive"
-    });
-  }
-
-  if (rentalError) {
-    toast({
-      title: "Erreur de chargement",
-      description: "Impossible de charger les abonnements location",
+      description: "Impossible de charger les abonnements",
       variant: "destructive"
     });
   }
@@ -272,7 +236,7 @@ export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
     driverSubscriptions,
     rentalSubscriptions,
     stats,
-    loading: driverLoading || rentalLoading,
+    loading: isLoading,
     extendSubscription,
     cancelSubscriptionAdmin,
   };
