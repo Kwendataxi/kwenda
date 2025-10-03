@@ -103,56 +103,51 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
     );
   }
 
+  // Couleurs pures pour chaque service (design original)
+  const pureColorMap: Record<string, string> = {
+    transport: '#E31E24', // Rouge Congo pur
+    delivery: '#F4B223',  // Jaune doré
+    rental: '#00A651',    // Vert éclatant
+    marketplace: '#F4B223', // Jaune-orange
+    lottery: 'linear-gradient(135deg, #9333EA 0%, #EC4899 100%)' // Gradient violet-rose
+  };
+
   return (
-    <div className="px-4">
-      <div className="grid grid-cols-4 gap-4">
+    <div className="px-6">
+      <div className="grid grid-cols-4 gap-6">
         {mainServices.map((service, index) => {
           const Icon = service.icon;
           const notificationCount = serviceNotifications?.[service.id as keyof typeof serviceNotifications] || 0;
+          const isGradient = service.id === 'lottery';
 
           return (
             <button
               key={service.id}
               onClick={() => onServiceSelect(service.id)}
-              className="relative flex flex-col items-center gap-2.5 p-4 rounded-2xl group transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in"
+              className="relative flex flex-col items-center gap-3 p-6 rounded-[32px] bg-neutral-100 dark:bg-neutral-800 group transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm hover:shadow-md animate-fade-in"
               style={{
                 animationDelay: `${index * 80}ms`,
               }}
             >
-              {/* Card background with hover effect */}
-              <div className="absolute inset-0 rounded-2xl bg-card border border-border/50 shadow-sm group-hover:shadow-lg transition-all duration-300" />
-              
-              {/* Icon with gradient background and shimmer */}
+              {/* Icon container avec couleur pure et effet 3D */}
               <div
-                className={cn(
-                  'relative flex items-center justify-center',
-                  'w-16 h-16',
-                  'rounded-xl',
-                  'bg-gradient-to-br',
-                  service.gradient,
-                  'shadow-lg group-hover:shadow-xl',
-                  'transition-all duration-300',
-                  'overflow-hidden'
-                )}
+                className="relative flex items-center justify-center w-20 h-20 rounded-[28px] shadow-[0_8px_16px_rgba(0,0,0,0.15)] group-hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300"
+                style={{
+                  background: pureColorMap[service.id] || pureColorMap.transport
+                }}
               >
-                {/* Shimmer effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                <Icon className="w-9 h-9 text-white relative z-10 drop-shadow-md" strokeWidth={2.5} />
                 
-                <Icon className="w-7 h-7 text-white relative z-10 drop-shadow-md" />
-                
-                {/* Notification badge - more visible */}
+                {/* Notification badge - très visible */}
                 {notificationCount > 0 && (
-                  <div className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1.5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-xs font-black shadow-lg border-2 border-background animate-pulse">
+                  <div className="absolute -top-2 -right-2 min-w-[24px] h-[24px] px-1.5 bg-[#E31E24] text-white rounded-full flex items-center justify-center text-xs font-black shadow-lg border-2 border-white animate-bounce">
                     {notificationCount > 9 ? '9+' : notificationCount}
                   </div>
                 )}
-                
-                {/* Subtle pattern overlay */}
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.3),transparent_70%)]" />
               </div>
               
-              {/* Service name - more prominent */}
-              <span className="relative text-xs font-bold text-center leading-tight text-foreground z-10">
+              {/* Service name - noir gras */}
+              <span className="text-sm font-black text-center leading-tight text-gray-900 dark:text-gray-100">
                 {service.name}
               </span>
             </button>
