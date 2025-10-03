@@ -46,6 +46,7 @@ const NAV_ITEMS: Array<{
   icon: React.ComponentType<{ className?: string }>;
   group?: string;
   devMode?: boolean;
+  badge?: string;
 }> = [
   // Tableau de bord
   { id: 'overview', label: "Vue d'ensemble", icon: BarChart3, group: 'dashboard' },
@@ -53,7 +54,7 @@ const NAV_ITEMS: Array<{
   // Finances & Abonnements
   { id: 'financial-stats', label: 'Statistiques Revenus', icon: PieChart, group: 'finance' },
   { id: 'subscriptions', label: 'Abonnements', icon: Package, group: 'finance' },
-  { id: 'subscription-config', label: 'Configuration Plans', icon: Cog, group: 'finance' },
+  { id: 'subscription-config', label: 'Configuration Plans', icon: Settings, group: 'finance', badge: 'CONFIG' },
   
   // Transport
   { id: 'tarifs', label: 'Tarifs', icon: Tag, group: 'transport' },
@@ -107,7 +108,10 @@ export const AdminVerticalNav: React.FC<AdminVerticalNavProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(() => {
     const saved = localStorage.getItem('admin-nav-collapsed');
-    return saved ? JSON.parse(saved) : {};
+    const defaults = saved ? JSON.parse(saved) : {};
+    // Forcer l'ouverture du groupe finance pour visibilité des plans d'abonnement
+    defaults.finance = false;
+    return defaults;
   });
 
   const groupedItems = NAV_ITEMS.reduce((groups, item) => {
@@ -196,7 +200,7 @@ export const AdminVerticalNav: React.FC<AdminVerticalNavProps> = ({
                 </CollapsibleTrigger>
                 
                 <CollapsibleContent className="space-y-1 mt-1 pl-2">
-                  {items.map(({ id, label, icon: Icon, devMode: isDevMode }) => {
+                  {items.map(({ id, label, icon: Icon, devMode: isDevMode, badge }) => {
                     const active = activeTab === id;
                     return (
                       <Button
@@ -213,6 +217,11 @@ export const AdminVerticalNav: React.FC<AdminVerticalNavProps> = ({
                       >
                         <Icon className="h-4 w-4 shrink-0" />
                         <span className="truncate">{label}</span>
+                        {badge && (
+                          <span className="ml-auto px-1.5 py-0.5 text-[10px] font-semibold bg-primary/20 text-primary rounded">
+                            {badge}
+                          </span>
+                        )}
                         {isDevMode && (
                           <span className="ml-auto px-1.5 py-0.5 text-[10px] font-semibold bg-blue-500/20 text-blue-400 rounded">
                             DEV

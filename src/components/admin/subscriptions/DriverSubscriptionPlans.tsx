@@ -79,6 +79,22 @@ export const DriverSubscriptionPlans = () => {
   }
 
   const handleSubmit = () => {
+    // Validation
+    if (!formData.name.trim()) {
+      alert('Le nom du plan est requis');
+      return;
+    }
+    
+    if (!formData.price || parseFloat(formData.price) <= 0) {
+      alert('Le prix doit être supérieur à 0');
+      return;
+    }
+    
+    if (formData.is_trial && (!formData.trial_duration_days || parseInt(formData.trial_duration_days) <= 0)) {
+      alert('La durée d\'essai est requise pour un plan d\'essai');
+      return;
+    }
+
     const planData = {
       name: formData.name,
       description: formData.description || null,

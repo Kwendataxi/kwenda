@@ -41,6 +41,17 @@ export const RentalSubscriptionPlans = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validation
+    if (!formData.name.trim()) {
+      alert('Le nom du plan est requis');
+      return;
+    }
+    
+    if (!formData.monthly_price || formData.monthly_price <= 0) {
+      alert('Le prix mensuel doit être supérieur à 0');
+      return;
+    }
+    
     if (editingPlan) {
       updatePlan({
         id: editingPlan.id,
