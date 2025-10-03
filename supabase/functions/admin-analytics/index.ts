@@ -34,33 +34,53 @@ serve(async (req) => {
     )
 
     // Verify authentication (admin only)
-    const {
-      data: { user },
-      error: userError,
-    } = await supabaseClient.auth.getUser()
+  const {
+    data: { user },
+    error: userError,
+  } = await supabaseClient.auth.getUser()
 
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
+  if (userError || !user) {
+    console.error('🔴 Auth failed:', { 
+      errorMessage: userError?.message,
+      hasUser: !!user,
+      authHeaderPresent: !!req.headers.get('Authorization')
+    })
+    return new Response(JSON.stringify({ 
+      error: 'Unauthorized',
+      details: userError?.message || 'No user found'
+    }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
 
-    // Vérifier l'accès admin - approche directe pour éviter les problèmes RLS
-    const { data: adminCheck, error: adminError } = await supabaseClient
-      .from('admins')
-      .select('id, is_active')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .limit(1);
+  console.log('✅ User authenticated:', user.id)
 
-    if (adminError || !adminCheck || adminCheck.length === 0) {
-      console.log('Admin check failed:', { adminCheck, adminError })
-      return new Response(JSON.stringify({ error: 'Admin access required' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
+  // Vérifier l'accès admin - approche directe pour éviter les problèmes RLS
+  const { data: adminCheck, error: adminError } = await supabaseClient
+    .from('admins')
+    .select('id, is_active')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .limit(1);
+
+  if (adminError || !adminCheck || adminCheck.length === 0) {
+    console.error('🔴 Admin check failed:', { 
+      userId: user.id,
+      errorMessage: adminError?.message,
+      adminCheckLength: adminCheck?.length,
+      email: user.email
+    })
+    return new Response(JSON.stringify({ 
+      error: 'Admin access required',
+      details: 'User is not an active admin'
+    }), {
+      status: 403,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+
+  console.log('✅ Admin verified:', { adminId: adminCheck[0].id, userId: user.id })
 
     const { type, date_range, zone_name, country_code } = await req.json() as AnalyticsRequest
 

@@ -40,8 +40,35 @@ export const useAdminAnalytics = () => {
   } | null>(null)
 
   const fetchDashboardAnalytics = async (dateRange?: AnalyticsDateRange) => {
-    if (!user) return
+    if (!user) {
+      console.error('❌ User not authenticated for analytics')
+      toast({
+        title: "Erreur d'authentification",
+        description: "Vous devez être connecté en tant qu'admin",
+        variant: "destructive"
+      })
+      return
+    }
 
+    // Vérifier si l'utilisateur est admin
+    const { data: adminCheck, error: adminError } = await supabase
+      .from('admins')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .single()
+    
+    if (adminError || !adminCheck) {
+      console.error('❌ User is not an admin:', adminError?.message)
+      toast({
+        title: "Accès refusé",
+        description: "Vous devez être administrateur pour accéder aux analytics",
+        variant: "destructive"
+      })
+      return
+    }
+
+    console.log('✅ Fetching dashboard analytics for admin:', user.id)
     setLoading(true)
     try {
       const { data, error } = await supabase.functions.invoke('admin-analytics', {
@@ -51,16 +78,23 @@ export const useAdminAnalytics = () => {
         }
       })
 
-      if (error) throw error
+      if (error) {
+        console.error('🔴 Edge function error:', error)
+        throw error
+      }
 
       if (data.success) {
+        console.log('✅ Dashboard analytics loaded successfully')
         setDashboardData(data.data)
+      } else {
+        console.error('🔴 Analytics response not successful:', data)
+        throw new Error(data.error || 'Unknown error')
       }
     } catch (error: any) {
-      console.error('Error fetching dashboard analytics:', error)
+      console.error('🔴 Error fetching dashboard analytics:', error)
       toast({
         title: "Erreur",
-        description: "Impossible de charger les analytics",
+        description: error.message || "Impossible de charger les analytics",
         variant: "destructive"
       })
     } finally {
@@ -73,8 +107,12 @@ export const useAdminAnalytics = () => {
     country_code?: string
     date_range?: AnalyticsDateRange
   }) => {
-    if (!user) return []
+    if (!user) {
+      console.error('❌ User not authenticated for zone analytics')
+      return []
+    }
 
+    console.log('✅ Fetching zone analytics...')
     try {
       const { data, error } = await supabase.functions.invoke('admin-analytics', {
         body: {
@@ -83,17 +121,21 @@ export const useAdminAnalytics = () => {
         }
       })
 
-      if (error) throw error
+      if (error) {
+        console.error('🔴 Zone analytics error:', error)
+        throw error
+      }
 
       if (data.success) {
+        console.log('✅ Zone analytics loaded:', data.data?.length || 0, 'zones')
         return data.data as ZoneAnalytics[]
       }
       return []
     } catch (error: any) {
-      console.error('Error fetching zone analytics:', error)
+      console.error('🔴 Error fetching zone analytics:', error)
       toast({
         title: "Erreur",
-        description: "Impossible de charger les analytics de zones",
+        description: error.message || "Impossible de charger les analytics de zones",
         variant: "destructive"
       })
       return []
@@ -101,8 +143,12 @@ export const useAdminAnalytics = () => {
   }
 
   const fetchDriverAnalytics = async () => {
-    if (!user) return []
+    if (!user) {
+      console.error('❌ User not authenticated for driver analytics')
+      return []
+    }
 
+    console.log('✅ Fetching driver analytics...')
     try {
       const { data, error } = await supabase.functions.invoke('admin-analytics', {
         body: {
@@ -110,17 +156,21 @@ export const useAdminAnalytics = () => {
         }
       })
 
-      if (error) throw error
+      if (error) {
+        console.error('🔴 Driver analytics error:', error)
+        throw error
+      }
 
       if (data.success) {
+        console.log('✅ Driver analytics loaded')
         return data.data
       }
       return []
     } catch (error: any) {
-      console.error('Error fetching driver analytics:', error)
+      console.error('🔴 Error fetching driver analytics:', error)
       toast({
         title: "Erreur",
-        description: "Impossible de charger les analytics des chauffeurs",
+        description: error.message || "Impossible de charger les analytics des chauffeurs",
         variant: "destructive"
       })
       return []

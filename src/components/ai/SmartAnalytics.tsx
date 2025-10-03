@@ -53,7 +53,10 @@ export const SmartAnalytics: React.FC<SmartAnalyticsProps> = ({
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('🔴 AI Analytics error:', error)
+        // Don't throw - continue with mock data instead
+      }
 
       // Generate mock analytics data with AI insights
       const analyticsData: AnalyticsData[] = [
