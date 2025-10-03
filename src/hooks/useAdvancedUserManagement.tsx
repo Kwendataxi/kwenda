@@ -85,56 +85,83 @@ export const useAdvancedUserManagement = (): UseAdvancedUserManagementReturn => 
       setLoading(true);
       setError(null);
 
-      // Fetch profiles with auth users data
-      let profileQuery = supabase
-        .from('user_profiles_view')
-        .select(`
-          user_id,
-          id,
-          display_name,
-          email,
-          phone_number,
-          created_at,
-          updated_at,
-          is_active,
-          user_type,
-          verification_status
-        `, { count: 'exact' });
+      // Build query to fetch from all user tables (clients, chauffeurs, partenaires, admins)
+      const [
+        { data: clientsData, error: clientsError },
+        { data: driversData, error: driversError },
+        { data: partnersData, error: partnersError },
+        { data: adminsData, error: adminsError }
+      ] = await Promise.all([
+        supabase.from('clients').select('*'),
+        supabase.from('chauffeurs').select('*'),
+        supabase.from('partenaires').select('*'),
+        supabase.from('admins').select('*')
+      ]);
 
-      // Apply search filters
+      if (clientsError || driversError || partnersError || adminsError) {
+        throw clientsError || driversError || partnersError || adminsError;
+      }
+
+      // Combine all users with their type
+      const allProfiles = [
+        ...(clientsData || []).map(c => ({ ...c, user_type: 'client' as const })),
+        ...(driversData || []).map(d => ({ ...d, user_type: 'driver' as const })),
+        ...(partnersData || []).map(p => ({ ...p, user_type: 'partner' as const })),
+        ...(adminsData || []).map(a => ({ ...a, user_type: 'admin' as const }))
+      ];
+
+      // Apply filters
+      let filteredProfiles = allProfiles;
+
+      // Search filter
       if (filters.search) {
-        profileQuery = profileQuery.or(`display_name.ilike.%${filters.search}%,phone_number.ilike.%${filters.search}%`);
+        const searchLower = filters.search.toLowerCase();
+        filteredProfiles = filteredProfiles.filter(p =>
+          p.display_name?.toLowerCase().includes(searchLower) ||
+          p.email?.toLowerCase().includes(searchLower) ||
+          p.phone_number?.toLowerCase().includes(searchLower)
+        );
       }
 
-      // Apply user type filters
+      // User type filter
       if (filters.userType !== 'all') {
-        profileQuery = profileQuery.eq('user_type', filters.userType);
+        filteredProfiles = filteredProfiles.filter(p => p.user_type === filters.userType);
       }
 
+      // Date filters
       if (filters.dateFrom) {
-        profileQuery = profileQuery.gte('created_at', filters.dateFrom);
+        filteredProfiles = filteredProfiles.filter(p => 
+          new Date(p.created_at) >= new Date(filters.dateFrom!)
+        );
       }
 
       if (filters.dateTo) {
-        profileQuery = profileQuery.lte('created_at', filters.dateTo);
+        filteredProfiles = filteredProfiles.filter(p => 
+          new Date(p.created_at) <= new Date(filters.dateTo!)
+        );
       }
 
-      // Apply sorting
-      profileQuery = profileQuery.order(filters.sortBy, { ascending: filters.sortOrder === 'asc' });
+      // Sorting
+      filteredProfiles.sort((a, b) => {
+        const aValue = a[filters.sortBy as keyof typeof a];
+        const bValue = b[filters.sortBy as keyof typeof b];
+        
+        if (aValue === undefined || bValue === undefined) return 0;
+        
+        const comparison = aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+        return filters.sortOrder === 'asc' ? comparison : -comparison;
+      });
 
-      // Apply pagination
+      // Calculate total count before pagination
+      const totalCount = filteredProfiles.length;
+
+      // Pagination
       const from = (currentPage - 1) * ITEMS_PER_PAGE;
-      const to = from + ITEMS_PER_PAGE - 1;
-      profileQuery = profileQuery.range(from, to);
+      const to = from + ITEMS_PER_PAGE;
+      const paginatedProfiles = filteredProfiles.slice(from, to);
 
-      const { data: profilesData, error: profilesError, count } = await profileQuery;
-
-      if (profilesError) {
-        throw profilesError;
-      }
-
-      // Fetch auth metadata via Edge Function
-      const userIds = profilesData?.map(p => p.user_id) || [];
+      // Fetch auth metadata via Edge Function for paginated users
+      const userIds = paginatedProfiles.map(p => p.user_id);
       let authMetadata: Record<string, any> = {};
 
       if (userIds.length > 0) {
@@ -144,21 +171,21 @@ export const useAdvancedUserManagement = (): UseAdvancedUserManagementReturn => 
           });
 
           if (metadataError) {
-            console.error('Error fetching auth metadata:', metadataError);
+            console.error('⚠️ Error fetching auth metadata:', metadataError);
           } else {
             authMetadata = metadataResponse?.metadata || {};
-            console.log(`✅ Fetched metadata for ${Object.keys(authMetadata).length} users`);
+            console.log(`✅ Fetched metadata for ${Object.keys(authMetadata).length}/${userIds.length} users`);
           }
         } catch (err) {
-          console.error('Exception fetching auth metadata:', err);
+          console.error('❌ Exception fetching auth metadata:', err);
         }
       }
 
       // Transform data to match UserProfile interface
-      const transformedUsers: UserProfile[] = (profilesData || []).map((profile: any) => {
+      const transformedUsers: UserProfile[] = paginatedProfiles.map((profile: any) => {
         const authMeta = authMetadata[profile.user_id] || {};
         const lastSignIn = authMeta.last_sign_in_at;
-        const isOnline = lastSignIn && (new Date().getTime() - new Date(lastSignIn).getTime()) < 15 * 60 * 1000; // 15 minutes
+        const isOnline = lastSignIn && (new Date().getTime() - new Date(lastSignIn).getTime()) < 15 * 60 * 1000;
 
         return {
           id: profile.user_id,
@@ -167,23 +194,24 @@ export const useAdvancedUserManagement = (): UseAdvancedUserManagementReturn => 
           phone_number: profile.phone_number,
           avatar_url: profile.avatar_url,
           created_at: profile.created_at,
-          user_type: profile.user_type || 'client',
+          user_type: profile.user_type,
           status: profile.is_active ? (isOnline ? 'active' : 'inactive') : 'suspended',
           last_activity: lastSignIn,
           verification_status: profile.verification_status || (authMeta.email_confirmed_at ? 'verified' : 'pending'),
-          rating: Math.random() * 2 + 3, // Random rating between 3-5
-          total_orders: Math.floor(Math.random() * 50),
+          rating: 0,
+          total_orders: 0,
         };
       }).filter(user => {
         if (filters.status === 'all') return true;
-        const isOnline = user.last_activity && (new Date().getTime() - new Date(user.last_activity).getTime()) < 15 * 60 * 1000;
-        return filters.status === 'active' ? isOnline : !isOnline;
+        return user.status === filters.status;
       });
 
+      console.log(`📊 Loaded ${transformedUsers.length} users (${totalCount} total, page ${currentPage}/${Math.ceil(totalCount / ITEMS_PER_PAGE)})`);
+
       setUsers(transformedUsers);
-      setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
+      setTotalPages(Math.ceil(totalCount / ITEMS_PER_PAGE));
     } catch (err) {
-      console.error('Error fetching users:', err);
+      console.error('❌ Error fetching users:', err);
       setError('Erreur lors du chargement des utilisateurs');
       toast({
         title: "Erreur",
@@ -198,28 +226,39 @@ export const useAdvancedUserManagement = (): UseAdvancedUserManagementReturn => 
   // Fetch statistics
   const fetchStats = useCallback(async () => {
     try {
-      // Get all users from view
-      const { data: allUsers } = await supabase
-        .from('user_profiles_view')
-        .select('user_type, created_at, user_id');
+      // Fetch all users from all tables
+      const [
+        { data: clientsData },
+        { data: driversData },
+        { data: partnersData },
+        { data: adminsData }
+      ] = await Promise.all([
+        supabase.from('clients').select('user_id, created_at'),
+        supabase.from('chauffeurs').select('user_id, created_at'),
+        supabase.from('partenaires').select('user_id, created_at'),
+        supabase.from('admins').select('user_id, created_at')
+      ]);
 
-      if (!allUsers) {
-        throw new Error('No users data');
-      }
-
-      const totalUsers = allUsers.length;
-      const totalClients = allUsers.filter(u => u.user_type === 'client').length;
-      const totalDrivers = allUsers.filter(u => u.user_type === 'driver').length;
-      const totalPartners = allUsers.filter(u => u.user_type === 'partner').length;
+      const totalClients = clientsData?.length || 0;
+      const totalDrivers = driversData?.length || 0;
+      const totalPartners = partnersData?.length || 0;
+      const totalAdmins = adminsData?.length || 0;
+      const totalUsers = totalClients + totalDrivers + totalPartners + totalAdmins;
 
       // Fetch auth metadata for active users count
-      const userIds = allUsers.map(u => u.user_id);
+      const allUserIds = [
+        ...(clientsData || []).map(c => c.user_id),
+        ...(driversData || []).map(d => d.user_id),
+        ...(partnersData || []).map(p => p.user_id),
+        ...(adminsData || []).map(a => a.user_id)
+      ];
+
       let activeUsersCount = 0;
 
-      if (userIds.length > 0) {
+      if (allUserIds.length > 0) {
         try {
           const { data: metadataResponse, error: metadataError } = await supabase.functions.invoke('admin-get-user-metadata', {
-            body: { user_ids: userIds }
+            body: { user_ids: allUserIds }
           });
 
           if (!metadataError && metadataResponse?.metadata) {
@@ -230,14 +269,22 @@ export const useAdvancedUserManagement = (): UseAdvancedUserManagementReturn => 
             }).length;
           }
         } catch (err) {
-          console.error('Error fetching active users metadata:', err);
+          console.error('⚠️ Error fetching active users metadata:', err);
         }
       }
 
       // Count new users today
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const newUsersToday = allUsers.filter(u => new Date(u.created_at) >= today).length;
+      const allCreatedDates = [
+        ...(clientsData || []).map(c => c.created_at),
+        ...(driversData || []).map(d => d.created_at),
+        ...(partnersData || []).map(p => p.created_at),
+        ...(adminsData || []).map(a => a.created_at)
+      ];
+      const newUsersToday = allCreatedDates.filter(date => new Date(date) >= today).length;
+
+      console.log(`📊 Stats: ${totalUsers} users total (Clients: ${totalClients}, Drivers: ${totalDrivers}, Partners: ${totalPartners}, Active: ${activeUsersCount}, New today: ${newUsersToday})`);
 
       setStats({
         totalUsers,
@@ -248,22 +295,12 @@ export const useAdvancedUserManagement = (): UseAdvancedUserManagementReturn => 
         newUsersToday,
       });
     } catch (err) {
-      console.error('Error fetching stats:', err);
-      // Fallback to basic stats without auth metadata
-      const { data: allUsers } = await supabase
-        .from('user_profiles_view')
-        .select('user_type, created_at');
-
-      const totalUsers = allUsers?.length || 0;
-      const totalClients = allUsers?.filter(u => u.user_type === 'client').length || 0;
-      const totalDrivers = allUsers?.filter(u => u.user_type === 'driver').length || 0;
-      const totalPartners = allUsers?.filter(u => u.user_type === 'partner').length || 0;
-
+      console.error('❌ Error fetching stats:', err);
       setStats({
-        totalUsers,
-        totalClients,
-        totalDrivers,
-        totalPartners,
+        totalUsers: 0,
+        totalClients: 0,
+        totalDrivers: 0,
+        totalPartners: 0,
         activeUsers: 0,
         newUsersToday: 0,
       });
