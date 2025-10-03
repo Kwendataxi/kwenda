@@ -17,28 +17,38 @@ export const AdminSubscriptionManager = () => {
   const { data: driverSubscriptions = [], isLoading: loadingDriverSubs } = useQuery({
     queryKey: ['admin-driver-subscriptions'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('driver_subscriptions')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      // Enrichir avec les données des chauffeurs et plans
-      const enriched = await Promise.all((data || []).map(async (sub: any) => {
-        const [driverData, planData] = await Promise.all([
-          supabase.from('chauffeurs').select('display_name, email, phone_number').eq('user_id', sub.driver_id).single(),
-          supabase.from('subscription_plans').select('name, price, currency').eq('id', sub.plan_id).single()
-        ]);
+      try {
+        const { data, error } = await supabase
+          .from('driver_subscriptions')
+          .select('*')
+          .order('created_at', { ascending: false });
         
-        return {
-          ...sub,
-          chauffeurs: driverData.data,
-          subscription_plans: planData.data
-        };
-      }));
-      
-      return enriched;
+        if (error) throw error;
+        
+        // Enrichir avec les données des chauffeurs et plans
+        const enriched = await Promise.all((data || []).map(async (sub: any) => {
+          try {
+            const [driverData, planData] = await Promise.all([
+              supabase.from('chauffeurs').select('display_name, email, phone_number').eq('user_id', sub.driver_id).maybeSingle(),
+              supabase.from('subscription_plans').select('name, price, currency').eq('id', sub.plan_id).maybeSingle()
+            ]);
+            
+            return {
+              ...sub,
+              chauffeurs: driverData.data || null,
+              subscription_plans: planData.data || null
+            };
+          } catch (enrichError) {
+            console.error('Erreur enrichissement abonnement chauffeur:', enrichError);
+            return { ...sub, chauffeurs: null, subscription_plans: null };
+          }
+        }));
+        
+        return enriched;
+      } catch (error) {
+        console.error('Erreur query abonnements chauffeurs:', error);
+        throw error;
+      }
     }
   });
 
@@ -46,30 +56,40 @@ export const AdminSubscriptionManager = () => {
   const { data: rentalSubscriptions = [], isLoading: loadingRentalSubs } = useQuery({
     queryKey: ['admin-rental-subscriptions'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('partner_rental_subscriptions')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      // Enrichir avec les données des partenaires, plans et véhicules
-      const enriched = await Promise.all((data || []).map(async (sub: any) => {
-        const [partnerData, planData, vehicleData] = await Promise.all([
-          supabase.from('partenaires').select('company_name, email, phone_number').eq('id', sub.partner_id).single(),
-          supabase.from('rental_subscription_plans').select('name, monthly_price, currency').eq('id', sub.plan_id).single(),
-          supabase.from('rental_vehicles').select('name, license_plate').eq('id', sub.vehicle_id).maybeSingle()
-        ]);
+      try {
+        const { data, error } = await supabase
+          .from('partner_rental_subscriptions')
+          .select('*')
+          .order('created_at', { ascending: false });
         
-        return {
-          ...sub,
-          partenaires: partnerData.data,
-          rental_subscription_plans: planData.data,
-          rental_vehicles: vehicleData.data
-        };
-      }));
-      
-      return enriched;
+        if (error) throw error;
+        
+        // Enrichir avec les données des partenaires, plans et véhicules
+        const enriched = await Promise.all((data || []).map(async (sub: any) => {
+          try {
+            const [partnerData, planData, vehicleData] = await Promise.all([
+              supabase.from('partenaires').select('company_name, email, phone_number').eq('id', sub.partner_id).maybeSingle(),
+              supabase.from('rental_subscription_plans').select('name, monthly_price, currency').eq('id', sub.plan_id).maybeSingle(),
+              supabase.from('rental_vehicles').select('name, license_plate').eq('id', sub.vehicle_id).maybeSingle()
+            ]);
+            
+            return {
+              ...sub,
+              partenaires: partnerData.data || null,
+              rental_subscription_plans: planData.data || null,
+              rental_vehicles: vehicleData.data || null
+            };
+          } catch (enrichError) {
+            console.error('Erreur enrichissement abonnement location:', enrichError);
+            return { ...sub, partenaires: null, rental_subscription_plans: null, rental_vehicles: null };
+          }
+        }));
+        
+        return enriched;
+      } catch (error) {
+        console.error('Erreur query abonnements location:', error);
+        throw error;
+      }
     }
   });
 
@@ -196,7 +216,7 @@ export const AdminSubscriptionManager = () => {
                   <div className="flex items-center justify-between">
                     <div className="space-y-2 flex-1">
                       <div className="flex items-center gap-4">
-                        <h3 className="font-semibold">{subscription.chauffeurs?.display_name || 'N/A'}</h3>
+                        <h3 className="font-semibold">{subscription.chauffeurs?.display_name || 'Chauffeur inconnu'}</h3>
                         {getStatusBadge(subscription.status)}
                         {subscription.status === 'active' && isExpiringSoon(subscription.end_date) && (
                           <Badge variant="outline" className="text-orange-600">
@@ -205,10 +225,10 @@ export const AdminSubscriptionManager = () => {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">{subscription.chauffeurs?.email}</p>
+                      <p className="text-sm text-muted-foreground">{subscription.chauffeurs?.email || 'Email non disponible'}</p>
                       <div className="flex items-center gap-4 text-sm">
-                        <span><strong>Plan:</strong> {subscription.subscription_plans?.name}</span>
-                        <span><strong>Montant:</strong> {subscription.subscription_plans?.price?.toLocaleString()} {subscription.subscription_plans?.currency}</span>
+                        <span><strong>Plan:</strong> {subscription.subscription_plans?.name || 'Plan non trouvé'}</span>
+                        <span><strong>Montant:</strong> {subscription.subscription_plans?.price?.toLocaleString() || '0'} {subscription.subscription_plans?.currency || 'CDF'}</span>
                         <span><strong>Début:</strong> {new Date(subscription.start_date).toLocaleDateString()}</span>
                         <span><strong>Fin:</strong> {new Date(subscription.end_date).toLocaleDateString()}</span>
                         <span><strong>Auto-renew:</strong> {subscription.auto_renew ? 'Oui' : 'Non'}</span>
@@ -229,7 +249,7 @@ export const AdminSubscriptionManager = () => {
                   <div className="flex items-center justify-between">
                     <div className="space-y-2 flex-1">
                       <div className="flex items-center gap-4">
-                        <h3 className="font-semibold">{subscription.partenaires?.company_name || 'N/A'}</h3>
+                        <h3 className="font-semibold">{subscription.partenaires?.company_name || 'Partenaire inconnu'}</h3>
                         {getStatusBadge(subscription.status)}
                         {subscription.status === 'active' && isExpiringSoon(subscription.end_date) && (
                           <Badge variant="outline" className="text-orange-600">
@@ -238,11 +258,11 @@ export const AdminSubscriptionManager = () => {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">{subscription.partenaires?.email}</p>
+                      <p className="text-sm text-muted-foreground">{subscription.partenaires?.email || 'Email non disponible'}</p>
                       <div className="flex items-center gap-4 text-sm">
-                        <span><strong>Véhicule:</strong> {subscription.rental_vehicles?.name || 'N/A'} ({subscription.rental_vehicles?.license_plate})</span>
-                        <span><strong>Plan:</strong> {subscription.rental_subscription_plans?.name}</span>
-                        <span><strong>Prix:</strong> {subscription.rental_subscription_plans?.monthly_price?.toLocaleString()} {subscription.rental_subscription_plans?.currency}/mois</span>
+                        <span><strong>Véhicule:</strong> {subscription.rental_vehicles?.name || 'Véhicule inconnu'} {subscription.rental_vehicles?.license_plate ? `(${subscription.rental_vehicles.license_plate})` : ''}</span>
+                        <span><strong>Plan:</strong> {subscription.rental_subscription_plans?.name || 'Plan non trouvé'}</span>
+                        <span><strong>Prix:</strong> {subscription.rental_subscription_plans?.monthly_price?.toLocaleString() || '0'} {subscription.rental_subscription_plans?.currency || 'CDF'}/mois</span>
                         <span><strong>Début:</strong> {new Date(subscription.start_date).toLocaleDateString()}</span>
                         <span><strong>Fin:</strong> {new Date(subscription.end_date).toLocaleDateString()}</span>
                       </div>
