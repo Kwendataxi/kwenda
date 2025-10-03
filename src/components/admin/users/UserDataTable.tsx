@@ -115,17 +115,17 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border">
-        <Table>
+      <div className="rounded-md border overflow-x-auto">
+        <Table className="min-w-[800px]">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-12">
+              <TableHead className="w-12 sticky left-0 bg-background z-10">
                 <Checkbox
                   checked={users.length > 0 && selectedUsers.length === users.length}
                   onCheckedChange={onSelectAll}
                 />
               </TableHead>
-              <TableHead>Utilisateur</TableHead>
+              <TableHead className="sticky left-12 bg-background z-10">Utilisateur</TableHead>
               <TableHead>
                 <Button
                   variant="ghost"
@@ -154,7 +154,7 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
                 </Button>
               </TableHead>
               <TableHead>Dernière Connexion</TableHead>
-              <TableHead className="w-12">Actions</TableHead>
+              <TableHead className="w-12 sticky right-0 bg-background z-10">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -162,8 +162,8 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
               // Loading skeleton
               Array.from({ length: 10 }).map((_, index) => (
                 <TableRow key={index}>
-                  <TableCell><Skeleton className="h-4 w-4" /></TableCell>
-                  <TableCell>
+                  <TableCell className="sticky left-0 bg-background"><Skeleton className="h-4 w-4" /></TableCell>
+                  <TableCell className="sticky left-12 bg-background">
                     <div className="flex items-center gap-3">
                       <Skeleton className="h-8 w-8 rounded-full" />
                       <div className="space-y-1">
@@ -176,7 +176,7 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
                   <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+                  <TableCell className="sticky right-0 bg-background"><Skeleton className="h-8 w-8" /></TableCell>
                 </TableRow>
               ))
             ) : users.length === 0 ? (
@@ -188,13 +188,13 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
             ) : (
               users.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>
+                  <TableCell className="sticky left-0 bg-background">
                     <Checkbox
                       checked={selectedUsers.includes(user.id)}
                       onCheckedChange={(checked) => onSelectUser(user.id, checked as boolean)}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="sticky left-12 bg-background">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={user.avatar_url} />
@@ -248,7 +248,7 @@ export const UserDataTable: React.FC<UserDataTableProps> = ({
                        <span className="text-sm text-muted-foreground">Jamais connecté</span>
                      )}
                    </TableCell>
-                  <TableCell>
+                  <TableCell className="sticky right-0 bg-background">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm">
