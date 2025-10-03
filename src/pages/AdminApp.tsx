@@ -27,6 +27,7 @@ import { EnhancedRoleManagement } from '@/components/admin/roles/EnhancedRoleMan
 import { EnhancedSupportCenter } from '@/components/admin/support/EnhancedSupportCenter';
 import { EnhancedUserManagement } from '@/components/admin/users/EnhancedUserManagement';
 import { AdminUserVerificationManager } from '@/components/admin/AdminUserVerificationManager';
+import { DriverManagement } from '@/components/admin/drivers/DriverManagement';
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -175,6 +176,15 @@ const AdminApp = () => {
           <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
               <UnifiedSubscriptionManager />
+            </FlexiblePermissionGuard>
+          </Suspense>
+        );
+
+      case 'drivers':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['drivers_read']}>
+              <DriverManagement />
             </FlexiblePermissionGuard>
           </Suspense>
         );

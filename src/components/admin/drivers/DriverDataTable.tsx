@@ -294,7 +294,13 @@ export const DriverDataTable: React.FC<DriverDataTableProps> = ({
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent 
+                        align="end" 
+                        side="bottom"
+                        sideOffset={8}
+                        collisionPadding={10}
+                        className="w-56"
+                      >
                         <DropdownMenuItem>
                           <Eye className="h-4 w-4 mr-2" />
                           Voir le profil

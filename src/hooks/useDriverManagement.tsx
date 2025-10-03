@@ -212,15 +212,21 @@ export const useDriverManagement = (): UseDriverManagementReturn => {
   // Fetch driver statistics
   const fetchStats = useCallback(async () => {
     try {
-      // Get all driver profiles
-      const { data: allDrivers } = await supabase
-        .from('driver_profiles')
+      console.log('📊 Fetching driver statistics...');
+      
+      // Get all drivers from chauffeurs table
+      const { data: allDrivers, error: driversError } = await supabase
+        .from('chauffeurs')
         .select('user_id, verification_status, is_active, created_at');
 
+      if (driversError) throw driversError;
+
       // Get online status from driver_locations
-      const { data: locations } = await supabase
+      const { data: locations, error: locationsError } = await supabase
         .from('driver_locations')
         .select('driver_id, is_online, is_available, last_ping');
+
+      if (locationsError) throw locationsError;
 
       const now = new Date().getTime();
       const onlineDrivers = locations?.filter(l => 
@@ -246,8 +252,15 @@ export const useDriverManagement = (): UseDriverManagementReturn => {
         verifiedDrivers: allDrivers?.filter(d => d.verification_status === 'verified').length || 0,
         newDriversToday: newDriversToday.length,
       });
+
+      console.log('✅ Driver statistics loaded:', {
+        total: allDrivers?.length,
+        online: onlineDrivers.length,
+        available: availableDrivers.length,
+        busy: busyDrivers.length,
+      });
     } catch (err) {
-      console.error('Error fetching driver stats:', err);
+      console.error('❌ Error fetching driver stats:', err);
     }
   }, []);
 
@@ -287,12 +300,18 @@ export const useDriverManagement = (): UseDriverManagementReturn => {
   // Update driver status
   const updateDriverStatus = useCallback(async (driverId: string, status: string) => {
     try {
+      console.log('🔄 Updating driver status', { driverId, status });
       setLoading(true);
 
-      await supabase
-        .from('driver_profiles')
+      const { error } = await supabase
+        .from('chauffeurs')
         .update({ is_active: status === 'active' })
-        .eq('id', driverId);
+        .eq('user_id', driverId);
+
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        throw error;
+      }
 
       toast({
         title: "Statut mis à jour",
@@ -300,7 +319,9 @@ export const useDriverManagement = (): UseDriverManagementReturn => {
       });
 
       await refreshData();
+      console.log('✅ Driver status updated successfully');
     } catch (err) {
+      console.error('❌ Error updating driver status:', err);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour le statut",
