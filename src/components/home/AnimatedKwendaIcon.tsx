@@ -10,7 +10,7 @@ export const AnimatedKwendaIcon: React.FC = () => {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Conteneur principal avec backdrop */}
+      {/* Conteneur principal */}
       <motion.div
         className="relative flex items-center justify-center"
         whileHover={{ scale: 1.1, rotate: 5 }}
@@ -18,47 +18,30 @@ export const AnimatedKwendaIcon: React.FC = () => {
       >
         {/* Glow effect pulsant */}
         <motion.div
-          className="absolute inset-0 rounded-full bg-primary/20 blur-xl"
+          className="absolute inset-0 -inset-2 rounded-full bg-primary/20 dark:bg-primary/30 blur-2xl"
           animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.6, 0.3],
+            scale: [1, 1.3, 1],
+            opacity: [0.4, 0.7, 0.4],
           }}
           transition={{
-            duration: 2,
+            duration: 2.5,
             repeat: Infinity,
             ease: "easeInOut"
           }}
         />
 
-        {/* Border gradient animé */}
+        {/* Icône principale avec backdrop élégant */}
         <motion.div
-          className="absolute inset-0 rounded-full opacity-50"
-          style={{
-            background: 'linear-gradient(45deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)))',
-            backgroundSize: '200% 200%',
-          }}
-          animate={{
-            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-        />
-
-        {/* Icône principale */}
-        <motion.div
-          className="relative z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 border border-primary/20"
+          className="relative z-10 bg-gradient-to-br from-background/95 to-background/80 backdrop-blur-md rounded-full p-3 border border-primary/30 shadow-lg"
           animate={{
             boxShadow: [
-              '0 0 20px rgba(var(--primary-rgb), 0.3)',
-              '0 0 30px rgba(var(--primary-rgb), 0.5)',
-              '0 0 20px rgba(var(--primary-rgb), 0.3)',
+              '0 4px 20px rgba(139, 92, 246, 0.3)',
+              '0 4px 30px rgba(139, 92, 246, 0.5)',
+              '0 4px 20px rgba(139, 92, 246, 0.3)',
             ],
           }}
           transition={{
-            duration: 2,
+            duration: 2.5,
             repeat: Infinity,
             ease: "easeInOut"
           }}
@@ -66,53 +49,53 @@ export const AnimatedKwendaIcon: React.FC = () => {
           <motion.img
             src={kwendaIcon}
             alt="Kwenda"
-            className="h-12 w-12 sm:h-14 sm:w-14 object-contain"
+            className="h-11 w-11 sm:h-12 sm:w-12 object-contain drop-shadow-lg"
             animate={{
-              scale: [1, 1.05, 1],
+              scale: [1, 1.08, 1],
             }}
             transition={{
-              duration: 2,
+              duration: 2.5,
               repeat: Infinity,
               ease: "easeInOut"
             }}
           />
 
-          {/* Shine effect qui traverse */}
+          {/* Shine effect subtil */}
           <motion.div
             className="absolute inset-0 rounded-full overflow-hidden"
             initial={{ x: '-100%' }}
             animate={{ x: '200%' }}
             transition={{
-              duration: 3,
+              duration: 3.5,
               repeat: Infinity,
-              repeatDelay: 2,
+              repeatDelay: 3,
               ease: "easeInOut"
             }}
             style={{
-              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
               pointerEvents: 'none'
             }}
           />
         </motion.div>
 
-        {/* Mini particules flottantes */}
-        {[...Array(3)].map((_, i) => (
+        {/* Mini particules scintillantes */}
+        {[...Array(4)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-primary/60 rounded-full"
+            className="absolute w-1.5 h-1.5 bg-primary/70 rounded-full blur-[1px]"
             style={{
-              top: `${20 + i * 30}%`,
-              left: `${10 + i * 25}%`,
+              top: `${15 + i * 25}%`,
+              left: `${5 + i * 30}%`,
             }}
             animate={{
-              y: [0, -10, 0],
+              y: [0, -15, 0],
               opacity: [0, 1, 0],
-              scale: [0.5, 1, 0.5],
+              scale: [0.3, 1.2, 0.3],
             }}
             transition={{
-              duration: 2 + i * 0.5,
+              duration: 2.5 + i * 0.4,
               repeat: Infinity,
-              delay: i * 0.3,
+              delay: i * 0.4,
               ease: "easeInOut"
             }}
           />
