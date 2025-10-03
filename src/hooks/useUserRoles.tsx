@@ -24,17 +24,6 @@ export const useUserRoles = (): UseUserRolesReturn => {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Utiliser le context admin de manière optionnelle avec un fallback
-  let showAllSections = false;
-  try {
-    const { useAdminPermissions } = require('@/components/admin/AdminPermissionContext');
-    const adminPermissions = useAdminPermissions();
-    showAllSections = adminPermissions?.showAllSections || false;
-  } catch {
-    // Le context n'est pas disponible, utiliser la valeur par défaut
-    showAllSections = false;
-  }
 
   const fetchUserRoles = async () => {
     if (!user?.id) {
@@ -128,14 +117,10 @@ export const useUserRoles = (): UseUserRolesReturn => {
 
   // Utilitaires pour vérifier les permissions
   const hasPermission = (permission: Permission): boolean => {
-    // Si le mode "Ignorer les permissions" est activé, autoriser tout
-    if (showAllSections) return true;
     return permissions.includes(permission);
   };
 
   const hasAnyPermission = (requiredPermissions: Permission[]): boolean => {
-    // Si le mode "Ignorer les permissions" est activé, autoriser tout
-    if (showAllSections) return true;
     return requiredPermissions.some(permission => permissions.includes(permission));
   };
 
