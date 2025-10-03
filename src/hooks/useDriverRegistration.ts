@@ -80,28 +80,12 @@ export const useDriverRegistration = () => {
 
       console.log('✅ Validation réussie, création du compte...');
 
-      // 2. Créer le compte Supabase Auth avec TOUTES les métadonnées
+      // 2. Créer le compte Supabase Auth sans métadonnées (pas de trigger)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            // Métadonnées utilisées par le trigger handle_new_driver()
-            role: 'driver',
-            service_category: data.serviceCategory,
-            display_name: data.displayName,
-            phone_number: data.phoneNumber,
-            // Données complémentaires pour update ultérieur
-            license_number: data.licenseNumber,
-            license_expiry: data.licenseExpiry,
-            has_own_vehicle: data.hasOwnVehicle,
-            service_type: data.serviceType,
-            vehicle_type: data.hasOwnVehicle ? data.vehicleType : null,
-            vehicle_make: data.hasOwnVehicle ? data.vehicleMake : null,
-            vehicle_model: data.hasOwnVehicle ? data.vehicleModel : null,
-            vehicle_plate: data.hasOwnVehicle ? data.vehiclePlate : null,
-          }
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
@@ -136,28 +120,60 @@ export const useDriverRegistration = () => {
         throw new Error(errorMsg);
       }
 
-      console.log('✅ Compte Auth créé, mise à jour profil chauffeur...');
+      console.log('✅ Compte Auth créé, création profil via RPC...');
 
-      // 3. Le trigger handle_new_driver() va automatiquement créer le profil chauffeur
-      // Attendre un peu pour que le trigger s'exécute
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // 3. Appeler la fonction RPC sécurisée pour créer le profil chauffeur
+      const { data: rpcResult, error: rpcError } = await supabase.rpc(
+        'create_driver_profile_secure',
+        {
+          p_user_id: authData.user.id,
+          p_email: data.email,
+          p_display_name: data.displayName,
+          p_phone_number: data.phoneNumber,
+          p_license_number: data.licenseNumber || null,
+          p_vehicle_plate: data.hasOwnVehicle ? data.vehiclePlate : null,
+          p_service_type: data.serviceType || null,
+          p_delivery_capacity: data.deliveryCapacity || null,
+          p_vehicle_class: 'standard',
+          p_has_own_vehicle: data.hasOwnVehicle
+        }
+      ) as { data: { success: boolean; error?: string; driver_id?: string } | null; error: any };
 
-      // 4. Mettre à jour le profil avec les détails complets
+      console.log('RPC Result:', rpcResult);
+      console.log('RPC Error:', rpcError);
+
+      if (rpcError) {
+        console.error('❌ RPC Error:', rpcError);
+        await supabase.rpc('log_driver_registration_attempt', {
+          p_email: data.email,
+          p_phone_number: data.phoneNumber,
+          p_license_number: data.licenseNumber,
+          p_success: false,
+          p_error_message: `RPC error: ${rpcError.message}`
+        });
+        throw new Error(rpcError.message || 'Erreur lors de la création du profil chauffeur');
+      }
+
+      if (rpcResult && !rpcResult.success) {
+        console.error('❌ Driver creation failed:', rpcResult.error);
+        await supabase.rpc('log_driver_registration_attempt', {
+          p_email: data.email,
+          p_phone_number: data.phoneNumber,
+          p_license_number: data.licenseNumber,
+          p_success: false,
+          p_error_message: rpcResult.error
+        });
+        throw new Error(rpcResult.error || 'Erreur lors de la création du profil chauffeur');
+      }
+
+      console.log('✅ Profil chauffeur créé via RPC');
+
+      // 4. Mettre à jour le profil avec les détails complets qui ne sont pas dans la fonction RPC
       const updateData: any = {
-        display_name: data.displayName,
-        phone_number: data.phoneNumber,
-        license_number: data.licenseNumber,
         license_expiry: data.licenseExpiry,
-        delivery_capacity: data.deliveryCapacity,
         bank_account_number: data.bankAccountNumber,
         emergency_contact_name: data.emergencyContactName,
-        emergency_contact_phone: data.emergencyContactPhone,
-        verification_status: 'pending',
-        is_active: data.hasOwnVehicle, // Actif seulement si véhicule propre
-        role: data.serviceCategory === 'taxi' ? 'chauffeur' : 'livreur',
-        service_type: data.serviceType,
-        vehicle_class: 'standard',
-        has_own_vehicle: data.hasOwnVehicle
+        emergency_contact_phone: data.emergencyContactPhone
       };
 
       // Ajouter les infos véhicule seulement si le chauffeur a son propre véhicule
@@ -166,7 +182,6 @@ export const useDriverRegistration = () => {
         updateData.vehicle_make = data.vehicleMake;
         updateData.vehicle_model = data.vehicleModel;
         updateData.vehicle_year = data.vehicleYear;
-        updateData.vehicle_plate = data.vehiclePlate;
         updateData.vehicle_color = data.vehicleColor;
         updateData.insurance_number = data.insuranceNumber;
         updateData.insurance_expiry = data.insuranceExpiry;
@@ -178,9 +193,9 @@ export const useDriverRegistration = () => {
         .eq('user_id', authData.user.id);
 
       if (updateError) {
-        console.error('❌ Erreur mise à jour chauffeur:', updateError);
+        console.error('❌ Erreur mise à jour détails chauffeur:', updateError);
       } else {
-        console.log('✅ Profil chauffeur mis à jour');
+        console.log('✅ Détails chauffeur mis à jour');
       }
 
       // 5. Créer la demande de chauffeur

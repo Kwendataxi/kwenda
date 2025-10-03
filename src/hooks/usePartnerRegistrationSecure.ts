@@ -28,22 +28,12 @@ export const usePartnerRegistrationSecure = () => {
         address: data.address || 'Adresse non spécifiée'
       });
 
-      // Use client-side signup with metadata for trigger
+      // Créer le compte Auth sans métadonnées (pas de trigger)
       const { data: authResult, error } = await supabase.auth.signUp({
         email: data.contact_email,
         password: data.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/partner/auth`,
-          data: {
-            role: 'partner',
-            company_name: data.company_name,
-            phone_number: data.phone,
-            business_type: data.business_type,
-            service_areas: data.service_areas,
-            address: data.address || 'Adresse non spécifiée',
-            business_license: data.business_license || '',
-            tax_number: data.tax_number || ''
-          }
+          emailRedirectTo: `${window.location.origin}/partner/auth`
         }
       });
 
@@ -62,47 +52,37 @@ export const usePartnerRegistrationSecure = () => {
 
       // Check if the registration was successful
       if (authResult?.user?.id) {
-        console.log('Registration successful, user created:', authResult.user.id);
+        console.log('✅ Auth account created:', authResult.user.id);
         
-        // Wait for trigger to execute
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Verify partner was created by trigger
-        const { data: partnerCheck, error: checkError } = await supabase
-          .from('partenaires')
-          .select('id, verification_status')
-          .eq('user_id', authResult.user.id)
-          .maybeSingle();
-        
-        console.log('Partner verification:', { partnerCheck, checkError });
-        
-        if (!partnerCheck && !checkError) {
-          console.error('Partner not created by trigger, attempting manual creation');
-          
-          // Manual creation if trigger failed
-          const { error: insertError } = await supabase
-            .from('partenaires')
-            .insert({
-              user_id: authResult.user.id,
-              email: data.contact_email,
-              display_name: data.company_name,
-              company_name: data.company_name,
-              phone_number: data.phone,
-              business_type: data.business_type,
-              service_areas: data.service_areas,
-              address: data.address || 'Adresse non spécifiée',
-              company_registration_number: data.business_license,
-              tax_number: data.tax_number,
-              verification_status: 'pending'
-            });
-          
-          if (insertError) {
-            console.error('Manual partner creation failed:', insertError);
-            throw new Error('Erreur lors de la création du profil partenaire');
+        // Appeler la fonction RPC sécurisée pour créer le profil partenaire
+        console.log('📞 Calling create_partner_profile_secure RPC...');
+        const { data: rpcResult, error: rpcError } = await supabase.rpc(
+          'create_partner_profile_secure',
+          {
+            p_user_id: authResult.user.id,
+            p_email: data.contact_email,
+            p_company_name: data.company_name,
+            p_phone_number: data.phone,
+            p_business_type: data.business_type,
+            p_service_areas: data.service_areas
           }
-          
-          console.log('Partner created manually');
+        ) as { data: { success: boolean; error?: string; partner_id?: string } | null; error: any };
+
+        console.log('RPC Result:', rpcResult);
+        console.log('RPC Error:', rpcError);
+
+        if (rpcError) {
+          console.error('❌ RPC Error:', rpcError);
+          throw new Error(rpcError.message || 'Erreur lors de la création du profil partenaire');
         }
+
+        // Vérifier le résultat de la fonction
+        if (rpcResult && !rpcResult.success) {
+          console.error('❌ Partner creation failed:', rpcResult.error);
+          throw new Error(rpcResult.error || 'Erreur lors de la création du profil partenaire');
+        }
+
+        console.log('✅ Partner profile created successfully:', rpcResult);
         
         // Try to send admin notification (non-blocking)
         try {
