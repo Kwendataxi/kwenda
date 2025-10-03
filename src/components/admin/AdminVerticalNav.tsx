@@ -66,6 +66,7 @@ const NAV_ITEMS: Array<{
   // Gestion des utilisateurs
   { id: 'drivers', label: 'Chauffeurs', icon: Car, group: 'users' },
   { id: 'subscriptions', label: 'Abonnements 🎫', icon: Package, group: 'users' },
+  { id: 'subscription-config', label: 'Configuration Plans', icon: Cog, group: 'users' },
   { id: 'partners', label: 'Partenaires', icon: Building, group: 'users' },
   { id: 'users', label: 'Utilisateurs', icon: Users, group: 'users' },
   { id: 'teams', label: 'Équipes', icon: Users, group: 'users' },
