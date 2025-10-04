@@ -31,61 +31,28 @@ export const useReferralSystem = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return;
 
-      // Chercher le code de parrainage existant
-      const { data: existingCode } = await supabase
-        .from('referral_system')
-        .select('referral_code')
-        .eq('referrer_id', user.user.id)
-        .eq('status', 'active')
-        .single();
+      // Utiliser la RPC sécurisée pour obtenir ou créer le code
+      const { data: code, error } = await supabase
+        .rpc('get_or_create_referral_code', { p_user_id: user.user.id });
 
-      if (existingCode) {
-        setUserReferralCode(existingCode.referral_code);
-      } else {
-        // Créer un nouveau code de parrainage
-        const newCode = await createReferralCode();
-        if (newCode) {
-          setUserReferralCode(newCode);
-        }
+      if (error) {
+        console.error('Erreur RPC get_or_create_referral_code:', error);
+        return;
+      }
+
+      if (code) {
+        setUserReferralCode(code);
       }
     } catch (error) {
       console.error('Erreur lors de la récupération du code de parrainage:', error);
     }
   };
 
+  // Cette fonction n'est plus nécessaire car la RPC gère tout
+  // Conservée pour compatibilité mais ne devrait plus être appelée
   const createReferralCode = async () => {
-    try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return null;
-
-      // Générer un code unique
-      const referralCode = `KWENDA${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-
-      // Créer une entrée dans referral_system
-      const { data, error } = await supabase
-        .from('referral_system')
-        .insert({
-          referrer_id: user.user.id,
-          referee_id: user.user.id, // Sera mis à jour quand quelqu'un utilise le code
-          referral_code: referralCode,
-          status: 'active',
-          referrer_reward_amount: 5000,
-          referee_reward_amount: 3000,
-          currency: 'CDF'
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erreur lors de la création du code de parrainage:', error);
-        return null;
-      }
-
-      return referralCode;
-    } catch (error) {
-      console.error('Erreur lors de la création du code:', error);
-      return null;
-    }
+    console.warn('createReferralCode() est deprecated, utiliser fetchUserReferralCode() à la place');
+    return null;
   };
 
   const fetchUserReferrals = async () => {

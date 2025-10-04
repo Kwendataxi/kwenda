@@ -705,6 +705,30 @@ export type Database = {
         }
         Relationships: []
       }
+      code_generation_rate_limit: {
+        Row: {
+          code_type: string
+          created_at: string
+          generated_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code_type: string
+          created_at?: string
+          generated_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code_type?: string
+          created_at?: string
+          generated_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       commission_configuration: {
         Row: {
           created_at: string
@@ -8953,6 +8977,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      check_code_generation_rate_limit: {
+        Args: { p_code_type: string; p_max_per_day?: number; p_user_id: string }
+        Returns: boolean
+      }
       check_driver_location_access: {
         Args: { target_driver_id: string }
         Returns: boolean
@@ -9016,6 +9044,10 @@ export type Database = {
       }
       cleanup_old_notifications: {
         Args: { days_old?: number }
+        Returns: number
+      }
+      cleanup_old_rate_limits: {
+        Args: Record<PropertyKey, never>
         Returns: number
       }
       cleanup_security_definer_views: {
@@ -9265,6 +9297,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      generate_unique_referral_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       geocode_location: {
         Args: { query_text: string }
         Returns: Json
@@ -9419,6 +9455,10 @@ export type Database = {
       get_notification_stats: {
         Args: { admin_id?: string }
         Returns: Json
+      }
+      get_or_create_referral_code: {
+        Args: { p_user_id: string }
+        Returns: string
       }
       get_partner_by_code: {
         Args: { driver_code: string }

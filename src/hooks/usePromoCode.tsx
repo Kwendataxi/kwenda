@@ -102,47 +102,80 @@ export const usePromoCode = () => {
         return false;
       }
 
-      // Record usage
+      // Enregistrer l'utilisation du code promo
+      const usageInsertData: any = {
+        promo_code_id: promoCodeId,
+        user_id: user.user.id,
+        discount_amount: discountAmount,
+        used_at: new Date().toISOString()
+      };
+
+      // Ajouter le bon champ selon le type de commande
+      if (orderType === 'transport') {
+        usageInsertData.booking_id = orderId;
+      } else if (orderType === 'delivery') {
+        usageInsertData.delivery_id = orderId;
+      } else if (orderType === 'marketplace') {
+        usageInsertData.marketplace_order_id = orderId;
+      }
+
       const { data: usageData, error } = await supabase
         .from('promo_code_usage')
-        .insert({
-          promo_code_id: promoCodeId,
-          user_id: user.user.id,
-          order_id: orderId,
-          order_type: orderType,
-          discount_amount: discountAmount,
-        })
+        .insert(usageInsertData)
         .select()
         .single();
 
       if (error) throw error;
 
-      // Record driver compensation if applicable
+      // Enregistrer compensation chauffeur si applicable
+      // NOTE: Le trigger auto_credit_promo_compensation() va créer automatiquement
+      // la compensation quand la commande sera complétée, mais on peut aussi
+      // l'enregistrer immédiatement si on a l'info
       if (driverId && driverCompensation?.can_credit && driverCompensation.rides_to_credit > 0) {
+        const compensationData: any = {
+          driver_id: driverId,
+          promo_code_id: promoCodeId,
+          promo_usage_id: usageData.id,
+          compensation_amount: discountAmount,
+          status: 'pending',
+          compensation_metadata: {
+            rides_to_credit: driverCompensation.rides_to_credit,
+            compensation_config: driverCompensation.config_used,
+            created_from: 'apply_promo_code',
+            threshold_met: driverCompensation.can_credit
+          }
+        };
+
+        if (orderType === 'transport') {
+          compensationData.booking_id = orderId;
+        } else if (orderType === 'delivery') {
+          compensationData.delivery_id = orderId;
+        }
+
         const { error: compError } = await supabase
           .from('promo_driver_compensations')
-          .insert({
-            promo_usage_id: usageData.id,
-            driver_id: driverId,
-            order_id: orderId,
-            order_type: orderType,
-            promo_discount_amount: discountAmount,
-            rides_credited: driverCompensation.rides_to_credit,
-            status: 'pending',
-            metadata: {
-              compensation_config: driverCompensation.config_used,
-              created_from: 'apply_promo_code'
-            }
-          });
+          .insert(compensationData);
 
         if (compError) {
           console.error('Error recording driver compensation:', compError);
         } else {
-          console.log(`Recorded pending compensation: ${driverCompensation.rides_to_credit} rides for driver ${driverId}`);
+          console.log(`✅ Compensation enregistrée: ${driverCompensation.rides_to_credit} courses pour chauffeur ${driverId}`);
+          
+          // Logger l'activité
+          await supabase.from('activity_logs').insert({
+            user_id: driverId,
+            activity_type: 'promo_compensation_pending',
+            description: `Compensation promo de ${driverCompensation.rides_to_credit} courses en attente`,
+            metadata: { 
+              promo_code_id: promoCodeId, 
+              order_id: orderId,
+              rides_to_credit: driverCompensation.rides_to_credit
+            }
+          });
         }
       }
 
-      // Incrémenter le compteur d'utilisation
+      // Incrémenter le compteur d'utilisation du code promo
       const { data: currentCode } = await supabase
         .from('promo_codes')
         .select('usage_count')
@@ -153,6 +186,11 @@ export const usePromoCode = () => {
         .from('promo_codes')
         .update({ usage_count: (currentCode?.usage_count || 0) + 1 })
         .eq('id', promoCodeId);
+
+      toast({
+        title: "Code promo appliqué",
+        description: `Réduction de ${discountAmount} CDF appliquée avec succès !`,
+      });
 
       return true;
     } catch (error: any) {
