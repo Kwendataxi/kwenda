@@ -114,7 +114,7 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
 
   return (
     <div className="px-4">
-      <div className="grid grid-cols-3 gap-x-4 sm:gap-x-6 gap-y-5">
+      <div className="grid grid-cols-3 gap-x-5 gap-y-6">
         {mainServices.map((service, index) => {
           const Icon = service.icon;
           const notificationCount = serviceNotifications?.[service.id as keyof typeof serviceNotifications] || 0;
@@ -130,7 +130,7 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
             >
               {/* Icon container - design doux 2 lignes */}
               <div
-                className="relative flex items-center justify-center w-20 h-20 rounded-[28px] shadow-[0_4px_16px_rgba(0,0,0,0.08)] group-hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-400 ease-out group-hover:-translate-y-0.5 group-active:translate-y-0"
+                className="relative flex items-center justify-center w-[72px] h-[72px] rounded-[28px] shadow-[0_4px_16px_rgba(0,0,0,0.08)] group-hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-400 ease-out group-hover:-translate-y-0.5 group-active:translate-y-0"
                 style={{
                   background: serviceColors[service.id] || serviceColors.transport
                 }}
@@ -146,7 +146,7 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
               </div>
               
               {/* Service name - typographie épurée */}
-              <span className="text-xs sm:text-sm font-bold text-center leading-tight text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-primary">
+              <span className="text-sm font-bold text-center leading-tight text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-primary">
                 {service.name}
               </span>
             </button>

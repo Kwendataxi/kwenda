@@ -39,7 +39,7 @@ export const ModernBottomNavigation = ({
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-[9999]"
+      className="fixed bottom-0 left-0 right-0 z-[200]"
       style={{ 
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         willChange: 'transform',

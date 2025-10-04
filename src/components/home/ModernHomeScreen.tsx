@@ -69,13 +69,13 @@ export const ModernHomeScreen = ({
       
       {/* Contenu scrollable au milieu */}
       <div 
-        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide content-scrollable-nav pb-32"
+        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide content-scrollable-nav pb-24"
         style={{ 
           touchAction: 'pan-y', 
           WebkitOverflowScrolling: 'touch',
-          paddingBottom: 'calc(8rem + env(safe-area-inset-bottom, 0px))',
+          paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))',
           position: 'relative',
-          zIndex: 1
+          zIndex: 10
         } as React.CSSProperties}
       >
         {/* Subtle Background Elements */}
@@ -84,7 +84,7 @@ export const ModernHomeScreen = ({
           <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl" />
         </div>
         
-        <div className="relative space-y-1">
+        <div className="relative space-y-6 pt-4">
           {/* Slider publicitaire moderne */}
           <PromoSlider onServiceSelect={onServiceSelect} />
           
