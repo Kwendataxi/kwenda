@@ -38,11 +38,19 @@ export const ModernBottomNavigation = ({
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50">
+    <nav 
+      className="fixed bottom-0 left-0 right-0 z-[9999]"
+      style={{ 
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        willChange: 'transform',
+        pointerEvents: 'auto'
+      }}
+    >
       <div 
-        className="bg-background/95 backdrop-blur-2xl border-t border-border/30 shadow-2xl rounded-t-3xl overflow-hidden"
+        className="bg-background backdrop-blur-2xl border-t border-border/30 shadow-2xl rounded-t-3xl overflow-hidden"
         style={{ 
-          paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom, 0rem))'
+          paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom, 0rem))',
+          isolation: 'isolate'
         }}
       >
         {/* Gradient moderne - du bas vers le haut */}
