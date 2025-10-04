@@ -89,7 +89,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
 
 
   return (
-    <div className="relative overflow-hidden border-b border-border/40 shadow-md backdrop-blur-xl bg-gradient-to-r from-primary/5 via-background/95 to-secondary/5">
+    <header className="sticky top-0 z-50 relative overflow-hidden border-b border-border/40 shadow-md backdrop-blur-xl bg-gradient-to-r from-primary/5 via-background/95 to-secondary/5">
       {/* Fond gradient animé subtil */}
       <div className="absolute inset-0 bg-gradient-to-r from-congo-red/5 via-congo-yellow/5 to-congo-green/5 opacity-50 animate-congo-gradient bg-[length:200%_100%]" />
       
@@ -138,6 +138,6 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
           </div>
         </div>
       </div>
-    </div>
+    </header>
   );
 };
