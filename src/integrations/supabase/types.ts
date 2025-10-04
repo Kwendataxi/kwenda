@@ -1804,9 +1804,10 @@ export type Database = {
           approved_at: string | null
           created_at: string
           documents: Json | null
+          has_own_vehicle: boolean | null
           id: string
-          insurance_number: string
-          license_expiry: string
+          insurance_number: string | null
+          license_expiry: string | null
           license_number: string
           partner_id: string | null
           rejected_reason: string | null
@@ -1818,18 +1819,19 @@ export type Database = {
           validation_comments: string | null
           validation_date: string | null
           validation_level: string | null
-          vehicle_model: string
-          vehicle_plate: string
-          vehicle_type: string
-          vehicle_year: number
+          vehicle_model: string | null
+          vehicle_plate: string | null
+          vehicle_type: string | null
+          vehicle_year: number | null
         }
         Insert: {
           approved_at?: string | null
           created_at?: string
           documents?: Json | null
+          has_own_vehicle?: boolean | null
           id?: string
-          insurance_number: string
-          license_expiry: string
+          insurance_number?: string | null
+          license_expiry?: string | null
           license_number: string
           partner_id?: string | null
           rejected_reason?: string | null
@@ -1841,18 +1843,19 @@ export type Database = {
           validation_comments?: string | null
           validation_date?: string | null
           validation_level?: string | null
-          vehicle_model: string
-          vehicle_plate: string
-          vehicle_type: string
-          vehicle_year: number
+          vehicle_model?: string | null
+          vehicle_plate?: string | null
+          vehicle_type?: string | null
+          vehicle_year?: number | null
         }
         Update: {
           approved_at?: string | null
           created_at?: string
           documents?: Json | null
+          has_own_vehicle?: boolean | null
           id?: string
-          insurance_number?: string
-          license_expiry?: string
+          insurance_number?: string | null
+          license_expiry?: string | null
           license_number?: string
           partner_id?: string | null
           rejected_reason?: string | null
@@ -1864,10 +1867,10 @@ export type Database = {
           validation_comments?: string | null
           validation_date?: string | null
           validation_level?: string | null
-          vehicle_model?: string
-          vehicle_plate?: string
-          vehicle_type?: string
-          vehicle_year?: number
+          vehicle_model?: string | null
+          vehicle_plate?: string | null
+          vehicle_type?: string | null
+          vehicle_year?: number | null
         }
         Relationships: []
       }

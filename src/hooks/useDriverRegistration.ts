@@ -206,12 +206,12 @@ export const useDriverRegistration = () => {
         license_expiry: data.licenseExpiry,
         documents: [],
         status: 'pending',
+        has_own_vehicle: data.hasOwnVehicle, // Ajout du flag véhicule propre
       };
 
       // Ajouter les infos véhicule seulement si le chauffeur a son propre véhicule
       if (data.hasOwnVehicle) {
         requestData.vehicle_type = data.vehicleType;
-        requestData.vehicle_make = data.vehicleMake;
         requestData.vehicle_model = data.vehicleModel;
         requestData.vehicle_year = data.vehicleYear;
         requestData.vehicle_plate = data.vehiclePlate;
