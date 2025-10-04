@@ -46,7 +46,7 @@ export const ModernHomeScreen = ({
         onServiceSelect('history');
         break;
       case 'profil':
-        // Navigate to profile
+        onServiceSelect('profil');
         break;
       default:
         // Stay on home
