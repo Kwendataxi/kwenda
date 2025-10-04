@@ -26,66 +26,56 @@ export const usePromoCode = () => {
   const validatePromoCode = async (code: string, orderAmount: number, serviceType: string) => {
     setIsLoading(true);
     try {
-      const { data: promoData, error } = await supabase
-        .from('promo_codes')
-        .select('*')
-        .eq('code', code.toUpperCase())
-        .eq('is_active', true)
-        .single();
-
-      if (error || !promoData) {
-        throw new Error('Code promo invalide ou expiré');
-      }
-
-      // Vérifier si le service est applicable
-      if (!promoData.applicable_services.includes(serviceType)) {
-        throw new Error('Ce code promo n\'est pas valide pour ce service');
-      }
-
-      // Vérifier le montant minimum
-      if (orderAmount < promoData.min_order_amount) {
-        throw new Error(`Montant minimum requis: ${promoData.min_order_amount} CDF`);
-      }
-
-      // Vérifier si l'utilisateur a déjà utilisé ce code
-      const { data: usage } = await supabase
-        .from('promo_code_usage')
-        .select('*')
-        .eq('promo_code_id', promoData.id)
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
-
-      if (usage && usage.length >= promoData.user_limit) {
-        throw new Error('Vous avez déjà utilisé ce code promo');
-      }
-
-      // Calculer la réduction
-      let discountAmount = 0;
-      if (promoData.discount_type === 'percentage') {
-        discountAmount = (orderAmount * promoData.discount_value) / 100;
-        if (promoData.max_discount_amount) {
-          discountAmount = Math.min(discountAmount, promoData.max_discount_amount);
+      const { data, error } = await supabase.functions.invoke('calculate-promo-discount', {
+        body: {
+          promoCode: code,
+          orderAmount,
+          serviceType
         }
-      } else if (promoData.discount_type === 'fixed_amount') {
-        discountAmount = promoData.discount_value;
-      } else if (promoData.discount_type === 'free_delivery') {
-        discountAmount = 0; // Gérée différemment selon le service
+      });
+
+      if (error) throw error;
+
+      if (!data.success) {
+        toast({
+          title: "Code promo invalide",
+          description: data.error || 'Veuillez vérifier le code',
+          variant: "destructive"
+        });
+        return { isValid: false, promoCode: null, discountAmount: 0 };
+      }
+
+      // Show success with driver compensation info
+      const driverComp = data.data.driverCompensation;
+      let description = `Réduction de ${data.data.savings} CDF appliquée`;
+      
+      if (driverComp?.can_credit && driverComp.rides_to_credit > 0) {
+        description += `\n🎁 ${driverComp.message}`;
+      } else if (driverComp?.threshold_not_met) {
+        description += `\n💡 Promo trop faible pour bonus chauffeur (min: ${driverComp.min_threshold} CDF)`;
       }
 
       toast({
-        title: "Code promo appliqué !",
-        description: `${promoData.title} - Réduction: ${discountAmount} CDF`,
+        title: `Code "${code}" appliqué !`,
+        description,
+        duration: 5000
       });
 
       return {
         isValid: true,
-        promoCode: promoData,
-        discountAmount,
+        promoCode: data.data.promoCode,
+        discountAmount: data.data.discountAmount,
+        finalAmount: data.data.finalAmount,
+        savings: data.data.savings,
+        freeDelivery: data.data.freeDelivery,
+        driverCompensation: driverComp
       };
     } catch (error: any) {
+      console.error('Error validating promo code:', error);
       toast({
         title: "Erreur",
-        description: error.message,
-        variant: "destructive",
+        description: 'Impossible de valider le code promo',
+        variant: "destructive"
       });
       return { isValid: false, promoCode: null, discountAmount: 0 };
     } finally {
@@ -93,34 +83,86 @@ export const usePromoCode = () => {
     }
   };
 
-  const applyPromoCode = async (promoCodeId: string, orderId: string, orderType: string, discountAmount: number) => {
+  const applyPromoCode = async (
+    promoCodeId: string,
+    orderId: string,
+    orderType: string,
+    discountAmount: number,
+    driverId?: string,
+    driverCompensation?: any
+  ) => {
     try {
-      const { error } = await supabase
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        toast({
+          title: "Erreur",
+          description: 'Vous devez être connecté',
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      // Record usage
+      const { data: usageData, error } = await supabase
         .from('promo_code_usage')
         .insert({
           promo_code_id: promoCodeId,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: user.user.id,
           order_id: orderId,
           order_type: orderType,
           discount_amount: discountAmount,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Record driver compensation if applicable
+      if (driverId && driverCompensation?.can_credit && driverCompensation.rides_to_credit > 0) {
+        const { error: compError } = await supabase
+          .from('promo_driver_compensations')
+          .insert({
+            promo_usage_id: usageData.id,
+            driver_id: driverId,
+            order_id: orderId,
+            order_type: orderType,
+            promo_discount_amount: discountAmount,
+            rides_credited: driverCompensation.rides_to_credit,
+            status: 'pending',
+            metadata: {
+              compensation_config: driverCompensation.config_used,
+              created_from: 'apply_promo_code'
+            }
+          });
+
+        if (compError) {
+          console.error('Error recording driver compensation:', compError);
+        } else {
+          console.log(`Recorded pending compensation: ${driverCompensation.rides_to_credit} rides for driver ${driverId}`);
+        }
+      }
 
       // Incrémenter le compteur d'utilisation
       const { data: currentCode } = await supabase
         .from('promo_codes')
         .select('usage_count')
         .eq('id', promoCodeId)
-        .single();
+        .maybeSingle();
 
       await supabase
         .from('promo_codes')
         .update({ usage_count: (currentCode?.usage_count || 0) + 1 })
         .eq('id', promoCodeId);
 
+      return true;
     } catch (error: any) {
       console.error('Erreur lors de l\'application du code promo:', error);
+      toast({
+        title: "Erreur",
+        description: 'Impossible d\'appliquer le code promo',
+        variant: "destructive"
+      });
+      return false;
     }
   };
 

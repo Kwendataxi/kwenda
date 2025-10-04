@@ -1391,6 +1391,36 @@ export type Database = {
           },
         ]
       }
+      driver_bonus_rides: {
+        Row: {
+          created_at: string
+          driver_id: string
+          expires_at: string | null
+          id: string
+          rides_available: number
+          total_earned: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          expires_at?: string | null
+          id?: string
+          rides_available?: number
+          total_earned?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          expires_at?: string | null
+          id?: string
+          rides_available?: number
+          total_earned?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       driver_challenges: {
         Row: {
           challenge_id: string
@@ -4738,6 +4768,98 @@ export type Database = {
           valid_until?: string
         }
         Relationships: []
+      }
+      promo_compensation_config: {
+        Row: {
+          created_at: string
+          discount_type: string
+          id: string
+          is_active: boolean
+          max_rides_per_promo: number | null
+          min_discount_threshold: number
+          rides_per_amount: number
+          service_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          discount_type: string
+          id?: string
+          is_active?: boolean
+          max_rides_per_promo?: number | null
+          min_discount_threshold?: number
+          rides_per_amount?: number
+          service_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          discount_type?: string
+          id?: string
+          is_active?: boolean
+          max_rides_per_promo?: number | null
+          min_discount_threshold?: number
+          rides_per_amount?: number
+          service_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      promo_driver_compensations: {
+        Row: {
+          compensation_type: string
+          created_at: string
+          credited_at: string | null
+          driver_id: string
+          id: string
+          metadata: Json | null
+          order_id: string
+          order_type: string
+          promo_discount_amount: number
+          promo_usage_id: string | null
+          rides_credited: number
+          status: string
+          subscription_days_added: number | null
+        }
+        Insert: {
+          compensation_type?: string
+          created_at?: string
+          credited_at?: string | null
+          driver_id: string
+          id?: string
+          metadata?: Json | null
+          order_id: string
+          order_type: string
+          promo_discount_amount: number
+          promo_usage_id?: string | null
+          rides_credited?: number
+          status?: string
+          subscription_days_added?: number | null
+        }
+        Update: {
+          compensation_type?: string
+          created_at?: string
+          credited_at?: string | null
+          driver_id?: string
+          id?: string
+          metadata?: Json | null
+          order_id?: string
+          order_type?: string
+          promo_discount_amount?: number
+          promo_usage_id?: string | null
+          rides_credited?: number
+          status?: string
+          subscription_days_added?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_driver_compensations_promo_usage_id_fkey"
+            columns: ["promo_usage_id"]
+            isOneToOne: false
+            referencedRelation: "promo_code_usage"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       promotional_ads: {
         Row: {
@@ -8777,6 +8899,14 @@ export type Database = {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
+      calculate_promo_driver_compensation: {
+        Args: {
+          p_discount_type: string
+          p_promo_discount_amount: number
+          p_service_type: string
+        }
+        Returns: Json
+      }
       calculate_rental_price: {
         Args: {
           base_price: number
@@ -8983,6 +9113,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      credit_driver_bonus_rides: {
+        Args: { p_driver_id: string; p_rides_amount: number }
+        Returns: Json
       }
       deactivate_old_tokens: {
         Args: { p_platform: string; p_user_id: string }

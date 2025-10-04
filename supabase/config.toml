@@ -79,3 +79,9 @@ verify_jwt = true
 
 [functions.admin-get-user-metadata]
 verify_jwt = true
+
+[functions.calculate-promo-discount]
+verify_jwt = true
+
+[functions.credit-promo-driver-compensation]
+verify_jwt = false
