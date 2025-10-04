@@ -615,11 +615,6 @@ const ClientApp = () => {
         {/* <ConnectionIndicator /> */}
         
         {/* Performance Indicator hidden on client for a cleaner UI */}
-        
-        {/* Floating Chat Button - Marketplace only */}
-        {serviceType === 'marketplace' && (
-          <MarketplaceFloatingChatButton />
-        )}
       
       {/* Loading State */}
       {isLoading && (
