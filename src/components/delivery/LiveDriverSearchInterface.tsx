@@ -22,6 +22,7 @@ import {
 import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getVehicleClassForDelivery } from '@/utils/deliveryVehicleMapper';
 
 interface LiveDriverSearchInterfaceProps {
   pickupLocation: {
@@ -68,11 +69,16 @@ export default function LiveDriverSearchInterface({
       setSearchRadius(radius);
       
       try {
+        // Utiliser le mapper pour obtenir la bonne classe de véhicule
+        const requiredVehicleClass = getVehicleClassForDelivery(deliveryType);
+        
+        console.log(`🔍 Recherche livreurs ${deliveryType} → vehicle_class: ${requiredVehicleClass}, rayon: ${radius}km`);
+        
         const { data, error } = await supabase.rpc('find_nearby_drivers_secure', {
           user_lat: pickupLocation.lat,
           user_lng: pickupLocation.lng,
           max_distance_km: radius,
-          vehicle_class_filter: deliveryType === 'maxicharge' ? 'maxicharge' : 'standard'
+          vehicle_class_filter: requiredVehicleClass
         });
 
         if (error) throw error;

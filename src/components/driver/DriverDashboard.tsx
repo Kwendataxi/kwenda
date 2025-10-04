@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DriverRideNotifications from './DriverRideNotifications';
 import DemandHeatmapView from './DemandHeatmapView';
+import { DriverHeartbeatMonitor } from './DriverHeartbeatMonitor';
 import { Car, MapPin, Clock, Star, TrendingUp } from 'lucide-react';
 
 export function DriverDashboard() {
@@ -16,6 +17,9 @@ export function DriverDashboard() {
           <h1 className="text-3xl font-bold text-primary">Tableau de Bord Chauffeur</h1>
           <p className="text-muted-foreground">Gérez vos courses et restez disponible</p>
         </div>
+
+        {/* Heartbeat Monitor - CRITIQUE pour la détection de disponibilité */}
+        <DriverHeartbeatMonitor />
 
         {/* Status Card */}
         <Card>
