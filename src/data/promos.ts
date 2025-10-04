@@ -12,11 +12,11 @@ export const defaultPromos: Promo[] = [
   },
   {
     id: '2',
-    title: 'Livraison gratuite',
-    description: 'Pour les commandes +10 000 CDF',
+    title: 'Flash Express',
+    description: 'Livraison en moto ultra-rapide',
     image: '',
-    gradient: 'from-yellow-400 via-amber-400 to-yellow-500',
-    cta: 'Découvrir',
+    gradient: 'from-orange-500 via-red-500 to-pink-600',
+    cta: 'Livrer',
     service: 'delivery'
   },
   {

@@ -4,7 +4,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselApi } from '@/componen
 import { defaultPromos } from '@/data/promos';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { ShoppingBag, Truck } from 'lucide-react';
+import { ShoppingBag, Truck, Zap, Bike } from 'lucide-react';
 
 interface PromoSliderProps {
   onServiceSelect: (service: string) => void;
@@ -95,27 +95,60 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                   </div>
                 )}
 
-                {/* Slide 2: Free Delivery */}
+                {/* Slide 2: Flash Express Delivery */}
                 {promo.id === '2' && (
-                  <div className="absolute inset-0 flex items-center justify-between text-white p-4">
-                    <div className="text-4xl">📦</div>
-                    
-                    <div className="flex-1 px-3 text-center">
-                      <h3 className="text-xl font-extrabold drop-shadow-2xl mb-1">
-                        {promo.title}
-                      </h3>
-                      <p className="text-xs font-bold opacity-90 drop-shadow-lg">
-                        {promo.description}
-                      </p>
-                    </div>
-                    
-                    <div className="px-4 py-2 bg-white/95 text-yellow-600 rounded-xl font-black text-xs shadow-xl hover:scale-105 hover:bg-white transition-all duration-200 backdrop-blur-sm whitespace-nowrap">
-                      {promo.cta} →
+                  <div className="absolute inset-0 flex flex-col justify-between text-white p-4">
+                    {/* Speed lines background pattern */}
+                    <div className="absolute inset-0 opacity-20">
+                      {[...Array(12)].map((_, i) => (
+                        <div 
+                          key={i} 
+                          className="absolute h-[2px] bg-white"
+                          style={{
+                            top: `${10 + i * 7}%`,
+                            left: '0%',
+                            width: `${40 + i * 5}%`,
+                            transform: 'skewX(-20deg)'
+                          }}
+                        />
+                      ))}
                     </div>
 
-                    {/* Déco elements */}
-                    <div className="absolute top-2 left-2 w-12 h-12 bg-white/10 rounded-full blur-xl" />
-                    <div className="absolute bottom-2 right-2 w-12 h-12 bg-white/10 rounded-full blur-xl" />
+                    {/* Header with badge + icon */}
+                    <div className="flex items-start justify-between relative z-10">
+                      <div className="bg-yellow-400 text-black px-2.5 py-1 rounded-full font-black text-[10px] shadow-lg animate-pulse">
+                        EXPRESS
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Zap className="w-6 h-6 text-yellow-300 animate-pulse" fill="currentColor" />
+                        <Bike className="w-8 h-8 text-white drop-shadow-lg" strokeWidth={2.5} />
+                      </div>
+                    </div>
+
+                    {/* Main content */}
+                    <div className="relative z-10">
+                      <h3 className="text-2xl font-black drop-shadow-2xl leading-tight mb-1">
+                        Flash Express
+                      </h3>
+                      <p className="text-sm font-bold opacity-95 drop-shadow-lg mb-3">
+                        Livraison en moto ultra-rapide
+                      </p>
+
+                      {/* Footer with timing + CTA */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-xs font-bold bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+                          ⏱️ Livré en 30 min*
+                        </div>
+                        
+                        <div className="inline-flex items-center gap-1 px-5 py-2 bg-white text-orange-600 rounded-xl font-black text-xs shadow-xl hover:scale-105 transition-all duration-200">
+                          {promo.cta} →
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Glow effects */}
+                    <div className="absolute bottom-4 left-4 w-20 h-20 bg-yellow-400/30 rounded-full blur-3xl" />
+                    <div className="absolute top-4 right-4 w-16 h-16 bg-red-400/20 rounded-full blur-2xl" />
                   </div>
                 )}
 
