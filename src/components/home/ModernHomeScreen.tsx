@@ -69,7 +69,7 @@ export const ModernHomeScreen = ({
       
       {/* Contenu scrollable au milieu */}
       <div 
-        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide content-scrollable-nav pb-24"
+        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide content-scrollable-nav pb-28 transition-all duration-200"
         style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       >
         {/* Subtle Background Elements */}
