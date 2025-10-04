@@ -346,6 +346,53 @@ export const useUniversalChat = () => {
     fetchConversations();
   }, [fetchConversations]);
 
+  // Créer une conversation depuis un booking
+  const createConversationFromBooking = useCallback(async (
+    bookingId: string,
+    bookingType: 'transport' | 'delivery'
+  ) => {
+    if (!user) {
+      console.error('User not authenticated');
+      return null;
+    }
+
+    try {
+      // Récupérer les infos du booking
+      const tableName = bookingType === 'transport' ? 'transport_bookings' : 'delivery_orders';
+      const { data: booking, error: bookingError } = await supabase
+        .from(tableName)
+        .select('id, user_id, driver_id')
+        .eq('id', bookingId)
+        .single();
+
+      if (bookingError || !booking) {
+        console.error('Error fetching booking:', bookingError);
+        return null;
+      }
+
+      // Déterminer l'autre participant
+      const otherParticipantId = user.id === booking.user_id 
+        ? booking.driver_id 
+        : booking.user_id;
+
+      if (!otherParticipantId) {
+        console.error('No other participant found');
+        return null;
+      }
+
+      // Créer ou récupérer la conversation
+      return await createOrFindConversation(
+        bookingType,
+        otherParticipantId,
+        bookingId,
+        `${bookingType === 'transport' ? 'Course' : 'Livraison'} #${bookingId.slice(0, 8)}`
+      );
+    } catch (error) {
+      console.error('Error creating conversation from booking:', error);
+      return null;
+    }
+  }, [user, createOrFindConversation]);
+
   return {
     conversations,
     messages,
@@ -355,6 +402,7 @@ export const useUniversalChat = () => {
     sendMessage,
     sendLocationMessage,
     createOrFindConversation,
+    createConversationFromBooking,
     markMessagesAsRead,
   };
 };
