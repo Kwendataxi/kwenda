@@ -178,7 +178,25 @@ All colors MUST be HSL.
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+      transform: none !important;
     }
+  }
+
+  /* Anti-degradation guards */
+  @keyframes pulse-stable {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+  }
+
+  .animate-pulse-stable {
+    animation: pulse-stable 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Limit transform values to prevent degradation */
+  .transform-safe {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
   }
 
   /* Touch optimization */

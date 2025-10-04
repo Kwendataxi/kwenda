@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { motion, useSpring, useTransform } from 'framer-motion';
 
 interface AnimatedBalanceProps {
@@ -10,22 +10,24 @@ interface AnimatedBalanceProps {
 export const AnimatedBalance: React.FC<AnimatedBalanceProps> = ({
   value,
   currency = 'CDF',
-  duration = 1.5
+  duration = 1
 }) => {
   const [displayValue, setDisplayValue] = useState(0);
-  const spring = useSpring(0, { duration: duration * 1000 });
+  const spring = useSpring(0, { duration: duration * 1000, bounce: 0 });
   const display = useTransform(spring, (latest) => Math.floor(latest).toLocaleString('fr-CD'));
 
   useEffect(() => {
     spring.set(value);
   }, [value, spring]);
 
+  const handleChange = useCallback((latest: number) => {
+    setDisplayValue(Math.floor(latest));
+  }, []);
+
   useEffect(() => {
-    const unsubscribe = spring.onChange((latest) => {
-      setDisplayValue(Math.floor(latest));
-    });
+    const unsubscribe = spring.on("change", handleChange);
     return unsubscribe;
-  }, [spring]);
+  }, [spring, handleChange]);
 
   return (
     <motion.div

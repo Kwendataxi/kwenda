@@ -29,19 +29,30 @@
   scroll-behavior: auto !important;
 }
 
+/* Stable mode - NO visual degradation */
+.stable-mode {
+  transform: translateZ(0);
+  will-change: auto;
+}
+
+.stable-mode * {
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+
 /* Optimized images */
 .optimized-image {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
 }
 
-/* Low bandwidth mode */
+/* Low bandwidth mode - DISABLED filters to prevent degradation */
 .low-bandwidth {
-  filter: contrast(1.1) brightness(1.05);
+  /* Filters disabled - cause visual degradation */
 }
 
 .low-bandwidth img {
-  filter: blur(0.5px);
+  /* Blur disabled - cause visual degradation */
 }
 
 /* Touch optimizations for mobile */
@@ -50,13 +61,14 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Battery saving mode */
+/* Battery saving mode - DISABLED filters */
 .battery-saving {
-  filter: brightness(0.8) contrast(1.2);
+  /* Filter disabled - cause visual degradation */
 }
 
 .battery-saving * {
   will-change: auto !important;
+  transform: translateZ(0);
 }
 
 /* Memory efficient layouts */

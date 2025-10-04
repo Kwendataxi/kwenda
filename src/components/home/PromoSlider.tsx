@@ -59,19 +59,19 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                   'relative h-32 sm:h-36 rounded-2xl overflow-hidden shadow-lg cursor-pointer group',
                   'bg-gradient-to-br',
                   promo.gradient,
-                  'transition-transform duration-300 hover:scale-[1.02]'
+                  'transition-transform duration-200 hover:scale-[1.01]'
                 )}
               >
-                {/* Base overlays */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent group-hover:scale-110 transition-transform duration-700" />
+                {/* Base overlays - STABLE */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.15),transparent_60%)] opacity-60" />
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 
                 {/* Layout Slide 1: Hero Bold (30% promo) */}
                 {promo.id === '1' && (
                   <>
-                    {/* Badge promo top-right avec bounce */}
-                    <div className="absolute top-3 right-3 bg-yellow-400 text-black px-2.5 py-1 rounded-full font-black text-[10px] rotate-12 shadow-xl animate-bounce z-10">
+                    {/* Badge promo top-right STABLE */}
+                    <div className="absolute top-3 right-3 bg-yellow-400 text-black px-2.5 py-1 rounded-full font-black text-[10px] rotate-12 shadow-xl z-10 animate-pulse-stable">
                       {promo.description}
                     </div>
 
@@ -86,13 +86,13 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                     </div>
 
                     {/* Gros CTA bottom-left */}
-                    <div className="absolute bottom-4 left-4 bg-white text-primary px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm shadow-2xl hover:scale-110 active:scale-95 transition-all group-hover:shadow-[0_8px_32px_rgba(255,255,255,0.4)]">
+                    <div className="absolute bottom-4 left-4 bg-white text-primary px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200">
                       {promo.cta} →
                     </div>
 
-                    {/* Déco cercles animés */}
-                    <div className="absolute bottom-6 right-6 w-20 h-20 bg-white/20 rounded-full blur-3xl animate-pulse" />
-                    <div className="absolute top-1/2 right-8 w-16 h-16 bg-white/10 rounded-full blur-2xl" />
+                    {/* Déco cercles STABLE */}
+                    <div className="absolute bottom-6 right-6 w-20 h-20 bg-white/20 rounded-full blur-3xl opacity-60" />
+                    <div className="absolute top-1/2 right-8 w-16 h-16 bg-white/10 rounded-full blur-2xl opacity-40" />
                   </>
                 )}
 
@@ -107,7 +107,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
 
                     {/* Contenu centré */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4">
-                      <div className="mb-2 text-3xl sm:text-4xl animate-bounce">📦</div>
+                      <div className="mb-2 text-3xl sm:text-4xl">📦</div>
                       <h3 className="text-xl sm:text-2xl font-extrabold drop-shadow-2xl mb-1 tracking-tight">
                         {promo.title}
                       </h3>
@@ -116,7 +116,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                       </p>
                       
                       {/* CTA pill ultra-arrondi */}
-                      <div className="px-6 py-2 bg-white/90 text-yellow-600 rounded-full font-black text-xs sm:text-sm shadow-xl hover:scale-110 hover:bg-white transition-all backdrop-blur-sm">
+                      <div className="px-6 py-2 bg-white/90 text-yellow-600 rounded-full font-black text-xs sm:text-sm shadow-xl hover:scale-105 hover:bg-white transition-all duration-200 backdrop-blur-sm">
                         {promo.cta} →
                       </div>
                     </div>
@@ -135,10 +135,10 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                       100K
                     </div>
 
-                    {/* Confettis déco */}
-                    <div className="absolute top-3 left-6 text-2xl animate-bounce" style={{ animationDelay: '0.1s' }}>🎉</div>
-                    <div className="absolute top-8 right-12 text-xl animate-bounce" style={{ animationDelay: '0.3s' }}>✨</div>
-                    <div className="absolute bottom-6 left-12 text-lg animate-bounce" style={{ animationDelay: '0.5s' }}>🎊</div>
+                    {/* Confettis déco STABLE */}
+                    <div className="absolute top-3 left-6 text-2xl opacity-90">🎉</div>
+                    <div className="absolute top-8 right-12 text-xl opacity-80">✨</div>
+                    <div className="absolute bottom-6 left-12 text-lg opacity-90">🎊</div>
 
                     {/* Disposition diagonale */}
                     <div className="absolute inset-0 p-4 flex flex-col justify-between text-white">
@@ -157,7 +157,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                         <p className="text-xs sm:text-sm font-bold opacity-95 drop-shadow-lg mb-2">
                           {promo.description}
                         </p>
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 text-purple-900 rounded-xl font-black text-xs sm:text-sm shadow-2xl hover:scale-110 hover:shadow-[0_0_30px_rgba(234,179,8,0.6)] transition-all animate-pulse">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 text-purple-900 rounded-xl font-black text-xs sm:text-sm shadow-2xl hover:scale-105 transition-all duration-200 animate-pulse-stable">
                           {promo.cta} 🎁
                         </div>
                       </div>
