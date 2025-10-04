@@ -4,6 +4,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselApi } from '@/componen
 import { defaultPromos } from '@/data/promos';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { ShoppingBag, Truck } from 'lucide-react';
 
 interface PromoSliderProps {
   onServiceSelect: (service: string) => void;
@@ -183,6 +184,41 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                     {/* Déco blur circles */}
                     <div className="absolute top-3 right-3 w-14 h-14 bg-white/15 rounded-full blur-2xl" />
                     <div className="absolute bottom-1/2 left-1/3 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
+                  </div>
+                )}
+
+                {/* Slide 5: Marketplace */}
+                {promo.id === '5' && (
+                  <div className={cn(
+                    "absolute inset-0 p-4 flex items-center justify-between text-white",
+                    "h-40"
+                  )}>
+                    {/* Badge NOUVEAU */}
+                    <div className="absolute top-2 right-2 bg-white/90 text-primary text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                      NOUVEAU
+                    </div>
+                    
+                    {/* Icônes décoratives */}
+                    <ShoppingBag className="absolute bottom-4 right-6 w-12 h-12 text-white/30" />
+                    <Truck className="absolute top-4 right-16 w-8 h-8 text-white/40" />
+                    
+                    {/* Contenu principal */}
+                    <div className="flex-1 z-10">
+                      <h3 className="text-2xl font-bold drop-shadow-2xl leading-tight mb-1">
+                        {promo.title}
+                      </h3>
+                      <p className="text-sm font-medium opacity-95 drop-shadow-lg mb-3">
+                        {promo.description}
+                      </p>
+                      
+                      {/* CTA */}
+                      <div className="inline-block bg-white text-primary px-5 py-2 rounded-xl font-black text-xs shadow-xl hover:scale-105 active:scale-95 transition-all duration-200">
+                        {promo.cta} →
+                      </div>
+                    </div>
+
+                    {/* Déco blur circles */}
+                    <div className="absolute bottom-2 left-1/4 w-16 h-16 bg-white/10 rounded-full blur-2xl" />
                   </div>
                 )}
               </div>

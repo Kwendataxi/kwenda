@@ -36,5 +36,14 @@ export const defaultPromos: Promo[] = [
     gradient: 'from-green-500 via-emerald-500 to-green-600',
     cta: 'Réserver',
     service: 'rental'
+  },
+  {
+    id: '5',
+    title: 'Achetez. Vendez. On livre.',
+    description: 'Marketplace 100% sécurisée',
+    image: '',
+    gradient: 'from-blue-500 via-indigo-500 to-purple-600',
+    cta: 'Shopping',
+    service: 'marketplace'
   }
 ];
