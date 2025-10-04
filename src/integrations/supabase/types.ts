@@ -9057,6 +9057,7 @@ export type Database = {
               pickup_lng: number
               radius_km?: number
               service_type_param?: string
+              user_city_param?: string
               vehicle_class_filter?: string
             }
         Returns: {

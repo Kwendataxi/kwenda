@@ -6,6 +6,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Mapping des types de livraison vers les classes de véhicules
+const DELIVERY_TO_VEHICLE_MAPPING: Record<string, string> = {
+  'flash': 'moto',        // Livraison express → Moto-taxi
+  'flex': 'standard',     // Livraison standard → Véhicule standard
+  'maxicharge': 'truck'   // Gros colis → Camion/Truck
+};
+
+const getVehicleClassForDelivery = (deliveryType: string): string | null => {
+  const normalizedType = deliveryType.toLowerCase();
+  return DELIVERY_TO_VEHICLE_MAPPING[normalizedType] || null;
+};
+
 interface DeliveryOrder {
   id: string;
   pickup_coordinates: any;
@@ -17,6 +29,7 @@ interface DeliveryOrder {
   recipient_phone?: string;
   sender_name?: string;
   recipient_name?: string;
+  city?: string;
 }
 
 serve(async (req) => {
@@ -41,96 +54,7 @@ serve(async (req) => {
     console.log(`⏰ Timestamp: ${new Date().toISOString()}`);
     console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 
-    // Phase 4: Recherche en cascade 5km → 10km → 15km → 20km
-    const radiusLevels = [5, 10, 15, 20];
-    let drivers: any[] = [];
-    let finalRadius = 5;
-
-    for (const radius of radiusLevels) {
-      console.log(`🔍 Searching drivers within ${radius}km...`);
-      console.log(`   RPC Parameters:`, {
-        pickup_lat: pickupLat,
-        pickup_lng: pickupLng,
-        service_type_param: 'delivery',
-        radius_km: radius
-      });
-      
-      const { data, error } = await supabase.rpc('find_nearby_drivers', {
-        pickup_lat: pickupLat,
-        pickup_lng: pickupLng,
-        service_type_param: 'delivery',
-        radius_km: radius
-      });
-      
-      console.log(`   RPC Response:`, { data, error });
-
-      if (error) {
-        console.error(`❌ RPC Error at ${radius}km:`, {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        });
-        continue;
-      }
-
-      console.log(`   RPC Success - Found ${data?.length || 0} drivers`);
-      
-      if (data && data.length > 0) {
-        drivers = data;
-        finalRadius = radius;
-        console.log(`✅ MATCH! ${drivers.length} driver(s) found at ${radius}km radius`);
-        console.log(`   Driver IDs:`, drivers.map(d => d.driver_id));
-        break;
-      } else {
-        console.log(`   No drivers found, expanding to next radius...`);
-      }
-    }
-    
-    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-
-    if (!drivers || drivers.length === 0) {
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('❌ AUCUN CHAUFFEUR TROUVÉ');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('Raisons possibles:');
-      console.log('  1. Aucun chauffeur en ligne dans le rayon de 20km');
-      console.log('  2. Tous les chauffeurs sont occupés (is_available=false)');
-      console.log('  3. Aucun chauffeur avec delivery_enabled=true');
-      console.log('  4. last_ping trop ancien (>30min)');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: 'Aucun livreur disponible dans votre zone (rayon 20km)',
-          drivers_searched: 0,
-          debug: {
-            searched_radiuses: radiusLevels,
-            service_type: 'delivery',
-            timestamp: new Date().toISOString()
-          }
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    console.log(`✅ DRIVERS FOUND: ${drivers.length} at ${finalRadius}km`);
-    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    drivers.forEach((driver, idx) => {
-      console.log(`Driver #${idx + 1}:`, {
-        id: driver.driver_id,
-        distance: driver.distance_km + 'km',
-        vehicle: driver.vehicle_class,
-        available: driver.is_available,
-        rating: driver.rating_average,
-        rides_remaining: driver.rides_remaining
-      });
-    });
-    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    
-    // PHASE 3: Récupérer les détails et vérifier si déjà assigné
+    // Récupérer les détails de la commande pour la ville
     const { data: orderDetails, error: orderError } = await supabase
       .from('delivery_orders')
       .select('*')
@@ -151,7 +75,7 @@ serve(async (req) => {
       );
     }
 
-    // PHASE 3: Ne pas notifier si déjà assigné
+    // Ne pas notifier si déjà assigné
     if (orderDetails.driver_id) {
       console.log(`⚠️ Order ${orderId} already assigned to driver ${orderDetails.driver_id}`);
       return new Response(
@@ -167,6 +91,109 @@ serve(async (req) => {
         }
       );
     }
+
+    // Déterminer la classe de véhicule requise et la ville
+    const requiredVehicleClass = getVehicleClassForDelivery(deliveryType);
+    const userCity = orderDetails.city || 'Kinshasa';
+
+    console.log(`🚗 Type de livraison: ${deliveryType} → Véhicule requis: ${requiredVehicleClass}`);
+    console.log(`🌍 Ville de commande: ${userCity}`);
+
+    // Recherche en cascade avec filtres véhicule + ville (jusqu'à 50km max dans la même ville)
+    const radiusLevels = [5, 10, 15, 20, 30, 50];
+    let drivers: any[] = [];
+    let finalRadius = 5;
+
+    for (const radius of radiusLevels) {
+      console.log(`🔍 Searching ${requiredVehicleClass} vehicles within ${radius}km in ${userCity}...`);
+      console.log(`   RPC Parameters:`, {
+        pickup_lat: pickupLat,
+        pickup_lng: pickupLng,
+        service_type_param: 'delivery',
+        radius_km: radius,
+        vehicle_class_filter: requiredVehicleClass,
+        user_city_param: userCity
+      });
+      
+      const { data, error } = await supabase.rpc('find_nearby_drivers', {
+        pickup_lat: pickupLat,
+        pickup_lng: pickupLng,
+        service_type_param: 'delivery',
+        radius_km: radius,
+        vehicle_class_filter: requiredVehicleClass,
+        user_city_param: userCity
+      });
+      
+      console.log(`   RPC Response:`, { data, error });
+
+      if (error) {
+        console.error(`❌ RPC Error at ${radius}km:`, {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        continue;
+      }
+
+      console.log(`   RPC Success - Found ${data?.length || 0} ${requiredVehicleClass} drivers in ${userCity}`);
+      
+      if (data && data.length > 0) {
+        drivers = data;
+        finalRadius = radius;
+        console.log(`✅ MATCH! ${drivers.length} ${requiredVehicleClass} driver(s) found at ${radius}km in ${userCity}`);
+        console.log(`   Driver IDs:`, drivers.map(d => d.driver_id));
+        break;
+      } else {
+        console.log(`   No ${requiredVehicleClass} drivers in ${userCity}, expanding to ${radiusLevels[radiusLevels.indexOf(radius) + 1] || 'max'}km...`);
+      }
+    }
+    
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+
+    if (!drivers || drivers.length === 0) {
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('❌ AUCUN CHAUFFEUR TROUVÉ');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('Raisons possibles:');
+      console.log(`  1. Aucun ${requiredVehicleClass} en ligne dans ${userCity} (rayon 50km)`);
+      console.log('  2. Tous les chauffeurs sont occupés (is_available=false)');
+      console.log('  3. Aucun chauffeur avec delivery_enabled=true');
+      console.log('  4. last_ping trop ancien (>30min)');
+      console.log(`  5. Aucun ${requiredVehicleClass} dans service_areas="${userCity}"`);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: `Aucun ${requiredVehicleClass} disponible dans ${userCity} (rayon 50km)`,
+          drivers_searched: 0,
+          debug: {
+            searched_radiuses: radiusLevels,
+            service_type: 'delivery',
+            required_vehicle: requiredVehicleClass,
+            city: userCity,
+            timestamp: new Date().toISOString()
+          }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    console.log(`✅ DRIVERS FOUND: ${drivers.length} ${requiredVehicleClass} at ${finalRadius}km in ${userCity}`);
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    drivers.forEach((driver, idx) => {
+      console.log(`Driver #${idx + 1}:`, {
+        id: driver.driver_id,
+        distance: driver.distance_km + 'km',
+        vehicle: driver.vehicle_class,
+        available: driver.is_available,
+        rating: driver.rating_average,
+        rides_remaining: driver.rides_remaining
+      });
+    });
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
     
     // Phase 4: Scoring multi-critères pour sélectionner le meilleur
     const scoredDrivers = drivers.map(driver => {
