@@ -63,17 +63,19 @@ export const ModernHomeScreen = ({
   },[user])
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Subtle Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl" />
-      </div>
+    <div className="flex flex-col h-screen bg-background">
+      {/* Header - Fixe en haut */}
+      <ModernHeader />
       
-      <div className="relative z-10">
-        <ModernHeader />
+      {/* Contenu scrollable au milieu */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide content-scrollable-nav">
+        {/* Subtle Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl" />
+        </div>
         
-        <div className="space-y-1 pb-20">
+        <div className="relative space-y-1 pb-2">
           {/* Slider publicitaire moderne */}
           <PromoSlider onServiceSelect={onServiceSelect} />
           
@@ -90,14 +92,15 @@ export const ModernHomeScreen = ({
             onViewAll={onMarketplaceViewAll}
           />
         </div>
-
-        <ModernBottomNavigation
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          notificationCount={3}
-          favoritesCount={5}
-        />
       </div>
+
+      {/* Navigation - Fixe en bas */}
+      <ModernBottomNavigation
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        notificationCount={3}
+        favoritesCount={5}
+      />
     </div>
   );
 };

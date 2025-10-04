@@ -211,6 +211,22 @@ All colors MUST be HSL.
     -webkit-overflow-scrolling: touch;
   }
 
+  /* Layout avec navigation fixe */
+  .layout-with-bottom-nav {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh; /* Mobile viewport dynamique */
+  }
+
+  .content-scrollable-nav {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;

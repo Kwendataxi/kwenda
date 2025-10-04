@@ -38,7 +38,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   };
 
   return (
-    <div className="w-full px-4 pt-2">
+    <div className="w-full px-4 pt-1">
       <Carousel
         setApi={setApi}
         opts={{ loop: true }}
@@ -56,7 +56,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
               <div
                 onClick={() => handlePromoClick(promo)}
                 className={cn(
-                  'relative h-32 sm:h-36 rounded-2xl overflow-hidden shadow-lg cursor-pointer group',
+                  'relative h-28 sm:h-32 rounded-2xl overflow-hidden shadow-lg cursor-pointer group',
                   'bg-gradient-to-br',
                   promo.gradient,
                   'transition-transform duration-200 hover:scale-[1.01]'
@@ -213,7 +213,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
         </CarouselContent>
 
         {/* Pagination dots - compact */}
-        <div className="flex justify-center gap-1.5 mt-3">
+        <div className="flex justify-center gap-1.5 mt-2">
           {defaultPromos.map((_, index) => (
             <button
               key={index}

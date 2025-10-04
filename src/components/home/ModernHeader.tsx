@@ -93,13 +93,13 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
       {/* Fond gradient animé subtil */}
       <div className="absolute inset-0 bg-gradient-to-r from-congo-red/5 via-congo-yellow/5 to-congo-green/5 opacity-50 animate-congo-gradient bg-[length:200%_100%]" />
       
-      <div className="relative px-6 py-3 pt-8 z-10">
+      <div className="relative px-6 py-2 pt-6 z-10">
         {/* Structure en 2 colonnes améliorée */}
         <div className="flex items-center justify-between">
           {/* Salutation personnalisée et localisation */}
           <div className="flex-1 min-w-0">
             {/* Logo Kwenda avec effet shimmer */}
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-2 mb-2">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full blur-md animate-pulse" />
                 <AnimatedKwendaIcon />
