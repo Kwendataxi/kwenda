@@ -733,23 +733,6 @@ const ClientApp = () => {
 
       {/* Marketplace components now handled by EnhancedMarketplaceInterface */}
       
-
-      {/* Modern Bottom Navigation - Restored original navigation */}
-      <ModernBottomNavigation
-        activeTab={currentView === 'profil' ? 'profil' : currentView === 'activity' ? 'activity' : 'home'}
-        onTabChange={(tab) => {
-          if (tab === 'profil') {
-            setCurrentView('profil');
-          } else if (tab === 'activity') {
-            setCurrentView('activity');
-          } else {
-            setCurrentView('home');
-          }
-        }}
-        notificationCount={0}
-        favoritesCount={0}
-      />
-      
         
       {/* Lottery Dashboard Modal */}
       {isLotteryOpen && (
