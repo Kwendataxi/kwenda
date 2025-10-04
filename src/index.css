@@ -221,10 +221,11 @@ All colors MUST be HSL.
 
   .content-scrollable-nav {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
+    touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
   }
 
   .scrollbar-hide {
