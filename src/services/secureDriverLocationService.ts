@@ -69,7 +69,16 @@ class SecureDriverLocationService {
         throw new Error('Erreur lors de la recherche de chauffeurs');
       }
 
-      const drivers = data as SecureDriverInfo[];
+      // Mapper les données RPC vers l'interface SecureDriverInfo
+      const drivers: SecureDriverInfo[] = (data || []).map((driver: any) => ({
+        driver_id: driver.driver_id,
+        distance_km: driver.distance_km,
+        estimated_arrival_minutes: driver.estimated_arrival_minutes || Math.round(driver.distance_km * 2.5),
+        vehicle_class: driver.vehicle_class,
+        rating_average: driver.rating_average || 0,
+        is_available: driver.is_available
+      }));
+      
       console.log(`✅ ${drivers.length} chauffeurs trouvés de manière sécurisée`);
 
       return drivers;

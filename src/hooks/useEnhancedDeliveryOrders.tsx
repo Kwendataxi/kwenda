@@ -381,12 +381,23 @@ export const useEnhancedDeliveryOrders = () => {
 
   // Fonction pour déclencher automatiquement la recherche de livreurs
   const triggerDriverSearch = async (orderId: string, mode: string, coordinates: any) => {
-    console.log('🚚 [Livraison] Début recherche chauffeur:', { orderId, mode, coordinates });
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🚚 [CLIENT] Déclenchement recherche livreur');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('📦 Order ID:', orderId);
+    console.log('🚛 Mode:', mode);
+    console.log('📍 Coordinates:', coordinates);
+    console.log('⏰ Timestamp:', new Date().toISOString());
     
     try {
       // Valider que nous avons les coordonnées nécessaires
       if (!coordinates?.lat || !coordinates?.lng) {
-        console.error('❌ [Livraison] Coordonnées manquantes:', coordinates);
+        console.error('❌ [CLIENT] Coordonnées manquantes:', coordinates);
+        toast({
+          title: "Erreur critique ❌",
+          description: "Impossible de rechercher un livreur sans coordonnées de pickup",
+          variant: "destructive"
+        });
         throw new Error('Coordonnées de pickup manquantes');
       }
 
@@ -397,43 +408,55 @@ export const useEnhancedDeliveryOrders = () => {
         deliveryType: mode
       };
 
-      console.log('📡 [Livraison] Appel Edge Function delivery-dispatcher:', dispatchPayload);
+      console.log('📡 [CLIENT] Appel Edge Function delivery-dispatcher:', dispatchPayload);
 
       const { data, error } = await supabase.functions.invoke('delivery-dispatcher', {
         body: dispatchPayload
       });
 
       if (error) {
-        console.error('❌ [Livraison] Erreur Edge Function:', error);
+        console.error('❌ [CLIENT] Erreur Edge Function:', error);
+        toast({
+          title: "Erreur dispatcher ❌",
+          description: `Code: ${error.message || 'Erreur inconnue'}`,
+          variant: "destructive"
+        });
         throw error;
       }
 
-      console.log('✅ [Livraison] Réponse Edge Function:', data);
+      console.log('✅ [CLIENT] Réponse Edge Function:', data);
       
-      if (data?.success && data.driver) {
-        console.log('🎉 [Livraison] Chauffeur assigné:', data.driver);
-        toast({
-          title: "Livreur assigné ✅",
-          description: `${data.driver.vehicle_make} ${data.driver.vehicle_model} à ${data.driver.distance?.toFixed(1)}km`,
-        });
-      } else if (data?.driversFound > 0) {
-        console.log('🔍 [Livraison] Livreurs trouvés:', data.driversFound);
-        toast({
-          title: "Livreurs disponibles 🔍",
-          description: `${data.driversFound} livreurs trouvés dans votre zone`,
-        });
+      if (data?.success) {
+        if (data.drivers_notified > 0) {
+          console.log('🎯 [CLIENT] Livreurs notifiés:', data.drivers_notified);
+          toast({
+            title: "Livreurs notifiés ✅",
+            description: `${data.drivers_notified} livreur(s) ont été notifiés dans un rayon de ${data.search_radius}km`,
+          });
+        } else {
+          console.warn('⚠️ [CLIENT] Succès mais aucun livreur notifié');
+          toast({
+            title: "Recherche en cours 🔍",
+            description: data.message || "Recherche de livreurs disponibles...",
+          });
+        }
       } else {
-        console.warn('⚠️ [Livraison] Aucun chauffeur trouvé');
+        console.warn('⚠️ [CLIENT] Échec recherche:', data);
         toast({
-          title: "Recherche élargie 🔍",
-          description: data?.message || "Aucun livreur proche trouvé, recherche élargie en cours...",
+          title: "Aucun livreur disponible ⏳",
+          description: data?.message || "Nous continuons à chercher des livreurs dans votre zone",
         });
       }
     } catch (error: any) {
-      console.error('❌ [Livraison] Erreur recherche chauffeur:', error);
+      console.error('❌ [CLIENT] Erreur critique recherche chauffeur:', error);
+      console.error('   Stack:', error.stack);
+      
+      // Toast visible pour l'utilisateur avec détails de l'erreur
       toast({
-        title: "Recherche de livreurs",
-        description: "Recherche de livreurs en cours, nous vous notifierons dès qu'un livreur sera disponible",
+        title: "Erreur recherche livreurs ❌",
+        description: `Détails: ${error.message || 'Erreur inconnue'}. Vérifiez les logs pour plus d'informations.`,
+        variant: "destructive",
+        duration: 10000 // 10 secondes pour lire l'erreur
       });
     }
   };

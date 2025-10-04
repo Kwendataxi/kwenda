@@ -9062,9 +9062,13 @@ export type Database = {
         Returns: {
           distance_km: number
           driver_id: string
-          is_verified: boolean
+          is_available: boolean
+          is_online: boolean
+          last_ping: string
+          latitude: number
+          longitude: number
           rating_average: number
-          total_rides: number
+          rides_remaining: number
           vehicle_class: string
         }[]
       }
@@ -9086,9 +9090,9 @@ export type Database = {
         Returns: {
           distance_km: number
           driver_id: string
-          estimated_arrival_minutes: number
           is_available: boolean
-          rating_average: number
+          latitude: number
+          longitude: number
           vehicle_class: string
         }[]
       }

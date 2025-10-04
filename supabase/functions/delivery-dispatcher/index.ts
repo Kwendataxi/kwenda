@@ -32,9 +32,14 @@ serve(async (req) => {
 
     const { orderId, pickupLat, pickupLng, deliveryType } = await req.json();
 
-    console.log(`🚚 Looking for driver for delivery order ${orderId}`);
-    console.log(`📍 Pickup location: ${pickupLat}, ${pickupLng}`);
-    console.log(`🚛 Delivery type: ${deliveryType}`);
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    console.log(`🚚 DELIVERY DISPATCHER INVOKED`);
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    console.log(`📦 Order ID: ${orderId}`);
+    console.log(`📍 Pickup: (${pickupLat}, ${pickupLng})`);
+    console.log(`🚛 Delivery Type: ${deliveryType}`);
+    console.log(`⏰ Timestamp: ${new Date().toISOString()}`);
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 
     // Phase 4: Recherche en cascade 5km → 10km → 15km → 20km
     const radiusLevels = [5, 10, 15, 20];
@@ -43,6 +48,12 @@ serve(async (req) => {
 
     for (const radius of radiusLevels) {
       console.log(`🔍 Searching drivers within ${radius}km...`);
+      console.log(`   RPC Parameters:`, {
+        pickup_lat: pickupLat,
+        pickup_lng: pickupLng,
+        service_type_param: 'delivery',
+        radius_km: radius
+      });
       
       const { data, error } = await supabase.rpc('find_nearby_drivers', {
         pickup_lat: pickupLat,
@@ -50,33 +61,74 @@ serve(async (req) => {
         service_type_param: 'delivery',
         radius_km: radius
       });
+      
+      console.log(`   RPC Response:`, { data, error });
 
       if (error) {
-        console.error(`❌ Error finding drivers at ${radius}km:`, error);
+        console.error(`❌ RPC Error at ${radius}km:`, {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         continue;
       }
 
+      console.log(`   RPC Success - Found ${data?.length || 0} drivers`);
+      
       if (data && data.length > 0) {
         drivers = data;
         finalRadius = radius;
-        console.log(`✅ Found ${drivers.length} drivers at ${radius}km`);
+        console.log(`✅ MATCH! ${drivers.length} driver(s) found at ${radius}km radius`);
+        console.log(`   Driver IDs:`, drivers.map(d => d.driver_id));
         break;
+      } else {
+        console.log(`   No drivers found, expanding to next radius...`);
       }
     }
+    
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 
     if (!drivers || drivers.length === 0) {
-      console.log('❌ No drivers available for delivery in 20km radius');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('❌ AUCUN CHAUFFEUR TROUVÉ');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('Raisons possibles:');
+      console.log('  1. Aucun chauffeur en ligne dans le rayon de 20km');
+      console.log('  2. Tous les chauffeurs sont occupés (is_available=false)');
+      console.log('  3. Aucun chauffeur avec delivery_enabled=true');
+      console.log('  4. last_ping trop ancien (>30min)');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
       return new Response(
         JSON.stringify({ 
           success: false, 
           message: 'Aucun livreur disponible dans votre zone (rayon 20km)',
-          drivers_searched: 0
+          drivers_searched: 0,
+          debug: {
+            searched_radiuses: radiusLevels,
+            service_type: 'delivery',
+            timestamp: new Date().toISOString()
+          }
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`✅ Found ${drivers.length} available drivers at ${finalRadius}km`);
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    console.log(`✅ DRIVERS FOUND: ${drivers.length} at ${finalRadius}km`);
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    drivers.forEach((driver, idx) => {
+      console.log(`Driver #${idx + 1}:`, {
+        id: driver.driver_id,
+        distance: driver.distance_km + 'km',
+        vehicle: driver.vehicle_class,
+        available: driver.is_available,
+        rating: driver.rating_average,
+        rides_remaining: driver.rides_remaining
+      });
+    });
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
     
     // PHASE 3: Récupérer les détails et vérifier si déjà assigné
     const { data: orderDetails, error: orderError } = await supabase
