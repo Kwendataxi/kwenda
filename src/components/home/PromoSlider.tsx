@@ -189,36 +189,31 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
 
                 {/* Slide 5: Marketplace */}
                 {promo.id === '5' && (
-                  <div className={cn(
-                    "absolute inset-0 p-4 flex items-center justify-between text-white",
-                    "h-40"
-                  )}>
-                    {/* Badge NOUVEAU */}
-                    <div className="absolute top-2 right-2 bg-white/90 text-primary text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                  <div className="absolute inset-0 p-4 text-white">
+                    {/* Badge NOUVEAU - simple et discret */}
+                    <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
                       NOUVEAU
                     </div>
                     
-                    {/* Icônes décoratives */}
-                    <ShoppingBag className="absolute bottom-4 right-6 w-12 h-12 text-white/30" />
-                    <Truck className="absolute top-4 right-16 w-8 h-8 text-white/40" />
+                    {/* Icône principale - grande et centrée à droite */}
+                    <ShoppingBag className="absolute bottom-0 right-0 w-32 h-32 text-white/10" strokeWidth={1.5} />
                     
-                    {/* Contenu principal */}
-                    <div className="flex-1 z-10">
-                      <h3 className="text-2xl font-bold drop-shadow-2xl leading-tight mb-1">
-                        {promo.title}
+                    {/* Contenu principal - aligné et structuré */}
+                    <div className="relative z-10 h-full flex flex-col justify-center">
+                      <h3 className="text-2xl font-black drop-shadow-lg leading-tight mb-2">
+                        Achetez. Vendez.<br />
+                        <span className="text-white/90">On livre.</span>
                       </h3>
-                      <p className="text-sm font-medium opacity-95 drop-shadow-lg mb-3">
-                        {promo.description}
+                      
+                      <p className="text-sm font-semibold opacity-90 mb-4">
+                        Marketplace 100% sécurisée
                       </p>
                       
                       {/* CTA */}
-                      <div className="inline-block bg-white text-primary px-5 py-2 rounded-xl font-black text-xs shadow-xl hover:scale-105 active:scale-95 transition-all duration-200">
+                      <div className="inline-block bg-white text-primary px-6 py-2.5 rounded-xl font-black text-sm shadow-xl hover:scale-105 transition-all duration-200 w-fit">
                         {promo.cta} →
                       </div>
                     </div>
-
-                    {/* Déco blur circles */}
-                    <div className="absolute bottom-2 left-1/4 w-16 h-16 bg-white/10 rounded-full blur-2xl" />
                   </div>
                 )}
               </div>
