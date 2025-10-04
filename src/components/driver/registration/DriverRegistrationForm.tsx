@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FileText, Car, Package } from 'lucide-react';
 import { ServiceCategory } from './ServiceCategorySelector';
+import { VehicleOwnershipSelector } from '@/components/auth/VehicleOwnershipSelector';
 import { useServiceConfigurations } from '@/hooks/useServiceConfigurations';
 
 interface DriverRegistrationFormProps {
@@ -69,6 +70,7 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
     serviceCategory,
     serviceType,
     acceptsTerms: false,
+    hasOwnVehicle: false, // Par défaut: cherche un partenaire
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -98,20 +100,24 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
     if (!formData.licenseExpiry) {
       newErrors.licenseExpiry = 'Date d\'expiration du permis requise';
     }
-    if (!formData.vehicleMake?.trim()) {
-      newErrors.vehicleMake = 'Marque du véhicule requise';
-    }
-    if (!formData.vehicleModel?.trim()) {
-      newErrors.vehicleModel = 'Modèle du véhicule requis';
-    }
-    if (!formData.vehicleYear || formData.vehicleYear < 2000) {
-      newErrors.vehicleYear = 'Année du véhicule invalide';
-    }
-    if (!formData.vehiclePlate?.trim()) {
-      newErrors.vehiclePlate = 'Plaque d\'immatriculation requise';
-    }
-    if (!formData.insuranceNumber?.trim()) {
-      newErrors.insuranceNumber = 'Numéro d\'assurance requis';
+
+    // Validations véhicule UNIQUEMENT si le chauffeur possède son propre véhicule
+    if (formData.hasOwnVehicle) {
+      if (!formData.vehicleMake?.trim()) {
+        newErrors.vehicleMake = 'Marque du véhicule requise';
+      }
+      if (!formData.vehicleModel?.trim()) {
+        newErrors.vehicleModel = 'Modèle du véhicule requis';
+      }
+      if (!formData.vehicleYear || formData.vehicleYear < 2000) {
+        newErrors.vehicleYear = 'Année du véhicule invalide';
+      }
+      if (!formData.vehiclePlate?.trim()) {
+        newErrors.vehiclePlate = 'Plaque d\'immatriculation requise';
+      }
+      if (!formData.insuranceNumber?.trim()) {
+        newErrors.insuranceNumber = 'Numéro d\'assurance requis';
+      }
     }
     if (!formData.acceptsTerms) {
       newErrors.acceptsTerms = 'Vous devez accepter les conditions';
@@ -309,12 +315,27 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
           </CardContent>
         </Card>
 
-        {/* Informations du véhicule */}
+        {/* Sélecteur de mode de véhicule */}
         <Card>
           <CardHeader>
-            <CardTitle>Informations du véhicule</CardTitle>
+            <CardTitle>Statut du véhicule</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
+            <VehicleOwnershipSelector
+              selectedMode={formData.hasOwnVehicle ? 'own' : 'partner'}
+              onModeSelect={(mode) => updateField('hasOwnVehicle', mode === 'own')}
+              serviceCategory={serviceCategory}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Informations du véhicule - Affichées seulement si le chauffeur a son propre véhicule */}
+        {formData.hasOwnVehicle && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Informations du véhicule</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="vehicleType">Type de service *</Label>
@@ -434,8 +455,10 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
             </div>
           </CardContent>
         </Card>
+        )}
 
-        {/* Informations d'assurance */}
+        {/* Informations d'assurance - Affichées seulement si le chauffeur a son propre véhicule */}
+        {formData.hasOwnVehicle && (
         <Card>
           <CardHeader>
             <CardTitle>Assurance véhicule</CardTitle>
@@ -468,6 +491,7 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
             </div>
           </CardContent>
         </Card>
+        )}
 
         {/* Informations bancaires */}
         <Card>
