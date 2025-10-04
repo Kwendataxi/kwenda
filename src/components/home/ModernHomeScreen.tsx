@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ModernHeader } from './ModernHeader';
 import { ServiceGrid } from './ServiceGrid';
 import { PromoSlider } from './PromoSlider';
@@ -8,6 +9,7 @@ import { HomeTrendsSheet } from './HomeTrendsSheet';
 import { HomeRecentPlacesSheet } from './HomeRecentPlacesSheet';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { useServiceNotifications } from '@/hooks/useServiceNotifications';
 import ModernRentalPreview from './ModernRentalPreview';
 
@@ -52,15 +54,16 @@ export const ModernHomeScreen = ({
     }
   };
 
-  const {user} = useAuth();
-    useEffect(()=>{
-      if(user && user.user_metadata){
-        if(user.user_metadata.role !== "simple_user_client"){
-          window.location.href = "/";
-        }
-      }
-      console.log(user);
-  },[user])
+  // Sécurité : Rediriger les utilisateurs non-clients
+  const { user } = useAuth();
+  const { primaryRole, loading: roleLoading } = useUserRoles();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!roleLoading && primaryRole && primaryRole !== 'client') {
+      navigate('/');
+    }
+  }, [primaryRole, roleLoading, navigate]);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">

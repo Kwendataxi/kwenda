@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDriverServiceType } from '@/hooks/useDriverServiceType';
 import DriverHeader from '@/components/driver/DriverHeader';
 import { UniversalBottomNavigation } from '@/components/navigation/UniversalBottomNavigation';
 import DriverMoreSheet from '@/components/driver/DriverMoreSheet';
 import MobileDriverInterface from '@/components/mobile/MobileDriverInterface';
-// Removed obsolete DriverDeliveryDashboard
 import { DriverWalletPanel } from '@/components/driver/DriverWalletPanel';
 import { DriverChallenges } from '@/components/driver/DriverChallenges';
 import { SubscriptionPlans } from '@/components/driver/SubscriptionPlans';
@@ -14,21 +14,23 @@ import ProductionDriverInterface from '@/components/driver/ProductionDriverInter
 import { VehicleManagementPanel } from '@/components/driver/management/VehicleManagementPanel';
 import { ServiceChangeRequestPanel } from '@/components/driver/management/ServiceChangeRequestPanel';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRoles } from '@/hooks/useUserRoles';
 
 const DriverApp = () => {
   const { loading } = useDriverServiceType();
   const [tab, setTab] = useState('deliveries');
   const [moreOpen, setMoreOpen] = useState(false);
 
-  const {user} = useAuth();
-  useEffect(()=>{
-    if(user && user.user_metadata){
-      if(user.user_metadata.role !== "chauffeur"){
-        window.location.href = "/";
-      }
-      console.log(user);
+  // Sécurité : Vérifier que l'utilisateur est un chauffeur
+  const { user } = useAuth();
+  const { primaryRole, loading: roleLoading } = useUserRoles();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!roleLoading && user && primaryRole !== 'driver') {
+      navigate('/');
     }
-  },[user])
+  }, [user, primaryRole, roleLoading, navigate]);
 
   if (loading) {
     return (

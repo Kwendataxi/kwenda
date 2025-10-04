@@ -1,26 +1,38 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, Star, MapPin, Clock, Car, ArrowRight, Zap, Users } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-vtc.jpg";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/hooks/useUserRoles";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect } from "react";
 
 const ModernHero = () => {
   const { user } = useAuth();
+  const { primaryRole, loading: roleLoading } = useUserRoles();
   const { t } = useLanguage();
+  const navigate = useNavigate();
   
-  useEffect(()=>{
-    if(user && user.user_metadata){
-      if(user.user_metadata.role === "simple_user_client"){
-        window.location.href = "/client";
-      }else if(user.user_metadata.role === "chauffeur"){
-         window.location.href = "/chauffeur";
+  useEffect(() => {
+    if (!roleLoading && user && primaryRole) {
+      switch (primaryRole) {
+        case 'client':
+          navigate("/client");
+          break;
+        case 'driver':
+          navigate("/chauffeur");
+          break;
+        case 'partner':
+          navigate("/partenaire");
+          break;
+        case 'admin':
+          navigate("/admin");
+          break;
       }
     }
-  },[user])
+  }, [user, primaryRole, roleLoading, navigate]);
 
   return (
     <section className="relative min-h-screen bg-background overflow-hidden">

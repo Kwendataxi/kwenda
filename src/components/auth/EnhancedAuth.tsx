@@ -69,21 +69,7 @@ export const EnhancedAuth = () => {
       const user = data.user;
 
       if (user) {
-        const role = user.user_metadata?.role;
-
-        if (role === "chauffeur") {
-          navigate("/chauffeur");
-        } else if (role === "simple_user_client") {
-          navigate("/client");
-        } else if (role === "partenaire") {
-          navigate("/partenaire");
-        } else if (role === "admin") {
-          navigate("/admin");
-        } else {
-          // fallback si rôle non reconnu
-          navigate("/");
-        }
-
+        // La redirection sera gérée par useEffect avec useRoleBasedAuth
         toast({
           title: "Connexion réussie !",
           description: "Redirection en cours...",

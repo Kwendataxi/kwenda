@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -35,18 +36,24 @@ const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) =
 
   // Si l'utilisateur est connecté mais ne devrait pas accéder à cette page
   if (!requireAuth && user) {
-    // Rediriger vers la page appropriée selon le rôle de l'utilisateur
-    const userRole = user.user_metadata?.role || 'simple_user_client';
+    // Utiliser useRoleBasedNavigation pour obtenir le rôle depuis user_roles
+    const { primaryRole } = useUserRoles();
     
-    switch (userRole) {
-      case 'chauffeur':
+    if (!primaryRole) {
+      return <Navigate to="/auth" replace />;
+    }
+    
+    switch (primaryRole) {
+      case 'driver':
         return <Navigate to="/chauffeur" replace />;
-      case 'partenaire':
+      case 'partner':
         return <Navigate to="/partenaire" replace />;
       case 'admin':
         return <Navigate to="/admin" replace />;
-      default:
+      case 'client':
         return <Navigate to="/client" replace />;
+      default:
+        return <Navigate to="/" replace />;
     }
   }
 
