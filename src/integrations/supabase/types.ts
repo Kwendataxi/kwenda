@@ -7715,6 +7715,7 @@ export type Database = {
           created_at: string
           delivery_id: string | null
           id: string
+          marketplace_order_id: string | null
           rated_user_id: string
           rater_user_id: string
           rating: number
@@ -7725,6 +7726,7 @@ export type Database = {
           created_at?: string
           delivery_id?: string | null
           id?: string
+          marketplace_order_id?: string | null
           rated_user_id: string
           rater_user_id: string
           rating: number
@@ -7735,11 +7737,20 @@ export type Database = {
           created_at?: string
           delivery_id?: string | null
           id?: string
+          marketplace_order_id?: string | null
           rated_user_id?: string
           rater_user_id?: string
           rating?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_ratings_marketplace_order_id_fkey"
+            columns: ["marketplace_order_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_recent_searches: {
         Row: {
@@ -8853,6 +8864,21 @@ export type Database = {
         }
         Relationships: []
       }
+      v_user_rating_stats: {
+        Row: {
+          average_rating: number | null
+          five_stars: number | null
+          four_stars: number | null
+          last_rating_at: string | null
+          one_star: number | null
+          rated_user_id: string | null
+          ratings_with_comments: number | null
+          three_stars: number | null
+          total_ratings: number | null
+          two_stars: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_cancel_subscription: {
@@ -8972,6 +8998,10 @@ export type Database = {
           zone_id_param: string
         }
         Returns: undefined
+      }
+      can_rate_order: {
+        Args: { p_order_id: string; p_order_type: string; p_user_id: string }
+        Returns: boolean
       }
       check_admin_status_for_rls: {
         Args: Record<PropertyKey, never>
@@ -10185,6 +10215,10 @@ export type Database = {
       update_trip_share_location: {
         Args: { p_encrypted_data: string; p_share_id: string }
         Returns: boolean
+      }
+      update_user_average_rating: {
+        Args: { p_user_id: string }
+        Returns: undefined
       }
       upsert_push_token: {
         Args: { p_platform: string; p_token: string; p_user_id: string }

@@ -20,13 +20,19 @@ import {
 } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { RatingDialog } from '../rating/RatingDialog';
 
 export const PurchaseManagement: React.FC = () => {
-  const { orders, loading } = useMarketplaceOrders();
+  const { orders, loading, refetch } = useMarketplaceOrders();
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [ratingDialog, setRatingDialog] = useState<{
+    ratedUserId: string;
+    ratedUserName: string;
+    orderId: string;
+  } | null>(null);
 
   // Filter orders where current user is the buyer
   const purchaseOrders = orders.filter(order => order.buyer_id === user?.id);
@@ -198,7 +204,16 @@ export const PurchaseManagement: React.FC = () => {
                   )}
                   
                   {order.status === 'completed' && (
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex items-center gap-2"
+                      onClick={() => setRatingDialog({
+                        ratedUserId: order.seller_id,
+                        ratedUserName: order.seller?.display_name || 'Vendeur',
+                        orderId: order.id
+                      })}
+                    >
                       <Star className="w-4 h-4" />
                       Laisser un avis
                     </Button>
@@ -220,6 +235,23 @@ export const PurchaseManagement: React.FC = () => {
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Rating Dialog */}
+      {ratingDialog && (
+        <RatingDialog
+          open={!!ratingDialog}
+          onOpenChange={(open) => !open && setRatingDialog(null)}
+          ratedUserId={ratingDialog.ratedUserId}
+          ratedUserName={ratingDialog.ratedUserName}
+          ratedUserType="seller"
+          orderId={ratingDialog.orderId}
+          orderType="marketplace"
+          onSuccess={() => {
+            refetch();
+            setRatingDialog(null);
+          }}
+        />
       )}
     </div>
   );
