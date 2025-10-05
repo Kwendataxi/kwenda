@@ -18,8 +18,9 @@ interface CancellationDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (reason: string) => Promise<void>;
-  title: string;
+  title?: string;
   userType: 'client' | 'driver';
+  bookingType?: 'transport' | 'delivery';
   bookingDetails?: {
     id: string;
     status: string;
@@ -49,8 +50,9 @@ export const CancellationDialog: React.FC<CancellationDialogProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  title,
+  title = 'Annuler la réservation',
   userType,
+  bookingType = 'transport',
   bookingDetails
 }) => {
   const [selectedReason, setSelectedReason] = useState<string>('');

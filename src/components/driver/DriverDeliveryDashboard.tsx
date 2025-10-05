@@ -29,7 +29,8 @@ import {
   ArrowRight,
   Truck,
   Star,
-  AlertTriangle
+  AlertTriangle,
+  X
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,6 +38,7 @@ import { useRealTimeDeliveryTracking } from '@/hooks/useRealTimeDeliveryTracking
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useBookingChat } from '@/hooks/useBookingChat';
+import { CancellationDialog } from '@/components/shared/CancellationDialog';
 
 interface ActiveDelivery {
   id: string;
@@ -64,6 +66,7 @@ export default function DriverDeliveryDashboard({ onSelectDelivery }: DriverDeli
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const { openChatFromBooking } = useBookingChat();
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   
   // États pour les actions
   const [notes, setNotes] = useState('');
@@ -291,6 +294,62 @@ export default function DriverDeliveryDashboard({ onSelectDelivery }: DriverDeli
     }
     
     trackingHook.callClient();
+  };
+
+  const handleCancelDelivery = async (reason: string) => {
+    if (!selectedDelivery) return;
+    
+    try {
+      setActionLoading(true);
+      
+      const { error } = await supabase
+        .from('delivery_orders')
+        .update({
+          status: 'cancelled',
+          cancelled_at: new Date().toISOString(),
+          cancelled_by: user?.id,
+          cancellation_reason: reason,
+          cancellation_type: 'driver',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedDelivery);
+
+      if (error) throw error;
+
+      // Log cancellation
+      await supabase
+        .from('cancellation_history')
+        .insert({
+          reference_id: selectedDelivery,
+          reference_type: 'delivery',
+          cancelled_by: user?.id,
+          cancellation_type: 'driver',
+          reason,
+          status_at_cancellation: currentDelivery?.status || 'unknown'
+        });
+
+      // Log status history
+      await supabase
+        .from('delivery_status_history')
+        .insert({
+          delivery_order_id: selectedDelivery,
+          status: 'cancelled',
+          changed_by: user?.id,
+          notes: `Annulé par le chauffeur: ${reason}`,
+          changed_at: new Date().toISOString()
+        });
+
+      setSelectedDelivery(null);
+      loadActiveDeliveries();
+      toast.success('Livraison annulée');
+      
+    } catch (err) {
+      console.error('❌ Erreur annulation:', err);
+      toast.error('Erreur lors de l\'annulation');
+    } finally {
+      setActionLoading(false);
+      setShowCancelDialog(false);
+    }
   };
 
   // ==================== EFFETS ====================
@@ -604,11 +663,30 @@ export default function DriverDeliveryDashboard({ onSelectDelivery }: DriverDeli
                 <Separator />
 
                 {/* Actions principales */}
-                {renderActionButtons(currentDelivery)}
+                <div className="space-y-3">
+                  {renderActionButtons(currentDelivery)}
+                  
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowCancelDialog(true)}
+                    className="w-full"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Annuler la livraison
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
         )}
+
+        <CancellationDialog
+          isOpen={showCancelDialog}
+          onClose={() => setShowCancelDialog(false)}
+          onConfirm={handleCancelDelivery}
+          userType="driver"
+          bookingType="delivery"
+        />
       </div>
     </div>
   );

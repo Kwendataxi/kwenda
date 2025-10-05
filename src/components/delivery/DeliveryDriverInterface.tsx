@@ -6,14 +6,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { useUnifiedDeliveryQueue } from '@/hooks/useUnifiedDeliveryQueue';
 import { useDriverDeliveryActions } from '@/hooks/useDriverDeliveryActions';
-import { MapPin, Package, Clock, Phone, Navigation, CheckCircle } from 'lucide-react';
+import { MapPin, Package, Clock, Phone, Navigation, CheckCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { CancellationDialog } from '@/components/shared/CancellationDialog';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const DeliveryDriverInterface = () => {
+  const { user } = useAuth();
   const { deliveries, activeDelivery, acceptDelivery, updateDeliveryStatus, loading } = useUnifiedDeliveryQueue();
-  const { confirmPickup, startDelivery, completeDelivery, getStatusLabel } = useDriverDeliveryActions();
+  const { confirmPickup, startDelivery, completeDelivery, cancelDelivery, getStatusLabel } = useDriverDeliveryActions();
   const [notes, setNotes] = useState('');
   const [recipientName, setRecipientName] = useState('');
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   const handleAcceptDelivery = async (deliveryId: string, type: 'marketplace' | 'direct') => {
     const success = await acceptDelivery(deliveryId, type);
@@ -52,6 +57,16 @@ const DeliveryDriverInterface = () => {
       setNotes('');
       setRecipientName('');
       await updateDeliveryStatus('delivered');
+    }
+  };
+
+  const handleCancelDelivery = async (reason: string) => {
+    if (!activeDelivery || !user) return;
+
+    const success = await cancelDelivery(activeDelivery.id, reason);
+    if (success) {
+      setShowCancelDialog(false);
+      toast.success('Livraison annulée');
     }
   };
 
@@ -192,9 +207,29 @@ const DeliveryDriverInterface = () => {
             </div>
 
             {/* Action Buttons */}
-            {getNextAction()}
+            <div className="space-y-3">
+              {getNextAction()}
+              
+              <Button 
+                variant="outline" 
+                onClick={() => setShowCancelDialog(true)}
+                className="w-full"
+                disabled={loading}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Annuler la livraison
+              </Button>
+            </div>
           </CardContent>
         </Card>
+
+        <CancellationDialog
+          isOpen={showCancelDialog}
+          onClose={() => setShowCancelDialog(false)}
+          onConfirm={handleCancelDelivery}
+          userType="driver"
+          bookingType="delivery"
+        />
       </div>
     );
   }

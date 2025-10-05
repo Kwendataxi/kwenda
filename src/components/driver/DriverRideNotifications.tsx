@@ -3,6 +3,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Clock, CheckCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { CancellationDialog } from '@/components/shared/CancellationDialog';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface RideNotification {
   id: string;
@@ -11,10 +14,14 @@ interface RideNotification {
   distance: number;
   estimatedTime: number;
   expiresIn: number;
+  status?: string;
 }
 
 export default function DriverRideNotifications() {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<RideNotification[]>([]);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
 
   // Simulation pour les tests
   useEffect(() => {
@@ -39,8 +46,48 @@ export default function DriverRideNotifications() {
   };
 
   const handleReject = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-    toast.info('Course refusée');
+    setSelectedBookingId(id);
+    setShowCancelDialog(true);
+  };
+
+  const handleCancelBooking = async (reason: string) => {
+    if (!selectedBookingId || !user) return;
+
+    try {
+      const { error } = await supabase
+        .from('transport_bookings')
+        .update({
+          status: 'cancelled',
+          cancelled_at: new Date().toISOString(),
+          cancelled_by: user.id,
+          cancellation_reason: reason,
+          cancellation_type: 'driver'
+        })
+        .eq('id', selectedBookingId);
+
+      if (error) throw error;
+
+      // Log cancellation
+      await supabase
+        .from('cancellation_history')
+        .insert({
+          reference_id: selectedBookingId,
+          reference_type: 'transport',
+          cancelled_by: user.id,
+          cancellation_type: 'driver',
+          reason,
+          status_at_cancellation: notifications.find(n => n.id === selectedBookingId)?.status || 'pending'
+        });
+
+      setNotifications(prev => prev.filter(n => n.id !== selectedBookingId));
+      toast.success('Course refusée');
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      toast.error('Erreur lors du refus de la course');
+    } finally {
+      setShowCancelDialog(false);
+      setSelectedBookingId(null);
+    }
   };
 
   if (notifications.length === 0) {
@@ -105,6 +152,17 @@ export default function DriverRideNotifications() {
           </CardContent>
         </Card>
       ))}
+
+      <CancellationDialog
+        isOpen={showCancelDialog}
+        onClose={() => {
+          setShowCancelDialog(false);
+          setSelectedBookingId(null);
+        }}
+        onConfirm={handleCancelBooking}
+        userType="driver"
+        bookingType="transport"
+      />
     </div>
   );
 }
