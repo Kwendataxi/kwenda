@@ -4324,6 +4324,73 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_subscription_earnings: {
+        Row: {
+          created_at: string
+          driver_id: string
+          id: string
+          partner_commission_amount: number
+          partner_commission_rate: number
+          partner_id: string
+          payment_date: string
+          status: string
+          subscription_amount: number
+          subscription_id: string
+          updated_at: string
+          wallet_transaction_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          id?: string
+          partner_commission_amount: number
+          partner_commission_rate?: number
+          partner_id: string
+          payment_date?: string
+          status?: string
+          subscription_amount: number
+          subscription_id: string
+          updated_at?: string
+          wallet_transaction_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          id?: string
+          partner_commission_amount?: number
+          partner_commission_rate?: number
+          partner_id?: string
+          payment_date?: string
+          status?: string
+          subscription_amount?: number
+          subscription_id?: string
+          updated_at?: string
+          wallet_transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_subscription_earnings_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partenaires"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_subscription_earnings_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "driver_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_subscription_earnings_wallet_transaction_id_fkey"
+            columns: ["wallet_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_taxi_vehicles: {
         Row: {
           assigned_driver_id: string | null
@@ -8593,6 +8660,63 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_subscription_plans: {
+        Row: {
+          created_at: string
+          currency: string
+          description: string | null
+          display_order: number | null
+          duration_days: number
+          duration_type: string
+          features: Json | null
+          id: string
+          is_active: boolean
+          is_popular: boolean | null
+          max_photos_per_product: number | null
+          max_products: number
+          name: string
+          name_en: string | null
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          display_order?: number | null
+          duration_days?: number
+          duration_type?: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          is_popular?: boolean | null
+          max_photos_per_product?: number | null
+          max_products?: number
+          name: string
+          name_en?: string | null
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          display_order?: number | null
+          duration_days?: number
+          duration_type?: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          is_popular?: boolean | null
+          max_photos_per_product?: number | null
+          max_products?: number
+          name?: string
+          name_en?: string | null
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       vendor_subscriptions: {
         Row: {
           created_at: string
@@ -9841,6 +9965,10 @@ export type Database = {
           total_commission: number
           total_revenue: number
         }[]
+      }
+      get_partner_subscription_balance: {
+        Args: { p_partner_id: string }
+        Returns: number
       }
       get_performance_trends: {
         Args: { p_hours_back?: number; p_metric_type?: string }
