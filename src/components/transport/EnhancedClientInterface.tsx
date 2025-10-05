@@ -18,6 +18,7 @@ import {
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { IntegrationGeocodingService } from '@/services/integrationGeocoding';
+import { CancellationDialog } from '@/components/shared/CancellationDialog';
 
 interface EnhancedClientInterfaceProps {
   className?: string;
@@ -28,6 +29,7 @@ const EnhancedClientInterface: React.FC<EnhancedClientInterfaceProps> = ({ class
   const [pickupLocation, setPickupLocation] = useState('');
   const [destination, setDestination] = useState('');
   const [selectedVehicle, setSelectedVehicle] = useState<string>('standard');
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   
   const { 
     createRideRequest, 
@@ -94,9 +96,9 @@ const EnhancedClientInterface: React.FC<EnhancedClientInterfaceProps> = ({ class
     }
   };
 
-  const handleCancelRequest = async () => {
+  const handleCancelRequest = async (reason: string) => {
     if (activeBooking) {
-      const result = await cancelBooking(activeBooking.id, "Changement de plan");
+      const result = await cancelBooking(activeBooking.id, reason);
       
       if (result.success) {
         // Réinitialiser les champs
@@ -164,14 +166,29 @@ const EnhancedClientInterface: React.FC<EnhancedClientInterfaceProps> = ({ class
           </div>
 
           {(activeBooking.status === 'pending' || activeBooking.status === 'dispatching') && (
-            <Button 
-              variant="outline" 
-              onClick={handleCancelRequest}
-              disabled={bookingLoading}
-              className="w-full"
-            >
-              Annuler la course
-            </Button>
+            <>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowCancelDialog(true)}
+                disabled={bookingLoading}
+                className="w-full"
+              >
+                Annuler la course
+              </Button>
+
+              <CancellationDialog
+                isOpen={showCancelDialog}
+                onClose={() => setShowCancelDialog(false)}
+                onConfirm={handleCancelRequest}
+                title="Annuler la course"
+                userType="client"
+                bookingDetails={{
+                  id: activeBooking.id,
+                  status: activeBooking.status,
+                  price: activeBooking.estimated_price
+                }}
+              />
+            </>
           )}
         </CardContent>
       </Card>

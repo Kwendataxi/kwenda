@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   MapPin, 
   Navigation, 
@@ -14,6 +15,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { CancellationDialog } from '@/components/shared/CancellationDialog';
 
 interface TaxiLiveTrackerProps {
   bookingId: string;
@@ -83,8 +85,10 @@ const STATUS_CONFIG = {
 
 export default function TaxiLiveTracker({ bookingId, onBack }: TaxiLiveTrackerProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [booking, setBooking] = useState<BookingData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   useEffect(() => {
     loadBookingData();
@@ -163,21 +167,64 @@ export default function TaxiLiveTracker({ bookingId, onBack }: TaxiLiveTrackerPr
     }
   };
 
-  const handleCancelBooking = async () => {
-    if (!booking) return;
+  const handleCancelBooking = async (reason: string) => {
+    if (!booking || !user) return;
 
     try {
+      const { data: bookingData, error: fetchError } = await supabase
+        .from('transport_bookings')
+        .select('status, estimated_price')
+        .eq('id', bookingId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const cancellationFee = (bookingData.status === 'accepted' || bookingData.status === 'driver_assigned')
+        ? Math.round((bookingData.estimated_price || 0) * 0.1)
+        : 0;
+
       const { error } = await supabase
         .from('transport_bookings')
-        .update({ status: 'cancelled' })
+        .update({ 
+          status: 'cancelled',
+          cancelled_at: new Date().toISOString(),
+          cancelled_by: user.id,
+          cancellation_reason: reason,
+          cancellation_type: 'client'
+        })
         .eq('id', bookingId);
 
       if (error) throw error;
 
-      toast({
-        title: "Réservation annulée",
-        description: "Votre course a été annulée",
-      });
+      // Log cancellation
+      await supabase
+        .from('cancellation_history')
+        .insert({
+          reference_id: bookingId,
+          reference_type: 'transport_booking',
+          cancelled_by: user.id,
+          cancellation_type: 'client',
+          reason,
+          status_at_cancellation: bookingData.status,
+          financial_impact: {
+            cancellation_fee: cancellationFee,
+            original_amount: bookingData.estimated_price,
+            currency: 'CDF'
+          }
+        });
+
+      if (cancellationFee > 0) {
+        toast({
+          title: "Réservation annulée",
+          description: `Frais d'annulation: ${cancellationFee} CDF`,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Réservation annulée",
+          description: "Votre course a été annulée",
+        });
+      }
 
       onBack();
     } catch (error) {
@@ -332,13 +379,28 @@ export default function TaxiLiveTracker({ bookingId, onBack }: TaxiLiveTrackerPr
 
         {/* Action Buttons */}
         {booking.status === 'pending' && (
-          <Button 
-            variant="destructive" 
-            className="w-full"
-            onClick={handleCancelBooking}
-          >
-            Annuler la réservation
-          </Button>
+          <>
+            <Button 
+              variant="destructive" 
+              className="w-full"
+              onClick={() => setShowCancelDialog(true)}
+            >
+              Annuler la réservation
+            </Button>
+
+            <CancellationDialog
+              isOpen={showCancelDialog}
+              onClose={() => setShowCancelDialog(false)}
+              onConfirm={handleCancelBooking}
+              title="Annuler la réservation"
+              userType="client"
+              bookingDetails={{
+                id: booking.id,
+                status: booking.status,
+                price: booking.estimated_price
+              }}
+            />
+          </>
         )}
 
         {booking.status === 'completed' && (

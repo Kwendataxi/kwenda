@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   Dialog,
   DialogContent,
@@ -25,6 +26,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { CancellationDialog } from '@/components/shared/CancellationDialog';
 
 interface BookingActionsProps {
   booking: any;
@@ -34,35 +36,87 @@ interface BookingActionsProps {
 
 const BookingActions: React.FC<BookingActionsProps> = ({ booking, onBookingUpdate, onBack }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState('');
   const [newDestination, setNewDestination] = useState('');
   const [reportReason, setReportReason] = useState('');
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
-  const handleCancelBooking = async () => {
+  const handleCancelBooking = async (reason: string) => {
+    if (!user) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez être connecté",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
+      // Get booking status for fee calculation
+      const { data: bookingData, error: fetchError } = await supabase
+        .from('transport_bookings')
+        .select('status, estimated_price')
+        .eq('id', booking.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const cancellationFee = (bookingData.status === 'accepted' || bookingData.status === 'driver_assigned')
+        ? Math.round((bookingData.estimated_price || 0) * 0.1)
+        : 0;
+
+      // Update booking
       const { error } = await supabase
         .from('transport_bookings')
         .update({ 
           status: 'cancelled',
-          cancelled_at: new Date().toISOString()
+          cancelled_at: new Date().toISOString(),
+          cancelled_by: user.id,
+          cancellation_reason: reason,
+          cancellation_type: 'client'
         })
         .eq('id', booking.id);
 
       if (error) throw error;
 
-      toast({
-        title: "Course annulée",
-        description: "Votre réservation a été annulée avec succès",
-      });
+      // Log cancellation
+      await supabase
+        .from('cancellation_history')
+        .insert({
+          reference_id: booking.id,
+          reference_type: 'transport_booking',
+          cancelled_by: user.id,
+          cancellation_type: 'client',
+          reason,
+          status_at_cancellation: bookingData.status,
+          financial_impact: {
+            cancellation_fee: cancellationFee,
+            original_amount: bookingData.estimated_price,
+            currency: 'CDF'
+          }
+        });
+
+      if (cancellationFee > 0) {
+        toast({
+          title: "Course annulée",
+          description: `Frais d'annulation appliqués: ${cancellationFee} CDF`,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Course annulée",
+          description: "Votre réservation a été annulée avec succès",
+        });
+      }
 
       // Redirection + notification encourageante
       setTimeout(() => {
-        onBack(); // Retour à l'interface de réservation
+        onBack();
         
-        // Notification polie et encourageante
         toast({
           title: "📍 Prêt pour une nouvelle aventure ?",
           description: "Nous sommes toujours là pour vous ! Où souhaitez-vous aller ?",
@@ -259,15 +313,30 @@ const BookingActions: React.FC<BookingActionsProps> = ({ booking, onBookingUpdat
 
           {/* Actions selon le statut */}
           {canCancel && (
-            <Button 
-              variant="destructive" 
-              className="w-full"
-              onClick={handleCancelBooking}
-              disabled={loading}
-            >
-              <XCircle className="h-4 w-4 mr-2" />
-              Annuler la course
-            </Button>
+            <>
+              <Button 
+                variant="destructive" 
+                className="w-full"
+                onClick={() => setShowCancelDialog(true)}
+                disabled={loading}
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                Annuler la course
+              </Button>
+
+              <CancellationDialog
+                isOpen={showCancelDialog}
+                onClose={() => setShowCancelDialog(false)}
+                onConfirm={handleCancelBooking}
+                title="Annuler la course"
+                userType="client"
+                bookingDetails={{
+                  id: booking.id,
+                  status: booking.status,
+                  price: booking.estimated_price
+                }}
+              />
+            </>
           )}
 
           {booking.status === 'completed' && (
