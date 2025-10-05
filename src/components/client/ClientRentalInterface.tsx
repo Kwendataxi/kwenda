@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { CalendarDays, Car, MapPin, Users, Star, Clock, DollarSign } from 'lucide-react';
+import { toast } from 'sonner';
+import { logger } from '@/utils/logger';
 
 interface RentalVehicle {
   id: string;
@@ -72,9 +74,38 @@ const ClientRentalInterface = () => {
 
   const formatPrice = (price: number) => `${price.toLocaleString()} CDF`;
 
-  const handleBooking = (vehicleId: string) => {
-    // TODO: Implement booking logic
-    console.log('Booking vehicle:', vehicleId);
+  const handleBooking = async (vehicleId: string) => {
+    try {
+      const vehicle = vehicles.find(v => v.id === vehicleId);
+      if (!vehicle) {
+        toast.error('Véhicule introuvable');
+        return;
+      }
+
+      // Créer une réservation de location
+      const { data: booking, error } = await supabase
+        .from('rental_bookings')
+        .insert({
+          vehicle_id: vehicleId,
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          start_date: new Date().toISOString(),
+          status: 'pending',
+          total_price: vehicle.daily_price
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success('Demande de réservation envoyée !', {
+        description: `Le partenaire va confirmer votre réservation pour ${vehicle.vehicle_make} ${vehicle.vehicle_model}`
+      });
+
+      logger.info('Rental booking created', { bookingId: booking.id, vehicleId });
+    } catch (error) {
+      logger.error('Erreur création réservation location', error);
+      toast.error('Erreur lors de la réservation');
+    }
   };
 
   if (isLoading) {

@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { calculateDistanceFromCoordinates, calculateTripDuration } from '@/utils/distanceCalculator';
+import { logger } from '@/utils/logger';
 import TaxiPaymentModal from '../payment/TaxiPaymentModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useBookingChat } from '@/hooks/useBookingChat';
@@ -422,8 +424,15 @@ export default function UniversalTaxiTracker({ bookingId, onBack }: UniversalTax
             pickup: { address: bookingData.pickup_location },
             destination: { address: bookingData.destination },
             actualPrice: bookingData.actual_price || bookingData.estimated_price || 0,
-            distance: 0, // TODO: calculer depuis les coordonnées
-            duration: "N/A", // TODO: calculer depuis les timestamps
+            distance: calculateDistanceFromCoordinates(
+              bookingData.pickup_coordinates,
+              bookingData.destination_coordinates
+            ),
+            duration: calculateTripDuration({
+              pickup_time: bookingData.pickup_time,
+              trip_started_at: bookingData.trip_started_at,
+              completion_time: bookingData.completion_time
+            }),
             driverName: bookingData.driver?.display_name || 'Chauffeur',
             driverRating: bookingData.driver?.rating_average || 0
           }}
