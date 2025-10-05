@@ -139,35 +139,34 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
 
                 {/* Slide 3: Lottery - Modern & Clean */}
                 {promo.id === '3' && (
-                  <div className="absolute inset-0 p-4 flex flex-col justify-between text-white">
-                    {/* Confettis discrets */}
-                    <div className="absolute top-2 right-8 text-xl opacity-70">🎉</div>
-                    <div className="absolute bottom-4 left-8 text-lg opacity-60">✨</div>
+                  <div className="absolute inset-0 p-3 flex flex-col text-white">
+                    {/* Confettis - top right */}
+                    <div className="absolute top-2 right-4 text-xl">🎉</div>
 
-                    {/* Main content - centered */}
-                    <div className="flex-1 flex flex-col justify-center relative z-10">
-                      <h3 className="text-3xl font-black drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)] leading-none tracking-tight mb-1">
+                    {/* Main content - vertically centered */}
+                    <div className="flex-1 flex flex-col justify-center relative z-10 -mt-1">
+                      <h3 className="text-2xl font-black drop-shadow-[0_4px_15px_rgba(0,0,0,0.5)] leading-none tracking-tight mb-0.5">
                         Tombola
                       </h3>
-                      <h3 className="text-3xl font-black drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)] leading-none tracking-tight mb-3 bg-gradient-to-r from-yellow-300 via-yellow-100 to-yellow-300 bg-clip-text text-transparent">
+                      <h3 className="text-2xl font-black drop-shadow-[0_4px_15px_rgba(0,0,0,0.5)] leading-none tracking-tight mb-2 bg-gradient-to-r from-yellow-300 via-yellow-100 to-yellow-300 bg-clip-text text-transparent">
                         KwendaPay
                       </h3>
                       
-                      <p className="text-sm font-bold opacity-95 drop-shadow-lg">
-                        Gagnez jusqu'à 100 000 CDF
+                      <p className="text-xs font-bold opacity-95 drop-shadow-lg flex items-center gap-1">
+                        Gagnez jusqu'à 100 000 CDF ✨
                       </p>
                     </div>
 
-                    {/* CTA Button - bottom */}
-                    <div className="flex justify-center">
-                      <div className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-yellow-400 text-purple-900 rounded-xl font-black text-sm shadow-xl hover:scale-105 transition-all duration-200">
+                    {/* CTA Button - bottom with margin */}
+                    <div className="flex justify-center pb-1">
+                      <div className="inline-flex items-center gap-1.5 px-5 py-2 bg-yellow-400 text-purple-900 rounded-xl font-black text-xs shadow-xl hover:scale-105 transition-all duration-200">
                         {promo.cta} 🎁
                       </div>
                     </div>
 
                     {/* Glow effects */}
-                    <div className="absolute top-1/3 right-1/4 w-28 h-28 bg-yellow-400/30 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute bottom-1/4 left-1/4 w-24 h-24 bg-purple-400/20 rounded-full blur-2xl pointer-events-none" />
+                    <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-yellow-400/30 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute bottom-1/4 left-1/4 w-20 h-20 bg-purple-400/20 rounded-full blur-2xl pointer-events-none" />
                   </div>
                 )}
 
