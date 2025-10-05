@@ -173,6 +173,76 @@ export const useDriverBookings = () => {
     }
   };
 
+  // Cancel booking as driver with reason
+  const cancelDriverBooking = async (bookingId: string, reason: string) => {
+    if (!user) {
+      toast.error('Vous devez être connecté');
+      return false;
+    }
+
+    setLoading(true);
+    try {
+      // Get current booking status
+      const { data: booking, error: fetchError } = await supabase
+        .from('transport_bookings')
+        .select('status, estimated_price')
+        .eq('id', bookingId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Update booking status
+      const { error } = await supabase
+        .from('transport_bookings')
+        .update({ 
+          status: 'cancelled',
+          cancelled_at: new Date().toISOString(),
+          cancelled_by: user.id,
+          cancellation_reason: reason,
+          cancellation_type: 'driver',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      // Log cancellation with driver penalty info
+      const { error: logError } = await supabase
+        .from('cancellation_history')
+        .insert({
+          reference_id: bookingId,
+          reference_type: 'transport_booking',
+          cancelled_by: user.id,
+          cancellation_type: 'driver',
+          reason,
+          status_at_cancellation: booking.status,
+          metadata: {
+            affects_reliability: booking.status === 'accepted',
+            reliability_impact: -5
+          }
+        });
+
+      if (logError) console.error('Error logging cancellation:', logError);
+
+      setActiveBooking(null);
+      stopTracking();
+
+      if (booking.status === 'accepted') {
+        toast.warning('⚠️ Cette annulation affecte votre taux de fiabilité');
+      }
+
+      toast.success('Course annulée');
+      return true;
+
+    } catch (error: any) {
+      console.error('Error cancelling booking:', error);
+      toast.error('Erreur lors de l\'annulation');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Update booking status
   const updateBookingStatus = async (status: string) => {
     if (!activeBooking) return false;
@@ -235,6 +305,7 @@ export const useDriverBookings = () => {
     pendingRequests,
     currentLocation,
     acceptBooking,
+    cancelDriverBooking,
     updateBookingStatus,
     updateCurrentLocation,
     loadPendingRequests

@@ -96,7 +96,7 @@ const EnhancedClientInterface: React.FC<EnhancedClientInterfaceProps> = ({ class
 
   const handleCancelRequest = async () => {
     if (activeBooking) {
-      const result = await cancelBooking(activeBooking.id);
+      const result = await cancelBooking(activeBooking.id, "Changement de plan");
       
       if (result.success) {
         // Réinitialiser les champs

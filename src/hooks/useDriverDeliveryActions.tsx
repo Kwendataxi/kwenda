@@ -112,12 +112,79 @@ export const useDriverDeliveryActions = () => {
     }
   };
 
+  const cancelDelivery = async (orderId: string, reason: string) => {
+    if (!user) {
+      toast.error('Vous devez être connecté');
+      return false;
+    }
+
+    setLoading(true);
+    try {
+      // Get current order status
+      const { data: order, error: fetchError } = await supabase
+        .from('delivery_orders')
+        .select('status, estimated_price')
+        .eq('id', orderId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Update order status
+      const { error } = await supabase
+        .from('delivery_orders')
+        .update({ 
+          status: 'cancelled',
+          cancelled_at: new Date().toISOString(),
+          cancelled_by: user.id,
+          cancellation_reason: reason,
+          cancellation_type: 'driver',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      // Log cancellation
+      const { error: logError } = await supabase
+        .from('cancellation_history')
+        .insert({
+          reference_id: orderId,
+          reference_type: 'delivery_order',
+          cancelled_by: user.id,
+          cancellation_type: 'driver',
+          reason,
+          status_at_cancellation: order.status,
+          metadata: {
+            affects_reliability: order.status === 'driver_assigned',
+            reliability_impact: -5
+          }
+        });
+
+      if (logError) console.error('Error logging cancellation:', logError);
+
+      if (order.status === 'driver_assigned' || order.status === 'picked_up') {
+        toast.warning('⚠️ Cette annulation affecte votre taux de fiabilité');
+      }
+
+      toast.success('Livraison annulée');
+      return true;
+
+    } catch (error: any) {
+      console.error('Error cancelling delivery:', error);
+      toast.error('Erreur lors de l\'annulation');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     updateDeliveryStatus,
     confirmPickup,
     startDelivery,
     completeDelivery,
+    cancelDelivery,
     getStatusLabel
   };
 };

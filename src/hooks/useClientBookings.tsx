@@ -169,24 +169,70 @@ export const useClientBookings = () => {
     }
   };
 
-  // Cancel booking
-  const cancelBooking = async (bookingId: string) => {
+  // Cancel booking with reason and financial impact
+  const cancelBooking = async (bookingId: string, reason: string) => {
+    if (!user) {
+      toast.error('Vous devez être connecté');
+      return { success: false, shouldShowRebookPrompt: false };
+    }
+
     setLoading(true);
     try {
+      // Get current booking to check status and calculate fees
+      const { data: booking, error: fetchError } = await supabase
+        .from('transport_bookings')
+        .select('status, estimated_price, driver_id')
+        .eq('id', bookingId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const cancellationFee = (booking.status === 'accepted' || booking.status === 'driver_assigned') 
+        ? Math.round((booking.estimated_price || 0) * 0.1)
+        : 0;
+
+      // Update booking status
       const { error } = await supabase
         .from('transport_bookings')
         .update({ 
           status: 'cancelled',
           cancelled_at: new Date().toISOString(),
+          cancelled_by: user.id,
+          cancellation_reason: reason,
+          cancellation_type: 'client',
           updated_at: new Date().toISOString()
         })
         .eq('id', bookingId);
 
       if (error) throw error;
 
+      // Log cancellation history
+      const { error: logError } = await supabase
+        .from('cancellation_history')
+        .insert({
+          reference_id: bookingId,
+          reference_type: 'transport_booking',
+          cancelled_by: user.id,
+          cancellation_type: 'client',
+          reason,
+          status_at_cancellation: booking.status,
+          financial_impact: {
+            cancellation_fee: cancellationFee,
+            original_amount: booking.estimated_price,
+            currency: 'CDF'
+          }
+        });
+
+      if (logError) console.error('Error logging cancellation:', logError);
+
+      // Apply cancellation fee if applicable
+      if (cancellationFee > 0) {
+        toast.warning(`Frais d'annulation: ${cancellationFee} CDF`);
+      }
+
       setActiveBooking(null);
+      toast.success('Course annulée');
       
-      // Return structured object for notification handling
       return {
         success: true,
         shouldShowRebookPrompt: true
