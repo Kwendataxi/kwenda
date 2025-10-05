@@ -89,8 +89,11 @@ const ClientRentalInterface = () => {
           vehicle_id: vehicleId,
           user_id: (await supabase.auth.getUser()).data.user?.id,
           start_date: new Date().toISOString(),
-          status: 'pending',
-          total_price: vehicle.daily_price
+          end_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          pickup_location: 'À définir',
+          rental_duration_type: 'daily',
+          total_amount: vehicle.daily_rate,
+          status: 'pending'
         })
         .select()
         .single();
@@ -98,7 +101,7 @@ const ClientRentalInterface = () => {
       if (error) throw error;
 
       toast.success('Demande de réservation envoyée !', {
-        description: `Le partenaire va confirmer votre réservation pour ${vehicle.vehicle_make} ${vehicle.vehicle_model}`
+        description: `Le partenaire va confirmer votre réservation pour ${vehicle.brand} ${vehicle.model}`
       });
 
       logger.info('Rental booking created', { bookingId: booking.id, vehicleId });

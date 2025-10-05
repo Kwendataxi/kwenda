@@ -430,7 +430,7 @@ export default function UniversalTaxiTracker({ bookingId, onBack }: UniversalTax
             ),
             duration: calculateTripDuration({
               pickup_time: bookingData.pickup_time,
-              trip_started_at: bookingData.trip_started_at,
+              trip_started_at: bookingData.pickup_time,
               completion_time: bookingData.completion_time
             }),
             driverName: bookingData.driver?.display_name || 'Chauffeur',
