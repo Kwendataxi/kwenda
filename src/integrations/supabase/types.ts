@@ -2919,6 +2919,51 @@ export type Database = {
         }
         Relationships: []
       }
+      lottery_admin_actions: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          new_data: Json | null
+          notes: string | null
+          previous_data: Json | null
+          reason: string | null
+          target_id: string
+          target_type: string
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          notes?: string | null
+          previous_data?: Json | null
+          reason?: string | null
+          target_id: string
+          target_type: string
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          notes?: string | null
+          previous_data?: Json | null
+          reason?: string | null
+          target_id?: string
+          target_type?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       lottery_draws: {
         Row: {
           created_at: string
@@ -3009,6 +3054,84 @@ export type Database = {
         }
         Relationships: []
       }
+      lottery_prize_deliveries: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          delivered_at: string | null
+          delivery_address: string | null
+          delivery_contact_name: string | null
+          delivery_contact_phone: string | null
+          delivery_method: string
+          delivery_notes: string | null
+          delivery_person_id: string | null
+          delivery_person_name: string | null
+          delivery_photo_urls: string[] | null
+          delivery_status: string
+          id: string
+          recipient_signature: string | null
+          scheduled_date: string | null
+          updated_at: string | null
+          updated_by: string | null
+          win_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_contact_name?: string | null
+          delivery_contact_phone?: string | null
+          delivery_method: string
+          delivery_notes?: string | null
+          delivery_person_id?: string | null
+          delivery_person_name?: string | null
+          delivery_photo_urls?: string[] | null
+          delivery_status?: string
+          id?: string
+          recipient_signature?: string | null
+          scheduled_date?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          win_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_contact_name?: string | null
+          delivery_contact_phone?: string | null
+          delivery_method?: string
+          delivery_notes?: string | null
+          delivery_person_id?: string | null
+          delivery_person_name?: string | null
+          delivery_photo_urls?: string[] | null
+          delivery_status?: string
+          id?: string
+          recipient_signature?: string | null
+          scheduled_date?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          win_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lottery_prize_deliveries_delivery_person_id_fkey"
+            columns: ["delivery_person_id"]
+            isOneToOne: false
+            referencedRelation: "chauffeurs"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "lottery_prize_deliveries_win_id_fkey"
+            columns: ["win_id"]
+            isOneToOne: false
+            referencedRelation: "lottery_wins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lottery_prize_types: {
         Row: {
           category: string
@@ -3092,48 +3215,75 @@ export type Database = {
       }
       lottery_wins: {
         Row: {
+          admin_notes: string | null
           claimed_at: string | null
           created_at: string
           currency: string
+          delivery_address: string | null
+          delivery_method: string | null
+          delivery_status: string | null
           draw_id: string
           entry_id: string
           expires_at: string | null
           id: string
+          physical_delivery_info: Json | null
           prize_details: Json
           prize_type_id: string | null
           prize_value: number
+          proof_of_delivery: Json | null
+          recipient_signature: string | null
           status: string
           user_id: string
+          validated_at: string | null
+          validated_by: string | null
           wallet_transaction_id: string | null
         }
         Insert: {
+          admin_notes?: string | null
           claimed_at?: string | null
           created_at?: string
           currency?: string
+          delivery_address?: string | null
+          delivery_method?: string | null
+          delivery_status?: string | null
           draw_id: string
           entry_id: string
           expires_at?: string | null
           id?: string
+          physical_delivery_info?: Json | null
           prize_details: Json
           prize_type_id?: string | null
           prize_value: number
+          proof_of_delivery?: Json | null
+          recipient_signature?: string | null
           status?: string
           user_id: string
+          validated_at?: string | null
+          validated_by?: string | null
           wallet_transaction_id?: string | null
         }
         Update: {
+          admin_notes?: string | null
           claimed_at?: string | null
           created_at?: string
           currency?: string
+          delivery_address?: string | null
+          delivery_method?: string | null
+          delivery_status?: string | null
           draw_id?: string
           entry_id?: string
           expires_at?: string | null
           id?: string
+          physical_delivery_info?: Json | null
           prize_details?: Json
           prize_type_id?: string | null
           prize_value?: number
+          proof_of_delivery?: Json | null
+          recipient_signature?: string | null
           status?: string
           user_id?: string
+          validated_at?: string | null
+          validated_by?: string | null
           wallet_transaction_id?: string | null
         }
         Relationships: []
@@ -9435,6 +9585,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      get_lottery_admin_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_manual_security_tasks: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -10069,6 +10223,15 @@ export type Database = {
         Args: { p_message_id: string }
         Returns: undefined
       }
+      mark_prize_delivered: {
+        Args: {
+          p_delivery_notes?: string
+          p_delivery_photo_urls?: string[]
+          p_recipient_signature?: string
+          p_win_id: string
+        }
+        Returns: Json
+      }
       mask_sensitive_data: {
         Args: {
           data_owner_id: string
@@ -10251,6 +10414,14 @@ export type Database = {
         Args: { address_text: string }
         Returns: boolean
       }
+      validate_lottery_win: {
+        Args: {
+          p_admin_notes?: string
+          p_delivery_method: string
+          p_win_id: string
+        }
+        Returns: Json
+      }
       validate_partner_registration_secure: {
         Args: {
           p_commission_rate?: number
@@ -10283,6 +10454,16 @@ export type Database = {
         | "admin_support"
         | "moderator"
       delivery_service_type: "flash" | "flex" | "maxicharge"
+      lottery_win_status:
+        | "pending"
+        | "claimed"
+        | "credited"
+        | "expired"
+        | "validated"
+        | "in_delivery"
+        | "delivered"
+        | "cancelled"
+        | "disputed"
       permission:
         | "users_read"
         | "users_write"
@@ -10453,6 +10634,17 @@ export const Constants = {
         "moderator",
       ],
       delivery_service_type: ["flash", "flex", "maxicharge"],
+      lottery_win_status: [
+        "pending",
+        "claimed",
+        "credited",
+        "expired",
+        "validated",
+        "in_delivery",
+        "delivered",
+        "cancelled",
+        "disputed",
+      ],
       permission: [
         "users_read",
         "users_write",
