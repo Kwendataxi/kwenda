@@ -299,8 +299,22 @@ export const useMarketplaceOrders = () => {
   };
 
   // Cancel order
-  const cancelOrder = async (orderId: string, reason?: string) => {
+  const cancelOrder = async (orderId: string, reason?: string, cancellationType?: string) => {
+    if (!user) throw new Error('User not authenticated');
+
     try {
+      // Get order details first
+      const { data: order, error: orderFetchError } = await supabase
+        .from('marketplace_orders')
+        .select('*, escrow_payments(*)')
+        .eq('id', orderId)
+        .single();
+
+      if (orderFetchError) throw orderFetchError;
+      if (!order) throw new Error('Order not found');
+
+      const statusAtCancellation = order.status;
+
       // Update order status
       const { error: orderError } = await supabase
         .from('marketplace_orders')
@@ -323,6 +337,32 @@ export const useMarketplaceOrders = () => {
         .eq('order_id', orderId);
 
       if (escrowError) throw escrowError;
+
+      // Log cancellation to history
+      const { error: historyError } = await supabase
+        .from('cancellation_history')
+        .insert({
+          reference_id: orderId,
+          reference_type: 'marketplace_order',
+          cancelled_by: user.id,
+          cancellation_type: cancellationType || 'customer_request',
+          status_at_cancellation: statusAtCancellation,
+          reason: reason || 'No reason provided',
+          financial_impact: {
+            refund_amount: order.total_amount,
+            currency: 'CDF',
+            escrow_payment_id: order.escrow_payments?.[0]?.id
+          },
+          metadata: {
+            payment_method: order.escrow_payments?.[0]?.payment_method,
+            product_id: order.product_id,
+            quantity: order.quantity
+          }
+        });
+
+      if (historyError) {
+        console.error('Error logging cancellation:', historyError);
+      }
 
       fetchOrders();
     } catch (error) {

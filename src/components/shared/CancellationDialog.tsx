@@ -17,12 +17,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 interface CancellationDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (reason: string) => Promise<void>;
+  onConfirm: (reason: string, cancellationType: string) => Promise<void>;
   title?: string;
   userType: 'client' | 'driver';
-  bookingType?: 'transport' | 'delivery';
+  bookingType?: 'transport' | 'delivery' | 'marketplace';
   bookingDetails?: {
-    id: string;
+    id?: string;
     status: string;
     price?: number;
   };
@@ -46,6 +46,25 @@ const DRIVER_REASONS = [
   "Autre (spécifier)"
 ];
 
+const MARKETPLACE_CLIENT_REASONS = [
+  "Changement d'avis",
+  "Produit non conforme à la description",
+  "Délai de livraison trop long",
+  "Trouvé moins cher ailleurs",
+  "Commande par erreur",
+  "Vendeur non responsive",
+  "Autre (spécifier)"
+];
+
+const MARKETPLACE_SELLER_REASONS = [
+  "Produit en rupture de stock",
+  "Erreur de prix",
+  "Client injoignable",
+  "Problème avec le produit",
+  "Adresse de livraison incorrecte",
+  "Autre (spécifier)"
+];
+
 export const CancellationDialog: React.FC<CancellationDialogProps> = ({
   isOpen,
   onClose,
@@ -59,7 +78,12 @@ export const CancellationDialog: React.FC<CancellationDialogProps> = ({
   const [otherReason, setOtherReason] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const reasons = userType === 'client' ? CLIENT_REASONS : DRIVER_REASONS;
+  const reasons = React.useMemo(() => {
+    if (bookingType === 'marketplace') {
+      return userType === 'client' ? MARKETPLACE_CLIENT_REASONS : MARKETPLACE_SELLER_REASONS;
+    }
+    return userType === 'client' ? CLIENT_REASONS : DRIVER_REASONS;
+  }, [userType, bookingType]);
   const isOtherSelected = selectedReason === "Autre (spécifier)";
   const showWarning = bookingDetails?.status === 'accepted' || bookingDetails?.status === 'driver_assigned';
 
@@ -73,7 +97,18 @@ export const CancellationDialog: React.FC<CancellationDialogProps> = ({
     setIsSubmitting(true);
     try {
       const finalReason = isOtherSelected ? otherReason : selectedReason;
-      await onConfirm(finalReason);
+      
+      // Determine cancellation type
+      let cancellationType = 'customer_request';
+      if (bookingType === 'marketplace') {
+        cancellationType = userType === 'client' ? 'buyer_cancellation' : 'seller_cancellation';
+      } else if (bookingType === 'delivery') {
+        cancellationType = userType === 'client' ? 'customer_cancellation' : 'driver_cancellation';
+      } else {
+        cancellationType = userType === 'client' ? 'customer_cancellation' : 'driver_cancellation';
+      }
+
+      await onConfirm(finalReason, cancellationType);
       
       // Reset form
       setSelectedReason('');

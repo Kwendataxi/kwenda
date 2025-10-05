@@ -21,9 +21,10 @@ import {
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { RatingDialog } from '../rating/RatingDialog';
+import { CancellationDialog } from '../shared/CancellationDialog';
 
 export const PurchaseManagement: React.FC = () => {
-  const { orders, loading, refetch } = useMarketplaceOrders();
+  const { orders, loading, refetch, cancelOrder } = useMarketplaceOrders();
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,6 +33,11 @@ export const PurchaseManagement: React.FC = () => {
     ratedUserId: string;
     ratedUserName: string;
     orderId: string;
+  } | null>(null);
+  const [cancelDialog, setCancelDialog] = useState<{
+    open: boolean;
+    orderId: string;
+    status: string;
   } | null>(null);
 
   // Filter orders where current user is the buyer
@@ -75,6 +81,27 @@ export const PurchaseManagement: React.FC = () => {
       case 'completed': return 'Terminé';
       case 'cancelled': return 'Annulé';
       default: return status;
+    }
+  };
+
+  const handleCancelOrder = async (reason: string, cancellationType: string) => {
+    if (!cancelDialog) return;
+
+    try {
+      await cancelOrder(cancelDialog.orderId, reason, cancellationType);
+      toast({
+        title: "Commande annulée",
+        description: "Votre commande a été annulée avec succès. Le remboursement sera effectué sous peu.",
+      });
+      setCancelDialog(null);
+      refetch();
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'annuler la commande",
+        variant: "destructive",
+      });
     }
   };
 
@@ -220,7 +247,16 @@ export const PurchaseManagement: React.FC = () => {
                   )}
                   
                   {order.status === 'pending' && (
-                    <Button variant="outline" size="sm" className="flex items-center gap-2 text-destructive">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex items-center gap-2 text-destructive"
+                      onClick={() => setCancelDialog({ 
+                        open: true, 
+                        orderId: order.id,
+                        status: order.status 
+                      })}
+                    >
                       <XCircle className="w-4 h-4" />
                       Annuler
                     </Button>
@@ -250,6 +286,21 @@ export const PurchaseManagement: React.FC = () => {
           onSuccess={() => {
             refetch();
             setRatingDialog(null);
+          }}
+        />
+      )}
+
+      {/* Cancellation Dialog */}
+      {cancelDialog && (
+        <CancellationDialog
+          isOpen={cancelDialog.open}
+          onClose={() => setCancelDialog(null)}
+          onConfirm={handleCancelOrder}
+          title="Annuler la commande"
+          userType="client"
+          bookingType="marketplace"
+          bookingDetails={{
+            status: cancelDialog.status
           }}
         />
       )}
