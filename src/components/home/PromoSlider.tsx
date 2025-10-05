@@ -170,38 +170,40 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                   </div>
                 )}
 
-                {/* Slide 4: Car Rental */}
+                {/* Slide 4: Car Rental - Modern & Clean */}
                 {promo.id === '4' && (
-                  <div className="absolute inset-0 p-4 flex items-center justify-between text-white">
-                    {/* Pattern lignes verticales subtiles */}
-                    <div className="absolute inset-0 opacity-10">
-                      {[...Array(8)].map((_, i) => (
-                        <div key={i} className="absolute top-0 bottom-0 w-px bg-white" style={{ left: `${i * 12.5}%` }} />
-                      ))}
+                  <div className="absolute inset-0 p-4 flex flex-col text-white">
+                    {/* Car icon - top left with subtle glow */}
+                    <div className="mb-3">
+                      <div className="inline-flex items-center justify-center w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+                        <span className="text-2xl">🚗</span>
+                      </div>
                     </div>
 
-                    {/* Emoji voiture + titre + prix */}
-                    <div className="flex items-center gap-3">
-                      <div className="text-3xl">🚗</div>
-                      <div>
-                        <h3 className="text-base font-black drop-shadow-lg tracking-tight mb-0.5">
-                          {promo.title}
-                        </h3>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-2xl font-black drop-shadow-lg">50 000 CDF</span>
-                          <span className="text-xs font-bold opacity-90">/jour</span>
-                        </div>
+                    {/* Main content - centered */}
+                    <div className="flex-1 flex flex-col justify-center">
+                      <h3 className="text-3xl font-black drop-shadow-[0_4px_15px_rgba(0,0,0,0.5)] leading-tight tracking-tight mb-3">
+                        Location de<br />véhicules
+                      </h3>
+                      
+                      {/* Price - prominent */}
+                      <div className="flex items-baseline gap-1.5 mb-4">
+                        <span className="text-3xl font-black drop-shadow-lg">50 000</span>
+                        <span className="text-base font-bold opacity-90">CDF</span>
+                        <span className="text-sm font-medium opacity-75">/jour</span>
                       </div>
                     </div>
                     
-                    {/* CTA Button */}
-                    <div className="px-5 py-2 bg-white/20 backdrop-blur-md border border-white/40 rounded-xl font-bold text-xs hover:bg-white/30 transition-all duration-200 hover:scale-105 shadow-lg whitespace-nowrap">
-                      {promo.cta} →
+                    {/* CTA Button - bottom right */}
+                    <div className="flex justify-end">
+                      <div className="px-6 py-2.5 bg-white/20 backdrop-blur-md border border-white/40 rounded-xl font-bold text-sm hover:bg-white/30 transition-all duration-200 hover:scale-105 shadow-lg">
+                        {promo.cta} →
+                      </div>
                     </div>
 
-                    {/* Déco blur circles */}
-                    <div className="absolute top-3 right-3 w-14 h-14 bg-white/15 rounded-full blur-2xl" />
-                    <div className="absolute bottom-1/2 left-1/3 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
+                    {/* Subtle glow effects */}
+                    <div className="absolute top-1/4 right-1/4 w-24 h-24 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute bottom-1/3 left-1/4 w-20 h-20 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none" />
                   </div>
                 )}
 
