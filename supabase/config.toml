@@ -85,3 +85,9 @@ verify_jwt = true
 
 [functions.credit-promo-driver-compensation]
 verify_jwt = false
+
+[functions.voice-navigation]
+verify_jwt = true
+
+[functions.geocode-order]
+verify_jwt = true
