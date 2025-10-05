@@ -16,6 +16,9 @@ export const EDGE_FUNCTIONS = {
   
   // Fonctions de notification
   PUSH_NOTIFICATIONS: 'push-notifications',
+  
+  // Fonctions de gestion automatique
+  AUTO_CANCEL_EXPIRED: 'auto-cancel-expired-orders',
 } as const;
 
 export const FUNCTION_RETRY_CONFIG = {
