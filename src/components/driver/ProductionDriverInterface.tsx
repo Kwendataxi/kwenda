@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useUnifiedDispatcher } from '@/hooks/useUnifiedDispatcher';
 import DriverStatusToggle from './DriverStatusToggle';
+import { NavigationModal } from './NavigationModal';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Car,
   Package, 
@@ -13,7 +15,8 @@ import {
   MapPin,
   Euro,
   Bell,
-  AlertCircle
+  AlertCircle,
+  Navigation
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -32,6 +35,10 @@ const ProductionDriverInterface: React.FC<ProductionDriverInterfaceProps> = ({ c
     rejectOrder,
     completeOrder
   } = useUnifiedDispatcher();
+
+  // États pour la navigation
+  const [navigationOpen, setNavigationOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
 
   // Notification audio
   const playNotificationSound = () => {
@@ -85,6 +92,59 @@ const ProductionDriverInterface: React.FC<ProductionDriverInterfaceProps> = ({ c
     const success = await completeOrder(orderId, type);
     if (success) {
       toast.success('Commande terminée !');
+    }
+  };
+
+  // 🗺️ Fonction pour démarrer la navigation GPS
+  const handleStartNavigation = async (order: any) => {
+    try {
+      // Vérifier si les coordonnées existent
+      const hasPickupCoords = order.pickup_coordinates?.lat && order.pickup_coordinates?.lng;
+      const hasDestCoords = (order.destination_coordinates?.lat && order.destination_coordinates?.lng) || 
+                           (order.delivery_coordinates?.lat && order.delivery_coordinates?.lng);
+
+      if (!hasPickupCoords || !hasDestCoords) {
+        toast.loading('Géocodage des adresses...');
+        
+        // Appeler Edge Function pour géocoder
+        const { data, error } = await supabase.functions.invoke('geocode-order', {
+          body: { 
+            orderId: order.id, 
+            orderType: order.type === 'delivery' || order.type === 'marketplace' ? 'delivery' : 'transport'
+          }
+        });
+        
+        if (error) {
+          console.error('Geocoding error:', error);
+          toast.error('Impossible de calculer l\'itinéraire');
+          return;
+        }
+
+        toast.dismiss();
+        toast.success('Itinéraire calculé !');
+        
+        // Recharger la commande avec les nouvelles coordonnées
+        const tableName = order.type === 'delivery' || order.type === 'marketplace' 
+          ? 'delivery_orders' 
+          : 'transport_bookings';
+        
+        const { data: updatedOrder } = await supabase
+          .from(tableName)
+          .select('*')
+          .eq('id', order.id)
+          .single();
+        
+        if (updatedOrder) {
+          setSelectedOrder(updatedOrder);
+          setNavigationOpen(true);
+        }
+      } else {
+        setSelectedOrder(order);
+        setNavigationOpen(true);
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
+      toast.error('Erreur lors du lancement de la navigation');
     }
   };
 
@@ -227,19 +287,54 @@ const ProductionDriverInterface: React.FC<ProductionDriverInterfaceProps> = ({ c
                     </div>
                   </div>
                   
-                  <Button
-                    onClick={() => handleCompleteOrder(order.id, order.type)}
-                    disabled={loading}
-                    className="w-full mt-3"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Terminer la commande
-                  </Button>
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      onClick={() => handleStartNavigation(order)}
+                      variant="outline"
+                      className="flex-1"
+                      disabled={loading}
+                    >
+                      <Navigation className="h-4 w-4 mr-2" />
+                      Navigation GPS
+                    </Button>
+                    <Button
+                      onClick={() => handleCompleteOrder(order.id, order.type)}
+                      disabled={loading}
+                      className="flex-1"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Terminer
+                    </Button>
+                  </div>
                 </div>
               );
             })}
           </CardContent>
         </Card>
+      )}
+
+      {/* Modal de navigation GPS */}
+      {selectedOrder && navigationOpen && (
+        <NavigationModal
+          open={navigationOpen}
+          onClose={() => {
+            setNavigationOpen(false);
+            setSelectedOrder(null);
+          }}
+          orderId={selectedOrder.id}
+          orderType={selectedOrder.type === 'delivery' || selectedOrder.type === 'marketplace' ? 'delivery' : 'transport'}
+          pickup={{
+            lat: selectedOrder.pickup_coordinates?.lat || 0,
+            lng: selectedOrder.pickup_coordinates?.lng || 0,
+            address: selectedOrder.pickup_location || ''
+          }}
+          destination={{
+            lat: (selectedOrder.destination_coordinates?.lat || selectedOrder.delivery_coordinates?.lat) || 0,
+            lng: (selectedOrder.destination_coordinates?.lng || selectedOrder.delivery_coordinates?.lng) || 0,
+            address: (selectedOrder.destination || selectedOrder.delivery_location) || ''
+          }}
+          customerPhone={selectedOrder.user_phone}
+        />
       )}
 
       {/* No Orders State */}

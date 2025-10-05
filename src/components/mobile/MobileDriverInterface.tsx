@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TouchOptimizedButton, SwipeableCard } from './TouchOptimizedInterface';
 import { DriverQuickActions } from '../driver/DriverQuickActions';
+import { NavigationModal } from '../driver/NavigationModal';
 import { MobileOptimizer } from '@/components/performance/MobileOptimizer';
 import { LazyLoadWrapper } from '@/components/performance/LazyLoadWrapper';
 import { OptimizedGrid } from '@/components/performance/OptimizedGrid';
@@ -10,6 +11,8 @@ import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { useDriverData } from '@/hooks/useDriverData';
 import { useDriverRideOffers } from '@/hooks/useDriverRideOffers';
 import { useBackgroundTracking } from '@/hooks/useBackgroundTracking';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { 
   Car, 
   MapPin, 
@@ -43,6 +46,8 @@ export const MobileDriverInterface: React.FC<MobileDriverInterfaceProps> = ({
   const { isTracking, start, stop, supported } = useBackgroundTracking({ distanceFilterMeters: 25, minIntervalMs: 10000 });
   
   const [currentView, setCurrentView] = useState<'dashboard' | 'ride' | 'request'>('dashboard');
+  const [navigationOpen, setNavigationOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
 
   // Auto-switch to ride view when there's an active booking
   useEffect(() => {
@@ -302,12 +307,50 @@ export const MobileDriverInterface: React.FC<MobileDriverInterfaceProps> = ({
               )}
               <TouchOptimizedButton
                 variant="outline"
-                onClick={onNavigateToNavigation}
+                onClick={async () => {
+                  // Vérifier coordonnées et géocoder si nécessaire
+                  const bookingData: any = activeBooking;
+                  const hasPickupCoords = bookingData?.pickup_coordinates?.lat && bookingData?.pickup_coordinates?.lng;
+                  const hasDestCoords = bookingData?.destination_coordinates?.lat && bookingData?.destination_coordinates?.lng;
+
+                  if (!hasPickupCoords || !hasDestCoords) {
+                    toast.loading('Préparation navigation...');
+                    
+                    const { error } = await supabase.functions.invoke('geocode-order', {
+                      body: { 
+                        orderId: bookingData.id, 
+                        orderType: 'transport' 
+                      }
+                    });
+                    
+                    toast.dismiss();
+                    
+                    if (error) {
+                      toast.error('Impossible de démarrer la navigation');
+                      return;
+                    }
+
+                    // Recharger la commande
+                    const { data: updated } = await supabase
+                      .from('transport_bookings')
+                      .select('*')
+                      .eq('id', bookingData.id)
+                      .single();
+                    
+                    if (updated) {
+                      setSelectedOrder(updated);
+                      setNavigationOpen(true);
+                    }
+                  } else {
+                    setSelectedOrder(bookingData);
+                    setNavigationOpen(true);
+                  }
+                }}
                 className="col-span-2 h-12 mt-2"
                 hapticFeedback="medium"
               >
-                <Navigation className="w-4 h-4 mr-2" />
-                Ouvrir la navigation
+                <Navigation className="w-4 w-4 mr-2" />
+                Démarrer Navigation GPS
               </TouchOptimizedButton>
             </div>
           </CardContent>
@@ -347,6 +390,30 @@ export const MobileDriverInterface: React.FC<MobileDriverInterfaceProps> = ({
             {renderCompactStats()}
             {renderQuickActions()}
           </>
+        )}
+
+        {/* Modal de navigation GPS */}
+        {selectedOrder && navigationOpen && (
+          <NavigationModal
+            open={navigationOpen}
+            onClose={() => {
+              setNavigationOpen(false);
+              setSelectedOrder(null);
+            }}
+            orderId={selectedOrder.id}
+            orderType="transport"
+            pickup={{
+              lat: selectedOrder.pickup_coordinates?.lat || 0,
+              lng: selectedOrder.pickup_coordinates?.lng || 0,
+              address: selectedOrder.pickup_location || ''
+            }}
+            destination={{
+              lat: selectedOrder.destination_coordinates?.lat || 0,
+              lng: selectedOrder.destination_coordinates?.lng || 0,
+              address: selectedOrder.destination || ''
+            }}
+            customerPhone={selectedOrder.user_phone}
+          />
         )}
       </div>
     </MobileOptimizer>
