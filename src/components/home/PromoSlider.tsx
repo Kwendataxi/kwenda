@@ -206,33 +206,39 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                   </div>
                 )}
 
-                {/* Slide 5: Marketplace */}
+                {/* Slide 5: Marketplace - Modern & Clean */}
                 {promo.id === '5' && (
                   <div className="absolute inset-0 p-4 text-white">
-                    {/* Badge NOUVEAU - simple et discret */}
-                    <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                    {/* Badge NOUVEAU - top right */}
+                    <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-md text-white text-[9px] font-black px-2.5 py-1 rounded-full border border-white/20">
                       NOUVEAU
                     </div>
                     
-                    {/* Icône principale - grande et centrée à droite */}
-                    <ShoppingBag className="absolute bottom-0 right-0 w-32 h-32 text-white/10" strokeWidth={1.5} />
+                    {/* Shopping bag icon - subtle bottom right */}
+                    <ShoppingBag className="absolute bottom-2 right-2 w-20 h-20 text-white/10" strokeWidth={1.5} />
                     
-                    {/* Contenu principal - aligné et structuré */}
-                    <div className="relative z-10 h-full flex flex-col justify-center">
-                      <h3 className="text-2xl font-black drop-shadow-lg leading-tight mb-2">
-                        Achetez. Vendez.<br />
-                        <span className="text-white/90">On livre.</span>
-                      </h3>
+                    {/* Main content */}
+                    <div className="relative z-10 h-full flex flex-col justify-between">
+                      {/* Title section */}
+                      <div className="flex-1 flex flex-col justify-center">
+                        <h3 className="text-2xl font-black drop-shadow-lg leading-tight mb-2 tracking-tight">
+                          Achetez, vendez,<br />
+                          <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">livrez !</span>
+                        </h3>
+                        
+                        <p className="text-xs font-semibold opacity-90 drop-shadow-md">
+                          Marketplace 100% sécurisée
+                        </p>
+                      </div>
                       
-                      <p className="text-sm font-semibold opacity-90 mb-4">
-                        Marketplace 100% sécurisée
-                      </p>
-                      
-                      {/* CTA */}
+                      {/* CTA Button */}
                       <div className="inline-block bg-white text-primary px-6 py-2.5 rounded-xl font-black text-sm shadow-xl hover:scale-105 transition-all duration-200 w-fit">
                         {promo.cta} →
                       </div>
                     </div>
+
+                    {/* Subtle glow */}
+                    <div className="absolute bottom-1/4 left-1/4 w-24 h-24 bg-indigo-400/20 rounded-full blur-3xl pointer-events-none" />
                   </div>
                 )}
               </div>
