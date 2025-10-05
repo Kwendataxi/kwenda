@@ -4,15 +4,19 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Package, Truck, ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { MapPin, Package, Truck, ArrowLeft, ArrowRight, Check, User, Phone as PhoneIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import AutocompleteLocationInput from '@/components/location/AutocompleteLocationInput';
 import { LocationData } from '@/types/location';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/hooks/useAuth';
+import { z } from 'zod';
+import ContactsStep from './ContactsStep';
 
 interface SlideDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
@@ -25,6 +29,10 @@ interface DeliveryData {
   serviceType: 'flash' | 'flex' | 'maxicharge';
   packageType: string;
   estimatedPrice: number;
+  senderName: string;
+  senderPhone: string;
+  recipientName: string;
+  recipientPhone: string;
 }
 
 const SERVICE_TYPES = {
@@ -59,11 +67,20 @@ const PACKAGE_TYPES = [
   'Médicaments', 'Mobilier', 'Équipement', 'Autre'
 ];
 
-type Step = 'pickup' | 'destination' | 'service' | 'confirm';
+type Step = 'pickup' | 'destination' | 'contacts' | 'service' | 'confirm';
+
+// Schéma de validation Zod pour les contacts
+const contactSchema = z.object({
+  senderName: z.string().trim().min(2, "Le nom doit contenir au moins 2 caractères").max(100, "Le nom est trop long"),
+  senderPhone: z.string().trim().regex(/^\+?243[0-9]{9}$/, "Format invalide. Exemple: +243123456789 ou 0123456789"),
+  recipientName: z.string().trim().min(2, "Le nom doit contenir au moins 2 caractères").max(100, "Le nom est trop long"),
+  recipientPhone: z.string().trim().regex(/^\+?243[0-9]{9}$/, "Format invalide. Exemple: +243123456789 ou 0123456789")
+});
 
 export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeliveryInterfaceProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { user } = useAuth();
   
   const [currentStep, setCurrentStep] = useState<Step>('pickup');
   const [deliveryData, setDeliveryData] = useState<DeliveryData>({
@@ -71,7 +88,11 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     deliveryLocation: null,
     serviceType: 'flex',
     packageType: 'Documents',
-    estimatedPrice: 3000
+    estimatedPrice: 3000,
+    senderName: '',
+    senderPhone: '',
+    recipientName: '',
+    recipientPhone: ''
   });
 
   // États pour contrôler les valeurs des champs d'adresse
@@ -134,7 +155,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     } else {
       setDeliveryData(prev => ({ ...prev, deliveryLocation: location }));
       setDeliveryInputValue(location.address); // Contrôler la valeur affichée
-      setCurrentStep('service');
+      setCurrentStep('contacts');
     }
   };
 
@@ -144,11 +165,11 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
       case 'destination':
         setCurrentStep('pickup');
         break;
-      case 'service':
-        // Réinitialiser le champ de livraison quand on revient en arrière
-        setDeliveryData(prev => ({ ...prev, deliveryLocation: null }));
-        setDeliveryInputValue('');
+      case 'contacts':
         setCurrentStep('destination');
+        break;
+      case 'service':
+        setCurrentStep('contacts');
         break;
       case 'confirm':
         setCurrentStep('service');
@@ -179,7 +200,26 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           });
           return;
         }
-        setCurrentStep('service');
+        setCurrentStep('contacts');
+        break;
+      case 'contacts':
+        // Validation des champs de contact
+        try {
+          contactSchema.parse({
+            senderName: deliveryData.senderName,
+            senderPhone: deliveryData.senderPhone,
+            recipientName: deliveryData.recipientName,
+            recipientPhone: deliveryData.recipientPhone
+          });
+          setCurrentStep('service');
+        } catch (error: any) {
+          const firstError = error.errors?.[0];
+          toast({
+            title: "Validation échouée",
+            description: firstError?.message || "Veuillez vérifier les informations saisies",
+            variant: "destructive"
+          });
+        }
         break;
       case 'service':
         setCurrentStep('confirm');
@@ -210,6 +250,10 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
               lat: deliveryData.pickupLocation.lat,
               lng: deliveryData.pickupLocation.lng
             }
+          },
+          contact: {
+            name: deliveryData.senderName,
+            phone: deliveryData.senderPhone
           }
         },
         destination: {
@@ -219,6 +263,10 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
               lat: deliveryData.deliveryLocation.lat,
               lng: deliveryData.deliveryLocation.lng
             }
+          },
+          contact: {
+            name: deliveryData.recipientName,
+            phone: deliveryData.recipientPhone
           }
         },
         service: {
@@ -254,7 +302,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
   };
 
   const getStepNumber = (step: Step): number => {
-    const steps: Step[] = ['pickup', 'destination', 'service', 'confirm'];
+    const steps: Step[] = ['pickup', 'destination', 'contacts', 'service', 'confirm'];
     return steps.indexOf(step) + 1;
   };
 
@@ -264,6 +312,9 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         return !!deliveryData.pickupLocation;
       case 'destination':
         return !!deliveryData.deliveryLocation;
+      case 'contacts':
+        return !!deliveryData.senderName && !!deliveryData.senderPhone && 
+               !!deliveryData.recipientName && !!deliveryData.recipientPhone;
       case 'service':
         return !!deliveryData.serviceType;
       case 'confirm':
@@ -404,6 +455,16 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-muted-foreground">Collecte</p>
                 <p className="text-sm font-medium truncate">{deliveryData.pickupLocation?.address}</p>
+                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <User className="h-3 w-3" />
+                    {deliveryData.senderName}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <PhoneIcon className="h-3 w-3" />
+                    {deliveryData.senderPhone}
+                  </div>
+                </div>
               </div>
             </div>
             
@@ -414,6 +475,16 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-muted-foreground">Livraison</p>
                 <p className="text-sm font-medium truncate">{deliveryData.deliveryLocation?.address}</p>
+                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <User className="h-3 w-3" />
+                    {deliveryData.recipientName}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <PhoneIcon className="h-3 w-3" />
+                    {deliveryData.recipientPhone}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -447,10 +518,25 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     </div>
   );
 
+  const renderContactsStep = () => (
+    <ContactsStep
+      senderName={deliveryData.senderName}
+      senderPhone={deliveryData.senderPhone}
+      recipientName={deliveryData.recipientName}
+      recipientPhone={deliveryData.recipientPhone}
+      onSenderNameChange={(value) => setDeliveryData(prev => ({ ...prev, senderName: value }))}
+      onSenderPhoneChange={(value) => setDeliveryData(prev => ({ ...prev, senderPhone: value }))}
+      onRecipientNameChange={(value) => setDeliveryData(prev => ({ ...prev, recipientName: value }))}
+      onRecipientPhoneChange={(value) => setDeliveryData(prev => ({ ...prev, recipientPhone: value }))}
+      userProfile={user ? { display_name: user.user_metadata?.display_name, phone_number: user.user_metadata?.phone_number } : undefined}
+    />
+  );
+
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 'pickup': return renderPickupStep();
       case 'destination': return renderDestinationStep();
+      case 'contacts': return renderContactsStep();
       case 'service': return renderServiceStep();
       case 'confirm': return renderConfirmStep();
       default: return renderPickupStep();
@@ -465,7 +551,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           {/* Progress Indicator */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
-              {['pickup', 'destination', 'service', 'confirm'].map((step, index) => (
+              {['pickup', 'destination', 'contacts', 'service', 'confirm'].map((step, index) => (
                 <div key={step} className="flex items-center">
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
@@ -482,7 +568,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
                       index + 1
                     )}
                   </div>
-                  {index < 3 && (
+                  {index < 4 && (
                     <div
                       className={`w-12 h-0.5 transition-colors ${
                         getStepNumber(currentStep) > index + 1 ? 'bg-primary' : 'bg-muted'
@@ -493,7 +579,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
               ))}
             </div>
             <p className="text-sm text-muted-foreground text-center">
-              Étape {getStepNumber(currentStep)} sur 4
+              Étape {getStepNumber(currentStep)} sur 5
             </p>
           </div>
 

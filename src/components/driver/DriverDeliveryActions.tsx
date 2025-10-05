@@ -28,6 +28,10 @@ interface DeliveryOrder {
   delivery_type: string;
   estimated_price: number;
   user_id: string;
+  sender_name?: string;
+  sender_phone?: string;
+  recipient_name?: string;
+  recipient_phone?: string;
 }
 
 interface DriverDeliveryActionsProps {
@@ -98,6 +102,19 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
       case 'driver_assigned':
         return (
           <div className="space-y-3">
+            {/* Bouton d'appel rapide - Expéditeur */}
+            {order.sender_phone && (
+              <a 
+                href={`tel:${order.sender_phone}`}
+                className="flex items-center justify-center gap-2 w-full p-3 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 rounded-lg transition-colors"
+              >
+                <Phone className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-medium text-green-700">
+                  Appeler {order.sender_name || 'l\'expéditeur'}
+                </span>
+              </a>
+            )}
+            
             <Button 
               onClick={handlePickupConfirm}
               disabled={loading}
@@ -112,6 +129,19 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
       case 'picked_up':
         return (
           <div className="space-y-3">
+            {/* Bouton d'appel rapide - Destinataire */}
+            {order.recipient_phone && (
+              <a 
+                href={`tel:${order.recipient_phone}`}
+                className="flex items-center justify-center gap-2 w-full p-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg transition-colors"
+              >
+                <Phone className="w-4 h-4 text-red-600" />
+                <span className="text-sm font-medium text-red-700">
+                  Appeler {order.recipient_name || 'le destinataire'}
+                </span>
+              </a>
+            )}
+            
             <Button 
               onClick={handleStartDelivery}
               disabled={loading}
@@ -126,6 +156,19 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
       case 'in_transit':
         return (
           <div className="space-y-4">
+            {/* Bouton d'appel rapide - Destinataire */}
+            {order.recipient_phone && (
+              <a 
+                href={`tel:${order.recipient_phone}`}
+                className="flex items-center justify-center gap-2 w-full p-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg transition-colors"
+              >
+                <Phone className="w-4 h-4 text-red-600" />
+                <span className="text-sm font-medium text-red-700">
+                  Appeler {order.recipient_name || 'le destinataire'}
+                </span>
+              </a>
+            )}
+            
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="recipient">Nom du destinataire *</Label>

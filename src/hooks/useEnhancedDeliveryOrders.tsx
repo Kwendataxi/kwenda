@@ -252,7 +252,11 @@ export const useEnhancedDeliveryOrders = () => {
         delivery_coordinates: deliveryCoords,
         delivery_type: validDeliveryType,
         estimated_price: orderData.estimatedPrice || 0,
-        status: 'pending'
+        status: 'pending',
+        sender_name: normalizedData.pickup.contactName || '',
+        sender_phone: normalizedData.pickup.contactPhone || '',
+        recipient_name: normalizedData.destination.contactName || '',
+        recipient_phone: normalizedData.destination.contactPhone || ''
       };
 
       console.log('Données sécurisées à insérer:', orderPayload);

@@ -256,6 +256,65 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
 
           {/* Onglet Détails */}
           <TabsContent value="details" className="space-y-4">
+            {/* Contacts */}
+            {(order.sender_name || order.recipient_name) && (
+              <Card className="bg-card border border-border shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Phone className="w-5 h-5 text-primary" />
+                    Contacts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {order.sender_name && (
+                    <div className="flex items-center justify-between p-3 bg-green-500/10 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-green-500" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Expéditeur</p>
+                          <p className="font-medium">{order.sender_name}</p>
+                          {order.sender_phone && (
+                            <p className="text-sm text-muted-foreground">{order.sender_phone}</p>
+                          )}
+                        </div>
+                      </div>
+                      {order.sender_phone && (
+                        <a 
+                          href={`tel:${order.sender_phone}`}
+                          className="p-2 hover:bg-green-500/20 rounded-full transition-colors"
+                        >
+                          <Phone className="w-4 h-4 text-green-600" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+                  
+                  {order.recipient_name && (
+                    <div className="flex items-center justify-between p-3 bg-red-500/10 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-red-500" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Destinataire</p>
+                          <p className="font-medium">{order.recipient_name}</p>
+                          {order.recipient_phone && (
+                            <p className="text-sm text-muted-foreground">{order.recipient_phone}</p>
+                          )}
+                        </div>
+                      </div>
+                      {order.recipient_phone && (
+                        <a 
+                          href={`tel:${order.recipient_phone}`}
+                          className="p-2 hover:bg-red-500/20 rounded-full transition-colors"
+                        >
+                          <Phone className="w-4 h-4 text-red-600" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Adresses */}
             <Card className="bg-card border border-border shadow-lg">
               <CardHeader>
@@ -384,7 +443,11 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
               delivery_coordinates: order.delivery_coordinates,
               delivery_type: order.delivery_type || 'flex',
               estimated_price: order.estimated_price || order.actual_price || 0,
-              user_id: order.user_id
+              user_id: order.user_id,
+              sender_name: order.sender_name,
+              sender_phone: order.sender_phone,
+              recipient_name: order.recipient_name,
+              recipient_phone: order.recipient_phone
             }}
             onStatusUpdate={() => window.location.reload()}
           />
