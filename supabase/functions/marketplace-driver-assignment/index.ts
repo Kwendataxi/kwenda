@@ -134,10 +134,41 @@ serve(async (req) => {
           .update({ is_available: false })
           .eq('driver_id', topDriver.driver_id);
 
+        // Créer des alertes pour les 5 premiers drivers
+        const driversToNotify = secureDrivers.slice(0, 5);
+        for (const driver of driversToNotify) {
+          await supabase.from('delivery_driver_alerts').insert({
+            order_id: auto_order_id,
+            driver_id: driver.driver_id,
+            alert_type: 'marketplace_delivery',
+            distance_km: driver.distance_km,
+            order_details: {
+              pickup_location: 'Adresse vendeur',
+              delivery_location: 'Adresse client',
+              estimated_price: 7000,
+              delivery_type: 'marketplace'
+            }
+          });
+        }
+        
+        // Logger l'activité
+        await supabase.from('activity_logs').insert({
+          activity_type: 'marketplace_driver_search',
+          description: `${secureDrivers.length} livreurs trouvés, ${driversToNotify.length} notifiés`,
+          reference_type: 'marketplace_order',
+          reference_id: auto_order_id,
+          metadata: {
+            search_radius: 10,
+            drivers_notified: driversToNotify.map(d => d.driver_id),
+            assigned_driver: topDriver.driver_id
+          }
+        });
+
         return new Response(
           JSON.stringify({ 
             success: true, 
             driver_assigned: topDriver,
+            drivers_notified: driversToNotify.length,
             message: 'Livreur assigné automatiquement avec succès'
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }}

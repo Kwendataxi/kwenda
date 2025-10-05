@@ -42,6 +42,7 @@ export const useDriverOrderNotifications = () => {
         .select('*')
         .eq('driver_id', user.id)
         .in('response_status', ['sent', 'seen'])
+        .in('alert_type', ['new_delivery_request', 'marketplace_delivery'])
         .order('sent_at', { ascending: false });
 
       if (error) throw error;
@@ -86,6 +87,48 @@ export const useDriverOrderNotifications = () => {
 
     setLoading(true);
     try {
+      // Détecter si c'est une commande marketplace
+      const alertData = pendingAlerts.find(a => a.id === alertId);
+      const isMarketplace = alertData?.alert_type === 'marketplace_delivery';
+      
+      if (isMarketplace) {
+        // Assigner dans marketplace_delivery_assignments
+        const { error: assignError } = await supabase
+          .from('marketplace_delivery_assignments')
+          .update({ 
+            driver_id: user.id, 
+            assignment_status: 'accepted' 
+          })
+          .eq('order_id', orderId)
+          .is('driver_id', null);
+        
+        if (assignError) {
+          console.error('Error accepting marketplace order:', assignError);
+          toast.error('Erreur lors de l\'acceptation de la commande');
+          return false;
+        }
+        
+        // Mettre à jour la commande marketplace
+        await supabase
+          .from('marketplace_orders')
+          .update({ status: 'in_preparation' })
+          .eq('id', orderId);
+        
+        // Marquer l'alerte comme acceptée
+        await supabase
+          .from('delivery_driver_alerts')
+          .update({ 
+            response_status: 'accepted',
+            responded_at: new Date().toISOString()
+          })
+          .eq('id', alertId);
+        
+        setPendingAlerts(prev => prev.filter(alert => alert.id !== alertId));
+        toast.success('✅ Course marketplace acceptée !');
+        return true;
+      }
+      
+      // Logique delivery_orders existante
       // 1. Vérifier l'état actuel de la commande
       const { data: currentOrder, error: checkError } = await supabase
         .from('delivery_orders')
