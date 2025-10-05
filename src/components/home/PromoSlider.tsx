@@ -172,30 +172,30 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
 
                 {/* Slide 4: Car Rental - Modern & Clean */}
                 {promo.id === '4' && (
-                  <div className="absolute inset-0 p-3 flex items-center text-white">
+                  <div className="absolute inset-0 p-3 flex items-center justify-between text-white">
                     {/* Left side - Icon + Content */}
-                    <div className="flex items-center gap-3 flex-1">
-                      {/* Car icon */}
-                      <div className="flex-shrink-0 w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 flex items-center justify-center">
-                        <span className="text-2xl">🚗</span>
+                    <div className="flex items-center gap-2.5 flex-1">
+                      {/* Car icon - compact */}
+                      <div className="flex-shrink-0 w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center">
+                        <span className="text-xl">🚗</span>
                       </div>
 
-                      {/* Title + Price */}
+                      {/* Title + Price - compact */}
                       <div>
-                        <h3 className="text-lg font-black drop-shadow-lg leading-tight tracking-tight mb-1">
-                          Location de<br />véhicules
+                        <h3 className="text-base font-black drop-shadow-lg leading-tight tracking-tight mb-0.5">
+                          Location de véhicules
                         </h3>
                         
                         <div className="flex items-baseline gap-1">
-                          <span className="text-xl font-black drop-shadow-lg">50 000 CDF</span>
-                          <span className="text-[10px] font-medium opacity-75">/jour</span>
+                          <span className="text-lg font-black drop-shadow-lg">50 000 CDF</span>
+                          <span className="text-[9px] font-medium opacity-75">/jour</span>
                         </div>
                       </div>
                     </div>
                     
-                    {/* CTA Button - right side */}
+                    {/* CTA Button - compact */}
                     <div className="flex-shrink-0">
-                      <div className="px-4 py-2 bg-white/20 backdrop-blur-md border border-white/40 rounded-xl font-bold text-xs hover:bg-white/30 transition-all duration-200 hover:scale-105 shadow-lg whitespace-nowrap">
+                      <div className="px-4 py-1.5 bg-white/20 backdrop-blur-md border border-white/40 rounded-xl font-bold text-[11px] hover:bg-white/30 transition-all duration-200 hover:scale-105 shadow-lg whitespace-nowrap">
                         {promo.cta} →
                       </div>
                     </div>
