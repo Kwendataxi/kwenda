@@ -159,16 +159,16 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
   };
 
   return (
-    <div className={`relative space-y-2 ${className}`}>
+    <div className={`relative space-y-2 overflow-hidden ${className}`}>
       {label && (
         <label className="text-sm font-medium text-foreground">
           {label}
         </label>
       )}
       
-      <div className="relative">
-        <div className="relative">
-          <div className="absolute left-3 top-1/2 -translate-y-1/2">
+      <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
             {getContextIcon()}
           </div>
           
@@ -178,7 +178,7 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
             onChange={handleInputChange}
             onFocus={() => setShowSuggestions(true)}
             placeholder={placeholder}
-            className="pl-10 pr-16 bg-background/80 backdrop-blur-sm border-border/50 focus:border-primary/50"
+            className="pl-10 pr-16 bg-background/80 backdrop-blur-sm border-border/50 focus:border-primary/50 overflow-hidden"
           />
           
           <Button
@@ -187,7 +187,7 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
             size="sm"
             onClick={handleGetCurrentLocation}
             disabled={locationLoading}
-            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-primary/10"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-primary/10 z-10 overflow-hidden"
           >
             {locationLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
