@@ -30,6 +30,7 @@ import {
   Search,
   ChevronDown,
   ChevronRight,
+  XCircle,
 } from 'lucide-react';
 
 interface AdminVerticalNavProps {
@@ -81,6 +82,9 @@ const NAV_ITEMS: Array<{
   { id: 'ads', label: 'Publicités', icon: Megaphone, group: 'communication' },
   { id: 'support', label: 'Support', icon: Headphones, group: 'communication' },
   
+  // Analytics & Rapports
+  { id: 'cancellations', label: 'Annulations', icon: XCircle, group: 'analytics' },
+  
   // Système
   { id: 'mission-control', label: 'Mission Control', icon: Shield, group: 'system' },
   { id: 'settings', label: 'Paramètres', icon: Settings, group: 'system' },
@@ -95,6 +99,7 @@ const GROUP_LABELS = {
   users: 'Gestion des utilisateurs',
   commerce: 'Commerce & Marketing',
   communication: 'Communication',
+  analytics: 'Analytics & Rapports',
   system: 'Système & Configuration'
 };
 

@@ -29,6 +29,7 @@ import { EnhancedSupportCenter } from '@/components/admin/support/EnhancedSuppor
 import { EnhancedUserManagement } from '@/components/admin/users/EnhancedUserManagement';
 import { AdminUserVerificationManager } from '@/components/admin/AdminUserVerificationManager';
 import { DriverManagement } from '@/components/admin/drivers/DriverManagement';
+import { CancellationManagement } from '@/components/admin/CancellationManagement';
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -243,6 +244,15 @@ const AdminApp = () => {
           <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
               <AdminSettings />
+            </FlexiblePermissionGuard>
+          </Suspense>
+        );
+
+      case 'cancellations':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['analytics_read']}>
+              <CancellationManagement />
             </FlexiblePermissionGuard>
           </Suspense>
         );
