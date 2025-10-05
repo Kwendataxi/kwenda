@@ -8836,31 +8836,25 @@ export type Database = {
       }
       subscription_stats_by_service: {
         Row: {
-          active_count: number | null
-          avg_rides_remaining: number | null
-          cancelled_count: number | null
-          expired_count: number | null
-          expiring_month: number | null
-          expiring_week: number | null
-          monthly_revenue: number | null
+          active_subscriptions: number | null
+          expired_subscriptions: number | null
+          price: number | null
+          rides_included: number | null
           service_type: string | null
-          total_rides_remaining: number | null
+          total_extra_charges: number | null
+          total_subscriptions: number | null
         }
         Relationships: []
       }
       user_profiles_view: {
         Row: {
-          admin_level: string | null
           created_at: string | null
           display_name: string | null
           email: string | null
-          id: string | null
           is_active: boolean | null
           phone_number: string | null
-          updated_at: string | null
           user_id: string | null
           user_type: string | null
-          verification_status: string | null
         }
         Relationships: []
       }
