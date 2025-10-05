@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { logger } from '@/utils/logger';
 
 interface ClientRegistrationFormProps {
   onSuccess: () => void;
@@ -166,7 +167,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       onSuccess();
     }
   } catch (error: any) {
-    console.error('Registration error:', error);
+    logger.error('Client registration error', error);
     toast({
       title: "Erreur",
       description: error.message || "Une erreur est survenue lors de l'inscription",

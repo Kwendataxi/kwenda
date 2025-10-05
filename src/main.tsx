@@ -2,19 +2,20 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { GlobalInitService } from './services/globalInit'
+import { logger } from './utils/logger'
 
 // Initialize global services
-GlobalInitService.initialize().catch(console.error);
+GlobalInitService.initialize().catch((error) => logger.error('Global init failed', error));
 
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
-        console.log('SW registered: ', registration);
+        logger.info('SW registered', registration);
       })
       .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError);
+        logger.error('SW registration failed', registrationError);
       });
   });
 }

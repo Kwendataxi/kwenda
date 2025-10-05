@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 interface AuthContextType {
   user: User | null;
@@ -41,14 +42,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         if (!mounted) return;
         
-        if (error) {
-          console.error('Auth session error:', error);
-        }
+      if (error) {
+        logger.error('Auth session error', error);
+      }
         
         setSession(session);
         setUser(session?.user ?? null);
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        logger.error('Auth initialization error', error);
         if (mounted) {
           setSession(null);
           setUser(null);

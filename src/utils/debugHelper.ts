@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from './logger';
 
 /**
  * Utilitaire de debug pour diagnostiquer les problèmes de réservation
@@ -6,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 export class DebugHelper {
   
   static async checkDriversAvailability() {
-    console.log('🔍 [Debug] Vérification disponibilité chauffeurs...');
+    logger.debug('Vérification disponibilité chauffeurs');
     
     try {
       // Vérifier les chauffeurs en ligne
@@ -33,24 +34,24 @@ export class DebugHelper {
         .gte('last_ping', new Date(Date.now() - 10 * 60 * 1000).toISOString());
 
       if (onlineError) {
-        console.error('❌ [Debug] Erreur récupération chauffeurs:', onlineError);
+        logger.error('Erreur récupération chauffeurs', onlineError);
         return null;
       }
 
-      console.log(`✅ [Debug] ${onlineDrivers?.length || 0} chauffeurs en ligne:`, onlineDrivers);
+      logger.debug(`${onlineDrivers?.length || 0} chauffeurs en ligne`, onlineDrivers);
       
       return {
         totalOnline: onlineDrivers?.length || 0,
         drivers: onlineDrivers || []
       };
     } catch (error) {
-      console.error('❌ [Debug] Erreur générale:', error);
+      logger.error('Erreur générale checkDriversAvailability', error);
       return null;
     }
   }
 
   static async checkRecentBookings() {
-    console.log('📊 [Debug] Vérification réservations récentes...');
+    logger.debug('Vérification réservations récentes');
     
     try {
       const { data: recentBookings, error } = await supabase
@@ -61,21 +62,21 @@ export class DebugHelper {
         .limit(10);
 
       if (error) {
-        console.error('❌ [Debug] Erreur récupération réservations:', error);
+        logger.error('Erreur récupération réservations', error);
         return null;
       }
 
-      console.log(`📋 [Debug] ${recentBookings?.length || 0} réservations récentes:`, recentBookings);
+      logger.debug(`${recentBookings?.length || 0} réservations récentes`, recentBookings);
       
       return recentBookings || [];
     } catch (error) {
-      console.error('❌ [Debug] Erreur générale:', error);
+      logger.error('Erreur générale checkRecentBookings', error);
       return null;
     }
   }
 
   static async checkRecentDeliveries() {
-    console.log('📦 [Debug] Vérification livraisons récentes...');
+    logger.debug('Vérification livraisons récentes');
     
     try {
       const { data: recentDeliveries, error } = await supabase
@@ -86,21 +87,21 @@ export class DebugHelper {
         .limit(10);
 
       if (error) {
-        console.error('❌ [Debug] Erreur récupération livraisons:', error);
+        logger.error('Erreur récupération livraisons', error);
         return null;
       }
 
-      console.log(`📦 [Debug] ${recentDeliveries?.length || 0} livraisons récentes:`, recentDeliveries);
+      logger.debug(`${recentDeliveries?.length || 0} livraisons récentes`, recentDeliveries);
       
       return recentDeliveries || [];
     } catch (error) {
-      console.error('❌ [Debug] Erreur générale:', error);
+      logger.error('Erreur générale checkRecentDeliveries', error);
       return null;
     }
   }
 
   static async testEdgeFunctionConnection() {
-    console.log('🔗 [Debug] Test connexion Edge Functions...');
+    logger.debug('Test connexion Edge Functions');
     
     try {
       // Test ride-dispatcher
@@ -113,7 +114,7 @@ export class DebugHelper {
         }
       });
 
-      console.log('🚗 [Debug] Test ride-dispatcher:', rideTest);
+      logger.debug('Test ride-dispatcher', rideTest);
 
       // Test delivery-dispatcher
       const deliveryTest = await supabase.functions.invoke('delivery-dispatcher', {
@@ -125,20 +126,20 @@ export class DebugHelper {
         }
       });
 
-      console.log('📦 [Debug] Test delivery-dispatcher:', deliveryTest);
+      logger.debug('Test delivery-dispatcher', deliveryTest);
 
       return {
         rideDispatcher: rideTest,
         deliveryDispatcher: deliveryTest
       };
     } catch (error) {
-      console.error('❌ [Debug] Erreur test Edge Functions:', error);
+      logger.error('Erreur test Edge Functions', error);
       return null;
     }
   }
 
   static async runFullDiagnostic() {
-    console.log('🔍 [Debug] === DIAGNOSTIC COMPLET DÉMARRÉ ===');
+    logger.debug('=== DIAGNOSTIC COMPLET DÉMARRÉ ===');
     
     const results = {
       drivers: await this.checkDriversAvailability(),
@@ -147,7 +148,7 @@ export class DebugHelper {
       edgeFunctions: await this.testEdgeFunctionConnection()
     };
 
-    console.log('📊 [Debug] === RÉSULTATS DIAGNOSTIC ===', results);
+    logger.debug('=== RÉSULTATS DIAGNOSTIC ===', results);
     
     return results;
   }

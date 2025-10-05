@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { logger } from '@/utils/logger';
 
 interface DriverRegistrationFormProps {
   onSuccess: () => void;
@@ -148,7 +149,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 
   setLoading(true);
-  console.log("Payload à envoyé =>",formData);
+  logger.info("Driver registration payload", formData);
   try {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email,
@@ -188,7 +189,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       onSuccess();
     }
   } catch (error: any) {
-    console.error("Registration error:", error);
+    logger.error("Driver registration error", error);
     toast({
       title: "Erreur",
       description: error.message || "Une erreur est survenue lors de l'inscription",

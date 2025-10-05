@@ -17,6 +17,7 @@ import { Loader2, Eye, EyeOff, AlertCircle, Mail, Lock, Sparkles } from 'lucide-
 import BrandLogo from '@/components/brand/BrandLogo';
 import { AuthStatusChecker } from './AuthStatusChecker';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
+import { logger } from '@/utils/logger';
 
 type AuthStep = 'login' | 'role-selection' | 'registration';
 
@@ -45,7 +46,7 @@ export const EnhancedAuth = () => {
       const redirectPath = getRedirectPath(userRole.role);
       navigate(redirectPath);
 
-      console.log(user,userRole);
+      logger.info('User authenticated', { userId: user?.id, role: userRole });
     }
   }, [user, userRole, roleLoading, navigate, getRedirectPath]);
 
@@ -61,7 +62,7 @@ export const EnhancedAuth = () => {
       });
 
       if (error) {
-        console.log(error);
+        logger.error('Login error', error);
         throw error;
       }
 
@@ -76,7 +77,7 @@ export const EnhancedAuth = () => {
         });
       }
     } catch (error: any) {
-      console.error("Login error:", error);
+      logger.error("Login error", error);
       setError(error.message || "Erreur lors de la connexion");
     } finally {
       setLoading(false);

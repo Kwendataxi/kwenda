@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
+import { logger } from '@/utils/logger';
 
 interface AdminLoginProps {
   onSuccess?: () => void;
@@ -59,7 +60,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
         navigate('/admin');
       }
     } catch (error: any) {
-      console.error('Erreur de connexion admin:', error);
+      logger.error('Erreur de connexion admin', error);
       toast.error('Erreur de connexion', {
         description: error.message || 'Vérifiez vos identifiants'
       });
