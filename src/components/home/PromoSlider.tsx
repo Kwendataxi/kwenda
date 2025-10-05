@@ -97,43 +97,43 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
 
                 {/* Slide 2: Flash Express Delivery - Modern & Clean */}
                 {promo.id === '2' && (
-                  <div className="absolute inset-0 flex flex-col justify-between text-white p-4">
-                    {/* Header with badge + single lightning icon */}
-                    <div className="flex items-start justify-between relative z-10">
-                      <div className="bg-black/40 backdrop-blur-md text-white px-3 py-1 rounded-full font-black text-[10px] shadow-lg border border-white/20">
+                  <div className="absolute inset-0 p-3 flex flex-col text-white">
+                    {/* Header with badge + lightning icon */}
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="bg-black/40 backdrop-blur-md text-white px-2.5 py-0.5 rounded-full font-black text-[9px] shadow-lg border border-white/20">
                         EXPRESS
                       </div>
                       <Zap 
-                        className="w-10 h-10 text-yellow-300 drop-shadow-[0_0_20px_rgba(253,224,71,0.6)]" 
+                        className="w-8 h-8 text-yellow-300 drop-shadow-[0_0_15px_rgba(253,224,71,0.6)]" 
                         fill="currentColor" 
                         strokeWidth={0}
                       />
                     </div>
 
-                    {/* Main content - centered */}
-                    <div className="relative z-10 flex-1 flex flex-col justify-center">
-                      <h3 className="text-4xl font-black drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)] leading-none tracking-tighter mb-1 bg-gradient-to-r from-white via-yellow-100 to-white bg-clip-text text-transparent">
+                    {/* Main content - centered and compact */}
+                    <div className="flex-1 flex flex-col justify-center relative z-10 -mt-2">
+                      <h3 className="text-2xl font-black drop-shadow-[0_4px_15px_rgba(0,0,0,0.5)] leading-none tracking-tighter mb-0.5 bg-gradient-to-r from-white via-yellow-100 to-white bg-clip-text text-transparent">
                         Livrez Rapide
                       </h3>
-                      <h3 className="text-4xl font-black drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)] leading-none tracking-tighter bg-gradient-to-r from-yellow-300 via-white to-yellow-300 bg-clip-text text-transparent">
+                      <h3 className="text-2xl font-black drop-shadow-[0_4px_15px_rgba(0,0,0,0.5)] leading-none tracking-tighter bg-gradient-to-r from-yellow-300 via-white to-yellow-300 bg-clip-text text-transparent">
                         en Flash
                       </h3>
                     </div>
 
-                    {/* Footer with timing + CTA - minimal */}
-                    <div className="flex items-center justify-between gap-2 relative z-10">
-                      <div className="text-xs font-bold bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20">
+                    {/* Footer with timing + CTA - compact */}
+                    <div className="flex items-center justify-between gap-2 mt-auto">
+                      <div className="text-[10px] font-bold bg-white/10 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/20">
                         30 min
                       </div>
                       
-                      <div className="inline-flex items-center gap-1 px-5 py-2 bg-white text-orange-600 rounded-xl font-black text-xs shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-all duration-200">
+                      <div className="inline-flex items-center gap-1 px-4 py-1.5 bg-white text-orange-600 rounded-xl font-black text-[11px] shadow-[0_4px_15px_rgba(255,255,255,0.3)] hover:scale-105 transition-all duration-200">
                         {promo.cta} →
                       </div>
                     </div>
 
                     {/* Enhanced glow effects - animated */}
-                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-32 h-32 bg-yellow-400/40 rounded-full blur-3xl animate-pulse" />
-                    <div className="absolute top-1/2 -translate-y-1/2 right-8 w-24 h-24 bg-orange-400/30 rounded-full blur-2xl" />
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-28 h-28 bg-yellow-400/40 rounded-full blur-3xl animate-pulse pointer-events-none" />
+                    <div className="absolute top-1/2 -translate-y-1/2 right-6 w-20 h-20 bg-orange-400/30 rounded-full blur-2xl pointer-events-none" />
                   </div>
                 )}
 
