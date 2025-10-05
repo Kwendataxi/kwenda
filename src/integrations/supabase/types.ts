@@ -3667,6 +3667,179 @@ export type Database = {
           },
         ]
       }
+      navigation_events: {
+        Row: {
+          event_data: Json | null
+          event_type: string
+          id: string
+          location_coords: Json | null
+          session_id: string
+          timestamp: string
+        }
+        Insert: {
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          location_coords?: Json | null
+          session_id: string
+          timestamp?: string
+        }
+        Update: {
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          location_coords?: Json | null
+          session_id?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "navigation_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "navigation_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      navigation_sessions: {
+        Row: {
+          actual_duration_minutes: number | null
+          battery_level: number | null
+          completion_status: string | null
+          created_at: string
+          destination_coords: Json
+          device_info: Json | null
+          distance_km: number | null
+          driver_id: string
+          duration_seconds: number | null
+          ended_at: string | null
+          estimated_duration_minutes: number | null
+          geocoding_errors: Json | null
+          id: string
+          navigation_errors: Json | null
+          network_type: string | null
+          off_route_count: number | null
+          order_id: string
+          order_type: string
+          pickup_coords: Json
+          recalculations_count: number | null
+          started_at: string
+          status: string
+          updated_at: string
+          voice_instructions_count: number | null
+        }
+        Insert: {
+          actual_duration_minutes?: number | null
+          battery_level?: number | null
+          completion_status?: string | null
+          created_at?: string
+          destination_coords: Json
+          device_info?: Json | null
+          distance_km?: number | null
+          driver_id: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          estimated_duration_minutes?: number | null
+          geocoding_errors?: Json | null
+          id?: string
+          navigation_errors?: Json | null
+          network_type?: string | null
+          off_route_count?: number | null
+          order_id: string
+          order_type: string
+          pickup_coords: Json
+          recalculations_count?: number | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          voice_instructions_count?: number | null
+        }
+        Update: {
+          actual_duration_minutes?: number | null
+          battery_level?: number | null
+          completion_status?: string | null
+          created_at?: string
+          destination_coords?: Json
+          device_info?: Json | null
+          distance_km?: number | null
+          driver_id?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          estimated_duration_minutes?: number | null
+          geocoding_errors?: Json | null
+          id?: string
+          navigation_errors?: Json | null
+          network_type?: string | null
+          off_route_count?: number | null
+          order_id?: string
+          order_type?: string
+          pickup_coords?: Json
+          recalculations_count?: number | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          voice_instructions_count?: number | null
+        }
+        Relationships: []
+      }
+      navigation_stats_daily: {
+        Row: {
+          avg_distance_km: number | null
+          avg_duration_minutes: number | null
+          avg_off_route_count: number | null
+          avg_recalculations: number | null
+          cancelled_sessions: number | null
+          completed_sessions: number | null
+          completion_rate: number | null
+          created_at: string
+          elevenlabs_calls: number | null
+          error_sessions: number | null
+          geocoding_success_rate: number | null
+          google_geocoding_calls: number | null
+          id: string
+          stats_date: string
+          total_sessions: number | null
+          updated_at: string
+        }
+        Insert: {
+          avg_distance_km?: number | null
+          avg_duration_minutes?: number | null
+          avg_off_route_count?: number | null
+          avg_recalculations?: number | null
+          cancelled_sessions?: number | null
+          completed_sessions?: number | null
+          completion_rate?: number | null
+          created_at?: string
+          elevenlabs_calls?: number | null
+          error_sessions?: number | null
+          geocoding_success_rate?: number | null
+          google_geocoding_calls?: number | null
+          id?: string
+          stats_date: string
+          total_sessions?: number | null
+          updated_at?: string
+        }
+        Update: {
+          avg_distance_km?: number | null
+          avg_duration_minutes?: number | null
+          avg_off_route_count?: number | null
+          avg_recalculations?: number | null
+          cancelled_sessions?: number | null
+          completed_sessions?: number | null
+          completion_rate?: number | null
+          created_at?: string
+          elevenlabs_calls?: number | null
+          error_sessions?: number | null
+          geocoding_success_rate?: number | null
+          google_geocoding_calls?: number | null
+          id?: string
+          stats_date?: string
+          total_sessions?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           chat_notifications: boolean | null

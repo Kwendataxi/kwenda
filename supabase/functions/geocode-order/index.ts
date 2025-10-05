@@ -13,6 +13,7 @@ serve(async (req) => {
   }
 
   try {
+    const startTime = Date.now();
     const { orderId, orderType } = await req.json();
     
     if (!orderId || !orderType) {
@@ -23,7 +24,7 @@ serve(async (req) => {
       throw new Error('orderType must be "transport" or "delivery"');
     }
 
-    console.log(`🗺️ Geocoding ${orderType} order: ${orderId}`);
+    console.log(`🗺️ [${new Date().toISOString()}] Geocoding ${orderType} order: ${orderId}`);
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -32,7 +33,20 @@ serve(async (req) => {
 
     const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY');
     if (!GOOGLE_MAPS_API_KEY) {
+      console.error('❌ GOOGLE_MAPS_API_KEY not configured');
       throw new Error('GOOGLE_MAPS_API_KEY not configured');
+    }
+
+    // 📊 MONITORING: Incrémenter compteur d'appels API Google
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      await supabaseAdmin.rpc('increment', {
+        row_id: today,
+        table_name: 'navigation_stats_daily',
+        column_name: 'google_geocoding_calls'
+      });
+    } catch (e) {
+      console.log('Stats update failed (non-critical):', e);
     }
 
     // Récupérer la commande
@@ -131,19 +145,46 @@ serve(async (req) => {
 
     console.log('✅ Order updated with coordinates');
 
+    const elapsedTime = Date.now() - startTime;
+    console.log(`⏱️ Geocoding completed in ${elapsedTime}ms`);
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         pickup: pickupCoords, 
         destination: destCoords,
         pickupAddress: pickupResult.formatted_address,
-        destinationAddress: destResult.formatted_address
+        destinationAddress: destResult.formatted_address,
+        processingTime: elapsedTime
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('❌ Geocoding error:', error);
+    
+    // 📊 MONITORING: Logger l'erreur dans les stats
+    try {
+      const supabaseAdmin = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+      
+      // Décrémenter le taux de succès
+      const today = new Date().toISOString().split('T')[0];
+      await supabaseAdmin
+        .from('navigation_stats_daily')
+        .upsert({
+          stats_date: today,
+          google_geocoding_calls: 1,
+          geocoding_success_rate: 0
+        }, {
+          onConflict: 'stats_date'
+        });
+    } catch (e) {
+      console.log('Stats error logging failed (non-critical):', e);
+    }
+
     return new Response(
       JSON.stringify({ 
         success: false,
