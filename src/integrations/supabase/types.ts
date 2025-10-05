@@ -9080,6 +9080,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      cleanup_old_security_logs: {
+        Args: { days_retention?: number }
+        Returns: number
+      }
       cleanup_security_definer_views: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -10212,6 +10216,10 @@ export type Database = {
         }
         Returns: string
       }
+      system_health_check: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       update_trip_share_location: {
         Args: { p_encrypted_data: string; p_share_id: string }
         Returns: boolean
@@ -10261,6 +10269,15 @@ export type Database = {
       validate_service_requirements: {
         Args: { p_requirements: Json; p_service_type: string }
         Returns: Json
+      }
+      verify_security_configuration: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          check_name: string
+          recommendation: string
+          severity: string
+          status: string
+        }[]
       }
     }
     Enums: {
