@@ -7163,6 +7163,9 @@ export type Database = {
           delivery_google_place_name: string | null
           destination: string
           destination_coordinates: Json | null
+          destination_google_address: string | null
+          destination_google_place_id: string | null
+          destination_google_place_name: string | null
           driver_arrived_at: string | null
           driver_assigned_at: string | null
           driver_id: string | null
@@ -7199,6 +7202,9 @@ export type Database = {
           delivery_google_place_name?: string | null
           destination: string
           destination_coordinates?: Json | null
+          destination_google_address?: string | null
+          destination_google_place_id?: string | null
+          destination_google_place_name?: string | null
           driver_arrived_at?: string | null
           driver_assigned_at?: string | null
           driver_id?: string | null
@@ -7235,6 +7241,9 @@ export type Database = {
           delivery_google_place_name?: string | null
           destination?: string
           destination_coordinates?: Json | null
+          destination_google_address?: string | null
+          destination_google_place_id?: string | null
+          destination_google_place_name?: string | null
           driver_arrived_at?: string | null
           driver_assigned_at?: string | null
           driver_id?: string | null
@@ -10412,6 +10421,10 @@ export type Database = {
       }
       validate_google_address: {
         Args: { address_text: string }
+        Returns: boolean
+      }
+      validate_gps_coordinates: {
+        Args: { coords: Json }
         Returns: boolean
       }
       validate_lottery_win: {
