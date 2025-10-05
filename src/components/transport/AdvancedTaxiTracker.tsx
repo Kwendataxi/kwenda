@@ -53,6 +53,9 @@ interface BookingData {
   estimated_duration?: number;
   distance_km?: number;
   rated?: boolean;
+  user_id?: string;
+  client_name?: string;
+  client_phone?: string;
 }
 
 interface DriverLocation {
@@ -265,6 +268,18 @@ export default function AdvancedTaxiTracker({ bookingId, onBack }: AdvancedTaxiT
         }
       }
 
+      // Charger les infos du client
+      let clientInfo = null;
+      if (data.user_id) {
+        const { data: clientData } = await supabase
+          .from('clients')
+          .select('display_name, phone_number')
+          .eq('user_id', data.user_id)
+          .single();
+        
+        clientInfo = clientData;
+      }
+
       setBooking({
         ...data,
         driver_name: driverInfo?.display_name,
@@ -273,6 +288,8 @@ export default function AdvancedTaxiTracker({ bookingId, onBack }: AdvancedTaxiT
         vehicle_model: driverInfo?.vehicle_model,
         vehicle_plate: driverInfo?.vehicle_plate,
         vehicle_color: driverInfo?.vehicle_color,
+        client_name: clientInfo?.display_name,
+        client_phone: clientInfo?.phone_number,
         pickup_coordinates: data.pickup_coordinates as any,
         destination_coordinates: data.destination_coordinates as any
       });
@@ -532,6 +549,41 @@ export default function AdvancedTaxiTracker({ bookingId, onBack }: AdvancedTaxiT
                       Chat
                     </Button>
                   </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Infos client (pour le chauffeur) */}
+            {booking.user_id && booking.client_name && (
+              <Card className="glassmorphism">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Phone className="h-5 w-5" />
+                    Votre client
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center">
+                      <Phone className="h-6 w-6 text-secondary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold">{booking.client_name}</p>
+                      {booking.client_phone && (
+                        <p className="text-sm text-muted-foreground">{booking.client_phone}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {booking.client_phone && (
+                    <Button 
+                      className="w-full"
+                      onClick={() => window.open(`tel:${booking.client_phone}`)}
+                    >
+                      <Phone className="h-4 w-4 mr-2" />
+                      Appeler le client
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             )}

@@ -54,6 +54,10 @@ interface BookingData {
     vehicle_model: string;
     vehicle_plate: string;
   };
+  client?: {
+    display_name: string;
+    phone_number: string;
+  };
 }
 
 const STATUS_CONFIG = {
@@ -86,6 +90,10 @@ export default function UniversalTaxiTracker({ bookingId, onBack }: UniversalTax
             rating_average,
             vehicle_model,
             vehicle_plate
+          ),
+          client:clients(
+            display_name,
+            phone_number
           )
         `)
         .eq('id', bookingId)
@@ -103,6 +111,10 @@ export default function UniversalTaxiTracker({ bookingId, onBack }: UniversalTax
           rating_average: (data.driver as any).rating_average || 0,
           vehicle_model: (data.driver as any).vehicle_model || '',
           vehicle_plate: (data.driver as any).vehicle_plate || ''
+        } : undefined,
+        client: data.user_id && data.client && typeof data.client === 'object' && !Array.isArray(data.client) ? {
+          display_name: (data.client as any).display_name || 'Client',
+          phone_number: (data.client as any).phone_number || ''
         } : undefined
       };
       
@@ -162,6 +174,14 @@ export default function UniversalTaxiTracker({ bookingId, onBack }: UniversalTax
       window.open(`tel:${bookingData.driver.phone_number}`);
     } else {
       toast.error('Numéro du chauffeur non disponible');
+    }
+  };
+
+  const handleCallClient = () => {
+    if (bookingData?.client?.phone_number) {
+      window.open(`tel:${bookingData.client.phone_number}`);
+    } else {
+      toast.error('Numéro du client non disponible');
     }
   };
 
@@ -337,6 +357,44 @@ export default function UniversalTaxiTracker({ bookingId, onBack }: UniversalTax
                       </Button>
                     )}
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Client Card (pour le chauffeur) */}
+        {bookingData?.client && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
+          >
+            <Card className="shadow-lg border-secondary/20">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <h3 className="font-medium text-sm text-muted-foreground">Votre client</h3>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center">
+                      <Phone className="w-6 h-6 text-secondary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium">{bookingData.client.display_name}</h3>
+                      {bookingData.client.phone_number && (
+                        <p className="text-sm text-muted-foreground">{bookingData.client.phone_number}</p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {bookingData.client.phone_number && (
+                    <Button 
+                      onClick={handleCallClient} 
+                      className="w-full h-12"
+                    >
+                      <Phone className="w-4 h-4 mr-2" />
+                      Appeler le client
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
