@@ -193,11 +193,8 @@ export const EnhancedAuth = () => {
             Kwenda
           </h1>
           
-          <p className="text-lg font-semibold text-gray-700 dark:text-gray-100 drop-shadow-sm">
-            Embarquez dans l'aventure ! 🚗✨
-          </p>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            Transport & Livraison nouvelle génération
+          <p className="text-base text-gray-700 dark:text-gray-200 drop-shadow-sm">
+            Courses abordables tous les jours.
           </p>
         </div>
 
