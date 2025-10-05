@@ -21,70 +21,158 @@ serve(async (req) => {
     console.log('Marketplace driver assignment action:', action, params)
 
     switch (action) {
+      case 'auto_assign_marketplace_order':
+        const { order_id: auto_order_id, pickup_lat, pickup_lng, city: order_city = 'Kinshasa' } = params;
+        
+        console.log(`Auto-assignation marketplace pour commande ${auto_order_id} à ${pickup_lat}, ${pickup_lng}`);
+
+        // Utiliser la fonction RPC sécurisée pour trouver les drivers
+        const { data: secureDrivers, error: rpcError } = await supabase.rpc('find_nearby_drivers_secure', {
+          user_lat: pickup_lat,
+          user_lng: pickup_lng,
+          max_distance_km: 10,
+          vehicle_class_filter: ['moto', 'voiture', 'standard'],
+          service_type_filter: ['delivery', 'marketplace']
+        });
+
+        if (rpcError) {
+          console.error('Erreur RPC find_nearby_drivers_secure:', rpcError);
+          throw rpcError;
+        }
+
+        console.log(`${secureDrivers?.length || 0} livreurs trouvés via RPC sécurisé`);
+
+        if (!secureDrivers || secureDrivers.length === 0) {
+          // Fallback: élargir le rayon à 15km
+          const { data: fallbackDrivers, error: fallbackError } = await supabase.rpc('find_nearby_drivers_secure', {
+            user_lat: pickup_lat,
+            user_lng: pickup_lng,
+            max_distance_km: 15,
+            vehicle_class_filter: ['moto', 'voiture', 'standard'],
+            service_type_filter: ['delivery', 'marketplace']
+          });
+
+          if (fallbackError || !fallbackDrivers || fallbackDrivers.length === 0) {
+            return new Response(
+              JSON.stringify({ 
+                success: false, 
+                message: 'Aucun livreur disponible dans un rayon de 15km',
+                drivers: []
+              }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
+            );
+          }
+
+          // Assigner automatiquement le premier driver disponible
+          const bestDriver = fallbackDrivers[0];
+          
+          const { error: assignError } = await supabase
+            .from('marketplace_delivery_assignments')
+            .insert({
+              order_id: auto_order_id,
+              driver_id: bestDriver.driver_id,
+              assignment_status: 'assigned',
+              delivery_fee: 5000,
+              pickup_coordinates: { lat: pickup_lat, lng: pickup_lng }
+            });
+
+          if (!assignError) {
+            await supabase
+              .from('marketplace_orders')
+              .update({ 
+                status: 'assigned_to_driver',
+                assigned_to_driver_at: new Date().toISOString()
+              })
+              .eq('id', auto_order_id);
+
+            await supabase
+              .from('driver_locations')
+              .update({ is_available: false })
+              .eq('driver_id', bestDriver.driver_id);
+          }
+
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              driver_assigned: bestDriver,
+              message: 'Livreur assigné automatiquement (rayon élargi)'
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
+          );
+        }
+
+        // Assigner le meilleur driver (le plus proche)
+        const topDriver = secureDrivers[0];
+        
+        const { error: autoAssignError } = await supabase
+          .from('marketplace_delivery_assignments')
+          .insert({
+            order_id: auto_order_id,
+            driver_id: topDriver.driver_id,
+            assignment_status: 'assigned',
+            delivery_fee: 5000,
+            pickup_coordinates: { lat: pickup_lat, lng: pickup_lng }
+          });
+
+        if (autoAssignError) {
+          console.error('Erreur auto-assignation:', autoAssignError);
+          throw autoAssignError;
+        }
+
+        // Mettre à jour le statut de la commande
+        await supabase
+          .from('marketplace_orders')
+          .update({ 
+            status: 'assigned_to_driver',
+            assigned_to_driver_at: new Date().toISOString()
+          })
+          .eq('id', auto_order_id);
+
+        // Marquer le driver comme non disponible
+        await supabase
+          .from('driver_locations')
+          .update({ is_available: false })
+          .eq('driver_id', topDriver.driver_id);
+
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            driver_assigned: topDriver,
+            message: 'Livreur assigné automatiquement avec succès'
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }}
+        );
+      
       case 'find_marketplace_drivers':
         const { lat, lng, max_distance = 10, city = 'Kinshasa' } = params;
         
-        console.log(`Recherche de livreurs près de ${lat}, ${lng} dans un rayon de ${max_distance}km`);
+        console.log(`Recherche manuelle de livreurs près de ${lat}, ${lng} dans un rayon de ${max_distance}km`);
 
-        // Rechercher les livreurs disponibles avec moins de contraintes
-        const { data: availableDrivers, error: driversError } = await supabase
-          .from('driver_locations')
-          .select(`
-            driver_id,
-            latitude,
-            longitude,
-            is_online,
-            is_available,
-            vehicle_class,
-            is_verified,
-            minimum_balance,
-            last_ping
-          `)
-          .eq('is_online', true)
-          .eq('is_available', true)
-          .eq('is_verified', true)
-          .gte('minimum_balance', 500)
-          .gte('last_ping', new Date(Date.now() - 10 * 60 * 1000).toISOString())
-          .limit(15)
+        // Utiliser la fonction RPC sécurisée
+        const { data: availableDrivers, error: driversError } = await supabase.rpc('find_nearby_drivers_secure', {
+          user_lat: lat,
+          user_lng: lng,
+          max_distance_km: max_distance,
+          vehicle_class_filter: ['moto', 'voiture', 'standard'],
+          service_type_filter: ['delivery', 'marketplace']
+        })
 
         if (driversError) {
           console.error('Error fetching drivers:', driversError)
           throw driversError
         }
 
-        console.log(`${availableDrivers?.length || 0} chauffeurs trouvés en base`);
+        console.log(`${availableDrivers?.length || 0} livreurs trouvés via RPC sécurisé`);
 
-        // Fonction pour calculer la distance
-        function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-          const R = 6371; // Rayon de la Terre en km
-          const dLat = (lat2 - lat1) * Math.PI / 180;
-          const dLng = (lng2 - lng1) * Math.PI / 180;
-          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                    Math.sin(dLng/2) * Math.sin(dLng/2);
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-          return R * c;
-        }
-
-        // Calculer les vraies distances si coordonnées fournies
-        const formattedDrivers = (availableDrivers || []).map((driver: any, index: number) => {
-          let distance_km = 2 + (index * 0.5); // Distance par défaut
-          
-          if (lat && lng && driver.latitude && driver.longitude) {
-            distance_km = calculateDistance(lat, lng, driver.latitude, driver.longitude);
-          }
-          
-          return {
-            driver_id: driver.driver_id,
-            distance_km: Math.round(distance_km * 100) / 100,
-            estimated_arrival: Math.max(5, Math.round(distance_km * 3 + 2)),
-            vehicle_class: driver.vehicle_class || 'moto',
-            is_online: driver.is_online,
-            last_ping: driver.last_ping
-          };
-        })
-        .filter(driver => !lat || !lng || driver.distance_km <= max_distance)
-        .sort((a, b) => a.distance_km - b.distance_km)
+        // Les drivers sont déjà formatés par la fonction RPC avec distance_km
+        const formattedDrivers = (availableDrivers || []).map((driver: any) => ({
+          driver_id: driver.driver_id,
+          distance_km: driver.distance_km,
+          estimated_arrival: Math.max(5, Math.round(driver.distance_km * 3 + 2)),
+          vehicle_class: driver.vehicle_class || 'moto',
+          is_online: true,
+          is_verified: true
+        }))
 
         return new Response(
           JSON.stringify({ 
