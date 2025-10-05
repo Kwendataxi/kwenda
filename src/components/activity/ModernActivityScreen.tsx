@@ -291,26 +291,7 @@ export const ModernActivityScreen = ({ onBack }: ModernActivityScreenProps) => {
         </div>
       ) : null}
 
-      {/* Cache indicator */}
-      <AnimatePresence>
-        {isFromCache && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-20 left-4 right-4 z-40"
-          >
-            <Card className="bg-orange-50 border-orange-200">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 text-orange-800">
-                  <WifiOff className="h-4 w-4" />
-                  <span className="text-sm">Données du cache • Connexion limitée</span>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Cache indicator - masqué */}
 
       {/* Sheet de détails */}
       <ActivityDetailsSheet 

@@ -241,14 +241,15 @@ export const useUnifiedActivityRobust = () => {
 
     } catch (err: any) {
       console.error('❌ Erreur chargement activités:', err);
-      setError(err.message || 'Erreur de connexion');
       setRetryCount(prev => prev + 1);
       
-      // Utiliser le cache en cas d'erreur si disponible
+      // Utiliser le cache en cas d'erreur si disponible (silencieusement)
       if (activityCache && activityCache.data.length > 0) {
         console.log('📦 Utilisation du cache de secours');
         setActivities(activityCache.data);
-        setError('Données du cache (connexion limitée)');
+        setError(null); // Pas d'erreur affichée si on a du cache
+      } else {
+        setError(err.message || 'Erreur de connexion');
       }
     } finally {
       setLoading(false);
