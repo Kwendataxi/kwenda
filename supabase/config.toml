@@ -91,3 +91,9 @@ verify_jwt = true
 
 [functions.geocode-order]
 verify_jwt = true
+
+[functions.partner-subscription-commission]
+verify_jwt = false
+
+[functions.vendor-subscription-manager]
+verify_jwt = true

@@ -9,7 +9,7 @@ import PartnerHeader from './PartnerHeader';
 interface ResponsivePartnerLayoutProps {
   children: React.ReactNode;
   stats: any;
-  currentView: 'dashboard' | 'vehicles' | 'drivers' | 'commissions' | 'subscriptions' | 'analytics' | 'notifications';
+  currentView: 'dashboard' | 'vehicles' | 'drivers' | 'subscription-earnings' | 'subscriptions' | 'analytics' | 'notifications';
   onViewChange: (view: string) => void;
   title?: string;
   subtitle?: string;

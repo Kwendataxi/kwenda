@@ -62,17 +62,30 @@ export const usePartnerWithdrawals = () => {
       const totalPaid = withdrawalData?.filter(w => w.status === 'paid').reduce((sum, w) => sum + Number(w.amount), 0) || 0;
       const totalPending = withdrawalData?.filter(w => w.status === 'pending').reduce((sum, w) => sum + Number(w.amount), 0) || 0;
 
-      // Calculate available balance from commissions
-      const { data: commissionData, error: commissionError } = await supabase
-        .from('partner_commission_tracking')
-        .select('commission_amount')
-        .eq('partner_id', user.id);
+      // NOUVEAU: Calculer le solde depuis les gains sur abonnements (Kwenda Taxi)
+      const { data: partnerData } = await supabase
+        .from('partenaires')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
 
-      if (commissionError) {
-        console.error('Error fetching commissions for balance:', commissionError);
+      let totalEarned = 0;
+
+      if (partnerData) {
+        // Gains sur abonnements chauffeurs (5%)
+        const { data: subscriptionEarnings, error: earningsError } = await supabase
+          .from('partner_subscription_earnings')
+          .select('partner_commission_amount')
+          .eq('partner_id', partnerData.id)
+          .eq('status', 'paid');
+
+        if (earningsError) {
+          console.error('Error fetching subscription earnings:', earningsError);
+        }
+
+        totalEarned = subscriptionEarnings?.reduce((sum, e) => sum + Number(e.partner_commission_amount), 0) || 0;
       }
 
-      const totalEarned = commissionData?.reduce((sum, c) => sum + Number(c.commission_amount), 0) || 0;
       const totalWithdrawn = withdrawalData?.filter(w => w.status === 'paid' || w.status === 'approved').reduce((sum, w) => sum + Number(w.amount), 0) || 0;
       const availableBalance = totalEarned - totalWithdrawn;
 

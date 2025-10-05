@@ -9,6 +9,7 @@ import { PartnerEarningsCard } from '@/components/partner/PartnerEarningsCard';
 import { PartnerDashboard } from '@/components/partner/PartnerDashboard';
 import { PartnerAnalyticsDashboard } from '@/components/partner/PartnerAnalyticsDashboard';
 import { PartnerNotificationCenter } from '@/components/partner/PartnerNotificationCenter';
+import { PartnerSubscriptionEarnings } from '@/components/partner/PartnerSubscriptionEarnings';
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, CalendarIcon, Download, Eye, Filter, Plus, Search, Star, TrendingDown, TrendingUp, UserPlus, Users } from "lucide-react"
 import {
@@ -39,7 +40,7 @@ import { Progress } from "@/components/ui/progress"
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const PartnerApp = () => {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'subscriptions' | 'analytics' | 'notifications'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'subscriptions' | 'analytics' | 'notifications' | 'subscription-earnings'>('dashboard');
   
   // Use real data hooks
   const { stats, loading: statsLoading } = usePartnerStats();
@@ -444,6 +445,8 @@ const PartnerApp = () => {
         return <PartnerDriverManager />;
       case 'subscriptions':
         return renderSubscriptions();
+      case 'subscription-earnings':
+        return <PartnerSubscriptionEarnings />;
       case 'analytics':
         return <PartnerAnalyticsDashboard />;
       case 'notifications':
@@ -458,6 +461,8 @@ const PartnerApp = () => {
         return 'Mes véhicules';
       case 'drivers': 
         return 'Chauffeurs';
+      case 'subscription-earnings':
+        return 'Gains Abonnements';
       case 'subscriptions':
         return 'Abonnements';
       case 'analytics':

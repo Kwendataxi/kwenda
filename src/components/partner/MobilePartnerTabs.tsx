@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface MobilePartnerTabsProps {
-  currentView: 'dashboard' | 'vehicles' | 'drivers' | 'commissions' | 'subscriptions' | 'analytics' | 'notifications';
+  currentView: 'dashboard' | 'vehicles' | 'drivers' | 'subscription-earnings' | 'subscriptions' | 'analytics' | 'notifications';
   onViewChange: (view: string) => void;
   variant?: 'bottom' | 'horizontal' | 'vertical';
 }
@@ -13,7 +13,7 @@ const tabItems = [
   { id: 'dashboard', label: 'Accueil', icon: Home },
   { id: 'vehicles', label: 'Véhicules', icon: Car },
   { id: 'drivers', label: 'Chauffeurs', icon: Users },
-  { id: 'commissions', label: 'Commissions', icon: DollarSign },
+  { id: 'subscription-earnings', label: 'Gains', icon: DollarSign },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
 ];
 

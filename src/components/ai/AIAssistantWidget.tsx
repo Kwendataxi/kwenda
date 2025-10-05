@@ -56,7 +56,7 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
       case 'marketplace': return 'Assistant Marketplace';
       case 'rental': return 'Assistant Location';
       case 'support': return 'Support Client';
-      default: return 'Assistant KwendaGo';
+      default: return 'Assistant Kwenda Taxi';
     }
   };
 
@@ -182,7 +182,7 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
               >
                 <Bot className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">
-                  Bonjour ! Je suis votre assistant KwendaGo.
+                  Bonjour ! Je suis votre assistant Kwenda Taxi.
                   <br />
                   Comment puis-je vous aider aujourd'hui ?
                 </p>

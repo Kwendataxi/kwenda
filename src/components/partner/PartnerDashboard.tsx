@@ -55,11 +55,11 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onViewChange
       onClick: () => onViewChange('vehicles')
     },
     {
-      id: 'view-commissions',
-      label: 'Commissions',
+      id: 'subscription-earnings',
+      label: 'Gains Abonnements',
       icon: DollarSign,
       color: 'text-purple-600',
-      onClick: () => onViewChange('commissions')
+      onClick: () => onViewChange('subscription-earnings')
     },
     {
       id: 'analytics',
@@ -95,7 +95,7 @@ export const PartnerDashboard: React.FC<PartnerDashboardProps> = ({ onViewChange
     {
       id: 3,
       type: 'success',
-      message: 'Commission de 45,000 CDF versée',
+      message: 'Gain abonnement de 1,500 CDF reçu (5%)',
       time: '6h'
     }
   ];

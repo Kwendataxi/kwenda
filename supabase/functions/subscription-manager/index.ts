@@ -194,6 +194,26 @@ serve(async (req) => {
       priority: 'high'
     })
 
+    // ===================================================
+    // NOUVEAU: Kwenda Taxi - Calcul commission partenaire 5%
+    // ===================================================
+    try {
+      console.log('[Subscription Manager] Triggering partner commission calculation...')
+      
+      await supabaseService.functions.invoke('partner-subscription-commission', {
+        body: {
+          subscription_id: subscription.id,
+          driver_id,
+          subscription_amount: plan.price
+        }
+      })
+
+      console.log('[Subscription Manager] Partner commission processed successfully')
+    } catch (commissionError) {
+      console.error('[Subscription Manager] Partner commission failed (non-blocking):', commissionError)
+      // Non-blocking: la subscription reste active même si commission échoue
+    }
+
     return new Response(JSON.stringify({
       success: true,
       subscription,
