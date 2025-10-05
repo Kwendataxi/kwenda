@@ -22,6 +22,7 @@ import {
 import { useRealTimeDeliveryTracking } from '@/hooks/useRealTimeDeliveryTracking';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { useBookingChat } from '@/hooks/useBookingChat';
 
 interface EnhancedDeliveryTrackerProps {
   orderId: string;
@@ -32,8 +33,8 @@ export default function EnhancedDeliveryTracker({
   orderId, 
   onBack 
 }: EnhancedDeliveryTrackerProps) {
-  const [showChat, setShowChat] = useState(false);
   const [messageText, setMessageText] = useState('');
+  const { openChatFromBooking } = useBookingChat();
   
   const {
     trackingData,
@@ -235,7 +236,7 @@ export default function EnhancedDeliveryTracker({
                       variant="outline" 
                       size="icon" 
                       className="h-12 w-12 touch-manipulation"
-                      onClick={() => setShowChat(!showChat)}
+                      onClick={() => openChatFromBooking(orderId, 'delivery', driverProfile.display_name)}
                     >
                       <MessageCircle className="w-4 h-4" />
                     </Button>
@@ -299,59 +300,6 @@ export default function EnhancedDeliveryTracker({
           </Card>
         </motion.div>
 
-        {/* Chat Panel */}
-        <AnimatePresence>
-          {showChat && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="pb-3">
-                  <h3 className="font-medium">Chat avec le chauffeur</h3>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="max-h-40 overflow-y-auto space-y-2">
-                    {trackingData.chatMessages.map((msg) => (
-                      <div 
-                        key={msg.id}
-                        className={`p-3 rounded-lg max-w-[80%] ${
-                          msg.sender_type === 'driver' 
-                            ? 'bg-muted mr-auto' 
-                            : 'bg-primary text-primary-foreground ml-auto'
-                        }`}
-                      >
-                        <p className="text-sm">{msg.message}</p>
-                        <p className="text-xs opacity-70 mt-1">
-                          {new Date(msg.sent_at).toLocaleTimeString()}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="flex space-x-2">
-                    <Input
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                      placeholder="Votre message..."
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                      className="flex-1"
-                    />
-                    <Button 
-                      onClick={handleSendMessage}
-                      size="icon"
-                      disabled={!messageText.trim()}
-                    >
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );

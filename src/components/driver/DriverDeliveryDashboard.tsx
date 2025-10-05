@@ -36,6 +36,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useRealTimeDeliveryTracking } from '@/hooks/useRealTimeDeliveryTracking';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { useBookingChat } from '@/hooks/useBookingChat';
 
 interface ActiveDelivery {
   id: string;
@@ -62,6 +63,7 @@ export default function DriverDeliveryDashboard({ onSelectDelivery }: DriverDeli
   const [selectedDelivery, setSelectedDelivery] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const { openChatFromBooking } = useBookingChat();
   
   // États pour les actions
   const [notes, setNotes] = useState('');
@@ -550,7 +552,15 @@ export default function DriverDeliveryDashboard({ onSelectDelivery }: DriverDeli
                       <Button variant="outline" size="icon" onClick={callClient}>
                         <Phone className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="icon">
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => selectedDelivery && openChatFromBooking(
+                          selectedDelivery, 
+                          'delivery', 
+                          trackingHook.trackingData.clientProfile?.display_name
+                        )}
+                      >
                         <MessageSquare className="w-4 h-4" />
                       </Button>
                     </div>

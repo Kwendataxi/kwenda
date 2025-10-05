@@ -17,9 +17,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import TaxiChat from './TaxiChat';
 import TaxiPaymentModal from '../payment/TaxiPaymentModal';
 import { supabase } from '@/integrations/supabase/client';
+import { useBookingChat } from '@/hooks/useBookingChat';
 
 interface UniversalTaxiTrackerProps {
   bookingId: string;
@@ -66,9 +66,9 @@ const STATUS_CONFIG = {
 export default function UniversalTaxiTracker({ bookingId, onBack }: UniversalTaxiTrackerProps) {
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showChat, setShowChat] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const { openChatFromBooking } = useBookingChat();
 
   // Charger les données de réservation
   const fetchBookingData = async () => {
@@ -329,7 +329,7 @@ export default function UniversalTaxiTracker({ bookingId, onBack }: UniversalTax
                         variant="outline" 
                         size="icon" 
                         className="h-12 w-12"
-                        onClick={() => setShowChat(true)}
+                        onClick={() => openChatFromBooking(bookingId, 'transport', bookingData.driver.display_name)}
                       >
                         <MessageCircle className="w-4 h-4" />
                       </Button>
@@ -411,15 +411,6 @@ export default function UniversalTaxiTracker({ bookingId, onBack }: UniversalTax
           </motion.div>
         )}
       </div>
-
-      {/* Chat Modal */}
-      {showChat && hasDriver && bookingData.driver && (
-        <TaxiChat
-          bookingId={bookingData.id}
-          driverId={bookingData.driver_id!}
-          onClose={() => setShowChat(false)}
-        />
-      )}
 
       {/* Payment Modal */}
       {showPayment && isCompleted && (
