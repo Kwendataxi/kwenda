@@ -137,36 +137,37 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                   </div>
                 )}
 
-                {/* Slide 3: Lottery */}
+                {/* Slide 3: Lottery - Modern & Clean */}
                 {promo.id === '3' && (
-                  <div className="absolute inset-0 p-4 flex items-center justify-between text-white">
-                    {/* Background text */}
-                    <div className="absolute top-1/2 right-4 -translate-y-1/2 text-white/10 font-black text-5xl leading-none select-none">
-                      100K
-                    </div>
+                  <div className="absolute inset-0 p-4 flex flex-col justify-between text-white">
+                    {/* Confettis discrets */}
+                    <div className="absolute top-2 right-8 text-xl opacity-70">🎉</div>
+                    <div className="absolute bottom-4 left-8 text-lg opacity-60">✨</div>
 
-                    {/* Confettis */}
-                    <div className="absolute top-2 left-6 text-2xl opacity-90">🎉</div>
-                    <div className="absolute top-4 right-10 text-xl opacity-80">✨</div>
-                    <div className="absolute bottom-3 left-10 text-lg opacity-90">🎊</div>
-
-                    {/* Titre gauche */}
-                    <div>
-                      <h3 className="text-lg font-black drop-shadow-2xl tracking-widest uppercase">
-                        {promo.title.split(' ')[0]}
+                    {/* Main content - centered */}
+                    <div className="flex-1 flex flex-col justify-center relative z-10">
+                      <h3 className="text-3xl font-black drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)] leading-none tracking-tight mb-1">
+                        Tombola
                       </h3>
-                      <h3 className="text-xl font-black drop-shadow-2xl tracking-wide uppercase text-yellow-300">
-                        {promo.title.split(' ')[1]}
+                      <h3 className="text-3xl font-black drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)] leading-none tracking-tight mb-3 bg-gradient-to-r from-yellow-300 via-yellow-100 to-yellow-300 bg-clip-text text-transparent">
+                        KwendaPay
                       </h3>
-                      <p className="text-xs font-bold opacity-95 drop-shadow-lg mt-1">
-                        {promo.description}
+                      
+                      <p className="text-sm font-bold opacity-95 drop-shadow-lg">
+                        Gagnez jusqu'à 100 000 CDF
                       </p>
                     </div>
 
-                    {/* CTA à droite */}
-                    <div className="inline-flex items-center gap-1.5 px-4 py-2 bg-yellow-400 text-purple-900 rounded-xl font-black text-xs shadow-xl hover:scale-105 transition-all duration-200">
-                      {promo.cta} 🎁
+                    {/* CTA Button - bottom */}
+                    <div className="flex justify-center">
+                      <div className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-yellow-400 text-purple-900 rounded-xl font-black text-sm shadow-xl hover:scale-105 transition-all duration-200">
+                        {promo.cta} 🎁
+                      </div>
                     </div>
+
+                    {/* Glow effects */}
+                    <div className="absolute top-1/3 right-1/4 w-28 h-28 bg-yellow-400/30 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute bottom-1/4 left-1/4 w-24 h-24 bg-purple-400/20 rounded-full blur-2xl pointer-events-none" />
                   </div>
                 )}
 
