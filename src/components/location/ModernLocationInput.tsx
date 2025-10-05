@@ -178,7 +178,7 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
             onChange={handleInputChange}
             onFocus={() => setShowSuggestions(true)}
             placeholder={placeholder}
-            className="pl-10 pr-16 bg-background/80 backdrop-blur-sm border-border/50 focus:border-primary/50 overflow-hidden"
+            className="pl-10 pr-16 bg-background/80 backdrop-blur-sm border-border/50 focus:border-primary focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           
           <Button
@@ -187,7 +187,7 @@ export const ModernLocationInput: React.FC<ModernLocationInputProps> = ({
             size="sm"
             onClick={handleGetCurrentLocation}
             disabled={locationLoading}
-            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-primary/10 z-10 overflow-hidden"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
           >
             {locationLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
