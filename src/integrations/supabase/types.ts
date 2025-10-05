@@ -774,6 +774,39 @@ export type Database = {
         }
         Relationships: []
       }
+      commission_history_archive: {
+        Row: {
+          archived_at: string
+          commission_amount: number | null
+          commission_type: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          original_commission_id: string | null
+          partner_id: string | null
+        }
+        Insert: {
+          archived_at?: string
+          commission_amount?: number | null
+          commission_type?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          original_commission_id?: string | null
+          partner_id?: string | null
+        }
+        Update: {
+          archived_at?: string
+          commission_amount?: number | null
+          commission_type?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          original_commission_id?: string | null
+          partner_id?: string | null
+        }
+        Relationships: []
+      }
       commission_settings: {
         Row: {
           admin_rate: number
