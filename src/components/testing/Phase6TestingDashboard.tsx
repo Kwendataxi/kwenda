@@ -2,10 +2,11 @@ import React from 'react';
 import { TestSuite } from '@/components/testing/TestSuite';
 import { MobilePerformanceMonitor } from '@/components/testing/MobilePerformanceMonitor';
 import { RLSTestingPanel } from '@/components/testing/RLSTestingPanel';
+import { ChatCriticalScenariosPanel } from '@/components/testing/ChatCriticalScenariosPanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Clock, Smartphone, Zap, Shield } from 'lucide-react';
+import { CheckCircle, Clock, Smartphone, Zap, Shield, MessageCircle } from 'lucide-react';
 
 export const Phase6TestingDashboard = () => {
   const testingPhases = [
@@ -87,10 +88,14 @@ export const Phase6TestingDashboard = () => {
 
       {/* Onglets principaux */}
       <Tabs defaultValue="tests" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="tests" className="flex items-center space-x-2">
             <Clock className="h-4 w-4" />
             <span>Tests E2E</span>
+          </TabsTrigger>
+          <TabsTrigger value="chat" className="flex items-center space-x-2">
+            <MessageCircle className="h-4 w-4" />
+            <span>Chat Critique</span>
           </TabsTrigger>
           <TabsTrigger value="rls" className="flex items-center space-x-2">
             <Shield className="h-4 w-4" />
@@ -104,6 +109,10 @@ export const Phase6TestingDashboard = () => {
 
         <TabsContent value="tests" className="mt-6">
           <TestSuite />
+        </TabsContent>
+
+        <TabsContent value="chat" className="mt-6">
+          <ChatCriticalScenariosPanel />
         </TabsContent>
 
         <TabsContent value="rls" className="mt-6">
