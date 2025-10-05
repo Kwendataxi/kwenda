@@ -420,6 +420,57 @@ export type Database = {
           },
         ]
       }
+      cancellation_history: {
+        Row: {
+          admin_notes: string | null
+          admin_reviewed: boolean | null
+          cancellation_type: string
+          cancelled_by: string
+          created_at: string | null
+          financial_impact: Json | null
+          id: string
+          metadata: Json | null
+          reason: string
+          reference_id: string
+          reference_type: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status_at_cancellation: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          admin_reviewed?: boolean | null
+          cancellation_type: string
+          cancelled_by: string
+          created_at?: string | null
+          financial_impact?: Json | null
+          id?: string
+          metadata?: Json | null
+          reason: string
+          reference_id: string
+          reference_type: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status_at_cancellation: string
+        }
+        Update: {
+          admin_notes?: string | null
+          admin_reviewed?: boolean | null
+          cancellation_type?: string
+          cancelled_by?: string
+          created_at?: string | null
+          financial_impact?: Json | null
+          id?: string
+          metadata?: Json | null
+          reason?: string
+          reference_id?: string
+          reference_type?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status_at_cancellation?: string
+        }
+        Relationships: []
+      }
       challenge_rewards: {
         Row: {
           challenge_id: string
@@ -1181,7 +1232,10 @@ export type Database = {
         Row: {
           actual_price: number | null
           assignment_version: number
+          cancellation_reason: string | null
+          cancellation_type: string | null
           cancelled_at: string | null
+          cancelled_by: string | null
           city: string | null
           confirmed_at: string | null
           created_at: string
@@ -1226,7 +1280,10 @@ export type Database = {
         Insert: {
           actual_price?: number | null
           assignment_version?: number
+          cancellation_reason?: string | null
+          cancellation_type?: string | null
           cancelled_at?: string | null
+          cancelled_by?: string | null
           city?: string | null
           confirmed_at?: string | null
           created_at?: string
@@ -1271,7 +1328,10 @@ export type Database = {
         Update: {
           actual_price?: number | null
           assignment_version?: number
+          cancellation_reason?: string | null
+          cancellation_type?: string | null
           cancelled_at?: string | null
+          cancelled_by?: string | null
           city?: string | null
           confirmed_at?: string | null
           created_at?: string
@@ -7428,6 +7488,9 @@ export type Database = {
           actual_price: number | null
           assignment_version: number
           booking_time: string
+          cancellation_reason: string | null
+          cancellation_type: string | null
+          cancelled_by: string | null
           city: string | null
           completion_time: string | null
           created_at: string
@@ -7467,6 +7530,9 @@ export type Database = {
           actual_price?: number | null
           assignment_version?: number
           booking_time?: string
+          cancellation_reason?: string | null
+          cancellation_type?: string | null
+          cancelled_by?: string | null
           city?: string | null
           completion_time?: string | null
           created_at?: string
@@ -7506,6 +7572,9 @@ export type Database = {
           actual_price?: number | null
           assignment_version?: number
           booking_time?: string
+          cancellation_reason?: string | null
+          cancellation_type?: string | null
+          cancelled_by?: string | null
           city?: string | null
           completion_time?: string | null
           created_at?: string
@@ -9323,6 +9392,20 @@ export type Database = {
         }
         Relationships: []
       }
+      cancellation_stats: {
+        Row: {
+          avg_reason_length: number | null
+          cancellation_date: string | null
+          cancellation_type: string | null
+          pending_review_count: number | null
+          reference_type: string | null
+          reviewed_count: number | null
+          top_reasons: Json | null
+          total_cancellations: number | null
+          unique_users: number | null
+        }
+        Relationships: []
+      }
       subscription_stats_by_service: {
         Row: {
           active_subscriptions: number | null
@@ -9774,9 +9857,9 @@ export type Database = {
         Returns: {
           distance_km: number
           driver_id: string
-          estimated_arrival_minutes: number
           is_available: boolean
-          rating_average: number
+          latitude: number
+          longitude: number
           vehicle_class: string
         }[]
       }
@@ -10299,23 +10382,24 @@ export type Database = {
               user_lng?: number
             }
         Returns: {
-          avenue: string
-          badge: string
+          aliases: string[]
           category: string
           city: string
           commune: string
-          distance_meters: number
-          formatted_address: string
+          country_code: string
+          distance_km: number
           hierarchy_level: number
           id: string
+          is_popular: boolean
           latitude: number
           longitude: number
           name: string
+          name_fr: string
+          name_local: string
+          place_type: string
           popularity_score: number
-          quartier: string
           relevance_score: number
-          subcategory: string
-          subtitle: string
+          search_keywords: string[]
         }[]
       }
       intelligent_places_search_enhanced: {
@@ -10391,6 +10475,19 @@ export type Database = {
           p_order_type: string
         }
         Returns: undefined
+      }
+      log_cancellation: {
+        Args: {
+          p_cancellation_type: string
+          p_cancelled_by: string
+          p_financial_impact?: Json
+          p_metadata?: Json
+          p_reason: string
+          p_reference_id: string
+          p_reference_type: string
+          p_status_at_cancellation: string
+        }
+        Returns: string
       }
       log_driver_location_access: {
         Args: {
