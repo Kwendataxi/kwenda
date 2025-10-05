@@ -172,38 +172,37 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
 
                 {/* Slide 4: Car Rental - Modern & Clean */}
                 {promo.id === '4' && (
-                  <div className="absolute inset-0 p-4 flex flex-col text-white">
-                    {/* Car icon - top left with subtle glow */}
-                    <div className="mb-3">
-                      <div className="inline-flex items-center justify-center w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+                  <div className="absolute inset-0 p-3 flex items-center text-white">
+                    {/* Left side - Icon + Content */}
+                    <div className="flex items-center gap-3 flex-1">
+                      {/* Car icon */}
+                      <div className="flex-shrink-0 w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 flex items-center justify-center">
                         <span className="text-2xl">🚗</span>
                       </div>
-                    </div>
 
-                    {/* Main content - centered */}
-                    <div className="flex-1 flex flex-col justify-center">
-                      <h3 className="text-3xl font-black drop-shadow-[0_4px_15px_rgba(0,0,0,0.5)] leading-tight tracking-tight mb-3">
-                        Location de<br />véhicules
-                      </h3>
-                      
-                      {/* Price - prominent */}
-                      <div className="flex items-baseline gap-1.5 mb-4">
-                        <span className="text-3xl font-black drop-shadow-lg">50 000</span>
-                        <span className="text-base font-bold opacity-90">CDF</span>
-                        <span className="text-sm font-medium opacity-75">/jour</span>
+                      {/* Title + Price */}
+                      <div>
+                        <h3 className="text-lg font-black drop-shadow-lg leading-tight tracking-tight mb-1">
+                          Location de<br />véhicules
+                        </h3>
+                        
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xl font-black drop-shadow-lg">50 000 CDF</span>
+                          <span className="text-[10px] font-medium opacity-75">/jour</span>
+                        </div>
                       </div>
                     </div>
                     
-                    {/* CTA Button - bottom right */}
-                    <div className="flex justify-end">
-                      <div className="px-6 py-2.5 bg-white/20 backdrop-blur-md border border-white/40 rounded-xl font-bold text-sm hover:bg-white/30 transition-all duration-200 hover:scale-105 shadow-lg">
+                    {/* CTA Button - right side */}
+                    <div className="flex-shrink-0">
+                      <div className="px-4 py-2 bg-white/20 backdrop-blur-md border border-white/40 rounded-xl font-bold text-xs hover:bg-white/30 transition-all duration-200 hover:scale-105 shadow-lg whitespace-nowrap">
                         {promo.cta} →
                       </div>
                     </div>
 
                     {/* Subtle glow effects */}
-                    <div className="absolute top-1/4 right-1/4 w-24 h-24 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute bottom-1/3 left-1/4 w-20 h-20 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none" />
+                    <div className="absolute top-1/4 right-1/4 w-20 h-20 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute bottom-1/3 left-1/4 w-16 h-16 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none" />
                   </div>
                 )}
 
