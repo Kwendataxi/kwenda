@@ -75,32 +75,48 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
     const loadGoogleMapsScript = () => {
       return new Promise<void>((resolve, reject) => {
         if (window.google?.maps) {
+          console.log('✅ Google Maps already loaded');
           resolve();
           return;
         }
 
         const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
         if (existingScript) {
-          existingScript.addEventListener('load', () => resolve());
+          console.log('⏳ Waiting for existing script to load...');
+          const checkInterval = setInterval(() => {
+            if (window.google?.maps) {
+              clearInterval(checkInterval);
+              console.log('✅ Google Maps loaded from existing script');
+              resolve();
+            }
+          }, 100);
           return;
         }
 
+        console.log('📦 Loading Google Maps script...');
         const script = document.createElement('script');
         script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places`;
         script.async = true;
         script.defer = true;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load Google Maps'));
+        script.onload = () => {
+          console.log('✅ Google Maps script loaded successfully');
+          resolve();
+        };
+        script.onerror = () => {
+          console.error('❌ Failed to load Google Maps script');
+          reject(new Error('Failed to load Google Maps'));
+        };
         document.head.appendChild(script);
       });
     };
 
     loadGoogleMapsScript()
       .then(() => {
+        console.log('✅ Setting mapLoaded to true');
         setMapLoaded(true);
       })
       .catch((error) => {
-        console.error('Error loading Google Maps:', error);
+        console.error('❌ Error loading Google Maps:', error);
         toast({
           title: "Erreur",
           description: "Impossible de charger Google Maps",
@@ -111,7 +127,9 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
 
   // Initialize Google Map
   useEffect(() => {
-    if (!open || !mapLoaded || !mapRef.current || !currentCoords || !window.google) {
+    console.log('📍 Map init check:', { open, mapLoaded, hasRef: !!mapRef.current, currentCoords, hasGoogle: !!window.google });
+    
+    if (!open || !mapLoaded || !mapRef.current || !currentCoords || !window.google?.maps) {
       return;
     }
 
@@ -119,6 +137,8 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
       if (!mapRef.current || !currentCoords) return;
 
       try {
+        console.log('🗺️ Creating map with coords:', currentCoords);
+        
         const newMap = new google.maps.Map(mapRef.current, {
           center: currentCoords,
           zoom: 16,
@@ -136,6 +156,8 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
           ]
         });
 
+        console.log('📍 Creating marker at:', currentCoords);
+        
         const marker = new google.maps.Marker({
           position: currentCoords,
           map: newMap,
@@ -182,8 +204,14 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
 
         markerRef.current = marker;
         setMap(newMap);
+        console.log('✅ Map and marker created successfully');
       } catch (error) {
-        console.error('Error initializing map:', error);
+        console.error('❌ Error initializing map:', error);
+        toast({
+          title: "Erreur carte",
+          description: "Impossible d'afficher la carte",
+          variant: "destructive"
+        });
       }
     }, 300);
 
@@ -331,16 +359,6 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
             <SheetTitle className="text-2xl font-bold text-center bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
               {isEditing ? '✏️ MODIFIER LA POSITION' : 'VOTRE POSITION'}
             </SheetTitle>
-            {currentCoords && (
-              <motion.p 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="text-xs text-muted-foreground text-center font-mono"
-              >
-                GPS: {currentCoords.lat.toFixed(6)}, {currentCoords.lng.toFixed(6)}
-              </motion.p>
-            )}
           </SheetHeader>
 
           <div className="space-y-5">
