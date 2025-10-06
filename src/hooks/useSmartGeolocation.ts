@@ -443,7 +443,78 @@ const getCurrentCity = () => {
   return { name: 'Kinshasa', region: 'CD' };
 };
 
-// Géocodage inverse amélioré
+// Fonction pour détecter et valider les adresses Google Maps réelles
+const isValidRealAddress = (address: string): boolean => {
+  if (!address || address.length < 15) return false;
+  
+  // Détecter les Plus Codes (format XXXX+XXX)
+  if (address.match(/[A-Z0-9]{4,}\+[A-Z0-9]{2,}/)) {
+    console.log('❌ Plus Code détecté:', address);
+    return false;
+  }
+  
+  // Détecter les coordonnées brutes
+  if (address.match(/^-?\d+\.?\d*,\s*-?\d+\.?\d*$/)) {
+    console.log('❌ Coordonnées brutes détectées:', address);
+    return false;
+  }
+  
+  // Doit contenir au moins une ville ou un pays
+  const hasLocation = address.includes('Kinshasa') || 
+                      address.includes('Lubumbashi') || 
+                      address.includes('Kolwezi') ||
+                      address.includes('Abidjan') ||
+                      address.includes('Congo') ||
+                      address.includes('Côte d\'Ivoire');
+  
+  if (!hasLocation) {
+    console.log('❌ Pas de ville/pays reconnu:', address);
+    return false;
+  }
+  
+  return true;
+};
+
+// Construire une adresse lisible à partir des composants Google
+const buildReadableAddress = (addressComponents: any[]): string => {
+  const components = {
+    street: '',
+    neighborhood: '',
+    commune: '',
+    city: '',
+    country: ''
+  };
+  
+  addressComponents.forEach((comp: any) => {
+    if (comp.types.includes('route') || comp.types.includes('street_address')) {
+      components.street = comp.long_name;
+    }
+    if (comp.types.includes('neighborhood') || comp.types.includes('sublocality')) {
+      components.neighborhood = comp.long_name;
+    }
+    if (comp.types.includes('administrative_area_level_2') || comp.types.includes('locality')) {
+      components.commune = comp.long_name;
+    }
+    if (comp.types.includes('administrative_area_level_1') || comp.types.includes('locality')) {
+      if (!components.city) components.city = comp.long_name;
+    }
+    if (comp.types.includes('country')) {
+      components.country = comp.long_name;
+    }
+  });
+  
+  // Construire l'adresse avec les parties disponibles
+  const parts = [
+    components.street,
+    components.neighborhood,
+    components.commune || components.city,
+    components.country
+  ].filter(Boolean);
+  
+  return parts.join(', ') || 'Position non identifiée';
+};
+
+// Géocodage inverse amélioré avec détection de Plus Codes
 const reverseGeocodeEnhanced = async (lat: number, lng: number, region?: string): Promise<string> => {
   try {
     const cacheKey = `reverse-${lat.toFixed(6)}-${lng.toFixed(6)}-${region || 'default'}`;
@@ -453,47 +524,48 @@ const reverseGeocodeEnhanced = async (lat: number, lng: number, region?: string)
       return cached.data as string;
     }
 
-    // Forcer l'utilisation de Google Maps via geocode-proxy
+    console.log('🔍 Géocodage inverse pour:', { lat, lng, region });
+
+    // Forcer l'utilisation de Google Maps avec language=fr
     const { data, error } = await supabase.functions.invoke('geocode-proxy', {
       body: { 
         query: `${lat},${lng}`,
-        region: region || getCurrentCity()?.region || 'CD'
+        region: region || getCurrentCity()?.region || 'CD',
+        language: 'fr'
       }
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Erreur geocode-proxy:', error);
+      throw error;
+    }
 
-    // Extraire la vraie adresse Google Maps
-    let address = '';
+    // Extraire et valider l'adresse Google Maps
     if (data?.results && data.results.length > 0) {
       const result = data.results[0];
-      address = result.formatted_address || '';
+      let address = result.formatted_address || '';
       
-      // Valider que c'est une vraie adresse (pas des coordonnées)
-      if (address && !address.match(/^-?\d+\.?\d*,\s*-?\d+\.?\d*$/)) {
-        // Mise en cache
+      console.log('📍 Adresse Google reçue:', address);
+      
+      // Vérifier si c'est une vraie adresse (pas un Plus Code)
+      if (!isValidRealAddress(address)) {
+        console.log('⚠️ Adresse invalide, construction manuelle...');
+        
+        // Construire manuellement l'adresse avec address_components
+        if (result.address_components && result.address_components.length > 0) {
+          address = buildReadableAddress(result.address_components);
+          console.log('✅ Adresse construite:', address);
+        }
+      }
+      
+      // Vérifier une dernière fois
+      if (isValidRealAddress(address)) {
         cache.set(cacheKey, {
           data: address,
           timestamp: Date.now()
         });
+        console.log('✅ Adresse valide retournée:', address);
         return address;
-      }
-    }
-
-    // Retry avec un rayon plus large si première tentative échoue
-    const { data: retryData, error: retryError } = await supabase.functions.invoke('geocode-reverse', {
-      body: { lat, lng, region: region || getCurrentCity()?.region || 'CD' }
-    });
-
-    if (!retryError && retryData?.address) {
-      const fallbackAddress = retryData.address;
-      // Valider que ce n'est pas juste des coordonnées
-      if (!fallbackAddress.match(/^-?\d+\.?\d*,\s*-?\d+\.?\d*$/)) {
-        cache.set(cacheKey, {
-          data: fallbackAddress,
-          timestamp: Date.now()
-        });
-        return fallbackAddress;
       }
     }
 
@@ -549,19 +621,51 @@ async function getGPSPosition(options: PositionOptions): Promise<LocationData> {
         
         const coords = position.coords;
         let address = `${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`;
+        let retryCount = 0;
+        const maxRetries = 2;
         
-        // Essayer le géocodage inverse avec timeout optimisé
-        try {
-          const geocodePromise = reverseGeocodeEnhanced(coords.latitude, coords.longitude);
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Geocoding timeout')), 5000)
-          );
-          
-          address = await Promise.race([geocodePromise, timeoutPromise]) as string;
-        } catch (error) {
-          console.log('Reverse geocoding failed, using coordinates:', error);
-          // Fallback vers coordonnées formattées
-          address = `${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`;
+        // Essayer le géocodage inverse avec retry si Plus Code détecté
+        while (retryCount <= maxRetries) {
+          try {
+            const geocodePromise = reverseGeocodeEnhanced(
+              coords.latitude, 
+              coords.longitude,
+              getCurrentCity()?.region
+            );
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Geocoding timeout')), 8000) // Augmenté à 8s
+            );
+            
+            const geocodedAddress = await Promise.race([geocodePromise, timeoutPromise]) as string;
+            
+            // Vérifier si c'est une vraie adresse
+            if (isValidRealAddress(geocodedAddress)) {
+              address = geocodedAddress;
+              console.log('✅ Adresse GPS valide obtenue:', address);
+              break;
+            } else {
+              console.log('⚠️ Plus Code ou adresse invalide, retry...', retryCount + 1);
+              retryCount++;
+              
+              // Attendre un peu avant retry
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          } catch (error) {
+            console.log(`Tentative ${retryCount + 1} échouée:`, error);
+            retryCount++;
+            
+            if (retryCount > maxRetries) {
+              // Dernier fallback: essayer de construire une adresse avec la DB
+              try {
+                const city = getCurrentCity();
+                address = city ? 
+                  `Position proche de ${city.name}, ${city.region}` : 
+                  `Position: ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`;
+              } catch {
+                address = `Position: ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`;
+              }
+            }
+          }
         }
         
         resolve({
