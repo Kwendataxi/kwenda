@@ -5,6 +5,7 @@ import AdvancedTaxiTracker from '@/components/transport/AdvancedTaxiTracker';
 import { TaxiTestComponent } from '@/components/transport/TaxiTestComponent';
 import { DriverDashboard } from '@/components/driver/DriverDashboard';
 import DriverRideNotifications from '@/components/driver/DriverRideNotifications';
+import PerformanceDebugger from '@/components/transport/map/PerformanceDebugger';
 import { useDriverSimulation } from '@/hooks/useDriverSimulation';
 import { Car, ArrowLeft, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -125,6 +126,9 @@ const TransportPage = () => {
 
       {/* Notifications pour les chauffeurs */}
       <DriverRideNotifications />
+
+      {/* Debugger de performance (développement) */}
+      {import.meta.env.DEV && <PerformanceDebugger />}
     </div>
   );
 };

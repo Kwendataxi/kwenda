@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react';
 import CustomMarkers from './CustomMarkers';
 import AnimatedPolyline from './AnimatedPolyline';
 import { useGoogleMaps } from '@/hooks/useGoogleMaps';
+import { throttle } from '@/utils/performanceUtils';
 
 interface Location {
   lat: number;
@@ -72,9 +73,10 @@ export default function ModernMapView({
           ]
         });
 
-        // Gestion du clic sur la carte avec effet ripple
+        // Gestion du clic sur la carte avec effet ripple et throttling
         if (onMapClick) {
-          map.addListener('click', (e: google.maps.MapMouseEvent) => {
+          // Throttle à 300ms pour éviter trop de clics rapides
+          const throttledClick = throttle((e: google.maps.MapMouseEvent) => {
             if (e.latLng) {
               // Créer effet ripple
               createRippleEffect(e.latLng);
@@ -83,7 +85,9 @@ export default function ModernMapView({
                 lng: e.latLng.lng()
               });
             }
-          });
+          }, 300);
+
+          map.addListener('click', throttledClick);
         }
 
         mapInstanceRef.current = map;

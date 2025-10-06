@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAnimatedRoute } from '@/hooks/useAnimatedRoute';
+import { processBatch, performanceMonitor } from '@/utils/performanceUtils';
 
 interface Location {
   lat: number;
@@ -27,8 +28,10 @@ export default function AnimatedPolyline({ map, pickup, destination }: AnimatedP
     distanceMarkersRef.current = [];
   };
 
-  // Créer un marker de distance intermédiaire
+  // Créer un marker de distance intermédiaire (optimisé avec lazy loading)
   const createDistanceMarker = async (position: google.maps.LatLng, distanceKm: number) => {
+    const start = performance.now();
+    
     const { AdvancedMarkerElement } = await google.maps.importLibrary('marker') as google.maps.MarkerLibrary;
     
     const content = document.createElement('div');
@@ -47,6 +50,9 @@ export default function AnimatedPolyline({ map, pickup, destination }: AnimatedP
       position,
       content
     });
+
+    const duration = performance.now() - start;
+    performanceMonitor.record('marker_creation', duration);
 
     return marker;
   };
@@ -116,24 +122,36 @@ export default function AnimatedPolyline({ map, pickup, destination }: AnimatedP
 
       animateDrawing();
 
-      // Ajouter des markers de distance tous les 2km
+      // Ajouter des markers de distance tous les 2km (lazy loading par batch)
       const totalDistanceKm = route.distance / 1000;
       if (totalDistanceKm > 2) {
         const interval = 2; // km
         const numMarkers = Math.floor(totalDistanceKm / interval);
+        
+        // Créer les markers par batch pour ne pas bloquer le thread
+        const markerPositions: { position: google.maps.LatLng; distance: number }[] = [];
         
         for (let i = 1; i <= numMarkers; i++) {
           const distanceRatio = (i * interval) / totalDistanceKm;
           const pointIndex = Math.floor(distanceRatio * path.length);
           
           if (pointIndex < path.length) {
-            const marker = await createDistanceMarker(
-              new google.maps.LatLng(path[pointIndex].lat, path[pointIndex].lng),
-              i * interval
-            );
-            distanceMarkersRef.current.push(marker);
+            markerPositions.push({
+              position: new google.maps.LatLng(path[pointIndex].lat, path[pointIndex].lng),
+              distance: i * interval
+            });
           }
         }
+
+        // Créer les markers par batch de 3
+        await processBatch(
+          markerPositions,
+          async (item) => {
+            const marker = await createDistanceMarker(item.position, item.distance);
+            distanceMarkersRef.current.push(marker);
+          },
+          3
+        );
       }
 
       // Sauvegarder la référence (première polyligne pour le cleanup)
