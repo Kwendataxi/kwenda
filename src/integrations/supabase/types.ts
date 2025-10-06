@@ -9813,39 +9813,39 @@ export type Database = {
               vehicle_class_filter?: string
             }
           | {
-              pickup_lat: number
-              pickup_lng: number
-              radius_km?: number
-              service_type_param?: string
+              p_city?: string
+              p_latitude: number
+              p_limit?: number
+              p_longitude: number
+              p_max_distance_km?: number
+              p_vehicle_class?: string
             }
           | {
               pickup_lat: number
               pickup_lng: number
               radius_km?: number
               service_type_param?: string
-              user_city_param?: string
-              vehicle_class_filter?: string
             }
         Returns: {
           distance_km: number
           driver_id: string
+          driver_name: string
+          estimated_arrival_minutes: number
           is_available: boolean
-          is_online: boolean
           last_ping: string
-          latitude: number
-          longitude: number
           rating_average: number
-          rides_remaining: number
+          total_rides: number
           vehicle_class: string
+          vehicle_info: Json
         }[]
       }
       find_nearby_drivers_secure: {
         Args:
           | {
-              max_distance_km?: number
-              user_lat: number
-              user_lng: number
-              vehicle_class_filter?: string
+              p_latitude: number
+              p_longitude: number
+              p_max_distance_km?: number
+              p_vehicle_class?: string
             }
           | {
               pickup_lat: number
@@ -9857,9 +9857,9 @@ export type Database = {
         Returns: {
           distance_km: number
           driver_id: string
+          estimated_arrival_minutes: number
           is_available: boolean
-          latitude: number
-          longitude: number
+          rating_average: number
           vehicle_class: string
         }[]
       }
@@ -10382,24 +10382,23 @@ export type Database = {
               user_lng?: number
             }
         Returns: {
-          aliases: string[]
+          avenue: string
+          badge: string
           category: string
           city: string
           commune: string
-          country_code: string
-          distance_km: number
+          distance_meters: number
+          formatted_address: string
           hierarchy_level: number
           id: string
-          is_popular: boolean
           latitude: number
           longitude: number
           name: string
-          name_fr: string
-          name_local: string
-          place_type: string
           popularity_score: number
+          quartier: string
           relevance_score: number
-          search_keywords: string[]
+          subcategory: string
+          subtitle: string
         }[]
       }
       intelligent_places_search_enhanced: {
