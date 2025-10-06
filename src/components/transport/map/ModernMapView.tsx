@@ -272,15 +272,15 @@ export default function ModernMapView({
           return;
         }
 
-        // 📍 Centrage dynamique avec priorités
+        // 📍 Centrage automatique sur la position réelle détectée
         const defaultCenter = userLocation 
           ? { lat: userLocation.lat, lng: userLocation.lng }
           : pickup 
           ? { lat: pickup.lat, lng: pickup.lng }
           : { lat: -4.3217, lng: 15.3069 }; // Kinshasa en dernier recours
         
-        console.log('📍 Map center:', defaultCenter, 
-          userLocation ? '(user location)' : pickup ? '(pickup)' : '(Kinshasa default)');
+        console.log('📍 Centrage carte sur position réelle:', defaultCenter, 
+          userLocation ? '✅ POSITION UTILISATEUR DÉTECTÉE' : pickup ? '(pickup)' : '(Kinshasa default)');
 
         // Récupérer le Map ID depuis le loader
         const { googleMapsLoader } = await import('@/services/googleMapsLoader');
@@ -310,20 +310,44 @@ export default function ModernMapView({
           heading: 0,
           gestureHandling: 'greedy',
           styles: [
+            // 🎨 Style épuré premium - Masquer tous les POI
             {
               featureType: 'poi',
-              elementType: 'labels',
               stylers: [{ visibility: 'off' }]
             },
+            {
+              featureType: 'poi.business',
+              stylers: [{ visibility: 'off' }]
+            },
+            {
+              featureType: 'poi.park',
+              stylers: [{ visibility: 'off' }]
+            },
+            {
+              featureType: 'poi.attraction',
+              stylers: [{ visibility: 'off' }]
+            },
+            // Masquer les icônes de transport
             {
               featureType: 'transit',
               elementType: 'labels.icon',
               stylers: [{ visibility: 'off' }]
             },
             {
+              featureType: 'transit.station',
+              stylers: [{ visibility: 'off' }]
+            },
+            // Améliorer la saturation et le contraste
+            {
               featureType: 'all',
               elementType: 'geometry',
-              stylers: [{ saturation: 10 }, { lightness: 5 }]
+              stylers: [{ saturation: 15 }, { lightness: 3 }]
+            },
+            // Routes plus visibles
+            {
+              featureType: 'road',
+              elementType: 'geometry',
+              stylers: [{ lightness: 10 }]
             }
           ]
         });
@@ -404,68 +428,69 @@ export default function ModernMapView({
     animate();
   };
 
-  // Animations de caméra sophistiquées
+  // 🎯 Ajustement automatique du zoom/bounds premium
   useEffect(() => {
     if (!mapInstanceRef.current || !isMapReady) return;
 
-    console.log('📹 [ModernMapView] Animation caméra:', { 
+    console.log('📹 [ModernMapView] Ajustement automatique caméra:', { 
       hasPickup: !!pickup, 
-      hasDestination: !!destination 
+      hasDestination: !!destination,
+      hasUserLocation: !!userLocation
     });
 
     if (pickup && destination) {
-      console.log('🗺️ [ModernMapView] Ajustement bounds pour pickup + destination');
-      // Animation fluide vers les bounds
+      // ✅ Mode Route: Afficher pickup + destination avec padding premium
+      console.log('🗺️ Ajustement bounds: Pickup + Destination');
       const bounds = new google.maps.LatLngBounds();
       bounds.extend({ lat: pickup.lat, lng: pickup.lng });
       bounds.extend({ lat: destination.lat, lng: destination.lng });
       
-      // Animation de caméra avec tilt progressif
-      const animateCamera = async () => {
-        // Phase 1: Zoom out avec tilt
-        await animateCameraTransition({
-          center: bounds.getCenter(),
-          zoom: 11,
-          tilt: 60,
-          heading: 0
-        }, 1000);
+      mapInstanceRef.current.fitBounds(bounds, { 
+        top: 80, 
+        right: 80, 
+        bottom: 80, 
+        left: 80 
+      });
 
-        // Phase 2: Fit bounds avec animation
-        mapInstanceRef.current!.fitBounds(bounds, { 
-          top: 80, 
-          right: 80, 
-          bottom: 80, 
-          left: 80 
-        });
+      // Limiter le zoom max pour éviter trop de zoom
+      const listener = google.maps.event.addListenerOnce(mapInstanceRef.current, 'bounds_changed', () => {
+        const currentZoom = mapInstanceRef.current?.getZoom();
+        if (currentZoom && currentZoom > 16) {
+          mapInstanceRef.current?.setZoom(16);
+        }
+      });
 
-        // Phase 3: Ajuster tilt pour vue optimale
-        setTimeout(() => {
-          animateCameraTransition({
-            tilt: 45,
-            heading: 15
-          }, 800);
-        }, 500);
+      return () => {
+        google.maps.event.removeListener(listener);
       };
-
-      animateCamera();
+    } else if (userLocation) {
+      // ✅ Position utilisateur détectée: Centrer avec zoom 15
+      console.log('📍 Centrage sur position utilisateur détectée');
+      animateCameraTransition({
+        center: { lat: userLocation.lat, lng: userLocation.lng },
+        zoom: 15,
+        tilt: 45,
+        heading: 0
+      }, 1000);
     } else if (pickup) {
-      // Animation vers pickup uniquement
+      // Pickup uniquement: Zoom 14
+      console.log('📍 Centrage sur pickup uniquement');
       animateCameraTransition({
         center: { lat: pickup.lat, lng: pickup.lng },
-        zoom: 15,
+        zoom: 14,
         tilt: 45,
         heading: 0
       }, 1000);
     } else if (destination) {
-      // Animation vers destination uniquement
+      // Destination uniquement
       animateCameraTransition({
         center: { lat: destination.lat, lng: destination.lng },
-        zoom: 15,
+        zoom: 14,
         tilt: 45,
         heading: 0
       }, 1000);
     }
-  }, [pickup, destination, isMapReady]);
+  }, [pickup, destination, userLocation, isMapReady]);
 
   // Fonction d'animation de caméra fluide
   const animateCameraTransition = (
