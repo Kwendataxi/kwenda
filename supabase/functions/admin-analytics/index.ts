@@ -56,35 +56,74 @@ serve(async (req) => {
 
   console.log('✅ User authenticated:', user.id)
 
-  // Vérifier l'accès admin via user_roles uniquement (source de vérité unique)
-  const { data: adminCheck, error: adminError } = await supabaseClient
-    .from('user_roles')
-    .select('id, role, admin_role')
-    .eq('user_id', user.id)
-    .eq('role', 'admin')
-    .eq('is_active', true)
-    .maybeSingle()
+  // ⚡ OPTIMIZED: Use materialized view for instant admin check (no timeout risk)
+  const adminCheckController = new AbortController()
+  const adminCheckTimeout = setTimeout(() => adminCheckController.abort(), 5000) // 5s timeout
 
-  if (adminError || !adminCheck) {
-    console.error('🔴 Admin access denied:', { 
-      userId: user.id,
-      email: user.email,
-      errorMessage: adminError?.message
+  try {
+    const { data: adminCheck, error: adminError } = await supabaseClient
+      .from('admin_users_cache')
+      .select('user_id, email, role, admin_role')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .abortSignal(adminCheckController.signal)
+
+    clearTimeout(adminCheckTimeout)
+
+    if (adminError) {
+      console.error('🔴 Admin cache query failed:', { 
+        userId: user.id,
+        errorMessage: adminError.message,
+        errorCode: adminError.code,
+        hint: 'Cache may need refresh'
+      })
+      return new Response(JSON.stringify({ 
+        error: 'Admin verification failed',
+        details: adminError.message,
+        suggestion: 'Contact support if this persists'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (!adminCheck) {
+      console.error('🔴 Admin access denied:', { 
+        userId: user.id,
+        email: user.email,
+        reason: 'User not found in admin cache'
+      })
+      return new Response(JSON.stringify({ 
+        error: 'Admin access required',
+        details: 'User does not have admin privileges'
+      }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    console.log('✅ Admin verified (cached):', { 
+      userId: user.id, 
+      role: adminCheck.role,
+      adminRole: adminCheck.admin_role,
+      cacheHit: true
     })
-    return new Response(JSON.stringify({ 
-      error: 'Admin access required',
-      details: 'User does not have admin role in user_roles table'
-    }), {
-      status: 403,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+  } catch (error) {
+    clearTimeout(adminCheckTimeout)
+    
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.error('🔴 Admin check timeout after 5s:', { userId: user.id })
+      return new Response(JSON.stringify({ 
+        error: 'Admin verification timeout',
+        details: 'Database connection slow. Please retry.'
+      }), {
+        status: 504,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+    
+    throw error // Re-throw unexpected errors
   }
-
-  console.log('✅ Admin verified:', { 
-    userId: user.id, 
-    role: adminCheck.role,
-    adminRole: adminCheck.admin_role 
-  })
 
     const { type, date_range, zone_name, country_code } = await req.json() as AnalyticsRequest
 

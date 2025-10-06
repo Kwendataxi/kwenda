@@ -133,3 +133,6 @@ verify_jwt = true
 
 [functions.auto-retry-delivery-dispatch]
 verify_jwt = false
+
+[functions.refresh-admin-cache]
+verify_jwt = false  # Appelé automatiquement par CRON toutes les 5 minutes
