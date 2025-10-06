@@ -697,74 +697,76 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
           <CardContent className="p-6">
             {renderStepContent()}
           </CardContent>
-        </Card>
-
-        {/* Action buttons */}
-        <div className="flex gap-3">
-          {step !== 'pickup' && (
-            <Button
-              variant="outline"
-              onClick={() => {
-                const steps = ['pickup', 'destination', 'details', 'confirm'];
-                const currentIndex = steps.indexOf(step);
-                if (currentIndex > 0) {
-                  setStep(steps[currentIndex - 1] as any);
-                }
-              }}
-              className="flex-1"
-            >
-              Retour
-            </Button>
-          )}
-          
-          {step === 'pickup' && (
-            <Button
-              variant="outline"
-              onClick={onCancel}
-              className="flex-1"
-            >
-              Annuler
-            </Button>
-          )}
-
-          {step !== 'confirm' && (
-            <Button
-              onClick={() => {
-                if (step === 'pickup' && bookingData.pickup) {
-                  setStep('destination');
-                } else if (step === 'destination' && bookingData.destination) {
-                  setStep('details');
-                } else if (step === 'details') {
-                  setStep('confirm');
-                }
-              }}
-              disabled={
-                (step === 'pickup' && !bookingData.pickup) ||
-                (step === 'destination' && !bookingData.destination)
-              }
-              className="flex-1"
-            >
-              Continuer
-            </Button>
-          )}
-
-          {step === 'confirm' && (
-            <Button
-              onClick={handleSubmitBooking}
-              disabled={loading || isCreatingBooking}
-              className="flex-1"
-            >
-              {(loading || isCreatingBooking) ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Réservation...
-                </>
-              ) : (
-                'Confirmer'
+        
+          {/* Action buttons - now inside the card after content */}
+          <CardContent className="p-6 pt-0">
+            <div className="flex gap-3">
+              {step !== 'pickup' && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const steps = ['pickup', 'destination', 'details', 'confirm'];
+                    const currentIndex = steps.indexOf(step);
+                    if (currentIndex > 0) {
+                      setStep(steps[currentIndex - 1] as any);
+                    }
+                  }}
+                  className="flex-1"
+                >
+                  Retour
+                </Button>
               )}
-            </Button>
-          )}
-        </div>
+              
+              {step === 'pickup' && (
+                <Button
+                  variant="outline"
+                  onClick={onCancel}
+                  className="flex-1"
+                >
+                  Annuler
+                </Button>
+              )}
+
+              {step !== 'confirm' && (
+                <Button
+                  onClick={() => {
+                    if (step === 'pickup' && bookingData.pickup) {
+                      setStep('destination');
+                    } else if (step === 'destination' && bookingData.destination) {
+                      setStep('details');
+                    } else if (step === 'details') {
+                      setStep('confirm');
+                    }
+                  }}
+                  disabled={
+                    (step === 'pickup' && !bookingData.pickup) ||
+                    (step === 'destination' && !bookingData.destination)
+                  }
+                  className="flex-1"
+                >
+                  Continuer
+                </Button>
+              )}
+
+              {step === 'confirm' && (
+                <Button
+                  onClick={handleSubmitBooking}
+                  disabled={loading || isCreatingBooking}
+                  className="flex-1"
+                >
+                  {(loading || isCreatingBooking) ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Réservation...
+                    </>
+                  ) : (
+                    'Confirmer'
+                  )}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Indicateurs de statut */}
         {bookingError && (
