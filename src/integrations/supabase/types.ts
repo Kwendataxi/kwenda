@@ -10786,6 +10786,14 @@ export type Database = {
           status: string
         }[]
       }
+      security_check_search_path: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          function_name: string
+          has_search_path: boolean
+          recommendation: string
+        }[]
+      }
       security_definer_check: {
         Args: Record<PropertyKey, never>
         Returns: {

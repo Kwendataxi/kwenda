@@ -104,27 +104,53 @@ const ModernHero = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 pt-4">
-              <Link to="/auth" className="flex-1">
-                <Button 
-                  size="lg" 
-                  className="w-full text-body-lg px-8 py-6 bg-congo-red hover:bg-congo-red/90 text-white hover:shadow-congo transition-all duration-500 group min-h-[56px] rounded-xl animate-congo-pulse border-2 border-congo-yellow/30"
-                >
-                  <Car className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
-                  {t('hero.start_now')}
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-              <Link to="/demo" className="flex-1 sm:flex-initial">
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="w-full text-body-lg px-8 py-6 border-congo-yellow border-2 hover:bg-congo-yellow/20 text-congo-yellow group min-h-[56px] rounded-xl backdrop-blur-sm bg-white/10"
-                >
-                  <Play className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
-                  {t('hero.view_demo')}
-                </Button>
-              </Link>
+            <div className="flex flex-col gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                <Link to="/auth" className="flex-1">
+                  <Button 
+                    size="lg" 
+                    className="w-full text-body-lg px-8 py-6 bg-congo-red hover:bg-congo-red/90 text-white hover:shadow-congo transition-all duration-500 group min-h-[56px] rounded-xl animate-congo-pulse border-2 border-congo-yellow/30"
+                  >
+                    <Car className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
+                    {t('hero.start_now')}
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+                <Link to="/demo" className="flex-1 sm:flex-initial">
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    className="w-full text-body-lg px-8 py-6 border-congo-yellow border-2 hover:bg-congo-yellow/20 text-congo-yellow group min-h-[56px] rounded-xl backdrop-blur-sm bg-white/10"
+                  >
+                    <Play className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
+                    {t('hero.view_demo')}
+                  </Button>
+                </Link>
+              </div>
+              
+              {/* Liens inscription Chauffeur et Partenaire */}
+              <div className="flex flex-col sm:flex-row gap-3 text-center sm:text-left">
+                <Link to="/partners/become-driver" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full border-primary/30 hover:bg-primary/10 text-primary group"
+                  >
+                    🚗 Devenir Chauffeur
+                    <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+                <Link to="/partner/register" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full border-secondary/30 hover:bg-secondary/10 text-secondary group"
+                  >
+                    🤝 Devenir Partenaire
+                    <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
             </div>
 
             {/* Social Proof */}
