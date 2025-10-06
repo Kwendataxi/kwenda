@@ -111,11 +111,11 @@ export const useUnifiedDispatcher = () => {
     // Channel unifié pour toutes les notifications chauffeur
     const driverChannel = supabase
       .channel(`driver-notifications-${user.id}`)
-      // Écouter les nouvelles demandes de transport (sans filtre driver_id)
+      // Écouter les nouvelles demandes de transport (TABLE CORRIGÉE)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
-        table: 'ride_requests',
+        table: 'transport_bookings',
         filter: 'status=eq.pending'
       }, (payload) => {
         console.log('🚗 Nouvelle demande transport:', payload.new);
@@ -386,11 +386,11 @@ export const useUnifiedDispatcher = () => {
     if (!user) return;
 
     try {
-      // Load active taxi rides
+      // Load active taxi rides (TABLE CORRIGÉE)
       const { data: taxiRides } = await supabase
-        .from('ride_requests')
+        .from('transport_bookings')
         .select('*')
-        .eq('assigned_driver_id', user.id)
+        .eq('driver_id', user.id)
         .in('status', ['accepted', 'driver_arrived', 'in_progress']);
 
       // Load active deliveries

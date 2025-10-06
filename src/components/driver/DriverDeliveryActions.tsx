@@ -17,6 +17,7 @@ import {
 import { useDriverDeliveryActions } from '@/hooks/useDriverDeliveryActions';
 import { secureLocation, isValidLocation } from '@/utils/locationValidation';
 import { toast } from 'sonner';
+import { NavigationModal } from './NavigationModal';
 
 interface DeliveryOrder {
   id: string;
@@ -43,6 +44,7 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
   const [notes, setNotes] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [deliveryPhoto, setDeliveryPhoto] = useState<File | null>(null);
+  const [navigationOpen, setNavigationOpen] = useState(false);
 
   // Debug log pour vérifier les données reçues
   console.log('DriverDeliveryActions order:', order);
@@ -229,8 +231,7 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
     const secureCoords = coords ? secureLocation(coords) : null;
     
     if (secureCoords && isValidLocation(secureCoords)) {
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${secureCoords.lat},${secureCoords.lng}`;
-      window.open(url, '_blank');
+      setNavigationOpen(true);
     } else {
       toast.error('Coordonnées invalides pour la navigation');
     }
@@ -248,91 +249,126 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
     );
   }
 
+  // Préparer les coordonnées pour la navigation
+  const isGoingToPickup = order.status === 'confirmed' || order.status === 'driver_assigned';
+  const navPickup = isGoingToPickup 
+    ? { 
+        lat: order.pickup_coordinates?.lat || 0, 
+        lng: order.pickup_coordinates?.lng || 0,
+        address: order.pickup_location 
+      }
+    : { 
+        lat: order.delivery_coordinates?.lat || 0, 
+        lng: order.delivery_coordinates?.lng || 0,
+        address: order.delivery_location 
+      };
+
+  const navDestination = { 
+    lat: order.delivery_coordinates?.lat || 0, 
+    lng: order.delivery_coordinates?.lng || 0,
+    address: order.delivery_location 
+  };
+
   return (
-    <Card className="border-gray-200 bg-card">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Package className="w-5 h-5 text-primary" />
-          Livraison {(order.delivery_type || 'FLEX').toUpperCase()}
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {/* Informations de livraison */}
-        <div className="space-y-3">
-          <div className="flex items-start gap-3">
-            <MapPin className="w-4 h-4 text-blue-500 mt-1 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-sm">Point de retrait</p>
-              <p className="text-sm text-grey-600">{order.pickup_location}</p>
+    <>
+      <Card className="border-gray-200 bg-card">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Package className="w-5 h-5 text-primary" />
+            Livraison {(order.delivery_type || 'FLEX').toUpperCase()}
+          </CardTitle>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          {/* Informations de livraison */}
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <MapPin className="w-4 h-4 text-blue-500 mt-1 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-sm">Point de retrait</p>
+                <p className="text-sm text-grey-600">{order.pickup_location}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-3">
+              <MapPin className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-sm">Destination</p>
+                <p className="text-sm text-grey-600">{order.delivery_location}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Clock className="w-4 h-4 text-grey-500" />
+              <div>
+                <span className="font-medium text-sm">Prix: </span>
+                <span className="text-primary font-semibold">{order.estimated_price?.toLocaleString()} FC</span>
+              </div>
             </div>
           </div>
-          
-          <div className="flex items-start gap-3">
-            <MapPin className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-sm">Destination</p>
-              <p className="text-sm text-grey-600">{order.delivery_location}</p>
-            </div>
+
+          {/* Notes du chauffeur */}
+          <div>
+            <Label htmlFor="notes">Notes (optionnel)</Label>
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Commentaires sur la livraison..."
+              rows={2}
+              className="text-sm"
+            />
           </div>
-          
-          <div className="flex items-center gap-3">
-            <Clock className="w-4 h-4 text-grey-500" />
-            <div>
-              <span className="font-medium text-sm">Prix: </span>
-              <span className="text-primary font-semibold">{order.estimated_price?.toLocaleString()} FC</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Notes du chauffeur */}
-        <div>
-          <Label htmlFor="notes">Notes (optionnel)</Label>
-          <Textarea
-            id="notes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Commentaires sur la livraison..."
-            rows={2}
-            className="text-sm"
-          />
-        </div>
+          {/* Actions principales */}
+          {renderActionButtons()}
 
-        {/* Actions principales */}
-        {renderActionButtons()}
-
-        {/* Actions secondaires */}
-        <div className="flex gap-2 pt-2">
-          {['in_transit', 'picked_up'].includes(order.status) && (
+          {/* Actions secondaires */}
+          <div className="flex gap-2 pt-2">
+            {['in_transit', 'picked_up'].includes(order.status) && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={openNavigation}
+                className="flex-1"
+              >
+                <Navigation className="w-4 h-4 mr-1" />
+                Navigation GPS
+              </Button>
+            )}
+            
             <Button 
               variant="outline" 
-              size="sm" 
-              onClick={openNavigation}
-              className="flex-1"
+              size="sm"
+              className="w-10 h-8 p-0"
             >
-              <Navigation className="w-4 h-4 mr-1" />
-              Navigation GPS
+              <Phone className="w-4 h-4" />
             </Button>
-          )}
-          
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="w-10 h-8 p-0"
-          >
-            <Phone className="w-4 h-4" />
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="w-10 h-8 p-0"
-          >
-            <MessageSquare className="w-4 h-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="w-10 h-8 p-0"
+            >
+              <MessageSquare className="w-4 h-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Modal de navigation GPS intégrée */}
+      {navigationOpen && (
+        <NavigationModal
+          open={navigationOpen}
+          onClose={() => setNavigationOpen(false)}
+          orderId={order.id}
+          orderType="delivery"
+          pickup={navPickup}
+          destination={navDestination}
+          customerPhone={order.recipient_phone}
+        />
+      )}
+    </>
   );
 };
 
