@@ -4321,6 +4321,60 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_rental_bookings: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          partner_id: string
+          start_date: string
+          status: string
+          total_price: number
+          updated_at: string
+          user_id: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          partner_id: string
+          start_date: string
+          status?: string
+          total_price?: number
+          updated_at?: string
+          user_id: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          partner_id?: string
+          start_date?: string
+          status?: string
+          total_price?: number
+          updated_at?: string
+          user_id?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_rental_bookings_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partenaires"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_rental_bookings_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_rental_subscriptions: {
         Row: {
           auto_renew: boolean
@@ -4383,6 +4437,99 @@ export type Database = {
             columns: ["vehicle_id"]
             isOneToOne: false
             referencedRelation: "rental_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_rental_vehicle_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      partner_rental_vehicles: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          daily_rate: number
+          id: string
+          is_active: boolean
+          license_plate: string | null
+          location: string | null
+          moderated_at: string | null
+          moderation_status: string
+          moderator_id: string | null
+          partner_id: string
+          rejection_reason: string | null
+          updated_at: string
+          vehicle_name: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          daily_rate?: number
+          id?: string
+          is_active?: boolean
+          license_plate?: string | null
+          location?: string | null
+          moderated_at?: string | null
+          moderation_status?: string
+          moderator_id?: string | null
+          partner_id: string
+          rejection_reason?: string | null
+          updated_at?: string
+          vehicle_name: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          daily_rate?: number
+          id?: string
+          is_active?: boolean
+          license_plate?: string | null
+          location?: string | null
+          moderated_at?: string | null
+          moderation_status?: string
+          moderator_id?: string | null
+          partner_id?: string
+          rejection_reason?: string | null
+          updated_at?: string
+          vehicle_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_rental_vehicles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "partner_rental_vehicle_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_rental_vehicles_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partenaires"
             referencedColumns: ["id"]
           },
         ]

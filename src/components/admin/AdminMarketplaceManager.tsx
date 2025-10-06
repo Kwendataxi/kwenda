@@ -4,10 +4,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Package, ShoppingCart, Users, Eye, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Package, ShoppingCart, Users, Eye, Edit, Trash2, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { SellerModerationPanel } from './marketplace/SellerModerationPanel';
+import { ProductAnalyticsDashboard } from './marketplace/ProductAnalyticsDashboard';
 
 export function AdminMarketplaceManager() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -147,11 +149,12 @@ export function AdminMarketplaceManager() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
           <TabsTrigger value="products">Produits</TabsTrigger>
           <TabsTrigger value="orders">Commandes</TabsTrigger>
           <TabsTrigger value="sellers">Vendeurs</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -317,19 +320,11 @@ export function AdminMarketplaceManager() {
         </TabsContent>
 
         <TabsContent value="sellers" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestion des Vendeurs</CardTitle>
-              <CardDescription>
-                Surveillance et modération des vendeurs
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Fonctionnalité en développement
-              </div>
-            </CardContent>
-          </Card>
+          <SellerModerationPanel />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <ProductAnalyticsDashboard />
         </TabsContent>
       </Tabs>
     </div>

@@ -19,8 +19,8 @@ export const RentalFinancialDashboard = () => {
       // Récupérer les abonnements actifs
       const { data: subscriptions, error: subsError } = await supabase
         .from('partner_rental_subscriptions')
-        .select('amount, status, partner_id')
-        .eq('status', 'active');
+        .select('*')
+        .eq('status', 'active') as any;
 
       if (subsError) throw subsError;
 
