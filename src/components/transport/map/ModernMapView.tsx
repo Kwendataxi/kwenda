@@ -37,10 +37,26 @@ export default function ModernMapView({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const mapboxMapRef = useRef<mapboxgl.Map | null>(null);
-  const { isLoaded, error } = useGoogleMaps();
+  const { isLoaded, error, isLoading, retryCount, loadingProgress } = useGoogleMaps();
   const [isMapReady, setIsMapReady] = useState(false);
   const [useMapboxFallback, setUseMapboxFallback] = useState(false);
   const { toast } = useToast();
+
+  // 🔍 Phase 5: Logs détaillés
+  useEffect(() => {
+    console.log('📊 [ModernMapView] État actuel:', {
+      isLoaded,
+      error,
+      isLoading,
+      retryCount,
+      loadingProgress,
+      isMapReady,
+      useMapboxFallback,
+      hasPickup: !!pickup,
+      hasDestination: !!destination,
+      hasUserLocation: !!userLocation
+    });
+  }, [isLoaded, error, isLoading, retryCount, loadingProgress, isMapReady, useMapboxFallback, pickup, destination, userLocation]);
 
   // 🎯 Phase 2: Fallback Mapbox si Google Maps échoue
   useEffect(() => {
@@ -180,11 +196,15 @@ export default function ModernMapView({
           ]
         });
 
+        console.log('✅ [ModernMapView] Carte Google Maps créée avec succès');
+
         // Gestion du clic sur la carte avec effet ripple et throttling
         if (onMapClick) {
+          console.log('🖱️ [ModernMapView] Gestionnaire de clic activé');
           // Throttle à 300ms pour éviter trop de clics rapides
           const throttledClick = throttle((e: google.maps.MapMouseEvent) => {
             if (e.latLng) {
+              console.log('📍 [ModernMapView] Clic carte:', e.latLng.lat(), e.latLng.lng());
               // Créer effet ripple
               createRippleEffect(e.latLng);
               onMapClick({
@@ -199,9 +219,9 @@ export default function ModernMapView({
 
         mapInstanceRef.current = map;
         setIsMapReady(true);
-        console.log('✅ Map initialized successfully');
+        console.log('✅ [ModernMapView] Carte prête et référence stockée');
       } catch (err) {
-        console.error('❌ Erreur initialisation carte:', err);
+        console.error('❌ [ModernMapView] Erreur initialisation carte:', err);
       }
     };
 
@@ -248,7 +268,13 @@ export default function ModernMapView({
   useEffect(() => {
     if (!mapInstanceRef.current || !isMapReady) return;
 
+    console.log('📹 [ModernMapView] Animation caméra:', { 
+      hasPickup: !!pickup, 
+      hasDestination: !!destination 
+    });
+
     if (pickup && destination) {
+      console.log('🗺️ [ModernMapView] Ajustement bounds pour pickup + destination');
       // Animation fluide vers les bounds
       const bounds = new google.maps.LatLngBounds();
       bounds.extend({ lat: pickup.lat, lng: pickup.lng });
@@ -381,23 +407,68 @@ export default function ModernMapView({
     });
   };
 
+  // 🎨 Phase 5: Indicateur de chargement amélioré
+  if (!isLoaded && isLoading) {
+    return (
+      <div className={`flex flex-col items-center justify-center bg-gradient-to-br from-muted/20 to-muted/40 rounded-lg ${className}`}>
+        <div className="text-center p-8 max-w-md">
+          <div className="relative mb-6">
+            <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+            <MapPin className="h-6 w-6 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary/60 animate-pulse" />
+          </div>
+          
+          <p className="text-lg font-medium mb-2">🗺️ Chargement de la carte...</p>
+          
+          {/* Progress bar */}
+          <div className="w-full bg-muted/30 rounded-full h-2 mb-3 overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-500 ease-out rounded-full"
+              style={{ width: `${loadingProgress}%` }}
+            />
+          </div>
+          
+          <p className="text-sm text-muted-foreground">
+            {retryCount > 0 
+              ? `Nouvelle tentative (${retryCount}/5)... Veuillez patienter.`
+              : 'Connexion au service de cartographie...'
+            }
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 🚨 Phase 5: Mode hors-ligne si échec complet
+  if (error && !useMapboxFallback) {
+    return (
+      <div className={`flex flex-col items-center justify-center bg-gradient-to-br from-destructive/5 to-destructive/10 rounded-lg border-2 border-destructive/20 ${className}`}>
+        <div className="text-center p-8 max-w-md">
+          <div className="mb-4 p-4 rounded-full bg-destructive/10 w-fit mx-auto">
+            <MapPin className="h-10 w-10 text-destructive" />
+          </div>
+          
+          <p className="text-lg font-semibold text-destructive mb-2">📵 Mode hors-ligne</p>
+          <p className="text-sm text-muted-foreground mb-4">{error}</p>
+          
+          <div className="bg-muted/50 rounded-lg p-4 text-left space-y-2">
+            <p className="text-xs font-medium">💡 Vérifiez :</p>
+            <ul className="text-xs text-muted-foreground space-y-1">
+              <li>• Votre connexion internet</li>
+              <li>• La clé API Google Maps</li>
+              <li>• Les restrictions de domaine</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className={`flex items-center justify-center bg-muted/20 rounded-lg ${className}`}>
         <div className="text-center p-6">
           <p className="text-destructive">Erreur de chargement de la carte</p>
           <p className="text-sm text-muted-foreground mt-2">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isLoaded) {
-    return (
-      <div className={`flex items-center justify-center bg-muted/20 rounded-lg ${className}`}>
-        <div className="text-center p-6">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
-          <p className="text-sm text-muted-foreground">Chargement de la carte...</p>
         </div>
       </div>
     );
@@ -421,13 +492,23 @@ export default function ModernMapView({
 
           {/* Route animée */}
           {pickup && destination && visualizationMode === 'route' && (
-            <AnimatedPolyline
-              map={mapInstanceRef.current}
-              pickup={pickup}
-              destination={destination}
-            />
+            <>
+              {console.log('🛣️ [ModernMapView] Affichage route animée')}
+              <AnimatedPolyline
+                map={mapInstanceRef.current}
+                pickup={pickup}
+                destination={destination}
+              />
+            </>
           )}
         </>
+      )}
+
+      {/* Badge Mapbox si fallback actif */}
+      {useMapboxFallback && (
+        <div className="absolute top-4 left-4 bg-blue-500/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md">
+          <span className="text-xs font-medium text-white">🗺️ Mapbox</span>
+        </div>
       )}
 
       {/* Indicateur de mode */}

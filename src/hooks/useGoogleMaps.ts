@@ -1,64 +1,69 @@
 import { useState, useEffect } from 'react';
 import { googleMapsLoader } from '@/services/googleMapsLoader';
 
-export const useGoogleMaps = () => {
+export function useGoogleMaps() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   useEffect(() => {
-    let mounted = true;
+    let isMounted = true;
+    let retryTimeout: NodeJS.Timeout;
 
-    const loadGoogleMaps = async () => {
+    const loadGoogleMaps = async (attempt: number = 0) => {
+      if (!isMounted) return;
+
+      const maxRetries = 5;
+      const baseDelay = 2000; // 2 secondes
+      
       try {
+        console.log(`🔄 [useGoogleMaps] Tentative de chargement #${attempt + 1}/${maxRetries + 1}`);
+        setLoadingProgress(20);
         setIsLoading(true);
-        setError(null);
+        setRetryCount(attempt);
 
-        // Vérifier si déjà chargé avec double vérification
-        if (googleMapsLoader.isScriptLoaded() && window.google?.maps?.Map) {
-          console.log('✅ Google Maps already loaded and verified');
-          if (mounted) {
-            setIsLoaded(true);
-            setIsLoading(false);
-          }
-          return;
-        }
+        // Timeout de 30 secondes (Phase 5)
+        const loadPromise = googleMapsLoader.load(['places', 'marker', 'geometry']);
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout Google Maps (30s)')), 30000)
+        );
 
-        // Charger le script Google Maps avec retry
-        let attempt = 0;
-        const maxAttempts = 3;
+        setLoadingProgress(50);
+        await Promise.race([loadPromise, timeoutPromise]);
         
-        while (attempt < maxAttempts) {
-          try {
-            console.log(`🔄 Loading Google Maps (attempt ${attempt + 1}/${maxAttempts})...`);
-            await googleMapsLoader.load(['places', 'marker', 'geometry']);
-            
-            // Vérification post-chargement
-            if (window.google?.maps?.Map && typeof window.google.maps.Map === 'function') {
-              console.log('✅ Google Maps loaded and verified successfully');
-              if (mounted) {
-                setIsLoaded(true);
-                setIsLoading(false);
-              }
-              return;
-            }
-            
-            throw new Error('Google Maps loaded but Map constructor not available');
-          } catch (attemptError) {
-            attempt++;
-            if (attempt === maxAttempts) throw attemptError;
-            
-            // Backoff exponentiel: 1s, 2s, 4s
-            const backoffDelay = Math.pow(2, attempt) * 1000;
-            console.log(`⏳ Retry in ${backoffDelay}ms...`);
-            await new Promise(resolve => setTimeout(resolve, backoffDelay));
-          }
+        if (!isMounted) return;
+
+        // Vérification finale
+        if (window.google?.maps?.Map && typeof window.google.maps.Map === 'function') {
+          console.log('✅ [useGoogleMaps] Google Maps chargé avec succès');
+          setLoadingProgress(100);
+          setIsLoaded(true);
+          setIsLoading(false);
+          setError(null);
+        } else {
+          throw new Error('google.maps.Map n\'est pas un constructeur valide');
         }
       } catch (err) {
-        console.error('❌ Error loading Google Maps after retries:', err);
-        if (mounted) {
-          setError(err instanceof Error ? err.message : 'Failed to load Google Maps');
+        console.error(`❌ [useGoogleMaps] Échec tentative #${attempt + 1}:`, err);
+        
+        if (!isMounted) return;
+
+        // Retry avec exponential backoff
+        if (attempt < maxRetries) {
+          const delay = baseDelay * Math.pow(2, attempt); // 2s, 4s, 8s, 16s, 32s
+          console.log(`⏳ [useGoogleMaps] Nouvelle tentative dans ${delay/1000}s...`);
+          setLoadingProgress(30 + (attempt * 10));
+          
+          retryTimeout = setTimeout(() => {
+            loadGoogleMaps(attempt + 1);
+          }, delay);
+        } else {
+          console.error('❌ [useGoogleMaps] Échec définitif après toutes les tentatives');
+          setError('Impossible de charger Google Maps. Veuillez vérifier votre connexion internet.');
           setIsLoading(false);
+          setLoadingProgress(0);
         }
       }
     };
@@ -66,9 +71,16 @@ export const useGoogleMaps = () => {
     loadGoogleMaps();
 
     return () => {
-      mounted = false;
+      isMounted = false;
+      if (retryTimeout) clearTimeout(retryTimeout);
     };
   }, []);
 
-  return { isLoaded, error, isLoading };
-};
+  return { 
+    isLoaded, 
+    error, 
+    isLoading,
+    retryCount,
+    loadingProgress
+  };
+}
