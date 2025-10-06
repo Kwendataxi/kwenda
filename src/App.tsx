@@ -56,6 +56,7 @@ import SmartLocationTest from "./pages/test/SmartLocationTest";
 import UniversalLocationTest from "./pages/test/UniversalLocationTest";
 import UniversalLocationTestAdvanced from "./pages/test/UniversalLocationTestAdvanced";
 import EdgeFunctionTest from "./pages/test/EdgeFunctionTest";
+import MapValidationTest from "./pages/test/MapValidationTest";
 import { ChatProvider } from "@/components/chat/ChatProvider";
 import Onboarding from "./pages/Onboarding";
 import MesAdresses from "./pages/address/MesAdresses";
@@ -215,6 +216,7 @@ const AppContent = () => {
         <Route path="/test/universal-location" element={<UniversalLocationTest />} />
         <Route path="/test/universal-location-advanced" element={<UniversalLocationTestAdvanced />} />
         <Route path="/test/edge-functions" element={<EdgeFunctionTest />} />
+        <Route path="/test/map-validation" element={<MapValidationTest />} />
                 
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
