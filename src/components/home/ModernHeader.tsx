@@ -127,13 +127,9 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
                 onClick={() => setLocationSheetOpen(true)}
                 className="flex items-center gap-1.5 h-auto p-1.5 -ml-1.5 hover:bg-muted/70 transition-all group rounded-lg"
               >
-                {geocodingLoading ? (
-                  <span className="text-xs text-muted-foreground animate-pulse">Localisation...</span>
-                ) : currentAddress ? (
-                  <span className="text-xs text-muted-foreground truncate max-w-[180px] font-medium">{currentAddress}</span>
-                ) : (
-                  <span className="text-xs text-muted-foreground">Position détectée</span>
-                )}
+                <span className="text-xs text-muted-foreground font-medium">
+                  {geocodingLoading ? 'Localisation...' : 'Ma Position'}
+                </span>
                 <ChevronDown className="h-3.5 w-3.5 text-primary flex-shrink-0 transition-transform duration-300 group-hover:rotate-180 group-hover:scale-110" />
               </Button>
             )}
