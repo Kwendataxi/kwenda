@@ -67,13 +67,13 @@ export const useSmartGeolocation = () => {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const watchIdRef = useRef<number | null>(null);
 
-  // 🎯 GÉOLOCALISATION UNIVERSELLE PRINCIPALE - GPS STRICT
+  // 🎯 GÉOLOCALISATION UNIVERSELLE PRINCIPALE - GPS ULTRA-RAPIDE
   const getCurrentPosition = useCallback(async (options: GeolocationOptions = {}): Promise<LocationData> => {
     const {
       enableHighAccuracy = true,
-      timeout = 30000, // 30 secondes pour GPS précis
-      maximumAge = 5000, // Maximum 5 secondes de cache
-      fallbackToIP = false, // Désactiver IP par défaut
+      timeout = 5000, // 5 secondes pour GPS rapide (au lieu de 30s)
+      maximumAge = 30000, // Cache 30 secondes accepté (au lieu de 5s)
+      fallbackToIP = true, // Activer IP par défaut (optimisé)
       fallbackToDatabase = true,
       fallbackToDefault = true
     } = options;
@@ -84,7 +84,7 @@ export const useSmartGeolocation = () => {
       // 1. Détecter la ville d'abord
       let detectedCity: CityConfig;
       
-      // 2. GPS PRÉCIS avec retry intelligent (jusqu'à 5 tentatives)
+      // 2. GPS RAPIDE avec retry intelligent (max 3 tentatives)
       try {
         const gpsPosition = await getGPSPositionWithRetry({ 
           enableHighAccuracy, 
@@ -92,9 +92,9 @@ export const useSmartGeolocation = () => {
           maximumAge 
         });
         
-        // Valider la précision GPS stricte
-        if (gpsPosition.accuracy && gpsPosition.accuracy > 100) {
-          console.warn('⚠️ Précision GPS insuffisante:', gpsPosition.accuracy, 'm');
+        // Accepter précision raisonnable (200m au lieu de 100m)
+        if (gpsPosition.accuracy && gpsPosition.accuracy > 200) {
+          console.warn('⚠️ Précision GPS insuffisante:', gpsPosition.accuracy, 'm - Fallback IP');
           throw new Error(`Précision GPS insuffisante: ${Math.round(gpsPosition.accuracy)}m`);
         }
         
@@ -272,7 +272,7 @@ export const useSmartGeolocation = () => {
           }));
           resolve(popularFallback);
         }
-      }, 300); // 300ms debounce
+      }, 200); // 200ms debounce (optimisé de 300ms)
     });
   }, [state.currentCity, state.currentLocation]);
 
@@ -617,18 +617,16 @@ const reverseGeocodeEnhanced = async (lat: number, lng: number, region?: string)
 
 // 🔧 FONCTIONS UTILITAIRES PRIVÉES
 
-// 🎯 GPS HAUTE PRÉCISION avec retry intelligent
+// 🎯 GPS ULTRA-RAPIDE avec retry intelligent (optimisé)
 async function getGPSPositionWithRetry(options: PositionOptions): Promise<LocationData> {
-  const maxAttempts = 5;
+  const maxAttempts = 3; // Réduit de 5 à 3 tentatives
   let lastError: Error | null = null;
   
-  // Configurations de retry progressives
+  // Configurations de retry progressives RAPIDES
   const retryConfigs = [
-    { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }, // Tentative 1: Haute précision, 30s
-    { enableHighAccuracy: true, timeout: 45000, maximumAge: 0 }, // Tentative 2: Haute précision, 45s (mode patience)
-    { enableHighAccuracy: true, timeout: 30000, maximumAge: 5000 }, // Tentative 3: Avec cache 5s
-    { enableHighAccuracy: false, timeout: 30000, maximumAge: 0 }, // Tentative 4: Précision normale
-    { enableHighAccuracy: true, timeout: 60000, maximumAge: 0 }, // Tentative 5: Dernière chance, 60s
+    { enableHighAccuracy: true, timeout: 5000, maximumAge: 30000 }, // Tentative 1: 5s, cache 30s
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 }, // Tentative 2: 8s, cache 30s
+    { enableHighAccuracy: false, timeout: 12000, maximumAge: 30000 }, // Tentative 3: 12s max, précision normale
   ];
   
   for (let attempt = 0; attempt < maxAttempts; attempt++) {

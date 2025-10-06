@@ -90,7 +90,7 @@ export class UniversalGeolocationService {
   private static instance: UniversalGeolocationService;
   private currentCity: CityConfig | null = null;
   private cityDetectionCache: { city: CityConfig; timestamp: number } | null = null;
-  private readonly CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+  private readonly CACHE_DURATION = 10 * 60 * 1000; // 10 minutes (optimisé de 30min)
 
   static getInstance(): UniversalGeolocationService {
     if (!this.instance) {
@@ -257,8 +257,8 @@ export class UniversalGeolocationService {
         reject,
         {
           enableHighAccuracy: true,
-          timeout: 8000,
-          maximumAge: 300000
+          timeout: 3000, // Réduit de 8s à 3s
+          maximumAge: 30000 // Cache 30s (au lieu de 5min)
         }
       );
     });

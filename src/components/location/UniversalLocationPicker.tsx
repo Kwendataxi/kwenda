@@ -47,18 +47,22 @@ export function UniversalLocationPicker({
 
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Détecter la ville actuelle au montage
+  // Détecter la ville actuelle au montage de manière ASYNCHRONE (non-bloquante)
   useEffect(() => {
+    // Ville par défaut immédiate
+    setCurrentCity('Kinshasa');
+    
+    // Détection en arrière-plan sans bloquer l'UI
     const detectCity = async () => {
       try {
         const city = await universalGeolocation.detectUserCity();
         setCurrentCity(city.name);
       } catch (error) {
         console.log('Détection ville échouée:', error);
-        setCurrentCity('Kinshasa'); // Fallback
+        // Garde le fallback déjà défini
       }
     };
-    detectCity();
+    detectCity(); // Lancer sans attendre
   }, []);
 
   // Synchroniser avec la valeur externe

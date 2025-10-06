@@ -103,14 +103,15 @@ export const SmartLocationPicker: React.FC<SmartLocationPickerProps> = ({
     clearError();
   };
 
-  // Géolocalisation GPS
+  // Géolocalisation GPS ULTRA-RAPIDE
   const handleGetCurrentLocation = async () => {
     try {
       setQuery('🎯 Détection de votre position...');
       
       const position = await getCurrentPosition({
         enableHighAccuracy: true,
-        timeout: 15000,
+        timeout: 5000, // Réduit de 15s à 5s
+        maximumAge: 30000, // Cache 30s accepté
         fallbackToIP: true,
         fallbackToDefault: true
       });
