@@ -626,7 +626,6 @@ export default function ModernMapView({
             map={mapInstanceRef.current}
             pickup={pickup}
             destination={destination}
-            currentDriverLocation={currentDriverLocation}
             userLocation={userLocation}
           />
 
