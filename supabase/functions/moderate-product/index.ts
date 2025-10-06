@@ -19,6 +19,15 @@ serve(async (req) => {
 
     const { productId, action, rejectionReason } = await req.json();
 
+    // Validation des paramètres
+    if (!productId || !action) {
+      throw new Error('Missing required parameters: productId and action');
+    }
+
+    if (!['approve', 'reject'].includes(action)) {
+      throw new Error('Invalid action. Must be "approve" or "reject"');
+    }
+
     console.log('🔍 Moderating product:', { productId, action, rejectionReason });
 
     // Vérifier que l'utilisateur est admin
@@ -50,13 +59,39 @@ serve(async (req) => {
     // Récupérer le produit
     const { data: product, error: productError } = await supabase
       .from('marketplace_products')
-      .select('*, seller:profiles!marketplace_products_seller_id_fkey(display_name)')
+      .select('*')
       .eq('id', productId)
       .single();
 
-    if (productError || !product) {
+    if (productError) {
+      console.error('❌ Error fetching product:', productError);
+      throw new Error(`Product not found: ${productError.message}`);
+    }
+
+    if (!product) {
       throw new Error('Product not found');
     }
+
+    // Récupérer les informations du vendeur depuis profiles
+    const { data: sellerProfile } = await supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('id', product.seller_id)
+      .single();
+
+    // Si pas de profil, essayer depuis clients
+    let sellerName = sellerProfile?.display_name;
+    if (!sellerName) {
+      const { data: clientProfile } = await supabase
+        .from('clients')
+        .select('display_name')
+        .eq('user_id', product.seller_id)
+        .single();
+      
+      sellerName = clientProfile?.display_name || 'Vendeur inconnu';
+    }
+
+    console.log('✅ Product found:', product.title, 'Seller:', sellerName);
 
     // Mettre à jour le statut de modération
     const newStatus = action === 'approve' ? 'approved' : 'rejected';
@@ -76,8 +111,11 @@ serve(async (req) => {
       .eq('id', productId);
 
     if (updateError) {
-      throw updateError;
+      console.error('❌ Error updating product:', updateError);
+      throw new Error(`Failed to update product: ${updateError.message}`);
     }
+
+    console.log('✅ Product status updated to:', newStatus);
 
     // Créer une notification pour le vendeur
     const notificationTitle = action === 'approve' 
