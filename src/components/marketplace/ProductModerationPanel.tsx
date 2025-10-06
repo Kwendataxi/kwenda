@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -45,17 +45,8 @@ export const ProductModerationPanel: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
-  useEffect(() => {
-    checkAdminPermissions();
-  }, [user]);
-
-  useEffect(() => {
-    if (isAdmin) {
-      loadProducts();
-    }
-  }, [filterStatus, isAdmin]);
-
-  const checkAdminPermissions = async () => {
+  // Fonction pour vérifier les permissions admin
+  const checkAdminPermissions = useCallback(async () => {
     try {
       setCheckingPermissions(true);
       
@@ -79,9 +70,10 @@ export const ProductModerationPanel: React.FC = () => {
     } finally {
       setCheckingPermissions(false);
     }
-  };
+  }, [user]);
 
-  const loadProducts = async () => {
+  // Fonction pour charger les produits
+  const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -162,7 +154,18 @@ export const ProductModerationPanel: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus, toast]);
+
+  // Effects
+  useEffect(() => {
+    checkAdminPermissions();
+  }, [checkAdminPermissions]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      loadProducts();
+    }
+  }, [isAdmin, loadProducts]);
 
   const moderateProduct = async (productId: string, action: 'approve' | 'reject', reason?: string) => {
     try {
