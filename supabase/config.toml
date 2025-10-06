@@ -8,11 +8,23 @@ verify_jwt = true
 [functions.admin-analytics]
 verify_jwt = true
 
+[functions.admin-notifications]
+verify_jwt = true
+
 [functions.notification-dispatcher]
 verify_jwt = false
 
 [functions.auto-dispatch-system]
 verify_jwt = false
+
+[functions.lottery-system]
+verify_jwt = false
+
+[functions.partner-validation-notification]
+verify_jwt = true
+
+[functions.function-monitor]
+verify_jwt = true
 
 [functions.rental-moderation]
 verify_jwt = true

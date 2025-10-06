@@ -1,22 +1,10 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-interface LotteryTicketRequest {
-  userId: string;
-  sourceType: 'transport' | 'delivery' | 'marketplace_buy' | 'marketplace_sell' | 'referral' | 'daily_login' | 'challenge';
-  sourceId?: string;
-  multiplier?: number;
-  count?: number;
-}
-
-interface DrawLotteryRequest {
-  drawId: string;
-}
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -24,333 +12,138 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { action, lottery_id, prize_amount } = await req.json();
+
+    console.log('🎰 Lottery system action:', action);
+
+    if (action === 'draw') {
+      // Get active tickets for today's lottery
+      const { data: tickets } = await supabase
+        .from('lottery_tickets')
+        .select('id, user_id')
+        .eq('status', 'active')
+        .gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
+
+      if (!tickets || tickets.length === 0) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Aucun ticket actif' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Random draw
+      const winnerTicket = tickets[Math.floor(Math.random() * tickets.length)];
+
+      // Mark ticket as won
+      await supabase
+        .from('lottery_tickets')
+        .update({ 
+          status: 'won',
+          prize_amount: prize_amount || 50000,
+          drawn_at: new Date().toISOString()
+        })
+        .eq('id', winnerTicket.id);
+
+      // Mark other tickets as lost
+      await supabase
+        .from('lottery_tickets')
+        .update({ 
+          status: 'lost',
+          drawn_at: new Date().toISOString()
+        })
+        .neq('id', winnerTicket.id)
+        .eq('status', 'active');
+
+      // Create notification for winner
+      await supabase.from('delivery_notifications').insert({
+        user_id: winnerTicket.user_id,
+        title: '🎉 Félicitations ! Vous avez gagné !',
+        message: `Vous avez gagné ${prize_amount || 50000} CDF à la loterie Kwenda !`,
+        notification_type: 'lottery_win',
+        metadata: {
+          ticket_id: winnerTicket.id,
+          prize_amount: prize_amount || 50000,
+          draw_date: new Date().toISOString()
+        }
+      });
+
+      // Credit wallet
+      const { data: wallet } = await supabase
+        .from('user_wallets')
+        .select('id, balance')
+        .eq('user_id', winnerTicket.user_id)
+        .eq('currency', 'CDF')
+        .single();
+
+      if (wallet) {
+        await supabase
+          .from('user_wallets')
+          .update({ balance: (wallet.balance || 0) + (prize_amount || 50000) })
+          .eq('id', wallet.id);
+
+        await supabase.from('wallet_transactions').insert({
+          wallet_id: wallet.id,
+          user_id: winnerTicket.user_id,
+          transaction_type: 'lottery_win',
+          amount: prize_amount || 50000,
+          currency: 'CDF',
+          description: 'Gain loterie Kwenda',
+          reference_id: winnerTicket.id,
+          reference_type: 'lottery_ticket'
+        });
+      }
+
+      console.log(`✅ Lottery draw completed. Winner: ${winnerTicket.user_id}`);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          winner: {
+            ticket_id: winnerTicket.id,
+            user_id: winnerTicket.user_id,
+            prize_amount: prize_amount || 50000
+          },
+          total_tickets: tickets.length
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'stats') {
+      const { data: stats } = await supabase
+        .from('lottery_tickets')
+        .select('status, created_at, prize_amount')
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
+      const summary = {
+        total_tickets: stats?.length || 0,
+        active: stats?.filter(t => t.status === 'active').length || 0,
+        won: stats?.filter(t => t.status === 'won').length || 0,
+        lost: stats?.filter(t => t.status === 'lost').length || 0,
+        total_prizes: stats?.filter(t => t.status === 'won')
+          .reduce((sum, t) => sum + (t.prize_amount || 0), 0) || 0
+      };
+
+      return new Response(
+        JSON.stringify({ success: true, stats: summary }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    return new Response(
+      JSON.stringify({ success: false, error: 'Action inconnue' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-    const url = new URL(req.url);
-    const action = url.searchParams.get('action');
-    
-    // Lire le body une seule fois
-    let body;
-    try {
-      const bodyText = await req.text();
-      body = bodyText ? JSON.parse(bodyText) : {};
-    } catch (e) {
-      body = {};
-    }
-    
-    // Déterminer l'action
-    const finalAction = action || body.action || (body.userId && body.sourceType ? 'award_ticket' : null);
-
-    switch (finalAction) {
-      case 'award_ticket':
-        return await awardTicket(body, supabaseClient);
-      case 'drawLottery':
-      case 'draw_lottery':
-        return await drawLottery(body, supabaseClient);
-      case 'create_daily_draw':
-        return await createDailyDraw(supabaseClient);
-      default:
-        throw new Error(`Action non supportée: ${finalAction}`);
-    }
-
-  } catch (error) {
-    console.error('Erreur dans lottery-system:', error);
+  } catch (error: any) {
+    console.error('❌ Error in lottery-system:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      JSON.stringify({ success: false, error: error.message }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
-
-// Attribuer des tickets de tombola
-async function awardTicket(body: any, supabase: any) {
-  const { userId, sourceType, sourceId, multiplier = 1, count = 1 }: LotteryTicketRequest = body;
-
-  console.log(`Attribution de ${count} tickets pour ${userId} (source: ${sourceType})`);
-
-  const tickets = [];
-  for (let i = 0; i < count; i++) {
-    // Générer un numéro de ticket unique
-    const { data: ticketNumber, error: codeError } = await supabase
-      .rpc('generate_lottery_ticket_number');
-
-    if (codeError) {
-      throw new Error(`Erreur génération ticket: ${codeError.message}`);
-    }
-
-    // Créer le ticket
-    const { data: ticket, error: ticketError } = await supabase
-      .from('lottery_tickets')
-      .insert({
-        user_id: userId,
-        ticket_number: ticketNumber,
-        source_type: sourceType,
-        source_id: sourceId,
-        multiplier: multiplier,
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 jours
-      })
-      .select()
-      .single();
-
-    if (ticketError) {
-      throw new Error(`Erreur création ticket: ${ticketError.message}`);
-    }
-
-    tickets.push(ticket);
-
-    // Log d'activité
-    await supabase
-      .from('activity_logs')
-      .insert({
-        user_id: userId,
-        activity_type: 'lottery_ticket_earned',
-        description: `Ticket de tombola gagné: ${ticketNumber}`,
-        metadata: {
-          ticket_id: ticket.id,
-          source_type: sourceType,
-          source_id: sourceId,
-          multiplier: multiplier
-        }
-      });
-  }
-
-  return new Response(
-    JSON.stringify({ 
-      success: true, 
-      tickets,
-      message: `${count} ticket(s) attribué(s) avec succès`
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-}
-
-// Effectuer un tirage de tombola
-async function drawLottery(body: any, supabase: any) {
-  const { drawId }: DrawLotteryRequest = body;
-
-  console.log(`Démarrage du tirage: ${drawId}`);
-
-  // Récupérer les détails du tirage
-  const { data: draw, error: drawError } = await supabase
-    .from('lottery_draws')
-    .select('*')
-    .eq('id', drawId)
-    .single();
-
-  if (drawError) {
-    throw new Error(`Tirage non trouvé: ${drawError.message}`);
-  }
-
-  // Permettre les tirages 'scheduled' et 'active' pour les déclenchements manuels
-  if (draw.status !== 'scheduled' && draw.status !== 'active') {
-    throw new Error(`Le tirage ne peut pas être déclenché (statut: ${draw.status})`);
-  }
-
-  console.log(`Tirage trouvé: ${draw.name} (statut: ${draw.status})`);
-
-  // Marquer le tirage comme actif
-  await supabase
-    .from('lottery_draws')
-    .update({ 
-      status: 'active',
-      drawn_at: new Date().toISOString()
-    })
-    .eq('id', drawId);
-
-  // Récupérer toutes les participations (sans jointure avec profiles)
-  const { data: entries, error: entriesError } = await supabase
-    .from('lottery_entries')
-    .select('*')
-    .eq('draw_id', drawId);
-
-  if (entriesError) {
-    throw new Error(`Erreur récupération participations: ${entriesError.message}`);
-  }
-
-  console.log(`Participations trouvées: ${entries?.length || 0}`);
-
-  if (entries.length === 0) {
-    // Aucun participant, annuler le tirage
-    await supabase
-      .from('lottery_draws')
-      .update({ status: 'cancelled' })
-      .eq('id', drawId);
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Tirage annulé - aucun participant'
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  // Créer la liste pondérée des participants (plus de tickets = plus de chances)
-  const weightedEntries: any[] = [];
-  entries.forEach((entry: any) => {
-    for (let i = 0; i < entry.tickets_used; i++) {
-      weightedEntries.push(entry);
-    }
-  });
-
-  console.log(`Entrées pondérées: ${weightedEntries.length}`);
-
-  // Sélectionner les gagnants
-  const winners: any[] = [];
-  const prizePool = draw.prize_pool;
-  const selectedEntries = new Set();
-
-  for (const prize of prizePool) {
-    for (let i = 0; i < prize.quantity && winners.length < draw.max_winners; i++) {
-      // Sélection aléatoire pondérée
-      let attempts = 0;
-      let winnerEntry;
-      
-      do {
-        const randomIndex = Math.floor(Math.random() * weightedEntries.length);
-        winnerEntry = weightedEntries[randomIndex];
-        attempts++;
-      } while (selectedEntries.has(winnerEntry.id) && attempts < 100);
-
-      if (attempts >= 100) break; // Éviter boucle infinie
-      
-      selectedEntries.add(winnerEntry.id);
-      
-      console.log(`Gagnant sélectionné: ${winnerEntry.user_id} pour ${prize.prize_name}`);
-      
-      // Créer l'enregistrement de gain
-      const { data: win, error: winError } = await supabase
-        .from('lottery_wins')
-        .insert({
-          user_id: winnerEntry.user_id,
-          draw_id: drawId,
-          entry_id: winnerEntry.id,
-          prize_details: prize,
-          prize_value: prize.value || 0,
-          currency: 'CDF',
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 jours pour réclamer
-        })
-        .select()
-        .single();
-
-      if (winError) {
-        console.error('Erreur création gain:', winError);
-        continue;
-      }
-
-      // Marquer l'entrée comme gagnante
-      await supabase
-        .from('lottery_entries')
-        .update({ 
-          is_winner: true,
-          prize_won: prize
-        })
-        .eq('id', winnerEntry.id);
-
-      winners.push({
-        entry: winnerEntry,
-        prize: prize,
-        win: win
-      });
-
-      // Log d'activité
-      await supabase
-        .from('activity_logs')
-        .insert({
-          user_id: winnerEntry.user_id,
-          activity_type: 'lottery_win',
-          description: `Gain à la tombola: ${prize.prize_name}`,
-          metadata: {
-            draw_id: drawId,
-            prize: prize,
-            win_id: win.id
-          }
-        });
-    }
-  }
-
-  // Marquer le tirage comme terminé
-  await supabase
-    .from('lottery_draws')
-    .update({ 
-      status: 'completed',
-      total_participants: entries.length,
-      total_tickets_used: weightedEntries.length
-    })
-    .eq('id', drawId);
-
-  console.log(`Tirage terminé: ${winners.length} gagnants`);
-
-  return new Response(
-    JSON.stringify({ 
-      success: true, 
-      draw: draw,
-      winners: winners.length,
-      participants: entries.length,
-      message: `Tirage terminé avec ${winners.length} gagnants`
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-}
-
-// Créer un tirage quotidien automatique
-async function createDailyDraw(supabase: any) {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(20, 0, 0, 0); // 20h00
-
-  const { data: existingDraw } = await supabase
-    .from('lottery_draws')
-    .select('id')
-    .eq('draw_type', 'daily')
-    .eq('status', 'scheduled')
-    .gte('scheduled_date', new Date().toISOString())
-    .single();
-
-  if (existingDraw) {
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Tirage quotidien déjà programmé'
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  // Créer le nouveau tirage quotidien
-  const { data: newDraw, error } = await supabase
-    .from('lottery_draws')
-    .insert({
-      name: `Tirage Flash ${tomorrow.toLocaleDateString('fr-FR')}`,
-      draw_type: 'daily',
-      scheduled_date: tomorrow.toISOString(),
-      min_tickets_required: 1,
-      max_winners: 10,
-      prize_pool: [
-        { prize_name: "Crédit Kwenda 1K", value: 1000, quantity: 5, probability: 0.5 },
-        { prize_name: "Crédit Kwenda 5K", value: 5000, quantity: 3, probability: 0.3 },
-        { prize_name: "Course Gratuite", value: 5000, quantity: 2, probability: 0.2 }
-      ]
-    })
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Erreur création tirage: ${error.message}`);
-  }
-
-  return new Response(
-    JSON.stringify({ 
-      success: true, 
-      draw: newDraw,
-      message: 'Tirage quotidien créé'
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
-}
