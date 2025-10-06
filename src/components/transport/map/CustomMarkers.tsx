@@ -12,17 +12,20 @@ interface CustomMarkersProps {
   pickup?: Location | null;
   destination?: Location | null;
   currentDriverLocation?: { lat: number; lng: number };
+  userLocation?: { lat: number; lng: number } | null;
 }
 
 export default function CustomMarkers({
   map,
   pickup,
   destination,
-  currentDriverLocation
+  currentDriverLocation,
+  userLocation
 }: CustomMarkersProps) {
   const pickupMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const destinationMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const driverMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const userLocationMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
 
   // Marker de départ - Noir avec accent rouge Kwenda
   const createPickupMarkerContent = () => {
@@ -221,6 +224,74 @@ export default function CustomMarkers({
       }
     };
   }, [currentDriverLocation, map]);
+
+  // 🎯 Phase 3: Marker de position actuelle (bleu pulsant)
+  const createUserLocationMarkerContent = () => {
+    const div = document.createElement('div');
+    div.className = 'relative';
+    div.innerHTML = `
+      <div class="relative animate-pulse" style="filter: drop-shadow(0 6px 16px rgba(59, 130, 246, 0.5));">
+        <!-- Cercle de précision GPS -->
+        <div class="absolute inset-0 rounded-full animate-ping opacity-40" style="background: radial-gradient(circle, #3B82F6, transparent);"></div>
+        <div class="absolute -inset-8 rounded-full opacity-20 animate-pulse" style="background: radial-gradient(circle, #3B82F6 0%, transparent 70%); border: 2px dashed #3B82F6;"></div>
+        
+        <!-- Point bleu central -->
+        <div class="relative flex items-center justify-center w-8 h-8 rounded-full border-3 border-white" 
+             style="background: linear-gradient(145deg, #2563EB 0%, #3B82F6 50%, #60A5FA 100%); 
+                    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.6), 0 0 30px rgba(59, 130, 246, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);">
+          <!-- Icône position -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="4"/>
+          </svg>
+          <!-- Pulse central -->
+          <div class="absolute w-2 h-2 bg-white rounded-full animate-ping" style="box-shadow: 0 0 10px white;"></div>
+        </div>
+        
+        <!-- Label -->
+        <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-bold animate-slide-in-up border-2 border-white/30"
+             style="background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%); 
+                    color: white; 
+                    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);">
+          📍 Ma position
+        </div>
+      </div>
+    `;
+    return div;
+  };
+
+  // Marker position utilisateur
+  useEffect(() => {
+    if (!userLocation) {
+      if (userLocationMarkerRef.current) {
+        userLocationMarkerRef.current.map = null;
+        userLocationMarkerRef.current = null;
+      }
+      return;
+    }
+
+    const createMarker = async () => {
+      const { AdvancedMarkerElement } = await google.maps.importLibrary('marker') as google.maps.MarkerLibrary;
+      
+      if (userLocationMarkerRef.current) {
+        userLocationMarkerRef.current.position = userLocation;
+      } else {
+        userLocationMarkerRef.current = new AdvancedMarkerElement({
+          map,
+          position: userLocation,
+          content: createUserLocationMarkerContent(),
+          title: 'Ma position actuelle'
+        });
+      }
+    };
+
+    createMarker();
+
+    return () => {
+      if (userLocationMarkerRef.current) {
+        userLocationMarkerRef.current.map = null;
+      }
+    };
+  }, [userLocation, map]);
 
   return null;
 }

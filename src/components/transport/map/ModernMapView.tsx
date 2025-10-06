@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MapPin } from 'lucide-react';
 import CustomMarkers from './CustomMarkers';
 import AnimatedPolyline from './AnimatedPolyline';
 import { useGoogleMaps } from '@/hooks/useGoogleMaps';
 import { throttle } from '@/utils/performanceUtils';
+import { useToast } from '@/hooks/use-toast';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 interface Location {
   lat: number;
@@ -33,18 +36,95 @@ export default function ModernMapView({
 }: ModernMapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const mapboxMapRef = useRef<mapboxgl.Map | null>(null);
   const { isLoaded, error } = useGoogleMaps();
   const [isMapReady, setIsMapReady] = useState(false);
+  const [useMapboxFallback, setUseMapboxFallback] = useState(false);
+  const { toast } = useToast();
+
+  // 🎯 Phase 2: Fallback Mapbox si Google Maps échoue
+  useEffect(() => {
+    if (error && !useMapboxFallback) {
+      console.log('⚠️ Google Maps failed, switching to Mapbox fallback');
+      setUseMapboxFallback(true);
+      toast({
+        title: "⚠️ Carte alternative chargée",
+        description: "Utilisation de Mapbox en raison d'un problème avec Google Maps"
+      });
+    }
+  }, [error, useMapboxFallback, toast]);
+
+  // 🗺️ Initialisation Mapbox Fallback
+  useEffect(() => {
+    if (!useMapboxFallback || !mapRef.current || mapboxMapRef.current) return;
+
+    const initMapbox = () => {
+      try {
+        mapboxgl.accessToken = 'pk.eyJ1Ijoia3dlbmRhIiwiYSI6ImNtMWZoZXhtbzA0cWQya3M4Z2o1MjJ4eGwifQ.demo-token';
+        
+        const center = userLocation 
+          ? [userLocation.lng, userLocation.lat]
+          : pickup 
+          ? [pickup.lng, pickup.lat]
+          : [15.3069, -4.3217]; // Kinshasa
+
+        const map = new mapboxgl.Map({
+          container: mapRef.current!,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: center as [number, number],
+          zoom: 13,
+          pitch: 45
+        });
+
+        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+        // Ajouter marker position utilisateur
+        if (userLocation) {
+          new mapboxgl.Marker({ color: '#3B82F6' })
+            .setLngLat([userLocation.lng, userLocation.lat])
+            .setPopup(new mapboxgl.Popup().setHTML('<strong>📍 Ma position</strong>'))
+            .addTo(map);
+        }
+
+        // Ajouter markers pickup/destination
+        if (pickup) {
+          new mapboxgl.Marker({ color: '#1A1A1A' })
+            .setLngLat([pickup.lng, pickup.lat])
+            .setPopup(new mapboxgl.Popup().setHTML(`<strong>📍 Départ</strong><br/>${pickup.address}`))
+            .addTo(map);
+        }
+
+        if (destination) {
+          new mapboxgl.Marker({ color: '#EF4444' })
+            .setLngLat([destination.lng, destination.lat])
+            .setPopup(new mapboxgl.Popup().setHTML(`<strong>🎯 Destination</strong><br/>${destination.address}`))
+            .addTo(map);
+        }
+
+        mapboxMapRef.current = map;
+        setIsMapReady(true);
+
+        return () => {
+          map.remove();
+        };
+      } catch (err) {
+        console.error('❌ Erreur Mapbox:', err);
+      }
+    };
+
+    initMapbox();
+  }, [useMapboxFallback, pickup, destination, userLocation]);
 
   // Initialisation de la carte Google Maps
   useEffect(() => {
-    if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
+    if (!isLoaded || !mapRef.current || mapInstanceRef.current || useMapboxFallback) return;
 
     const initializeMap = async () => {
       try {
         // ✅ Double vérification avant création
         if (!window.google?.maps?.Map) {
           console.error('❌ google.maps.Map is not available');
+          setUseMapboxFallback(true);
           return;
         }
 
@@ -126,7 +206,7 @@ export default function ModernMapView({
     };
 
     initializeMap();
-  }, [isLoaded, onMapClick, pickup, userLocation]);
+  }, [isLoaded, onMapClick, pickup, userLocation, useMapboxFallback]);
 
   // Créer un effet ripple au clic
   const createRippleEffect = (position: google.maps.LatLng) => {
@@ -329,13 +409,14 @@ export default function ModernMapView({
       <div ref={mapRef} className="w-full h-full rounded-lg shadow-lg" />
 
       {/* Markers personnalisés */}
-      {isMapReady && mapInstanceRef.current && (
+      {isMapReady && mapInstanceRef.current && !useMapboxFallback && (
         <>
           <CustomMarkers
             map={mapInstanceRef.current}
             pickup={pickup}
             destination={destination}
             currentDriverLocation={currentDriverLocation}
+            userLocation={userLocation}
           />
 
           {/* Route animée */}
