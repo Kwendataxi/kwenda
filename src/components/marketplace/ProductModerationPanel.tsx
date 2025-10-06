@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Package, CheckCircle, XCircle, Clock, Eye, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Package, CheckCircle, XCircle, Clock, Eye, AlertCircle, ShieldAlert } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 
 interface Product {
   id: string;
@@ -30,17 +33,53 @@ interface Product {
 
 export const ProductModerationPanel: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { formatCurrency } = useLanguage();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingPermissions, setCheckingPermissions] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
-  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   useEffect(() => {
-    loadProducts();
-  }, [filterStatus]);
+    checkAdminPermissions();
+  }, [user]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      loadProducts();
+    }
+  }, [filterStatus, isAdmin]);
+
+  const checkAdminPermissions = async () => {
+    try {
+      setCheckingPermissions(true);
+      
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .eq('is_active', true)
+        .maybeSingle();
+
+      setIsAdmin(!!data && !error);
+    } catch (error) {
+      console.error('Error checking admin permissions:', error);
+      setIsAdmin(false);
+    } finally {
+      setCheckingPermissions(false);
+    }
+  };
 
   const loadProducts = async () => {
     try {
@@ -123,6 +162,45 @@ export const ProductModerationPanel: React.FC = () => {
       </Badge>
     );
   };
+
+  if (checkingPermissions) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-sm text-muted-foreground">Vérification des permissions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return (
+      <div className="space-y-6">
+        <Alert variant="destructive">
+          <ShieldAlert className="h-4 w-4" />
+          <AlertDescription className="ml-2">
+            {!user 
+              ? 'Vous devez être connecté pour accéder à cette page.'
+              : 'Accès refusé. Cette page est réservée aux administrateurs.'
+            }
+          </AlertDescription>
+        </Alert>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
+            <h3 className="font-semibold text-lg mb-2">Accès restreint</h3>
+            <p className="text-muted-foreground text-center max-w-sm mb-4">
+              Seuls les administrateurs peuvent accéder au panneau de modération des produits.
+            </p>
+            <Button onClick={() => navigate(user ? '/' : '/auth')}>
+              {user ? 'Retour à l\'accueil' : 'Se connecter'}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -217,6 +295,7 @@ export const ProductModerationPanel: React.FC = () => {
                         size="sm"
                         onClick={() => moderateProduct(product.id, 'approve')}
                         disabled={actionLoading}
+                        title="Approuver"
                       >
                         <CheckCircle className="h-4 w-4" />
                       </Button>
@@ -228,10 +307,38 @@ export const ProductModerationPanel: React.FC = () => {
                           setRejectionReason('');
                         }}
                         disabled={actionLoading}
+                        title="Rejeter"
                       >
                         <XCircle className="h-4 w-4" />
                       </Button>
                     </>
+                  )}
+                  {product.moderation_status === 'approved' && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedProduct(product);
+                        setRejectionReason('');
+                      }}
+                      disabled={actionLoading}
+                      title="Rejeter ce produit"
+                    >
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Rejeter
+                    </Button>
+                  )}
+                  {product.moderation_status === 'rejected' && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => moderateProduct(product.id, 'approve')}
+                      disabled={actionLoading}
+                      title="Réapprouver ce produit"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Approuver
+                    </Button>
                   )}
                 </div>
               </CardContent>
@@ -241,10 +348,13 @@ export const ProductModerationPanel: React.FC = () => {
       )}
 
       {/* Rejection Dialog */}
-      <Dialog open={!!selectedProduct && !rejectionReason} onOpenChange={() => {
-        setSelectedProduct(null);
-        setRejectionReason('');
-      }}>
+      <Dialog 
+        open={!!selectedProduct && selectedProduct.moderation_status !== 'pending'} 
+        onOpenChange={() => {
+          setSelectedProduct(null);
+          setRejectionReason('');
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Rejeter le produit</DialogTitle>
