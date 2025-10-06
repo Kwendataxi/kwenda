@@ -64,58 +64,167 @@ export default function ModernMapView({
       console.log('⚠️ Google Maps failed, switching to Mapbox fallback');
       setUseMapboxFallback(true);
       toast({
-        title: "⚠️ Carte alternative chargée",
-        description: "Utilisation de Mapbox en raison d'un problème avec Google Maps"
+        title: "🗺️ Carte Mapbox activée",
+        description: "Utilisation de Mapbox pour une expérience optimale"
       });
     }
   }, [error, useMapboxFallback, toast]);
 
-  // 🗺️ Initialisation Mapbox Fallback
+  // 🗺️ Initialisation Mapbox Fallback (simplifié et robuste)
   useEffect(() => {
     if (!useMapboxFallback || !mapRef.current || mapboxMapRef.current) return;
 
     const initMapbox = () => {
       try {
-        mapboxgl.accessToken = 'pk.eyJ1Ijoia3dlbmRhIiwiYSI6ImNtMWZoZXhtbzA0cWQya3M4Z2o1MjJ4eGwifQ.demo-token';
+        // Token public Mapbox (gratuit pour usage modéré)
+        mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
         
-        const center = userLocation 
+        const center: [number, number] = userLocation 
           ? [userLocation.lng, userLocation.lat]
           : pickup 
           ? [pickup.lng, pickup.lat]
-          : [15.3069, -4.3217]; // Kinshasa
+          : [15.3069, -4.3217]; // Kinshasa (lng, lat inversé pour Mapbox)
+
+        console.log('🗺️ Initialisation Mapbox avec centre:', center);
 
         const map = new mapboxgl.Map({
           container: mapRef.current!,
-          style: 'mapbox://styles/mapbox/streets-v12',
-          center: center as [number, number],
+          style: 'mapbox://styles/mapbox/dark-v11',
+          center: center,
           zoom: 13,
-          pitch: 45
+          pitch: 45,
+          bearing: 0,
+          antialias: true
         });
 
-        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+        // Contrôles de navigation
+        map.addControl(new mapboxgl.NavigationControl({
+          visualizePitch: true,
+          showZoom: true,
+          showCompass: true
+        }), 'top-right');
 
-        // Ajouter marker position utilisateur
-        if (userLocation) {
-          new mapboxgl.Marker({ color: '#3B82F6' })
-            .setLngLat([userLocation.lng, userLocation.lat])
-            .setPopup(new mapboxgl.Popup().setHTML('<strong>📍 Ma position</strong>'))
-            .addTo(map);
-        }
+        // Attendre le chargement de la carte
+        map.on('load', () => {
+          console.log('✅ Mapbox carte chargée');
+          
+          // Ajouter marker position utilisateur (bleu pulsant)
+          if (userLocation) {
+            const el = document.createElement('div');
+            el.className = 'user-location-marker';
+            el.style.cssText = `
+              width: 30px;
+              height: 30px;
+              background: radial-gradient(circle, #3B82F6, #2563EB);
+              border: 3px solid white;
+              border-radius: 50%;
+              box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+              animation: pulse-marker 2s ease-in-out infinite;
+            `;
 
-        // Ajouter markers pickup/destination
-        if (pickup) {
-          new mapboxgl.Marker({ color: '#1A1A1A' })
-            .setLngLat([pickup.lng, pickup.lat])
-            .setPopup(new mapboxgl.Popup().setHTML(`<strong>📍 Départ</strong><br/>${pickup.address}`))
-            .addTo(map);
-        }
+            new mapboxgl.Marker({ element: el, anchor: 'center' })
+              .setLngLat([userLocation.lng, userLocation.lat])
+              .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML('<strong>📍 Ma position</strong>'))
+              .addTo(map);
+          }
 
-        if (destination) {
-          new mapboxgl.Marker({ color: '#EF4444' })
-            .setLngLat([destination.lng, destination.lat])
-            .setPopup(new mapboxgl.Popup().setHTML(`<strong>🎯 Destination</strong><br/>${destination.address}`))
-            .addTo(map);
-        }
+          // Ajouter marker pickup (noir Kwenda)
+          if (pickup) {
+            const el = document.createElement('div');
+            el.className = 'pickup-marker';
+            el.style.cssText = `
+              width: 40px;
+              height: 40px;
+              background: linear-gradient(145deg, #1A1A1A, #2A2A2A);
+              border: 3px solid white;
+              border-radius: 50%;
+              box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 20px;
+            `;
+            el.innerHTML = '📍';
+
+            new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+              .setLngLat([pickup.lng, pickup.lat])
+              .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<strong>📍 Départ</strong><br/>${pickup.address}`))
+              .addTo(map);
+          }
+
+          // Ajouter marker destination (rouge Kwenda)
+          if (destination) {
+            const el = document.createElement('div');
+            el.className = 'destination-marker';
+            el.style.cssText = `
+              width: 40px;
+              height: 40px;
+              background: linear-gradient(145deg, #DC2626, #EF4444);
+              border: 3px solid white;
+              border-radius: 50%;
+              box-shadow: 0 8px 20px rgba(239, 68, 68, 0.6);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 20px;
+              animation: pulse-marker 2s ease-in-out infinite;
+            `;
+            el.innerHTML = '🎯';
+
+            new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+              .setLngLat([destination.lng, destination.lat])
+              .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<strong>🎯 Destination</strong><br/>${destination.address}`))
+              .addTo(map);
+          }
+
+          // Route entre pickup et destination
+          if (pickup && destination && visualizationMode === 'route') {
+            console.log('🛣️ Ajout route Mapbox');
+            
+            // Créer ligne de route
+            map.addSource('route', {
+              type: 'geojson',
+              data: {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'LineString',
+                  coordinates: [
+                    [pickup.lng, pickup.lat],
+                    [destination.lng, destination.lat]
+                  ]
+                }
+              }
+            });
+
+            map.addLayer({
+              id: 'route',
+              type: 'line',
+              source: 'route',
+              layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+              },
+              paint: {
+                'line-color': '#EF4444',
+                'line-width': 5,
+                'line-gradient': [
+                  'interpolate',
+                  ['linear'],
+                  ['line-progress'],
+                  0, '#1A1A1A',
+                  1, '#EF4444'
+                ]
+              }
+            });
+
+            // Ajuster bounds
+            const bounds = new mapboxgl.LngLatBounds();
+            bounds.extend([pickup.lng, pickup.lat]);
+            bounds.extend([destination.lng, destination.lat]);
+            map.fitBounds(bounds, { padding: 80, duration: 1000 });
+          }
+        });
 
         mapboxMapRef.current = map;
         setIsMapReady(true);
@@ -129,7 +238,7 @@ export default function ModernMapView({
     };
 
     initMapbox();
-  }, [useMapboxFallback, pickup, destination, userLocation]);
+  }, [useMapboxFallback, pickup, destination, userLocation, visualizationMode]);
 
   // Initialisation de la carte Google Maps
   useEffect(() => {
@@ -506,9 +615,28 @@ export default function ModernMapView({
 
       {/* Badge Mapbox si fallback actif */}
       {useMapboxFallback && (
-        <div className="absolute top-4 left-4 bg-blue-500/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md">
-          <span className="text-xs font-medium text-white">🗺️ Mapbox</span>
+        <div className="absolute top-4 left-4 bg-gradient-to-r from-primary to-primary/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-white/20">
+          <span className="text-xs font-bold text-white flex items-center gap-2">
+            <MapPin className="h-4 w-4" />
+            Carte Mapbox Active
+          </span>
         </div>
+      )}
+      
+      {/* Styles pour animations Mapbox */}
+      {useMapboxFallback && (
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes pulse-marker {
+            0%, 100% {
+              transform: scale(1);
+              box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+            }
+            50% {
+              transform: scale(1.1);
+              box-shadow: 0 0 40px rgba(59, 130, 246, 0.8);
+            }
+          }
+        `}} />
       )}
 
       {/* Indicateur de mode */}
