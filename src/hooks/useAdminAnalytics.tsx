@@ -33,6 +33,8 @@ export const useAdminAnalytics = () => {
   const { user } = useAuth()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
+  const maxRetries = 3
   const [dashboardData, setDashboardData] = useState<{
     overview: DashboardOverview
     top_zones: any[]
@@ -52,39 +54,50 @@ export const useAdminAnalytics = () => {
 
     console.log('📊 Starting dashboard analytics fetch for user:', user.id)
     
-    // Vérifier si l'utilisateur est admin via user_roles
-    const { data: adminCheck, error: adminError } = await supabase
-      .from('user_roles')
-      .select('id, role, admin_role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .eq('is_active', true)
-      .maybeSingle()
-    
-    if (adminError) {
-      console.error('❌ Error checking admin status:', adminError)
-      toast({
-        title: "Erreur de vérification",
-        description: "Impossible de vérifier vos permissions",
-        variant: "destructive"
-      })
-      return
-    }
-    
-    if (!adminCheck) {
-      console.error('❌ User is not an admin')
-      toast({
-        title: "Accès refusé",
-        description: "Vous devez être administrateur pour accéder aux analytics",
-        variant: "destructive"
-      })
-      return
-    }
-
-    console.log('✅ Admin verified, fetching analytics...')
-    setLoading(true)
-    
     try {
+      // Vérifier si l'utilisateur est admin via user_roles avec timeout
+      const adminCheckPromise = supabase
+        .from('user_roles')
+        .select('id, role, admin_role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout vérifiant les permissions admin')), 10000)
+      );
+      
+      const adminCheckWithActive = adminCheckPromise
+        .eq('is_active', true)
+        .maybeSingle();
+      
+      const { data: adminCheck, error: adminError } = await Promise.race([
+        adminCheckWithActive,
+        timeoutPromise
+      ]) as any;
+    
+      if (adminError) {
+        console.error('❌ Error checking admin status:', adminError)
+        toast({
+          title: "Erreur de vérification",
+          description: "Impossible de vérifier vos permissions",
+          variant: "destructive"
+        })
+        return
+      }
+      
+      if (!adminCheck) {
+        console.error('❌ User is not an admin')
+        toast({
+          title: "Accès refusé",
+          description: "Vous devez être administrateur pour accéder aux analytics",
+          variant: "destructive"
+        })
+        return
+      }
+
+      console.log('✅ Admin verified, fetching analytics...')
+      setLoading(true)
+    
       const { data, error } = await supabase.functions.invoke('admin-analytics', {
         body: {
           type: 'dashboard',
@@ -130,15 +143,25 @@ export const useAdminAnalytics = () => {
         throw new Error(data?.error || 'Unknown error')
       }
     } catch (error: any) {
-      console.error('❌ Fatal error fetching dashboard analytics:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      })
+      console.error('❌ Error in fetchDashboardAnalytics:', error)
+      
+      // Retry logic avec backoff exponentiel
+      if (retryCount < maxRetries && error.message?.includes('Timeout')) {
+        setRetryCount(prev => prev + 1)
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 10000)
+        
+        toast({
+          title: "Nouvelle tentative...",
+          description: `Tentative ${retryCount + 1}/${maxRetries} dans ${delay/1000}s`,
+        })
+        
+        setTimeout(() => fetchDashboardAnalytics(dateRange), delay)
+        return
+      }
       
       toast({
-        title: "Erreur",
-        description: error.message || "Impossible de charger les analytics. Veuillez réessayer.",
+        title: "Erreur Analytics",
+        description: error.message || "Impossible de charger les données",
         variant: "destructive"
       })
     } finally {

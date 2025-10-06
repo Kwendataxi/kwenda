@@ -9553,6 +9553,33 @@ export type Database = {
         }
         Relationships: []
       }
+      mv_admin_rental_booking_stats: {
+        Row: {
+          completed_bookings: number | null
+          last_updated: string | null
+          pending_bookings: number | null
+          total_bookings: number | null
+          total_revenue: number | null
+        }
+        Relationships: []
+      }
+      mv_admin_rental_subscription_stats: {
+        Row: {
+          active_subscriptions: number | null
+          last_updated: string | null
+        }
+        Relationships: []
+      }
+      mv_admin_rental_vehicle_stats: {
+        Row: {
+          active_vehicles: number | null
+          approved_vehicles: number | null
+          last_updated: string | null
+          pending_moderation: number | null
+          total_vehicles: number | null
+        }
+        Relationships: []
+      }
       subscription_stats_by_service: {
         Row: {
           active_subscriptions: number | null
@@ -10879,6 +10906,10 @@ export type Database = {
           p_unit?: string
         }
         Returns: string
+      }
+      refresh_admin_rental_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       refresh_driver_status: {
         Args: Record<PropertyKey, never>

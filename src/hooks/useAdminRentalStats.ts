@@ -18,100 +18,74 @@ export const useAdminRentalStats = () => {
   return useQuery({
     queryKey: ['admin-rental-stats'],
     queryFn: async (): Promise<AdminRentalStats> => {
-      // Récupérer toutes les statistiques en parallèle
+      // Utiliser les vues matérialisées pour de meilleures performances
       const [
-        vehiclesResult,
-        pendingModerationResult,
-        approvedVehiclesResult,
-        activeVehiclesResult,
-        subscriptionsResult,
-        categoriesResult,
-        bookingsResult,
-        revenueResult,
-        completedBookingsResult,
-        pendingBookingsResult
+        vehicleStatsResult,
+        bookingStatsResult,
+        subscriptionStatsResult,
+        categoriesResult
       ] = await Promise.all([
-        // Total véhicules
+        // Stats véhicules depuis vue matérialisée
         supabase
-          .from('partner_rental_vehicles')
-          .select('id', { count: 'exact', head: true }),
+          .from('mv_admin_rental_vehicle_stats')
+          .select('*')
+          .single(),
         
-        // Véhicules en modération
+        // Stats réservations depuis vue matérialisée
         supabase
-          .from('partner_rental_vehicles')
-          .select('id', { count: 'exact', head: true })
-          .eq('moderation_status', 'pending'),
+          .from('mv_admin_rental_booking_stats')
+          .select('*')
+          .single(),
         
-        // Véhicules approuvés
+        // Stats abonnements depuis vue matérialisée
         supabase
-          .from('partner_rental_vehicles')
-          .select('id', { count: 'exact', head: true })
-          .eq('moderation_status', 'approved'),
+          .from('mv_admin_rental_subscription_stats')
+          .select('*')
+          .single(),
         
-        // Véhicules actifs
-        supabase
-          .from('partner_rental_vehicles')
-          .select('id', { count: 'exact', head: true })
-          .eq('is_active', true)
-          .eq('moderation_status', 'approved'),
-        
-        // Abonnements actifs
-        supabase
-          .from('partner_rental_subscriptions')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'active'),
-        
-        // Total catégories
+        // Seulement les catégories actives (requête simple)
         supabase
           .from('partner_rental_vehicle_categories')
           .select('id', { count: 'exact', head: true })
-          .eq('is_active', true),
-        
-        // Total réservations
-        supabase
-          .from('partner_rental_bookings')
-          .select('id', { count: 'exact', head: true }),
-        
-        // Revenus totaux
-        supabase
-          .from('partner_rental_bookings')
-          .select('total_price')
-          .eq('status', 'completed'),
-        
-        // Réservations terminées
-        supabase
-          .from('partner_rental_bookings')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'completed'),
-        
-        // Réservations en attente
-        supabase
-          .from('partner_rental_bookings')
-          .select('id', { count: 'exact', head: true })
-          .in('status', ['pending', 'confirmed'])
+          .eq('is_active', true)
       ]);
 
-      // Calculer le revenu total
-      let totalRevenue = 0;
-      if (revenueResult.data) {
-        totalRevenue = revenueResult.data.reduce((sum, booking) => 
-          sum + (parseFloat(booking.total_price?.toString() || '0') || 0), 0
-        );
-      }
+      // Extraire les données des vues matérialisées
+      const vehicleStats = vehicleStatsResult.data || {
+        total_vehicles: 0,
+        pending_moderation: 0,
+        approved_vehicles: 0,
+        active_vehicles: 0
+      };
+
+      const bookingStats = bookingStatsResult.data || {
+        total_bookings: 0,
+        completed_bookings: 0,
+        pending_bookings: 0,
+        total_revenue: 0
+      };
+
+      const subscriptionStats = subscriptionStatsResult.data || {
+        active_subscriptions: 0
+      };
 
       return {
-        totalVehicles: vehiclesResult.count || 0,
-        pendingModeration: pendingModerationResult.count || 0,
-        approvedVehicles: approvedVehiclesResult.count || 0,
-        activeVehicles: activeVehiclesResult.count || 0,
-        activeSubscriptions: subscriptionsResult.count || 0,
+        totalVehicles: vehicleStats.total_vehicles,
+        pendingModeration: vehicleStats.pending_moderation,
+        approvedVehicles: vehicleStats.approved_vehicles,
+        activeVehicles: vehicleStats.active_vehicles,
+        activeSubscriptions: subscriptionStats.active_subscriptions,
         totalCategories: categoriesResult.count || 0,
-        totalBookings: bookingsResult.count || 0,
-        totalRevenue,
-        completedBookings: completedBookingsResult.count || 0,
-        pendingBookings: pendingBookingsResult.count || 0,
+        totalBookings: bookingStats.total_bookings,
+        totalRevenue: Number(bookingStats.total_revenue) || 0,
+        completedBookings: bookingStats.completed_bookings,
+        pendingBookings: bookingStats.pending_bookings,
       };
     },
-    refetchInterval: 30000, // Actualiser toutes les 30 secondes
+    staleTime: 5 * 60 * 1000, // Cache pendant 5 minutes
+    gcTime: 10 * 60 * 1000, // Garder en cache 10 minutes
+    refetchInterval: 60000, // Actualiser toutes les minutes (au lieu de 30s)
+    retry: 3, // Réessayer 3 fois en cas d'erreur
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Backoff exponentiel
   });
 };
