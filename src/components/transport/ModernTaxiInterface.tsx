@@ -20,7 +20,9 @@ import {
   Zap,
   Loader2,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Map,
+  X
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -109,6 +111,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [loading, setLoading] = useState(false);
   const [estimatedPrice, setEstimatedPrice] = useState<number>(0);
   const [estimatedDuration, setEstimatedDuration] = useState<string>('');
+  const [showMap, setShowMap] = useState(true);
   
   // Driver search dialog state
   const [showSearchDialog, setShowSearchDialog] = useState(false);
@@ -255,6 +258,15 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       setTimeout(() => setStep('details'), 500);
     }
   };
+
+  // Gérer la visibilité de la carte selon l'étape
+  useEffect(() => {
+    if (step === 'details' || step === 'confirm') {
+      setShowMap(false);
+    } else {
+      setShowMap(true);
+    }
+  }, [step]);
 
   const handleSubmitBooking = async () => {
     if (!bookingData.pickup || !bookingData.destination) {
@@ -604,30 +616,53 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 p-4 h-full">
-      {/* Carte moderne - toujours visible */}
-      <div className="lg:flex-1 h-[400px] lg:h-auto">
-        <ModernMapView
-          pickup={bookingData.pickup}
-          destination={bookingData.destination}
-          visualizationMode={getMapVisualizationMode()}
-          className="h-full"
-        />
-      </div>
+      {/* Carte moderne - conditionnelle avec animations */}
+      {showMap && (
+        <div className="lg:flex-1 h-[400px] lg:h-auto animate-slide-in-right relative">
+          <ModernMapView
+            pickup={bookingData.pickup}
+            destination={bookingData.destination}
+            visualizationMode={getMapVisualizationMode()}
+            className="h-full"
+          />
+          {/* Bouton pour masquer la carte (sur mobile) */}
+          <button
+            onClick={() => setShowMap(false)}
+            className="absolute top-3 right-3 lg:hidden p-2 bg-background/90 backdrop-blur-sm rounded-full shadow-md hover:bg-background transition-colors"
+            aria-label="Fermer la carte"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Formulaire de réservation */}
-      <div className="lg:w-[480px] space-y-4">
-        {/* Progress indicator */}
-        <div className="flex justify-center space-x-2">
-          {['pickup', 'destination', 'details', 'confirm'].map((stepName, index) => (
-            <div
-              key={stepName}
-              className={`h-2 w-8 rounded-full transition-all duration-300 ${
-                ['pickup', 'destination', 'details', 'confirm'].indexOf(step) >= index
-                  ? 'bg-primary scale-110'
-                  : 'bg-muted'
-              }`}
-            />
-          ))}
+      <div className={`${showMap ? 'lg:w-[480px]' : 'lg:w-full lg:max-w-2xl lg:mx-auto'} space-y-4 transition-all duration-300`}>
+        {/* Bouton "Voir carte" discret + Progress indicator */}
+        <div className="flex items-center justify-between">
+          <div className="flex justify-center space-x-2 flex-1">
+            {['pickup', 'destination', 'details', 'confirm'].map((stepName, index) => (
+              <div
+                key={stepName}
+                className={`h-2 w-8 rounded-full transition-all duration-300 ${
+                  ['pickup', 'destination', 'details', 'confirm'].indexOf(step) >= index
+                    ? 'bg-primary scale-110'
+                    : 'bg-muted'
+                }`}
+              />
+            ))}
+          </div>
+          
+          {/* Bouton "Voir carte" - visible uniquement si carte masquée */}
+          {!showMap && (
+            <button
+              onClick={() => setShowMap(true)}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors underline animate-fade-in"
+            >
+              <Map className="h-3 w-3" />
+              Voir carte
+            </button>
+          )}
         </div>
 
         {/* Step content */}

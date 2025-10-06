@@ -41,7 +41,7 @@ class GoogleMapsLoaderService {
 
   async load(libraries: string[] = ['places', 'marker', 'geometry']): Promise<void> {
     // Si déjà chargé, retourner immédiatement
-    if (this.isLoaded && window.google?.maps) {
+    if (this.isLoaded && window.google?.maps?.Map) {
       return Promise.resolve();
     }
 
@@ -57,8 +57,8 @@ class GoogleMapsLoaderService {
 
   private async loadScript(libraries: string[]): Promise<void> {
     try {
-      // Vérifier si le script est déjà présent
-      if (window.google?.maps) {
+      // Vérifier si le script est déjà présent et initialisé
+      if (window.google?.maps?.Map) {
         this.isLoaded = true;
         return;
       }
@@ -66,7 +66,7 @@ class GoogleMapsLoaderService {
       // Récupérer la clé API
       const apiKey = await this.getApiKey();
 
-      // Créer et insérer le script
+      // Créer et insérer le script avec loading=async
       return new Promise((resolve, reject) => {
         const script = document.createElement('script');
         const librariesParam = libraries.join(',');
@@ -75,10 +75,17 @@ class GoogleMapsLoaderService {
         script.async = true;
         script.defer = true;
 
-        script.onload = () => {
-          this.isLoaded = true;
-          console.log('✅ Google Maps API loaded successfully');
-          resolve();
+        script.onload = async () => {
+          try {
+            // Attendre que google.maps soit complètement initialisé
+            await this.waitForMapsLibrary();
+            this.isLoaded = true;
+            console.log('✅ Google Maps API loaded successfully');
+            resolve();
+          } catch (err) {
+            this.loadPromise = null;
+            reject(err);
+          }
         };
 
         script.onerror = () => {
@@ -94,8 +101,28 @@ class GoogleMapsLoaderService {
     }
   }
 
+  private async waitForMapsLibrary(): Promise<void> {
+    // Attendre que google.maps.importLibrary soit disponible
+    if (!window.google?.maps?.importLibrary) {
+      throw new Error('Google Maps API not properly loaded');
+    }
+
+    // Importer la bibliothèque 'maps' pour s'assurer que Map est un constructeur
+    try {
+      await window.google.maps.importLibrary('maps');
+      
+      // Vérifier que google.maps.Map est bien un constructeur
+      if (typeof window.google.maps.Map !== 'function') {
+        throw new Error('google.maps.Map is not a constructor');
+      }
+    } catch (error) {
+      console.error('Error importing maps library:', error);
+      throw error;
+    }
+  }
+
   isScriptLoaded(): boolean {
-    return this.isLoaded && !!window.google?.maps;
+    return this.isLoaded && !!window.google?.maps?.Map;
   }
 }
 

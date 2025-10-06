@@ -40,6 +40,15 @@ export default function ModernMapView({
 
     const initializeMap = async () => {
       try {
+        // Vérifier que google.maps.Map est bien disponible
+        if (!window.google?.maps?.Map) {
+          console.error('google.maps.Map is not available');
+          return;
+        }
+
+        // S'assurer que la bibliothèque maps est chargée
+        await window.google.maps.importLibrary('maps');
+
         const defaultCenter = pickup 
           ? { lat: pickup.lat, lng: pickup.lng }
           : { lat: -4.3217, lng: 15.3069 }; // Kinshasa par défaut
