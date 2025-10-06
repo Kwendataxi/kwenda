@@ -45,34 +45,7 @@ export const ProductModerationPanel: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
-  // Fonction pour vérifier les permissions admin
-  const checkAdminPermissions = useCallback(async () => {
-    try {
-      setCheckingPermissions(true);
-      
-      if (!user) {
-        setIsAdmin(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .eq('is_active', true)
-        .maybeSingle();
-
-      setIsAdmin(!!data && !error);
-    } catch (error) {
-      console.error('Error checking admin permissions:', error);
-      setIsAdmin(false);
-    } finally {
-      setCheckingPermissions(false);
-    }
-  }, [user]);
-
-  // Fonction pour charger les produits
+  // Fonction pour charger les produits (mémorisée)
   const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
@@ -156,11 +129,39 @@ export const ProductModerationPanel: React.FC = () => {
     }
   }, [filterStatus, toast]);
 
-  // Effects
+  // Effect 1: Vérifier les permissions admin (sans useCallback pour éviter la boucle)
   useEffect(() => {
-    checkAdminPermissions();
-  }, [checkAdminPermissions]);
+    const checkPermissions = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        setCheckingPermissions(false);
+        return;
+      }
 
+      try {
+        setCheckingPermissions(true);
+        
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .eq('is_active', true)
+          .maybeSingle();
+
+        setIsAdmin(!!data && !error);
+      } catch (error) {
+        console.error('Error checking admin permissions:', error);
+        setIsAdmin(false);
+      } finally {
+        setCheckingPermissions(false);
+      }
+    };
+
+    checkPermissions();
+  }, [user?.id]); // Uniquement dépendre de user.id pour éviter les re-renders inutiles
+
+  // Effect 2: Charger les produits quand isAdmin change
   useEffect(() => {
     if (isAdmin) {
       loadProducts();
