@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatCurrency } from '@/lib/utils';
+import { VendorEarningsStats } from './VendorEarningsStats';
 
 interface VendorEarning {
   id: string;
@@ -204,12 +205,15 @@ export const VendorWithdrawalInterface: React.FC = () => {
         <h1 className="text-2xl font-bold">Mes Retraits</h1>
       </div>
 
+      {/* Statistiques de revenus avec commission */}
+      {user && <VendorEarningsStats vendorId={user.id} />}
+
       {/* Solde disponible */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="w-5 h-5" />
-            Solde Disponible
+            Solde Disponible pour Retrait
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -217,7 +221,7 @@ export const VendorWithdrawalInterface: React.FC = () => {
             {formatCurrency(availableBalance)}
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Gains disponibles pour retrait
+            Montant net après déduction de commission (disponible immédiatement)
           </p>
         </CardContent>
       </Card>
@@ -239,7 +243,10 @@ export const VendorWithdrawalInterface: React.FC = () => {
               max={availableBalance}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Frais: 2% • Maximum: {formatCurrency(availableBalance)}
+              Frais de retrait: 1% (minimum 500 CDF) • Maximum disponible: {formatCurrency(availableBalance)}
+            </p>
+            <p className="text-xs text-green-600 mt-1">
+              💡 Commission déjà déduite - vous recevez 100% de ce montant (moins frais de retrait)
             </p>
           </div>
 

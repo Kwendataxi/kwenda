@@ -17,7 +17,8 @@ import { AdminUserVerificationManager } from './AdminUserVerificationManager';
 import { ClientVerificationPanel } from './users/ClientVerificationPanel';
 import { ProductModerationPanel } from '../marketplace/ProductModerationPanel';
 import { ProductReportsManager } from '../marketplace/ProductReportsManager';
-import { Building2, Car, Users, Activity, MapPin, Package, Settings, BarChart, Shield, Bell, CheckCircle } from 'lucide-react';
+import { MarketplaceCommissionSettings } from './marketplace/MarketplaceCommissionSettings';
+import { Building2, Car, Users, Activity, MapPin, Package, Settings, BarChart, Shield, Bell, CheckCircle, Percent } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -119,7 +120,7 @@ const AdminDashboard = () => {
 
       {/* Main Management Tabs */}
       <Tabs defaultValue="partners" className="w-full">
-        <TabsList className="grid w-full grid-cols-12">
+        <TabsList className="grid w-full grid-cols-13">
           <TabsTrigger value="partners">Partenaires</TabsTrigger>
           <TabsTrigger value="moderation">Modération</TabsTrigger>
           <TabsTrigger value="rental">Location</TabsTrigger>
@@ -140,6 +141,10 @@ const AdminDashboard = () => {
                 {dashboardData?.pendingReports}
               </Badge>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="commissions" className="flex items-center gap-1">
+            <Percent className="w-4 h-4" />
+            Commissions
           </TabsTrigger>
           <TabsTrigger value="client-verifications" className="relative">
             Vendeurs
@@ -192,6 +197,10 @@ const AdminDashboard = () => {
 
         <TabsContent value="product-reports" className="mt-6">
           <ProductReportsManager />
+        </TabsContent>
+
+        <TabsContent value="commissions" className="mt-6">
+          <MarketplaceCommissionSettings />
         </TabsContent>
 
         <TabsContent value="client-verifications" className="mt-6">

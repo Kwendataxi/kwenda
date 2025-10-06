@@ -3381,6 +3381,42 @@ export type Database = {
         }
         Relationships: []
       }
+      marketplace_commission_config: {
+        Row: {
+          commission_rate: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          fixed_fee: number | null
+          id: string
+          is_active: boolean
+          service_type: string
+          updated_at: string
+        }
+        Insert: {
+          commission_rate?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          fixed_fee?: number | null
+          id?: string
+          is_active?: boolean
+          service_type?: string
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          fixed_fee?: number | null
+          id?: string
+          is_active?: boolean
+          service_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       marketplace_delivery_assignments: {
         Row: {
           actual_delivery_time: string | null
@@ -8828,42 +8864,57 @@ export type Database = {
       vendor_earnings: {
         Row: {
           amount: number
+          commission_deducted: number | null
+          commission_rate: number | null
           confirmed_at: string | null
           created_at: string
           currency: string
           earnings_type: string
+          gross_amount: number | null
           id: string
+          net_amount: number | null
           order_id: string
           paid_at: string | null
           payment_method: string | null
+          platform_fees: number | null
           status: string
           updated_at: string
           vendor_id: string
         }
         Insert: {
           amount?: number
+          commission_deducted?: number | null
+          commission_rate?: number | null
           confirmed_at?: string | null
           created_at?: string
           currency?: string
           earnings_type?: string
+          gross_amount?: number | null
           id?: string
+          net_amount?: number | null
           order_id: string
           paid_at?: string | null
           payment_method?: string | null
+          platform_fees?: number | null
           status?: string
           updated_at?: string
           vendor_id: string
         }
         Update: {
           amount?: number
+          commission_deducted?: number | null
+          commission_rate?: number | null
           confirmed_at?: string | null
           created_at?: string
           currency?: string
           earnings_type?: string
+          gross_amount?: number | null
           id?: string
+          net_amount?: number | null
           order_id?: string
           paid_at?: string | null
           payment_method?: string | null
+          platform_fees?: number | null
           status?: string
           updated_at?: string
           vendor_id?: string
@@ -9760,6 +9811,10 @@ export type Database = {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
+      calculate_marketplace_commission: {
+        Args: { p_gross_amount: number; p_service_type?: string }
+        Returns: Json
+      }
       calculate_promo_driver_compensation: {
         Args: {
           p_discount_type: string
@@ -10573,6 +10628,10 @@ export type Database = {
           total_orders_this_month: number
         }[]
       }
+      get_vendor_earnings_stats: {
+        Args: { p_vendor_id: string }
+        Returns: Json
+      }
       get_vendor_earnings_summary: {
         Args: { period_days?: number; vendor_id_param?: string }
         Returns: {
@@ -11008,6 +11067,14 @@ export type Database = {
       }
       reject_client_verification: {
         Args: { p_rejection_reason: string; p_user_id: string }
+        Returns: Json
+      }
+      request_vendor_withdrawal: {
+        Args: {
+          p_amount: number
+          p_payment_details?: Json
+          p_payment_method: string
+        }
         Returns: Json
       }
       run_security_maintenance: {
