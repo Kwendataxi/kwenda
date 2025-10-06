@@ -9758,6 +9758,14 @@ export type Database = {
         Args: { p_share_id: string }
         Returns: boolean
       }
+      debug_driver_availability: {
+        Args: { p_lat?: number; p_lng?: number; p_service_type?: string }
+        Returns: {
+          count: number
+          details: Json
+          metric: string
+        }[]
+      }
       debug_user_verification: {
         Args: { p_user_id: string }
         Returns: Json
@@ -9804,20 +9812,39 @@ export type Database = {
           user_type: string | null
         }
       }
+      find_nearby_delivery_drivers: {
+        Args: {
+          p_delivery_type?: string
+          p_lat: number
+          p_lng: number
+          p_max_distance_km?: number
+        }
+        Returns: {
+          delivery_capacity: string
+          distance_km: number
+          driver_id: string
+          estimated_arrival_minutes: number
+          is_available: boolean
+          rating_average: number
+          service_type: string
+          vehicle_class: string
+        }[]
+      }
       find_nearby_drivers: {
         Args:
-          | {
-              max_distance_km?: number
-              pickup_lat: number
-              pickup_lng: number
-              vehicle_class_filter?: string
-            }
           | {
               p_city?: string
               p_latitude: number
               p_limit?: number
               p_longitude: number
               p_max_distance_km?: number
+              p_vehicle_class?: string
+            }
+          | {
+              p_lat: number
+              p_lng: number
+              p_max_distance_km?: number
+              p_service_type?: string
               p_vehicle_class?: string
             }
           | {
@@ -9829,37 +9856,28 @@ export type Database = {
         Returns: {
           distance_km: number
           driver_id: string
-          driver_name: string
           estimated_arrival_minutes: number
           is_available: boolean
-          last_ping: string
           rating_average: number
-          total_rides: number
+          rides_remaining: number
+          service_type: string
           vehicle_class: string
-          vehicle_info: Json
         }[]
       }
       find_nearby_drivers_secure: {
-        Args:
-          | {
-              p_latitude: number
-              p_longitude: number
-              p_max_distance_km?: number
-              p_vehicle_class?: string
-            }
-          | {
-              pickup_lat: number
-              pickup_lng: number
-              radius_km?: number
-              service_type_param: string
-              vehicle_class_filter?: string
-            }
+        Args: {
+          pickup_lat: number
+          pickup_lng: number
+          radius_km?: number
+          service_type_param: string
+          vehicle_class_filter?: string
+        }
         Returns: {
           distance_km: number
           driver_id: string
-          estimated_arrival_minutes: number
           is_available: boolean
-          rating_average: number
+          latitude: number
+          longitude: number
           vehicle_class: string
         }[]
       }
@@ -10382,23 +10400,24 @@ export type Database = {
               user_lng?: number
             }
         Returns: {
-          avenue: string
-          badge: string
+          aliases: string[]
           category: string
           city: string
           commune: string
-          distance_meters: number
-          formatted_address: string
+          country_code: string
+          distance_km: number
           hierarchy_level: number
           id: string
+          is_popular: boolean
           latitude: number
           longitude: number
           name: string
+          name_fr: string
+          name_local: string
+          place_type: string
           popularity_score: number
-          quartier: string
           relevance_score: number
-          subcategory: string
-          subtitle: string
+          search_keywords: string[]
         }[]
       }
       intelligent_places_search_enhanced: {
