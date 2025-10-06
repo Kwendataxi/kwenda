@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, XCircle, AlertCircle, Phone, Mail, Calendar, ZoomIn, RotateCw } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, Phone, Mail, Calendar, ZoomIn, RotateCw, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { VerificationHistoryTimeline } from './VerificationHistoryTimeline';
@@ -66,6 +66,35 @@ export const VerificationDetailDialog = ({ verification, open, onClose, onSucces
       toast({
         title: 'Erreur',
         description: error.message || 'Impossible de traiter la demande',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleManualApproval = async () => {
+    setIsProcessing(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_approve_verification_manual', {
+        p_user_id: verification.user_id,
+        p_admin_notes: adminNotes || 'Approbation manuelle pour test marketplace'
+      }) as { data: any; error: any };
+
+      if (error) throw error;
+      if (data && !data.success) throw new Error(data.error || 'Échec de l\'approbation');
+
+      toast({
+        title: '✅ Compte vérifié manuellement',
+        description: 'L\'utilisateur peut maintenant vendre sur la marketplace (mode test)',
+      });
+
+      onSuccess();
+    } catch (error: any) {
+      console.error('Manual approval error:', error);
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Impossible d\'approuver manuellement',
         variant: 'destructive'
       });
     } finally {
@@ -232,6 +261,37 @@ export const VerificationDetailDialog = ({ verification, open, onClose, onSucces
             <div className="border-t pt-6 mt-6 bg-muted/30 rounded-lg p-4">
               <h3 className="font-semibold text-lg mb-4 text-center">Actions de validation</h3>
               <div className="space-y-3 sm:space-y-4">
+                {/* Approbation manuelle TEST (Super Admin only) */}
+                <div className="bg-yellow-50 dark:bg-yellow-950/20 border-2 border-yellow-400 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="outline" className="bg-yellow-200 text-yellow-900 border-yellow-400">
+                      MODE TEST
+                    </Badge>
+                    <span className="text-xs text-yellow-800 dark:text-yellow-200 font-medium">
+                      Approbation sans vérification de documents
+                    </span>
+                  </div>
+                  <Button
+                    onClick={handleManualApproval}
+                    disabled={isProcessing}
+                    className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold h-12"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <div className="h-5 w-5 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Traitement...
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="h-5 w-5 mr-2" />
+                        Approuver Manuellement (Test)
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                <div className="h-px bg-border my-2" />
+
                 <Button
                   onClick={() => handleAction('approve')}
                   disabled={isProcessing || !verification.identity_document_url}

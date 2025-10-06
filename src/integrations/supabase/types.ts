@@ -9639,6 +9639,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_approve_verification_manual: {
+        Args: { p_admin_notes?: string; p_user_id: string }
+        Returns: Json
+      }
       admin_cancel_subscription: {
         Args: {
           p_reason?: string
