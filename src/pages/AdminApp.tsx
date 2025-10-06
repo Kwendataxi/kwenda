@@ -44,12 +44,7 @@ const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
   
   const { adminRole, loading: rolesLoading } = useUserRoles();
-  const { fetchDashboardAnalytics } = useAdminAnalytics();
   const { stats, loading: statsLoading } = useEnhancedRealTimeStats();
-
-  useEffect(() => {
-    fetchDashboardAnalytics();
-  }, [fetchDashboardAnalytics]);
 
   if (rolesLoading) {
     return <LoadingFallback />;

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { SubscriptionOverview } from "./SubscriptionOverview";
+import { SubscriptionsOverview } from "./SubscriptionsOverview";
 import { DriverSubscriptionAdmin } from "./DriverSubscriptionAdmin";
 import { RentalSubscriptionAdmin } from "./RentalSubscriptionAdmin";
 import { SubscriptionAnalytics } from "./SubscriptionAnalytics";
@@ -117,7 +117,7 @@ export const UnifiedSubscriptionManager = () => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <SubscriptionOverview />
+          <SubscriptionsOverview />
         </TabsContent>
 
         <TabsContent value="drivers" className="space-y-6">
