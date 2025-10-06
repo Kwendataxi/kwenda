@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRoleInfo, Permission, UserRole, AdminRole } from '@/types/roles';
@@ -16,30 +17,56 @@ interface UseUserRolesReturn {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  isDegradedMode: boolean;
 }
+
+const CACHE_KEY = 'kwenda_user_roles_cache';
+const CACHE_EXPIRATION = 10 * 60 * 1000; // 10 minutes
+
+const getCachedRoles = (): { data: UserRoleInfo[] | null; timestamp: number | null } => {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (!cached) return { data: null, timestamp: null };
+    
+    const { data, timestamp } = JSON.parse(cached);
+    const now = Date.now();
+    
+    if (now - timestamp > CACHE_EXPIRATION) {
+      localStorage.removeItem(CACHE_KEY);
+      return { data: null, timestamp: null };
+    }
+    
+    return { data, timestamp };
+  } catch {
+    return { data: null, timestamp: null };
+  }
+};
+
+const setCachedRoles = (data: UserRoleInfo[]) => {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+  } catch (error) {
+    console.warn('Failed to cache roles:', error);
+  }
+};
 
 export const useUserRoles = (): UseUserRolesReturn => {
   const { user } = useAuth();
-  const [userRoles, setUserRoles] = useState<UserRoleInfo[]>([]);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isDegradedMode, setIsDegradedMode] = useState(false);
 
-  const fetchUserRoles = async () => {
+  const fetchUserRoles = async (): Promise<{ roles: UserRoleInfo[]; permissions: Permission[] }> => {
     if (!user?.id) {
-      setUserRoles([]);
-      setPermissions([]);
-      setLoading(false);
-      return;
+      const defaultRole = {
+        role: 'client' as UserRole,
+        admin_role: undefined,
+        permissions: ['transport_read', 'marketplace_read'] as Permission[]
+      };
+      return { roles: [defaultRole], permissions: ['transport_read', 'marketplace_read'] };
     }
 
     try {
-      setLoading(true);
-      setError(null);
-
       console.log('🔍 [UserRoles] Fetching roles via RPC for user:', user.id);
 
-      // Utiliser uniquement get_user_roles qui vérifie user_roles
       const { data: rolesData, error: rolesError } = await supabase.rpc('get_user_roles', {
         p_user_id: user.id
       });
@@ -62,40 +89,58 @@ export const useUserRoles = (): UseUserRolesReturn => {
           new Set(rolesWithTypedInfo.flatMap(role => role.permissions))
         ) as Permission[];
 
-        setUserRoles(rolesWithTypedInfo);
-        setPermissions(allPermissions);
-        return;
+        setCachedRoles(rolesWithTypedInfo);
+        setIsDegradedMode(false);
+        
+        return { roles: rolesWithTypedInfo, permissions: allPermissions };
       }
 
-      // Fallback : assigner un rôle client par défaut
       console.log('⚠️ [UserRoles] No roles found, defaulting to client');
       const defaultRole = {
         role: 'client' as UserRole,
         admin_role: undefined,
         permissions: ['transport_read', 'marketplace_read'] as Permission[]
       };
-      setUserRoles([defaultRole]);
-      setPermissions(['transport_read', 'marketplace_read']);
+      
+      setCachedRoles([defaultRole]);
+      return { roles: [defaultRole], permissions: ['transport_read', 'marketplace_read'] };
 
     } catch (err) {
       console.error('❌ [UserRoles] Error in fetchUserRoles:', err);
-      setError('Erreur lors du chargement des rôles');
-      // Fallback en cas d'erreur
+      
+      // Mode dégradé : utiliser le cache si disponible
+      const { data: cachedData } = getCachedRoles();
+      if (cachedData) {
+        console.warn('⚠️ [UserRoles] Using cached roles (degraded mode)');
+        setIsDegradedMode(true);
+        const allPermissions = Array.from(
+          new Set(cachedData.flatMap(role => role.permissions))
+        ) as Permission[];
+        return { roles: cachedData, permissions: allPermissions };
+      }
+      
+      // Fallback ultime
       const defaultRole = {
         role: 'client' as UserRole,
         admin_role: undefined,
         permissions: ['transport_read', 'marketplace_read'] as Permission[]
       };
-      setUserRoles([defaultRole]);
-      setPermissions(['transport_read', 'marketplace_read']);
-    } finally {
-      setLoading(false);
+      return { roles: [defaultRole], permissions: ['transport_read', 'marketplace_read'] };
     }
   };
 
-  useEffect(() => {
-    fetchUserRoles();
-  }, [user?.id]);
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['user-roles', user?.id],
+    queryFn: fetchUserRoles,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    enabled: !!user?.id,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
+  });
+
+  const userRoles = data?.roles || [];
+  const permissions = data?.permissions || [];
 
   // Utilitaires pour vérifier les permissions
   const hasPermission = (permission: Permission): boolean => {
@@ -121,10 +166,6 @@ export const useUserRoles = (): UseUserRolesReturn => {
   const isAdmin = hasRole('admin');
   const isSuperAdmin = adminRole === 'super_admin';
 
-  const refetch = async () => {
-    await fetchUserRoles();
-  };
-
   return {
     userRoles,
     permissions,
@@ -135,8 +176,9 @@ export const useUserRoles = (): UseUserRolesReturn => {
     hasRole,
     isAdmin,
     isSuperAdmin,
-    loading,
-    error,
-    refetch
+    loading: isLoading,
+    error: error ? 'Erreur lors du chargement des rôles' : null,
+    refetch: async () => { await refetch(); },
+    isDegradedMode
   };
 };
