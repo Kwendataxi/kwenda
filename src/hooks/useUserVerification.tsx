@@ -134,7 +134,9 @@ export const useUserVerification = () => {
 
   const isVerifiedForSelling = () => {
     if (!verification) return false;
-    return verification.phone_verified && verification.verification_level !== 'none';
+    // Permet la vente si le téléphone est vérifié ET le niveau est 'basic' ou 'full'
+    return verification.phone_verified && 
+           (verification.verification_level === 'basic' || verification.verification_level === 'full');
   };
 
   const getVerificationProgress = () => {

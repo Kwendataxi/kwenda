@@ -78,7 +78,7 @@ serve(async (req) => {
         verification_status,
         phone_verified: phone_verified ?? true,
         identity_verified: identity_verified ?? true,
-        verification_level: verification_level || 'verified',
+        verification_level: verification_level || 'full',
         admin_notes,
         verified_at: new Date().toISOString()
       };

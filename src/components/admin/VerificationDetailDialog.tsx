@@ -306,9 +306,9 @@ export const VerificationDetailDialog = ({ verification, open, onClose, onSucces
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">Aucune</SelectItem>
                     <SelectItem value="basic">Basique</SelectItem>
-                    <SelectItem value="verified">Vérifié</SelectItem>
-                    <SelectItem value="premium">Premium</SelectItem>
+                    <SelectItem value="full">Complète</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
