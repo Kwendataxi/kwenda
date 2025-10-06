@@ -48,12 +48,12 @@ class SecureDriverLocationService {
         vehicleClassFilter
       });
 
-      // Utiliser la fonction sécurisée qui ne retourne pas les coordonnées exactes
-      const { data, error } = await supabase.rpc('find_nearby_drivers_secure', {
-        p_latitude: userLat,
-        p_longitude: userLng,
+      // Utiliser la fonction pour livraison qui filtre par service_type
+      const { data, error } = await supabase.rpc('find_nearby_delivery_drivers', {
+        p_lat: userLat,
+        p_lng: userLng,
         p_max_distance_km: maxDistanceKm,
-        p_vehicle_class: vehicleClassFilter || null
+        p_delivery_type: vehicleClassFilter || 'flash'
       });
 
       if (error) {
