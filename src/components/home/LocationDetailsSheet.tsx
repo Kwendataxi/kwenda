@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Bookmark, Edit3, Share2, MapPin, Loader2, ExternalLink, Check, Navigation } from 'lucide-react';
-import { useGoogleMaps } from '@/hooks/useGoogleMaps';
+import { Bookmark, Edit3, Share2, MapPin, Loader2, ExternalLink, Check, Navigation, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LocationDetailsSheetProps {
   open: boolean;
@@ -20,13 +20,23 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
   address,
   coordinates
 }) => {
-  const { isLoaded } = useGoogleMaps();
   const mapRef = useRef<HTMLDivElement>(null);
+  const markerRef = useRef<google.maps.Marker | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [googleApiKey, setGoogleApiKey] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentCoords, setCurrentCoords] = useState(coordinates);
+  const [currentAddress, setCurrentAddress] = useState(address);
   const [savedPositions, setSavedPositions] = useState<Array<{ name: string; address: string; coordinates: { lat: number; lng: number } }>>([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [positionName, setPositionName] = useState('');
+
+  // Update current coords when props change
+  useEffect(() => {
+    setCurrentCoords(coordinates);
+    setCurrentAddress(address);
+  }, [coordinates, address]);
 
   // Load saved positions from localStorage
   useEffect(() => {
@@ -36,25 +46,82 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
     }
   }, []);
 
-  // Initialize Google Map with improved loading
+  // Fetch Google Maps API key
   useEffect(() => {
-    if (!open || !isLoaded || !mapRef.current || !coordinates) {
-      setMapLoaded(false);
+    const fetchApiKey = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-google-maps-key');
+        if (error) throw error;
+        setGoogleApiKey(data.apiKey);
+      } catch (error) {
+        console.error('Error fetching Google Maps API key:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger la carte",
+          variant: "destructive"
+        });
+      }
+    };
+
+    if (open) {
+      fetchApiKey();
+    }
+  }, [open]);
+
+  // Load Google Maps script dynamically
+  useEffect(() => {
+    if (!googleApiKey || !open) return;
+
+    const loadGoogleMapsScript = () => {
+      return new Promise<void>((resolve, reject) => {
+        if (window.google?.maps) {
+          resolve();
+          return;
+        }
+
+        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+        if (existingScript) {
+          existingScript.addEventListener('load', () => resolve());
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places`;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load Google Maps'));
+        document.head.appendChild(script);
+      });
+    };
+
+    loadGoogleMapsScript()
+      .then(() => {
+        setMapLoaded(true);
+      })
+      .catch((error) => {
+        console.error('Error loading Google Maps:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger Google Maps",
+          variant: "destructive"
+        });
+      });
+  }, [googleApiKey, open]);
+
+  // Initialize Google Map
+  useEffect(() => {
+    if (!open || !mapLoaded || !mapRef.current || !currentCoords || !window.google) {
       return;
     }
 
-    // Reset map state when sheet opens
-    setMap(null);
-    setMapLoaded(false);
-
-    // Delay to ensure DOM is ready
     const timer = setTimeout(() => {
-      if (!mapRef.current) return;
+      if (!mapRef.current || !currentCoords) return;
 
       try {
         const newMap = new google.maps.Map(mapRef.current, {
-          center: coordinates,
-          zoom: 15,
+          center: currentCoords,
+          zoom: 16,
           disableDefaultUI: true,
           zoomControl: true,
           mapTypeControl: false,
@@ -69,37 +136,64 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
           ]
         });
 
-        // Custom animated marker
         const marker = new google.maps.Marker({
-          position: coordinates,
+          position: currentCoords,
           map: newMap,
+          draggable: isEditing,
           animation: google.maps.Animation.DROP,
           icon: {
             path: google.maps.SymbolPath.CIRCLE,
             scale: 12,
-            fillColor: '#E31E24',
+            fillColor: isEditing ? '#F59E0B' : '#E31E24',
             fillOpacity: 1,
             strokeColor: '#ffffff',
             strokeWeight: 4
           }
         });
 
-        // Add pulse animation to marker
+        // Handle marker drag
+        marker.addListener('dragend', async (event: google.maps.MapMouseEvent) => {
+          if (!event.latLng) return;
+          
+          const newLat = event.latLng.lat();
+          const newLng = event.latLng.lng();
+          
+          setCurrentCoords({ lat: newLat, lng: newLng });
+
+          // Reverse geocode
+          try {
+            const geocoder = new google.maps.Geocoder();
+            const response = await geocoder.geocode({ 
+              location: { lat: newLat, lng: newLng } 
+            });
+            
+            if (response.results[0]) {
+              setCurrentAddress(response.results[0].formatted_address);
+            }
+          } catch (error) {
+            console.error('Geocoding error:', error);
+          }
+        });
+
         setTimeout(() => {
           marker.setAnimation(google.maps.Animation.BOUNCE);
           setTimeout(() => marker.setAnimation(null), 1000);
         }, 500);
 
+        markerRef.current = marker;
         setMap(newMap);
-        setMapLoaded(true);
       } catch (error) {
         console.error('Error initializing map:', error);
-        setMapLoaded(false);
       }
     }, 300);
 
-    return () => clearTimeout(timer);
-  }, [isLoaded, coordinates, open]);
+    return () => {
+      clearTimeout(timer);
+      if (markerRef.current) {
+        markerRef.current.setMap(null);
+      }
+    };
+  }, [mapLoaded, currentCoords, open, isEditing]);
 
   const handleSaveLocation = () => {
     if (savedPositions.length >= 10) {
@@ -114,13 +208,13 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
   };
 
   const confirmSaveLocation = () => {
-    if (!coordinates) return;
+    if (!currentCoords) return;
     
     const name = positionName.trim() || `Position ${savedPositions.length + 1}`;
     const newPosition = {
       name,
-      address,
-      coordinates
+      address: currentAddress,
+      coordinates: currentCoords
     };
 
     const updated = [...savedPositions, newPosition];
@@ -137,16 +231,60 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
   };
 
   const handleEditLocation = () => {
+    setIsEditing(!isEditing);
+    
+    if (!isEditing) {
+      toast({
+        title: "📍 Mode édition activé",
+        description: "Déplacez le marqueur sur la carte pour modifier votre position",
+      });
+      
+      if (markerRef.current) {
+        markerRef.current.setDraggable(true);
+        markerRef.current.setIcon({
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 12,
+          fillColor: '#F59E0B',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 4
+        });
+      }
+    } else {
+      if (markerRef.current) {
+        markerRef.current.setDraggable(false);
+        markerRef.current.setIcon({
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 12,
+          fillColor: '#E31E24',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 4
+        });
+      }
+      
+      toast({
+        title: "✅ Position modifiée",
+        description: "Nouvelle position enregistrée",
+      });
+    }
+  };
+
+  const handleDeletePosition = (index: number) => {
+    const updated = savedPositions.filter((_, i) => i !== index);
+    setSavedPositions(updated);
+    localStorage.setItem('kwenda_saved_positions', JSON.stringify(updated));
+    
     toast({
-      title: "📍 Modifier la position",
-      description: "Déplacez le marqueur sur la carte pour changer votre position",
+      title: "🗑️ Position supprimée",
+      description: "La position a été retirée de vos favoris"
     });
   };
 
   const handleShareLocation = async () => {
-    if (coordinates) {
-      const shareUrl = `https://www.google.com/maps?q=${coordinates.lat},${coordinates.lng}`;
-      const shareText = `📍 Ma position: ${address}`;
+    if (currentCoords) {
+      const shareUrl = `https://www.google.com/maps?q=${currentCoords.lat},${currentCoords.lng}`;
+      const shareText = `📍 Ma position: ${currentAddress}`;
       
       if (navigator.share) {
         try {
@@ -175,8 +313,8 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
   };
 
   const openInGoogleMaps = () => {
-    if (coordinates) {
-      const url = `https://www.google.com/maps?q=${coordinates.lat},${coordinates.lng}`;
+    if (currentCoords) {
+      const url = `https://www.google.com/maps?q=${currentCoords.lat},${currentCoords.lng}`;
       window.open(url, '_blank');
     }
   };
@@ -191,16 +329,16 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
         >
           <SheetHeader className="space-y-3 pb-6">
             <SheetTitle className="text-2xl font-bold text-center bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
-              VOTRE POSITION
+              {isEditing ? '✏️ MODIFIER LA POSITION' : 'VOTRE POSITION'}
             </SheetTitle>
-            {coordinates && (
+            {currentCoords && (
               <motion.p 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
                 className="text-xs text-muted-foreground text-center font-mono"
               >
-                GPS: {coordinates.lat.toFixed(6)}, {coordinates.lng.toFixed(6)}
+                GPS: {currentCoords.lat.toFixed(6)}, {currentCoords.lng.toFixed(6)}
               </motion.p>
             )}
           </SheetHeader>
@@ -276,11 +414,15 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
                   <MapPin className="h-6 w-6 text-primary drop-shadow-sm" />
                 </motion.div>
                 <div className="flex-1 space-y-1">
-                  <p className="text-xs font-semibold text-primary uppercase tracking-wide">Adresse actuelle</p>
-                  <p className="text-sm font-bold text-foreground leading-relaxed">{address}</p>
+                  <p className="text-xs font-semibold text-primary uppercase tracking-wide">
+                    {isEditing ? 'Nouvelle adresse' : 'Adresse actuelle'}
+                  </p>
+                  <p className="text-sm font-bold text-foreground leading-relaxed">{currentAddress}</p>
                   <div className="flex items-center gap-2 mt-2">
                     <Navigation className="h-3.5 w-3.5 text-green-600" />
-                    <span className="text-xs text-green-600 font-medium">Position GPS précise</span>
+                    <span className="text-xs text-green-600 font-medium">
+                      {isEditing ? 'Déplacez le marqueur' : 'Position GPS précise'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -344,7 +486,7 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
                     <Bookmark className="h-6 w-6 text-red-600" />
                   </div>
                   <span className="flex-1 text-sm font-semibold text-foreground">
-                    Enregistrer cette position
+                    Enregistrer ma position
                   </span>
                 </Button>
               </motion.div>
@@ -363,7 +505,7 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
                     <Edit3 className="h-6 w-6 text-amber-600" />
                   </div>
                   <span className="flex-1 text-sm font-semibold text-foreground">
-                    Modifier la position
+                    {isEditing ? '✅ Confirmer la position' : 'Modifier ma position'}
                   </span>
                 </Button>
               </motion.div>
@@ -387,6 +529,43 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
                 </Button>
               </motion.div>
             </div>
+
+            {/* Saved Positions List */}
+            {savedPositions.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+                className="space-y-3 pt-4 border-t border-border"
+              >
+                <p className="text-sm font-semibold text-foreground">Positions enregistrées ({savedPositions.length}/10)</p>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {savedPositions.map((pos, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 * index }}
+                      className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border hover:border-primary/30 transition-all group"
+                    >
+                      <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">{pos.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{pos.address}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDeletePosition(index)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+                      >
+                        <X className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
           </div>
         </motion.div>
       </SheetContent>
