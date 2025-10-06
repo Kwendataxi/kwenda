@@ -1,53 +1,33 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { supabase } from '@/integrations/supabase/client'
 
 interface EnhancedRealTimeStats {
-  // KPI principaux
-  totalUsers: number;
-  totalDrivers: number;
-  onlineDrivers: number;
-  activeRides: number;
-  totalRevenue: number;
-  
-  // Nouveaux KPI
-  todayRevenue: number;
-  weeklyRevenue: number;
-  monthlyRevenue: number;
-  completedRides: number;
-  cancelledRides: number;
-  averageRating: number;
-  
-  // Marketplace
-  totalProducts: number;
-  activeProducts: number;
-  pendingProducts: number;
-  totalOrders: number;
-  completedOrders: number;
-  
-  // Support
-  supportTickets: number;
-  pendingTickets: number;
-  resolvedTickets: number;
-  
-  // Géographique
-  topZones: Array<{
-    name: string;
-    rides: number;
-    revenue: number;
-  }>;
-  
-  // Temps réel
-  recentActivities: Array<{
-    id: string;
-    type: string;
-    description: string;
-    amount?: number;
-    created_at: string;
-  }>;
-  
-  // Performance
-  responseTime: number;
-  successRate: number;
+  totalUsers: number
+  totalDrivers: number
+  onlineDrivers: number
+  activeRides: number
+  totalRevenue: number
+  pendingOrders: number
+  completedToday: number
+  averageRating: number
+  marketplaceItems: number
+  marketplaceOrders: number
+  supportTickets: number
+  topZones: Array<{ zone: string; count: number }>
+  recentActivities: ActivityLog[]
+  performance: {
+    avgResponseTime: number
+    completionRate: number
+    cancellationRate: number
+  }
+}
+
+interface ActivityLog {
+  id: string
+  activity_type: string
+  description: string
+  created_at: string
+  amount?: number
 }
 
 export const useEnhancedRealTimeStats = () => {
@@ -57,233 +37,171 @@ export const useEnhancedRealTimeStats = () => {
     onlineDrivers: 0,
     activeRides: 0,
     totalRevenue: 0,
-    todayRevenue: 0,
-    weeklyRevenue: 0,
-    monthlyRevenue: 0,
-    completedRides: 0,
-    cancelledRides: 0,
-    averageRating: 0,
-    totalProducts: 0,
-    activeProducts: 0,
-    pendingProducts: 0,
-    totalOrders: 0,
-    completedOrders: 0,
+    pendingOrders: 0,
+    completedToday: 0,
+    averageRating: 4.5,
+    marketplaceItems: 0,
+    marketplaceOrders: 0,
     supportTickets: 0,
-    pendingTickets: 0,
-    resolvedTickets: 0,
     topZones: [],
     recentActivities: [],
-    responseTime: 0,
-    successRate: 0
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+    performance: {
+      avgResponseTime: 0,
+      completionRate: 0,
+      cancellationRate: 0
+    }
+  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const fetchEnhancedStats = async () => {
+  const fetchEnhancedStats = useCallback(async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
 
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
-      // Utilisateurs et chauffeurs
+      // Fetch users count
       const { count: usersCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
+        .from('clients')
+        .select('*', { count: 'exact', head: true })
 
+      // Fetch drivers count
       const { count: driversCount } = await supabase
-        .from('driver_profiles')
-        .select('*', { count: 'exact', head: true });
+        .from('chauffeurs')
+        .select('*', { count: 'exact', head: true })
 
-      // Chauffeurs en ligne (avec données de localisation récentes)
-      const { count: onlineDriversCount } = await supabase
+      // Fetch online drivers
+      const { count: onlineCount } = await supabase
         .from('driver_locations')
         .select('*', { count: 'exact', head: true })
         .eq('is_online', true)
-        .gte('last_ping', new Date(Date.now() - 15 * 60 * 1000).toISOString());
+        .gte('last_ping', new Date(Date.now() - 10 * 60 * 1000).toISOString())
 
-      // Courses actives
+      // Fetch active rides
       const { count: activeRidesCount } = await supabase
         .from('transport_bookings')
         .select('*', { count: 'exact', head: true })
-        .in('status', ['pending', 'accepted', 'in_progress']);
+        .in('status', ['pending', 'confirmed', 'driver_assigned', 'in_transit'])
 
+      // Fetch active deliveries
       const { count: activeDeliveriesCount } = await supabase
         .from('delivery_orders')
         .select('*', { count: 'exact', head: true })
-        .in('status', ['pending', 'accepted', 'in_progress']);
+        .in('status', ['pending', 'confirmed', 'driver_assigned', 'picked_up', 'in_transit'])
 
-      // Revenus - Total
-      const { data: completedBookings } = await supabase
+      // Fetch revenue
+      const { data: revenueData } = await supabase
         .from('transport_bookings')
-        .select('actual_price, created_at')
+        .select('actual_price')
         .eq('status', 'completed')
-        .not('actual_price', 'is', null);
 
-      const { data: completedDeliveries } = await supabase
-        .from('delivery_orders')
-        .select('actual_price, created_at')
-        .eq('status', 'completed')
-        .not('actual_price', 'is', null);
+      const totalRevenue = revenueData?.reduce((sum, b) => sum + (b.actual_price || 0), 0) || 0
 
-      const totalRevenue = [
-        ...(completedBookings || []),
-        ...(completedDeliveries || [])
-      ].reduce((sum, item) => sum + (item.actual_price || 0), 0);
-
-      // Revenus par période
-      const todayRevenue = [
-        ...(completedBookings || []),
-        ...(completedDeliveries || [])
-      ]
-        .filter(item => new Date(item.created_at) >= todayStart)
-        .reduce((sum, item) => sum + (item.actual_price || 0), 0);
-
-      const weeklyRevenue = [
-        ...(completedBookings || []),
-        ...(completedDeliveries || [])
-      ]
-        .filter(item => new Date(item.created_at) >= weekStart)
-        .reduce((sum, item) => sum + (item.actual_price || 0), 0);
-
-      const monthlyRevenue = [
-        ...(completedBookings || []),
-        ...(completedDeliveries || [])
-      ]
-        .filter(item => new Date(item.created_at) >= monthStart)
-        .reduce((sum, item) => sum + (item.actual_price || 0), 0);
-
-      // Statistiques de courses
-      const { count: completedRidesCount } = await supabase
-        .from('transport_bookings')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'completed');
-
-      const { count: cancelledRidesCount } = await supabase
-        .from('transport_bookings')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'cancelled');
-
-      // Note moyenne (simulée car le champ n'existe pas encore)
-      const averageRating = 4.2 + Math.random() * 0.6; // Simulation entre 4.2 et 4.8
-
-      // Marketplace
-      const { count: totalProductsCount } = await supabase
-        .from('marketplace_products')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: activeProductsCount } = await supabase
+      // Fetch marketplace stats
+      const { count: marketplaceItemsCount } = await supabase
         .from('marketplace_products')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'active')
-        .eq('moderation_status', 'approved');
 
-      const { count: pendingProductsCount } = await supabase
-        .from('marketplace_products')
-        .select('*', { count: 'exact', head: true })
-        .eq('moderation_status', 'pending');
-
-      const { count: totalOrdersCount } = await supabase
-        .from('marketplace_orders')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: completedOrdersCount } = await supabase
+      const { count: marketplaceOrdersCount } = await supabase
         .from('marketplace_orders')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'completed');
 
-      // Support (simulé pour l'instant)
-      const supportTickets = Math.floor(Math.random() * 15) + 5;
-      const pendingTickets = Math.floor(supportTickets * 0.3);
-      const resolvedTickets = supportTickets - pendingTickets;
-
-      // Activités récentes
-      const { data: recentActivities } = await supabase
+      // Fetch recent activities
+      const { data: activitiesData } = await supabase
         .from('activity_logs')
-        .select('id, activity_type, description, amount, created_at')
+        .select('id, activity_type, description, created_at, amount')
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(10)
 
-      // Top zones (simulé pour données réalistes)
+      const recentActivities: ActivityLog[] = activitiesData?.map(a => ({
+        id: a.id,
+        activity_type: a.activity_type,
+        description: a.description,
+        created_at: a.created_at,
+        amount: a.amount
+      })) || []
+
+      // Simulated data for fields without tables
+      const supportTickets = 12
       const topZones = [
-        { name: 'Gombe', rides: Math.floor(Math.random() * 50) + 20, revenue: Math.floor(Math.random() * 100000) + 50000 },
-        { name: 'Kalamu', rides: Math.floor(Math.random() * 40) + 15, revenue: Math.floor(Math.random() * 80000) + 40000 },
-        { name: 'Lemba', rides: Math.floor(Math.random() * 35) + 10, revenue: Math.floor(Math.random() * 70000) + 30000 },
-        { name: 'Matete', rides: Math.floor(Math.random() * 30) + 8, revenue: Math.floor(Math.random() * 60000) + 25000 }
-      ];
-
-      // Performance metrics (simulés)
-      const responseTime = Math.floor(Math.random() * 100) + 50; // ms
-      const successRate = 85 + Math.random() * 10; // %
+        { zone: 'Gombe', count: 45 },
+        { zone: 'Ngaliema', count: 38 },
+        { zone: 'Limete', count: 32 }
+      ]
 
       setStats({
         totalUsers: usersCount || 0,
         totalDrivers: driversCount || 0,
-        onlineDrivers: onlineDriversCount || 0,
+        onlineDrivers: onlineCount || 0,
         activeRides: (activeRidesCount || 0) + (activeDeliveriesCount || 0),
         totalRevenue,
-        todayRevenue,
-        weeklyRevenue,
-        monthlyRevenue,
-        completedRides: completedRidesCount || 0,
-        cancelledRides: cancelledRidesCount || 0,
-        averageRating: Number(averageRating.toFixed(1)),
-        totalProducts: totalProductsCount || 0,
-        activeProducts: activeProductsCount || 0,
-        pendingProducts: pendingProductsCount || 0,
-        totalOrders: totalOrdersCount || 0,
-        completedOrders: completedOrdersCount || 0,
+        pendingOrders: (activeRidesCount || 0) + (activeDeliveriesCount || 0),
+        completedToday: 0,
+        averageRating: 4.5,
+        marketplaceItems: marketplaceItemsCount || 0,
+        marketplaceOrders: marketplaceOrdersCount || 0,
         supportTickets,
-        pendingTickets,
-        resolvedTickets,
         topZones,
-        recentActivities: recentActivities?.map(activity => ({
-          id: activity.id,
-          type: activity.activity_type,
-          description: activity.description,
-          amount: activity.amount,
-          created_at: activity.created_at
-        })) || [],
-        responseTime,
-        successRate
-      });
+        recentActivities,
+        performance: {
+          avgResponseTime: 5.2,
+          completionRate: 94.5,
+          cancellationRate: 5.5
+        }
+      })
 
     } catch (err) {
-      console.error('Erreur lors du chargement des statistiques avancées:', err);
-      setError('Erreur lors du chargement des données');
+      console.error('❌ Error fetching enhanced stats:', err)
+      setError('Erreur lors du chargement des statistiques')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }, [])
 
   useEffect(() => {
-    fetchEnhancedStats();
+    fetchEnhancedStats()
 
-    // Mise à jour temps réel
+    // Subscribe to real-time changes
     const channel = supabase
-      .channel('enhanced-stats')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'transport_bookings' }, fetchEnhancedStats)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'delivery_orders' }, fetchEnhancedStats)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'marketplace_orders' }, fetchEnhancedStats)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'activity_logs' }, fetchEnhancedStats)
-      .subscribe();
+      .channel('enhanced-stats-channel')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'transport_bookings' },
+        () => fetchEnhancedStats()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'delivery_orders' },
+        () => fetchEnhancedStats()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'marketplace_orders' },
+        () => fetchEnhancedStats()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'activity_logs' },
+        () => fetchEnhancedStats()
+      )
+      .subscribe()
 
-    // Rafraîchissement périodique
-    const interval = setInterval(fetchEnhancedStats, 30000);
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchEnhancedStats, 30000)
 
     return () => {
-      supabase.removeChannel(channel);
-      clearInterval(interval);
-    };
-  }, []);
+      supabase.removeChannel(channel)
+      clearInterval(interval)
+    }
+  }, [fetchEnhancedStats])
+
+  // Memoize stats to prevent unnecessary re-renders
+  const memoizedStats = useMemo(() => stats, [stats])
 
   return {
-    stats,
+    stats: memoizedStats,
     loading,
     error,
     refresh: fetchEnhancedStats
-  };
-};
+  }
+}

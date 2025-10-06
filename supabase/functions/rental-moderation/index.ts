@@ -1,127 +1,127 @@
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
-type ModerationPayload = {
-  action: "approve" | "reject";
-  vehicle_id: string;
-  rejection_reason?: string;
-};
+interface ModerationPayload {
+  action: 'approve' | 'reject'
+  vehicle_id: string
+  rejection_reason?: string
+}
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const authHeader = req.headers.get("Authorization") || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    
+    // Create client with user's JWT for auth check
+    const authHeader = req.headers.get('Authorization')!
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
+      global: { headers: { Authorization: authHeader } }
+    })
 
-    if (!token) {
-      return new Response(JSON.stringify({ error: "Unauthorized: missing token" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Verify user is admin
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
+    if (userError || !user) {
+      console.error('❌ Authentication error:', userError)
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
-    const supabase = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
-    });
+    console.log('✅ User authenticated:', user.id)
 
-    const { data: userRes, error: userErr } = await supabase.auth.getUser();
-    if (userErr || !userRes?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized: invalid token" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const adminId = userRes.user.id;
+    const { data: adminCheck, error: adminError } = await supabaseClient
+      .from('user_roles')
+      .select('role, admin_role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .eq('is_active', true)
+      .maybeSingle()
 
-    const { data: roles, error: rolesErr } = await supabase.rpc("get_user_roles", { _user_id: adminId });
-    if (rolesErr) {
-      console.error("get_user_roles error:", rolesErr);
-      return new Response(JSON.stringify({ error: "Unable to verify roles" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const isAdmin = Array.isArray(roles) && roles.some((r: any) => r?.admin_role);
-
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "Forbidden: admin only" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (adminError || !adminCheck) {
+      console.error('❌ Admin check failed:', adminError)
+      return new Response(
+        JSON.stringify({ success: false, error: 'Forbidden: Admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
-    const body = (await req.json()) as ModerationPayload;
-    if (!body?.vehicle_id || !body?.action) {
-      return new Response(JSON.stringify({ error: "Invalid payload" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    console.log('✅ Admin verified:', { userId: user.id, role: adminCheck.role, adminRole: adminCheck.admin_role })
 
-    const service = createClient(supabaseUrl, serviceKey);
+    // Parse request body
+    const { action, vehicle_id, rejection_reason }: ModerationPayload = await req.json()
 
-    const updates: any = {
-      moderator_id: adminId,
+    console.log('📝 Processing moderation:', { action, vehicle_id })
+
+    // Use service role client to bypass RLS
+    const serviceClient = createClient(supabaseUrl, supabaseServiceKey)
+
+    // Update vehicle status
+    const updateData: any = {
+      moderation_status: action === 'approve' ? 'approved' : 'rejected',
+      moderator_id: user.id,
       moderated_at: new Date().toISOString(),
-      rejection_reason: null,
-    };
-
-    if (body.action === "approve") {
-      updates.moderation_status = "approved";
-      updates.is_active = true;
-    } else if (body.action === "reject") {
-      updates.moderation_status = "rejected";
-      updates.rejection_reason = body.rejection_reason || "Non spécifié";
-      updates.is_active = false;
     }
 
-    const { data: updated, error: upErr } = await service
-      .from("rental_vehicles")
-      .update(updates)
-      .eq("id", body.vehicle_id)
-      .select()
-      .maybeSingle();
+    if (action === 'reject' && rejection_reason) {
+      updateData.rejection_reason = rejection_reason
+    }
 
-    if (upErr) {
-      console.error("Update error:", upErr);
-      return new Response(JSON.stringify({ error: "Update failed" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (action === 'approve') {
+      updateData.is_active = true
+    }
+
+    const { data: updatedVehicle, error: updateError } = await serviceClient
+      .from('partner_rental_vehicles')
+      .update(updateData)
+      .eq('id', vehicle_id)
+      .select()
+      .single()
+
+    if (updateError) {
+      console.error('❌ Update error:', updateError)
+      return new Response(
+        JSON.stringify({ success: false, error: updateError.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     // Log the moderation action
-    await service.from("activity_logs").insert({
-      user_id: adminId,
-      activity_type: "rental_moderation",
-      description: `Véhicule de location ${body.action === "approve" ? "approuvé" : "rejeté"}`,
-      metadata: {
-        vehicle_id: body.vehicle_id,
-        action: body.action,
-        rejection_reason: body.rejection_reason
-      }
-    });
+    await serviceClient.from('activity_logs').insert({
+      user_id: user.id,
+      activity_type: 'rental_moderation',
+      description: `Véhicule ${action === 'approve' ? 'approuvé' : 'rejeté'}: ${vehicle_id}`,
+      reference_type: 'rental_vehicle',
+      reference_id: vehicle_id,
+      metadata: { action, rejection_reason }
+    })
 
-    return new Response(JSON.stringify({ success: true, vehicle: updated }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (e) {
-    console.error("Unhandled error:", e);
-    return new Response(JSON.stringify({ error: "Server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    console.log('✅ Moderation completed successfully')
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        data: updatedVehicle,
+        message: `Véhicule ${action === 'approve' ? 'approuvé' : 'rejeté'} avec succès`
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+
+  } catch (error) {
+    console.error('❌ Fatal error:', error)
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
   }
-});
+})

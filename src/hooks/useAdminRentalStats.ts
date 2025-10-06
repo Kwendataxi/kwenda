@@ -33,24 +33,24 @@ export const useAdminRentalStats = () => {
       ] = await Promise.all([
         // Total véhicules
         supabase
-          .from('rental_vehicles')
+          .from('partner_rental_vehicles')
           .select('id', { count: 'exact', head: true }),
         
         // Véhicules en modération
         supabase
-          .from('rental_vehicles')
+          .from('partner_rental_vehicles')
           .select('id', { count: 'exact', head: true })
           .eq('moderation_status', 'pending'),
         
         // Véhicules approuvés
         supabase
-          .from('rental_vehicles')
+          .from('partner_rental_vehicles')
           .select('id', { count: 'exact', head: true })
           .eq('moderation_status', 'approved'),
         
         // Véhicules actifs
         supabase
-          .from('rental_vehicles')
+          .from('partner_rental_vehicles')
           .select('id', { count: 'exact', head: true })
           .eq('is_active', true)
           .eq('moderation_status', 'approved'),
@@ -63,30 +63,30 @@ export const useAdminRentalStats = () => {
         
         // Total catégories
         supabase
-          .from('rental_vehicle_categories')
+          .from('partner_rental_vehicle_categories')
           .select('id', { count: 'exact', head: true })
           .eq('is_active', true),
         
         // Total réservations
         supabase
-          .from('rental_bookings')
+          .from('partner_rental_bookings')
           .select('id', { count: 'exact', head: true }),
         
         // Revenus totaux
         supabase
-          .from('rental_bookings')
+          .from('partner_rental_bookings')
           .select('total_amount')
           .eq('status', 'completed'),
         
         // Réservations terminées
         supabase
-          .from('rental_bookings')
+          .from('partner_rental_bookings')
           .select('id', { count: 'exact', head: true })
           .eq('status', 'completed'),
         
         // Réservations en attente
         supabase
-          .from('rental_bookings')
+          .from('partner_rental_bookings')
           .select('id', { count: 'exact', head: true })
           .in('status', ['pending', 'confirmed'])
       ]);
