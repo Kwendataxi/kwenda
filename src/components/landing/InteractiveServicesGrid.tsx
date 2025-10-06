@@ -17,15 +17,13 @@ const InteractiveServicesGrid = () => {
       id: "transport",
       icon: <Car className="w-10 h-10" />,
       title: "Transport VTC",
-      description: "Déplacements rapides et confortables à Kinshasa, Lubumbashi & Kolwezi",
+      description: "Moto-taxi, voiture, bus - Déplacements rapides dans toute la ville",
       price: "À partir de 500 CDF",
       popular: true,
       gradient: "from-primary to-primary-glow",
       features: [
-        { icon: <Bike className="w-4 h-4" />, text: "Moto-taxi - Rapide & économique" },
-        { icon: <Car className="w-4 h-4" />, text: "Taxi voiture - Confort 4 places" },
-        { icon: <Users className="w-4 h-4" />, text: "Taxi-bus - Transport collectif" },
-        { icon: <Bus className="w-4 h-4" />, text: "Bus Transco - Service public" }
+        { icon: <Bike className="w-4 h-4" />, text: "Moto-taxi rapide" },
+        { icon: <Car className="w-4 h-4" />, text: "Taxi confort 4 places" }
       ],
       stats: { rides: "10K+", rating: "4.9", drivers: "500+" }
     },
@@ -33,14 +31,12 @@ const InteractiveServicesGrid = () => {
       id: "delivery",
       icon: <Package className="w-10 h-10" />,
       title: "Livraison Express",
-      description: "Livraison de colis et documents en temps record",
+      description: "Livraison Flash en 30min, Cargo pour gros colis",
       price: "À partir de 300 CDF",
       gradient: "from-secondary to-accent",
       features: [
-        { icon: <Zap className="w-4 h-4" />, text: "Livraison Flash - En moto" },
-        { icon: <Truck className="w-4 h-4" />, text: "Livraison Cargo - En camion" },
-        { icon: <Users className="w-4 h-4" />, text: "Assistant de chargement" },
-        { icon: <MapPin className="w-4 h-4" />, text: "Suivi temps réel GPS" }
+        { icon: <Zap className="w-4 h-4" />, text: "Flash moto 30min" },
+        { icon: <Truck className="w-4 h-4" />, text: "Cargo camion gros colis" }
       ],
       stats: { deliveries: "5K+", time: "30min", coverage: "100%" }
     },
@@ -48,14 +44,12 @@ const InteractiveServicesGrid = () => {
       id: "rental",
       icon: <Truck className="w-10 h-10" />,
       title: "Location Véhicules",
-      description: "Louez des véhicules pour toutes vos occasions",
+      description: "Voitures et utilitaires pour courte ou longue durée",
       price: "À partir de 25K CDF/jour",
       gradient: "from-accent to-secondary",
       features: [
-        { icon: <Car className="w-4 h-4" />, text: "Voitures particulières" },
-        { icon: <Truck className="w-4 h-4" />, text: "Véhicules utilitaires" },
-        { icon: <Clock className="w-4 h-4" />, text: "Location courte/longue durée" },
-        { icon: <Shield className="w-4 h-4" />, text: "Véhicules vérifiés & assurés" }
+        { icon: <Car className="w-4 h-4" />, text: "Voitures & utilitaires" },
+        { icon: <Shield className="w-4 h-4" />, text: "Vérifiés & assurés" }
       ],
       stats: { vehicles: "200+", brands: "15+", locations: "24/7" }
     },
@@ -63,14 +57,12 @@ const InteractiveServicesGrid = () => {
       id: "marketplace",
       icon: <Store className="w-10 h-10" />,
       title: "Marketplace Kwenda",
-      description: "Achetez et vendez dans les 3 grandes villes avec livraison intégrée",
+      description: "E-commerce local avec livraison intégrée et paiement sécurisé",
       price: "Commission 3%",
       gradient: "from-primary via-accent to-secondary",
       features: [
-        { icon: <Store className="w-4 h-4" />, text: "Électronique & High-tech" },
-        { icon: <Users className="w-4 h-4" />, text: "Mode & Vêtements" },
-        { icon: <Package className="w-4 h-4" />, text: "Maison & Jardin" },
-        { icon: <CreditCard className="w-4 h-4" />, text: "Paiement sécurisé KwendaPay" }
+        { icon: <Store className="w-4 h-4" />, text: "Électronique, mode, maison" },
+        { icon: <CreditCard className="w-4 h-4" />, text: "Paiement KwendaPay" }
       ],
       stats: { products: "1K+", sellers: "200+", categories: "10+" }
     },
@@ -78,15 +70,13 @@ const InteractiveServicesGrid = () => {
       id: "lottery",
       icon: <Dice1 className="w-10 h-10" />,
       title: "Kwenda Tombola",
-      description: "Gagnez de l'argent réel à chaque course effectuée",
+      description: "Tickets gratuits à chaque course - Gains réels hebdomadaires",
       price: "Gratuit avec chaque course",
       hot: true,
       gradient: "from-accent via-primary to-secondary",
       features: [
-        { icon: <Dice1 className="w-4 h-4" />, text: "Tickets gratuits à chaque course" },
-        { icon: <Clock className="w-4 h-4" />, text: "Tirages réguliers automatiques" },
-        { icon: <CreditCard className="w-4 h-4" />, text: "Gains en argent réel CDF" },
-        { icon: <Users className="w-4 h-4" />, text: "Système de récompenses" }
+        { icon: <Dice1 className="w-4 h-4" />, text: "Tickets auto à chaque course" },
+        { icon: <CreditCard className="w-4 h-4" />, text: "Gains réels en CDF" }
       ],
       stats: { winners: "100+", prizes: "50M CDF", draws: "Weekly" }
     }

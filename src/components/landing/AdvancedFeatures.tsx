@@ -16,13 +16,10 @@ const AdvancedFeatures = () => {
       id: "geolocation",
       icon: <MapPin className="w-8 h-8" />,
       title: "Géolocalisation Précise",
-      subtitle: "Optimisé pour le Congo RDC",
-      description: "Navigation intelligente qui connaît chaque rue de Kinshasa, Lubumbashi et Kolwezi. Localisation précise même dans les zones les plus reculées.",
+      description: "Navigation optimisée pour Kinshasa, Lubumbashi et Kolwezi",
       benefits: [
-        "Reconnaissance automatique des adresses",
-        "Navigation optimisée pour les embouteillages",
         "Points de repère locaux intégrés",
-        "Mode hors-ligne pour les zones sans réseau"
+        "Mode hors-ligne disponible"
       ],
       gradient: "from-primary to-primary-glow",
       stats: { accuracy: "99%", coverage: "3 Villes", landmarks: "1500+" }
@@ -31,13 +28,10 @@ const AdvancedFeatures = () => {
       id: "payment",
       icon: <CreditCard className="w-8 h-8" />,
       title: "KwendaPay & Mobile Money",
-      subtitle: "Paiements adaptés à la RDC",
-      description: "Système de paiement intégré avec support complet du Mobile Money congolais. Rechargez et payez en toute simplicité.",
+      description: "Paiement intégré avec Mobile Money congolais",
       benefits: [
-        "Airtel Money, Orange Money, M-Pesa",
-        "Portefeuille KwendaPay intégré",
-        "Paiements sans contact",
-        "Historique des transactions sécurisé"
+        "Airtel, Orange, M-Pesa",
+        "Portefeuille KwendaPay"
       ],
       gradient: "from-secondary to-accent",
       stats: { methods: "5+", security: "256-bit", instant: "Immédiat" }
@@ -46,13 +40,10 @@ const AdvancedFeatures = () => {
       id: "availability",
       icon: <Clock className="w-8 h-8" />,
       title: "Service 24h/24",
-      subtitle: "Toujours disponible",
-      description: "Service continu jour et nuit avec des chauffeurs vérifiés disponibles à toute heure. Support client réactif.",
+      description: "Chauffeurs vérifiés disponibles jour et nuit",
       benefits: [
-        "Chauffeurs disponibles 24/7",
-        "Support client en temps réel",
-        "Service d'urgence prioritaire",
-        "Maintenance continue de la flotte"
+        "Disponible 24/7",
+        "Support client temps réel"
       ],
       gradient: "from-accent to-primary",
       stats: { uptime: "99.9%", response: "<3min", support: "24/7" }
@@ -61,13 +52,10 @@ const AdvancedFeatures = () => {
       id: "security",
       icon: <Shield className="w-8 h-8" />,
       title: "Sécurité Maximale",
-      subtitle: "Votre sécurité d'abord",
-      description: "Chauffeurs vérifiés, véhicules assurés et système de suivi en temps réel pour votre tranquillité d'esprit totale.",
+      description: "Chauffeurs vérifiés avec suivi temps réel",
       benefits: [
-        "Chauffeurs avec background check",
-        "Véhicules régulièrement inspectés",
-        "Assurance complète incluse",
-        "Bouton d'urgence intégré"
+        "Background check systématique",
+        "Assurance complète incluse"
       ],
       gradient: "from-primary via-secondary to-accent",
       stats: { verified: "100%", insurance: "Complète", incidents: "<0.1%" }
@@ -78,37 +66,31 @@ const AdvancedFeatures = () => {
     {
       icon: <Smartphone className="w-6 h-6" />,
       title: "Interface Intuitive",
-      description: "Conçue pour tous les niveaux techniques",
+      description: "Simple pour tous",
       color: "text-primary"
     },
     {
       icon: <Wifi className="w-6 h-6" />,
       title: "Mode Hors-ligne",
-      description: "Fonctionne même avec connexion faible",
+      description: "Marche sans connexion",
       color: "text-secondary"
     },
     {
-      icon: <Users className="w-6 h-6" />,
-      title: "Communauté Active",
-      description: "Réseau grandissant de partenaires",
-      color: "text-accent"
-    },
-    {
       icon: <Zap className="w-6 h-6" />,
-      title: "Performance Optimisée",
-      description: "Application légère et rapide",
+      title: "Rapide & Léger",
+      description: "App optimisée",
       color: "text-primary"
     },
     {
       icon: <Globe className="w-6 h-6" />,
       title: "Multilingue",
-      description: "Français, Lingala, Kikongo et plus",
+      description: "FR, Lingala, Kikongo",
       color: "text-secondary"
     },
     {
       icon: <Heart className="w-6 h-6" />,
-      title: "Fait au Congo",
-      description: "Par des Congolais pour les Congolais",
+      title: "Made in Congo",
+      description: "100% congolais",
       color: "text-accent"
     }
   ];
@@ -155,12 +137,7 @@ const AdvancedFeatures = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-heading-sm lg:text-heading-md mb-2 group-hover:text-primary transition-colors">{feature.title}</h3>
-                      <p className="text-body-sm lg:text-body-md text-muted-foreground">{feature.subtitle}</p>
-                      {activeFeature === feature.id && (
-                        <div className="mt-3 lg:mt-4 text-body-sm lg:text-body-md text-foreground/80 leading-relaxed animate-fade-up">
-                          {feature.description}
-                        </div>
-                      )}
+                      <p className="text-body-sm lg:text-body-md text-muted-foreground leading-relaxed">{feature.description}</p>
                     </div>
                     {activeFeature === feature.id && (
                       <ArrowRight className="w-5 h-5 lg:w-6 lg:h-6 text-primary flex-shrink-0 animate-float" />
@@ -180,10 +157,7 @@ const AdvancedFeatures = () => {
                 </div>
               </div>
               
-              <h3 className="text-heading-lg lg:text-display-sm mb-4 lg:mb-6 bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">{activeFeatureData.title}</h3>
-              <p className="text-body-md lg:text-body-lg text-muted-foreground mb-6 lg:mb-8 leading-relaxed">
-                {activeFeatureData.description}
-              </p>
+              <h3 className="text-heading-lg lg:text-display-sm mb-6 lg:mb-8 bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">{activeFeatureData.title}</h3>
 
               {/* Enhanced Benefits */}
               <div className="space-y-4 lg:space-y-5 mb-6 lg:mb-8">
@@ -230,41 +204,6 @@ const AdvancedFeatures = () => {
           </div>
         </div>
 
-        {/* Enhanced Stats Section */}
-        <Card className="bg-gradient-to-r from-primary via-secondary to-accent text-white shadow-glow border-0 animate-fade-up overflow-hidden relative">
-          {/* Background animation */}
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20 animate-gradient"></div>
-          
-          <CardContent className="p-8 lg:p-12 relative z-10">
-            <div className="text-center mb-10 lg:mb-12">
-              <h3 className="text-heading-lg lg:text-display-sm mb-4">Kwenda Taxi en chiffres</h3>
-              <p className="text-white/90 text-body-md lg:text-body-lg">Des résultats qui parlent d'eux-mêmes</p>
-            </div>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-12 text-center">
-              <div className="group stagger-1">
-                <div className="text-display-sm lg:text-display-md font-bold mb-2 lg:mb-3 group-hover:scale-110 transition-transform">5+</div>
-                <div className="text-white/90 text-body-sm lg:text-body-md">Services Intégrés</div>
-              </div>
-              <div className="group stagger-2">
-                <div className="text-display-sm lg:text-display-md font-bold mb-2 lg:mb-3 group-hover:scale-110 transition-transform">24/7</div>
-                <div className="text-white/90 text-body-sm lg:text-body-md">Support Client</div>
-              </div>
-              <div className="group stagger-3">
-                <div className="text-display-sm lg:text-display-md font-bold mb-2 lg:mb-3 group-hover:scale-110 transition-transform">100%</div>
-                <div className="text-white/90 text-body-sm lg:text-body-md">Chauffeurs Vérifiés</div>
-              </div>
-              <div className="col-span-2 sm:col-span-1 group stagger-4">
-                <div className="text-display-sm lg:text-display-md font-bold mb-2 lg:mb-3 group-hover:scale-110 transition-transform animate-float">🇨🇩</div>
-                <div className="text-white/90 text-body-sm lg:text-body-md">Made in Congo</div>
-              </div>
-              <div className="col-span-2 sm:col-span-3 lg:col-span-1 group stagger-5">
-                <div className="text-display-sm lg:text-display-md font-bold mb-2 lg:mb-3 group-hover:scale-110 transition-transform">∞</div>
-                <div className="text-white/90 text-body-sm lg:text-body-md">Possibilités</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </section>
   );

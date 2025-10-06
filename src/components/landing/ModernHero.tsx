@@ -71,11 +71,11 @@ const ModernHero = () => {
               </div>
               
               <h2 className="text-display-lg leading-tight text-center lg:text-left stagger-3">
-                {t('hero.tagline')}
+                Transport rapide et fiable à Kinshasa, Lubumbashi & Kolwezi
               </h2>
               
-              <p className="text-body-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto lg:mx-0 text-center lg:text-left stagger-4">
-                {t('hero.tagline')}
+              <p className="text-2xl font-semibold text-primary text-center lg:text-left stagger-4">
+                Courses abordables tous les jours.
               </p>
             </div>
 
@@ -153,25 +153,6 @@ const ModernHero = () => {
               </div>
             </div>
 
-            {/* Social Proof */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8 border-t border-border/30">
-              <div className="text-center group">
-                <div className="text-heading-lg text-primary font-bold group-hover:scale-110 transition-transform">5+</div>
-                <div className="text-caption text-muted-foreground">{t('hero.transport_types')}</div>
-              </div>
-              <div className="text-center group">
-                <div className="text-heading-lg text-secondary font-bold group-hover:scale-110 transition-transform">24/7</div>
-                <div className="text-caption text-muted-foreground">{t('hero.customer_service')}</div>
-              </div>
-              <div className="text-center group">
-                <div className="text-heading-lg text-accent font-bold group-hover:scale-110 transition-transform">100%</div>
-                <div className="text-caption text-muted-foreground">{t('features.maximum_security')}</div>
-              </div>
-              <div className="text-center group">
-                <div className="text-heading-lg text-primary font-bold group-hover:scale-110 transition-transform animate-float">🇨🇩</div>
-                <div className="text-caption text-muted-foreground">{t('hero.made_in_rdc')}</div>
-              </div>
-            </div>
           </div>
 
           {/* Hero Image */}
