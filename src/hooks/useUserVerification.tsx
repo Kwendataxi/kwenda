@@ -134,7 +134,11 @@ export const useUserVerification = () => {
 
   const isVerifiedForSelling = () => {
     if (!verification) return false;
-    // Permet la vente si le téléphone est vérifié ET le niveau est 'basic' ou 'full'
+    
+    // 1. Si approuvé par admin, autorisé à vendre
+    if (verification.verification_status === 'approved') return true;
+    
+    // 2. Sinon, vérification classique : téléphone + niveau basic/full
     return verification.phone_verified && 
            (verification.verification_level === 'basic' || verification.verification_level === 'full');
   };

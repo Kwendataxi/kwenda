@@ -14,6 +14,7 @@ import { AdminAnalyticsDashboard } from './AdminAnalyticsDashboard';
 import { AdminSecurityManager } from './AdminSecurityManager';
 import { AdminNotificationManager } from './AdminNotificationManager';
 import { AdminUserVerificationManager } from './AdminUserVerificationManager';
+import { ClientVerificationPanel } from './users/ClientVerificationPanel';
 import { ProductModerationPanel } from '../marketplace/ProductModerationPanel';
 import { ProductReportsManager } from '../marketplace/ProductReportsManager';
 import { Building2, Car, Users, Activity, MapPin, Package, Settings, BarChart, Shield, Bell, CheckCircle } from 'lucide-react';
@@ -118,7 +119,7 @@ const AdminDashboard = () => {
 
       {/* Main Management Tabs */}
       <Tabs defaultValue="partners" className="w-full">
-        <TabsList className="grid w-full grid-cols-11">
+        <TabsList className="grid w-full grid-cols-12">
           <TabsTrigger value="partners">Partenaires</TabsTrigger>
           <TabsTrigger value="moderation">Modération</TabsTrigger>
           <TabsTrigger value="rental">Location</TabsTrigger>
@@ -137,6 +138,14 @@ const AdminDashboard = () => {
             {(dashboardData?.pendingReports ?? 0) > 0 && (
               <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
                 {dashboardData?.pendingReports}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="client-verifications" className="relative">
+            Vendeurs
+            {(dashboardData?.pendingVerifications ?? 0) > 0 && (
+              <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                {dashboardData?.pendingVerifications}
               </Badge>
             )}
           </TabsTrigger>
@@ -183,6 +192,10 @@ const AdminDashboard = () => {
 
         <TabsContent value="product-reports" className="mt-6">
           <ProductReportsManager />
+        </TabsContent>
+
+        <TabsContent value="client-verifications" className="mt-6">
+          <ClientVerificationPanel />
         </TabsContent>
 
         <TabsContent value="verifications" className="mt-6">

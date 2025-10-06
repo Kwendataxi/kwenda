@@ -9708,6 +9708,10 @@ export type Database = {
         Args: { days_old?: number }
         Returns: number
       }
+      approve_client_for_selling: {
+        Args: { p_admin_notes?: string; p_user_id: string }
+        Returns: Json
+      }
       audit_security_definer_functions: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -10994,6 +10998,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      reject_client_verification: {
+        Args: { p_rejection_reason: string; p_user_id: string }
+        Returns: Json
+      }
       run_security_maintenance: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -11120,6 +11128,10 @@ export type Database = {
           p_service_type: string
         }
         Returns: undefined
+      }
+      update_verification_level: {
+        Args: { p_admin_notes?: string; p_new_level: string; p_user_id: string }
+        Returns: Json
       }
       upsert_push_token: {
         Args: { p_platform: string; p_token: string; p_user_id: string }

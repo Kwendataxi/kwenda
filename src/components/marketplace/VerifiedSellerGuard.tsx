@@ -52,7 +52,11 @@ export const VerifiedSellerGuard: React.FC<VerifiedSellerGuardProps> = ({ childr
         <CardContent className="space-y-4">
           <p className="text-orange-700 dark:text-orange-300">
             Pour vendre sur notre marketplace, vous devez vérifier votre compte. 
-            Cela garantit la sécurité et la confiance de tous nos utilisateurs.
+            {verification?.verification_status === 'pending_review' ? (
+              <strong className="block mt-2">Votre demande est en cours de révision par notre équipe.</strong>
+            ) : (
+              'Cela garantit la sécurité et la confiance de tous nos utilisateurs.'
+            )}
           </p>
           
           <div className="space-y-3">
@@ -106,13 +110,35 @@ export const VerifiedSellerGuard: React.FC<VerifiedSellerGuardProps> = ({ childr
           </div>
 
           <div className="pt-4 border-t">
-            <Button className="w-full" onClick={handleStartVerification}>
-              <Shield className="w-4 h-4 mr-2" />
-              Commencer la vérification
-            </Button>
-            <p className="text-xs text-center text-muted-foreground mt-2">
-              La vérification prend généralement 24-48 heures
-            </p>
+            {verification?.verification_status === 'pending_review' ? (
+              <div className="text-center space-y-2">
+                <Badge variant="outline" className="bg-yellow-500/10 text-yellow-700 border-yellow-500/30">
+                  En attente de validation admin
+                </Badge>
+                <p className="text-xs text-muted-foreground">
+                  Votre compte sera activé dans les 24-48 heures
+                </p>
+              </div>
+            ) : verification?.verification_status === 'rejected' ? (
+              <div className="text-center space-y-2">
+                <Badge variant="destructive">
+                  Vérification rejetée
+                </Badge>
+                <p className="text-xs text-muted-foreground">
+                  Contactez le support pour plus d'informations
+                </p>
+              </div>
+            ) : (
+              <>
+                <Button className="w-full" onClick={handleStartVerification}>
+                  <Shield className="w-4 h-4 mr-2" />
+                  Commencer la vérification
+                </Button>
+                <p className="text-xs text-center text-muted-foreground mt-2">
+                  La vérification prend généralement 24-48 heures
+                </p>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
