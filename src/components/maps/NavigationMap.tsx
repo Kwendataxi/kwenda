@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Navigation, MapPin, Clock, Route, Zap, AlertTriangle } from 'lucide-react';
+import { Navigation, MapPin, Clock, Route, Zap, AlertTriangle, Radio } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { DirectionsService, DirectionsResult } from '@/services/directionsService';
 import { ZoneService } from '@/services/zoneService';
@@ -164,8 +164,14 @@ export const NavigationMap: React.FC<NavigationMapProps> = ({
           {/* Current location marker */}
           {geolocation.latitude && geolocation.longitude && (
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="bg-blue-500 rounded-full p-2 shadow-lg border-2 border-white">
-                <div className="w-2 h-2 bg-white rounded-full animate-ping" />
+              <div className="relative">
+                {/* Cercle pulsant externe */}
+                <div className="absolute inset-0 bg-blue-500/30 rounded-full animate-ping" />
+                
+                {/* Icône principale */}
+                <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-full p-2.5 shadow-xl border-3 border-white">
+                  <Radio className="h-5 w-5 text-white animate-pulse" strokeWidth={2.5} />
+                </div>
               </div>
             </div>
           )}

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Navigation, Truck, Package, AlertTriangle, Zap } from 'lucide-react';
+import { MapPin, Navigation, Truck, Package, AlertTriangle, Zap, Radio } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import type { TripData, NavigationRoute, NavigationState, TripLocation } from '@/types/navigation';
 
@@ -41,7 +41,7 @@ export const UniversalNavigationMap: React.FC<UniversalNavigationMapProps> = ({
       case 'destination':
         return <Navigation className="h-4 w-4 text-white" />;
       case 'current':
-        return <Truck className="h-4 w-4 text-white" />;
+        return <Radio className="h-5 w-5 text-white" strokeWidth={2.5} />;
     }
   };
 
@@ -113,12 +113,17 @@ export const UniversalNavigationMap: React.FC<UniversalNavigationMapProps> = ({
           {/* Current location marker */}
           {geolocation.latitude && geolocation.longitude && (
             <div className={`absolute ${getMarkerPosition('current')} transform -translate-x-1/2 -translate-y-1/2`}>
-              <div className={`${getMarkerColor('current')} rounded-full p-2 shadow-lg border-2 border-white ${navigationState.isActive ? 'animate-pulse' : ''}`}>
-                {getLocationIcon('current')}
+              <div className="relative">
+                {/* Cercle pulsant externe */}
+                {navigationState.isActive && (
+                  <div className="absolute inset-0 bg-green-500/30 rounded-full animate-ping" />
+                )}
+                
+                {/* Icône principale */}
+                <div className={`relative ${getMarkerColor('current')} rounded-full p-2.5 shadow-xl border-3 border-white ${navigationState.isActive ? 'bg-gradient-to-br from-green-500 to-green-600' : ''}`}>
+                  {getLocationIcon('current')}
+                </div>
               </div>
-              {navigationState.isActive && (
-                <div className="absolute -top-2 -left-2 w-6 h-6 bg-green-500 rounded-full animate-ping opacity-30" />
-              )}
             </div>
           )}
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { MapPin, Navigation, Locate, Minus, Plus } from 'lucide-react';
+import { MapPin, Navigation, Locate, Minus, Plus, Radio } from 'lucide-react';
 
 interface Location {
   address: string;
@@ -143,14 +143,22 @@ const InteractiveMap = ({
         {/* User location */}
         {userLocation && (
           <div 
-            className="absolute w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg animate-pulse"
+            className="absolute"
             style={{ 
               left: '45%', 
               top: '55%',
               transform: 'translate(-50%, -50%)'
             }}
           >
-            <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-50"></div>
+            <div className="relative">
+              {/* Cercle pulsant externe */}
+              <div className="absolute inset-0 bg-blue-500/30 rounded-full animate-ping" />
+              
+              {/* Icône principale */}
+              <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-full p-2 shadow-xl border-2 border-white">
+                <Radio className="h-4 w-4 text-white animate-pulse" strokeWidth={2.5} />
+              </div>
+            </div>
           </div>
         )}
 
