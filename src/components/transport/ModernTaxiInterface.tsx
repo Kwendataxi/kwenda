@@ -25,6 +25,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import DriverSearchDialog from './DriverSearchDialog';
+import ModernMapView from './map/ModernMapView';
 
 interface TaxiBookingData {
   pickup: LocationData | null;
@@ -593,142 +594,163 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     }
   };
 
+  // Déterminer le mode de visualisation de la carte
+  const getMapVisualizationMode = () => {
+    if (step === 'confirm' && bookingData.pickup && bookingData.destination) {
+      return 'route';
+    }
+    return 'selection';
+  };
+
   return (
-    <div className="max-w-md mx-auto p-4 space-y-6">
-      {/* Progress indicator */}
-      <div className="flex justify-center space-x-2 mb-6">
-        {['pickup', 'destination', 'details', 'confirm'].map((stepName, index) => (
-          <div
-            key={stepName}
-            className={`h-2 w-8 rounded-full transition-colors ${
-              ['pickup', 'destination', 'details', 'confirm'].indexOf(step) >= index
-                ? 'bg-primary'
-                : 'bg-muted'
-            }`}
-          />
-        ))}
+    <div className="flex flex-col lg:flex-row gap-4 p-4 h-full">
+      {/* Carte moderne - toujours visible */}
+      <div className="lg:flex-1 h-[400px] lg:h-auto">
+        <ModernMapView
+          pickup={bookingData.pickup}
+          destination={bookingData.destination}
+          visualizationMode={getMapVisualizationMode()}
+          className="h-full"
+        />
       </div>
 
-      {/* Step content */}
-      <Card className="glassmorphism">
-        <CardContent className="p-6">
-          {renderStepContent()}
-        </CardContent>
-      </Card>
+      {/* Formulaire de réservation */}
+      <div className="lg:w-[480px] space-y-4">
+        {/* Progress indicator */}
+        <div className="flex justify-center space-x-2">
+          {['pickup', 'destination', 'details', 'confirm'].map((stepName, index) => (
+            <div
+              key={stepName}
+              className={`h-2 w-8 rounded-full transition-all duration-300 ${
+                ['pickup', 'destination', 'details', 'confirm'].indexOf(step) >= index
+                  ? 'bg-primary scale-110'
+                  : 'bg-muted'
+              }`}
+            />
+          ))}
+        </div>
 
-      {/* Action buttons */}
-      <div className="flex gap-3">
-        {step !== 'pickup' && (
-          <Button
-            variant="outline"
-            onClick={() => {
-              const steps = ['pickup', 'destination', 'details', 'confirm'];
-              const currentIndex = steps.indexOf(step);
-              if (currentIndex > 0) {
-                setStep(steps[currentIndex - 1] as any);
+        {/* Step content */}
+        <Card className="glassmorphism animate-fade-in">
+          <CardContent className="p-6">
+            {renderStepContent()}
+          </CardContent>
+        </Card>
+
+        {/* Action buttons */}
+        <div className="flex gap-3">
+          {step !== 'pickup' && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                const steps = ['pickup', 'destination', 'details', 'confirm'];
+                const currentIndex = steps.indexOf(step);
+                if (currentIndex > 0) {
+                  setStep(steps[currentIndex - 1] as any);
+                }
+              }}
+              className="flex-1"
+            >
+              Retour
+            </Button>
+          )}
+          
+          {step === 'pickup' && (
+            <Button
+              variant="outline"
+              onClick={onCancel}
+              className="flex-1"
+            >
+              Annuler
+            </Button>
+          )}
+
+          {step !== 'confirm' && (
+            <Button
+              onClick={() => {
+                if (step === 'pickup' && bookingData.pickup) {
+                  setStep('destination');
+                } else if (step === 'destination' && bookingData.destination) {
+                  setStep('details');
+                } else if (step === 'details') {
+                  setStep('confirm');
+                }
+              }}
+              disabled={
+                (step === 'pickup' && !bookingData.pickup) ||
+                (step === 'destination' && !bookingData.destination)
               }
-            }}
-            className="flex-1"
-          >
-            Retour
-          </Button>
-        )}
-        
-        {step === 'pickup' && (
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            className="flex-1"
-          >
-            Annuler
-          </Button>
+              className="flex-1"
+            >
+              Continuer
+            </Button>
+          )}
+
+          {step === 'confirm' && (
+            <Button
+              onClick={handleSubmitBooking}
+              disabled={loading || isCreatingBooking}
+              className="flex-1"
+            >
+              {(loading || isCreatingBooking) ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Réservation...
+                </>
+              ) : (
+                'Confirmer'
+              )}
+            </Button>
+          )}
+        </div>
+
+        {/* Indicateurs de statut */}
+        {bookingError && (
+          <Card className="glassmorphism border-destructive/20 animate-fade-in">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-destructive">
+                <AlertCircle className="h-4 w-4" />
+                <span className="text-sm">{bookingError}</span>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
-        {step !== 'confirm' && (
-          <Button
-            onClick={() => {
-              if (step === 'pickup' && bookingData.pickup) {
-                setStep('destination');
-              } else if (step === 'destination' && bookingData.destination) {
-                setStep('details');
-              } else if (step === 'details') {
-                setStep('confirm');
-              }
-            }}
-            disabled={
-              (step === 'pickup' && !bookingData.pickup) ||
-              (step === 'destination' && !bookingData.destination)
-            }
-            className="flex-1"
-          >
-            Continuer
-          </Button>
+        {isSearchingDriver && (
+          <Card className="glassmorphism border-primary/20 animate-fade-in">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <span className="text-sm">Recherche d'un chauffeur...</span>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
-        {step === 'confirm' && (
-          <Button
-            onClick={handleSubmitBooking}
-            disabled={loading || isCreatingBooking}
-            className="flex-1"
-          >
-            {(loading || isCreatingBooking) ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Réservation...
-              </>
-            ) : (
-              'Confirmer'
-            )}
-          </Button>
+        {lastBooking && (
+          <Card className="glassmorphism border-green-500/20 animate-fade-in">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span className="text-sm text-green-700">
+                  Réservation créée avec succès!
+                </span>
+              </div>
+            </CardContent>
+          </Card>
         )}
+
+        {/* Driver Search Dialog */}
+        <DriverSearchDialog
+          isOpen={showSearchDialog}
+          onClose={() => setShowSearchDialog(false)}
+          searchStatus={searchStatus}
+          driversFound={driversFound}
+          searchRadius={searchRadius}
+          onRetry={handleRetrySearch}
+          onExpandRadius={handleExpandRadius}
+        />
       </div>
-
-      {/* Indicateurs de statut */}
-      {bookingError && (
-        <Card className="glassmorphism border-destructive/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">{bookingError}</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {isSearchingDriver && (
-        <Card className="glassmorphism border-primary/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <span className="text-sm">Recherche d'un chauffeur...</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {lastBooking && (
-        <Card className="glassmorphism border-green-500/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <span className="text-sm text-green-700">
-                Réservation créée avec succès!
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Driver Search Dialog */}
-      <DriverSearchDialog
-        isOpen={showSearchDialog}
-        onClose={() => setShowSearchDialog(false)}
-        searchStatus={searchStatus}
-        driversFound={driversFound}
-        searchRadius={searchRadius}
-        onRetry={handleRetrySearch}
-        onExpandRadius={handleExpandRadius}
-      />
     </div>
   );
 }
