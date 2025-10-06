@@ -30,12 +30,12 @@ export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
   const { data: subscriptionsData, isLoading, error: queryError } = useQuery({
     queryKey: ['admin-unified-subscriptions'],
     queryFn: async () => {
-      console.log('🔍 Fetching unified subscriptions via RPC...');
+      console.log('🔍 [UNIFIED SUBSCRIPTIONS] Fetching via RPC get_admin_subscriptions_unified()');
       
       const { data, error } = await supabase.rpc('get_admin_subscriptions_unified');
 
       if (error) {
-        console.error('❌ RPC Error:', {
+        console.error('❌ [UNIFIED SUBSCRIPTIONS] RPC Error:', {
           message: error.message,
           code: error.code,
           details: error.details,
@@ -44,25 +44,32 @@ export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
         throw error;
       }
       
-      console.log('✅ Subscriptions loaded successfully:', data);
-      return data || { driverSubscriptions: [], rentalSubscriptions: [], stats: null };
+      console.log('✅ [UNIFIED SUBSCRIPTIONS] Raw RPC response:', {
+        dataType: Array.isArray(data) ? 'array' : typeof data,
+        length: Array.isArray(data) ? data.length : 'N/A',
+        sample: Array.isArray(data) && data.length > 0 ? data[0] : data
+      });
+      
+      return data || [];
     },
     retry: 2,
     retryDelay: 1000,
   });
 
-  // Extract subscriptions from the RPC response with type safety
+  // Extract subscriptions from the RPC response (now returns flat array)
   const allSubscriptions = useMemo(() => {
-    if (!subscriptionsData || typeof subscriptionsData !== 'object') return [];
+    if (!subscriptionsData) {
+      console.warn('⚠️ [UNIFIED SUBSCRIPTIONS] No data returned from RPC');
+      return [];
+    }
     
-    const data = subscriptionsData as any;
-    const driverSubs = Array.isArray(data.driverSubscriptions) ? data.driverSubscriptions : [];
-    const rentalSubs = Array.isArray(data.rentalSubscriptions) ? data.rentalSubscriptions : [];
+    if (!Array.isArray(subscriptionsData)) {
+      console.error('❌ [UNIFIED SUBSCRIPTIONS] Expected array, got:', typeof subscriptionsData);
+      return [];
+    }
     
-    return [
-      ...driverSubs.map((sub: any) => ({ ...sub, subscription_type: 'driver' })),
-      ...rentalSubs.map((sub: any) => ({ ...sub, subscription_type: 'rental' }))
-    ];
+    console.log(`📊 [UNIFIED SUBSCRIPTIONS] Processing ${subscriptionsData.length} subscriptions`);
+    return subscriptionsData;
   }, [subscriptionsData]);
 
   // Séparer les abonnements par type

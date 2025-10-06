@@ -18,6 +18,8 @@ export const useAdminRentalStats = () => {
   return useQuery({
     queryKey: ['admin-rental-stats'],
     queryFn: async (): Promise<AdminRentalStats> => {
+      console.log('🔍 [RENTAL STATS] Fetching from materialized views...');
+      
       // Utiliser les vues matérialisées pour de meilleures performances
       const [
         vehicleStatsResult,
@@ -49,6 +51,30 @@ export const useAdminRentalStats = () => {
           .select('id', { count: 'exact', head: true })
           .eq('is_active', true)
       ]);
+
+      // Log des résultats
+      console.log('📊 [RENTAL STATS] Materialized views results:', {
+        vehicleStats: {
+          success: !vehicleStatsResult.error,
+          data: vehicleStatsResult.data,
+          error: vehicleStatsResult.error?.message
+        },
+        bookingStats: {
+          success: !bookingStatsResult.error,
+          data: bookingStatsResult.data,
+          error: bookingStatsResult.error?.message
+        },
+        subscriptionStats: {
+          success: !subscriptionStatsResult.error,
+          data: subscriptionStatsResult.data,
+          error: subscriptionStatsResult.error?.message
+        },
+        categories: {
+          success: !categoriesResult.error,
+          count: categoriesResult.count,
+          error: categoriesResult.error?.message
+        }
+      });
 
       // Extraire les données des vues matérialisées
       const vehicleStats = vehicleStatsResult.data || {
