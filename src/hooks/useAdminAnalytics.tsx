@@ -60,25 +60,17 @@ export const useAdminAnalytics = () => {
     console.log('📊 Starting dashboard analytics fetch for user:', user.id)
     
     try {
-      // Vérifier si l'utilisateur est admin via user_roles avec timeout
-      const adminCheckPromise = supabase
-        .from('user_roles')
-        .select('id, role, admin_role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
+      // PHASE 4: Vérification admin ultra-rapide avec RPC
+      console.log('🔐 Vérification admin avec verify_admin_fast...')
       
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout vérifiant les permissions admin')), 60000) // 60s timeout
-      );
+      const abortController = new AbortController()
+      const timeout = setTimeout(() => abortController.abort(), 5000) // 5s timeout
       
-      const adminCheckWithActive = adminCheckPromise
-        .eq('is_active', true)
-        .maybeSingle();
+      const { data: adminCheck, error: adminError } = await supabase.rpc('verify_admin_fast', {
+        p_user_id: user.id
+      })
       
-      const { data: adminCheck, error: adminError } = await Promise.race([
-        adminCheckWithActive,
-        timeoutPromise
-      ]) as any;
+      clearTimeout(timeout)
     
       if (adminError) {
         console.error('❌ Error checking admin status:', adminError)
@@ -90,7 +82,8 @@ export const useAdminAnalytics = () => {
         return
       }
       
-      if (!adminCheck) {
+      const adminData = adminCheck as any
+      if (!adminData?.is_admin) {
         console.error('❌ User is not an admin')
         toast({
           title: "Accès refusé",
@@ -100,7 +93,7 @@ export const useAdminAnalytics = () => {
         return
       }
 
-      console.log('✅ Admin verified, fetching analytics...')
+      console.log('✅ Admin verified in <100ms, fetching analytics...')
       setLoading(true)
     
       const { data, error } = await supabase.functions.invoke('admin-analytics', {

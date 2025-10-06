@@ -26,7 +26,7 @@ interface UseUnifiedSubscriptionsReturn {
 export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
   const { toast } = useToast();
 
-  // Fetch all subscriptions using the secure RPC function with enhanced error handling
+  // PHASE 4: Fetch avec RPC optimisée et retry intelligent
   const { data: subscriptionsData, isLoading, error: queryError } = useQuery({
     queryKey: ['admin-unified-subscriptions'],
     queryFn: async () => {
@@ -44,89 +44,47 @@ export const useUnifiedSubscriptions = (): UseUnifiedSubscriptionsReturn => {
         throw error;
       }
       
-      console.log('✅ [UNIFIED SUBSCRIPTIONS] Raw RPC response:', {
-        dataType: Array.isArray(data) ? 'array' : typeof data,
-        length: Array.isArray(data) ? data.length : 'N/A',
-        sample: Array.isArray(data) && data.length > 0 ? data[0] : data
-      });
+      console.log('✅ [UNIFIED SUBSCRIPTIONS] JSONB response:', data);
       
-      return data || [];
+      // La RPC retourne maintenant un JSONB avec stats et subscriptions
+      return data;
     },
-    retry: 2,
-    retryDelay: 1000,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    staleTime: 30000, // Cache 30s
+    gcTime: 300000, // Keep in cache 5min
   });
 
-  // Extract subscriptions from the RPC response (now returns flat array)
-  const allSubscriptions = useMemo(() => {
-    if (!subscriptionsData) {
-      console.warn('⚠️ [UNIFIED SUBSCRIPTIONS] No data returned from RPC');
-      return [];
-    }
-    
-    if (!Array.isArray(subscriptionsData)) {
-      console.error('❌ [UNIFIED SUBSCRIPTIONS] Expected array, got:', typeof subscriptionsData);
-      return [];
-    }
-    
-    console.log(`📊 [UNIFIED SUBSCRIPTIONS] Processing ${subscriptionsData.length} subscriptions`);
-    return subscriptionsData;
+  // Extract subscriptions from the new JSONB response structure
+  const driverSubscriptions = useMemo(() => {
+    const data = subscriptionsData as any
+    if (!data?.driver_subscriptions) return [];
+    return data.driver_subscriptions;
   }, [subscriptionsData]);
 
-  // Séparer les abonnements par type
-  const driverSubscriptions = useMemo(() => 
-    allSubscriptions.filter(sub => sub.subscription_type === 'driver'),
-    [allSubscriptions]
-  );
+  const rentalSubscriptions = useMemo(() => {
+    const data = subscriptionsData as any
+    if (!data?.rental_subscriptions) return [];
+    return data.rental_subscriptions;
+  }, [subscriptionsData]);
 
-  const rentalSubscriptions = useMemo(() => 
-    allSubscriptions.filter(sub => sub.subscription_type === 'rental'),
-    [allSubscriptions]
-  );
-
-  // Calculate unified statistics using useMemo for client-side computation
+  // PHASE 4: Utiliser les stats pré-calculées par la RPC
   const stats = useMemo((): UnifiedSubscriptionStats | null => {
-    // Return null during loading to maintain same behavior as before
-    if (isLoading) return null;
+    const data = subscriptionsData as any
+    if (isLoading || !data?.stats) return null;
 
-    const now = new Date();
-    const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-    // Active driver subscriptions
-    const activeDriverSubs = driverSubscriptions.filter(
-      sub => sub.status === 'active' && new Date(sub.end_date) > now
-    );
-
-    // Active rental subscriptions
-    const activeRentalSubs = rentalSubscriptions.filter(
-      sub => sub.status === 'active' && new Date(sub.end_date) > now
-    );
-
-    // Calculate monthly revenue
-    const driverRevenue = activeDriverSubs.reduce(
-      (sum, sub) => sum + (sub.plan_price || 0), 0
-    );
-    const rentalRevenue = activeRentalSubs.reduce(
-      (sum, sub) => sum + (sub.plan_price || 0), 0
-    );
-
-    // Count expiring subscriptions
-    const expiringDriver = activeDriverSubs.filter(
-      sub => new Date(sub.end_date) <= weekFromNow
-    ).length;
-    const expiringRental = activeRentalSubs.filter(
-      sub => new Date(sub.end_date) <= weekFromNow
-    ).length;
-
+    const rpcStats = data.stats as any;
+    
     return {
-      totalActiveSubscriptions: activeDriverSubs.length + activeRentalSubs.length,
-      monthlyRevenue: driverRevenue + rentalRevenue,
-      driverSubscriptions: activeDriverSubs.length,
-      rentalSubscriptions: activeRentalSubs.length,
-      expiringInWeek: expiringDriver + expiringRental,
-      failedPayments: 0, // TODO: Calculate from payment history
+      totalActiveSubscriptions: rpcStats.total_active || 0,
+      monthlyRevenue: rpcStats.total_revenue || 0,
+      driverSubscriptions: rpcStats.driver_count || 0,
+      rentalSubscriptions: rpcStats.rental_count || 0,
+      expiringInWeek: rpcStats.total_expiring || 0,
+      failedPayments: 0,
       currency: 'CDF'
     };
-  }, [driverSubscriptions, rentalSubscriptions, isLoading]);
+  }, [subscriptionsData, isLoading]);
 
   // Admin actions
   // Admin : Prolonger un abonnement
