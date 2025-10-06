@@ -6817,6 +6817,51 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_profiles: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          display_name: string
+          id: string
+          profile_image_url: string | null
+          rating_average: number | null
+          rating_count: number | null
+          seller_badge_level: string | null
+          total_sales: number | null
+          updated_at: string | null
+          user_id: string
+          verified_seller: boolean | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          display_name: string
+          id?: string
+          profile_image_url?: string | null
+          rating_average?: number | null
+          rating_count?: number | null
+          seller_badge_level?: string | null
+          total_sales?: number | null
+          updated_at?: string | null
+          user_id: string
+          verified_seller?: boolean | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          display_name?: string
+          id?: string
+          profile_image_url?: string | null
+          rating_average?: number | null
+          rating_count?: number | null
+          seller_badge_level?: string | null
+          total_sales?: number | null
+          updated_at?: string | null
+          user_id?: string
+          verified_seller?: boolean | null
+        }
+        Relationships: []
+      }
       sensitive_data_access_audit: {
         Row: {
           accessed_user_data: string | null
@@ -11142,6 +11187,10 @@ export type Database = {
           severity: string
           status: string
         }[]
+      }
+      verify_seller: {
+        Args: { p_user_id: string; p_verified: boolean }
+        Returns: Json
       }
     }
     Enums: {

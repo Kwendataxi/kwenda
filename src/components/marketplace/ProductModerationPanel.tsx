@@ -84,19 +84,74 @@ export const ProductModerationPanel: React.FC = () => {
   const loadProducts = async () => {
     try {
       setLoading(true);
+      
+      // Récupérer les produits sans foreign key
       let query = supabase
         .from('marketplace_products')
-        .select('*, seller:profiles!marketplace_products_seller_id_fkey(display_name, email)')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (filterStatus !== 'all') {
         query = query.eq('moderation_status', filterStatus);
       }
 
-      const { data, error } = await query;
-
+      const { data: productsData, error } = await query;
       if (error) throw error;
-      setProducts((data as any[]) || []);
+
+      // Récupérer les informations des vendeurs séparément
+      const sellerIds = [...new Set(productsData?.map(p => p.seller_id))];
+      const sellersInfo: Record<string, { display_name: string; email: string }> = {};
+
+      for (const sellerId of sellerIds) {
+        // Essayer depuis seller_profiles d'abord
+        const { data: sellerProfile } = await supabase
+          .from('seller_profiles')
+          .select('display_name, user_id')
+          .eq('user_id', sellerId)
+          .maybeSingle();
+
+        if (sellerProfile) {
+          // Récupérer l'email depuis clients
+          const { data: clientData } = await supabase
+            .from('clients')
+            .select('email')
+            .eq('user_id', sellerId)
+            .maybeSingle();
+
+          sellersInfo[sellerId] = {
+            display_name: sellerProfile.display_name,
+            email: clientData?.email || 'Email non disponible'
+          };
+        } else {
+          // Fallback vers clients directement
+          const { data: clientData } = await supabase
+            .from('clients')
+            .select('display_name, email')
+            .eq('user_id', sellerId)
+            .maybeSingle();
+
+          if (clientData) {
+            sellersInfo[sellerId] = {
+              display_name: clientData.display_name,
+              email: clientData.email
+            };
+          } else {
+            sellersInfo[sellerId] = {
+              display_name: 'Vendeur inconnu',
+              email: 'Email non disponible'
+            };
+          }
+        }
+      }
+
+      // Combiner les données avec typage correct
+      const productsWithSellers = productsData?.map(product => ({
+        ...product,
+        images: Array.isArray(product.images) ? product.images : [],
+        seller: sellersInfo[product.seller_id]
+      })) || [];
+
+      setProducts(productsWithSellers as Product[]);
     } catch (error) {
       console.error('Error loading products:', error);
       toast({

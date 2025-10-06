@@ -9,6 +9,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { SellerModerationPanel } from './marketplace/SellerModerationPanel';
+import { SellerVerificationPanel } from './marketplace/SellerVerificationPanel';
 import { ProductAnalyticsDashboard } from './marketplace/ProductAnalyticsDashboard';
 
 export function AdminMarketplaceManager() {
@@ -320,7 +321,7 @@ export function AdminMarketplaceManager() {
         </TabsContent>
 
         <TabsContent value="sellers" className="space-y-6">
-          <SellerModerationPanel />
+          <SellerVerificationPanel />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
