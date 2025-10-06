@@ -155,12 +155,6 @@ export const SmartBookingForm: React.FC<SmartBookingFormProps> = ({
             disabled={disabled}
           />
           
-          {pickup && pickup.type === 'gps' && (
-            <div className="mt-1 flex items-center gap-1 text-xs text-green-600">
-              <CheckCircle2 className="h-3 w-3" />
-              Position actuelle détectée
-            </div>
-          )}
         </div>
 
         {/* Bouton d'échange */}
