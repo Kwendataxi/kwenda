@@ -32,6 +32,9 @@ import { DriverManagement } from '@/components/admin/drivers/DriverManagement';
 import { CancellationManagement } from '@/components/admin/CancellationManagement';
 import { VehicleTypeManager } from '@/components/admin/VehicleTypeManager';
 import { VehicleTypeConfigManager } from '@/components/admin/VehicleTypeConfigManager';
+import { AdminMarketplaceManager } from '@/components/admin/AdminMarketplaceManager';
+import { PricingManagementPanel } from '@/components/admin/PricingManagementPanel';
+import { ServiceConfigPanel } from '@/components/admin/ServiceConfigPanel';
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -96,7 +99,7 @@ const AdminApp = () => {
         return (
           <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
-              <ServiceManagementPanel />
+              <ServiceConfigPanel />
             </FlexiblePermissionGuard>
           </Suspense>
         );
@@ -105,7 +108,7 @@ const AdminApp = () => {
         return (
           <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
-              <ServiceManagementPanel />
+              <PricingManagementPanel />
             </FlexiblePermissionGuard>
           </Suspense>
         );
@@ -141,7 +144,7 @@ const AdminApp = () => {
         return (
           <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['marketplace_moderate']}>
-              <AdminDashboard />
+              <AdminMarketplaceManager />
             </FlexiblePermissionGuard>
           </Suspense>
         );
