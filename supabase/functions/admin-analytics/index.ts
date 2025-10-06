@@ -56,12 +56,16 @@ serve(async (req) => {
 
   console.log('✅ User authenticated:', user.id)
 
-  // ⚡ OPTIMIZED: Use materialized view for instant admin check (no timeout risk)
+  // ⚡ OPTIMIZED: Admin check with cache fallback (3s timeout + retry)
   const adminCheckController = new AbortController()
-  const adminCheckTimeout = setTimeout(() => adminCheckController.abort(), 5000) // 5s timeout
+  const adminCheckTimeout = setTimeout(() => adminCheckController.abort(), 3000) // 3s timeout
+
+  let adminCheck: any = null
+  let usedFallback = false
 
   try {
-    const { data: adminCheck, error: adminError } = await supabaseClient
+    // 1️⃣ Essayer le cache d'abord (plus rapide)
+    const { data: cachedAdmin, error: cacheError } = await supabaseClient
       .from('admin_users_cache')
       .select('user_id, email, role, admin_role')
       .eq('user_id', user.id)
@@ -70,28 +74,54 @@ serve(async (req) => {
 
     clearTimeout(adminCheckTimeout)
 
-    if (adminError) {
-      console.error('🔴 Admin cache query failed:', { 
-        userId: user.id,
-        errorMessage: adminError.message,
-        errorCode: adminError.code,
-        hint: 'Cache may need refresh'
+    if (!cacheError && cachedAdmin) {
+      adminCheck = cachedAdmin
+      console.log('✅ Admin verified (cache):', { 
+        userId: user.id, 
+        role: cachedAdmin.role,
+        adminRole: cachedAdmin.admin_role,
+        source: 'materialized_view'
       })
-      return new Response(JSON.stringify({ 
-        error: 'Admin verification failed',
-        details: adminError.message,
-        suggestion: 'Contact support if this persists'
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+    } else if (cacheError && !cacheError.message.includes('AbortError')) {
+      // 2️⃣ FALLBACK: Si le cache échoue, essayer user_roles directement
+      console.warn('⚠️ Cache failed, trying user_roles fallback:', cacheError.message)
+      
+      const { data: directAdmin, error: directError } = await supabaseClient
+        .from('user_roles')
+        .select('user_id, role, admin_role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .eq('is_active', true)
+        .maybeSingle()
+
+      if (!directError && directAdmin) {
+        adminCheck = directAdmin
+        usedFallback = true
+        console.log('✅ Admin verified (fallback):', { 
+          userId: user.id,
+          role: directAdmin.role,
+          adminRole: directAdmin.admin_role,
+          source: 'user_roles_direct'
+        })
+      } else {
+        console.error('🔴 Fallback also failed:', directError)
+        return new Response(JSON.stringify({ 
+          error: 'Admin verification failed',
+          details: directError?.message || 'Cannot verify admin status',
+          suggestion: 'Database may be overloaded. Please retry in a moment.'
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
     }
 
+    // Vérifier si l'utilisateur a bien été trouvé
     if (!adminCheck) {
       console.error('🔴 Admin access denied:', { 
         userId: user.id,
         email: user.email,
-        reason: 'User not found in admin cache'
+        reason: 'User not found in admin cache or user_roles'
       })
       return new Response(JSON.stringify({ 
         error: 'Admin access required',
@@ -102,27 +132,45 @@ serve(async (req) => {
       })
     }
 
-    console.log('✅ Admin verified (cached):', { 
-      userId: user.id, 
-      role: adminCheck.role,
-      adminRole: adminCheck.admin_role,
-      cacheHit: true
-    })
   } catch (error) {
     clearTimeout(adminCheckTimeout)
     
     if (error instanceof Error && error.name === 'AbortError') {
-      console.error('🔴 Admin check timeout after 5s:', { userId: user.id })
-      return new Response(JSON.stringify({ 
-        error: 'Admin verification timeout',
-        details: 'Database connection slow. Please retry.'
-      }), {
-        status: 504,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      console.error('🔴 Admin check timeout after 3s:', { userId: user.id })
+      
+      // 3️⃣ RETRY une fois avec user_roles
+      try {
+        const { data: retryAdmin, error: retryError } = await supabaseClient
+          .from('user_roles')
+          .select('user_id, role, admin_role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .eq('is_active', true)
+          .maybeSingle()
+
+        if (!retryError && retryAdmin) {
+          adminCheck = retryAdmin
+          console.log('✅ Admin verified (retry):', { 
+            userId: user.id,
+            role: retryAdmin.role,
+            source: 'retry_after_timeout'
+          })
+        } else {
+          throw new Error('Retry also timed out')
+        }
+      } catch (retryErr) {
+        return new Response(JSON.stringify({ 
+          error: 'Admin verification timeout',
+          details: 'Database connection slow. Please retry.',
+          suggestion: 'Wait a moment and refresh the page'
+        }), {
+          status: 504,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+    } else {
+      throw error // Re-throw unexpected errors
     }
-    
-    throw error // Re-throw unexpected errors
   }
 
     const { type, date_range, zone_name, country_code } = await req.json() as AnalyticsRequest

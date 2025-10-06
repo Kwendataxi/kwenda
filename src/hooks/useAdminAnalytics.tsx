@@ -68,7 +68,7 @@ export const useAdminAnalytics = () => {
         .eq('role', 'admin')
       
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout vérifiant les permissions admin')), 30000)
+        setTimeout(() => reject(new Error('Timeout vérifiant les permissions admin')), 60000) // 60s timeout
       );
       
       const adminCheckWithActive = adminCheckPromise
@@ -111,15 +111,17 @@ export const useAdminAnalytics = () => {
       })
 
       if (error) {
-        console.error('❌ Edge function error:', {
+        const errorDetails = {
           message: error.message,
           status: error.status,
-          context: error.context
-        })
+          context: error.context,
+          name: error.name
+        }
+        console.error('❌ Edge function error:', errorDetails)
         
         toast({
           title: "Erreur de connexion",
-          description: `Impossible de charger les analytics: ${error.message || 'Erreur inconnue'}`,
+          description: `Analytics: ${error.message || 'Erreur inconnue'} (Status: ${error.status || 'N/A'})`,
           variant: "destructive"
         })
         throw error

@@ -72,7 +72,12 @@ export const useUserRoles = (): UseUserRolesReturn => {
       });
 
       if (rolesError) {
-        console.error('❌ [UserRoles] RPC Error:', rolesError);
+        console.error('❌ [UserRoles] RPC Error:', {
+          message: rolesError.message,
+          code: rolesError.code,
+          details: rolesError.details,
+          hint: rolesError.hint
+        });
         throw rolesError;
       }
 
