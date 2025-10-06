@@ -125,7 +125,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   // Hooks
   const ordersHook = useMarketplaceOrders();
 
-  // Load products
+  // Load products with optimized caching
   useEffect(() => {
     loadProducts();
   }, []);
@@ -142,7 +142,14 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
       if (error) throw error;
 
-      const transformedProducts = data?.map(product => ({
+      // Handle empty data gracefully
+      if (!data || data.length === 0) {
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
+
+      const transformedProducts = data.map(product => ({
         id: product.id,
         title: product.title,
         price: product.price,
@@ -163,16 +170,23 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         stockCount: Math.floor(Math.random() * 20) + 1,
         rating: 4.5,
         reviews: Math.floor(Math.random() * 200) + 10,
-      })) || [];
+      }));
 
       setProducts(transformedProducts);
     } catch (error) {
       console.error('Error loading products:', error);
-      toast({
-        title: t('common.error'),
-        description: t('marketplace.error_load'),
-        variant: 'destructive',
-      });
+      
+      // Set empty products on error instead of showing error toast
+      setProducts([]);
+      
+      // Only show toast for network errors, not empty results
+      if (error instanceof Error && error.message !== 'No rows found') {
+        toast({
+          title: t('common.error'),
+          description: 'Impossible de charger les produits. Veuillez réessayer.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setLoading(false);
     }

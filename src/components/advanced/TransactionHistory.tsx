@@ -45,14 +45,28 @@ const TransactionHistory = () => {
 
       if (error) throw error;
 
-      setTransactions(data || []);
+      // Handle empty data gracefully - this is NOT an error
+      if (!data || data.length === 0) {
+        setTransactions([]);
+        setLoading(false);
+        return;
+      }
+
+      setTransactions(data);
     } catch (error) {
       console.error('Error loading transactions:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger l'historique des transactions",
-        variant: "destructive",
-      });
+      
+      // Only show error toast for actual errors (network, database), not empty results
+      if (error instanceof Error && !error.message.includes('No rows')) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger l'historique des transactions",
+          variant: "destructive",
+        });
+      }
+      
+      // Set empty array on error
+      setTransactions([]);
     } finally {
       setLoading(false);
     }
