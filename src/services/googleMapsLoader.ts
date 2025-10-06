@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface GoogleMapsConfig {
   apiKey: string;
+  mapId: string;
   libraries: string[];
 }
 
@@ -10,6 +11,7 @@ class GoogleMapsLoaderService {
   private loadPromise: Promise<void> | null = null;
   private isLoaded = false;
   private apiKey: string | null = null;
+  private mapId: string | null = null;
 
   private constructor() {}
 
@@ -39,14 +41,25 @@ class GoogleMapsLoaderService {
         console.error('❌ No API key in response:', data);
         throw new Error('No API key returned');
       }
+
+      if (!data?.mapId) {
+        console.error('❌ No Map ID in response:', data);
+        throw new Error('No Map ID returned');
+      }
       
       console.log('✅ Google Maps API key received:', data.apiKey.substring(0, 10) + '...');
+      console.log('✅ Google Maps Map ID received:', data.mapId);
       this.apiKey = data.apiKey;
+      this.mapId = data.mapId;
       return this.apiKey;
     } catch (error) {
       console.error('❌ Failed to fetch Google Maps API key:', error);
       throw new Error('Unable to load Google Maps API key');
     }
+  }
+
+  getMapId(): string | null {
+    return this.mapId;
   }
 
   async load(libraries: string[] = ['places', 'marker', 'geometry']): Promise<void> {

@@ -58,17 +58,18 @@ export default function ModernMapView({
     });
   }, [isLoaded, error, isLoading, retryCount, loadingProgress, isMapReady, useMapboxFallback, pickup, destination, userLocation]);
 
-  // 🎯 Phase 2: Fallback Mapbox si Google Maps échoue
+  // Fallback Mapbox seulement après plusieurs échecs
   useEffect(() => {
-    if (error && !useMapboxFallback) {
-      console.log('⚠️ Google Maps failed, switching to Mapbox fallback');
+    if (error && retryCount >= 3 && !useMapboxFallback) {
+      console.log('⚠️ Google Maps failed after retries, switching to Mapbox fallback');
       setUseMapboxFallback(true);
       toast({
-        title: "🗺️ Carte Mapbox activée",
-        description: "Utilisation de Mapbox pour une expérience optimale"
+        title: "Erreur Google Maps",
+        description: "Impossible de charger Google Maps. Veuillez vérifier votre connexion et recharger la page.",
+        variant: "destructive"
       });
     }
-  }, [error, useMapboxFallback, toast]);
+  }, [error, retryCount, useMapboxFallback, toast]);
 
   // 🗺️ Initialisation Mapbox Fallback (simplifié et robuste)
   useEffect(() => {
@@ -240,7 +241,7 @@ export default function ModernMapView({
     initMapbox();
   }, [useMapboxFallback, pickup, destination, userLocation, visualizationMode]);
 
-  // Initialisation de la carte Google Maps
+  // Initialisation de la carte Google Maps avec Map ID
   useEffect(() => {
     if (!isLoaded || !mapRef.current || mapInstanceRef.current || useMapboxFallback) return;
 
@@ -249,13 +250,18 @@ export default function ModernMapView({
         // ✅ Double vérification avant création
         if (!window.google?.maps?.Map) {
           console.error('❌ google.maps.Map is not available');
-          setUseMapboxFallback(true);
+          toast({
+            title: "Erreur",
+            description: "Google Maps n'est pas disponible",
+            variant: "destructive"
+          });
           return;
         }
 
         // ✅ S'assurer que la bibliothèque maps est chargée
         console.log('🔄 Importing Google Maps library...');
         await window.google.maps.importLibrary('maps');
+        await window.google.maps.importLibrary('marker');
         
         // ✅ Délai de sécurité pour laisser le temps au constructeur de s'initialiser
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -266,26 +272,43 @@ export default function ModernMapView({
           return;
         }
 
-        // 📍 Centrage intelligent : pickup > userLocation > Kinshasa
-        const defaultCenter = pickup 
-          ? { lat: pickup.lat, lng: pickup.lng }
-          : userLocation
+        // 📍 Centrage dynamique avec priorités
+        const defaultCenter = userLocation 
           ? { lat: userLocation.lat, lng: userLocation.lng }
+          : pickup 
+          ? { lat: pickup.lat, lng: pickup.lng }
           : { lat: -4.3217, lng: 15.3069 }; // Kinshasa en dernier recours
         
         console.log('📍 Map center:', defaultCenter, 
-          pickup ? '(pickup)' : userLocation ? '(user location)' : '(Kinshasa default)');
+          userLocation ? '(user location)' : pickup ? '(pickup)' : '(Kinshasa default)');
+
+        // Récupérer le Map ID depuis le loader
+        const { googleMapsLoader } = await import('@/services/googleMapsLoader');
+        const mapId = googleMapsLoader.getMapId();
+        
+        if (!mapId) {
+          console.error('❌ Map ID not available');
+          toast({
+            title: "Configuration manquante",
+            description: "Map ID non configuré. Veuillez ajouter GOOGLE_MAPS_MAP_ID dans les secrets.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        console.log('✅ Using Map ID:', mapId);
 
         const map = new google.maps.Map(mapRef.current!, {
+          mapId: mapId, // ✅ CRITIQUE pour AdvancedMarkerElement
           center: defaultCenter,
-          zoom: 13,
+          zoom: userLocation ? 15 : pickup ? 14 : 13,
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: false,
           zoomControl: true,
-          // Tilt pour effet 3D
           tilt: 45,
           heading: 0,
+          gestureHandling: 'greedy',
           styles: [
             {
               featureType: 'poi',
@@ -305,16 +328,19 @@ export default function ModernMapView({
           ]
         });
 
-        console.log('✅ [ModernMapView] Carte Google Maps créée avec succès');
+        console.log('✅ [ModernMapView] Carte Google Maps créée avec succès avec Map ID');
+        
+        toast({
+          title: "🗺️ Google Maps chargé",
+          description: "Carte interactive prête",
+        });
 
         // Gestion du clic sur la carte avec effet ripple et throttling
         if (onMapClick) {
           console.log('🖱️ [ModernMapView] Gestionnaire de clic activé');
-          // Throttle à 300ms pour éviter trop de clics rapides
           const throttledClick = throttle((e: google.maps.MapMouseEvent) => {
             if (e.latLng) {
               console.log('📍 [ModernMapView] Clic carte:', e.latLng.lat(), e.latLng.lng());
-              // Créer effet ripple
               createRippleEffect(e.latLng);
               onMapClick({
                 lat: e.latLng.lat(),
@@ -331,11 +357,16 @@ export default function ModernMapView({
         console.log('✅ [ModernMapView] Carte prête et référence stockée');
       } catch (err) {
         console.error('❌ [ModernMapView] Erreur initialisation carte:', err);
+        toast({
+          title: "Erreur de chargement",
+          description: "Impossible de charger la carte. Rechargez la page.",
+          variant: "destructive"
+        });
       }
     };
 
     initializeMap();
-  }, [isLoaded, onMapClick, pickup, userLocation, useMapboxFallback]);
+  }, [isLoaded, onMapClick, pickup, userLocation, useMapboxFallback, toast]);
 
   // Créer un effet ripple au clic
   const createRippleEffect = (position: google.maps.LatLng) => {
