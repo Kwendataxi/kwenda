@@ -22,19 +22,29 @@ class GoogleMapsLoaderService {
 
   async getApiKey(): Promise<string> {
     if (this.apiKey) {
+      console.log('✅ Using cached Google Maps API key');
       return this.apiKey;
     }
 
     try {
+      console.log('🔑 Fetching Google Maps API key from Supabase...');
       const { data, error } = await supabase.functions.invoke('get-google-maps-key');
       
-      if (error) throw error;
-      if (!data?.apiKey) throw new Error('No API key returned');
+      if (error) {
+        console.error('❌ Supabase function error:', error);
+        throw error;
+      }
       
+      if (!data?.apiKey) {
+        console.error('❌ No API key in response:', data);
+        throw new Error('No API key returned');
+      }
+      
+      console.log('✅ Google Maps API key received:', data.apiKey.substring(0, 10) + '...');
       this.apiKey = data.apiKey;
       return this.apiKey;
     } catch (error) {
-      console.error('Failed to fetch Google Maps API key:', error);
+      console.error('❌ Failed to fetch Google Maps API key:', error);
       throw new Error('Unable to load Google Maps API key');
     }
   }
@@ -59,12 +69,16 @@ class GoogleMapsLoaderService {
     try {
       // Vérifier si le script est déjà présent et initialisé
       if (window.google?.maps?.Map) {
+        console.log('✅ Google Maps already loaded');
         this.isLoaded = true;
         return;
       }
 
+      console.log('📥 Loading Google Maps script...');
+      
       // Récupérer la clé API
       const apiKey = await this.getApiKey();
+      console.log('🔑 API key obtained, creating script tag...');
 
       // Créer et insérer le script avec loading=async
       return new Promise((resolve, reject) => {
@@ -77,18 +91,21 @@ class GoogleMapsLoaderService {
 
         script.onload = async () => {
           try {
+            console.log('📦 Google Maps script loaded, waiting for initialization...');
             // Attendre que google.maps soit complètement initialisé
             await this.waitForMapsLibrary();
             this.isLoaded = true;
             console.log('✅ Google Maps API loaded successfully');
             resolve();
           } catch (err) {
+            console.error('❌ Error during Maps initialization:', err);
             this.loadPromise = null;
             reject(err);
           }
         };
 
-        script.onerror = () => {
+        script.onerror = (e) => {
+          console.error('❌ Failed to load Google Maps script:', e);
           this.loadPromise = null;
           reject(new Error('Failed to load Google Maps script'));
         };
