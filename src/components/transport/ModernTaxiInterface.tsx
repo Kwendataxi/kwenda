@@ -699,7 +699,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
           </CardContent>
         
           {/* Action buttons - now inside the card after content */}
-          <CardContent className="p-6 pt-0">
+          <CardContent className="p-6 pt-0 mt-8">
             <div className="flex gap-3">
               {step !== 'pickup' && (
                 <Button
