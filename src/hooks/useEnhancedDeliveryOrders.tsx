@@ -405,6 +405,12 @@ export const useEnhancedDeliveryOrders = () => {
         throw new Error('Coordonnées de pickup manquantes');
       }
 
+      // Afficher un toast de recherche en cours
+      toast({
+        title: "Recherche en cours 🔍",
+        description: "Recherche de livreurs disponibles dans votre zone...",
+      });
+
       const dispatchPayload = {
         orderId: orderId,
         pickupLat: coordinates.lat,
@@ -420,47 +426,84 @@ export const useEnhancedDeliveryOrders = () => {
 
       if (error) {
         console.error('❌ [CLIENT] Erreur Edge Function:', error);
+        
+        // Message d'erreur clair selon le type d'erreur
+        let errorMessage = "Une erreur s'est produite lors de la recherche de livreurs";
+        
+        if (error.message?.includes('timeout')) {
+          errorMessage = "La recherche a pris trop de temps. Veuillez réessayer.";
+        } else if (error.message?.includes('network')) {
+          errorMessage = "Problème de connexion. Vérifiez votre internet.";
+        }
+        
         toast({
-          title: "Erreur dispatcher ❌",
-          description: `Code: ${error.message || 'Erreur inconnue'}`,
-          variant: "destructive"
+          title: "Erreur de recherche ❌",
+          description: errorMessage,
+          variant: "destructive",
+          duration: 8000
         });
         throw error;
       }
 
       console.log('✅ [CLIENT] Réponse Edge Function:', data);
       
+      // Gestion détaillée des différents scénarios
       if (data?.success) {
-        if (data.drivers_notified > 0) {
+        if (data.drivers_notified && data.drivers_notified > 0) {
           console.log('🎯 [CLIENT] Livreurs notifiés:', data.drivers_notified);
           toast({
-            title: "Livreurs notifiés ✅",
-            description: `${data.drivers_notified} livreur(s) ont été notifiés dans un rayon de ${data.search_radius}km`,
+            title: "Livreurs contactés ! ✅",
+            description: `${data.drivers_notified} livreur(s) disponible(s) dans un rayon de ${data.search_radius || 10}km. Vous serez notifié dès qu'un livreur accepte.`,
+            duration: 6000
           });
         } else {
           console.warn('⚠️ [CLIENT] Succès mais aucun livreur notifié');
           toast({
-            title: "Recherche en cours 🔍",
-            description: data.message || "Recherche de livreurs disponibles...",
+            title: "Recherche élargie 🔍",
+            description: "Aucun livreur trouvé à proximité immédiate. Élargissement de la recherche en cours...",
+            duration: 5000
           });
         }
       } else {
         console.warn('⚠️ [CLIENT] Échec recherche:', data);
+        
+        // Messages clairs selon la raison de l'échec
+        let noDriverMessage = "Aucun livreur disponible actuellement dans votre zone";
+        
+        if (data?.message) {
+          if (data.message.includes('no drivers found')) {
+            noDriverMessage = "Aucun livreur en ligne dans un rayon de 50km. La recherche continue automatiquement.";
+          } else if (data.message.includes('already assigned')) {
+            noDriverMessage = "Cette commande a déjà été assignée à un livreur.";
+          }
+        }
+        
         toast({
-          title: "Aucun livreur disponible ⏳",
-          description: data?.message || "Nous continuons à chercher des livreurs dans votre zone",
+          title: "Aucun livreur disponible pour le moment ⏳",
+          description: noDriverMessage + " Nous vous notifierons dès qu'un livreur sera disponible.",
+          duration: 8000
         });
       }
     } catch (error: any) {
       console.error('❌ [CLIENT] Erreur critique recherche chauffeur:', error);
       console.error('   Stack:', error.stack);
       
-      // Toast visible pour l'utilisateur avec détails de l'erreur
+      // Message utilisateur clair et actionnable
+      let userMessage = "Une erreur s'est produite lors de la recherche de livreurs.";
+      
+      if (error.message?.includes('Coordonnées')) {
+        userMessage = "Erreur de localisation. Veuillez vérifier que votre adresse de collecte est correcte.";
+      } else if (error.message?.includes('timeout')) {
+        userMessage = "La recherche a expiré. Nous allons réessayer automatiquement.";
+      } else if (!navigator.onLine) {
+        userMessage = "Pas de connexion internet. Veuillez vérifier votre connexion.";
+      }
+      
       toast({
-        title: "Erreur recherche livreurs ❌",
-        description: `Détails: ${error.message || 'Erreur inconnue'}. Vérifiez les logs pour plus d'informations.`,
+        title: "Erreur de recherche ❌",
+        description: userMessage + " Votre commande reste active et nous continuerons à chercher.",
         variant: "destructive",
-        duration: 10000 // 10 secondes pour lire l'erreur
+        duration: 10000
       });
     }
   };

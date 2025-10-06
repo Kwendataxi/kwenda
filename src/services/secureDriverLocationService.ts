@@ -50,10 +50,10 @@ class SecureDriverLocationService {
 
       // Utiliser la fonction sécurisée qui ne retourne pas les coordonnées exactes
       const { data, error } = await supabase.rpc('find_nearby_drivers_secure', {
-        user_lat: userLat,
-        user_lng: userLng,
-        max_distance_km: maxDistanceKm,
-        vehicle_class_filter: vehicleClassFilter || null
+        p_latitude: userLat,
+        p_longitude: userLng,
+        p_max_distance_km: maxDistanceKm,
+        p_vehicle_class: vehicleClassFilter || null
       });
 
       if (error) {

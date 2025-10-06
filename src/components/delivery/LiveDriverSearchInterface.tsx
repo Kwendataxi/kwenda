@@ -75,10 +75,10 @@ export default function LiveDriverSearchInterface({
         console.log(`🔍 Recherche livreurs ${deliveryType} → vehicle_class: ${requiredVehicleClass}, rayon: ${radius}km`);
         
         const { data, error } = await supabase.rpc('find_nearby_drivers_secure', {
-          user_lat: pickupLocation.lat,
-          user_lng: pickupLocation.lng,
-          max_distance_km: radius,
-          vehicle_class_filter: requiredVehicleClass
+          p_latitude: pickupLocation.lat,
+          p_longitude: pickupLocation.lng,
+          p_max_distance_km: radius,
+          p_vehicle_class: requiredVehicleClass
         });
 
         if (error) throw error;
