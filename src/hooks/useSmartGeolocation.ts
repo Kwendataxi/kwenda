@@ -67,13 +67,13 @@ export const useSmartGeolocation = () => {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const watchIdRef = useRef<number | null>(null);
 
-  // 🎯 GÉOLOCALISATION UNIVERSELLE PRINCIPALE
+  // 🎯 GÉOLOCALISATION UNIVERSELLE PRINCIPALE - GPS STRICT
   const getCurrentPosition = useCallback(async (options: GeolocationOptions = {}): Promise<LocationData> => {
     const {
       enableHighAccuracy = true,
-      timeout = 8000,
-      maximumAge = 300000,
-      fallbackToIP = true,
+      timeout = 30000, // 30 secondes pour GPS précis
+      maximumAge = 5000, // Maximum 5 secondes de cache
+      fallbackToIP = false, // Désactiver IP par défaut
       fallbackToDatabase = true,
       fallbackToDefault = true
     } = options;
@@ -84,9 +84,19 @@ export const useSmartGeolocation = () => {
       // 1. Détecter la ville d'abord
       let detectedCity: CityConfig;
       
-      // 2. Essayer GPS natif (rapide) pour détection de ville
+      // 2. GPS PRÉCIS avec retry intelligent (jusqu'à 5 tentatives)
       try {
-        const gpsPosition = await getGPSPosition({ enableHighAccuracy, timeout, maximumAge });
+        const gpsPosition = await getGPSPositionWithRetry({ 
+          enableHighAccuracy, 
+          timeout, 
+          maximumAge 
+        });
+        
+        // Valider la précision GPS stricte
+        if (gpsPosition.accuracy && gpsPosition.accuracy > 100) {
+          console.warn('⚠️ Précision GPS insuffisante:', gpsPosition.accuracy, 'm');
+          throw new Error(`Précision GPS insuffisante: ${Math.round(gpsPosition.accuracy)}m`);
+        }
         
         // Détecter la ville avec les coordonnées GPS
         detectedCity = await universalGeolocation.detectUserCity({
@@ -98,15 +108,28 @@ export const useSmartGeolocation = () => {
           ...prev,
           currentLocation: gpsPosition,
           loading: false,
-          source: 'GPS',
+          source: `GPS (${Math.round(gpsPosition.accuracy || 0)}m)`,
           lastUpdate: Date.now(),
           currentCity: detectedCity,
           cityDetectionLoading: false
         }));
         setCachedPosition(gpsPosition);
+        
+        console.log('✅ Position GPS précise obtenue:', {
+          address: gpsPosition.address,
+          accuracy: gpsPosition.accuracy,
+          coords: `${gpsPosition.lat}, ${gpsPosition.lng}`
+        });
+        
         return gpsPosition;
       } catch (gpsError) {
-        console.log('GPS failed, trying fallbacks:', gpsError);
+        console.error('❌ GPS échoué après tous les retries:', gpsError);
+        
+        // Afficher erreur utilisateur claire
+        setState(prev => ({
+          ...prev,
+          error: gpsError instanceof Error ? gpsError.message : 'GPS indisponible'
+        }));
       }
 
       // 3. Fallback IP avec détection de ville
@@ -594,25 +617,84 @@ const reverseGeocodeEnhanced = async (lat: number, lng: number, region?: string)
 
 // 🔧 FONCTIONS UTILITAIRES PRIVÉES
 
+// 🎯 GPS HAUTE PRÉCISION avec retry intelligent
+async function getGPSPositionWithRetry(options: PositionOptions): Promise<LocationData> {
+  const maxAttempts = 5;
+  let lastError: Error | null = null;
+  
+  // Configurations de retry progressives
+  const retryConfigs = [
+    { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }, // Tentative 1: Haute précision, 30s
+    { enableHighAccuracy: true, timeout: 45000, maximumAge: 0 }, // Tentative 2: Haute précision, 45s (mode patience)
+    { enableHighAccuracy: true, timeout: 30000, maximumAge: 5000 }, // Tentative 3: Avec cache 5s
+    { enableHighAccuracy: false, timeout: 30000, maximumAge: 0 }, // Tentative 4: Précision normale
+    { enableHighAccuracy: true, timeout: 60000, maximumAge: 0 }, // Tentative 5: Dernière chance, 60s
+  ];
+  
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const config = retryConfigs[attempt];
+    
+    console.log(`📍 Tentative GPS ${attempt + 1}/${maxAttempts}:`, config);
+    
+    try {
+      const position = await getGPSPosition(config);
+      
+      // Valider la précision obtenue
+      const accuracy = position.accuracy || 999;
+      console.log(`✅ GPS obtenu avec précision: ${Math.round(accuracy)}m`);
+      
+      // Accepter si précision < 100m
+      if (accuracy < 100) {
+        console.log(`✅ Précision excellente (${Math.round(accuracy)}m), position acceptée`);
+        return position;
+      }
+      
+      // Accepter si précision < 200m après 3 tentatives
+      if (attempt >= 2 && accuracy < 200) {
+        console.log(`⚠️ Précision acceptable (${Math.round(accuracy)}m) après ${attempt + 1} tentatives`);
+        return position;
+      }
+      
+      // Continuer le retry si pas assez précis
+      console.log(`⚠️ Précision insuffisante (${Math.round(accuracy)}m), retry...`);
+      lastError = new Error(`Précision insuffisante: ${Math.round(accuracy)}m`);
+      
+      // Attendre un peu avant retry
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('Erreur GPS inconnue');
+      console.log(`❌ Tentative ${attempt + 1} échouée:`, lastError.message);
+      
+      // Attendre avant retry
+      if (attempt < maxAttempts - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+  }
+  
+  // Toutes les tentatives ont échoué
+  throw lastError || new Error('GPS indisponible après 5 tentatives');
+}
+
 async function getGPSPosition(options: PositionOptions): Promise<LocationData> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error('Géolocalisation non supportée'));
+      reject(new Error('Géolocalisation non supportée par votre appareil'));
       return;
     }
 
-    // Timeout adaptatif pour l'Afrique (plus long pour connexions lentes)
-    const adaptiveTimeout = options.timeout || 15000; // 15 secondes pour l'Afrique
+    const timeout = options.timeout || 30000;
     const timeoutId = setTimeout(() => {
-      reject(new Error('Timeout GPS - Connexion trop lente'));
-    }, adaptiveTimeout);
+      reject(new Error(`Timeout GPS après ${timeout/1000}s - Vérifiez votre signal`));
+    }, timeout);
 
-    // Options GPS optimisées pour l'Afrique
+    // Options GPS strictes pour précision maximale
     const optimizedOptions = {
       ...options,
-      enableHighAccuracy: true,
-      timeout: adaptiveTimeout,
-      maximumAge: 60000 // Accepter une position vieille de 1 minute
+      enableHighAccuracy: options.enableHighAccuracy !== false, // Par défaut true
+      timeout: timeout,
+      maximumAge: options.maximumAge || 5000 // Maximum 5 secondes de cache
     };
 
     navigator.geolocation.getCurrentPosition(
@@ -620,11 +702,19 @@ async function getGPSPosition(options: PositionOptions): Promise<LocationData> {
         clearTimeout(timeoutId);
         
         const coords = position.coords;
+        const accuracy = coords.accuracy;
+        
+        console.log('📍 Position GPS brute obtenue:', {
+          lat: coords.latitude,
+          lng: coords.longitude,
+          accuracy: Math.round(accuracy)
+        });
+        
         let address = `${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`;
         let retryCount = 0;
-        const maxRetries = 2;
+        const maxRetries = 3;
         
-        // Essayer le géocodage inverse avec retry si Plus Code détecté
+        // Géocodage inverse avec retry intelligent
         while (retryCount <= maxRetries) {
           try {
             const geocodePromise = reverseGeocodeEnhanced(
@@ -633,34 +723,36 @@ async function getGPSPosition(options: PositionOptions): Promise<LocationData> {
               getCurrentCity()?.region
             );
             const timeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Geocoding timeout')), 8000) // Augmenté à 8s
+              setTimeout(() => reject(new Error('Geocoding timeout')), 10000) // 10s pour géocodage
             );
             
             const geocodedAddress = await Promise.race([geocodePromise, timeoutPromise]) as string;
             
-            // Vérifier si c'est une vraie adresse
+            // Vérifier si c'est une vraie adresse lisible
             if (isValidRealAddress(geocodedAddress)) {
               address = geocodedAddress;
-              console.log('✅ Adresse GPS valide obtenue:', address);
+              console.log('✅ Adresse lisible obtenue:', address);
               break;
             } else {
-              console.log('⚠️ Plus Code ou adresse invalide, retry...', retryCount + 1);
+              console.log(`⚠️ Adresse invalide (tentative ${retryCount + 1}):`, geocodedAddress);
               retryCount++;
               
-              // Attendre un peu avant retry
-              await new Promise(resolve => setTimeout(resolve, 1000));
+              if (retryCount <= maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 1500));
+              }
             }
           } catch (error) {
-            console.log(`Tentative ${retryCount + 1} échouée:`, error);
+            console.log(`❌ Géocodage tentative ${retryCount + 1} échouée:`, error);
             retryCount++;
             
             if (retryCount > maxRetries) {
-              // Dernier fallback: essayer de construire une adresse avec la DB
+              // Fallback final avec nom de ville
               try {
                 const city = getCurrentCity();
                 address = city ? 
                   `Position proche de ${city.name}, ${city.region}` : 
                   `Position: ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`;
+                console.log('⚠️ Utilisation fallback:', address);
               } catch {
                 address = `Position: ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`;
               }
@@ -668,23 +760,31 @@ async function getGPSPosition(options: PositionOptions): Promise<LocationData> {
           }
         }
         
+        // Calculer la confiance selon la précision
+        let confidence = 0.5;
+        if (accuracy < 20) confidence = 0.98; // Excellente précision
+        else if (accuracy < 50) confidence = 0.95;
+        else if (accuracy < 100) confidence = 0.90;
+        else if (accuracy < 200) confidence = 0.80;
+        else confidence = 0.60;
+        
         resolve({
           address,
           lat: coords.latitude,
           lng: coords.longitude,
           type: 'gps',
-          accuracy: coords.accuracy,
-          confidence: coords.accuracy < 100 ? 0.95 : 0.85 // Confiance basée sur précision
+          accuracy: accuracy,
+          confidence: confidence
         });
       },
       (error) => {
         clearTimeout(timeoutId);
         const errorMessages: { [key: number]: string } = {
-          1: 'Permission GPS refusée - Veuillez autoriser la géolocalisation',
-          2: 'Position GPS indisponible - Vérifiez votre connexion',
-          3: 'Timeout GPS - Connexion trop lente'
+          1: '🚫 GPS refusé - Activez la géolocalisation dans les paramètres',
+          2: '📡 Signal GPS indisponible - Déplacez-vous vers un espace dégagé',
+          3: `⏱️ GPS trop lent (>${timeout/1000}s) - Vérifiez votre connexion`
         };
-        reject(new Error(errorMessages[error.code] || `Erreur GPS ${error.code}`));
+        reject(new Error(errorMessages[error.code] || `Erreur GPS code ${error.code}`));
       },
       optimizedOptions
     );
@@ -876,8 +976,18 @@ function getCachedPosition(): LocationData | null {
     const cached = localStorage.getItem('smart-location-cache');
     if (cached) {
       const data = JSON.parse(cached);
-      if (Date.now() - data.timestamp < 10 * 60 * 1000) { // 10 minutes
+      
+      // STRICT: N'accepter que les positions GPS récentes (< 2 minutes)
+      const age = Date.now() - data.timestamp;
+      const isGPS = data.location?.type === 'gps';
+      const maxAge = isGPS ? 2 * 60 * 1000 : 30 * 1000; // 2min GPS, 30s autres
+      
+      if (age < maxAge) {
+        console.log(`✅ Cache valide (${Math.round(age/1000)}s):`, data.location?.type);
         return data.location;
+      } else {
+        console.log(`🗑️ Cache expiré (${Math.round(age/1000)}s), suppression`);
+        localStorage.removeItem('smart-location-cache');
       }
     }
   } catch (error) {
@@ -888,11 +998,34 @@ function getCachedPosition(): LocationData | null {
 
 function setCachedPosition(location: LocationData): void {
   try {
-    localStorage.setItem('smart-location-cache', JSON.stringify({
-      location,
-      timestamp: Date.now()
-    }));
+    // Ne mettre en cache QUE les positions GPS précises
+    if (location.type === 'gps' && location.accuracy && location.accuracy < 200) {
+      localStorage.setItem('smart-location-cache', JSON.stringify({
+        location,
+        timestamp: Date.now()
+      }));
+      console.log(`💾 Position GPS mise en cache (${Math.round(location.accuracy)}m)`);
+    } else {
+      console.log(`⚠️ Position non cachée (type: ${location.type}, précision: ${location.accuracy}m)`);
+    }
   } catch (error) {
     console.error('Cache write error:', error);
+  }
+}
+
+// 🧹 Nettoyer le cache IP invalide au démarrage
+if (typeof window !== 'undefined') {
+  try {
+    const cached = localStorage.getItem('smart-location-cache');
+    if (cached) {
+      const data = JSON.parse(cached);
+      // Supprimer tout cache IP ou positions imprécises
+      if (data.location?.type === 'ip' || (data.location?.accuracy && data.location.accuracy > 500)) {
+        console.log('🗑️ Suppression cache invalide:', data.location?.type);
+        localStorage.removeItem('smart-location-cache');
+      }
+    }
+  } catch (e) {
+    console.error('Cache cleanup error:', e);
   }
 }
