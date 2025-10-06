@@ -219,7 +219,7 @@ export const SmartLocationPicker: React.FC<SmartLocationPickerProps> = ({
             </div>
           </div>
           
-          {/* Bouton géolocalisation moderne soft */}
+          {/* Bouton géolocalisation moderne soft glassmorphism */}
           <Button
             type="button"
             variant="ghost"
@@ -227,21 +227,67 @@ export const SmartLocationPicker: React.FC<SmartLocationPickerProps> = ({
             onClick={handleGetCurrentLocation}
             disabled={disabled || loading}
             className={cn(
-              "shrink-0 h-11 w-11 rounded-xl transition-all duration-300",
-              "bg-gradient-to-br from-red-50 to-pink-50/80 backdrop-blur-sm",
-              "border-2 border-red-100/80 hover:border-red-200",
-              "shadow-sm hover:shadow-md hover:shadow-red-100/50",
-              "hover:scale-105 active:scale-95",
+              "shrink-0 h-12 w-12 rounded-2xl transition-all duration-500 ease-out",
+              "bg-gradient-to-br from-red-50/60 via-pink-50/40 to-white/40",
+              "backdrop-blur-md border-2 border-red-100/50",
+              "shadow-[0_2px_16px_rgba(239,68,68,0.08),0_0_0_1px_rgba(255,255,255,0.5)_inset]",
+              "hover:shadow-[0_8px_24px_rgba(239,68,68,0.15),0_0_0_1px_rgba(255,255,255,0.8)_inset]",
+              "hover:scale-[1.08] hover:rotate-[5deg] hover:border-red-200/70",
+              "active:scale-95 active:brightness-95",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
               loading && "animate-pulse"
             )}
           >
             {loading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-red-500" />
+              <Loader2 className="h-5 w-5 animate-spin text-red-500" style={{ animationDuration: '3s' }} />
             ) : (
-              <div className="relative">
-                <div className="absolute inset-0 bg-red-500/10 rounded-full blur-sm animate-pulse" />
-                <Navigation className="h-5 w-5 text-red-500 relative z-10 fill-red-500/20" />
-              </div>
+              <svg 
+                viewBox="0 0 24 24" 
+                className="w-6 h-6 text-red-500"
+                style={{ filter: 'drop-shadow(0 0 4px rgba(239, 68, 68, 0.2))' }}
+              >
+                {/* Cercle extérieur pulsant */}
+                <circle 
+                  cx="12" 
+                  cy="12" 
+                  r="10" 
+                  stroke="currentColor" 
+                  strokeWidth="1.2" 
+                  fill="none"
+                  className="animate-pulse opacity-30"
+                  style={{ animationDuration: '3s' }}
+                />
+                
+                {/* Cercle moyen */}
+                <circle 
+                  cx="12" 
+                  cy="12" 
+                  r="6" 
+                  stroke="currentColor" 
+                  strokeWidth="1.5" 
+                  fill="none"
+                  className="opacity-50"
+                />
+                
+                {/* Point central pulsant */}
+                <circle 
+                  cx="12" 
+                  cy="12" 
+                  r="3" 
+                  fill="currentColor"
+                  className="animate-pulse"
+                  style={{ animationDuration: '2s' }}
+                />
+                
+                {/* Croix de visée */}
+                <path 
+                  d="M12 2v4M12 18v4M2 12h4M18 12h4" 
+                  stroke="currentColor" 
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  className="opacity-60"
+                />
+              </svg>
             )}
           </Button>
         </div>
