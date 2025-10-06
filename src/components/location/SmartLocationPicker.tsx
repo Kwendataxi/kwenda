@@ -249,35 +249,47 @@ export const SmartLocationPicker: React.FC<SmartLocationPickerProps> = ({
           </div>
         )}
 
-        {/* Suggestions intelligentes avec animations */}
+        {/* Suggestions intelligentes avec z-index élevé et fond opaque */}
         {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute z-50 w-full mt-2 bg-background/95 backdrop-blur-lg border border-border/50 rounded-xl shadow-2xl max-h-80 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
+          <div className="absolute z-[9999] w-full mt-2 bg-white dark:bg-gray-900 border-2 border-border rounded-xl shadow-2xl max-h-80 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
             {suggestions.map((suggestion, index) => (
               <button
                 key={suggestion.id || index}
                 type="button"
-                className="w-full px-4 py-3 text-left hover:bg-accent/80 transition-all duration-150 border-b border-border/30 last:border-b-0 flex items-start gap-3 first:rounded-t-xl last:rounded-b-xl"
+                className="w-full px-4 py-4 text-left hover:bg-accent transition-all duration-150 border-b border-border/30 last:border-b-0 flex items-start gap-3 first:rounded-t-xl last:rounded-b-xl group"
                 onClick={() => handleLocationSelect(suggestion)}
               >
                 <div className="mt-1 shrink-0">
                   {getLocationIcon(suggestion)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-foreground truncate flex items-center gap-2">
-                    {suggestion.title || suggestion.name || suggestion.address}
+                  {/* Nom principal lisible avec troncature */}
+                  <div className="font-semibold text-base text-foreground line-clamp-1 flex items-center gap-2 mb-1">
+                    {suggestion.name || suggestion.title || 'Sans nom'}
                     {suggestion.isPopular && (
-                      <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded-full font-medium">
                         Populaire
                       </span>
                     )}
                   </div>
-                  <div className="text-sm text-muted-foreground truncate">
-                    {suggestion.subtitle || 'Kinshasa, RDC'}
+                  
+                  {/* Adresse complète en subtitle avec troncature */}
+                  <div className="text-sm text-muted-foreground line-clamp-2 mb-1">
+                    {suggestion.address}
                   </div>
-                  {suggestion.confidence && (
-                    <div className="text-xs text-primary/70 mt-1 flex items-center gap-1">
-                      <Zap className="h-3 w-3" />
-                      {Math.round(suggestion.confidence * 100)}% pertinence
+                  
+                  {/* Ville/Pays uniquement */}
+                  {suggestion.subtitle && (
+                    <div className="text-xs text-muted-foreground/70">
+                      📍 {suggestion.subtitle}
+                    </div>
+                  )}
+                  
+                  {/* Indicateur de confiance simplifié */}
+                  {suggestion.confidence && suggestion.confidence > 0.7 && (
+                    <div className="text-xs text-primary/70 mt-1.5 flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3" />
+                      Adresse vérifiée
                     </div>
                   )}
                 </div>
@@ -287,16 +299,16 @@ export const SmartLocationPicker: React.FC<SmartLocationPickerProps> = ({
             {/* Footer informatif */}
             <div className="px-4 py-3 text-xs text-muted-foreground bg-muted/50 border-t border-border/30 rounded-b-xl flex items-center gap-2">
               <Navigation className="h-3 w-3" />
-              Utilisez la géolocalisation pour une précision optimale
+              Sélectionnez une adresse ci-dessus ou utilisez la géolocalisation
             </div>
           </div>
         )}
       </div>
 
-      {/* Overlay pour fermer les suggestions */}
+      {/* Overlay pour fermer les suggestions avec z-index approprié */}
       {showSuggestions && (
         <div
-          className="fixed inset-0 z-40"
+          className="fixed inset-0 z-[9998]"
           onClick={() => setShowSuggestions(false)}
         />
       )}
