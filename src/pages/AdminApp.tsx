@@ -30,6 +30,7 @@ import { EnhancedUserManagement } from '@/components/admin/users/EnhancedUserMan
 import { AdminUserVerificationManager } from '@/components/admin/AdminUserVerificationManager';
 import { DriverManagement } from '@/components/admin/drivers/DriverManagement';
 import { CancellationManagement } from '@/components/admin/CancellationManagement';
+import { VehicleTypeManager } from '@/components/admin/VehicleTypeManager';
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -100,6 +101,24 @@ const AdminApp = () => {
           <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
               <ServiceManagementPanel />
+            </FlexiblePermissionGuard>
+          </Suspense>
+        );
+
+      case 'tarifs':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+              <ServiceManagementPanel />
+            </FlexiblePermissionGuard>
+          </Suspense>
+        );
+
+      case 'vehicle-types':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
+              <VehicleTypeManager />
             </FlexiblePermissionGuard>
           </Suspense>
         );
