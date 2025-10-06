@@ -53,7 +53,7 @@ export const ClientVerificationPanel: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedClient, setSelectedClient] = useState<ClientVerification | null>(null);
-  const [actionType, setActionType] = useState<'approve' | 'reject' | 'level' | null>(null);
+  const [actionType, setActionType] = useState<'approve' | 'reject' | 'level' | 'force' | null>(null);
   const [adminNotes, setAdminNotes] = useState('');
   const [newLevel, setNewLevel] = useState<string>('basic');
 
@@ -187,7 +187,35 @@ export const ClientVerificationPanel: React.FC = () => {
     }
   });
 
-  const openDialog = (client: ClientVerification, type: 'approve' | 'reject' | 'level') => {
+  // Mutation pour forcer l'activation (debug)
+  const forceActivateMutation = useMutation({
+    mutationFn: async ({ userId, notes }: { userId: string; notes: string }) => {
+      const { data, error } = await supabase.rpc('force_activate_seller', {
+        p_user_id: userId,
+        p_admin_notes: notes
+      });
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-verifications'] });
+      toast({
+        title: '✅ Vendeur activé avec force',
+        description: 'Le compte vendeur a été forcé avec succès',
+      });
+      closeDialog();
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur',
+        description: `Impossible de forcer l'activation: ${error.message}`,
+        variant: 'destructive',
+      });
+    }
+  });
+
+  const openDialog = (client: ClientVerification, type: 'approve' | 'reject' | 'level' | 'force') => {
     setSelectedClient(client);
     setActionType(type);
     setAdminNotes('');
@@ -384,6 +412,15 @@ export const ClientVerificationPanel: React.FC = () => {
                       >
                         Niveau
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => openDialog(client, 'force')}
+                        className="bg-orange-500 hover:bg-orange-600 text-white"
+                      >
+                        <Shield className="w-4 h-4 mr-1" />
+                        Forcer
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -407,9 +444,16 @@ export const ClientVerificationPanel: React.FC = () => {
               {actionType === 'approve' && 'Approuver le client'}
               {actionType === 'reject' && 'Rejeter la vérification'}
               {actionType === 'level' && 'Modifier le niveau de vérification'}
+              {actionType === 'force' && '⚠️ Forcer l\'activation vendeur'}
             </DialogTitle>
             <DialogDescription>
               Client: {selectedClient?.display_name} ({selectedClient?.email})
+              {actionType === 'force' && (
+                <span className="block mt-2 text-orange-600 font-medium">
+                  Cette action force l'activation complète du compte vendeur, même si les vérifications ne sont pas complètes. 
+                  À utiliser uniquement pour débloquer des situations exceptionnelles.
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
 
@@ -432,7 +476,9 @@ export const ClientVerificationPanel: React.FC = () => {
 
             <div>
               <label className="text-sm font-medium">
-                {actionType === 'reject' ? 'Raison du rejet' : 'Notes admin (optionnel)'}
+                {actionType === 'reject' ? 'Raison du rejet' : 
+                 actionType === 'force' ? 'Raison du forçage (obligatoire)' : 
+                 'Notes admin (optionnel)'}
               </label>
               <Textarea
                 value={adminNotes}
@@ -451,10 +497,15 @@ export const ClientVerificationPanel: React.FC = () => {
             <Button variant="outline" onClick={closeDialog}>Annuler</Button>
             <Button 
               onClick={handleAction}
-              variant={actionType === 'reject' ? 'destructive' : 'default'}
-              disabled={approveMutation.isPending || rejectMutation.isPending || updateLevelMutation.isPending}
+              variant={actionType === 'force' ? 'destructive' : actionType === 'reject' ? 'destructive' : 'default'}
+              disabled={
+                approveMutation.isPending || 
+                rejectMutation.isPending || 
+                updateLevelMutation.isPending || 
+                forceActivateMutation.isPending
+              }
             >
-              Confirmer
+              {actionType === 'force' ? '⚠️ Forcer maintenant' : 'Confirmer'}
             </Button>
           </DialogFooter>
         </DialogContent>

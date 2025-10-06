@@ -1,23 +1,52 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserVerification } from '@/hooks/useUserVerification';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Shield, Phone, FileText, CheckCircle, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Shield, Phone, FileText, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
 
 interface VerifiedSellerGuardProps {
   children: React.ReactNode;
 }
 
+interface DiagnosticInfo {
+  blocking_reasons?: string[];
+  verification_record?: any;
+  seller_profile?: any;
+  can_sell?: boolean;
+}
+
 export const VerifiedSellerGuard: React.FC<VerifiedSellerGuardProps> = ({ children }) => {
   const navigate = useNavigate();
   const { verification, loading, isVerifiedForSelling, getVerificationProgress } = useUserVerification();
+  const [diagnostic, setDiagnostic] = useState<DiagnosticInfo | null>(null);
+
+  // Lancer le diagnostic au chargement
+  useEffect(() => {
+    const runDiagnostic = async () => {
+      if (!verification?.user_id) return;
+      
+      const { data, error } = await supabase.rpc('diagnose_seller_status', {
+        p_user_id: verification.user_id
+      });
+      
+      if (!error && data) {
+        setDiagnostic(data as DiagnosticInfo);
+        console.log('🔍 Diagnostic vendeur:', data);
+      }
+    };
+    
+    if (!loading && !isVerifiedForSelling()) {
+      runDiagnostic();
+    }
+  }, [verification, loading, isVerifiedForSelling]);
 
   const handleStartVerification = () => {
     navigate('/client', { state: { scrollTo: 'security' } });
-    // Scroll to security section after navigation
     setTimeout(() => {
       const securitySection = document.getElementById('security-section');
       if (securitySection) {
@@ -40,6 +69,34 @@ export const VerifiedSellerGuard: React.FC<VerifiedSellerGuardProps> = ({ childr
 
   const progress = getVerificationProgress();
 
+  // Afficher les raisons de blocage détaillées
+  const renderBlockingReasons = () => {
+    if (!diagnostic?.blocking_reasons || diagnostic.blocking_reasons.length === 0) {
+      return null;
+    }
+
+    return (
+      <Alert variant="destructive" className="mb-4">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          <p className="font-semibold mb-2">🚫 Raisons du blocage:</p>
+          <ul className="list-disc list-inside space-y-1">
+            {diagnostic.blocking_reasons.map((reason, idx) => (
+              <li key={idx} className="text-sm">{reason}</li>
+            ))}
+          </ul>
+          {diagnostic.verification_record && (
+            <div className="mt-3 p-2 bg-muted rounded text-xs font-mono">
+              <p>Debug: Status = {diagnostic.verification_record.verification_status || 'null'}</p>
+              <p>Debug: Level = {diagnostic.verification_record.verification_level || 'null'}</p>
+              <p>Debug: Phone verified = {diagnostic.verification_record.phone_verified ? 'true' : 'false'}</p>
+            </div>
+          )}
+        </AlertDescription>
+      </Alert>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <Card className="border-orange-500/30 bg-orange-500/10 dark:border-orange-400/30 dark:bg-orange-900/20">
@@ -50,10 +107,15 @@ export const VerifiedSellerGuard: React.FC<VerifiedSellerGuardProps> = ({ childr
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Raisons de blocage détaillées */}
+          {renderBlockingReasons()}
+
           <p className="text-orange-700 dark:text-orange-300">
             Pour vendre sur notre marketplace, vous devez vérifier votre compte. 
             {verification?.verification_status === 'pending_review' ? (
               <strong className="block mt-2">Votre demande est en cours de révision par notre équipe.</strong>
+            ) : verification?.verification_status === 'approved' ? (
+              <strong className="block mt-2 text-green-600">✅ Votre compte est approuvé mais la synchronisation est en cours...</strong>
             ) : (
               'Cela garantit la sécurité et la confiance de tous nos utilisateurs.'
             )}
@@ -127,6 +189,18 @@ export const VerifiedSellerGuard: React.FC<VerifiedSellerGuardProps> = ({ childr
                 <p className="text-xs text-muted-foreground">
                   Contactez le support pour plus d'informations
                 </p>
+              </div>
+            ) : verification?.verification_status === 'approved' ? (
+              <div className="text-center space-y-2">
+                <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-500/30">
+                  ✅ Approuvé - Synchronisation en cours
+                </Badge>
+                <p className="text-xs text-muted-foreground">
+                  Rechargez la page dans quelques instants
+                </p>
+                <Button variant="outline" onClick={() => window.location.reload()} className="mt-2">
+                  Recharger la page
+                </Button>
               </div>
             ) : (
               <>

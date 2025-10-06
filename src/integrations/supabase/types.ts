@@ -10037,6 +10037,10 @@ export type Database = {
         }
         Returns: Json
       }
+      diagnose_seller_status: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       disable_user_notifications: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -10129,6 +10133,10 @@ export type Database = {
       fix_invalid_coordinates: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      force_activate_seller: {
+        Args: { p_admin_notes?: string; p_user_id: string }
+        Returns: Json
       }
       generate_driver_code: {
         Args: Record<PropertyKey, never>
