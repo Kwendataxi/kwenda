@@ -130,7 +130,7 @@ const ModernHero = () => {
               
               {/* Liens inscription Chauffeur et Partenaire */}
               <div className="flex flex-col sm:flex-row gap-3 text-center sm:text-left">
-                <Link to="/partners/become-driver" className="flex-1">
+                <Link to="/partners/devenir-chauffeur" className="flex-1">
                   <Button 
                     variant="outline" 
                     size="sm"
