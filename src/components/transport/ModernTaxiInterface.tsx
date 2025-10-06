@@ -471,18 +471,6 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
               placeholder="Où allez-vous ?"
               types={['establishment', 'geocode']}
             />
-
-            {bookingData.pickup && (
-              <Card className="bg-card border border-border shadow-md">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Navigation className="h-4 w-4 text-primary" />
-                    <span className="text-muted-foreground">Départ:</span>
-                    <span className="font-medium">{bookingData.pickup.address}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </div>
         );
 
