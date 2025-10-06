@@ -50,22 +50,40 @@ export const useAdminAnalytics = () => {
       return
     }
 
+    console.log('📊 Starting dashboard analytics fetch for user:', user.id)
+    
     // Vérifier si l'utilisateur est admin via user_roles
     const { data: adminCheck, error: adminError } = await supabase
       .from('user_roles')
-      .select('id')
+      .select('id, role, admin_role')
       .eq('user_id', user.id)
       .eq('role', 'admin')
       .eq('is_active', true)
       .maybeSingle()
     
-    if (adminError || !adminCheck) {
-      console.error('❌ User is not an admin:', adminError?.message)
+    if (adminError) {
+      console.error('❌ Error checking admin status:', adminError)
+      toast({
+        title: "Erreur de vérification",
+        description: "Impossible de vérifier vos permissions",
+        variant: "destructive"
+      })
+      return
+    }
+    
+    if (!adminCheck) {
+      console.error('❌ User is not an admin')
+      toast({
+        title: "Accès refusé",
+        description: "Vous devez être administrateur pour accéder aux analytics",
+        variant: "destructive"
+      })
       return
     }
 
-    console.log('✅ Fetching dashboard analytics for admin:', user.id)
+    console.log('✅ Admin verified, fetching analytics...')
     setLoading(true)
+    
     try {
       const { data, error } = await supabase.functions.invoke('admin-analytics', {
         body: {
@@ -75,27 +93,52 @@ export const useAdminAnalytics = () => {
       })
 
       if (error) {
-        console.error('🔴 Edge function error:', error)
+        console.error('❌ Edge function error:', {
+          message: error.message,
+          status: error.status,
+          context: error.context
+        })
+        
         toast({
           title: "Erreur de connexion",
-          description: "Impossible de charger les analytics. Veuillez réessayer.",
+          description: `Impossible de charger les analytics: ${error.message || 'Erreur inconnue'}`,
           variant: "destructive"
         })
         throw error
       }
 
-      if (data.success) {
+      console.log('📦 Received response from edge function:', {
+        success: data?.success,
+        hasData: !!data?.data,
+        error: data?.error
+      })
+
+      if (data?.success) {
         console.log('✅ Dashboard analytics loaded successfully')
         setDashboardData(data.data)
       } else {
-        console.error('🔴 Analytics response not successful:', data)
-        throw new Error(data.error || 'Unknown error')
+        console.error('❌ Analytics response not successful:', {
+          error: data?.error,
+          details: data?.details
+        })
+        
+        toast({
+          title: "Erreur Analytics",
+          description: data?.error || "Réponse invalide du serveur",
+          variant: "destructive"
+        })
+        throw new Error(data?.error || 'Unknown error')
       }
     } catch (error: any) {
-      console.error('🔴 Error fetching dashboard analytics:', error)
+      console.error('❌ Fatal error fetching dashboard analytics:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      })
+      
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de charger les analytics",
+        description: error.message || "Impossible de charger les analytics. Veuillez réessayer.",
         variant: "destructive"
       })
     } finally {
