@@ -9528,10 +9528,17 @@ export type Database = {
     Views: {
       admin_users_cache: {
         Row: {
-          admin_role: string | null
+          admin_level: string | null
+          admin_role: Database["public"]["Enums"]["admin_role"] | null
           created_at: string | null
+          department: string | null
+          display_name: string | null
+          email: string | null
           is_active: boolean | null
-          role: string | null
+          last_login: string | null
+          permissions: string[] | null
+          phone_number: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
           updated_at: string | null
           user_id: string | null
         }
