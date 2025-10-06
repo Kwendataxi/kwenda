@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getVehicleClass } from '@/utils/pricingMapper';
 
 export interface VehicleTypeData {
   id: string;
@@ -30,13 +31,16 @@ export const useVehicleTypeManagement = () => {
 
       if (configError) throw configError;
 
-      // Récupérer les prix pour chaque véhicule
+      // Récupérer les prix pour chaque véhicule depuis pricing_rules
       const typesWithPricing = await Promise.all(
         (configs || []).map(async (config) => {
+          const vehicleClass = getVehicleClass(config.service_type);
+          
           const { data: pricing } = await supabase
-            .from('service_pricing')
+            .from('pricing_rules')
             .select('base_price, price_per_km')
-            .eq('service_type', config.service_type)
+            .eq('service_type', 'transport')
+            .eq('vehicle_class', vehicleClass)
             .eq('city', 'Kinshasa')
             .single();
 
@@ -70,17 +74,21 @@ export const useVehicleTypeManagement = () => {
 
       if (configError) throw configError;
 
-      // Mettre à jour les prix si fournis
+      // Mettre à jour les prix si fournis dans pricing_rules
       if (base_price !== undefined || price_per_km !== undefined) {
         const vehicleType = vehicleTypes?.find((v) => v.id === id);
         if (vehicleType) {
+          const vehicleClass = getVehicleClass(vehicleType.service_type);
+          
           const { error: pricingError } = await supabase
-            .from('service_pricing')
+            .from('pricing_rules')
             .update({
               ...(base_price !== undefined && { base_price }),
               ...(price_per_km !== undefined && { price_per_km }),
+              updated_at: new Date().toISOString(),
             })
-            .eq('service_type', vehicleType.service_type)
+            .eq('service_type', 'transport')
+            .eq('vehicle_class', vehicleClass)
             .eq('city', 'Kinshasa');
 
           if (pricingError) throw pricingError;
@@ -89,6 +97,7 @@ export const useVehicleTypeManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'vehicle-types'] });
+      queryClient.invalidateQueries({ queryKey: ['vehicle-types'] }); // Invalider le cache client
       toast.success('Type de véhicule mis à jour avec succès');
     },
     onError: (error) => {
