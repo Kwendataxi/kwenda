@@ -100,3 +100,6 @@ verify_jwt = false
 
 [functions.vendor-subscription-manager]
 verify_jwt = true
+
+[functions.auto-retry-delivery-dispatch]
+verify_jwt = false
