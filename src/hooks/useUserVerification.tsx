@@ -7,11 +7,13 @@ interface UserVerification {
   user_id: string;
   phone_verified: boolean;
   identity_verified: boolean;
-  verification_level: string; // Changed from union type to string to match Supabase type
+  verification_level: string;
   verification_documents: any[];
   verified_at: string | null;
   created_at: string;
   updated_at: string;
+  identity_document_url?: string | null;
+  verification_status?: string | null;
 }
 
 export const useUserVerification = () => {

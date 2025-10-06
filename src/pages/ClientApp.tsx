@@ -23,6 +23,7 @@ import { ResponsiveContainer } from '@/components/layout/ResponsiveContainer';
 import { MobileOptimizedLayout } from '@/components/layout/MobileOptimizedLayout';
 import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
 import StepByStepDeliveryInterface from '@/components/delivery/StepByStepDeliveryInterface';
+import { VerificationDocumentUpload } from '@/components/client/VerificationDocumentUpload';
 import { 
   MapPin, 
   Car, 
@@ -529,12 +530,17 @@ const ClientApp = () => {
         </Button>
         <h1 className="text-heading-lg text-card-foreground">Mon Profil</h1>
       </div>
-      <div className="px-4">
+      <div className="px-4 space-y-4">
         <ResponsiveUserProfile userType="client" onWalletAccess={() => {
           console.log('🚀 [ClientApp] onWalletAccess déclenché, changement vers wallet...');
           setCurrentView('wallet');
           console.log('✅ [ClientApp] setCurrentView("wallet") exécuté');
         }} />
+        
+        {/* Section Vérification d'Identité */}
+        <div className="pb-safe-area-inset">
+          <VerificationDocumentUpload />
+        </div>
       </div>
     </div>
   );
