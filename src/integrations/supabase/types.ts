@@ -10497,6 +10497,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      get_vehicle_types_with_pricing: {
+        Args: { p_city?: string }
+        Returns: Json
+      }
       get_vendor_dashboard_data: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -11048,6 +11052,24 @@ export type Database = {
       }
       update_user_average_rating: {
         Args: { p_user_id: string }
+        Returns: undefined
+      }
+      update_vehicle_pricing: {
+        Args: {
+          p_base_price: number
+          p_minimum_fare: number
+          p_price_per_km: number
+          p_pricing_id: string
+        }
+        Returns: undefined
+      }
+      update_vehicle_type_config: {
+        Args: {
+          p_description: string
+          p_display_name: string
+          p_is_active: boolean
+          p_service_type: string
+        }
         Returns: undefined
       }
       upsert_push_token: {

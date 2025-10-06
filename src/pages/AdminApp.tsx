@@ -31,6 +31,7 @@ import { AdminUserVerificationManager } from '@/components/admin/AdminUserVerifi
 import { DriverManagement } from '@/components/admin/drivers/DriverManagement';
 import { CancellationManagement } from '@/components/admin/CancellationManagement';
 import { VehicleTypeManager } from '@/components/admin/VehicleTypeManager';
+import { VehicleTypeConfigManager } from '@/components/admin/VehicleTypeConfigManager';
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -113,7 +114,7 @@ const AdminApp = () => {
         return (
           <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['transport_admin']}>
-              <VehicleTypeManager />
+              <VehicleTypeConfigManager />
             </FlexiblePermissionGuard>
           </Suspense>
         );
