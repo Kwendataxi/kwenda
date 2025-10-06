@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
@@ -7,6 +7,8 @@ import { useProfile } from '@/hooks/useProfile';
 import { AnimatedKwendaIcon } from './AnimatedKwendaIcon';
 import { GooglePlacesService } from '@/services/googlePlacesService';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { LocationDetailsSheet } from './LocationDetailsSheet';
+import { Button } from '@/components/ui/button';
 
 interface ModernHeaderProps {}
 
@@ -28,6 +30,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
   const geolocation = useGeolocation();
   const [currentAddress, setCurrentAddress] = useState(t('city.kinshasa') + ', RD Congo');
   const [geocodingLoading, setGeocodingLoading] = useState(false);
+  const [locationSheetOpen, setLocationSheetOpen] = useState(false);
   const { displayName, loading: profileLoading } = useProfile();
   
   
@@ -116,18 +119,23 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
               </p>
             </div>
             
-            {/* Location visible avec icône */}
+            {/* Interactive Location Button */}
             {geolocation.latitude && geolocation.longitude && (
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                <MapPin className="h-3 w-3 text-primary animate-pulse flex-shrink-0" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLocationSheetOpen(true)}
+                className="flex items-center gap-1.5 h-auto p-1.5 -ml-1.5 hover:bg-muted/70 transition-all group rounded-lg"
+              >
                 {geocodingLoading ? (
-                  <span className="animate-pulse">Localisation...</span>
+                  <span className="text-xs text-muted-foreground animate-pulse">Localisation...</span>
                 ) : currentAddress ? (
-                  <span className="truncate max-w-[180px] font-medium">{currentAddress}</span>
+                  <span className="text-xs text-muted-foreground truncate max-w-[180px] font-medium">{currentAddress}</span>
                 ) : (
-                  <span>Position détectée</span>
+                  <span className="text-xs text-muted-foreground">Position détectée</span>
                 )}
-              </div>
+                <ChevronDown className="h-3.5 w-3.5 text-primary flex-shrink-0 transition-transform duration-300 group-hover:rotate-180 group-hover:scale-110" />
+              </Button>
             )}
           </div>
           
@@ -138,6 +146,18 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
           </div>
         </div>
       </div>
+
+      {/* Location Details Sheet */}
+      <LocationDetailsSheet
+        open={locationSheetOpen}
+        onOpenChange={setLocationSheetOpen}
+        address={currentAddress || 'Position non disponible'}
+        coordinates={
+          geolocation.latitude && geolocation.longitude
+            ? { lat: geolocation.latitude, lng: geolocation.longitude }
+            : undefined
+        }
+      />
     </header>
   );
 };
