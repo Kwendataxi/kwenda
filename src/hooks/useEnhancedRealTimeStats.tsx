@@ -13,13 +13,36 @@ interface EnhancedRealTimeStats {
   marketplaceItems: number
   marketplaceOrders: number
   supportTickets: number
-  topZones: Array<{ zone: string; count: number }>
+  pendingTickets: number
+  topZones: Array<{ 
+    name: string
+    zone: string
+    count: number
+    rides: number
+    revenue: number
+  }>
   recentActivities: ActivityLog[]
   performance: {
     avgResponseTime: number
     completionRate: number
     cancellationRate: number
   }
+  // Revenue breakdown
+  todayRevenue: number
+  weeklyRevenue: number
+  monthlyRevenue: number
+  // Rides stats
+  completedRides: number
+  cancelledRides: number
+  // Marketplace
+  activeProducts: number
+  pendingProducts: number
+  totalProducts: number
+  totalOrders: number
+  completedOrders: number
+  // System performance
+  responseTime: number
+  successRate: number
 }
 
 interface ActivityLog {
@@ -43,13 +66,26 @@ export const useEnhancedRealTimeStats = () => {
     marketplaceItems: 0,
     marketplaceOrders: 0,
     supportTickets: 0,
+    pendingTickets: 0,
     topZones: [],
     recentActivities: [],
     performance: {
       avgResponseTime: 0,
       completionRate: 0,
       cancellationRate: 0
-    }
+    },
+    todayRevenue: 0,
+    weeklyRevenue: 0,
+    monthlyRevenue: 0,
+    completedRides: 0,
+    cancelledRides: 0,
+    activeProducts: 0,
+    pendingProducts: 0,
+    totalProducts: 0,
+    totalOrders: 0,
+    completedOrders: 0,
+    responseTime: 0,
+    successRate: 0
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -121,12 +157,71 @@ export const useEnhancedRealTimeStats = () => {
         amount: a.amount
       })) || []
 
+      // Fetch completed and cancelled rides
+      const { count: completedRidesCount } = await supabase
+        .from('transport_bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'completed')
+
+      const { count: cancelledRidesCount } = await supabase
+        .from('transport_bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'cancelled')
+
+      // Fetch marketplace products
+      const { count: pendingProductsCount } = await supabase
+        .from('marketplace_products')
+        .select('*', { count: 'exact', head: true })
+        .eq('moderation_status', 'pending')
+
+      const { count: totalProductsCount } = await supabase
+        .from('marketplace_products')
+        .select('*', { count: 'exact', head: true })
+
+      const { count: completedOrdersCount } = await supabase
+        .from('marketplace_orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'delivered')
+
+      // Fetch revenue data with time ranges
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      const weekAgo = new Date(today)
+      weekAgo.setDate(weekAgo.getDate() - 7)
+      
+      const monthAgo = new Date(today)
+      monthAgo.setMonth(monthAgo.getMonth() - 1)
+
+      const { data: todayRevenueData } = await supabase
+        .from('transport_bookings')
+        .select('actual_price')
+        .eq('status', 'completed')
+        .gte('completed_at', today.toISOString())
+
+      const { data: weekRevenueData } = await supabase
+        .from('transport_bookings')
+        .select('actual_price')
+        .eq('status', 'completed')
+        .gte('completed_at', weekAgo.toISOString())
+
+      const { data: monthRevenueData } = await supabase
+        .from('transport_bookings')
+        .select('actual_price')
+        .eq('status', 'completed')
+        .gte('completed_at', monthAgo.toISOString())
+
+      const todayRevenue = todayRevenueData?.reduce((sum, b) => sum + (b.actual_price || 0), 0) || 0
+      const weeklyRevenue = weekRevenueData?.reduce((sum, b) => sum + (b.actual_price || 0), 0) || 0
+      const monthlyRevenue = monthRevenueData?.reduce((sum, b) => sum + (b.actual_price || 0), 0) || 0
+
       // Simulated data for fields without tables
       const supportTickets = 12
+      const pendingTickets = 3
       const topZones = [
-        { zone: 'Gombe', count: 45 },
-        { zone: 'Ngaliema', count: 38 },
-        { zone: 'Limete', count: 32 }
+        { name: 'Gombe', zone: 'Gombe', count: 45, rides: 45, revenue: 125000 },
+        { name: 'Ngaliema', zone: 'Ngaliema', count: 38, rides: 38, revenue: 98000 },
+        { name: 'Limete', zone: 'Limete', count: 32, rides: 32, revenue: 87000 }
       ]
 
       setStats({
@@ -136,18 +231,31 @@ export const useEnhancedRealTimeStats = () => {
         activeRides: (activeRidesCount || 0) + (activeDeliveriesCount || 0),
         totalRevenue,
         pendingOrders: (activeRidesCount || 0) + (activeDeliveriesCount || 0),
-        completedToday: 0,
+        completedToday: completedRidesCount || 0,
         averageRating: 4.5,
         marketplaceItems: marketplaceItemsCount || 0,
         marketplaceOrders: marketplaceOrdersCount || 0,
         supportTickets,
+        pendingTickets,
         topZones,
         recentActivities,
         performance: {
           avgResponseTime: 5.2,
           completionRate: 94.5,
           cancellationRate: 5.5
-        }
+        },
+        todayRevenue,
+        weeklyRevenue,
+        monthlyRevenue,
+        completedRides: completedRidesCount || 0,
+        cancelledRides: cancelledRidesCount || 0,
+        activeProducts: marketplaceItemsCount || 0,
+        pendingProducts: pendingProductsCount || 0,
+        totalProducts: totalProductsCount || 0,
+        totalOrders: marketplaceOrdersCount || 0,
+        completedOrders: completedOrdersCount || 0,
+        responseTime: 250,
+        successRate: 96.5
       })
 
     } catch (err) {

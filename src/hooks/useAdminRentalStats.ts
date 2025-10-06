@@ -75,7 +75,7 @@ export const useAdminRentalStats = () => {
         // Revenus totaux
         supabase
           .from('partner_rental_bookings')
-          .select('total_amount')
+          .select('total_price')
           .eq('status', 'completed'),
         
         // Réservations terminées
@@ -95,7 +95,7 @@ export const useAdminRentalStats = () => {
       let totalRevenue = 0;
       if (revenueResult.data) {
         totalRevenue = revenueResult.data.reduce((sum, booking) => 
-          sum + (parseFloat(booking.total_amount.toString()) || 0), 0
+          sum + (parseFloat(booking.total_price?.toString() || '0') || 0), 0
         );
       }
 
