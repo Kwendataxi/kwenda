@@ -37,11 +37,16 @@ export default function AnimatedPolyline({ map, pickup, destination }: AnimatedP
     const content = document.createElement('div');
     content.className = 'distance-marker';
     content.innerHTML = `
-      <div class="relative animate-bounce">
-        <div class="bg-blue-500/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full shadow-lg border-2 border-white text-xs font-bold">
-          ${distanceKm.toFixed(1)} km
+      <div class="relative animate-bounce-subtle">
+        <!-- Badge distance Kwenda noir/rouge -->
+        <div class="relative px-3 py-1.5 rounded-full text-xs font-bold font-montserrat border-2 border-white/50" 
+             style="background: linear-gradient(135deg, #1A1A1A 0%, #2A2A2A 50%, #EF4444 100%); 
+                    color: white; 
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 16px rgba(239, 68, 68, 0.3);">
+          📏 ${distanceKm.toFixed(1)} km
         </div>
-        <div class="absolute inset-0 bg-blue-400 rounded-full animate-ping opacity-75"></div>
+        <!-- Pulsation subtile rouge -->
+        <div class="absolute inset-0 rounded-full animate-ping opacity-30" style="background: rgba(239, 68, 68, 0.5);"></div>
       </div>
     `;
 
@@ -81,26 +86,36 @@ export default function AnimatedPolyline({ map, pickup, destination }: AnimatedP
         const end = i === numSegments - 1 ? path.length : (i + 1) * segmentLength;
         const segmentPath = path.slice(start, end + 1);
 
-        // Calculer la couleur du gradient (vert -> bleu -> rouge)
+        // Gradient Kwenda : Noir (#1A1A1A) -> Rouge (#EF4444)
         const ratio = i / numSegments;
-        let color: string;
-        if (ratio < 0.5) {
-          // Vert vers bleu
-          const greenToBlue = ratio * 2;
-          color = `rgb(${Math.floor(34 + greenToBlue * 25)}, ${Math.floor(197 - greenToBlue * 67)}, ${Math.floor(94 + greenToBlue * 150)})`;
-        } else {
-          // Bleu vers rouge
-          const blueToRed = (ratio - 0.5) * 2;
-          color = `rgb(${Math.floor(59 + blueToRed * 180)}, ${Math.floor(130 - blueToRed * 47)}, ${Math.floor(246 - blueToRed * 162)})`;
-        }
+        
+        // Interpolation linéaire de noir vers rouge
+        // Noir RGB: 26, 26, 26 -> Rouge RGB: 239, 68, 68
+        const r = Math.floor(26 + ratio * (239 - 26));
+        const g = Math.floor(26 + ratio * (68 - 26));
+        const b = Math.floor(26 + ratio * (68 - 26));
+        
+        const color = `rgb(${r}, ${g}, ${b})`;
 
         const segment = new google.maps.Polyline({
           path: segmentPath,
           geodesic: true,
           strokeColor: color,
-          strokeOpacity: 0.8,
-          strokeWeight: 6,
-          map
+          strokeOpacity: 0.9,
+          strokeWeight: 7,
+          map,
+          icons: [{
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              fillColor: color,
+              fillOpacity: 0.8,
+              scale: 2,
+              strokeColor: 'white',
+              strokeWeight: 1
+            },
+            offset: '0',
+            repeat: '20px'
+          }]
         });
 
         segments.push(segment);
