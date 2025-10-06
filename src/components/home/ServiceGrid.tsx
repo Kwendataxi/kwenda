@@ -108,7 +108,7 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
     transport: '#E31E24',
     delivery: '#F4B223',
     rental: '#00A651',
-    marketplace: '#F4B223',
+    marketplace: 'linear-gradient(135deg, #2596be 0%, #5b21b6 100%)',
     lottery: 'linear-gradient(135deg, #9333EA 0%, #EC4899 100%)'
   };
 
