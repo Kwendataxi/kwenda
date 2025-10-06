@@ -18,6 +18,7 @@ interface ModernMapViewProps {
   onMapClick?: (location: { lat: number; lng: number }) => void;
   visualizationMode?: 'selection' | 'route' | 'tracking';
   currentDriverLocation?: { lat: number; lng: number };
+  userLocation?: { lat: number; lng: number } | null;
   className?: string;
 }
 
@@ -27,6 +28,7 @@ export default function ModernMapView({
   onMapClick,
   visualizationMode = 'selection',
   currentDriverLocation,
+  userLocation,
   className = ''
 }: ModernMapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -40,18 +42,34 @@ export default function ModernMapView({
 
     const initializeMap = async () => {
       try {
-        // Vérifier que google.maps.Map est bien disponible
+        // ✅ Double vérification avant création
         if (!window.google?.maps?.Map) {
-          console.error('google.maps.Map is not available');
+          console.error('❌ google.maps.Map is not available');
           return;
         }
 
-        // S'assurer que la bibliothèque maps est chargée
+        // ✅ S'assurer que la bibliothèque maps est chargée
+        console.log('🔄 Importing Google Maps library...');
         await window.google.maps.importLibrary('maps');
+        
+        // ✅ Délai de sécurité pour laisser le temps au constructeur de s'initialiser
+        await new Promise(resolve => setTimeout(resolve, 100));
 
+        // ✅ Vérification finale du constructeur
+        if (typeof window.google.maps.Map !== 'function') {
+          console.error('❌ google.maps.Map is not a constructor');
+          return;
+        }
+
+        // 📍 Centrage intelligent : pickup > userLocation > Kinshasa
         const defaultCenter = pickup 
           ? { lat: pickup.lat, lng: pickup.lng }
-          : { lat: -4.3217, lng: 15.3069 }; // Kinshasa par défaut
+          : userLocation
+          ? { lat: userLocation.lat, lng: userLocation.lng }
+          : { lat: -4.3217, lng: 15.3069 }; // Kinshasa en dernier recours
+        
+        console.log('📍 Map center:', defaultCenter, 
+          pickup ? '(pickup)' : userLocation ? '(user location)' : '(Kinshasa default)');
 
         const map = new google.maps.Map(mapRef.current!, {
           center: defaultCenter,
@@ -101,13 +119,14 @@ export default function ModernMapView({
 
         mapInstanceRef.current = map;
         setIsMapReady(true);
+        console.log('✅ Map initialized successfully');
       } catch (err) {
-        console.error('Erreur initialisation carte:', err);
+        console.error('❌ Erreur initialisation carte:', err);
       }
     };
 
     initializeMap();
-  }, [isLoaded, onMapClick]);
+  }, [isLoaded, onMapClick, pickup, userLocation]);
 
   // Créer un effet ripple au clic
   const createRippleEffect = (position: google.maps.LatLng) => {

@@ -111,10 +111,24 @@ class GoogleMapsLoaderService {
     try {
       await window.google.maps.importLibrary('maps');
       
-      // Vérifier que google.maps.Map est bien un constructeur
-      if (typeof window.google.maps.Map !== 'function') {
-        throw new Error('google.maps.Map is not a constructor');
+      // ✅ Polling robuste pour vérifier que Map est bien un constructeur
+      const maxAttempts = 20;
+      const delayMs = 100;
+      
+      for (let i = 0; i < maxAttempts; i++) {
+        if (typeof window.google.maps.Map === 'function') {
+          // Double vérification avec le prototype
+          if (window.google.maps.Map.prototype?.constructor) {
+            console.log('✅ google.maps.Map is ready as a constructor');
+            return;
+          }
+        }
+        
+        // Attendre avant la prochaine vérification
+        await new Promise(resolve => setTimeout(resolve, delayMs));
       }
+      
+      throw new Error('google.maps.Map is not a constructor after waiting');
     } catch (error) {
       console.error('Error importing maps library:', error);
       throw error;

@@ -28,6 +28,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import DriverSearchDialog from './DriverSearchDialog';
 import ModernMapView from './map/ModernMapView';
+import { useSmartGeolocation } from '@/hooks/useSmartGeolocation';
 
 interface TaxiBookingData {
   pickup: LocationData | null;
@@ -74,6 +75,14 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useLanguage();
+  
+  // 📍 Géolocalisation intelligente
+  const { 
+    currentLocation, 
+    loading: locationLoading,
+    getCurrentPosition,
+    currentCity 
+  } = useSmartGeolocation();
   // Utility functions for distance calculation
   const calculateDistance = (point1: { lat: number; lng: number }, point2: { lat: number; lng: number }) => {
     const R = 6371000; // Earth's radius in meters
@@ -112,6 +121,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [estimatedPrice, setEstimatedPrice] = useState<number>(0);
   const [estimatedDuration, setEstimatedDuration] = useState<string>('');
   const [showMap, setShowMap] = useState(true);
+  const [detectedCity, setDetectedCity] = useState<string | null>(null);
   
   // Driver search dialog state
   const [showSearchDialog, setShowSearchDialog] = useState(false);
@@ -123,6 +133,27 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   
   // 🔥 Hook pour suivre la progression RÉELLE du dispatcher
   const dispatchProgress = useRideDispatchProgress(currentBookingId);
+
+  // 📍 Détecter la position utilisateur au montage
+  useEffect(() => {
+    const detectUserLocation = async () => {
+      try {
+        await getCurrentPosition();
+        if (currentCity) {
+          setDetectedCity(currentCity.name);
+          console.log('📍 Ville détectée:', currentCity.name);
+          toast({
+            title: `📍 Carte centrée sur ${currentCity.name}`,
+            description: `Position détectée: ${currentCity.name}`,
+          });
+        }
+      } catch (error) {
+        console.error('Erreur détection position:', error);
+      }
+    };
+    
+    detectUserLocation();
+  }, []);
 
   // 🔥 Écouter les updates en temps réel du dispatcher
   useEffect(() => {
@@ -622,9 +653,16 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
           <ModernMapView
             pickup={bookingData.pickup}
             destination={bookingData.destination}
+            userLocation={currentLocation ? { lat: currentLocation.lat, lng: currentLocation.lng } : null}
             visualizationMode={getMapVisualizationMode()}
             className="h-full"
           />
+          {/* Badge ville détectée */}
+          {detectedCity && (
+            <div className="absolute top-3 left-3 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md">
+              <span className="text-xs font-medium">📍 {detectedCity}</span>
+            </div>
+          )}
           {/* Bouton pour masquer la carte (sur mobile) */}
           <button
             onClick={() => setShowMap(false)}
