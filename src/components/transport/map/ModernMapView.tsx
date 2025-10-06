@@ -50,6 +50,9 @@ export default function ModernMapView({
           streetViewControl: false,
           fullscreenControl: false,
           zoomControl: true,
+          // Tilt pour effet 3D
+          tilt: 45,
+          heading: 0,
           styles: [
             {
               featureType: 'poi',
@@ -60,14 +63,21 @@ export default function ModernMapView({
               featureType: 'transit',
               elementType: 'labels.icon',
               stylers: [{ visibility: 'off' }]
+            },
+            {
+              featureType: 'all',
+              elementType: 'geometry',
+              stylers: [{ saturation: 10 }, { lightness: 5 }]
             }
           ]
         });
 
-        // Gestion du clic sur la carte
+        // Gestion du clic sur la carte avec effet ripple
         if (onMapClick) {
           map.addListener('click', (e: google.maps.MapMouseEvent) => {
             if (e.latLng) {
+              // Créer effet ripple
+              createRippleEffect(e.latLng);
               onMapClick({
                 lat: e.latLng.lat(),
                 lng: e.latLng.lng()
@@ -86,23 +96,178 @@ export default function ModernMapView({
     initializeMap();
   }, [isLoaded, onMapClick]);
 
-  // Ajuster la vue pour afficher pickup et destination
+  // Créer un effet ripple au clic
+  const createRippleEffect = (position: google.maps.LatLng) => {
+    if (!mapInstanceRef.current) return;
+
+    const ripple = new google.maps.Circle({
+      strokeColor: '#3B82F6',
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: '#3B82F6',
+      fillOpacity: 0.35,
+      map: mapInstanceRef.current,
+      center: position,
+      radius: 10
+    });
+
+    let currentRadius = 10;
+    const maxRadius = 100;
+    const step = 10;
+
+    const animate = () => {
+      currentRadius += step;
+      if (currentRadius < maxRadius) {
+        ripple.setRadius(currentRadius);
+        ripple.setOptions({
+          fillOpacity: 0.35 * (1 - currentRadius / maxRadius),
+          strokeOpacity: 0.8 * (1 - currentRadius / maxRadius)
+        });
+        requestAnimationFrame(animate);
+      } else {
+        ripple.setMap(null);
+      }
+    };
+
+    animate();
+  };
+
+  // Animations de caméra sophistiquées
   useEffect(() => {
     if (!mapInstanceRef.current || !isMapReady) return;
 
     if (pickup && destination) {
+      // Animation fluide vers les bounds
       const bounds = new google.maps.LatLngBounds();
       bounds.extend({ lat: pickup.lat, lng: pickup.lng });
       bounds.extend({ lat: destination.lat, lng: destination.lng });
-      mapInstanceRef.current.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+      
+      // Animation de caméra avec tilt progressif
+      const animateCamera = async () => {
+        // Phase 1: Zoom out avec tilt
+        await animateCameraTransition({
+          center: bounds.getCenter(),
+          zoom: 11,
+          tilt: 60,
+          heading: 0
+        }, 1000);
+
+        // Phase 2: Fit bounds avec animation
+        mapInstanceRef.current!.fitBounds(bounds, { 
+          top: 80, 
+          right: 80, 
+          bottom: 80, 
+          left: 80 
+        });
+
+        // Phase 3: Ajuster tilt pour vue optimale
+        setTimeout(() => {
+          animateCameraTransition({
+            tilt: 45,
+            heading: 15
+          }, 800);
+        }, 500);
+      };
+
+      animateCamera();
     } else if (pickup) {
-      mapInstanceRef.current.setCenter({ lat: pickup.lat, lng: pickup.lng });
-      mapInstanceRef.current.setZoom(15);
+      // Animation vers pickup uniquement
+      animateCameraTransition({
+        center: { lat: pickup.lat, lng: pickup.lng },
+        zoom: 15,
+        tilt: 45,
+        heading: 0
+      }, 1000);
     } else if (destination) {
-      mapInstanceRef.current.setCenter({ lat: destination.lat, lng: destination.lng });
-      mapInstanceRef.current.setZoom(15);
+      // Animation vers destination uniquement
+      animateCameraTransition({
+        center: { lat: destination.lat, lng: destination.lng },
+        zoom: 15,
+        tilt: 45,
+        heading: 0
+      }, 1000);
     }
   }, [pickup, destination, isMapReady]);
+
+  // Fonction d'animation de caméra fluide
+  const animateCameraTransition = (
+    targetOptions: {
+      center?: google.maps.LatLng | google.maps.LatLngLiteral;
+      zoom?: number;
+      tilt?: number;
+      heading?: number;
+    },
+    duration: number
+  ): Promise<void> => {
+    return new Promise((resolve) => {
+      if (!mapInstanceRef.current) {
+        resolve();
+        return;
+      }
+
+      const map = mapInstanceRef.current;
+      const startTime = Date.now();
+      const startCenter = map.getCenter();
+      const startZoom = map.getZoom() || 13;
+      const startTilt = map.getTilt() || 0;
+      const startHeading = map.getHeading() || 0;
+
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function (ease-in-out)
+        const eased = progress < 0.5
+          ? 2 * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+        // Interpoler les valeurs
+        if (targetOptions.center && startCenter) {
+          let targetLat: number;
+          let targetLng: number;
+          
+          if (typeof targetOptions.center === 'object' && 'lat' in targetOptions.center) {
+            targetLat = typeof targetOptions.center.lat === 'function' 
+              ? targetOptions.center.lat() 
+              : targetOptions.center.lat;
+            targetLng = typeof targetOptions.center.lng === 'function'
+              ? targetOptions.center.lng()
+              : targetOptions.center.lng;
+          } else {
+            targetLat = (targetOptions.center as google.maps.LatLng).lat();
+            targetLng = (targetOptions.center as google.maps.LatLng).lng();
+          }
+          
+          const lat = startCenter.lat() + (targetLat - startCenter.lat()) * eased;
+          const lng = startCenter.lng() + (targetLng - startCenter.lng()) * eased;
+          map.setCenter({ lat, lng });
+        }
+
+        if (targetOptions.zoom !== undefined) {
+          const zoom = startZoom + (targetOptions.zoom - startZoom) * eased;
+          map.setZoom(zoom);
+        }
+
+        if (targetOptions.tilt !== undefined) {
+          const tilt = startTilt + (targetOptions.tilt - startTilt) * eased;
+          map.setTilt(tilt);
+        }
+
+        if (targetOptions.heading !== undefined) {
+          const heading = startHeading + (targetOptions.heading - startHeading) * eased;
+          map.setHeading(heading);
+        }
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          resolve();
+        }
+      };
+
+      animate();
+    });
+  };
 
   if (error) {
     return (

@@ -29,19 +29,20 @@ export default function CustomMarkers({
     const div = document.createElement('div');
     div.className = 'relative';
     div.innerHTML = `
-      <div class="relative">
+      <div class="relative animate-bounce-subtle">
         <!-- Pulse animation -->
         <div class="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75"></div>
+        <div class="absolute inset-0 rounded-full bg-green-400 animate-pulse-soft opacity-50"></div>
         <!-- Main marker -->
-        <div class="relative flex items-center justify-center w-12 h-12 bg-green-500 rounded-full shadow-lg border-4 border-white">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-full shadow-xl border-4 border-white animate-pulse-soft">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-white drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </div>
         <!-- Label -->
-        <div class="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold shadow-md">
-          Départ
+        <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg animate-slide-in-up border border-white/50">
+          📍 Départ
         </div>
       </div>
     `;
@@ -53,18 +54,19 @@ export default function CustomMarkers({
     const div = document.createElement('div');
     div.className = 'relative';
     div.innerHTML = `
-      <div class="relative">
+      <div class="relative animate-bounce-subtle">
         <!-- Wave animation -->
         <div class="absolute inset-0 rounded-full bg-red-500 animate-pulse opacity-50"></div>
+        <div class="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-40"></div>
         <!-- Main marker -->
-        <div class="relative flex items-center justify-center w-12 h-12 bg-red-500 rounded-full shadow-lg border-4 border-white">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-red-400 to-red-600 rounded-full shadow-xl border-4 border-white animate-pulse-soft">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-white drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
           </svg>
         </div>
         <!-- Label -->
-        <div class="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold shadow-md">
-          Arrivée
+        <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg animate-slide-in-up border border-white/50">
+          🎯 Arrivée
         </div>
       </div>
     `;
