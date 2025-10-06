@@ -40,6 +40,11 @@ export const useAdminAnalytics = () => {
     top_zones: any[]
     revenue_trend: any[]
   } | null>(null)
+  const [cachedData, setCachedData] = useState<{
+    overview: DashboardOverview
+    top_zones: any[]
+    revenue_trend: any[]
+  } | null>(null)
 
   const fetchDashboardAnalytics = async (dateRange?: AnalyticsDateRange) => {
     if (!user) {
@@ -129,6 +134,9 @@ export const useAdminAnalytics = () => {
       if (data?.success) {
         console.log('✅ Dashboard analytics loaded successfully')
         setDashboardData(data.data)
+        setCachedData(data.data)
+        // Cache pour fallback
+        localStorage.setItem('admin_analytics_cache', JSON.stringify(data.data))
       } else {
         console.error('❌ Analytics response not successful:', {
           error: data?.error,
@@ -144,6 +152,22 @@ export const useAdminAnalytics = () => {
       }
     } catch (error: any) {
       console.error('❌ Error in fetchDashboardAnalytics:', error)
+      
+      // Essayer d'utiliser le cache en cas d'erreur
+      const cached = localStorage.getItem('admin_analytics_cache')
+      if (cached && !dashboardData) {
+        try {
+          const parsedCache = JSON.parse(cached)
+          setDashboardData(parsedCache)
+          setCachedData(parsedCache)
+          toast({
+            title: "Données en cache",
+            description: "Affichage des dernières données disponibles",
+          })
+        } catch (e) {
+          console.error('Cache parsing error:', e)
+        }
+      }
       
       // Retry logic avec backoff exponentiel
       if (retryCount < maxRetries && error.message?.includes('Timeout')) {

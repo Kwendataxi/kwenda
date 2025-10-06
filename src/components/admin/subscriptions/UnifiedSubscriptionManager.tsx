@@ -13,26 +13,28 @@ export const UnifiedSubscriptionManager = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const { stats, loading } = useUnifiedSubscriptions();
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Chargement des abonnements...</span>
-      </div>
-    );
-  }
+  // Ne pas bloquer l'interface si les stats chargent
+  const hasLoadingStats = loading && !stats;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Gestion des Abonnements</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold">Gestion des Abonnements</h1>
+            {hasLoadingStats && (
+              <Badge variant="outline">
+                <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                Chargement des statistiques...
+              </Badge>
+            )}
+          </div>
           <p className="text-muted-foreground">
             Interface unifiée pour gérer tous les types d'abonnements
           </p>
         </div>
         
-        {stats && (
+        {stats ? (
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             <Card className="p-4">
               <div className="flex items-center gap-2">
@@ -68,7 +70,13 @@ export const UnifiedSubscriptionManager = () => {
               </Card>
             )}
           </div>
-        )}
+        ) : !hasLoadingStats ? (
+          <Card className="p-4">
+            <p className="text-sm text-muted-foreground">
+              Les statistiques ne sont pas disponibles pour le moment.
+            </p>
+          </Card>
+        ) : null}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

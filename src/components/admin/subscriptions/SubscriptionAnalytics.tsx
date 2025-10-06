@@ -14,15 +14,8 @@ import {
 export const SubscriptionAnalytics = () => {
   const { driverSubscriptions, rentalSubscriptions, stats, loading } = useUnifiedSubscriptions();
 
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Affichage partiel pendant le chargement
+  const isPartialData = loading || !driverSubscriptions || !rentalSubscriptions;
 
   // Préparer les données pour les graphiques
   const now = new Date();
@@ -113,6 +106,17 @@ export const SubscriptionAnalytics = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {isPartialData && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="flex items-center gap-2 p-4">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-600"></div>
+            <p className="text-sm text-amber-700">
+              Chargement des analytics détaillées...
+            </p>
+          </CardContent>
+        </Card>
+      )}
+      
       {/* KPIs Financiers */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-l-4 border-l-blue-500">

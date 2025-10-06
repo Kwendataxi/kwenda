@@ -15,7 +15,7 @@ export function AdminAnalyticsDashboard() {
   const [selectedCity, setSelectedCity] = useState('all');
 
   // Fetch real analytics data
-  const { data: analyticsData, isLoading } = useQuery({
+  const { data: analyticsData, isLoading, isError, error } = useQuery({
     queryKey: ['adminAnalytics', timeRange, selectedCity],
     queryFn: async () => {
       const endDate = new Date();
@@ -126,13 +126,66 @@ export function AdminAnalyticsDashboard() {
         }
       };
     },
-    refetchInterval: 60000 // Refresh every minute
+    refetchInterval: 60000, // Refresh every minute
+    retry: 2,
+    retryDelay: 1000
   });
 
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1'];
 
+  if (isError) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <Activity className="h-5 w-5" />
+              Erreur de chargement des analytics
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {error?.message || "Impossible de charger les données d'analyse"}
+            </p>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.location.reload()}
+            >
+              Réessayer
+            </Button>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-muted-foreground text-center">
+              Les analytics détaillées ne sont pas disponibles. 
+              Consultez les autres sections pour les données en temps réel.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (isLoading) {
-    return <div className="flex items-center justify-center p-8">Chargement des analytics...</div>;
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-lg">
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+          <span>Chargement des analytics...</span>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="h-20 bg-muted/50 animate-pulse rounded"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
