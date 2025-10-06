@@ -87,7 +87,8 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
           <aside className={cn(
             "shrink-0 sticky top-4 self-start",
             "w-56 lg:w-64 xl:w-72",
-            "max-h-[calc(100vh-2rem)]",
+            "h-[calc(100vh-2rem)]",
+            "flex flex-col",
             "overflow-hidden rounded-lg border border-border/40 bg-card/50",
             "shadow-md transition-all duration-300"
           )}>
@@ -96,7 +97,9 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
                 <AdminPermissionSettings />
               </div>
             )}
-            <AdminVerticalNav activeTab={activeTab} onTabChange={onTabChange} devMode={devMode} />
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <AdminVerticalNav activeTab={activeTab} onTabChange={onTabChange} devMode={devMode} />
+            </div>
           </aside>
           <section className="flex-1">
             {/* KPI Grid - only on overview */}
