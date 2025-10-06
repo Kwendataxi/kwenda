@@ -6,9 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, XCircle, AlertCircle, Phone, Mail, Calendar, ZoomIn, RotateCw, ShieldCheck } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, Phone, Mail, Calendar, ZoomIn, RotateCw, ShieldCheck, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { VerificationHistoryTimeline } from './VerificationHistoryTimeline';
 import { DocumentPreview } from './DocumentPreview';
 import { formatDistanceToNow } from 'date-fns';
@@ -23,6 +24,7 @@ interface VerificationDetailDialogProps {
 
 export const VerificationDetailDialog = ({ verification, open, onClose, onSuccess }: VerificationDetailDialogProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [phoneVerified, setPhoneVerified] = useState(verification.phone_verified);
   const [identityVerified, setIdentityVerified] = useState(verification.identity_verified);
   const [verificationLevel, setVerificationLevel] = useState(verification.verification_level);
@@ -66,6 +68,55 @@ export const VerificationDetailDialog = ({ verification, open, onClose, onSucces
       toast({
         title: 'Erreur',
         description: error.message || 'Impossible de traiter la demande',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleRequestDocument = async () => {
+    setIsProcessing(true);
+    try {
+      // Créer une notification pour demander le document
+      const { error: notifError } = await supabase
+        .from('delivery_notifications')
+        .insert({
+          user_id: verification.user_id,
+          notification_type: 'verification_request',
+          title: '📄 Document requis pour vendre',
+          message: 'Pour pouvoir vendre sur la marketplace, veuillez télécharger votre document d\'identité dans votre profil.',
+          metadata: {
+            action: 'upload_document',
+            admin_id: user?.id,
+            requested_at: new Date().toISOString()
+          }
+        });
+
+      if (notifError) throw notifError;
+
+      // Logger l'action
+      await supabase.from('activity_logs').insert({
+        user_id: user?.id,
+        activity_type: 'document_request',
+        description: 'Demande de document d\'identité envoyée',
+        metadata: {
+          target_user_id: verification.user_id,
+          target_email: verification.clients?.email
+        }
+      });
+
+      toast({
+        title: '✅ Demande envoyée',
+        description: 'L\'utilisateur a été notifié de télécharger son document'
+      });
+
+      onSuccess();
+    } catch (error: any) {
+      console.error('Request document error:', error);
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Impossible d\'envoyer la demande',
         variant: 'destructive'
       });
     } finally {
@@ -123,10 +174,14 @@ export const VerificationDetailDialog = ({ verification, open, onClose, onSucces
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{verification.clients?.phone_number}</span>
-                  {verification.phone_verified && (
+                  <span className="text-sm">{verification.clients?.phone_number || 'Non renseigné'}</span>
+                  {verification.phone_verified ? (
                     <Badge variant="outline" className="bg-green-50 text-green-700 text-xs">
                       <CheckCircle className="h-3 w-3 mr-1" />Vérifié
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-red-50 text-red-700 text-xs">
+                      <XCircle className="h-3 w-3 mr-1" />Non vérifié
                     </Badge>
                   )}
                 </div>
@@ -141,6 +196,31 @@ export const VerificationDetailDialog = ({ verification, open, onClose, onSucces
                 </div>
               </div>
             </div>
+
+            {/* Alertes informations manquantes */}
+            {(!verification.clients?.phone_number || !verification.identity_document_url) && (
+              <div className="bg-red-50 dark:bg-red-950/20 border-2 border-red-300 dark:border-red-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 space-y-2">
+                    <h4 className="font-semibold text-red-900 dark:text-red-100">
+                      Informations manquantes
+                    </h4>
+                    <ul className="space-y-1 text-sm text-red-800 dark:text-red-200">
+                      {!verification.clients?.phone_number && (
+                        <li>• Numéro de téléphone manquant</li>
+                      )}
+                      {!verification.identity_document_url && (
+                        <li>• Document d'identité non fourni</li>
+                      )}
+                    </ul>
+                    <p className="text-xs text-red-700 dark:text-red-300 mt-2">
+                      Utilisez le bouton "Demander Document" ci-dessous pour notifier l'utilisateur
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Document Preview */}
             <div className="space-y-2">
@@ -347,6 +427,28 @@ export const VerificationDetailDialog = ({ verification, open, onClose, onSucces
                     </>
                   )}
                 </Button>
+
+                {/* Bouton spécifique pour demander le document */}
+                {!verification.identity_document_url && (
+                  <Button
+                    onClick={handleRequestDocument}
+                    disabled={isProcessing}
+                    variant="outline"
+                    className="w-full border-2 border-blue-300 text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950 font-semibold h-12 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <div className="h-5 w-5 mr-2 animate-spin rounded-full border-2 border-blue-700 border-t-transparent" />
+                        Envoi...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-5 w-5 mr-2" />
+                        Demander Document
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           </div>
