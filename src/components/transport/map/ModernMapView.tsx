@@ -358,6 +358,25 @@ export default function ModernMapView({
           </span>
         </div>
       )}
+      
+      {/* 🙈 Phase 3: Masquer les crédits Google Maps */}
+      <style dangerouslySetInnerHTML={{__html: `
+        /* Masquer les contrôles copyright Google */
+        .gm-style-cc,
+        .gm-style a[href^="https://maps.google.com/maps"],
+        .gmnoprint,
+        .gm-style-mtc,
+        a[title="Report errors in the road map or imagery to Google"] {
+          opacity: 0.1 !important;
+          pointer-events: none !important;
+        }
+        
+        /* Positionner discrètement en bas à droite */
+        .gm-style-cc {
+          bottom: 2px !important;
+          right: 2px !important;
+        }
+      `}} />
     </div>
   );
 }

@@ -639,7 +639,8 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
 
   // Déterminer le mode de visualisation de la carte
   const getMapVisualizationMode = () => {
-    if (step === 'confirm' && bookingData.pickup && bookingData.destination) {
+    // 🎯 Phase 1: Afficher la route dès que pickup ET destination sont définis
+    if (bookingData.pickup && bookingData.destination) {
       return 'route';
     }
     return 'selection';
