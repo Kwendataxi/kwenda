@@ -24,9 +24,27 @@ export const useDeliveryOrders = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
+  // Validation des numéros de téléphone
+  const validatePhoneNumber = (phone: string | undefined): boolean => {
+    if (!phone) return false;
+    // Regex identique à celle de la contrainte DB: +243878754545 ou 243878754545 ou 0878754545
+    return /^\+?[0-9]{9,15}$/.test(phone);
+  };
+
   const createDeliveryOrder = async (data: DeliveryData) => {
     if (!user) {
       toast.error('Vous devez être connecté pour commander une livraison');
+      return null;
+    }
+
+    // Validation des numéros avant envoi
+    if (data.recipientPhone && !validatePhoneNumber(data.recipientPhone)) {
+      toast.error('Numéro du destinataire invalide. Format: +243XXXXXXXXX');
+      return null;
+    }
+    
+    if (data.senderPhone && !validatePhoneNumber(data.senderPhone)) {
+      toast.error('Numéro de l\'expéditeur invalide. Format: +243XXXXXXXXX');
       return null;
     }
 

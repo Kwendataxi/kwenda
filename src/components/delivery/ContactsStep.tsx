@@ -44,17 +44,31 @@ export default function ContactsStep({
   }, [userProfile, senderName, senderPhone]);
 
   const formatPhoneNumber = (value: string): string => {
-    // Nettoyer le numéro (enlever espaces et caractères spéciaux sauf +)
+    // Nettoyer complètement (enlever TOUS les caractères non-numériques sauf +)
     let cleaned = value.replace(/[^\d+]/g, '');
+    
+    // Supprimer les + multiples (garder seulement le premier)
+    const plusCount = (cleaned.match(/\+/g) || []).length;
+    if (plusCount > 1) {
+      cleaned = '+' + cleaned.replace(/\+/g, '');
+    }
     
     // Si commence par 0, remplacer par +243
     if (cleaned.startsWith('0')) {
       cleaned = '+243' + cleaned.substring(1);
     }
     
-    // Si ne commence pas par +, ajouter +243
-    if (!cleaned.startsWith('+')) {
+    // Si ne commence pas par + et n'est pas vide, ajouter +243
+    if (cleaned && !cleaned.startsWith('+')) {
       cleaned = '+243' + cleaned;
+    }
+    
+    // Limiter à 15 chiffres (+ le +)
+    if (cleaned.startsWith('+')) {
+      const digits = cleaned.substring(1);
+      if (digits.length > 15) {
+        cleaned = '+' + digits.substring(0, 15);
+      }
     }
     
     return cleaned;
