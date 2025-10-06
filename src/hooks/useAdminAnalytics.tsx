@@ -63,7 +63,7 @@ export const useAdminAnalytics = () => {
         .eq('role', 'admin')
       
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout vérifiant les permissions admin')), 10000)
+        setTimeout(() => reject(new Error('Timeout vérifiant les permissions admin')), 30000)
       );
       
       const adminCheckWithActive = adminCheckPromise

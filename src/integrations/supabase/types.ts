@@ -9526,6 +9526,17 @@ export type Database = {
       }
     }
     Views: {
+      admin_users_cache: {
+        Row: {
+          admin_role: string | null
+          created_at: string | null
+          is_active: boolean | null
+          role: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       assignment_conflicts_view: {
         Row: {
           created_at: string | null
@@ -10906,6 +10917,10 @@ export type Database = {
           p_unit?: string
         }
         Returns: string
+      }
+      refresh_admin_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       refresh_admin_rental_stats: {
         Args: Record<PropertyKey, never>

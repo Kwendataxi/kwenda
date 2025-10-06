@@ -22,7 +22,7 @@ export const FlexiblePermissionGuard = ({
   fallback = null,
   showError = false
 }: FlexiblePermissionGuardProps) => {
-  const { hasPermission, hasAnyPermission, hasRole, loading, error } = useUserRoles();
+  const { hasPermission, hasAnyPermission, hasRole, loading, error, isDegradedMode } = useUserRoles();
   const { showAllSections } = useAdminPermissions();
 
   // Si le mode "Afficher toutes les sections" est activé, on autorise l'accès
@@ -72,6 +72,22 @@ export const FlexiblePermissionGuard = ({
 
   const hasAccess = hasRequiredPermissions && hasRequiredRoles;
 
+  if (hasAccess) {
+    return (
+      <>
+        {isDegradedMode && (
+          <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center gap-2">
+            <span className="text-warning text-sm font-medium">⚠️ Mode Dégradé</span>
+            <span className="text-xs text-muted-foreground">
+              Permissions en cache (connexion serveur limitée)
+            </span>
+          </div>
+        )}
+        {children}
+      </>
+    );
+  }
+
   if (!hasAccess) {
     if (fallback) {
       return <>{fallback}</>;
@@ -91,5 +107,5 @@ export const FlexiblePermissionGuard = ({
     return null;
   }
 
-  return <>{children}</>;
+  return null;
 };
