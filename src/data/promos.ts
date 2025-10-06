@@ -31,7 +31,7 @@ export const defaultPromos: Promo[] = [
   {
     id: '4',
     title: 'Location de véhicules',
-    description: 'À partir de 50 000 CDF/jour',
+    description: 'À partir de 75 000 CDF/jour',
     image: '',
     gradient: 'from-green-500 via-emerald-500 to-green-600',
     cta: 'Réserver',
