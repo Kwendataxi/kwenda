@@ -83,17 +83,6 @@ export const ThemeToggleSection = () => {
             </CardContent>
           </Card>
         </div>
-
-        <div className="mt-8">
-          <Button 
-            variant="outline" 
-            onClick={() => window.location.href = '/?dark-mode-demo=true'}
-            className="group"
-          >
-            <Sparkles className="h-4 w-4 mr-2 group-hover:animate-pulse" />
-            Voir la démo complète
-          </Button>
-        </div>
       </div>
     </section>
   );
