@@ -133,11 +133,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const loadProducts = async () => {
     try {
       setLoading(true);
+      // ✅ FILTRE : Uniquement les produits approuvés visibles sur la marketplace
       const { data, error } = await supabase
         .from('marketplace_products')
         .select('*')
         .eq('status', 'active')
-        .eq('moderation_status', 'approved')
+        .eq('moderation_status', 'approved')  // ✅ Produits approuvés uniquement
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -285,24 +286,43 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   };
 
   const handleProductSubmit = async (productData: any) => {
-    // Create product in Supabase
-    const { data, error } = await supabase
-      .from('marketplace_products')
-      .insert({
-        title: productData.title,
-        description: productData.description,
-        price: productData.price,
-        category: productData.category,
-        condition: productData.condition || 'new',
-        images: productData.images || [],
-        seller_id: user?.id,
-        location: productData.location,
-        coordinates: productData.coordinates,
-        status: 'active'
+    try {
+      // Create product in Supabase with pending moderation status
+      const { data, error } = await supabase
+        .from('marketplace_products')
+        .insert({
+          title: productData.title,
+          description: productData.description,
+          price: productData.price,
+          category: productData.category,
+          condition: productData.condition || 'new',
+          images: productData.images || [],
+          seller_id: user?.id,
+          location: productData.location,
+          coordinates: productData.coordinates,
+          status: 'active',
+          moderation_status: 'pending'  // ✅ Explicitement défini
+        });
+
+      if (error) throw error;
+
+      // ✅ Notification vendeur : produit en attente de modération
+      toast({
+        title: '📝 Produit soumis avec succès',
+        description: 'Votre produit est en cours de modération et sera visible après approbation par un administrateur.',
+        duration: 4000,
       });
 
-    if (error) throw error;
-    console.log('Product created:', data);
+      console.log('Product created:', data);
+    } catch (error) {
+      console.error('Error creating product:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de créer le produit. Veuillez réessayer.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
   };
 
   const handleCheckout = async () => {
