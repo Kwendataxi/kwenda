@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { Crosshair, Navigation, CheckCircle, AlertCircle, Loader2, Target } from 'lucide-react';
+import { Navigation2, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useSmartGeolocation, type LocationData } from '@/hooks/useSmartGeolocation';
@@ -117,13 +117,13 @@ export const CurrentLocationButton: React.FC<CurrentLocationButtonProps> = ({
   const getIcon = () => {
     switch (localState) {
       case 'loading':
-        return <Target className="h-4 w-4 animate-spin text-primary" />;
+        return <Navigation2 className="h-4 w-4 animate-spin text-primary" />;
       case 'success':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'error':
         return <AlertCircle className="h-4 w-4 text-destructive" />;
       default:
-        return <Crosshair className="h-4 w-4 text-primary" />;
+        return <Navigation2 className="h-5 w-5 text-primary fill-primary" />;
     }
   };
 

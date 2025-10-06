@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Star, Package, ArrowRight, Navigation } from 'lucide-react';
+import { MapPin, Star, Package, ArrowRight, Navigation2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Location {
@@ -211,7 +211,7 @@ export default function SimpleDeliveryInterface({ onSubmit, onCancel }: SimpleDe
                   className="w-full justify-start mb-6 h-14 text-responsive-sm hover-scale touch-friendly"
                   onClick={handleCurrentLocation}
                 >
-                  <Navigation className="w-5 h-5 mr-3" />
+                  <Navigation2 className="w-5 h-5 mr-3 fill-primary" />
                   <span>Utiliser ma position actuelle</span>
                 </Button>
 
