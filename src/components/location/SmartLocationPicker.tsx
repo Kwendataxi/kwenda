@@ -219,22 +219,29 @@ export const SmartLocationPicker: React.FC<SmartLocationPickerProps> = ({
             </div>
           </div>
           
-          {/* Bouton géolocalisation */}
+          {/* Bouton géolocalisation moderne soft */}
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="icon"
             onClick={handleGetCurrentLocation}
             disabled={disabled || loading}
             className={cn(
-              "shrink-0 border-2 hover:border-primary transition-all duration-200",
+              "shrink-0 h-11 w-11 rounded-xl transition-all duration-300",
+              "bg-gradient-to-br from-red-50 to-pink-50/80 backdrop-blur-sm",
+              "border-2 border-red-100/80 hover:border-red-200",
+              "shadow-sm hover:shadow-md hover:shadow-red-100/50",
+              "hover:scale-105 active:scale-95",
               loading && "animate-pulse"
             )}
           >
             {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin text-red-500" />
             ) : (
-              <Navigation className="h-4 w-4" />
+              <div className="relative">
+                <div className="absolute inset-0 bg-red-500/10 rounded-full blur-sm animate-pulse" />
+                <Navigation className="h-5 w-5 text-red-500 relative z-10 fill-red-500/20" />
+              </div>
             )}
           </Button>
         </div>
