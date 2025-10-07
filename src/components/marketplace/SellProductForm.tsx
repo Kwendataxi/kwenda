@@ -6,8 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
-import { Camera, Upload, X, ArrowLeft } from 'lucide-react';
+import { Camera, Upload, X, ArrowLeft, Plus, Minus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { MARKETPLACE_CATEGORIES, PRODUCT_CONDITIONS } from '@/config/marketplaceCategories';
 
 interface SellProductFormData {
   title: string;
@@ -16,6 +17,9 @@ interface SellProductFormData {
   category: string;
   condition: string;
   images: File[];
+  stock_count: number;
+  brand: string;
+  specifications: Record<string, string>;
 }
 
 interface SellProductFormProps {
@@ -23,25 +27,6 @@ interface SellProductFormProps {
   onSubmit: (data: SellProductFormData) => void;
 }
 
-const categories = [
-  { id: 'electronics', name: 'Électronique' },
-  { id: 'fashion', name: 'Mode & Vêtements' },
-  { id: 'home', name: 'Maison & Jardin' },
-  { id: 'food', name: 'Alimentation' },
-  { id: 'beauty', name: 'Beauté & Cosmétiques' },
-  { id: 'sports', name: 'Sports & Loisirs' },
-  { id: 'books', name: 'Livres & Éducation' },
-  { id: 'automotive', name: 'Automobile' },
-  { id: 'other', name: 'Autre' }
-];
-
-const conditions = [
-  { id: 'new', name: 'Neuf' },
-  { id: 'like-new', name: 'Comme neuf' },
-  { id: 'good', name: 'Bon état' },
-  { id: 'fair', name: 'État correct' },
-  { id: 'poor', name: 'Usagé' }
-];
 
 export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubmit }) => {
   const { toast } = useToast();
@@ -51,13 +36,47 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
     price: '',
     category: '',
     condition: '',
-    images: []
+    images: [],
+    stock_count: 1,
+    brand: '',
+    specifications: {}
   });
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [specKey, setSpecKey] = useState('');
+  const [specValue, setSpecValue] = useState('');
 
-  const handleInputChange = (field: keyof SellProductFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: keyof SellProductFormData, value: string | number) => {
+    if (field === 'stock_count') {
+      setFormData(prev => ({ ...prev, [field]: Number(value) || 1 }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const addSpecification = () => {
+    if (!specKey.trim() || !specValue.trim()) {
+      toast({
+        title: "Champs requis",
+        description: "Veuillez remplir la clé et la valeur de la spécification",
+        variant: "destructive"
+      });
+      return;
+    }
+    setFormData(prev => ({
+      ...prev,
+      specifications: { ...prev.specifications, [specKey.trim()]: specValue.trim() }
+    }));
+    setSpecKey('');
+    setSpecValue('');
+  };
+
+  const removeSpecification = (key: string) => {
+    setFormData(prev => {
+      const newSpecs = { ...prev.specifications };
+      delete newSpecs[key];
+      return { ...prev, specifications: newSpecs };
+    });
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -253,7 +272,7 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
                     <SelectValue placeholder="Choisir une catégorie" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map(category => (
+                    {MARKETPLACE_CATEGORIES.filter(cat => cat.id !== 'all').map(category => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
                       </SelectItem>
@@ -263,19 +282,63 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
               </div>
 
               <div>
-                <Label htmlFor="condition">État</Label>
+                <Label htmlFor="condition">État *</Label>
                 <Select value={formData.condition} onValueChange={(value) => handleInputChange('condition', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="État du produit" />
                   </SelectTrigger>
                   <SelectContent>
-                    {conditions.map(condition => (
-                      <SelectItem key={condition.id} value={condition.id}>
-                        {condition.name}
+                    {PRODUCT_CONDITIONS.map(condition => (
+                      <SelectItem key={condition.value} value={condition.value}>
+                        {condition.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="stock">Quantité en stock *</Label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 w-9 p-0"
+                    onClick={() => handleInputChange('stock_count', String(Math.max(1, formData.stock_count - 1)))}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    id="stock"
+                    type="number"
+                    value={formData.stock_count}
+                    onChange={(e) => handleInputChange('stock_count', e.target.value)}
+                    min="1"
+                    className="text-center"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 w-9 p-0"
+                    onClick={() => handleInputChange('stock_count', String(formData.stock_count + 1))}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="brand">Marque (optionnel)</Label>
+                <Input
+                  id="brand"
+                  placeholder="Ex: Apple, Samsung..."
+                  value={formData.brand}
+                  onChange={(e) => handleInputChange('brand', e.target.value)}
+                />
               </div>
             </div>
 
@@ -289,9 +352,52 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
                 onChange={(e) => handleInputChange('price', e.target.value)}
                 min="0"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Prix en francs congolais (FC)
-              </p>
+            </div>
+
+            {/* Spécifications techniques */}
+            <div className="space-y-3">
+              <Label>Spécifications techniques (optionnel)</Label>
+              <div className="space-y-2">
+                {Object.entries(formData.specifications).map(([key, value]) => (
+                  <div key={key} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
+                    <span className="text-sm">
+                      <span className="font-medium">{key}:</span> {value}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeSpecification(key)}
+                      className="h-7 w-7 p-0"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  placeholder="Ex: Processeur"
+                  value={specKey}
+                  onChange={(e) => setSpecKey(e.target.value)}
+                />
+                <Input
+                  placeholder="Ex: Intel Core i5"
+                  value={specValue}
+                  onChange={(e) => setSpecValue(e.target.value)}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addSpecification}
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Ajouter une spécification
+              </Button>
             </div>
           </CardContent>
         </Card>

@@ -1,19 +1,7 @@
 import React from 'react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Smartphone, Shirt, Home, Car, Baby, Gamepad2, Book, Apple } from 'lucide-react';
-
-const categories = [
-  { id: 'all', name: 'Tout', icon: null },
-  { id: 'electronics', name: 'Électronique', icon: Smartphone },
-  { id: 'fashion', name: 'Mode', icon: Shirt },
-  { id: 'home', name: 'Maison', icon: Home },
-  { id: 'auto', name: 'Auto', icon: Car },
-  { id: 'baby', name: 'Bébé', icon: Baby },
-  { id: 'games', name: 'Jeux', icon: Gamepad2 },
-  { id: 'books', name: 'Livres', icon: Book },
-  { id: 'food', name: 'Alimentation', icon: Apple },
-];
+import { MARKETPLACE_CATEGORIES } from '@/config/marketplaceCategories';
 
 interface CategoryFilterProps {
   selectedCategory: string;
@@ -29,7 +17,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   return (
     <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/20">
       <div className="flex overflow-x-auto gap-2 p-3 scrollbar-hide">
-        {categories.map((category) => {
+        {MARKETPLACE_CATEGORIES.map((category) => {
           const Icon = category.icon;
           const count = productCounts[category.id] || 0;
           const isSelected = selectedCategory === category.id;

@@ -21,7 +21,8 @@ import {
   Plus,
   FileText,
   Sparkles,
-  Store
+  Store,
+  Package
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
 import { toast } from 'sonner';
@@ -29,6 +30,7 @@ import { cn } from '@/lib/utils';
 import { ProductChatTab } from './ProductChatTab';
 import { ProductSpecifications } from './ProductSpecifications';
 import { HorizontalProductScroll } from './HorizontalProductScroll';
+import { getCategoryName, getConditionLabel } from '@/config/marketplaceCategories';
 
 interface Product {
   id: string;
@@ -142,8 +144,21 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                 />
               </div>
 
-              {/* Price and Rating Card */}
+              {/* Category & Price Card */}
               <div className="mb-2.5 p-2.5 rounded-lg border border-primary/20 bg-primary/5">
+                {/* Category Badge */}
+                <div className="flex items-center gap-2 mb-2">
+                  <Package className="h-3.5 w-3.5 text-primary" />
+                  <Badge variant="outline" className="text-xs">
+                    {getCategoryName(product.category)}
+                  </Badge>
+                  {product.condition && (
+                    <Badge variant="secondary" className="text-xs">
+                      {getConditionLabel(product.condition)}
+                    </Badge>
+                  )}
+                </div>
+                
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="space-y-0.5">
                     <div className="flex items-baseline gap-2 flex-wrap">

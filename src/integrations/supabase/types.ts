@@ -3615,6 +3615,7 @@ export type Database = {
       }
       marketplace_products: {
         Row: {
+          brand: string | null
           category: string
           condition: string | null
           coordinates: Json | null
@@ -3626,14 +3627,19 @@ export type Database = {
           location: string | null
           moderation_status: string | null
           price: number
+          rating_average: number | null
+          rating_count: number | null
           rejection_reason: string | null
           seller_id: string
+          specifications: Json | null
           status: string | null
+          stock_count: number | null
           subcategory: string | null
           title: string
           updated_at: string
         }
         Insert: {
+          brand?: string | null
           category: string
           condition?: string | null
           coordinates?: Json | null
@@ -3645,14 +3651,19 @@ export type Database = {
           location?: string | null
           moderation_status?: string | null
           price: number
+          rating_average?: number | null
+          rating_count?: number | null
           rejection_reason?: string | null
           seller_id: string
+          specifications?: Json | null
           status?: string | null
+          stock_count?: number | null
           subcategory?: string | null
           title: string
           updated_at?: string
         }
         Update: {
+          brand?: string | null
           category?: string
           condition?: string | null
           coordinates?: Json | null
@@ -3664,9 +3675,13 @@ export type Database = {
           location?: string | null
           moderation_status?: string | null
           price?: number
+          rating_average?: number | null
+          rating_count?: number | null
           rejection_reason?: string | null
           seller_id?: string
+          specifications?: Json | null
           status?: string | null
+          stock_count?: number | null
           subcategory?: string | null
           title?: string
           updated_at?: string
@@ -5232,6 +5247,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_moderation_logs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          product_id: string | null
+          rating: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          rating: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          rating?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_ratings_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "marketplace_products"

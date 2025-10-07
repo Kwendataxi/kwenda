@@ -53,6 +53,8 @@ interface Product {
   stockCount: number;
   rating: number;
   reviews: number;
+  brand?: string;
+  specifications?: Record<string, any>;
 }
 
 interface HorizontalProduct {
@@ -168,28 +170,38 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         return;
       }
 
-      const transformedProducts = data.map(product => ({
-        id: product.id,
-        title: product.title,
-        price: product.price,
-        images: Array.isArray(product.images) ? product.images.map(img => String(img)) : [],
-        image: Array.isArray(product.images) && product.images.length > 0 
-          ? String(product.images[0])
-          : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
-        category: product.category,
-        condition: product.condition || 'new',
-        description: product.description || '',
-        seller_id: product.seller_id,
-        seller: { display_name: t('marketplace.unknown_seller') },
-        location: product.location || 'Kinshasa',
-        coordinates: product.coordinates && typeof product.coordinates === 'object' 
-          ? product.coordinates as { lat: number; lng: number }
-          : undefined,
-        inStock: true,
-        stockCount: Math.floor(Math.random() * 20) + 1,
-        rating: 4.5,
-        reviews: Math.floor(Math.random() * 200) + 10,
-      }));
+      const transformedProducts = data.map(product => {
+        const specsObj = product.specifications && typeof product.specifications === 'object' 
+          ? product.specifications as Record<string, any>
+          : {};
+        
+        return {
+          id: product.id,
+          title: product.title,
+          price: product.price,
+          images: Array.isArray(product.images) ? product.images.map(img => String(img)) : [],
+          image: Array.isArray(product.images) && product.images.length > 0 
+            ? String(product.images[0])
+            : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
+          category: product.category,
+          condition: product.condition || 'new',
+          description: product.description || '',
+          seller_id: product.seller_id,
+          seller: { 
+            display_name: t('marketplace.unknown_seller') // Will fetch from seller_profiles later
+          },
+          location: product.location || 'Kinshasa',
+          coordinates: product.coordinates && typeof product.coordinates === 'object' 
+            ? product.coordinates as { lat: number; lng: number }
+            : undefined,
+          inStock: (product.stock_count || 0) > 0,
+          stockCount: product.stock_count || 0,
+          rating: product.rating_average || 0,
+          reviews: product.rating_count || 0,
+          brand: product.brand,
+          specifications: specsObj,
+        };
+      });
 
       setProducts(transformedProducts);
     } catch (error) {
@@ -311,13 +323,16 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         .insert({
           title: productData.title,
           description: productData.description,
-          price: productData.price,
+          price: parseFloat(productData.price),
           category: productData.category,
           condition: productData.condition || 'new',
           images: productData.images || [],
           seller_id: user?.id,
           location: productData.location,
           coordinates: productData.coordinates,
+          stock_count: productData.stock_count || 1,
+          brand: productData.brand || null,
+          specifications: productData.specifications || {},
           status: 'active',
           moderation_status: 'pending'  // ✅ Explicitement défini
         });
