@@ -44,6 +44,9 @@ verify_jwt = true  # ✅ PHASE 2: JWT requis pour géocodage
 [functions.get-google-maps-key]
 verify_jwt = true  # ✅ SÉCURITÉ CRITIQUE: JWT requis
 
+[functions.google-maps-security-monitor]
+verify_jwt = true
+
 [functions.google-places-autocomplete]
 verify_jwt = true  # ✅ PHASE 2: JWT requis pour autocomplete
 

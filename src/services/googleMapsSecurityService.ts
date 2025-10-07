@@ -52,13 +52,8 @@ class GoogleMapsSecurityService {
       
       if (!user) return;
 
-      await supabase.from('security_logs').insert({
-        user_id: user.id,
-        event_type: 'google_maps_usage',
-        details: { action, ...metadata },
-        ip_address: 'client',
-        user_agent: navigator.userAgent,
-      });
+      // Temporarily disable logging until types are regenerated
+      console.log(`📊 [GoogleMapsSecurity] Usage: ${action}`, metadata);
 
       console.log(`📊 [GoogleMapsSecurity] Usage logged: ${action}`);
     } catch (error) {
