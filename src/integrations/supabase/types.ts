@@ -7079,6 +7079,54 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_verification_requests: {
+        Row: {
+          business_documents: Json | null
+          business_name: string | null
+          business_type: string | null
+          created_at: string | null
+          id: string
+          id_document_url: string | null
+          proof_of_address_url: string | null
+          rejection_reason: string | null
+          reviewed_by: string | null
+          updated_at: string | null
+          user_id: string
+          verification_status: string
+          verified_at: string | null
+        }
+        Insert: {
+          business_documents?: Json | null
+          business_name?: string | null
+          business_type?: string | null
+          created_at?: string | null
+          id?: string
+          id_document_url?: string | null
+          proof_of_address_url?: string | null
+          rejection_reason?: string | null
+          reviewed_by?: string | null
+          updated_at?: string | null
+          user_id: string
+          verification_status?: string
+          verified_at?: string | null
+        }
+        Update: {
+          business_documents?: Json | null
+          business_name?: string | null
+          business_type?: string | null
+          created_at?: string | null
+          id?: string
+          id_document_url?: string | null
+          proof_of_address_url?: string | null
+          rejection_reason?: string | null
+          reviewed_by?: string | null
+          updated_at?: string | null
+          user_id?: string
+          verification_status?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       sensitive_data_access_audit: {
         Row: {
           accessed_user_data: string | null
@@ -7901,6 +7949,7 @@ export type Database = {
           cancellation_type: string | null
           cancelled_by: string | null
           city: string | null
+          completed_at: string | null
           completion_time: string | null
           created_at: string
           delivery_google_address: string | null
@@ -7943,6 +7992,7 @@ export type Database = {
           cancellation_type?: string | null
           cancelled_by?: string | null
           city?: string | null
+          completed_at?: string | null
           completion_time?: string | null
           created_at?: string
           delivery_google_address?: string | null
@@ -7985,6 +8035,7 @@ export type Database = {
           cancellation_type?: string | null
           cancelled_by?: string | null
           city?: string | null
+          completed_at?: string | null
           completion_time?: string | null
           created_at?: string
           delivery_google_address?: string | null
@@ -9039,6 +9090,63 @@ export type Database = {
           request_id?: string
           validation_type?: string
           validator_id?: string
+        }
+        Relationships: []
+      }
+      vendor_business_info: {
+        Row: {
+          additional_documents: Json | null
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_branch: string | null
+          bank_name: string | null
+          business_address: string | null
+          business_city: string | null
+          business_country: string | null
+          company_registration_number: string | null
+          created_at: string | null
+          id: string
+          mobile_money_number: string | null
+          mobile_money_provider: string | null
+          tax_identification_number: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          additional_documents?: Json | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          business_address?: string | null
+          business_city?: string | null
+          business_country?: string | null
+          company_registration_number?: string | null
+          created_at?: string | null
+          id?: string
+          mobile_money_number?: string | null
+          mobile_money_provider?: string | null
+          tax_identification_number?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          additional_documents?: Json | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          business_address?: string | null
+          business_city?: string | null
+          business_country?: string | null
+          company_registration_number?: string | null
+          created_at?: string | null
+          id?: string
+          mobile_money_number?: string | null
+          mobile_money_provider?: string | null
+          tax_identification_number?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
