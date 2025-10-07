@@ -79,7 +79,7 @@ export function useModernRentals(selectedCity?: string) {
         .from("rental_vehicle_categories")
         .select("*")
         .eq("is_active", true)
-        .order("priority");
+        .order("sort_order");
       if (error) throw error;
       return (data || []) as ModernVehicleCategory[];
     },
