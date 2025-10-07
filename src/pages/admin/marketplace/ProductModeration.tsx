@@ -114,6 +114,17 @@ export const ProductModeration = () => {
   const handleApprove = async (productId: string) => {
     try {
       setProcessingAction(true);
+      
+      // Récupérer infos produit + seller
+      const { data: product, error: fetchError } = await supabase
+        .from("marketplace_products")
+        .select("seller_id, title")
+        .eq("id", productId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      // Approuver le produit
       const { error } = await supabase
         .from("marketplace_products")
         .update({
@@ -126,9 +137,16 @@ export const ProductModeration = () => {
 
       if (error) throw error;
 
+      // ✅ Créer notification pour le vendeur
+      await supabase.from("user_notifications").insert({
+        user_id: product.seller_id,
+        title: "✅ Produit approuvé",
+        content: `Félicitations ! Votre produit "${product.title}" a été approuvé et est maintenant visible sur la marketplace.`,
+      });
+
       toast({
         title: "✅ Produit approuvé",
-        description: "Le produit est maintenant visible sur la marketplace",
+        description: "Le vendeur a été notifié de l'approbation",
       });
 
       fetchPendingProducts();
