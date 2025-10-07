@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { googleMapsSecurityService } from './googleMapsSecurityService';
 
 export interface GoogleMapsConfig {
   apiKey: string;
