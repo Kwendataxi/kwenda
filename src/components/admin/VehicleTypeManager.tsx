@@ -83,7 +83,7 @@ export const VehicleTypeManager = () => {
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold">{vehicle.display_name}</h3>
                       {vehicle.is_active ? (
-                        <Badge variant="default" className="text-xs">Actif</Badge>
+                        <Badge variant="default" className="text-xs animate-pulse">Actif</Badge>
                       ) : (
                         <Badge variant="secondary" className="text-xs">Inactif</Badge>
                       )}
@@ -94,6 +94,7 @@ export const VehicleTypeManager = () => {
                     <div className="flex gap-4 text-xs text-muted-foreground">
                       <span>Base: {vehicle.base_price} CDF</span>
                       <span>Par km: {vehicle.price_per_km} CDF</span>
+                      <span>Minimum: {vehicle.minimum_fare} CDF</span>
                     </div>
                   </div>
 

@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { VehicleType } from '@/types/vehicle';
 import { useVehicleTypes } from '@/hooks/useVehicleTypes';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 
 interface ModernVehicleSelectorProps {
   distance: number;
@@ -87,16 +88,22 @@ export const ModernVehicleSelector = ({
               <div className={cn(
                 "flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center",
                 `bg-gradient-to-br ${vehicle.gradient}`,
-                "shadow-lg"
+                "shadow-lg transition-transform duration-300",
+                isSelected && "scale-110"
               )}>
                 <Icon className="w-8 h-8 text-white" />
               </div>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-bold text-foreground mb-1">
-                  {vehicle.name}
-                </h3>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-lg font-bold text-foreground">
+                    {vehicle.name}
+                  </h3>
+                  <Badge variant="default" className="text-xs animate-pulse">
+                    Actif
+                  </Badge>
+                </div>
                 <p className="text-sm text-muted-foreground line-clamp-1">
                   {vehicle.description}
                 </p>

@@ -12,6 +12,7 @@ export interface VehicleTypeData {
   sort_order: number;
   base_price?: number;
   price_per_km?: number;
+  minimum_fare?: number;
   icon?: string;
   gradient?: string;
 }
@@ -38,7 +39,7 @@ export const useVehicleTypeManagement = () => {
           
           const { data: pricing } = await supabase
             .from('pricing_rules')
-            .select('base_price, price_per_km')
+            .select('base_price, price_per_km, minimum_fare')
             .eq('service_type', 'transport')
             .eq('vehicle_class', vehicleClass)
             .eq('city', 'Kinshasa')
@@ -53,6 +54,7 @@ export const useVehicleTypeManagement = () => {
             sort_order: config.sort_order || 0,
             base_price: pricing?.base_price || 0,
             price_per_km: pricing?.price_per_km || 0,
+            minimum_fare: pricing?.minimum_fare || 0,
           };
         })
       );
@@ -64,7 +66,7 @@ export const useVehicleTypeManagement = () => {
   // Mutation pour mettre à jour un type de véhicule
   const updateVehicleType = useMutation({
     mutationFn: async (updates: Partial<VehicleTypeData> & { id: string }) => {
-      const { id, base_price, price_per_km, ...configUpdates } = updates;
+      const { id, base_price, price_per_km, minimum_fare, ...configUpdates } = updates;
 
       // Mettre à jour la configuration
       const { error: configError } = await supabase
@@ -75,7 +77,7 @@ export const useVehicleTypeManagement = () => {
       if (configError) throw configError;
 
       // Mettre à jour les prix si fournis dans pricing_rules
-      if (base_price !== undefined || price_per_km !== undefined) {
+      if (base_price !== undefined || price_per_km !== undefined || minimum_fare !== undefined) {
         const vehicleType = vehicleTypes?.find((v) => v.id === id);
         if (vehicleType) {
           const vehicleClass = getVehicleClass(vehicleType.service_type);
@@ -85,6 +87,7 @@ export const useVehicleTypeManagement = () => {
             .update({
               ...(base_price !== undefined && { base_price }),
               ...(price_per_km !== undefined && { price_per_km }),
+              ...(minimum_fare !== undefined && { minimum_fare }),
               updated_at: new Date().toISOString(),
             })
             .eq('service_type', 'transport')
@@ -92,6 +95,23 @@ export const useVehicleTypeManagement = () => {
             .eq('city', 'Kinshasa');
 
           if (pricingError) throw pricingError;
+
+          // Log de l'audit
+          await supabase.from('activity_logs').insert({
+            user_id: (await supabase.auth.getUser()).data.user?.id,
+            activity_type: 'vehicle_pricing_update',
+            description: `Modification des tarifs ${vehicleType.display_name}`,
+            metadata: {
+              vehicle_type: vehicleType.service_type,
+              vehicle_class: vehicleClass,
+              old_base: vehicleType.base_price,
+              new_base: base_price,
+              old_per_km: vehicleType.price_per_km,
+              new_per_km: price_per_km,
+              old_minimum: vehicleType.minimum_fare,
+              new_minimum: minimum_fare,
+            }
+          });
         }
       }
     },

@@ -24,11 +24,26 @@ export const EditVehicleTypeDialog = ({
     description: vehicleType?.description || '',
     base_price: vehicleType?.base_price || 0,
     price_per_km: vehicleType?.price_per_km || 0,
+    minimum_fare: vehicleType?.minimum_fare || 0,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!vehicleType) return;
+
+    // Validations
+    if (formData.base_price < 500) {
+      alert('Le prix de base doit être au minimum 500 CDF');
+      return;
+    }
+    if (formData.price_per_km < 100) {
+      alert('Le prix par km doit être au minimum 100 CDF');
+      return;
+    }
+    if (formData.minimum_fare < formData.base_price) {
+      alert('Le prix minimum doit être supérieur ou égal au prix de base');
+      return;
+    }
 
     onSave({
       id: vehicleType.id,
@@ -70,13 +85,13 @@ export const EditVehicleTypeDialog = ({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="base_price">Prix de base (CDF)</Label>
               <Input
                 id="base_price"
                 type="number"
-                min="0"
+                min="500"
                 step="100"
                 value={formData.base_price}
                 onChange={(e) => setFormData({ ...formData, base_price: parseFloat(e.target.value) })}
@@ -89,10 +104,23 @@ export const EditVehicleTypeDialog = ({
               <Input
                 id="price_per_km"
                 type="number"
-                min="0"
+                min="100"
                 step="50"
                 value={formData.price_per_km}
                 onChange={(e) => setFormData({ ...formData, price_per_km: parseFloat(e.target.value) })}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="minimum_fare">Minimum (CDF)</Label>
+              <Input
+                id="minimum_fare"
+                type="number"
+                min="500"
+                step="100"
+                value={formData.minimum_fare}
+                onChange={(e) => setFormData({ ...formData, minimum_fare: parseFloat(e.target.value) })}
                 required
               />
             </div>
