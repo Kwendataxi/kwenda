@@ -10067,24 +10067,6 @@ export type Database = {
         }
         Relationships: []
       }
-      admin_users_cache_secure: {
-        Row: {
-          admin_level: string | null
-          admin_role: Database["public"]["Enums"]["admin_role"] | null
-          created_at: string | null
-          department: string | null
-          display_name: string | null
-          email: string | null
-          is_active: boolean | null
-          last_login: string | null
-          permissions: string[] | null
-          phone_number: string | null
-          role: Database["public"]["Enums"]["user_role"] | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
       ai_performance_stats_secure: {
         Row: {
           avg_response_time_ms: number | null
@@ -10526,8 +10508,8 @@ export type Database = {
         Returns: Json
       }
       decrement_driver_rides: {
-        Args: { driver_user_id: string }
-        Returns: Json
+        Args: { p_driver_id: string }
+        Returns: boolean
       }
       decrement_subscription_rides: {
         Args: {
@@ -10709,6 +10691,7 @@ export type Database = {
           is_active: boolean
           last_login: string
           permissions: string[]
+          phone_number: string
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
           user_id: string
@@ -11473,9 +11456,9 @@ export type Database = {
       }
       log_sensitive_access: {
         Args: {
-          p_access_type: string
-          p_table_name: string
-          p_target_user_id?: string
+          access_type: string
+          table_name: string
+          target_user_id?: string
         }
         Returns: string
       }
