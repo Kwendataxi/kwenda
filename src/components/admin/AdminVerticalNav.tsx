@@ -80,7 +80,7 @@ const NAV_ITEMS: Array<{
   
   // Communication
   { id: 'notifications', label: 'Notifications', icon: Bell, group: 'communication' },
-  { id: 'ads', label: 'Publicités', icon: Megaphone, group: 'communication' },
+  { id: 'push-notifications', label: 'Notifications Push', icon: Megaphone, group: 'communication' },
   { id: 'support', label: 'Support', icon: Headphones, group: 'communication' },
   
   // Analytics & Rapports

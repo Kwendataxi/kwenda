@@ -4142,6 +4142,63 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_campaign_history: {
+        Row: {
+          campaign_title: string
+          clicked_count: number
+          created_at: string
+          delivered_count: number
+          id: string
+          message_content: string
+          opened_count: number
+          priority: string
+          scheduled_for: string | null
+          sent_at: string | null
+          sent_by: string
+          sent_count: number
+          status: string
+          target_criteria: Json | null
+          target_type: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_title: string
+          clicked_count?: number
+          created_at?: string
+          delivered_count?: number
+          id?: string
+          message_content: string
+          opened_count?: number
+          priority?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          sent_by: string
+          sent_count?: number
+          status?: string
+          target_criteria?: Json | null
+          target_type: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_title?: string
+          clicked_count?: number
+          created_at?: string
+          delivered_count?: number
+          id?: string
+          message_content?: string
+          opened_count?: number
+          priority?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          sent_by?: string
+          sent_count?: number
+          status?: string
+          target_criteria?: Json | null
+          target_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           chat_notifications: boolean | null

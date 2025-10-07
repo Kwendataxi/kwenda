@@ -11,7 +11,7 @@ import { OverviewDashboard } from '@/components/admin/OverviewDashboard';
 import { AdminNotificationCenter } from '@/components/admin/AdminNotificationCenter';
 import { AdvancedSupportCenter } from '@/components/admin/AdvancedSupportCenter';
 import { ModernZoneManagementDashboard } from '@/components/admin/zones/ModernZoneManagementDashboard';
-import { PromotionalAdsManager } from '@/components/admin/PromotionalAdsManager';
+import { AdminPushNotificationManager } from '@/components/admin/push/AdminPushNotificationManager';
 import { AdminLotteryDashboard } from '@/components/admin/AdminLotteryDashboard';
 import { AdminRentalManager } from '@/components/admin/AdminRentalManager';
 import { AdminTeamManager } from '@/components/admin/teams/AdminTeamManager';
@@ -177,11 +177,11 @@ const AdminApp = () => {
           </Suspense>
         );
 
-      case 'ads':
+      case 'push-notifications':
         return (
           <Suspense fallback={<LoadingFallback />}>
-            <FlexiblePermissionGuard requiredPermissions={['marketplace_moderate']}>
-              <PromotionalAdsManager />
+            <FlexiblePermissionGuard requiredPermissions={['notifications_write']}>
+              <AdminPushNotificationManager />
             </FlexiblePermissionGuard>
           </Suspense>
         );
