@@ -2,7 +2,6 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
-import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -29,7 +28,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -83,47 +81,43 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const signOut = async () => {
+    // Récupérer le rôle AVANT la déconnexion pour redirection intelligente
+    let redirectPath = '/auth'; // Défaut pour clients/chauffeurs
+    
     try {
-      // Récupérer le rôle AVANT la déconnexion pour redirection intelligente
-      let redirectPath = '/auth'; // Défaut pour clients/chauffeurs
-      
-      try {
-        const cached = localStorage.getItem('kwenda_user_roles_cache');
-        if (cached) {
-          const { data } = JSON.parse(cached);
-          const primaryRole = data?.find((r: any) => r.role === 'admin')?.role || 
-                             data?.find((r: any) => r.role === 'partner')?.role || 
-                             data?.[0]?.role;
-          
-          if (primaryRole === 'admin') {
-            redirectPath = '/admin/auth';
-          } else if (primaryRole === 'partner') {
-            redirectPath = '/partner/auth';
-          }
+      const cached = localStorage.getItem('kwenda_user_roles_cache');
+      if (cached) {
+        const { data } = JSON.parse(cached);
+        const primaryRole = data?.find((r: any) => r.role === 'admin')?.role || 
+                           data?.find((r: any) => r.role === 'partner')?.role || 
+                           data?.[0]?.role;
+        
+        if (primaryRole === 'admin') {
+          redirectPath = '/admin/auth';
+        } else if (primaryRole === 'partner') {
+          redirectPath = '/partner/auth';
         }
-      } catch (error) {
-        logger.warn('Unable to determine role for redirect:', error);
       }
-      
-      // Nettoyer d'abord l'état local
-      setUser(null);
-      setSession(null);
-      
-      // Clear localStorage avant la déconnexion
-      localStorage.removeItem('supabase.auth.token');
-      localStorage.removeItem('sb-wddlktajnhwhyquwcdgf-auth-token');
-      localStorage.removeItem('kwenda_user_roles_cache');
-      
-      // Déconnecter (ignorer les erreurs de session inexistante)
-      await supabase.auth.signOut({ scope: 'local' });
-      
-      // Déclencher la redirection après le prochain render
-      setPendingRedirect(redirectPath);
     } catch (error) {
-      logger.error('Error during sign out:', error);
-      // Forcer la redirection même en cas d'erreur
-      setPendingRedirect('/admin/auth');
+      logger.warn('Unable to determine role for redirect:', error);
     }
+    
+    // Déconnecter (ignorer les erreurs de session inexistante)
+    await supabase.auth.signOut({ scope: 'local' });
+    
+    // Nettoyer l'état local APRÈS la déconnexion
+    setUser(null);
+    setSession(null);
+    
+    // Clear localStorage
+    localStorage.removeItem('supabase.auth.token');
+    localStorage.removeItem('sb-wddlktajnhwhyquwcdgf-auth-token');
+    localStorage.removeItem('kwenda_user_roles_cache');
+    
+    // Redirection intelligente selon le rôle (utiliser setTimeout pour éviter les race conditions)
+    setTimeout(() => {
+      window.location.href = redirectPath;
+    }, 100);
   };
 
   const value = {
@@ -135,25 +129,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {pendingRedirect ? <RedirectHandler redirectPath={pendingRedirect} /> : children}
+      {children}
     </AuthContext.Provider>
-  );
-};
-
-// Composant séparé pour gérer la redirection avec useNavigate
-const RedirectHandler = ({ redirectPath }: { redirectPath: string }) => {
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    navigate(redirectPath, { replace: true });
-  }, [navigate, redirectPath]);
-  
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-muted-foreground">Déconnexion...</p>
-      </div>
-    </div>
   );
 };
