@@ -283,6 +283,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_interactions: {
+        Row: {
+          ai_response: string
+          context: string | null
+          created_at: string | null
+          error_message: string | null
+          function_called: string | null
+          function_result: Json | null
+          id: string
+          response_time_ms: number | null
+          success: boolean | null
+          user_id: string | null
+          user_message: string
+        }
+        Insert: {
+          ai_response: string
+          context?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          function_called?: string | null
+          function_result?: Json | null
+          id?: string
+          response_time_ms?: number | null
+          success?: boolean | null
+          user_id?: string | null
+          user_message: string
+        }
+        Update: {
+          ai_response?: string
+          context?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          function_called?: string | null
+          function_result?: Json | null
+          id?: string
+          response_time_ms?: number | null
+          success?: boolean | null
+          user_id?: string | null
+          user_message?: string
+        }
+        Relationships: []
+      }
       booking_reports: {
         Row: {
           admin_notes: string | null
@@ -3687,6 +3729,65 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      marketplace_promotions: {
+        Row: {
+          created_at: string | null
+          discount_percentage: number
+          discounted_price: number
+          end_date: string
+          id: string
+          is_active: boolean | null
+          max_quantity: number | null
+          original_price: number
+          product_id: string | null
+          promotion_type: string | null
+          remaining_quantity: number | null
+          seller_id: string
+          start_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          discount_percentage: number
+          discounted_price: number
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          max_quantity?: number | null
+          original_price: number
+          product_id?: string | null
+          promotion_type?: string | null
+          remaining_quantity?: number | null
+          seller_id: string
+          start_date?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          discount_percentage?: number
+          discounted_price?: number
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          max_quantity?: number | null
+          original_price?: number
+          product_id?: string | null
+          promotion_type?: string | null
+          remaining_quantity?: number | null
+          seller_id?: string
+          start_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_promotions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       merchant_accounts: {
         Row: {
@@ -9714,6 +9815,18 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_performance_stats: {
+        Row: {
+          avg_response_time_ms: number | null
+          context: string | null
+          day: string | null
+          failed_calls: number | null
+          function_called: string | null
+          successful_calls: number | null
+          total_calls: number | null
+        }
+        Relationships: []
+      }
       assignment_conflicts_view: {
         Row: {
           created_at: string | null
@@ -11128,6 +11241,10 @@ export type Database = {
         Returns: undefined
       }
       refresh_admin_rental_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_ai_stats: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }

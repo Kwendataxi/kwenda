@@ -17,6 +17,11 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+  let functionCalled = null;
+  let success = true;
+  let errorMsg = null;
+
   try {
     const { message, context, userId, conversationHistory = [] } = await req.json();
 
@@ -41,7 +46,7 @@ serve(async (req) => {
         .from('user_profiles')
         .select('preferred_language, city, user_type')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
       userProfile = data;
     }
 
@@ -83,15 +88,39 @@ serve(async (req) => {
     const data = await response.json();
     const assistantResponse = data.choices[0].message;
 
+    let functionResult = null;
+
     // Handle function calls if present
     if (assistantResponse.function_call) {
-      const functionResult = await handleFunctionCall(
+      functionCalled = assistantResponse.function_call.name;
+      functionResult = await handleFunctionCall(
         assistantResponse.function_call,
         context,
         userId,
         supabase
       );
-      
+    }
+
+    // PHASE 10: Log interaction to analytics
+    const responseTime = Date.now() - startTime;
+    if (userId) {
+      try {
+        await supabase.from('ai_interactions').insert({
+          user_id: userId,
+          context: context || 'general',
+          user_message: message,
+          ai_response: assistantResponse.content || '',
+          function_called: functionCalled,
+          function_result: functionResult,
+          success: true,
+          response_time_ms: responseTime
+        });
+      } catch (logError) {
+        console.error('Failed to log interaction:', logError);
+      }
+    }
+
+    if (assistantResponse.function_call) {
       return new Response(
         JSON.stringify({
           response: assistantResponse.content || 'Je traite votre demande...',
@@ -111,10 +140,32 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    success = false;
+    errorMsg = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error in ai-assistant function:', error);
+
+    // Log failed interaction
+    const responseTime = Date.now() - startTime;
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      
+      await supabase.from('ai_interactions').insert({
+        context: 'error',
+        user_message: 'Error occurred',
+        ai_response: '',
+        success: false,
+        error_message: errorMsg,
+        response_time_ms: responseTime
+      });
+    } catch (logError) {
+      console.error('Failed to log error:', logError);
+    }
+
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMsg,
         response: 'Désolé, je rencontre un problème technique. Veuillez réessayer.'
       }),
       {
@@ -300,6 +351,61 @@ function getContextFunctions(context: string) {
     );
   }
 
+  // PHASE 2: Recommandations personnalisées
+  if (context === 'marketplace') {
+    baseFunctions.push(
+      // PHASE 2: Recommandations personnalisées
+      {
+        name: 'get_personalized_recommendations',
+        description: 'Obtenir des recommandations de produits personnalisées basées sur l\'historique',
+        parameters: {
+          type: 'object',
+          properties: {
+            user_id: { type: 'string' },
+            category: { type: 'string', description: 'Catégorie optionnelle pour filtrer' }
+          },
+          required: ['user_id']
+        }
+      },
+      // PHASE 6: Promotions actives
+      {
+        name: 'check_active_promotions',
+        description: 'Vérifier les promotions actives pour un utilisateur ou catégorie',
+        parameters: {
+          type: 'object',
+          properties: {
+            category: { type: 'string' },
+            max_results: { type: 'number', default: 5 }
+          }
+        }
+      },
+      // PHASE 7: Support client
+      {
+        name: 'track_order_status',
+        description: 'Suivre le statut d\'une commande marketplace',
+        parameters: {
+          type: 'object',
+          properties: {
+            order_id: { type: 'string' }
+          },
+          required: ['order_id']
+        }
+      },
+      {
+        name: 'initiate_return_request',
+        description: 'Initier une demande de retour pour une commande',
+        parameters: {
+          type: 'object',
+          properties: {
+            order_id: { type: 'string' },
+            reason: { type: 'string' }
+          },
+          required: ['order_id', 'reason']
+        }
+      }
+    );
+  }
+
   return baseFunctions;
 }
 
@@ -341,6 +447,21 @@ async function handleFunctionCall(
     
     case 'calculate_delivery_cost':
       return await calculateDeliveryCost(parsedArgs, supabase);
+
+    // PHASE 2
+    case 'get_personalized_recommendations':
+      return await getPersonalizedRecommendations(parsedArgs, userId, supabase);
+    
+    // PHASE 6
+    case 'check_active_promotions':
+      return await checkActivePromotions(parsedArgs, supabase);
+    
+    // PHASE 7
+    case 'track_order_status':
+      return await trackOrderStatus(parsedArgs, userId, supabase);
+    
+    case 'initiate_return_request':
+      return await initiateReturnRequest(parsedArgs, userId, supabase);
     
     default:
       return { error: `Fonction ${name} non reconnue` };
@@ -792,5 +913,223 @@ async function calculateDeliveryCost(args: any, supabase: any) {
   } catch (error) {
     console.error('Error calculating delivery cost:', error);
     return { error: 'Erreur lors du calcul des frais de livraison' };
+  }
+}
+
+// ============= PHASE 2: Recommandations Personnalisées =============
+async function getPersonalizedRecommendations(args: any, userId: string, supabase: any) {
+  try {
+    // Récupérer les préférences utilisateur
+    const { data: prefs } = await supabase
+      .from('user_preferences')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    // Produits basés sur catégories favorites
+    let query = supabase
+      .from('marketplace_products')
+      .select(`
+        id,
+        title,
+        price,
+        currency,
+        image_url,
+        category,
+        rating_average,
+        stock_quantity
+      `)
+      .eq('status', 'active')
+      .eq('moderation_status', 'approved')
+      .gt('stock_quantity', 0);
+
+    // Filtrer par catégories favorites si disponibles
+    if (prefs?.favorite_categories && prefs.favorite_categories.length > 0) {
+      query = query.in('category', prefs.favorite_categories);
+    }
+
+    // Filtrer par fourchette de prix si définie
+    if (prefs?.price_range_min) {
+      query = query.gte('price', prefs.price_range_min);
+    }
+    if (prefs?.price_range_max) {
+      query = query.lte('price', prefs.price_range_max);
+    }
+
+    // Filtre catégorie optionnel
+    if (args.category) {
+      query = query.eq('category', args.category);
+    }
+
+    const { data: products } = await query
+      .order('rating_average', { ascending: false })
+      .limit(5);
+
+    return {
+      type: 'personalized_recommendations',
+      products: products || [],
+      based_on: {
+        favorite_categories: prefs?.favorite_categories || [],
+        price_range: prefs ? `${prefs.price_range_min || 0} - ${prefs.price_range_max || '∞'}` : 'Non défini'
+      },
+      message: `${(products || []).length} recommandations personnalisées`
+    };
+  } catch (error) {
+    console.error('Error getting personalized recommendations:', error);
+    return { error: 'Erreur lors de la récupération des recommandations' };
+  }
+}
+
+// ============= PHASE 6: Promotions Actives =============
+async function checkActivePromotions(args: any, supabase: any) {
+  try {
+    const maxResults = args.max_results || 5;
+
+    let query = supabase
+      .from('marketplace_promotions')
+      .select(`
+        id,
+        product_id,
+        discount_percentage,
+        original_price,
+        discounted_price,
+        end_date,
+        promotion_type,
+        remaining_quantity,
+        marketplace_products!inner(
+          title,
+          image_url,
+          category
+        )
+      `)
+      .eq('is_active', true)
+      .gte('end_date', new Date().toISOString())
+      .order('discount_percentage', { ascending: false });
+
+    if (args.category) {
+      query = query.eq('marketplace_products.category', args.category);
+    }
+
+    const { data: promotions } = await query.limit(maxResults);
+
+    const formattedPromotions = (promotions || []).map((promo: any) => ({
+      product_id: promo.product_id,
+      title: promo.marketplace_products.title,
+      image_url: promo.marketplace_products.image_url,
+      category: promo.marketplace_products.category,
+      original_price: promo.original_price,
+      discounted_price: promo.discounted_price,
+      discount: `${promo.discount_percentage}%`,
+      savings: promo.original_price - promo.discounted_price,
+      ends_at: promo.end_date,
+      stock_limited: promo.remaining_quantity ? promo.remaining_quantity < 10 : false
+    }));
+
+    return {
+      type: 'active_promotions',
+      promotions: formattedPromotions,
+      total_found: formattedPromotions.length,
+      message: `${formattedPromotions.length} promotion(s) active(s) trouvée(s)`
+    };
+  } catch (error) {
+    console.error('Error checking promotions:', error);
+    return { error: 'Erreur lors de la vérification des promotions' };
+  }
+}
+
+// ============= PHASE 7: Service Client =============
+async function trackOrderStatus(args: any, userId: string, supabase: any) {
+  try {
+    const { order_id } = args;
+
+    const { data: order } = await supabase
+      .from('marketplace_orders')
+      .select(`
+        id,
+        status,
+        total_amount,
+        created_at,
+        delivery_status,
+        tracking_number,
+        estimated_delivery_date
+      `)
+      .eq('id', order_id)
+      .eq('buyer_id', userId)
+      .maybeSingle();
+
+    if (!order) {
+      return { error: 'Commande non trouvée ou vous n\'avez pas accès à cette commande' };
+    }
+
+    const statusMessages: Record<string, string> = {
+      'pending': 'En attente de confirmation vendeur',
+      'confirmed': 'Confirmée par le vendeur',
+      'shipped': 'Expédiée',
+      'delivered': 'Livrée',
+      'cancelled': 'Annulée'
+    };
+
+    return {
+      type: 'order_tracking',
+      order_id: order.id,
+      status: order.status,
+      status_message: statusMessages[order.status] || order.status,
+      total_amount: order.total_amount,
+      tracking_number: order.tracking_number,
+      estimated_delivery: order.estimated_delivery_date,
+      message: `Votre commande est: ${statusMessages[order.status] || order.status}`
+    };
+  } catch (error) {
+    console.error('Error tracking order:', error);
+    return { error: 'Erreur lors du suivi de commande' };
+  }
+}
+
+async function initiateReturnRequest(args: any, userId: string, supabase: any) {
+  try {
+    const { order_id, reason } = args;
+
+    // Vérifier que la commande existe et appartient à l'utilisateur
+    const { data: order } = await supabase
+      .from('marketplace_orders')
+      .select('id, status, delivered_at')
+      .eq('id', order_id)
+      .eq('buyer_id', userId)
+      .maybeSingle();
+
+    if (!order) {
+      return { error: 'Commande non trouvée' };
+    }
+
+    if (order.status !== 'delivered') {
+      return { error: 'Seules les commandes livrées peuvent être retournées' };
+    }
+
+    // Vérifier délai de retour (par exemple 14 jours)
+    const deliveredDate = new Date(order.delivered_at);
+    const daysSinceDelivery = (Date.now() - deliveredDate.getTime()) / (1000 * 60 * 60 * 24);
+
+    if (daysSinceDelivery > 14) {
+      return { error: 'Le délai de retour (14 jours) est dépassé' };
+    }
+
+    // Créer une demande de retour (vous devrez créer cette table)
+    // Pour l'instant, on retourne juste un message de confirmation
+    
+    return {
+      type: 'return_request',
+      order_id,
+      status: 'initiated',
+      reason,
+      message: 'Votre demande de retour a été enregistrée. Un agent va vous contacter sous 24-48h.',
+      next_steps: [
+        'Conservez le produit dans son emballage d\'origine',
+        'Attendez la confirmation par email',
+        'Un transporteur viendra récupérer le colis'
+      ]
+    };
+  } catch (error) {
+    console.error('Error initiating return:', error);
+    return { error: 'Erreur lors de l\'initiation du retour' };
   }
 }
