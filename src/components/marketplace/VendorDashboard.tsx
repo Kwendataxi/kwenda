@@ -38,9 +38,10 @@ import { MobileProductCard } from './mobile/MobileProductCard';
 
 interface VendorDashboardProps {
   onProductUpdate: () => void;
+  onEditProduct?: (product: any) => void;
 }
 
-export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdate }) => {
+export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdate, onEditProduct }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -330,7 +331,10 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
                 key={product.id}
                 product={product}
                 onView={(id) => console.log('View product', id)}
-                onEdit={(id) => console.log('Edit product', id)}
+                onEdit={(id) => {
+                  const fullProduct = myProducts.find(p => p.id === id);
+                  if (fullProduct) onEditProduct?.(fullProduct);
+                }}
                 onDelete={deleteProduct}
                 onToggleStatus={toggleProductStatus}
               />
@@ -414,10 +418,16 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
                       <Eye className="w-4 h-4 mr-1" />
                       Voir
                     </Button>
-                    <Button variant="outline" size="sm">
-                      <Edit className="w-4 h-4 mr-1" />
-                      Modifier
-                    </Button>
+                    {(product.moderation_status === 'approved' || product.moderation_status === 'rejected') && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => onEditProduct?.(product)}
+                      >
+                        <Edit className="w-4 h-4 mr-1" />
+                        Modifier
+                      </Button>
+                    )}
                     <Button 
                       variant="outline" 
                       size="sm"

@@ -28,6 +28,7 @@ import { AdvancedOrderTracker } from './AdvancedOrderTracker';
 import { VerifiedSellerGuard } from './VerifiedSellerGuard';
 import { FloatingChatButton } from './FloatingChatButton';
 import { DeliveryFeeApprovalDialog } from './DeliveryFeeApprovalDialog';
+import { EditProductForm } from './EditProductForm';
 
 // Hooks
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
@@ -98,6 +99,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const { user } = useAuth();
   const { toast } = useToast();
   const { t, formatCurrency } = useLanguage();
+  const [editingProduct, setEditingProduct] = useState<any>(null);
   const geolocation = useGeolocation();
   const locationLoading = geolocation.loading;
   const coordinates = geolocation.latitude && geolocation.longitude ? { lat: geolocation.latitude, lng: geolocation.longitude } : null;
@@ -736,7 +738,21 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           </TabsContent>
 
           <TabsContent value="vendor" className="mt-4">
-            <VendorDashboard onProductUpdate={loadProducts} />
+            {editingProduct ? (
+              <EditProductForm
+                product={editingProduct}
+                onBack={() => setEditingProduct(null)}
+                onUpdate={() => {
+                  setEditingProduct(null);
+                  loadProducts();
+                }}
+              />
+            ) : (
+              <VendorDashboard 
+                onProductUpdate={loadProducts}
+                onEditProduct={(product) => setEditingProduct(product)}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </div>

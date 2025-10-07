@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Info, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Info, CheckCircle, XCircle, Clock, Edit } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -16,9 +17,10 @@ interface Product {
 
 interface MyProductsListProps {
   loadMyProducts: () => Promise<Product[]>;
+  onEditProduct?: (product: Product) => void;
 }
 
-export const MyProductsList = ({ loadMyProducts }: MyProductsListProps) => {
+export const MyProductsList = ({ loadMyProducts, onEditProduct }: MyProductsListProps) => {
   const [myProducts, setMyProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -159,6 +161,19 @@ export const MyProductsList = ({ loadMyProducts }: MyProductsListProps) => {
                       <strong className="block mb-1">Raison du rejet:</strong>
                       {product.rejection_reason}
                     </div>
+                  )}
+                  
+                  {/* Bouton Modifier pour produits approuvés ou rejetés */}
+                  {(product.moderation_status === 'approved' || product.moderation_status === 'rejected') && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => onEditProduct?.(product)}
+                      className="w-full mt-3"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Modifier le produit
+                    </Button>
                   )}
                 </div>
               </CardContent>

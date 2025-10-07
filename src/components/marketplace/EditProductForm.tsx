@@ -141,7 +141,7 @@ export const EditProductForm: React.FC<EditProductFormProps> = ({ product, onBac
         } else {
           // New file to upload
           const fileExt = image.name.split('.').pop();
-          const fileName = `${Math.random()}.${fileExt}`;
+          const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
           const filePath = `product-images/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
@@ -158,26 +158,38 @@ export const EditProductForm: React.FC<EditProductFormProps> = ({ product, onBac
         }
       }
 
+      // Prepare update data
+      const updateData: any = {
+        title: formData.title,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        category: formData.category,
+        condition: formData.condition,
+        status: formData.status,
+        images: imageUrls,
+        updated_at: new Date().toISOString()
+      };
+
+      // ⚠️ Si produit était approuvé, repasser en pending pour re-modération
+      if (product.moderation_status === 'approved') {
+        updateData.moderation_status = 'pending';
+        updateData.moderated_at = null;
+        updateData.moderator_id = null;
+      }
+
       // Update product in database
       const { error } = await supabase
         .from('marketplace_products')
-        .update({
-          title: formData.title,
-          description: formData.description,
-          price: parseFloat(formData.price),
-          category: formData.category,
-          condition: formData.condition,
-          status: formData.status,
-          images: imageUrls,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', formData.id);
 
       if (error) throw error;
 
       toast({
-        title: "Produit mis à jour",
-        description: "Votre produit a été modifié avec succès",
+        title: "✅ Produit mis à jour",
+        description: product.moderation_status === 'approved' 
+          ? "Votre produit a été re-soumis pour modération suite à vos modifications."
+          : "Les modifications ont été enregistrées avec succès.",
       });
 
       onUpdate();
@@ -185,7 +197,7 @@ export const EditProductForm: React.FC<EditProductFormProps> = ({ product, onBac
     } catch (error) {
       console.error('Error updating product:', error);
       toast({
-        title: "Erreur",
+        title: "❌ Erreur",
         description: "Une erreur est survenue lors de la modification",
         variant: "destructive"
       });
