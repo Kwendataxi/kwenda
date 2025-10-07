@@ -10287,6 +10287,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      ensure_seller_profile: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
       ensure_user_profile: {
         Args: { p_user_id: string }
         Returns: {
