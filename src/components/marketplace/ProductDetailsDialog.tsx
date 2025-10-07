@@ -112,29 +112,29 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[90vh] p-0 gap-0">
-        <DialogHeader className="p-3 sm:p-4 pb-2 border-b">
-          <DialogTitle className="text-base sm:text-lg font-semibold line-clamp-2">
+      <DialogContent className="max-w-md mx-auto max-h-[95vh] p-0 gap-0">
+        <DialogHeader className="p-2.5 sm:p-3 pb-2 border-b bg-background/95 backdrop-blur">
+          <DialogTitle className="text-sm sm:text-base font-semibold line-clamp-1 pr-6">
             {product.name}
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="details" className="flex-1 flex flex-col">
-          <TabsList className="mx-3 sm:mx-4 my-2 grid w-auto grid-cols-2 h-9">
-            <TabsTrigger value="details" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <TabsList className="mx-2.5 sm:mx-3 my-1.5 grid w-auto grid-cols-2 h-8">
+            <TabsTrigger value="details" className="flex items-center gap-1 text-xs px-2">
+              <Info className="h-3.5 w-3.5" />
               Détails
             </TabsTrigger>
-            <TabsTrigger value="chat" className="flex items-center gap-1.5 text-xs sm:text-sm">
-              <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <TabsTrigger value="chat" className="flex items-center gap-1 text-xs px-2">
+              <MessageCircle className="h-3.5 w-3.5" />
               Chat vendeur
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="flex-1 mt-0">
-            <ScrollArea className="h-[calc(90vh-280px)] sm:h-[calc(90vh-260px)] px-3 sm:px-4">
+            <ScrollArea className="h-[calc(95vh-260px)] sm:h-[calc(95vh-240px)] px-2.5 sm:px-3">
               {/* Product Image */}
-              <div className="aspect-video sm:aspect-square w-full overflow-hidden rounded-lg mb-3">
+              <div className="aspect-[4/3] w-full max-h-48 sm:max-h-56 overflow-hidden rounded-lg mb-2.5">
                 <img
                   src={product.image}
                   alt={product.name}
@@ -143,20 +143,20 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
               </div>
 
               {/* Price and Rating Card */}
-              <div className="mb-3 p-3 rounded-lg border border-primary/20 bg-primary/5">
+              <div className="mb-2.5 p-2.5 rounded-lg border border-primary/20 bg-primary/5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="text-xl sm:text-2xl font-bold text-primary">
+                      <span className="text-lg sm:text-xl font-bold text-primary">
                         {formatCurrency(product.price)}
                       </span>
                       {product.originalPrice && product.originalPrice > product.price && (
                         <>
-                          <span className="text-xs sm:text-sm text-muted-foreground line-through">
+                          <span className="text-xs text-muted-foreground line-through">
                             {formatCurrency(product.originalPrice)}
                           </span>
                           {product.discount && (
-                            <Badge variant="destructive" className="text-xs h-5">
+                            <Badge variant="destructive" className="text-[10px] h-4 px-1.5">
                               -{product.discount}%
                             </Badge>
                           )}
@@ -164,27 +164,27 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 bg-background rounded-md px-2.5 py-1.5 w-fit">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-semibold text-sm">{product.rating.toFixed(1)}</span>
+                  <div className="flex items-center gap-1 bg-background rounded-md px-2 py-1 w-fit">
+                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                    <span className="font-semibold text-xs">{product.rating.toFixed(1)}</span>
                     {product.reviewCount > 0 && (
-                      <span className="text-xs text-muted-foreground">({product.reviewCount})</span>
+                      <span className="text-[10px] text-muted-foreground">({product.reviewCount})</span>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* Seller Info Card */}
-              <div className="mb-3 p-3 rounded-lg border">
+              <div className="mb-2.5 p-2.5 rounded-lg border">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-xs sm:text-sm font-medium truncate">{product.seller}</span>
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-xs font-medium truncate">{product.seller}</span>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="shrink-0 text-xs h-8"
+                    className="shrink-0 text-[10px] h-7 px-2"
                     onClick={() => {
                       onViewSeller(product.sellerId);
                       onClose();
@@ -197,19 +197,19 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 
               {/* Description */}
               {product.description && (
-                <div className="mb-3 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-primary" />
-                    <h4 className="text-sm font-semibold">Description</h4>
+                <div className="mb-2.5 space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <FileText className="h-3.5 w-3.5 text-primary" />
+                    <h4 className="text-xs font-semibold">Description</h4>
                   </div>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     {product.description}
                   </p>
                 </div>
               )}
 
               {/* Product Specifications */}
-              <div className="mb-3">
+              <div className="mb-2.5">
                 <ProductSpecifications
                   brand={product.brand}
                   condition={product.condition}
@@ -220,10 +220,10 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 
               {/* Similar Products Section */}
               {similarProducts.length > 0 && (
-                <div className="mb-4 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <h4 className="text-sm font-semibold">Produits similaires</h4>
+                <div className="mb-3 space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    <h4 className="text-xs font-semibold">Produits similaires</h4>
                   </div>
                   <HorizontalProductScroll
                     title=""
@@ -241,10 +241,10 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 
               {/* Seller Other Products Section */}
               {sellerProducts.length > 0 && (
-                <div className="mb-4 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Store className="h-4 w-4 text-primary" />
-                    <h4 className="text-sm font-semibold">Autres produits de ce vendeur</h4>
+                <div className="mb-3 space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Store className="h-3.5 w-3.5 text-primary" />
+                    <h4 className="text-xs font-semibold">Autres produits de ce vendeur</h4>
                   </div>
                   <HorizontalProductScroll
                     title=""
@@ -263,36 +263,36 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
             </ScrollArea>
 
             {/* Sticky Footer Actions */}
-            <div className="p-3 sm:p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="space-y-2.5">
+            <div className="p-2.5 sm:p-3 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <div className="space-y-2">
                 {/* Quantity and Total Row */}
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-2">
                   {/* Quantity Selector */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 shrink-0"
+                      className="h-7 w-7 shrink-0"
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       disabled={quantity <= 1}
                     >
-                      <Minus className="h-3.5 w-3.5" />
+                      <Minus className="h-3 w-3" />
                     </Button>
-                    <span className="font-medium text-sm min-w-6 text-center">{quantity}</span>
+                    <span className="font-medium text-xs min-w-5 text-center">{quantity}</span>
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 shrink-0"
+                      className="h-7 w-7 shrink-0"
                       onClick={() => setQuantity(quantity + 1)}
                     >
-                      <Plus className="h-3.5 w-3.5" />
+                      <Plus className="h-3 w-3" />
                     </Button>
                   </div>
 
                   {/* Total Price */}
                   <div className="text-right flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground">Total</p>
-                    <p className="text-lg sm:text-xl font-bold text-primary truncate">
+                    <p className="text-[10px] text-muted-foreground">Total</p>
+                    <p className="text-base sm:text-lg font-bold text-primary truncate">
                       {formatCurrency(totalPrice)}
                     </p>
                   </div>
@@ -300,13 +300,13 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 
                 {/* Buy Button */}
                 {!canAfford ? (
-                  <div className="space-y-2">
-                    <p className="text-xs text-center text-muted-foreground">
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] text-center text-muted-foreground">
                       Solde insuffisant. Rechargez votre wallet.
                     </p>
                     <Button 
                       onClick={handleRecharge}
-                      className="w-full h-10"
+                      className="w-full h-9 text-xs"
                       variant="secondary"
                       size="sm"
                     >
@@ -317,16 +317,16 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                   <Button 
                     onClick={handleBuyNow}
                     disabled={!product.isAvailable}
-                    className="w-full h-10"
+                    className="w-full h-9 text-xs"
                   >
-                    <ShoppingBag className="h-4 w-4 mr-2" />
-                    <span className="text-sm">{product.isAvailable ? 'Acheter maintenant' : 'Produit épuisé'}</span>
+                    <ShoppingBag className="h-3.5 w-3.5 mr-1.5" />
+                    <span>{product.isAvailable ? 'Acheter maintenant' : 'Produit épuisé'}</span>
                   </Button>
                 )}
 
                 {/* Wallet Balance */}
                 {wallet && (
-                  <div className="flex justify-between items-center text-xs text-muted-foreground pt-1">
+                  <div className="flex justify-between items-center text-[10px] text-muted-foreground pt-0.5">
                     <span>Solde KwendaPay</span>
                     <span className={cn(
                       "font-medium",
