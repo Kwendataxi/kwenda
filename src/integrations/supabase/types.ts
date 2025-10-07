@@ -10738,6 +10738,24 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_admin_users_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          admin_level: string
+          admin_role: Database["public"]["Enums"]["admin_role"]
+          created_at: string
+          department: string
+          display_name: string
+          email: string
+          is_active: boolean
+          last_login: string
+          permissions: string[]
+          phone_number: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }[]
+      }
       get_ai_performance_stats: {
         Args: { days_back?: number }
         Returns: {
@@ -11450,11 +11468,11 @@ export type Database = {
       }
       log_sensitive_access: {
         Args: {
-          p_accessed_user_data?: string
-          p_operation: string
+          p_access_type: string
           p_table_name: string
+          p_target_user_id?: string
         }
-        Returns: undefined
+        Returns: string
       }
       log_sensitive_access_enhanced: {
         Args: {
