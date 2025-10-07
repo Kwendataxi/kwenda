@@ -14,14 +14,10 @@ interface RatingParams {
 
 interface RatingStats {
   total_ratings: number;
-  average_rating: number;
-  five_stars: number;
-  four_stars: number;
-  three_stars: number;
-  two_stars: number;
-  one_star: number;
-  last_rating_at?: string;
-  ratings_with_comments: number;
+  avg_rating: number;
+  positive_ratings: number;
+  negative_ratings: number;
+  user_id?: string;
 }
 
 export const useRating = () => {
@@ -91,32 +87,24 @@ export const useRating = () => {
       const { data, error } = await supabase
         .from('v_user_rating_stats')
         .select('*')
-        .eq('rated_user_id', userId)
+        .eq('user_id', userId)
         .maybeSingle();
 
       if (error) throw error;
 
       return data || {
         total_ratings: 0,
-        average_rating: 0,
-        five_stars: 0,
-        four_stars: 0,
-        three_stars: 0,
-        two_stars: 0,
-        one_star: 0,
-        ratings_with_comments: 0
+        avg_rating: 0,
+        positive_ratings: 0,
+        negative_ratings: 0
       };
     } catch (error) {
       console.error('Error fetching rating stats:', error);
       return {
         total_ratings: 0,
-        average_rating: 0,
-        five_stars: 0,
-        four_stars: 0,
-        three_stars: 0,
-        two_stars: 0,
-        one_star: 0,
-        ratings_with_comments: 0
+        avg_rating: 0,
+        positive_ratings: 0,
+        negative_ratings: 0
       };
     }
   };
