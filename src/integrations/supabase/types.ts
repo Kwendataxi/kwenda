@@ -3608,6 +3608,7 @@ export type Database = {
           location: string | null
           moderation_status: string | null
           price: number
+          rejection_reason: string | null
           seller_id: string
           status: string | null
           subcategory: string | null
@@ -3626,6 +3627,7 @@ export type Database = {
           location?: string | null
           moderation_status?: string | null
           price: number
+          rejection_reason?: string | null
           seller_id: string
           status?: string | null
           subcategory?: string | null
@@ -3644,6 +3646,7 @@ export type Database = {
           location?: string | null
           moderation_status?: string | null
           price?: number
+          rejection_reason?: string | null
           seller_id?: string
           status?: string | null
           subcategory?: string | null
