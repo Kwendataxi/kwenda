@@ -18,7 +18,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.lottery-system]
-verify_jwt = false
+verify_jwt = true  # ✅ PHASE 2 CRITIQUE: JWT requis pour loterie
 
 [functions.partner-validation-notification]
 verify_jwt = true
@@ -39,13 +39,13 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.geocode-proxy]
-verify_jwt = false
+verify_jwt = true  # ✅ PHASE 2: JWT requis pour géocodage
 
 [functions.get-google-maps-key]
 verify_jwt = true  # ✅ SÉCURITÉ CRITIQUE: JWT requis
 
 [functions.google-places-autocomplete]
-verify_jwt = false
+verify_jwt = true  # ✅ PHASE 2: JWT requis pour autocomplete
 
 [functions.google-place-details]
 verify_jwt = false
@@ -75,10 +75,10 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.delivery-dispatcher]
-verify_jwt = false
+verify_jwt = true  # ✅ PHASE 2: JWT requis pour dispatcher livraisons
 
 [functions.ride-dispatcher]
-verify_jwt = false
+verify_jwt = true  # ✅ PHASE 2: JWT requis pour dispatcher
 
 [functions.smart-ride-dispatcher]
 verify_jwt = false
