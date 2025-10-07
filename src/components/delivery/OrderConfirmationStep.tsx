@@ -149,7 +149,7 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
         return;
       }
       
-      // Préparer les données normalisées et validées
+      // Préparer les données normalisées et validées avec MAPPING CORRECT
       const orderData = {
         pickup: {
           address: pickupAddress,
@@ -165,6 +165,11 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
           contactName: destination.contact?.name || 'Destinataire',
           contactPhone: destination.contact?.phone || ''
         },
+        // MAPPING CORRIGÉ : Transformer contactName/contactPhone en senderName/senderPhone
+        senderName: pickup.contact?.name || 'Expéditeur',
+        senderPhone: pickup.contact?.phone || '',
+        recipientName: destination.contact?.name || 'Destinataire',
+        recipientPhone: destination.contact?.phone || '',
         mode: service.id,
         city: 'Kinshasa',
         estimatedPrice: pricing.price,

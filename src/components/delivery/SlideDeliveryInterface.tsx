@@ -203,17 +203,32 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         setCurrentStep('contacts');
         break;
       case 'contacts':
-        // Validation des champs de contact
+        // VALIDATION STRICTE DES CHAMPS DE CONTACT
+        const trimmedData = {
+          senderName: deliveryData.senderName?.trim() || '',
+          senderPhone: deliveryData.senderPhone?.trim() || '',
+          recipientName: deliveryData.recipientName?.trim() || '',
+          recipientPhone: deliveryData.recipientPhone?.trim() || ''
+        };
+
+        console.log('🔍 Validation des contacts:', trimmedData);
+
         try {
-          contactSchema.parse({
-            senderName: deliveryData.senderName,
-            senderPhone: deliveryData.senderPhone,
-            recipientName: deliveryData.recipientName,
-            recipientPhone: deliveryData.recipientPhone
-          });
+          contactSchema.parse(trimmedData);
+          
+          // Mettre à jour avec les données nettoyées
+          setDeliveryData(prev => ({
+            ...prev,
+            senderName: trimmedData.senderName,
+            senderPhone: trimmedData.senderPhone,
+            recipientName: trimmedData.recipientName,
+            recipientPhone: trimmedData.recipientPhone
+          }));
+          
           setCurrentStep('service');
         } catch (error: any) {
           const firstError = error.errors?.[0];
+          console.error('❌ Erreur de validation des contacts:', error.errors);
           toast({
             title: "Validation échouée",
             description: firstError?.message || "Veuillez vérifier les informations saisies",

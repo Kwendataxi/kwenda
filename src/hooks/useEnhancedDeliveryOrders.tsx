@@ -24,6 +24,10 @@ export interface DeliveryOrderData {
   estimatedPrice?: number;
   distance?: number;
   duration?: number;
+  senderName?: string;
+  senderPhone?: string;
+  recipientName?: string;
+  recipientPhone?: string;
 }
 
 export const useEnhancedDeliveryOrders = () => {
@@ -121,9 +125,22 @@ export const useEnhancedDeliveryOrders = () => {
       // VALIDATION ROBUSTE DES DONNÉES DE LIVRAISON
       console.log('🔍 Debug orderData reçu:', JSON.stringify(orderData, null, 2));
       
+      // VALIDATION STRICTE DES DONNÉES DE CONTACT
+      if (!orderData.senderPhone || orderData.senderPhone.trim() === '') {
+        console.error('❌ Numéro de téléphone de l\'expéditeur manquant dans orderData');
+        toast({
+          title: "Numéro de téléphone requis",
+          description: "Le numéro de téléphone de l'expéditeur est obligatoire",
+          variant: "destructive",
+        });
+        throw new Error('Numéro de téléphone de l\'expéditeur requis');
+      }
+
       // Normalisation et validation des données essentielles
       const normalizeDeliveryData = (data: any) => {
         if (!data) throw new Error('Données de livraison manquantes');
+        
+        console.log('🔍 normalizeDeliveryData - Données brutes:', data);
         
         // Extraire les coordonnées avec plusieurs formats possibles
         const extractCoordinates = (locationData: any) => {
@@ -178,20 +195,33 @@ export const useEnhancedDeliveryOrders = () => {
           throw new Error('Adresse de destination requise et valide');
         }
         
+        // MAPPING CORRIGÉ : Supporter à la fois contactName/contactPhone ET senderName/senderPhone
+        const senderName = data.senderName || pickup.contactName || '';
+        const senderPhone = data.senderPhone || pickup.contactPhone || '';
+        const recipientName = data.recipientName || destination.contactName || '';
+        const recipientPhone = data.recipientPhone || destination.contactPhone || '';
+
+        console.log('📞 Contacts extraits:', {
+          senderName,
+          senderPhone,
+          recipientName,
+          recipientPhone
+        });
+
         return {
           pickup: {
             address: pickupAddress,
             lat: pickupCoords.lat,
             lng: pickupCoords.lng,
-            contactName: pickup.contactName || '',
-            contactPhone: pickup.contactPhone || ''
+            contactName: senderName,
+            contactPhone: senderPhone
           },
           destination: {
             address: destAddress,
             lat: destCoords.lat,
             lng: destCoords.lng,
-            contactName: destination.contactName || '',
-            contactPhone: destination.contactPhone || ''
+            contactName: recipientName,
+            contactPhone: recipientPhone
           },
           mode: data.mode,
           city: data.city || 'Kinshasa',
@@ -254,6 +284,17 @@ export const useEnhancedDeliveryOrders = () => {
         sender: { name: senderName, phone: senderPhone },
         recipient: { name: recipientName, phone: recipientPhone }
       });
+
+      // VALIDATION FINALE DU TÉLÉPHONE DE L'EXPÉDITEUR
+      if (!senderPhone || senderPhone.trim() === '') {
+        console.error('❌ Téléphone de l\'expéditeur vide après normalisation');
+        toast({
+          title: "Erreur de validation",
+          description: "Le numéro de téléphone de l'expéditeur est obligatoire",
+          variant: "destructive",
+        });
+        throw new Error('Numéro de téléphone de l\'expéditeur requis');
+      }
       
       const orderPayload = {
         user_id: user.id,
