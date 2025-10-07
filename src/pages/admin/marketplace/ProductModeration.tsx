@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, CheckCircle, XCircle, Eye, Package, Calendar, User, MapPin, DollarSign } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, Eye, Package, Calendar, User, MapPin, Edit } from "lucide-react";
+import { EditProductForm } from "@/components/marketplace/EditProductForm";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +44,7 @@ export const ProductModeration = () => {
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [processingAction, setProcessingAction] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const { toast } = useToast();
 
   const fetchPendingProducts = async () => {
@@ -222,7 +224,25 @@ export const ProductModeration = () => {
   };
 
   if (loading) {
+  // Mode édition
+  if (editingProduct) {
     return (
+      <EditProductForm
+        product={editingProduct}
+        onBack={() => setEditingProduct(null)}
+        onUpdate={() => {
+          setEditingProduct(null);
+          fetchPendingProducts();
+          toast({
+            title: "✅ Produit modifié",
+            description: "Le produit a été mis à jour avec succès",
+          });
+        }}
+      />
+    );
+  }
+
+  return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
@@ -396,6 +416,17 @@ export const ProductModeration = () => {
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setSelectedProduct(null)}>
               Fermer
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setEditingProduct(selectedProduct);
+                setSelectedProduct(null);
+              }}
+              disabled={processingAction}
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Modifier avant validation
             </Button>
             <Button
               variant="destructive"
