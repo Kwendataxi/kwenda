@@ -317,7 +317,45 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
   const handleProductSubmit = async (productData: any) => {
     try {
-      // Create product in Supabase with pending moderation status
+      // 1. Upload images to Supabase Storage
+      const imageUrls: string[] = [];
+      
+      if (productData.images && productData.images.length > 0) {
+        toast({
+          title: '📤 Upload des images...',
+          description: `Upload de ${productData.images.length} image(s) en cours...`,
+        });
+
+        for (let i = 0; i < productData.images.length; i++) {
+          const file = productData.images[i];
+          
+          // Generate unique filename
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${user?.id}/${Date.now()}-${i}.${fileExt}`;
+          
+          // Upload to profile-pictures bucket (ou créer un bucket dédié products)
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('profile-pictures')
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (uploadError) {
+            console.error('Image upload error:', uploadError);
+            throw new Error(`Erreur upload image ${i + 1}: ${uploadError.message}`);
+          }
+
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('profile-pictures')
+            .getPublicUrl(fileName);
+          
+          imageUrls.push(publicUrl);
+        }
+      }
+
+      // 2. Create product in Supabase with uploaded image URLs
       const { data, error } = await supabase
         .from('marketplace_products')
         .insert({
@@ -326,7 +364,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           price: parseFloat(productData.price),
           category: productData.category,
           condition: productData.condition || 'new',
-          images: productData.images || [],
+          images: imageUrls, // ✅ URLs au lieu de File objects
           seller_id: user?.id,
           location: productData.location,
           coordinates: productData.coordinates,
@@ -334,24 +372,30 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           brand: productData.brand || null,
           specifications: productData.specifications || {},
           status: 'active',
-          moderation_status: 'pending'  // ✅ Explicitement défini
-        });
+          moderation_status: 'pending'
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
+      console.log('✅ Product created successfully:', data);
+
       // ✅ Notification vendeur : produit en attente de modération
       toast({
-        title: '📝 Produit soumis avec succès',
-        description: 'Votre produit est en cours de modération et sera visible après approbation par un administrateur.',
-        duration: 4000,
+        title: '✅ Produit créé avec succès',
+        description: 'Votre produit est en attente de modération. Vous serez notifié une fois approuvé.',
+        duration: 5000,
       });
 
-      console.log('Product created:', data);
-    } catch (error) {
-      console.error('Error creating product:', error);
+      // Reload products
+      await loadProducts();
+      
+    } catch (error: any) {
+      console.error('❌ Error creating product:', error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de créer le produit. Veuillez réessayer.',
+        title: '❌ Erreur de création',
+        description: error.message || 'Impossible de créer le produit. Veuillez réessayer.',
         variant: 'destructive',
       });
       throw error;
