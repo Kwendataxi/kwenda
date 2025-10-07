@@ -4,20 +4,36 @@ import { useAuth } from '@/hooks/useAuth';
 import { notificationSoundService } from '@/services/notificationSound';
 import { useToast } from '@/hooks/use-toast';
 
-interface VendorNotification {
+export type VendorNotificationType = 
+  | 'new_order'
+  | 'order_confirmed'
+  | 'payment_received'
+  | 'product_approved'
+  | 'product_rejected'
+  | 'product_flagged'
+  | 'low_stock_alert'
+  | 'review_received'
+  | 'general';
+
+export interface VendorNotification {
   id: string;
   vendor_id: string;
-  order_id: string;
-  notification_type: string;
+  user_id?: string;
+  order_id?: string;
+  notification_type: VendorNotificationType;
+  type?: VendorNotificationType;
   title: string;
   message: string;
+  priority?: string;
   is_read: boolean;
   is_acknowledged: boolean;
   sound_played: boolean;
   metadata: any;
+  data?: any;
   created_at: string;
   read_at?: string;
   acknowledged_at?: string;
+  requires_action?: boolean;
 }
 
 interface UseVendorNotificationsReturn {
@@ -43,11 +59,11 @@ export function useVendorNotifications(): UseVendorNotificationsReturn {
       const { data, error } = await supabase
         .from('vendor_notifications')
         .select('*')
-        .eq('vendor_id', user.id)
+        .or(`vendor_id.eq.${user.id},user_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setNotifications(data || []);
+      setNotifications((data || []) as VendorNotification[]);
     } catch (error) {
       console.error('Error fetching vendor notifications:', error);
     } finally {
@@ -135,20 +151,22 @@ export function useVendorNotifications(): UseVendorNotificationsReturn {
     
     // Play notification sound
     if (!notification.sound_played) {
-      let soundType: 'newOrder' | 'orderConfirmed' | 'paymentReceived' | 'general' = 'general';
+      const notifType = notification.type || notification.notification_type;
       
-      switch (notification.notification_type) {
-        case 'new_order':
-          soundType = 'newOrder';
-          break;
-        case 'order_confirmed':
-          soundType = 'orderConfirmed';
-          break;
-        case 'payment_received':
-          soundType = 'paymentReceived';
-          break;
-      }
-      
+      // Enhanced sound mapping
+      const soundMap: Record<VendorNotificationType, any> = {
+        'new_order': 'newOrder',
+        'order_confirmed': 'orderConfirmed',
+        'payment_received': 'paymentReceived',
+        'product_approved': 'productApproved',
+        'product_rejected': 'productRejected',
+        'product_flagged': 'productFlagged',
+        'low_stock_alert': 'lowStockAlert',
+        'review_received': 'reviewReceived',
+        'general': 'general'
+      };
+
+      const soundType = soundMap[notifType] || 'general';
       await notificationSoundService.playNotificationSound(soundType);
       
       // Mark sound as played
@@ -158,11 +176,17 @@ export function useVendorNotifications(): UseVendorNotificationsReturn {
         .eq('id', notification.id);
     }
     
-    // Show toast notification
+    // Show toast notification with variant based on type
+    const notifType = notification.type || notification.notification_type;
+    const toastVariant = notifType === 'product_rejected' || notifType === 'product_flagged' 
+      ? 'destructive' 
+      : undefined;
+
     toast({
       title: notification.title,
       description: notification.message,
-      duration: 5000,
+      duration: notification.priority === 'urgent' ? 8000 : 5000,
+      variant: toastVariant,
     });
   };
 
@@ -178,7 +202,7 @@ export function useVendorNotifications(): UseVendorNotificationsReturn {
           event: 'INSERT',
           schema: 'public',
           table: 'vendor_notifications',
-          filter: `vendor_id=eq.${user.id}`,
+          filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
           console.log('New vendor notification:', payload);
@@ -191,7 +215,7 @@ export function useVendorNotifications(): UseVendorNotificationsReturn {
           event: 'UPDATE',
           schema: 'public',
           table: 'vendor_notifications',
-          filter: `vendor_id=eq.${user.id}`,
+          filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
           console.log('Updated vendor notification:', payload);

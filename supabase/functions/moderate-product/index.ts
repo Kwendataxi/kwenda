@@ -119,27 +119,49 @@ serve(async (req) => {
 
     // Créer une notification pour le vendeur
     const notificationTitle = action === 'approve' 
-      ? 'Produit approuvé' 
-      : 'Produit rejeté';
+      ? 'Produit approuvé ✅' 
+      : 'Produit rejeté ❌';
     
     const notificationMessage = action === 'approve'
       ? `Votre produit "${product.title}" a été approuvé et est maintenant visible sur la marketplace.`
       : `Votre produit "${product.title}" a été rejeté. Raison: ${rejectionReason || 'Non spécifiée'}`;
 
+    // Notification user_notifications (existante)
     await supabase
       .from('user_notifications')
       .insert({
         user_id: product.seller_id,
         title: notificationTitle,
-        message: notificationMessage,
+        content: notificationMessage,
         type: 'marketplace',
-        priority: action === 'reject' ? 'high' : 'normal',
-        data: {
-          product_id: productId,
-          action,
-          rejection_reason: rejectionReason
-        }
+        priority: action === 'reject' ? 'high' : 'normal'
       });
+
+    // 🆕 Notification vendor_notifications (enrichie avec métadonnées)
+    const vendorNotificationType = action === 'approve' ? 'product_approved' : 'product_rejected';
+    const vendorNotificationData = {
+      product_id: productId,
+      product_title: product.title,
+      product_image: product.images?.[0] || null,
+      action,
+      rejection_reason: rejectionReason,
+      moderator_id: user.id,
+      moderated_at: new Date().toISOString()
+    };
+
+    await supabase
+      .from('vendor_notifications')
+      .insert({
+        user_id: product.seller_id,
+        type: vendorNotificationType,
+        title: notificationTitle,
+        message: notificationMessage,
+        priority: action === 'reject' ? 'urgent' : 'high',
+        data: vendorNotificationData,
+        requires_action: action === 'reject'
+      });
+
+    console.log('✅ Vendor notification created:', vendorNotificationType);
 
     // Logger l'action dans activity_logs
     await supabase

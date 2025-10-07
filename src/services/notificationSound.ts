@@ -2,6 +2,11 @@ interface NotificationSounds {
   newOrder: string;
   orderConfirmed: string;
   paymentReceived: string;
+  productApproved: string;
+  productRejected: string;
+  productFlagged: string;
+  lowStockAlert: string;
+  reviewReceived: string;
   general: string;
 }
 
@@ -10,6 +15,11 @@ class NotificationSoundService {
     newOrder: '/sounds/new-order.mp3',
     orderConfirmed: '/sounds/order-confirmed.mp3', 
     paymentReceived: '/sounds/payment-received.mp3',
+    productApproved: '/sounds/product-approved.mp3',
+    productRejected: '/sounds/product-rejected.mp3',
+    productFlagged: '/sounds/product-flagged.mp3',
+    lowStockAlert: '/sounds/low-stock.mp3',
+    reviewReceived: '/sounds/review-received.mp3',
     general: '/sounds/notification.mp3'
   };
 
@@ -61,7 +71,7 @@ class NotificationSoundService {
     source.start(0);
   }
 
-  async playNotificationSound(type: 'newOrder' | 'orderConfirmed' | 'paymentReceived' | 'general' = 'general') {
+  async playNotificationSound(type: 'newOrder' | 'orderConfirmed' | 'paymentReceived' | 'productApproved' | 'productRejected' | 'productFlagged' | 'lowStockAlert' | 'reviewReceived' | 'general' = 'general') {
     try {
       const soundUrl = this.sounds[type];
       const audioBuffer = await this.loadSound(soundUrl);
