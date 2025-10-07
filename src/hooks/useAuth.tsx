@@ -81,39 +81,46 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const signOut = async () => {
-    // Récupérer le rôle AVANT la déconnexion pour redirection intelligente
-    let redirectPath = '/auth'; // Défaut pour clients/chauffeurs
-    
     try {
-      const cached = localStorage.getItem('kwenda_user_roles_cache');
-      if (cached) {
-        const { data } = JSON.parse(cached);
-        const primaryRole = data?.find((r: any) => r.role === 'admin')?.role || 
-                           data?.find((r: any) => r.role === 'partner')?.role || 
-                           data?.[0]?.role;
-        
-        if (primaryRole === 'admin') {
-          redirectPath = '/admin/auth';
-        } else if (primaryRole === 'partner') {
-          redirectPath = '/partner/auth';
+      // Récupérer le rôle AVANT la déconnexion pour redirection intelligente
+      let redirectPath = '/auth'; // Défaut pour clients/chauffeurs
+      
+      try {
+        const cached = localStorage.getItem('kwenda_user_roles_cache');
+        if (cached) {
+          const { data } = JSON.parse(cached);
+          const primaryRole = data?.find((r: any) => r.role === 'admin')?.role || 
+                             data?.find((r: any) => r.role === 'partner')?.role || 
+                             data?.[0]?.role;
+          
+          if (primaryRole === 'admin') {
+            redirectPath = '/admin/auth';
+          } else if (primaryRole === 'partner') {
+            redirectPath = '/partner/auth';
+          }
         }
+      } catch (error) {
+        logger.warn('Unable to determine role for redirect:', error);
       }
-    } catch (error) {
-      logger.warn('Unable to determine role for redirect:', error);
-    }
-    
-    const { error } = await supabase.auth.signOut();
-    if (!error) {
+      
+      // Nettoyer d'abord l'état local
       setUser(null);
       setSession(null);
       
-      // Clear any localStorage data
+      // Clear localStorage avant la déconnexion
       localStorage.removeItem('supabase.auth.token');
       localStorage.removeItem('sb-wddlktajnhwhyquwcdgf-auth-token');
       localStorage.removeItem('kwenda_user_roles_cache');
       
+      // Déconnecter (ignorer les erreurs de session inexistante)
+      await supabase.auth.signOut({ scope: 'local' });
+      
       // Redirection intelligente selon le rôle
       window.location.href = redirectPath;
+    } catch (error) {
+      logger.error('Error during sign out:', error);
+      // Forcer la redirection même en cas d'erreur
+      window.location.href = '/admin/auth';
     }
   };
 
