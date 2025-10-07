@@ -17,6 +17,10 @@ interface MarketplaceOrder {
   status: string;
   payment_status: string;
   delivery_method: string;
+  delivery_fee?: number;
+  vendor_approved_at?: string;
+  delivery_fee_approved_by_buyer?: boolean;
+  vendor_delivery_method?: string;
   notes?: string;
   created_at: string;
   updated_at: string;
@@ -120,9 +124,9 @@ export const useMarketplaceOrders = () => {
   }) => {
     if (!user) return null;
 
-    const DELIVERY_FEE = 7000;
+    // Pas de frais de livraison au début - sera fixé par le vendeur
     const subtotal = orderData.quantity * orderData.unitPrice;
-    const totalAmount = subtotal + (orderData.deliveryMethod !== 'pickup' ? DELIVERY_FEE : 0);
+    const totalAmount = subtotal; // Montant initial = prix produit seulement
 
     // Only check wallet balance if using wallet payment
     if (orderData.paymentMethod === 'wallet') {
@@ -146,9 +150,10 @@ export const useMarketplaceOrders = () => {
           delivery_coordinates: orderData.deliveryCoordinates,
           pickup_coordinates: orderData.deliveryCoordinates,
           delivery_method: orderData.deliveryMethod,
+          delivery_fee: null, // Sera défini par le vendeur
           notes: orderData.notes,
-          status: orderData.paymentMethod === 'wallet' ? 'pending_payment' : 'pending',
-          payment_status: orderData.paymentMethod === 'wallet' ? 'pending' : 'completed'
+          status: 'pending', // En attente validation vendeur
+          payment_status: 'pending'
         })
         .select()
         .single();
@@ -409,6 +414,24 @@ export const useMarketplaceOrders = () => {
     }
   }, [user]);
 
+  // Accept delivery fee (buyer)
+  const acceptDeliveryFee = async (orderId: string) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      const { error } = await supabase.functions.invoke('accept-delivery-fee', {
+        body: { orderId, buyerId: user.id }
+      });
+
+      if (error) throw error;
+      
+      fetchOrders();
+    } catch (error) {
+      console.error('Error accepting delivery fee:', error);
+      throw error;
+    }
+  };
+
   return {
     orders,
     loading,
@@ -422,6 +445,7 @@ export const useMarketplaceOrders = () => {
     markAsDelivered,
     completeOrder,
     cancelOrder,
+    acceptDeliveryFee,
     refetch: fetchOrders
   };
 };

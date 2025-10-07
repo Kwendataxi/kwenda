@@ -3421,6 +3421,7 @@ export type Database = {
         Row: {
           actual_delivery_time: string | null
           actual_pickup_time: string | null
+          assigned_by_vendor: boolean | null
           assignment_status: string
           created_at: string
           delivery_coordinates: Json | null
@@ -3434,10 +3435,12 @@ export type Database = {
           pickup_coordinates: Json | null
           pickup_location: string
           updated_at: string
+          vendor_delivery_notes: string | null
         }
         Insert: {
           actual_delivery_time?: string | null
           actual_pickup_time?: string | null
+          assigned_by_vendor?: boolean | null
           assignment_status?: string
           created_at?: string
           delivery_coordinates?: Json | null
@@ -3451,10 +3454,12 @@ export type Database = {
           pickup_coordinates?: Json | null
           pickup_location: string
           updated_at?: string
+          vendor_delivery_notes?: string | null
         }
         Update: {
           actual_delivery_time?: string | null
           actual_pickup_time?: string | null
+          assigned_by_vendor?: boolean | null
           assignment_status?: string
           created_at?: string
           delivery_coordinates?: Json | null
@@ -3468,6 +3473,7 @@ export type Database = {
           pickup_coordinates?: Json | null
           pickup_location?: string
           updated_at?: string
+          vendor_delivery_notes?: string | null
         }
         Relationships: [
           {
@@ -3492,6 +3498,8 @@ export type Database = {
           delivery_address: string | null
           delivery_attempted_at: string | null
           delivery_coordinates: Json | null
+          delivery_fee: number | null
+          delivery_fee_approved_by_buyer: boolean | null
           delivery_method: string
           driver_notes: string | null
           estimated_delivery_time: string | null
@@ -3511,8 +3519,10 @@ export type Database = {
           total_amount: number
           unit_price: number
           updated_at: string
+          vendor_approved_at: string | null
           vendor_confirmation_status: string | null
           vendor_confirmed_at: string | null
+          vendor_delivery_method: string | null
           vendor_rejection_reason: string | null
         }
         Insert: {
@@ -3527,6 +3537,8 @@ export type Database = {
           delivery_address?: string | null
           delivery_attempted_at?: string | null
           delivery_coordinates?: Json | null
+          delivery_fee?: number | null
+          delivery_fee_approved_by_buyer?: boolean | null
           delivery_method?: string
           driver_notes?: string | null
           estimated_delivery_time?: string | null
@@ -3546,8 +3558,10 @@ export type Database = {
           total_amount: number
           unit_price: number
           updated_at?: string
+          vendor_approved_at?: string | null
           vendor_confirmation_status?: string | null
           vendor_confirmed_at?: string | null
+          vendor_delivery_method?: string | null
           vendor_rejection_reason?: string | null
         }
         Update: {
@@ -3562,6 +3576,8 @@ export type Database = {
           delivery_address?: string | null
           delivery_attempted_at?: string | null
           delivery_coordinates?: Json | null
+          delivery_fee?: number | null
+          delivery_fee_approved_by_buyer?: boolean | null
           delivery_method?: string
           driver_notes?: string | null
           estimated_delivery_time?: string | null
@@ -3581,8 +3597,10 @@ export type Database = {
           total_amount?: number
           unit_price?: number
           updated_at?: string
+          vendor_approved_at?: string | null
           vendor_confirmation_status?: string | null
           vendor_confirmed_at?: string | null
+          vendor_delivery_method?: string | null
           vendor_rejection_reason?: string | null
         }
         Relationships: [

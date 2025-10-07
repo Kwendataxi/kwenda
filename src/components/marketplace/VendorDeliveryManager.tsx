@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, Package, Clock, Truck, Phone, Eye, Search } from 'lucide-react';
+import { MapPin, Package, Clock, Truck, Phone, Eye, Search, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { VendorOrderValidationPanel } from './VendorOrderValidationPanel';
 
 interface VendorOrder {
   id: string;
@@ -135,22 +137,50 @@ export const VendorDeliveryManager = () => {
     );
   }
 
+  const pendingValidation = orders.filter(o => o.status === 'pending');
+
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Gestion des Livraisons</h2>
-        <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrer les commandes" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Toutes les commandes</SelectItem>
-            <SelectItem value="delivery">Avec livraison</SelectItem>
-            <SelectItem value="pickup">À récupérer</SelectItem>
-            <SelectItem value="pending">En attente</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
+
+      <Tabs defaultValue="validation" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="validation" className="relative">
+            Validation commandes
+            {pendingValidation.length > 0 && (
+              <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                {pendingValidation.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="orders">
+            Toutes les commandes
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="validation" className="mt-4">
+          <VendorOrderValidationPanel 
+            orders={orders} 
+            onRefresh={loadOrders}
+          />
+        </TabsContent>
+
+        <TabsContent value="orders" className="mt-4">
+          <div className="flex items-center justify-between mb-4">
+            <Select value={filter} onValueChange={setFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filtrer les commandes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les commandes</SelectItem>
+                <SelectItem value="delivery">Avec livraison</SelectItem>
+                <SelectItem value="pickup">À récupérer</SelectItem>
+                <SelectItem value="pending">En attente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
       {filteredOrders.length === 0 && (
         <Card>
@@ -283,7 +313,8 @@ export const VendorDeliveryManager = () => {
           </Card>
         ))}
       </div>
-
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

@@ -27,12 +27,14 @@ import { OrderTracker } from './OrderTracker';
 import { AdvancedOrderTracker } from './AdvancedOrderTracker';
 import { VerifiedSellerGuard } from './VerifiedSellerGuard';
 import { FloatingChatButton } from './FloatingChatButton';
+import { DeliveryFeeApprovalDialog } from './DeliveryFeeApprovalDialog';
 
 // Hooks
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useUserVerification } from '@/hooks/useUserVerification';
 import { useWallet } from '@/hooks/useWallet';
+import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
 
 interface Product {
   id: string;
@@ -97,9 +99,10 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const geolocation = useGeolocation();
   const locationLoading = geolocation.loading;
   const coordinates = geolocation.latitude && geolocation.longitude ? { lat: geolocation.latitude, lng: geolocation.longitude } : null;
-  const { orders, loading: ordersLoading } = useMarketplaceOrders();
+  const { orders, loading: ordersLoading, refetch: refetchOrders } = useMarketplaceOrders();
   const { verification } = useUserVerification();
   const { wallet } = useWallet();
+  const { startConversation } = useMarketplaceChat();
   
   // State management
   const [currentTab, setCurrentTab] = useState<'shop' | 'sell' | 'orders' | 'escrow' | 'vendor'>('shop');
@@ -112,6 +115,10 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
+  
+  // Delivery fee approval
+  const [pendingFeeOrder, setPendingFeeOrder] = useState<any | null>(null);
+  const [isFeeDialogOpen, setIsFeeDialogOpen] = useState(false);
   const [deliveryInfo, setDeliveryInfo] = useState<any>(null);
   
   // Filters
@@ -124,6 +131,17 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
   // Hooks
   const ordersHook = useMarketplaceOrders();
+
+  // Check for pending fee approval orders
+  useEffect(() => {
+    if (orders && orders.length > 0) {
+      const pendingApproval = orders.find(o => o.status === 'pending_buyer_approval' && !o.delivery_fee_approved_by_buyer);
+      if (pendingApproval && pendingApproval.id !== pendingFeeOrder?.id) {
+        setPendingFeeOrder(pendingApproval);
+        setIsFeeDialogOpen(true);
+      }
+    }
+  }, [orders]);
 
   // Load products with optimized caching
   useEffect(() => {
@@ -723,6 +741,28 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
             }
           }}
           userLocation={coordinates}
+        />
+      )}
+
+      {/* Delivery Fee Approval Dialog */}
+      {pendingFeeOrder && (
+        <DeliveryFeeApprovalDialog
+          order={pendingFeeOrder}
+          open={isFeeDialogOpen}
+          onOpenChange={setIsFeeDialogOpen}
+          onApproved={() => {
+            setIsFeeDialogOpen(false);
+            setPendingFeeOrder(null);
+            refetchOrders();
+            toast({ title: "✅ Paiement confirmé", description: "Votre commande sera bientôt livrée" });
+          }}
+          onOpenChat={async () => {
+            const conversationId = await startConversation(pendingFeeOrder.product_id, pendingFeeOrder.seller_id);
+            if (conversationId) {
+              setIsFeeDialogOpen(false);
+              toast({ title: "Chat ouvert", description: "Discutez avec le vendeur" });
+            }
+          }}
         />
       )}
 
