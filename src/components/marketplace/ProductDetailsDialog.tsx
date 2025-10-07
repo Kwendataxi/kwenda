@@ -16,7 +16,12 @@ import {
   User, 
   ShoppingBag,
   MessageCircle,
-  Info
+  Info,
+  Minus,
+  Plus,
+  FileText,
+  Sparkles,
+  Store
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
 import { toast } from 'sonner';
@@ -107,29 +112,29 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[85vh] p-0 gap-0">
-        <DialogHeader className="p-4 pb-2">
-          <DialogTitle className="text-lg font-semibold line-clamp-2">
+      <DialogContent className="max-w-md mx-auto max-h-[90vh] p-0 gap-0">
+        <DialogHeader className="p-3 sm:p-4 pb-2 border-b">
+          <DialogTitle className="text-base sm:text-lg font-semibold line-clamp-2">
             {product.name}
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="details" className="flex-1 flex flex-col">
-          <TabsList className="mx-4 grid w-auto grid-cols-2">
-            <TabsTrigger value="details" className="flex items-center gap-2">
-              <Info className="h-4 w-4" />
+          <TabsList className="mx-3 sm:mx-4 my-2 grid w-auto grid-cols-2 h-9">
+            <TabsTrigger value="details" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Détails
             </TabsTrigger>
-            <TabsTrigger value="chat" className="flex items-center gap-2">
-              <MessageCircle className="h-4 w-4" />
+            <TabsTrigger value="chat" className="flex items-center gap-1.5 text-xs sm:text-sm">
+              <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Chat vendeur
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="flex-1 mt-0">
-            <ScrollArea className="h-[calc(85vh-180px)] px-4">
+            <ScrollArea className="h-[calc(90vh-280px)] sm:h-[calc(90vh-260px)] px-3 sm:px-4">
               {/* Product Image */}
-              <div className="aspect-square w-full overflow-hidden rounded-lg mb-4">
+              <div className="aspect-video sm:aspect-square w-full overflow-hidden rounded-lg mb-3">
                 <img
                   src={product.image}
                   alt={product.name}
@@ -137,50 +142,49 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                 />
               </div>
 
-              {/* Price Section */}
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl font-bold text-primary">
-                    {formatCurrency(product.price)}
-                  </span>
-                  {product.originalPrice && product.originalPrice > product.price && (
-                    <span className="text-lg text-muted-foreground line-through">
-                      {formatCurrency(product.originalPrice)}
-                    </span>
-                  )}
-                  {product.discount && (
-                    <Badge className="bg-primary text-primary-foreground">
-                      -{product.discount}%
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Rating */}
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">{product.rating.toFixed(1)}</span>
+              {/* Price and Rating Card */}
+              <div className="mb-3 p-3 rounded-lg border border-primary/20 bg-primary/5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="space-y-1">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="text-xl sm:text-2xl font-bold text-primary">
+                        {formatCurrency(product.price)}
+                      </span>
+                      {product.originalPrice && product.originalPrice > product.price && (
+                        <>
+                          <span className="text-xs sm:text-sm text-muted-foreground line-through">
+                            {formatCurrency(product.originalPrice)}
+                          </span>
+                          {product.discount && (
+                            <Badge variant="destructive" className="text-xs h-5">
+                              -{product.discount}%
+                            </Badge>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
-                  {product.reviewCount > 0 && (
-                    <span className="text-sm text-muted-foreground">
-                      ({product.reviewCount} avis)
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1.5 bg-background rounded-md px-2.5 py-1.5 w-fit">
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <span className="font-semibold text-sm">{product.rating.toFixed(1)}</span>
+                    {product.reviewCount > 0 && (
+                      <span className="text-xs text-muted-foreground">({product.reviewCount})</span>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <Separator className="my-4" />
-
-              {/* Seller Info */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">{product.seller}</span>
+              {/* Seller Info Card */}
+              <div className="mb-3 p-3 rounded-lg border">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="text-xs sm:text-sm font-medium truncate">{product.seller}</span>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
+                    className="shrink-0 text-xs h-8"
                     onClick={() => {
                       onViewSeller(product.sellerId);
                       onClose();
@@ -191,20 +195,21 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                 </div>
               </div>
 
-              <Separator className="my-4" />
-
               {/* Description */}
               {product.description && (
-                <div className="mb-4">
-                  <h4 className="font-medium mb-2">Description</h4>
-                  <p className="text-sm text-muted-foreground">
+                <div className="mb-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary" />
+                    <h4 className="text-sm font-semibold">Description</h4>
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                     {product.description}
                   </p>
                 </div>
               )}
 
               {/* Product Specifications */}
-              <div className="my-4">
+              <div className="mb-3">
                 <ProductSpecifications
                   brand={product.brand}
                   condition={product.condition}
@@ -213,21 +218,20 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                 />
               </div>
 
-              <Separator className="my-4" />
-
               {/* Similar Products Section */}
               {similarProducts.length > 0 && (
-                <div className="my-6">
+                <div className="mb-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <h4 className="text-sm font-semibold">Produits similaires</h4>
+                  </div>
                   <HorizontalProductScroll
-                    title="🔄 Produits similaires"
+                    title=""
                     products={similarProducts}
                     onAddToCart={onAddToCart}
                     onViewDetails={(prod) => {
-                      // Close current dialog and open new one
                       onClose();
-                      setTimeout(() => {
-                        // This will be handled by parent component
-                      }, 100);
+                      setTimeout(() => {}, 100);
                     }}
                     onViewSeller={onViewSeller}
                     userLocation={userLocation}
@@ -237,16 +241,18 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 
               {/* Seller Other Products Section */}
               {sellerProducts.length > 0 && (
-                <div className="my-6">
+                <div className="mb-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Store className="h-4 w-4 text-primary" />
+                    <h4 className="text-sm font-semibold">Autres produits de ce vendeur</h4>
+                  </div>
                   <HorizontalProductScroll
-                    title="🏪 Autres produits de ce vendeur"
+                    title=""
                     products={sellerProducts}
                     onAddToCart={onAddToCart}
                     onViewDetails={(prod) => {
                       onClose();
-                      setTimeout(() => {
-                        // This will be handled by parent component
-                      }, 100);
+                      setTimeout(() => {}, 100);
                     }}
                     onViewSeller={onViewSeller}
                     userLocation={userLocation}
@@ -254,44 +260,74 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                 </div>
               )}
 
-              <Separator className="my-4" />
+            </ScrollArea>
 
-              {/* Quantity */}
-              <div className="mb-4">
-                <label className="text-sm font-medium mb-2 block">Quantité</label>
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
-                  >
-                    -
-                  </Button>
-                  <span className="font-medium min-w-8 text-center">{quantity}</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setQuantity(quantity + 1)}
-                  >
-                    +
-                  </Button>
-                </div>
-              </div>
+            {/* Sticky Footer Actions */}
+            <div className="p-3 sm:p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <div className="space-y-2.5">
+                {/* Quantity and Total Row */}
+                <div className="flex items-center justify-between gap-3">
+                  {/* Quantity Selector */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={quantity <= 1}
+                    >
+                      <Minus className="h-3.5 w-3.5" />
+                    </Button>
+                    <span className="font-medium text-sm min-w-6 text-center">{quantity}</span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      onClick={() => setQuantity(quantity + 1)}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
 
-              {/* Total Price */}
-              <div className="mb-4 p-3 bg-muted rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Total:</span>
-                  <span className="text-lg font-bold text-primary">
-                    {formatCurrency(totalPrice)}
-                  </span>
+                  {/* Total Price */}
+                  <div className="text-right flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">Total</p>
+                    <p className="text-lg sm:text-xl font-bold text-primary truncate">
+                      {formatCurrency(totalPrice)}
+                    </p>
+                  </div>
                 </div>
-                
+
+                {/* Buy Button */}
+                {!canAfford ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-center text-muted-foreground">
+                      Solde insuffisant. Rechargez votre wallet.
+                    </p>
+                    <Button 
+                      onClick={handleRecharge}
+                      className="w-full h-10"
+                      variant="secondary"
+                      size="sm"
+                    >
+                      Recharger KwendaPay
+                    </Button>
+                  </div>
+                ) : (
+                  <Button 
+                    onClick={handleBuyNow}
+                    disabled={!product.isAvailable}
+                    className="w-full h-10"
+                  >
+                    <ShoppingBag className="h-4 w-4 mr-2" />
+                    <span className="text-sm">{product.isAvailable ? 'Acheter maintenant' : 'Produit épuisé'}</span>
+                  </Button>
+                )}
+
                 {/* Wallet Balance */}
                 {wallet && (
-                  <div className="flex justify-between items-center mt-2 text-sm">
-                    <span className="text-muted-foreground">Solde KwendaPay:</span>
+                  <div className="flex justify-between items-center text-xs text-muted-foreground pt-1">
+                    <span>Solde KwendaPay</span>
                     <span className={cn(
                       "font-medium",
                       canAfford ? "text-green-600" : "text-red-600"
@@ -301,33 +337,6 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                   </div>
                 )}
               </div>
-            </ScrollArea>
-
-            {/* Actions */}
-            <div className="p-4 border-t space-y-2">
-              {!canAfford ? (
-                <div className="space-y-2">
-                  <p className="text-sm text-center text-muted-foreground">
-                    Solde insuffisant. Rechargez votre wallet KwendaPay.
-                  </p>
-                  <Button 
-                    onClick={handleRecharge}
-                    className="w-full"
-                    variant="secondary"
-                  >
-                    Recharger KwendaPay
-                  </Button>
-                </div>
-              ) : (
-                <Button 
-                  onClick={handleBuyNow}
-                  disabled={!product.isAvailable}
-                  className="w-full"
-                >
-                  <ShoppingBag className="h-4 w-4 mr-2" />
-                  {product.isAvailable ? 'Acheter maintenant' : 'Produit épuisé'}
-                </Button>
-              )}
             </div>
           </TabsContent>
 
