@@ -83,7 +83,17 @@ const Onboarding: React.FC = () => {
 
   const finish = () => {
     try { localStorage.setItem(`onboarding_seen::${ctx}`, "1"); } catch {}
-    navigate("/auth", { replace: true });
+    
+    // Redirection intelligente selon le contexte
+    const redirectMap: Record<OnboardingContext, string> = {
+      client: "/auth",
+      chauffeur: "/auth",
+      marketplace: "/auth",
+      admin: "/admin/auth",
+      partenaire: "/partner/auth",
+    };
+    
+    navigate(redirectMap[ctx] || "/auth", { replace: true });
   };
 
   const onNext = () => {
