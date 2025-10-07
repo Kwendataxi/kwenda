@@ -83,11 +83,17 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
     setIsCreating(true);
     
     try {
-      // VALIDATION ROBUSTE DES DONNÉES DE LIVRAISON
+      // ============================================================
+      // ACTION 2: VALIDATION STRICTE DES CONTACTS (Phone Numbers)
+      // ============================================================
       console.log('🔍 OrderConfirmationStep - Validation des données:', {
         pickup: pickup?.location,
         destination: destination?.location,
-        service: service
+        service: service,
+        contacts: {
+          pickup: pickup.contact,
+          destination: destination.contact
+        }
       });
       
       // Validation des structures de données
@@ -96,6 +102,30 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
         toast({
           title: "Erreur de validation",
           description: "Données de localisation manquantes",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // VALIDATION STRICTE DES CONTACTS - AVANT TOUTE AUTRE CHOSE
+      const pickupPhone = pickup.contact?.phone?.trim();
+      const destinationPhone = destination.contact?.phone?.trim();
+      
+      if (!pickupPhone) {
+        console.error('❌ Numéro de téléphone expéditeur manquant');
+        toast({
+          title: "Numéro de téléphone requis",
+          description: "Le numéro de téléphone de l'expéditeur est obligatoire pour créer la livraison",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!destinationPhone) {
+        console.error('❌ Numéro de téléphone destinataire manquant');
+        toast({
+          title: "Numéro de téléphone requis",
+          description: "Le numéro de téléphone du destinataire est obligatoire pour créer la livraison",
           variant: "destructive",
         });
         return;
@@ -149,27 +179,27 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
         return;
       }
       
-      // Préparer les données normalisées et validées avec MAPPING CORRECT
+      // Préparer les données normalisées et validées avec MAPPING CORRECT ET GARANTIE
       const orderData = {
         pickup: {
           address: pickupAddress,
           lat: Number(pickupCoords.lat),
           lng: Number(pickupCoords.lng),
-          contactName: pickup.contact?.name || 'Expéditeur',
-          contactPhone: pickup.contact?.phone || ''
+          contactName: pickup.contact?.name?.trim() || 'Expéditeur',
+          contactPhone: pickupPhone // Déjà validé et trimé ci-dessus
         },
         destination: {
           address: destinationAddress,
           lat: Number(destCoords.lat),
           lng: Number(destCoords.lng),
-          contactName: destination.contact?.name || 'Destinataire',
-          contactPhone: destination.contact?.phone || ''
+          contactName: destination.contact?.name?.trim() || 'Destinataire',
+          contactPhone: destinationPhone // Déjà validé et trimé ci-dessus
         },
         // MAPPING CORRIGÉ : Transformer contactName/contactPhone en senderName/senderPhone
-        senderName: pickup.contact?.name || 'Expéditeur',
-        senderPhone: pickup.contact?.phone || '',
-        recipientName: destination.contact?.name || 'Destinataire',
-        recipientPhone: destination.contact?.phone || '',
+        senderName: pickup.contact?.name?.trim() || 'Expéditeur',
+        senderPhone: pickupPhone, // GARANTIE: Jamais vide
+        recipientName: destination.contact?.name?.trim() || 'Destinataire',
+        recipientPhone: destinationPhone, // GARANTIE: Jamais vide
         mode: service.id,
         city: 'Kinshasa',
         estimatedPrice: pricing.price,
@@ -177,7 +207,7 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
         duration: pricing.duration
       };
       
-      console.log('🚀 OrderConfirmationStep - Données à envoyer:', JSON.stringify(orderData, null, 2));
+      console.log('🚀 OrderConfirmationStep - Données VALIDÉES à envoyer:', JSON.stringify(orderData, null, 2));
 
       const orderId = await createDeliveryOrder(orderData);
       
@@ -191,10 +221,23 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
         throw new Error('Erreur lors de la création de la commande');
       }
     } catch (error: any) {
-      console.error('Error creating order:', error);
+      console.error('❌ Error creating order:', error);
+      
+      // ACTION 3: Messages d'erreur améliorés avec traduction PostgreSQL
+      let userMessage = error.message || "Impossible de créer la commande";
+      
+      // Détecter les erreurs PostgreSQL et les traduire
+      if (error.message?.includes('sender_phone') || error.message?.includes('Numéro de téléphone expéditeur')) {
+        userMessage = "Le numéro de téléphone de l'expéditeur est obligatoire";
+      } else if (error.message?.includes('recipient_phone') || error.message?.includes('Numéro de téléphone destinataire')) {
+        userMessage = "Le numéro de téléphone du destinataire est obligatoire";
+      } else if (error.message?.includes('coordinates') || error.message?.includes('coordonnées')) {
+        userMessage = "Coordonnées de localisation invalides";
+      }
+      
       toast({
-        title: "Erreur",
-        description: error.message || "Impossible de créer la commande",
+        title: "Erreur de création",
+        description: userMessage,
         variant: "destructive",
       });
     } finally {

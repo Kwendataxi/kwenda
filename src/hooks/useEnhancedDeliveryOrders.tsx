@@ -125,9 +125,19 @@ export const useEnhancedDeliveryOrders = () => {
       // VALIDATION ROBUSTE DES DONNÉES DE LIVRAISON
       console.log('🔍 Debug orderData reçu:', JSON.stringify(orderData, null, 2));
       
-      // VALIDATION STRICTE DES DONNÉES DE CONTACT
+      // ============================================================
+      // ACTION 1 & 3: VALIDATION STRICTE DES CONTACTS AVEC LOGS DÉTAILLÉS
+      // ============================================================
+      console.log('📋 useEnhancedDeliveryOrders - Validation initiale:', {
+        senderPhone: orderData.senderPhone,
+        recipientPhone: orderData.recipientPhone,
+        pickup: orderData.pickup,
+        destination: orderData.destination
+      });
+      
       if (!orderData.senderPhone || orderData.senderPhone.trim() === '') {
-        console.error('❌ Numéro de téléphone de l\'expéditeur manquant dans orderData');
+        console.error('❌ VALIDATION FAILED: Numéro de téléphone expéditeur manquant');
+        console.error('📦 orderData reçu:', JSON.stringify(orderData, null, 2));
         toast({
           title: "Numéro de téléphone requis",
           description: "Le numéro de téléphone de l'expéditeur est obligatoire",
@@ -135,6 +145,22 @@ export const useEnhancedDeliveryOrders = () => {
         });
         throw new Error('Numéro de téléphone de l\'expéditeur requis');
       }
+      
+      if (!orderData.recipientPhone || orderData.recipientPhone.trim() === '') {
+        console.error('❌ VALIDATION FAILED: Numéro de téléphone destinataire manquant');
+        console.error('📦 orderData reçu:', JSON.stringify(orderData, null, 2));
+        toast({
+          title: "Numéro de téléphone requis",
+          description: "Le numéro de téléphone du destinataire est obligatoire",
+          variant: "destructive",
+        });
+        throw new Error('Numéro de téléphone du destinataire requis');
+      }
+      
+      console.log('✅ Validation des contacts réussie:', {
+        senderPhone: orderData.senderPhone,
+        recipientPhone: orderData.recipientPhone
+      });
 
       // Normalisation et validation des données essentielles
       const normalizeDeliveryData = (data: any) => {
@@ -196,10 +222,10 @@ export const useEnhancedDeliveryOrders = () => {
         }
         
         // MAPPING CORRIGÉ : Supporter à la fois contactName/contactPhone ET senderName/senderPhone
-        const senderName = data.senderName || pickup.contactName || '';
-        const senderPhone = data.senderPhone || pickup.contactPhone || '';
-        const recipientName = data.recipientName || destination.contactName || '';
-        const recipientPhone = data.recipientPhone || destination.contactPhone || '';
+        const senderName = (data.senderName || pickup.contactName || '').trim();
+        const senderPhone = (data.senderPhone || pickup.contactPhone || '').trim();
+        const recipientName = (data.recipientName || destination.contactName || '').trim();
+        const recipientPhone = (data.recipientPhone || destination.contactPhone || '').trim();
 
         console.log('📞 Contacts extraits:', {
           senderName,
@@ -207,6 +233,17 @@ export const useEnhancedDeliveryOrders = () => {
           recipientName,
           recipientPhone
         });
+        
+        // VALIDATION STRICTE DANS normalizeDeliveryData
+        if (!senderPhone) {
+          console.error('❌ normalizeDeliveryData: senderPhone vide après extraction');
+          throw new Error('Numéro de téléphone de l\'expéditeur requis');
+        }
+        
+        if (!recipientPhone) {
+          console.error('❌ normalizeDeliveryData: recipientPhone vide après extraction');
+          throw new Error('Numéro de téléphone du destinataire requis');
+        }
 
         return {
           pickup: {
@@ -285,9 +322,10 @@ export const useEnhancedDeliveryOrders = () => {
         recipient: { name: recipientName, phone: recipientPhone }
       });
 
-      // VALIDATION FINALE DU TÉLÉPHONE DE L'EXPÉDITEUR
+      // VALIDATION FINALE DES TÉLÉPHONES (Double vérification de sécurité)
       if (!senderPhone || senderPhone.trim() === '') {
-        console.error('❌ Téléphone de l\'expéditeur vide après normalisation');
+        console.error('❌ VALIDATION FINALE FAILED: Téléphone expéditeur vide après normalisation');
+        console.error('📦 normalizedData:', JSON.stringify(normalizedData, null, 2));
         toast({
           title: "Erreur de validation",
           description: "Le numéro de téléphone de l'expéditeur est obligatoire",
@@ -295,6 +333,22 @@ export const useEnhancedDeliveryOrders = () => {
         });
         throw new Error('Numéro de téléphone de l\'expéditeur requis');
       }
+      
+      if (!recipientPhone || recipientPhone.trim() === '') {
+        console.error('❌ VALIDATION FINALE FAILED: Téléphone destinataire vide après normalisation');
+        console.error('📦 normalizedData:', JSON.stringify(normalizedData, null, 2));
+        toast({
+          title: "Erreur de validation",
+          description: "Le numéro de téléphone du destinataire est obligatoire",
+          variant: "destructive",
+        });
+        throw new Error('Numéro de téléphone du destinataire requis');
+      }
+      
+      console.log('✅ VALIDATION FINALE réussie - Contacts garantis valides:', {
+        senderPhone,
+        recipientPhone
+      });
       
       const orderPayload = {
         user_id: user.id,
@@ -320,8 +374,20 @@ export const useEnhancedDeliveryOrders = () => {
         .single();
 
       if (error) {
-        console.error('Erreur base de données:', error);
-        throw error;
+        console.error('❌ Erreur PostgreSQL:', error);
+        
+        // ACTION 3: Traduire les erreurs PostgreSQL en français
+        let userFriendlyError = error.message;
+        
+        if (error.message?.includes('sender_phone')) {
+          userFriendlyError = 'Le numéro de téléphone de l\'expéditeur est obligatoire';
+        } else if (error.message?.includes('recipient_phone')) {
+          userFriendlyError = 'Le numéro de téléphone du destinataire est obligatoire';
+        } else if (error.message?.includes('violates check constraint')) {
+          userFriendlyError = 'Données de livraison invalides. Veuillez vérifier tous les champs.';
+        }
+        
+        throw new Error(userFriendlyError);
       }
 
       console.log('Commande créée avec succès:', order.id);
