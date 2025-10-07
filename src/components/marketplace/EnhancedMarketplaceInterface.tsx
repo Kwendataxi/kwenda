@@ -318,11 +318,21 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   };
 
   const handleProductSubmit = async (productData: any) => {
+    console.log('📦 [Marketplace] Starting product submission');
+    console.log('📦 [Marketplace] Product data:', {
+      title: productData.title,
+      category: productData.category,
+      price: productData.price,
+      imagesCount: productData.images?.length || 0,
+      sellerId: user?.id
+    });
+
     try {
       // 1. Upload images to Supabase Storage
       const imageUrls: string[] = [];
       
       if (productData.images && productData.images.length > 0) {
+        console.log(`📤 [Marketplace] Uploading ${productData.images.length} images`);
         toast({
           title: '📤 Upload des images...',
           description: `Upload de ${productData.images.length} image(s) en cours...`,
@@ -330,6 +340,11 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
         for (let i = 0; i < productData.images.length; i++) {
           const file = productData.images[i];
+          console.log(`📤 [Marketplace] Uploading image ${i + 1}/${productData.images.length}:`, {
+            name: file.name,
+            size: `${(file.size / 1024).toFixed(2)} KB`,
+            type: file.type
+          });
           
           // Generate unique filename
           const fileExt = file.name.split('.').pop();
@@ -344,7 +359,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
             });
 
           if (uploadError) {
-            console.error('Image upload error:', uploadError);
+            console.error('❌ [Marketplace] Image upload error:', uploadError);
             throw new Error(`Erreur upload image ${i + 1}: ${uploadError.message}`);
           }
 
@@ -353,60 +368,85 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
             .from('profile-pictures')
             .getPublicUrl(fileName);
           
+          console.log(`✅ [Marketplace] Image ${i + 1} uploaded:`, publicUrl);
           imageUrls.push(publicUrl);
         }
+        console.log(`✅ [Marketplace] All ${imageUrls.length} images uploaded successfully`);
       }
 
       // 2. Create product in Supabase with uploaded image URLs
+      console.log('💾 [Marketplace] Creating product in database');
+      const productPayload = {
+        title: productData.title,
+        description: productData.description,
+        price: parseFloat(productData.price),
+        category: productData.category,
+        condition: productData.condition || 'new',
+        images: imageUrls,
+        seller_id: user?.id,
+        location: productData.location,
+        coordinates: productData.coordinates,
+        stock_count: productData.stock_count || 1,
+        brand: productData.brand || null,
+        specifications: productData.specifications || {},
+        status: 'active',
+        moderation_status: 'pending'
+      };
+      console.log('💾 [Marketplace] Product payload:', productPayload);
+
       const { data, error } = await supabase
         .from('marketplace_products')
-        .insert({
-          title: productData.title,
-          description: productData.description,
-          price: parseFloat(productData.price),
-          category: productData.category,
-          condition: productData.condition || 'new',
-          images: imageUrls, // ✅ URLs au lieu de File objects
-          seller_id: user?.id,
-          location: productData.location,
-          coordinates: productData.coordinates,
-          stock_count: productData.stock_count || 1,
-          brand: productData.brand || null,
-          specifications: productData.specifications || {},
-          status: 'active',
-          moderation_status: 'pending'
-        })
+        .insert(productPayload)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [Marketplace] Error creating product:', error);
+        throw error;
+      }
 
-      console.log('✅ Product created successfully:', data);
+      console.log('✅ [Marketplace] Product created successfully:', {
+        id: data.id,
+        title: data.title,
+        status: data.moderation_status
+      });
 
       // ✅ Appeler la edge function pour notifier les admins
+      console.log('📧 [Marketplace] Notifying admins about new product');
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          await supabase.functions.invoke('notify-admin-new-product', {
+          console.log('🔐 [Marketplace] Session found, calling notify-admin-new-product');
+          const notificationPayload = {
+            productId: data.id,
+            sellerId: user?.id,
+            productTitle: data.title,
+            productCategory: data.category,
+            productPrice: data.price
+          };
+          console.log('📧 [Marketplace] Notification payload:', notificationPayload);
+
+          const { data: notifData, error: notifError } = await supabase.functions.invoke('notify-admin-new-product', {
             headers: {
               Authorization: `Bearer ${session.access_token}`
             },
-            body: {
-              productId: data.id,
-              sellerId: user?.id,
-              productTitle: data.title,
-              productCategory: data.category,
-              productPrice: data.price
-            }
+            body: notificationPayload
           });
+
+          if (notifError) {
+            console.error('❌ [Marketplace] Admin notification error:', notifError);
+          } else {
+            console.log('✅ [Marketplace] Admin notification sent successfully:', notifData);
+          }
         } else {
-          console.warn('⚠️ Session non disponible pour notifier les admins');
+          console.warn('⚠️ [Marketplace] No session available for admin notification');
         }
       } catch (notifError) {
-        console.error('Erreur notification admin:', notifError);
+        console.error('❌ [Marketplace] Error in admin notification process:', notifError);
       }
 
       // ✅ Notification vendeur améliorée
+      console.log('✅ [Marketplace] Product submission completed successfully');
       toast({
         title: '✅ Produit créé avec succès!',
         description: 'Votre produit a été soumis pour modération. Il sera visible sur la marketplace une fois approuvé par notre équipe (24-48h).',
@@ -414,10 +454,16 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       });
 
       // Reload products
+      console.log('🔄 [Marketplace] Reloading products list');
       await loadProducts();
       
     } catch (error: any) {
-      console.error('❌ Error creating product:', error);
+      console.error('❌ [Marketplace] Product submission failed:', error);
+      console.error('❌ [Marketplace] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        code: error.code
+      });
       toast({
         title: '❌ Erreur de création',
         description: error.message || 'Impossible de créer le produit. Veuillez réessayer.',

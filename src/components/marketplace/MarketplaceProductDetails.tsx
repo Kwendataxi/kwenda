@@ -41,6 +41,14 @@ export const MarketplaceProductDetails: React.FC<MarketplaceProductDetailsProps>
   onStartChat,
   onCreateOrder
 }) => {
+  console.log('🛍️ [ProductDetails] Component mounted for product:', {
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    inStock: product.inStock,
+    imagesCount: product.images?.length || 1
+  });
+
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -56,12 +64,57 @@ export const MarketplaceProductDetails: React.FC<MarketplaceProductDetailsProps>
     : [product.image];
 
   const scrollPrev = useCallback(() => {
+    console.log('🖼️ [ProductDetails] Previous image');
     if (emblaApi) emblaApi.scrollPrev();
   }, [emblaApi]);
 
   const scrollNext = useCallback(() => {
+    console.log('🖼️ [ProductDetails] Next image');
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
+
+  // Log quantity changes
+  const handleQuantityChange = (newQuantity: number) => {
+    console.log('🔢 [ProductDetails] Quantity changed:', { from: quantity, to: newQuantity });
+    setQuantity(newQuantity);
+  };
+
+  // Log wishlist toggle
+  const handleWishlistToggle = () => {
+    console.log('❤️ [ProductDetails] Wishlist toggled:', { from: isWishlisted, to: !isWishlisted });
+    setIsWishlisted(!isWishlisted);
+  };
+
+  // Log cart action
+  const handleAddToCart = () => {
+    console.log('🛒 [ProductDetails] Add to cart clicked:', {
+      productId: product.id,
+      quantity,
+      price: product.price,
+      total: product.price * quantity
+    });
+    onAddToCart();
+  };
+
+  // Log order action
+  const handleCreateOrder = () => {
+    console.log('🛍️ [ProductDetails] Create order clicked:', {
+      productId: product.id,
+      quantity,
+      price: product.price,
+      total: product.price * quantity
+    });
+    onCreateOrder();
+  };
+
+  // Log chat action
+  const handleStartChat = () => {
+    console.log('💬 [ProductDetails] Start chat clicked:', {
+      productId: product.id,
+      seller: product.seller
+    });
+    onStartChat();
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-CD', {
@@ -88,7 +141,7 @@ export const MarketplaceProductDetails: React.FC<MarketplaceProductDetailsProps>
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => setIsWishlisted(!isWishlisted)}
+              onClick={handleWishlistToggle}
               className="hover-scale"
             >
               <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-destructive text-destructive' : ''}`} />
@@ -327,7 +380,7 @@ export const MarketplaceProductDetails: React.FC<MarketplaceProductDetailsProps>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          onClick={() => handleQuantityChange(Math.max(1, quantity - 1))}
                           disabled={quantity <= 1}
                           className="h-8 w-8 p-0"
                         >
@@ -337,7 +390,7 @@ export const MarketplaceProductDetails: React.FC<MarketplaceProductDetailsProps>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setQuantity(Math.min(product.stockCount, quantity + 1))}
+                          onClick={() => handleQuantityChange(Math.min(product.stockCount, quantity + 1))}
                           disabled={quantity >= product.stockCount}
                           className="h-8 w-8 p-0"
                         >
@@ -349,7 +402,7 @@ export const MarketplaceProductDetails: React.FC<MarketplaceProductDetailsProps>
                     <div className="space-y-2">
                       <Button
                         className="w-full hover-scale"
-                        onClick={onCreateOrder}
+                        onClick={handleCreateOrder}
                         size="lg"
                       >
                         Commander maintenant
@@ -357,7 +410,7 @@ export const MarketplaceProductDetails: React.FC<MarketplaceProductDetailsProps>
                       <Button
                         variant="outline"
                         className="w-full hover-scale"
-                        onClick={onAddToCart}
+                        onClick={handleAddToCart}
                         size="lg"
                       >
                         <ShoppingCart className="h-4 w-4 mr-2" />
@@ -400,7 +453,7 @@ export const MarketplaceProductDetails: React.FC<MarketplaceProductDetailsProps>
                 </div>
                 <Button 
                   variant="outline" 
-                  onClick={onStartChat} 
+                  onClick={handleStartChat} 
                   className="w-full hover-scale"
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />

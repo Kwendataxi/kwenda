@@ -58,11 +58,13 @@ export const KwendaPayWallet = () => {
   }, [user]);
 
   const loadWallet = async () => {
+    console.log('💰 [KwendaPay] Loading wallet for user:', user?.id);
     let retryCount = 0;
     const maxRetries = 3;
     
     while (retryCount <= maxRetries) {
       try {
+        console.log(`💰 [KwendaPay] Attempt ${retryCount + 1}/${maxRetries + 1} to load wallet`);
         const { data: existingWallet, error: walletError } = await supabase
           .from('user_wallets')
           .select('*')
@@ -70,6 +72,7 @@ export const KwendaPayWallet = () => {
           .single();
 
         if (walletError && walletError.code === 'PGRST116') {
+          console.log('💰 [KwendaPay] Wallet not found, creating new wallet');
           // Create wallet if it doesn't exist
           const { data: newWallet, error: createError } = await supabase
             .from('user_wallets')
@@ -82,11 +85,17 @@ export const KwendaPayWallet = () => {
             .select()
             .single();
 
-          if (createError) throw createError;
+          if (createError) {
+            console.error('❌ [KwendaPay] Error creating wallet:', createError);
+            throw createError;
+          }
+          console.log('✅ [KwendaPay] New wallet created:', newWallet);
           setWallet(newWallet);
         } else if (walletError) {
+          console.error('❌ [KwendaPay] Error loading wallet:', walletError);
           throw walletError;
         } else {
+          console.log('✅ [KwendaPay] Wallet loaded successfully:', existingWallet);
           setWallet(existingWallet);
         }
         
@@ -129,7 +138,9 @@ export const KwendaPayWallet = () => {
   };
 
   const handleTopUp = async () => {
+    console.log('💳 [KwendaPay] Starting top-up process');
     if (!topUpAmount || !topUpProvider || !phoneNumber) {
+      console.warn('⚠️ [KwendaPay] Missing required fields for top-up');
       toast({
         title: "Champs requis",
         description: "Veuillez remplir tous les champs",
@@ -138,14 +149,23 @@ export const KwendaPayWallet = () => {
       return;
     }
 
+    console.log('💳 [KwendaPay] Top-up details:', {
+      amount: topUpAmount,
+      provider: topUpProvider,
+      phone: phoneNumber.substring(0, 4) + '***' // Masquer le numéro
+    });
+
     setIsProcessing(true);
     try {
       // Récupérer la session utilisateur pour l'authentification
+      console.log('🔐 [KwendaPay] Fetching user session');
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
+        console.error('❌ [KwendaPay] No active session found');
         throw new Error('Authentification requise pour recharger votre wallet');
       }
 
+      console.log('✅ [KwendaPay] Session found, calling wallet-topup edge function');
       const { data, error } = await supabase.functions.invoke('wallet-topup', {
         headers: {
           Authorization: `Bearer ${session.access_token}`
@@ -158,9 +178,18 @@ export const KwendaPayWallet = () => {
         }
       });
 
-      if (error) throw error;
+      console.log('📥 [KwendaPay] Edge function response:', { success: data?.success, error });
+
+      if (error) {
+        console.error('❌ [KwendaPay] Edge function returned error:', error);
+        throw error;
+      }
 
       if (data.success) {
+        console.log('✅ [KwendaPay] Top-up successful:', {
+          transactionId: data.transactionId,
+          amount: topUpAmount
+        });
         toast({
           title: "Rechargement réussi",
           description: `Votre wallet a été rechargé de ${topUpAmount} CDF`
@@ -172,9 +201,11 @@ export const KwendaPayWallet = () => {
         loadWallet();
         loadTransactions();
       } else {
+        console.error('❌ [KwendaPay] Top-up failed:', data.error);
         throw new Error(data.error || 'Echec du rechargement');
       }
     } catch (error: any) {
+      console.error('❌ [KwendaPay] Top-up process error:', error);
       toast({
         title: "Erreur de rechargement",
         description: error.message,
@@ -182,6 +213,7 @@ export const KwendaPayWallet = () => {
       });
     } finally {
       setIsProcessing(false);
+      console.log('💳 [KwendaPay] Top-up process ended');
     }
   };
 
