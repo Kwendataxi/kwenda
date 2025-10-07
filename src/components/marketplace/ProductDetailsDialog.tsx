@@ -9,16 +9,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Star, 
   MapPin, 
   User, 
   ShoppingBag,
-  X 
+  MessageCircle,
+  Info
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { ProductChatTab } from './ProductChatTab';
 
 interface Product {
   id: string;
@@ -100,7 +103,20 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-4">
+        <Tabs defaultValue="details" className="flex-1 flex flex-col">
+          <TabsList className="mx-4 grid w-auto grid-cols-2">
+            <TabsTrigger value="details" className="flex items-center gap-2">
+              <Info className="h-4 w-4" />
+              Détails
+            </TabsTrigger>
+            <TabsTrigger value="chat" className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              Chat vendeur
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details" className="flex-1 mt-0">
+            <ScrollArea className="h-[calc(85vh-180px)] px-4">
           {/* Product Image */}
           <div className="aspect-square w-full overflow-hidden rounded-lg mb-4">
             <img
@@ -224,10 +240,10 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
               </div>
             )}
           </div>
-        </ScrollArea>
+            </ScrollArea>
 
-        {/* Actions */}
-        <div className="p-4 border-t space-y-2">
+            {/* Actions */}
+            <div className="p-4 border-t space-y-2">
           {!canAfford ? (
             <div className="space-y-2">
               <p className="text-sm text-center text-muted-foreground">
@@ -251,7 +267,17 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
               {product.isAvailable ? 'Acheter maintenant' : 'Produit épuisé'}
             </Button>
           )}
-        </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="chat" className="flex-1 mt-0 h-[calc(85vh-120px)]">
+            <ProductChatTab
+              productId={product.id}
+              sellerId={product.sellerId}
+              productTitle={product.name}
+            />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
