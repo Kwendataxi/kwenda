@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -28,6 +29,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -115,12 +117,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Déconnecter (ignorer les erreurs de session inexistante)
       await supabase.auth.signOut({ scope: 'local' });
       
-      // Redirection intelligente selon le rôle
-      window.location.href = redirectPath;
+      // Déclencher la redirection après le prochain render
+      setPendingRedirect(redirectPath);
     } catch (error) {
       logger.error('Error during sign out:', error);
       // Forcer la redirection même en cas d'erreur
-      window.location.href = '/admin/auth';
+      setPendingRedirect('/admin/auth');
     }
   };
 
@@ -133,7 +135,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {pendingRedirect ? <RedirectHandler redirectPath={pendingRedirect} /> : children}
     </AuthContext.Provider>
+  );
+};
+
+// Composant séparé pour gérer la redirection avec useNavigate
+const RedirectHandler = ({ redirectPath }: { redirectPath: string }) => {
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    navigate(redirectPath, { replace: true });
+  }, [navigate, redirectPath]);
+  
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center space-y-4">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-muted-foreground">Déconnexion...</p>
+      </div>
+    </div>
   );
 };
