@@ -6,6 +6,7 @@ import { AdminVerticalNav } from './AdminVerticalNav';
 import { AdminPermissionSettings, AdminPermissionProvider, useAdminPermissions } from './AdminPermissionContext';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { BackToTopButton } from '@/components/navigation/BackToTopButton';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { cn } from '@/lib/utils';
 
 interface ResponsiveAdminLayoutProps {
@@ -28,7 +29,10 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
   if (isMobile) {
     return (
       <div className="min-h-screen bg-background">
-        <MobileAdminHeader onMenuToggle={() => setMobileMenuOpen(true)} />
+        <MobileAdminHeader 
+          onMenuToggle={() => setMobileMenuOpen(true)} 
+          notificationBell={<NotificationBell />}
+        />
         
         {/* Mobile Menu Sheet */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -81,7 +85,7 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
 
   return (
     <div className="min-h-screen bg-background">
-      <MobileAdminHeader />
+      <MobileAdminHeader notificationBell={<NotificationBell />} />
       <div className="container py-4">
         <div className="flex gap-6">
           <aside className={cn(

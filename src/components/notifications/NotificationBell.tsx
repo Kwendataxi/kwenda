@@ -6,11 +6,20 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useUserNotifications } from "@/hooks/useUserNotifications";
+import { useAdminSystemNotifications } from "@/hooks/useAdminSystemNotifications";
+import { useUserRole } from "@/hooks/useUserRole";
 import { NotificationList } from "./NotificationList";
+import { AdminNotificationList } from "./AdminNotificationList";
 import { Badge } from "@/components/ui/badge";
 
 export const NotificationBell = () => {
-  const { unreadCount } = useUserNotifications();
+  const { userRole } = useUserRole();
+  const isAdmin = userRole === 'admin';
+  
+  const { unreadCount: userUnreadCount } = useUserNotifications();
+  const { unreadCount: adminUnreadCount } = useAdminSystemNotifications();
+  
+  const unreadCount = isAdmin ? adminUnreadCount : userUnreadCount;
 
   return (
     <Popover>
@@ -28,7 +37,7 @@ export const NotificationBell = () => {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-96 p-0" align="end">
-        <NotificationList />
+        {isAdmin ? <AdminNotificationList /> : <NotificationList />}
       </PopoverContent>
     </Popover>
   );
