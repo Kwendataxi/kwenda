@@ -325,6 +325,36 @@ export type Database = {
         }
         Relationships: []
       }
+      api_rate_limits: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: string
+          request_count: number | null
+          reset_at: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          request_count?: number | null
+          reset_at: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          request_count?: number | null
+          reset_at?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       booking_reports: {
         Row: {
           admin_notes: string | null
@@ -9929,7 +9959,37 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_users_cache_secure: {
+        Row: {
+          admin_level: string | null
+          admin_role: Database["public"]["Enums"]["admin_role"] | null
+          created_at: string | null
+          department: string | null
+          display_name: string | null
+          email: string | null
+          is_active: boolean | null
+          last_login: string | null
+          permissions: string[] | null
+          phone_number: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       ai_performance_stats: {
+        Row: {
+          avg_response_time_ms: number | null
+          context: string | null
+          day: string | null
+          failed_calls: number | null
+          function_called: string | null
+          successful_calls: number | null
+          total_calls: number | null
+        }
+        Relationships: []
+      }
+      ai_performance_stats_secure: {
         Row: {
           avg_response_time_ms: number | null
           context: string | null
@@ -9968,6 +10028,57 @@ export type Database = {
         }
         Relationships: []
       }
+      clients_admin_safe_view: {
+        Row: {
+          city: string | null
+          country: string | null
+          created_at: string | null
+          display_name: string | null
+          email: string | null
+          email_masked: string | null
+          id: string | null
+          is_active: boolean | null
+          phone_masked: string | null
+          phone_number: string | null
+          preferred_language: string | null
+          role: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          email_masked?: never
+          id?: string | null
+          is_active?: boolean | null
+          phone_masked?: never
+          phone_number?: string | null
+          preferred_language?: string | null
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          email_masked?: never
+          id?: string | null
+          is_active?: boolean | null
+          phone_masked?: never
+          phone_number?: string | null
+          preferred_language?: string | null
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       mv_admin_rental_booking_stats: {
         Row: {
           completed_bookings: number | null
@@ -9986,6 +10097,33 @@ export type Database = {
         Relationships: []
       }
       mv_admin_rental_vehicle_stats: {
+        Row: {
+          active_vehicles: number | null
+          approved_vehicles: number | null
+          last_updated: string | null
+          pending_moderation: number | null
+          total_vehicles: number | null
+        }
+        Relationships: []
+      }
+      rental_booking_stats_secure: {
+        Row: {
+          completed_bookings: number | null
+          last_updated: string | null
+          pending_bookings: number | null
+          total_bookings: number | null
+          total_revenue: number | null
+        }
+        Relationships: []
+      }
+      rental_subscription_stats_secure: {
+        Row: {
+          active_subscriptions: number | null
+          last_updated: string | null
+        }
+        Relationships: []
+      }
+      rental_vehicle_stats_secure: {
         Row: {
           active_vehicles: number | null
           approved_vehicles: number | null
