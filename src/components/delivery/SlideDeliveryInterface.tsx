@@ -138,23 +138,45 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
   }, [deliveryData.pickupLocation, deliveryData.deliveryLocation, deliveryData.serviceType, calculateDistance]);
 
   const handleLocationSelect = (location: LocationData, type: 'pickup' | 'delivery') => {
-    // Validation améliorée avec vérification des coordonnées
-    if (!location || typeof location.lat !== 'number' || typeof location.lng !== 'number' || !location.address) {
+    // ✅ ACTION 1: Validation robuste des coordonnées avec fallback
+    console.log(`📍 [${type}] Location sélectionnée:`, location);
+
+    // Validation stricte des coordonnées
+    if (!location || 
+        typeof location.lat !== 'number' || 
+        typeof location.lng !== 'number' || 
+        isNaN(location.lat) || 
+        isNaN(location.lng) ||
+        !location.address) {
+      console.error(`❌ [${type}] Coordonnées invalides:`, location);
       toast({
-        title: "Adresse invalide",
-        description: "Veuillez sélectionner une adresse valide avec des coordonnées précises",
+        title: "⚠️ Adresse invalide",
+        description: "Veuillez sélectionner une adresse avec des coordonnées valides",
         variant: "destructive"
       });
       return;
     }
 
+    // Vérification des limites géographiques (Kinshasa approximatif)
+    if (location.lat < -10 || location.lat > 0 || location.lng < 10 || location.lng > 20) {
+      console.warn(`⚠️ [${type}] Coordonnées hors zone Kinshasa:`, location);
+      toast({
+        title: "Zone non couverte",
+        description: "Cette adresse semble être en dehors de notre zone de service",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log(`✅ [${type}] Coordonnées validées:`, { lat: location.lat, lng: location.lng });
+
     if (type === 'pickup') {
       setDeliveryData(prev => ({ ...prev, pickupLocation: location }));
-      setPickupInputValue(location.address); // Contrôler la valeur affichée
+      setPickupInputValue(location.address);
       setCurrentStep('destination');
     } else {
       setDeliveryData(prev => ({ ...prev, deliveryLocation: location }));
-      setDeliveryInputValue(location.address); // Contrôler la valeur affichée
+      setDeliveryInputValue(location.address);
       setCurrentStep('contacts');
     }
   };
@@ -203,7 +225,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         setCurrentStep('contacts');
         break;
       case 'contacts':
-        // VALIDATION STRICTE DES CHAMPS DE CONTACT
+        // ✅ ACTION 2: VALIDATION STRICTE RENFORCÉE avec logs détaillés
         const trimmedData = {
           senderName: deliveryData.senderName?.trim() || '',
           senderPhone: deliveryData.senderPhone?.trim() || '',
@@ -211,10 +233,32 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           recipientPhone: deliveryData.recipientPhone?.trim() || ''
         };
 
-        console.log('🔍 Validation des contacts:', trimmedData);
+        console.log('🔍 [CONTACTS] Données avant validation:', trimmedData);
+
+        // Validation préalable des champs vides
+        if (!trimmedData.senderPhone || trimmedData.senderPhone.length === 0) {
+          console.error('❌ [CONTACTS] Téléphone expéditeur vide');
+          toast({
+            title: "⚠️ Contact expéditeur requis",
+            description: "Veuillez renseigner le numéro de téléphone de l'expéditeur",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        if (!trimmedData.recipientPhone || trimmedData.recipientPhone.length === 0) {
+          console.error('❌ [CONTACTS] Téléphone destinataire vide');
+          toast({
+            title: "⚠️ Contact destinataire requis",
+            description: "Veuillez renseigner le numéro de téléphone du destinataire",
+            variant: "destructive"
+          });
+          return;
+        }
 
         try {
           contactSchema.parse(trimmedData);
+          console.log('✅ [CONTACTS] Validation réussie:', trimmedData);
           
           // Mettre à jour avec les données nettoyées
           setDeliveryData(prev => ({
@@ -228,9 +272,9 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           setCurrentStep('service');
         } catch (error: any) {
           const firstError = error.errors?.[0];
-          console.error('❌ Erreur de validation des contacts:', error.errors);
+          console.error('❌ [CONTACTS] Erreur de validation Zod:', error.errors);
           toast({
-            title: "Validation échouée",
+            title: "❌ Validation échouée",
             description: firstError?.message || "Veuillez vérifier les informations saisies",
             variant: "destructive"
           });
@@ -244,12 +288,51 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
 
 
   const handleSubmit = async () => {
+    // ✅ ACTION 2: VALIDATION FINALE STRICTE avant soumission
+    console.log('🚀 [SUBMIT] Début de la soumission');
+    console.log('📦 [SUBMIT] État actuel deliveryData:', {
+      pickup: deliveryData.pickupLocation?.address,
+      delivery: deliveryData.deliveryLocation?.address,
+      senderName: deliveryData.senderName,
+      senderPhone: deliveryData.senderPhone,
+      recipientName: deliveryData.recipientName,
+      recipientPhone: deliveryData.recipientPhone
+    });
+
+    // Validation des adresses
     if (!deliveryData.pickupLocation || !deliveryData.deliveryLocation) {
+      console.error('❌ [SUBMIT] Adresses manquantes');
       toast({
-        title: "Informations manquantes",
+        title: "⚠️ Informations manquantes",
         description: "Veuillez sélectionner les adresses de collecte et de livraison",
         variant: "destructive"
       });
+      return;
+    }
+
+    // Validation STRICTE des contacts - BLOQUER si vides
+    const senderPhoneTrimmed = deliveryData.senderPhone?.trim();
+    const recipientPhoneTrimmed = deliveryData.recipientPhone?.trim();
+
+    if (!senderPhoneTrimmed || senderPhoneTrimmed.length === 0) {
+      console.error('❌ [SUBMIT] BLOQUÉ - Téléphone expéditeur vide:', deliveryData.senderPhone);
+      toast({
+        title: "❌ Contact expéditeur manquant",
+        description: "Le numéro de téléphone de l'expéditeur est requis. Retournez à l'étape Contacts.",
+        variant: "destructive"
+      });
+      setCurrentStep('contacts');
+      return;
+    }
+
+    if (!recipientPhoneTrimmed || recipientPhoneTrimmed.length === 0) {
+      console.error('❌ [SUBMIT] BLOQUÉ - Téléphone destinataire vide:', deliveryData.recipientPhone);
+      toast({
+        title: "❌ Contact destinataire manquant",
+        description: "Le numéro de téléphone du destinataire est requis. Retournez à l'étape Contacts.",
+        variant: "destructive"
+      });
+      setCurrentStep('contacts');
       return;
     }
 
@@ -267,8 +350,8 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             }
           },
           contact: {
-            name: deliveryData.senderName,
-            phone: deliveryData.senderPhone
+            name: deliveryData.senderName?.trim() || 'Expéditeur',
+            phone: senderPhoneTrimmed // Déjà validé non-vide
           }
         },
         destination: {
@@ -280,8 +363,8 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             }
           },
           contact: {
-            name: deliveryData.recipientName,
-            phone: deliveryData.recipientPhone
+            name: deliveryData.recipientName?.trim() || 'Destinataire',
+            phone: recipientPhoneTrimmed // Déjà validé non-vide
           }
         },
         service: {
@@ -299,15 +382,19 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         }
       };
 
-      console.log('🔄 Données formatées pour OrderConfirmationStep:', adaptedOrderData);
+      console.log('✅ [SUBMIT] Données formatées pour OrderConfirmationStep:', adaptedOrderData);
+      console.log('✅ [SUBMIT] Contacts validés:', {
+        senderPhone: adaptedOrderData.pickup.contact.phone,
+        recipientPhone: adaptedOrderData.destination.contact.phone
+      });
 
       // Passer les données au parent qui utilisera OrderConfirmationStep
       onSubmit(adaptedOrderData);
       
     } catch (error) {
-      console.error('Erreur lors de la préparation:', error);
+      console.error('❌ [SUBMIT] Erreur lors de la préparation:', error);
       toast({
-        title: "Erreur",
+        title: "❌ Erreur",
         description: "Impossible de préparer la commande. Veuillez réessayer.",
         variant: "destructive"
       });

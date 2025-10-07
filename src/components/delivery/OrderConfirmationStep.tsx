@@ -80,21 +80,31 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
   };
 
   const handleConfirm = async () => {
+    // ✅ ACTION 4: Logs détaillés bout-en-bout
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🔍 [CONFIRMATION] Début handleConfirm');
+    console.log('📋 [CONFIRMATION] Props reçues:', {
+      pickup: {
+        address: pickup?.location?.address,
+        coordinates: pickup?.location?.coordinates,
+        contact: pickup?.contact
+      },
+      destination: {
+        address: destination?.location?.address,
+        coordinates: destination?.location?.coordinates,
+        contact: destination?.contact
+      },
+      service: {
+        id: service?.id,
+        name: service?.name
+      },
+      pricing
+    });
+    
     setIsCreating(true);
     
     try {
-      // ============================================================
-      // ACTION 2: VALIDATION STRICTE DES CONTACTS (Phone Numbers)
-      // ============================================================
-      console.log('🔍 OrderConfirmationStep - Validation des données:', {
-        pickup: pickup?.location,
-        destination: destination?.location,
-        service: service,
-        contacts: {
-          pickup: pickup.contact,
-          destination: destination.contact
-        }
-      });
+      // ✅ ACTION 3: VALIDATION STRICTE IMMÉDIATE
       
       // Validation des structures de données
       if (!pickup?.location || !destination?.location) {
@@ -207,13 +217,20 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
         duration: pricing.duration
       };
       
-      console.log('🚀 OrderConfirmationStep - Données VALIDÉES à envoyer:', JSON.stringify(orderData, null, 2));
+      console.log('✅ [CONFIRMATION] Données finales avant envoi à createDeliveryOrder:');
+      console.log('📦 [CONFIRMATION] orderData complet:', JSON.stringify(orderData, null, 2));
+      console.log('📞 [CONFIRMATION] Garantie contacts non-vides:', {
+        senderPhone: orderData.senderPhone,
+        recipientPhone: orderData.recipientPhone
+      });
 
+      console.log('🚀 [CONFIRMATION] Appel createDeliveryOrder...');
       const orderId = await createDeliveryOrder(orderData);
       
       if (orderId) {
+        console.log('✅ [CONFIRMATION] Commande créée avec succès, ID:', orderId);
         toast({
-          title: "Commande créée avec succès !",
+          title: "✅ Commande créée avec succès !",
           description: `Votre ${service.name} a été confirmée`,
         });
         onConfirm(orderId);
@@ -221,27 +238,40 @@ export const OrderConfirmationStep: React.FC<OrderConfirmationStepProps> = ({
         throw new Error('Erreur lors de la création de la commande');
       }
     } catch (error: any) {
-      console.error('❌ Error creating order:', error);
+      console.error('❌ [CONFIRMATION] Erreur lors de la création:', error);
+      console.error('❌ [CONFIRMATION] Error stack:', error.stack);
       
-      // ACTION 3: Messages d'erreur améliorés avec traduction PostgreSQL
+      // ✅ ACTION 5: Messages d'erreur contextualisés et guidage utilisateur
       let userMessage = error.message || "Impossible de créer la commande";
+      let userTitle = "❌ Erreur de création";
       
-      // Détecter les erreurs PostgreSQL et les traduire
-      if (error.message?.includes('sender_phone') || error.message?.includes('Numéro de téléphone expéditeur')) {
-        userMessage = "Le numéro de téléphone de l'expéditeur est obligatoire";
-      } else if (error.message?.includes('recipient_phone') || error.message?.includes('Numéro de téléphone destinataire')) {
-        userMessage = "Le numéro de téléphone du destinataire est obligatoire";
-      } else if (error.message?.includes('coordinates') || error.message?.includes('coordonnées')) {
-        userMessage = "Coordonnées de localisation invalides";
+      // Détecter et traduire les erreurs PostgreSQL
+      if (error.message?.includes('sender_phone') || error.message?.includes('Numéro de téléphone expéditeur') || error.message?.includes('senderPhone')) {
+        userTitle = "❌ Contact expéditeur manquant";
+        userMessage = "Le numéro de téléphone de l'expéditeur est obligatoire. Veuillez retourner à l'étape Contacts.";
+      } else if (error.message?.includes('recipient_phone') || error.message?.includes('Numéro de téléphone destinataire') || error.message?.includes('recipientPhone')) {
+        userTitle = "❌ Contact destinataire manquant";
+        userMessage = "Le numéro de téléphone du destinataire est obligatoire. Veuillez retourner à l'étape Contacts.";
+      } else if (error.message?.includes('coordinates') || error.message?.includes('coordonnées') || error.message?.includes('invalid')) {
+        userTitle = "❌ Adresses invalides";
+        userMessage = "Les coordonnées de livraison sont invalides. Veuillez resélectionner les adresses.";
+      } else if (error.message?.includes('violates row-level security') || error.message?.includes('permission denied')) {
+        userTitle = "❌ Authentification requise";
+        userMessage = "Vous devez être connecté pour créer une commande.";
+      } else if (error.message?.includes('trigger') || error.message?.includes('constraint')) {
+        userTitle = "❌ Validation échouée";
+        userMessage = "Les données de la commande ne respectent pas les contraintes requises. Veuillez vérifier toutes les informations.";
       }
       
       toast({
-        title: "Erreur de création",
+        title: userTitle,
         description: userMessage,
         variant: "destructive",
+        duration: 6000
       });
     } finally {
       setIsCreating(false);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     }
   };
 
