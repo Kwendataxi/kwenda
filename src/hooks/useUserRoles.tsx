@@ -23,28 +23,36 @@ interface UseUserRolesReturn {
 const CACHE_KEY = 'kwenda_user_roles_cache';
 const CACHE_EXPIRATION = 10 * 60 * 1000; // 10 minutes
 
+// 🔐 SÉCURITÉ PHASE 2: Import du stockage chiffré
+import { secureStorage, migrateToSecureStorage } from '@/utils/secureStorage';
+
 const getCachedRoles = (): { data: UserRoleInfo[] | null; timestamp: number | null } => {
   try {
-    const cached = localStorage.getItem(CACHE_KEY);
+    // Migration automatique des anciennes données non chiffrées
+    migrateToSecureStorage(CACHE_KEY);
+    
+    const cached = secureStorage.getItem(CACHE_KEY);
     if (!cached) return { data: null, timestamp: null };
     
-    const { data, timestamp } = JSON.parse(cached);
+    const { data, timestamp } = cached;
     const now = Date.now();
     
     if (now - timestamp > CACHE_EXPIRATION) {
-      localStorage.removeItem(CACHE_KEY);
+      secureStorage.removeItem(CACHE_KEY);
       return { data: null, timestamp: null };
     }
     
     return { data, timestamp };
-  } catch {
+  } catch (error) {
+    console.error('❌ Erreur lecture cache sécurisé:', error);
+    secureStorage.removeItem(CACHE_KEY);
     return { data: null, timestamp: null };
   }
 };
 
 const setCachedRoles = (data: UserRoleInfo[]) => {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+    secureStorage.setItem(CACHE_KEY, { data, timestamp: Date.now() });
   } catch (error) {
     console.warn('Failed to cache roles:', error);
   }

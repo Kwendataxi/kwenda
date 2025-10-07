@@ -7157,6 +7157,51 @@ export type Database = {
         }
         Relationships: []
       }
+      sensitive_access_audit: {
+        Row: {
+          access_reason: string | null
+          accessed_by: string
+          created_at: string | null
+          data_accessed: Json | null
+          error_message: string | null
+          id: string
+          ip_address: unknown | null
+          operation: string
+          success: boolean | null
+          table_name: string
+          target_user_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          access_reason?: string | null
+          accessed_by: string
+          created_at?: string | null
+          data_accessed?: Json | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          operation: string
+          success?: boolean | null
+          table_name: string
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          access_reason?: string | null
+          accessed_by?: string
+          created_at?: string | null
+          data_accessed?: Json | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          operation?: string
+          success?: boolean | null
+          table_name?: string
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       sensitive_data_access_audit: {
         Row: {
           accessed_user_data: string | null
@@ -11350,7 +11395,7 @@ export type Database = {
               p_success?: boolean
             }
           | { p_details?: Json; p_event_type: string; p_severity?: string }
-        Returns: undefined
+        Returns: string
       }
       log_sensitive_access: {
         Args: {
