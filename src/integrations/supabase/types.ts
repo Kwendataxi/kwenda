@@ -10110,71 +10110,6 @@ export type Database = {
         }
         Relationships: []
       }
-      cancellation_stats: {
-        Row: {
-          avg_reason_length: number | null
-          cancellation_date: string | null
-          cancellation_type: string | null
-          pending_review_count: number | null
-          reference_type: string | null
-          reviewed_count: number | null
-          top_reasons: Json | null
-          total_cancellations: number | null
-          unique_users: number | null
-        }
-        Relationships: []
-      }
-      clients_admin_safe_view: {
-        Row: {
-          city: string | null
-          country: string | null
-          created_at: string | null
-          display_name: string | null
-          email: string | null
-          email_masked: string | null
-          id: string | null
-          is_active: boolean | null
-          phone_masked: string | null
-          phone_number: string | null
-          preferred_language: string | null
-          role: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          city?: string | null
-          country?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          email?: string | null
-          email_masked?: never
-          id?: string | null
-          is_active?: boolean | null
-          phone_masked?: never
-          phone_number?: string | null
-          preferred_language?: string | null
-          role?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          city?: string | null
-          country?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          email?: string | null
-          email_masked?: never
-          id?: string | null
-          is_active?: boolean | null
-          phone_masked?: never
-          phone_number?: string | null
-          preferred_language?: string | null
-          role?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       mv_admin_rental_booking_stats: {
         Row: {
           completed_bookings: number | null
@@ -10831,6 +10766,30 @@ export type Database = {
           city: string
           total_available_drivers: number
           vehicle_class: string
+        }[]
+      }
+      get_cancellation_stats: {
+        Args: { days_back?: number }
+        Returns: {
+          cancellation_date: string
+          reference_type: string
+          total_cancellations: number
+          unique_users: number
+        }[]
+      }
+      get_clients_admin_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          city: string
+          country: string
+          created_at: string
+          display_name: string
+          email: string
+          id: string
+          is_active: boolean
+          phone_number: string
+          role: string
+          user_id: string
         }[]
       }
       get_current_user_role: {
