@@ -140,7 +140,16 @@ export const KwendaPayWallet = () => {
 
     setIsProcessing(true);
     try {
+      // Récupérer la session utilisateur pour l'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Authentification requise pour recharger votre wallet');
+      }
+
       const { data, error } = await supabase.functions.invoke('wallet-topup', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        },
         body: {
           amount: parseFloat(topUpAmount),
           provider: topUpProvider,

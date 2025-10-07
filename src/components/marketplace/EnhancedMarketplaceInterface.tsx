@@ -385,15 +385,23 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
       // ✅ Appeler la edge function pour notifier les admins
       try {
-        await supabase.functions.invoke('notify-admin-new-product', {
-          body: {
-            productId: data.id,
-            sellerId: user?.id,
-            productTitle: data.title,
-            productCategory: data.category,
-            productPrice: data.price
-          }
-        });
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await supabase.functions.invoke('notify-admin-new-product', {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`
+            },
+            body: {
+              productId: data.id,
+              sellerId: user?.id,
+              productTitle: data.title,
+              productCategory: data.category,
+              productPrice: data.price
+            }
+          });
+        } else {
+          console.warn('⚠️ Session non disponible pour notifier les admins');
+        }
       } catch (notifError) {
         console.error('Erreur notification admin:', notifError);
       }
