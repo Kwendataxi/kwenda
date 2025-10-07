@@ -707,7 +707,16 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
             sellerId: selectedProduct.seller_id,
             isAvailable: selectedProduct.inStock,
             description: selectedProduct.description,
-            location: selectedProduct.coordinates
+            location: selectedProduct.coordinates,
+            brand: 'HP', // TODO: Add to product data
+            condition: selectedProduct.condition,
+            stockCount: selectedProduct.stockCount,
+            specifications: {
+              'Processeur': 'Intel Core i5',
+              'RAM': '8GB DDR4',
+              'Stockage': '256GB SSD',
+              'Écran': '15.6" Full HD'
+            } // TODO: Add to product data
           }}
           isOpen={isProductDetailsOpen}
           onClose={() => {
@@ -718,6 +727,49 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
             if (selectedProduct) addToCart(selectedProduct);
           }}
           onViewSeller={(sellerId) => setSelectedVendorId(sellerId)}
+          similarProducts={
+            products
+              .filter(p => 
+                p.category === selectedProduct.category && 
+                p.id !== selectedProduct.id &&
+                p.seller_id !== selectedProduct.seller_id
+              )
+              .slice(0, 10)
+              .map(p => ({
+                id: p.id,
+                name: p.title,
+                price: p.price,
+                image: p.image,
+                rating: p.rating,
+                reviewCount: p.reviews,
+                category: p.category,
+                seller: p.seller.display_name,
+                sellerId: p.seller_id,
+                isAvailable: p.inStock,
+                location: p.coordinates
+              }))
+          }
+          sellerProducts={
+            products
+              .filter(p => 
+                p.seller_id === selectedProduct.seller_id && 
+                p.id !== selectedProduct.id
+              )
+              .slice(0, 10)
+              .map(p => ({
+                id: p.id,
+                name: p.title,
+                price: p.price,
+                image: p.image,
+                rating: p.rating,
+                reviewCount: p.reviews,
+                category: p.category,
+                seller: p.seller.display_name,
+                sellerId: p.seller_id,
+                isAvailable: p.inStock,
+                location: p.coordinates
+              }))
+          }
           userLocation={coordinates}
         />
       )}
