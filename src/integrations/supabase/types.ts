@@ -10232,6 +10232,19 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_registration_monitoring: {
+        Row: {
+          activity_type: string | null
+          company_name: string | null
+          created_at: string | null
+          description: string | null
+          email: string | null
+          error_code: string | null
+          error_message: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       rental_booking_stats_secure: {
         Row: {
           completed_bookings: number | null
