@@ -9,26 +9,26 @@ import { useNavigate } from "react-router-dom";
 interface NotificationItemProps {
   notification: {
     id: string;
-    notification_type: string;
     title: string;
-    message: string;
+    content: string;
+    priority: string;
     is_read: boolean;
     created_at: string;
     action_url: string | null;
-    metadata: any;
+    action_label: string | null;
   };
 }
 
-const getNotificationIcon = (type: string) => {
-  switch (type) {
-    case 'verification_approved':
-      return <CheckCircle className="h-5 w-5 text-green-500" />;
-    case 'verification_rejected':
-      return <XCircle className="h-5 w-5 text-red-500" />;
-    case 'verification_info_requested':
-      return <AlertCircle className="h-5 w-5 text-orange-500" />;
+const getNotificationIcon = (priority: string) => {
+  switch (priority) {
+    case 'high':
+      return <AlertCircle className="h-5 w-5 text-red-500" />;
+    case 'medium':
+      return <Info className="h-5 w-5 text-orange-500" />;
+    case 'low':
+      return <CheckCircle className="h-5 w-5 text-blue-500" />;
     default:
-      return <Info className="h-5 w-5 text-blue-500" />;
+      return <Info className="h-5 w-5 text-muted-foreground" />;
   }
 };
 
@@ -69,7 +69,7 @@ export const NotificationItem = ({ notification }: NotificationItemProps) => {
 
       <div className="flex gap-3 pr-8">
         <div className="flex-shrink-0 mt-0.5">
-          {getNotificationIcon(notification.notification_type)}
+          {getNotificationIcon(notification.priority)}
         </div>
         <div className="flex-1 space-y-1">
           <div className="flex items-start justify-between gap-2">
@@ -81,7 +81,7 @@ export const NotificationItem = ({ notification }: NotificationItemProps) => {
             </h4>
           </div>
           <p className="text-sm text-muted-foreground line-clamp-2">
-            {notification.message}
+            {notification.content}
           </p>
           <p className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(notification.created_at), {

@@ -5,12 +5,12 @@ import { useAuth } from './useAuth';
 export interface UserNotification {
   id: string;
   user_id: string;
-  notification_type: string;
   title: string;
-  message: string;
+  content: string;
+  priority: string;
   is_read: boolean;
-  metadata: any;
   action_url: string | null;
+  action_label: string | null;
   created_at: string;
   read_at: string | null;
   expires_at: string | null;
@@ -127,7 +127,7 @@ export const useUserNotifications = () => {
         
         if (Notification.permission === 'granted') {
           new Notification(newNotification.title, {
-            body: newNotification.message,
+            body: newNotification.content,
             icon: '/app-icon.png',
             tag: newNotification.id
           });

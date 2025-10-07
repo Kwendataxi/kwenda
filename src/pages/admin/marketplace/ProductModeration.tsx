@@ -140,11 +140,16 @@ export const ProductModeration = () => {
       if (error) throw error;
 
       // ✅ Créer notification pour le vendeur
-      await supabase.from("user_notifications").insert({
+      const { error: notifError } = await supabase.from("user_notifications").insert({
         user_id: product.seller_id,
         title: "✅ Produit approuvé",
         content: `Félicitations ! Votre produit "${product.title}" a été approuvé et est maintenant visible sur la marketplace.`,
+        priority: 'normal',
       });
+
+      if (notifError) {
+        console.error("❌ Erreur notification vendeur:", notifError);
+      }
 
       toast({
         title: "✅ Produit approuvé",
@@ -190,11 +195,16 @@ export const ProductModeration = () => {
       if (error) throw error;
 
       // Créer notification pour le vendeur
-      await supabase.from("user_notifications").insert({
+      const { error: notifError } = await supabase.from("user_notifications").insert({
         user_id: selectedProduct.seller_id,
-        title: "Produit rejeté",
+        title: "❌ Produit rejeté",
         content: `Votre produit "${selectedProduct.title}" a été rejeté. Raison: ${rejectionReason}`,
+        priority: 'high',
       });
+
+      if (notifError) {
+        console.error("❌ Erreur notification vendeur:", notifError);
+      }
 
       toast({
         title: "❌ Produit rejeté",
