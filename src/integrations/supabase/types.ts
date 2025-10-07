@@ -10110,33 +10110,6 @@ export type Database = {
         }
         Relationships: []
       }
-      mv_admin_rental_booking_stats: {
-        Row: {
-          completed_bookings: number | null
-          last_updated: string | null
-          pending_bookings: number | null
-          total_bookings: number | null
-          total_revenue: number | null
-        }
-        Relationships: []
-      }
-      mv_admin_rental_subscription_stats: {
-        Row: {
-          active_subscriptions: number | null
-          last_updated: string | null
-        }
-        Relationships: []
-      }
-      mv_admin_rental_vehicle_stats: {
-        Row: {
-          active_vehicles: number | null
-          approved_vehicles: number | null
-          last_updated: string | null
-          pending_moderation: number | null
-          total_vehicles: number | null
-        }
-        Relationships: []
-      }
       partner_registration_monitoring: {
         Row: {
           activity_type: string | null
@@ -10646,11 +10619,14 @@ export type Database = {
         Returns: {
           distance_km: number
           driver_id: string
-          estimated_arrival_minutes: number
-          is_available: boolean
+          is_verified: boolean
+          last_ping: string
+          latitude: number
+          longitude: number
           rating_average: number
           rides_remaining: number
-          service_type: string
+          subscription_status: string
+          total_rides: number
           vehicle_class: string
         }[]
       }
@@ -11019,6 +10995,35 @@ export type Database = {
       get_referral_reward_amount: {
         Args: { p_user_id: string }
         Returns: number
+      }
+      get_rental_booking_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          active_bookings: number
+          cancelled_bookings: number
+          completed_bookings: number
+          total_bookings: number
+          total_revenue: number
+        }[]
+      }
+      get_rental_subscription_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          active_subscriptions: number
+          expired_subscriptions: number
+          total_subscription_revenue: number
+          total_subscriptions: number
+        }[]
+      }
+      get_rental_vehicle_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          active_vehicles: number
+          approved_vehicles: number
+          pending_moderation: number
+          rejected_vehicles: number
+          total_vehicles: number
+        }[]
       }
       get_safe_user_info: {
         Args: { user_id_param: string }
@@ -11464,7 +11469,7 @@ export type Database = {
               p_success?: boolean
             }
           | { p_details?: Json; p_event_type: string; p_severity?: string }
-        Returns: string
+        Returns: undefined
       }
       log_sensitive_access: {
         Args: {
@@ -11607,10 +11612,6 @@ export type Database = {
         Returns: string
       }
       refresh_admin_cache: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      refresh_admin_rental_stats: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
@@ -11782,7 +11783,7 @@ export type Database = {
         Returns: number
       }
       validate_booking_coordinates: {
-        Args: { delivery_coords?: Json; pickup_coords: Json }
+        Args: { delivery_coords: Json; pickup_coords: Json }
         Returns: Json
       }
       validate_driver_registration_data: {
