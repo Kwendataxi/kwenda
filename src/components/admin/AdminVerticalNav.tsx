@@ -74,6 +74,7 @@ const NAV_ITEMS: Array<{
   
   // Commerce
   { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag, group: 'commerce' },
+  { id: 'marketplace-products', label: 'Modération Produits', icon: Package, group: 'commerce', badge: 'NEW' },
   { id: 'promocodes', label: 'Codes Promo', icon: Tag, group: 'commerce' },
   { id: 'lottery', label: 'Tombola', icon: Trophy, group: 'commerce' },
   

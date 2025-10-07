@@ -171,10 +171,12 @@ export const EditProductForm: React.FC<EditProductFormProps> = ({ product, onBac
       };
 
       // ⚠️ Si produit était approuvé, repasser en pending pour re-modération
+      let willRequireRemoderation = false;
       if (product.moderation_status === 'approved') {
         updateData.moderation_status = 'pending';
         updateData.moderated_at = null;
         updateData.moderator_id = null;
+        willRequireRemoderation = true;
       }
 
       // Update product in database
@@ -187,8 +189,8 @@ export const EditProductForm: React.FC<EditProductFormProps> = ({ product, onBac
 
       toast({
         title: "✅ Produit mis à jour",
-        description: product.moderation_status === 'approved' 
-          ? "Votre produit a été re-soumis pour modération suite à vos modifications."
+        description: willRequireRemoderation 
+          ? "Votre produit a été re-soumis pour modération suite à vos modifications. Vous serez notifié une fois vérifié."
           : "Les modifications ont été enregistrées avec succès.",
       });
 

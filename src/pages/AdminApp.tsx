@@ -35,6 +35,7 @@ import { VehicleTypeConfigManager } from '@/components/admin/VehicleTypeConfigMa
 import { AdminMarketplaceManager } from '@/components/admin/AdminMarketplaceManager';
 import { PricingManagementPanel } from '@/components/admin/PricingManagementPanel';
 import { ServiceConfigPanel } from '@/components/admin/ServiceConfigPanel';
+import { ProductModeration } from '@/pages/admin/marketplace/ProductModeration';
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -145,6 +146,15 @@ const AdminApp = () => {
           <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['marketplace_moderate']}>
               <AdminMarketplaceManager />
+            </FlexiblePermissionGuard>
+          </Suspense>
+        );
+
+      case 'marketplace-products':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['marketplace_moderate']}>
+              <ProductModeration />
             </FlexiblePermissionGuard>
           </Suspense>
         );
