@@ -91,7 +91,9 @@ export const useDriverRegistration = () => {
 
       console.log('🔐 Résultat création compte Auth:', {
         hasUser: !!authData?.user,
+        userId: authData?.user?.id,
         hasSession: !!authData?.session,
+        sessionAccessToken: authData?.session ? 'présent' : 'absent',
         error: authError
       });
 
@@ -120,53 +122,145 @@ export const useDriverRegistration = () => {
         throw new Error(errorMsg);
       }
 
-      console.log('✅ Compte Auth créé, création profil via RPC...');
+      // ✅ PHASE 2: Gestion améliorée de la session
+      if (!authData.session) {
+        console.warn('⚠️ Aucune session immédiate après signUp - email confirmation probablement requise');
+        console.log('📧 Un email de confirmation a été envoyé à:', data.email);
+        
+        toast({
+          title: "Vérification email requise",
+          description: "Un email de confirmation vous a été envoyé. Veuillez vérifier votre boîte mail et cliquer sur le lien pour activer votre compte.",
+        });
 
-      // 3. Appeler la fonction RPC sécurisée pour créer le profil chauffeur
-      const { data: rpcResult, error: rpcError } = await supabase.rpc(
-        'create_driver_profile_secure',
-        {
-          p_user_id: authData.user.id,
-          p_email: data.email,
-          p_display_name: data.displayName,
-          p_phone_number: data.phoneNumber,
-          p_license_number: data.licenseNumber || null,
-          p_vehicle_plate: data.hasOwnVehicle ? data.vehiclePlate : null,
-          p_service_type: data.serviceType || null,
-          p_delivery_capacity: data.deliveryCapacity || null,
-          p_vehicle_class: 'standard',
-          p_has_own_vehicle: data.hasOwnVehicle
-        }
-      ) as { data: { success: boolean; error?: string; driver_id?: string } | null; error: any };
-
-      console.log('RPC Result:', rpcResult);
-      console.log('RPC Error:', rpcError);
-
-      if (rpcError) {
-        console.error('❌ RPC Error:', rpcError);
+        // Logger cette situation
         await supabase.rpc('log_driver_registration_attempt', {
           p_email: data.email,
           p_phone_number: data.phoneNumber,
           p_license_number: data.licenseNumber,
           p_success: false,
-          p_error_message: `RPC error: ${rpcError.message}`
+          p_error_message: 'No immediate session - email confirmation required'
         });
-        throw new Error(rpcError.message || 'Erreur lors de la création du profil chauffeur');
+
+        return {
+          success: false,
+          hasOwnVehicle: data.hasOwnVehicle,
+          redirectPath: '/auth?message=check-email',
+          user: authData.user,
+          session: null,
+          requiresEmailConfirmation: true
+        };
+      }
+
+      console.log('✅ Session active détectée, userId:', authData.user.id);
+      console.log('✅ Compte Auth créé, création profil via RPC...');
+
+      // 3. Appeler la fonction RPC sécurisée pour créer le profil chauffeur
+      console.log('🔧 Appel RPC create_driver_profile_secure avec params:', {
+        userId: authData.user.id,
+        email: data.email,
+        hasOwnVehicle: data.hasOwnVehicle
+      });
+
+      let rpcResult: { success: boolean; error?: string; driver_id?: string } | null = null;
+      let rpcError: any = null;
+
+      try {
+        const response = await supabase.rpc(
+          'create_driver_profile_secure',
+          {
+            p_user_id: authData.user.id,
+            p_email: data.email,
+            p_display_name: data.displayName,
+            p_phone_number: data.phoneNumber,
+            p_license_number: data.licenseNumber || null,
+            p_vehicle_plate: data.hasOwnVehicle ? data.vehiclePlate : null,
+            p_service_type: data.serviceType || null,
+            p_delivery_capacity: data.deliveryCapacity || null,
+            p_vehicle_class: 'standard',
+            p_has_own_vehicle: data.hasOwnVehicle
+          }
+        ) as { data: { success: boolean; error?: string; driver_id?: string } | null; error: any };
+
+        rpcResult = response.data;
+        rpcError = response.error;
+
+        console.log('📊 RPC Response:', {
+          hasData: !!rpcResult,
+          success: rpcResult?.success,
+          hasError: !!rpcError,
+          errorMessage: rpcError?.message,
+          errorCode: rpcError?.code,
+          errorDetails: rpcError?.details
+        });
+      } catch (rpcCallError: any) {
+        console.error('❌ Exception lors de l\'appel RPC:', rpcCallError);
+        rpcError = rpcCallError;
+      }
+
+      // ✅ PHASE 2: Fallback amélioré en cas d'échec RPC
+      if (rpcError) {
+        console.error('❌ RPC Error détaillé:', {
+          message: rpcError.message,
+          code: rpcError.code,
+          details: rpcError.details,
+          hint: rpcError.hint
+        });
+
+        await supabase.rpc('log_driver_registration_attempt', {
+          p_email: data.email,
+          p_phone_number: data.phoneNumber,
+          p_license_number: data.licenseNumber,
+          p_success: false,
+          p_error_message: `RPC error: ${rpcError.message} (code: ${rpcError.code})`
+        });
+
+        // Tenter de supprimer le compte auth orphelin
+        console.log('🗑️ Tentative de nettoyage du compte auth orphelin...');
+        try {
+          await supabase.auth.admin.deleteUser(authData.user.id);
+          console.log('✅ Compte auth orphelin supprimé');
+        } catch (deleteError) {
+          console.warn('⚠️ Impossible de supprimer le compte auth:', deleteError);
+        }
+
+        toast({
+          title: "Erreur technique",
+          description: `Impossible de créer votre profil chauffeur. Détails: ${rpcError.message}. Veuillez contacter le support si le problème persiste.`,
+          variant: "destructive",
+        });
+
+        throw new Error(`Erreur RPC: ${rpcError.message || 'Erreur inconnue lors de la création du profil'}`);
       }
 
       if (rpcResult && !rpcResult.success) {
         console.error('❌ Driver creation failed:', rpcResult.error);
+        
         await supabase.rpc('log_driver_registration_attempt', {
           p_email: data.email,
           p_phone_number: data.phoneNumber,
           p_license_number: data.licenseNumber,
           p_success: false,
-          p_error_message: rpcResult.error
+          p_error_message: rpcResult.error || 'RPC returned success=false'
         });
+
+        // Tenter de supprimer le compte auth orphelin
+        try {
+          await supabase.auth.admin.deleteUser(authData.user.id);
+          console.log('✅ Compte auth orphelin supprimé');
+        } catch (deleteError) {
+          console.warn('⚠️ Impossible de supprimer le compte auth:', deleteError);
+        }
+
+        toast({
+          title: "Erreur lors de la création du profil",
+          description: rpcResult.error || "Impossible de créer votre profil. Veuillez réessayer.",
+          variant: "destructive",
+        });
+
         throw new Error(rpcResult.error || 'Erreur lors de la création du profil chauffeur');
       }
 
-      console.log('✅ Profil chauffeur créé via RPC');
+      console.log('✅ Profil chauffeur créé via RPC, driver_id:', rpcResult?.driver_id);
 
       // 4. Mettre à jour le profil avec les détails complets qui ne sont pas dans la fonction RPC
       const updateData: any = {
