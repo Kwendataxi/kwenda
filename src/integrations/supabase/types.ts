@@ -10211,11 +10211,11 @@ export type Database = {
       subscription_stats_by_service: {
         Row: {
           active_subscriptions: number | null
+          avg_price: number | null
           expired_subscriptions: number | null
-          price: number | null
-          rides_included: number | null
+          plan_name: string | null
           service_type: string | null
-          total_extra_charges: number | null
+          total_revenue: number | null
           total_subscriptions: number | null
         }
         Relationships: []
@@ -10234,16 +10234,11 @@ export type Database = {
       }
       v_user_rating_stats: {
         Row: {
-          average_rating: number | null
-          five_stars: number | null
-          four_stars: number | null
-          last_rating_at: string | null
-          one_star: number | null
-          rated_user_id: string | null
-          ratings_with_comments: number | null
-          three_stars: number | null
+          avg_rating: number | null
+          negative_ratings: number | null
+          positive_ratings: number | null
           total_ratings: number | null
-          two_stars: number | null
+          user_id: string | null
         }
         Relationships: []
       }
