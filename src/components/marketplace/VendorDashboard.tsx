@@ -35,6 +35,7 @@ import { MobileVendorHeader } from './mobile/MobileVendorHeader';
 import { MobileVendorStats } from './mobile/MobileVendorStats';
 import { MobileVendorTabs } from './mobile/MobileVendorTabs';
 import { MobileProductCard } from './mobile/MobileProductCard';
+import { VendorPendingProductsAlert } from './VendorPendingProductsAlert';
 
 interface VendorDashboardProps {
   onProductUpdate: () => void;
@@ -235,62 +236,72 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
 
   const renderStatsCards = () => {
     const activeProducts = myProducts.filter(p => p.status === 'active').length;
+    const pendingProducts = myProducts.filter(p => p.moderation_status === 'pending').length;
+    const approvedProducts = myProducts.filter(p => p.moderation_status === 'approved').length;
     const totalProducts = myProducts.length;
     
     return (
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Produits</p>
-                <p className="text-2xl font-bold">{activeProducts}/{totalProducts}</p>
-              </div>
-              <Store className="w-8 h-8 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
+      <>
+        {/* Alerte pour produits en attente */}
+        {pendingProducts > 0 && (
+          <VendorPendingProductsAlert 
+            pendingCount={pendingProducts}
+            onViewProducts={() => setCurrentTab('products')}
+          />
+        )}
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Confirmations</p>
-                <p className="text-2xl font-bold">{ordersForConfirmation.length}</p>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Produits actifs</p>
+                  <p className="text-2xl font-bold">{approvedProducts}/{totalProducts}</p>
+                </div>
+                <Store className="w-8 h-8 text-primary" />
               </div>
-              <Package className="w-8 h-8 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Revenus effectifs</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {summary.paid.amount.toLocaleString()} FC
-                </p>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">En attente</p>
+                  <p className="text-2xl font-bold text-yellow-600">{pendingProducts}</p>
+                </div>
+                <Clock className="w-8 h-8 text-yellow-500" />
               </div>
-              <DollarSign className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">En attente</p>
-                <p className="text-2xl font-bold text-orange-500">
-                  {(summary.pending.amount + summary.confirmed.amount).toLocaleString()} FC
-                </p>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Confirmations</p>
+                  <p className="text-2xl font-bold">{ordersForConfirmation.length}</p>
+                </div>
+                <Package className="w-8 h-8 text-primary" />
               </div>
-              <Clock className="w-8 h-8 text-orange-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Revenus en attente</p>
+                  <p className="text-2xl font-bold text-orange-500">
+                    {(summary.pending.amount + summary.confirmed.amount).toLocaleString()} FC
+                  </p>
+                </div>
+                <Clock className="w-8 h-8 text-orange-500" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </>
     );
   };
 

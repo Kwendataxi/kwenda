@@ -383,11 +383,26 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
       console.log('✅ Product created successfully:', data);
 
-      // ✅ Notification vendeur : produit en attente de modération
+      // ✅ Appeler la edge function pour notifier les admins
+      try {
+        await supabase.functions.invoke('notify-admin-new-product', {
+          body: {
+            productId: data.id,
+            sellerId: user?.id,
+            productTitle: data.title,
+            productCategory: data.category,
+            productPrice: data.price
+          }
+        });
+      } catch (notifError) {
+        console.error('Erreur notification admin:', notifError);
+      }
+
+      // ✅ Notification vendeur améliorée
       toast({
-        title: '✅ Produit créé avec succès',
-        description: 'Votre produit est en attente de modération. Vous serez notifié une fois approuvé.',
-        duration: 5000,
+        title: '✅ Produit créé avec succès!',
+        description: 'Votre produit a été soumis pour modération. Il sera visible sur la marketplace une fois approuvé par notre équipe (24-48h).',
+        duration: 7000,
       });
 
       // Reload products
