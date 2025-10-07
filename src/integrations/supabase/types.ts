@@ -10067,24 +10067,6 @@ export type Database = {
         }
         Relationships: []
       }
-      admin_users_cache: {
-        Row: {
-          admin_level: string | null
-          admin_role: Database["public"]["Enums"]["admin_role"] | null
-          created_at: string | null
-          department: string | null
-          display_name: string | null
-          email: string | null
-          is_active: boolean | null
-          last_login: string | null
-          permissions: string[] | null
-          phone_number: string | null
-          role: Database["public"]["Enums"]["user_role"] | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
       admin_users_cache_secure: {
         Row: {
           admin_level: string | null
@@ -10100,18 +10082,6 @@ export type Database = {
           role: Database["public"]["Enums"]["user_role"] | null
           updated_at: string | null
           user_id: string | null
-        }
-        Relationships: []
-      }
-      ai_performance_stats: {
-        Row: {
-          avg_response_time_ms: number | null
-          context: string | null
-          day: string | null
-          failed_calls: number | null
-          function_called: string | null
-          successful_calls: number | null
-          total_calls: number | null
         }
         Relationships: []
       }
@@ -10815,6 +10785,35 @@ export type Database = {
       get_admin_subscriptions_unified: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_admin_users_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          admin_level: string
+          admin_role: Database["public"]["Enums"]["admin_role"]
+          created_at: string
+          department: string
+          display_name: string
+          email: string
+          is_active: boolean
+          last_login: string
+          permissions: string[]
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }[]
+      }
+      get_ai_performance_stats: {
+        Args: { days_back?: number }
+        Returns: {
+          avg_response_time_ms: number
+          context: string
+          day: string
+          failed_calls: number
+          function_called: string
+          successful_calls: number
+          total_calls: number
+        }[]
       }
       get_anonymized_vendor_performance: {
         Args: Record<PropertyKey, never>
