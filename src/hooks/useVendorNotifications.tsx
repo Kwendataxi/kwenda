@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { notificationSoundService } from '@/services/notificationSound';
+import { pushNotificationService } from '@/services/pushNotificationService';
 import { useToast } from '@/hooks/use-toast';
 
 export type VendorNotificationType = 
@@ -188,6 +189,27 @@ export function useVendorNotifications(): UseVendorNotificationsReturn {
       duration: notification.priority === 'urgent' ? 8000 : 5000,
       variant: toastVariant,
     });
+
+    // Show browser push notification if supported and permission granted
+    if (pushNotificationService.isSupported() && pushNotificationService.getPermissionStatus() === 'granted') {
+      const data = notification.data || notification.metadata || {};
+      
+      await pushNotificationService.showNotification(notification.title, {
+        body: notification.message,
+        icon: data.product_image || '/app-icon.png',
+        tag: notification.id,
+        data: {
+          url: data.product_id ? `/marketplace/vendor/products?product=${data.product_id}` : '/marketplace/vendor',
+          notificationId: notification.id,
+        },
+        requireInteraction: notification.priority === 'urgent',
+      });
+    }
+
+    // Update page badge with unread count
+    const newUnreadCount = notifications.filter(n => !n.is_read).length + 1;
+    pushNotificationService.updatePageBadge(newUnreadCount);
+    pushNotificationService.updateFaviconBadge(newUnreadCount);
   };
 
   // Set up real-time subscription
