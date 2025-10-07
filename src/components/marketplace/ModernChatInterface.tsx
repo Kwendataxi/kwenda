@@ -122,8 +122,8 @@ export const ModernChatInterface: React.FC<ModernChatInterfaceProps> = ({
           </Button>
         ) : (
           <Card className={cn(
-            "bg-card shadow-2xl border border-border/50 overflow-hidden backdrop-blur-xl",
-            isCompact ? "w-full max-w-md h-[500px]" : "w-80 md:w-96 h-[80vh] md:h-[600px]"
+            "bg-card shadow-2xl border border-border/50 overflow-hidden backdrop-blur-xl flex flex-col",
+            isCompact ? "w-full h-full" : "w-80 md:w-96 h-[80vh] md:h-[600px]"
           )}>
             {/* Floating chat header - Compact */}
             <div className="flex items-center justify-between px-3 py-2 border-b bg-card/95 backdrop-blur-sm">
@@ -161,7 +161,7 @@ export const ModernChatInterface: React.FC<ModernChatInterfaceProps> = ({
             </div>
 
             {/* Chat content */}
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col flex-1 overflow-hidden min-h-0">
               {!selectedConversation ? (
                 <ConversationsList 
                   conversations={conversations}
@@ -378,7 +378,7 @@ const ChatView: React.FC<{
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-3 space-y-2 sm:space-y-3 min-h-0">
         {messages.map((message, index) => {
           const isOwnMessage = message.sender_id === conversation?.buyer_id;
           const showAvatar = index === 0 || messages[index - 1].sender_id !== message.sender_id;
@@ -398,7 +398,7 @@ const ChatView: React.FC<{
               {!isOwnMessage && !showAvatar && <div className="w-6" />}
               
               <div
-                className={`max-w-[75%] p-2 rounded-lg text-sm ${
+                className={`max-w-[85%] sm:max-w-[75%] p-2 sm:p-2.5 rounded-lg text-xs sm:text-sm ${
                   isOwnMessage
                     ? 'bg-primary text-primary-foreground ml-auto'
                     : 'bg-muted text-foreground'

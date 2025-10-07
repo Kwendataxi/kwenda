@@ -28,9 +28,9 @@ export const ProductChatTab: React.FC<ProductChatTabProps> = ({
     : 0;
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Header with unread count */}
-      <div className="p-3 border-b bg-muted/30">
+      <div className="shrink-0 p-3 border-b bg-muted/30">
         <div className="flex items-center gap-2">
           <MessageCircle className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium text-foreground">
@@ -44,8 +44,8 @@ export const ProductChatTab: React.FC<ProductChatTabProps> = ({
         </div>
       </div>
 
-      {/* Chat interface - Increased height */}
-      <div className="flex-1 overflow-hidden min-h-[500px]">
+      {/* Chat interface */}
+      <div className="flex-1 overflow-hidden">
         <ModernChatInterface
           productId={productId}
           sellerId={sellerId}
