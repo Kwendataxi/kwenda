@@ -31,7 +31,19 @@ class GoogleMapsLoaderService {
 
     try {
       console.log('🔑 Fetching Google Maps API key from Supabase...');
-      const { data, error } = await supabase.functions.invoke('get-google-maps-key');
+      
+      // Récupérer la session utilisateur pour l'authentification
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.error('❌ User not authenticated');
+        throw new Error('User authentication required to load Google Maps');
+      }
+
+      const { data, error } = await supabase.functions.invoke('get-google-maps-key', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
       
       if (error) {
         console.error('❌ Supabase function error:', error);
