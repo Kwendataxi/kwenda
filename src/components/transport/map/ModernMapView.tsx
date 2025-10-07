@@ -3,6 +3,7 @@ import { Loader2, MapPin } from 'lucide-react';
 import CustomMarkers from './CustomMarkers';
 import AnimatedPolyline from './AnimatedPolyline';
 import { useGoogleMaps } from '@/hooks/useGoogleMaps';
+import { useMapTheme } from '@/hooks/useMapTheme';
 import { throttle } from '@/utils/performanceUtils';
 import { useToast } from '@/hooks/use-toast';
 import mapboxgl from 'mapbox-gl';
@@ -38,6 +39,7 @@ export default function ModernMapView({
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const mapboxMapRef = useRef<mapboxgl.Map | null>(null);
   const { isLoaded, error, isLoading, retryCount, loadingProgress } = useGoogleMaps();
+  const { mapStyles } = useMapTheme();
   const [isMapReady, setIsMapReady] = useState(false);
   const [useMapboxFallback, setUseMapboxFallback] = useState(false);
   const { toast } = useToast();
@@ -309,47 +311,7 @@ export default function ModernMapView({
           tilt: 45,
           heading: 0,
           gestureHandling: 'greedy',
-          styles: [
-            // 🎨 Style épuré premium - Masquer tous les POI
-            {
-              featureType: 'poi',
-              stylers: [{ visibility: 'off' }]
-            },
-            {
-              featureType: 'poi.business',
-              stylers: [{ visibility: 'off' }]
-            },
-            {
-              featureType: 'poi.park',
-              stylers: [{ visibility: 'off' }]
-            },
-            {
-              featureType: 'poi.attraction',
-              stylers: [{ visibility: 'off' }]
-            },
-            // Masquer les icônes de transport
-            {
-              featureType: 'transit',
-              elementType: 'labels.icon',
-              stylers: [{ visibility: 'off' }]
-            },
-            {
-              featureType: 'transit.station',
-              stylers: [{ visibility: 'off' }]
-            },
-            // Améliorer la saturation et le contraste
-            {
-              featureType: 'all',
-              elementType: 'geometry',
-              stylers: [{ saturation: 15 }, { lightness: 3 }]
-            },
-            // Routes plus visibles
-            {
-              featureType: 'road',
-              elementType: 'geometry',
-              stylers: [{ lightness: 10 }]
-            }
-          ]
+          styles: mapStyles // 🎨 Thème dynamique clair/sombre
         });
 
         console.log('✅ [ModernMapView] Carte Google Maps créée avec succès avec Map ID');
