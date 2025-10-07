@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Bot, Send, Sparkles, Clock, MapPin, ShoppingCart, Car, Truck } from 'lucide-react';
 import { useAIAssistant } from '@/hooks/useAIAssistant';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface AIAssistantWidgetProps {
   context?: 'transport' | 'delivery' | 'marketplace' | 'rental' | 'support';
@@ -71,6 +72,142 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
 
   const renderFunctionResult = (result: any) => {
     if (!result) return null;
+
+    // PHASE 3: Product comparison
+    if (result.type === 'product_comparison' && result.products) {
+      return (
+        <div className="mt-2 space-y-2">
+          <p className="text-xs font-medium text-foreground">Comparaison:</p>
+          <div className="grid grid-cols-2 gap-2">
+            {result.products.map((product: any, idx: number) => (
+              <div 
+                key={idx} 
+                className={cn(
+                  "p-2 rounded-lg border text-xs",
+                  product.id === result.recommendation?.bestValueId 
+                    ? "bg-primary/10 border-primary" 
+                    : "bg-muted/50 border-border"
+                )}
+              >
+                {product.image_url && (
+                  <img 
+                    src={product.image_url} 
+                    alt={product.title}
+                    className="w-full h-20 object-cover rounded mb-1"
+                  />
+                )}
+                <p className="font-bold text-foreground truncate">{product.title}</p>
+                <p className="font-bold text-primary">{product.price} {product.currency}</p>
+                <p className="text-muted-foreground">⭐ {product.rating.toFixed(1)} ({product.reviews})</p>
+                <p className={cn(
+                  "font-medium mt-1",
+                  product.stock > 0 ? "text-green-600" : "text-red-600"
+                )}>
+                  {product.stock > 0 ? `${product.stock} en stock` : 'Rupture'}
+                </p>
+                {product.id === result.recommendation?.bestValueId && (
+                  <Badge className="mt-1 text-[10px] h-4">🏆 Best Value</Badge>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // PHASE 4: Image analysis
+    if (result.type === 'image_analysis') {
+      return (
+        <div className="mt-2 space-y-1">
+          <p className="text-xs font-medium text-foreground">Analyse image:</p>
+          {result.image_url && (
+            <img 
+              src={result.image_url} 
+              alt="Produit"
+              className="w-full max-h-32 object-cover rounded"
+            />
+          )}
+          <div className="p-2 bg-muted/50 rounded text-xs text-foreground">
+            {result.description}
+          </div>
+        </div>
+      );
+    }
+
+    // PHASE 5: Seller reliability
+    if (result.type === 'seller_reliability') {
+      const { seller, trustScore, trustBadge, trustLevel, breakdown } = result;
+      return (
+        <div className="mt-2 p-2 bg-gradient-to-br from-primary/10 to-primary/5 rounded border border-primary/20">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <p className="text-xs font-medium text-foreground">{seller.name}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {seller.totalSales} ventes • ⭐ {seller.rating.toFixed(1)}
+              </p>
+            </div>
+            <div className="text-xl">{trustBadge}</div>
+          </div>
+          
+          <div className="mb-2">
+            <div className="flex justify-between items-center mb-0.5">
+              <span className="text-xs font-medium text-foreground">{trustLevel}</span>
+              <span className="text-xs font-bold text-primary">{trustScore}/100</span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-1.5">
+              <div 
+                className="bg-primary rounded-full h-1.5 transition-all"
+                style={{ width: `${trustScore}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1 text-[10px]">
+            <div className="p-1 bg-background/50 rounded">
+              <p className="text-muted-foreground">Note: {breakdown.rating}/40</p>
+            </div>
+            <div className="p-1 bg-background/50 rounded">
+              <p className="text-muted-foreground">Vérif: {breakdown.verification}/20</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // PHASE 1: Stock availability
+    if (result.type === 'stock_check') {
+      return (
+        <div className={cn(
+          "mt-2 p-2 rounded border text-xs",
+          result.alert 
+            ? "bg-destructive/10 border-destructive" 
+            : "bg-green-50 dark:bg-green-900/10 border-green-500"
+        )}>
+          <p className="font-medium text-foreground">{result.title}</p>
+          <p className={cn(
+            "font-bold",
+            result.alert ? "text-destructive" : "text-green-600"
+          )}>
+            {result.status}
+          </p>
+        </div>
+      );
+    }
+
+    // PHASE 1: Delivery cost
+    if (result.type === 'delivery_cost') {
+      return (
+        <div className="mt-2 p-2 bg-muted/50 rounded text-xs">
+          <p className="text-foreground mb-1">{result.product_title}</p>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">Livraison:</span>
+            <span className="font-bold text-primary">
+              {result.totalCost} {result.currency}
+            </span>
+          </div>
+        </div>
+      );
+    }
 
     if (result.type === 'destinations' && result.recommendations) {
       return (

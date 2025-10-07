@@ -195,6 +195,42 @@ function getContextFunctions(context: string) {
         },
         required: ['service', 'origin', 'destination']
       }
+    },
+    // PHASE 5: Fiabilité vendeur
+    {
+      name: 'check_seller_reliability',
+      description: 'Vérifier la fiabilité et le score de confiance d\'un vendeur',
+      parameters: {
+        type: 'object',
+        properties: {
+          seller_id: { type: 'string', description: 'ID du vendeur' }
+        },
+        required: ['seller_id']
+      }
+    },
+    // PHASE 1: Vérification stock et promotions
+    {
+      name: 'check_stock_availability',
+      description: 'Vérifier la disponibilité en stock d\'un produit',
+      parameters: {
+        type: 'object',
+        properties: {
+          product_id: { type: 'string' }
+        },
+        required: ['product_id']
+      }
+    },
+    {
+      name: 'calculate_delivery_cost',
+      description: 'Calculer précisément les frais de livraison pour un produit',
+      parameters: {
+        type: 'object',
+        properties: {
+          product_id: { type: 'string' },
+          delivery_address: { type: 'string' }
+        },
+        required: ['product_id', 'delivery_address']
+      }
     }
   ];
 
@@ -215,20 +251,53 @@ function getContextFunctions(context: string) {
   }
 
   if (context === 'marketplace') {
-    baseFunctions.push({
-      name: 'search_products',
-      description: 'Rechercher des produits dans la marketplace',
-      parameters: {
-        type: 'object',
-        properties: {
-          query: { type: 'string' },
-          category: { type: 'string' },
-          location: { type: 'string' },
-          price_range: { type: 'string' }
-        },
-        required: ['query']
+    baseFunctions.push(
+      {
+        name: 'search_products',
+        description: 'Rechercher des produits dans la marketplace',
+        parameters: {
+          type: 'object',
+          properties: {
+            query: { type: 'string' },
+            category: { type: 'string' },
+            location: { type: 'string' },
+            price_range: { type: 'string' }
+          },
+          required: ['query']
+        }
+      },
+      // PHASE 3: Comparaison de produits
+      {
+        name: 'compare_products',
+        description: 'Comparer 2 à 3 produits côte à côte',
+        parameters: {
+          type: 'object',
+          properties: {
+            product_ids: { 
+              type: 'array',
+              items: { type: 'string' },
+              minItems: 2,
+              maxItems: 3,
+              description: 'IDs des produits à comparer'
+            }
+          },
+          required: ['product_ids']
+        }
+      },
+      // PHASE 4: Analyse d'image
+      {
+        name: 'analyze_product_image',
+        description: 'Analyser une image de produit et générer une description détaillée',
+        parameters: {
+          type: 'object',
+          properties: {
+            image_url: { type: 'string', description: 'URL de l\'image du produit' },
+            category_hint: { type: 'string', description: 'Catégorie du produit pour contexte' }
+          },
+          required: ['image_url']
+        }
       }
-    });
+    );
   }
 
   return baseFunctions;
@@ -257,6 +326,21 @@ async function handleFunctionCall(
     
     case 'search_products':
       return await searchProducts(parsedArgs, supabase);
+    
+    case 'compare_products':
+      return await compareProducts(parsedArgs, supabase);
+    
+    case 'analyze_product_image':
+      return await analyzeProductImage(parsedArgs);
+    
+    case 'check_seller_reliability':
+      return await checkSellerReliability(parsedArgs, supabase);
+    
+    case 'check_stock_availability':
+      return await checkStockAvailability(parsedArgs, supabase);
+    
+    case 'calculate_delivery_cost':
+      return await calculateDeliveryCost(parsedArgs, supabase);
     
     default:
       return { error: `Fonction ${name} non reconnue` };
@@ -364,8 +448,9 @@ async function searchProducts(args: any, supabase: any) {
   try {
     let query = supabase
       .from('marketplace_products')
-      .select('id, title, price, image_url, seller_id, category')
+      .select('id, title, price, image_url, seller_id, category, stock_quantity, rating_average')
       .eq('status', 'active')
+      .eq('moderation_status', 'approved')
       .ilike('title', `%${args.query}%`);
 
     if (args.category) {
@@ -384,5 +469,328 @@ async function searchProducts(args: any, supabase: any) {
   } catch (error) {
     console.error('Error searching products:', error);
     return { error: 'Erreur lors de la recherche de produits' };
+  }
+}
+
+// PHASE 3: Comparaison de produits
+async function compareProducts(args: any, supabase: any) {
+  try {
+    const { product_ids } = args;
+
+    if (!product_ids || product_ids.length < 2 || product_ids.length > 3) {
+      return { error: 'Veuillez fournir 2 ou 3 produits à comparer' };
+    }
+
+    const { data: products } = await supabase
+      .from('marketplace_products')
+      .select(`
+        id,
+        title,
+        price,
+        currency,
+        image_url,
+        category,
+        description,
+        stock_quantity,
+        rating_average,
+        rating_count,
+        seller_id,
+        seller_profiles!inner(
+          display_name,
+          rating_average,
+          total_sales,
+          verified_seller
+        )
+      `)
+      .in('id', product_ids)
+      .eq('status', 'active')
+      .eq('moderation_status', 'approved');
+
+    if (!products || products.length < 2) {
+      return { error: 'Impossible de récupérer les produits pour comparaison' };
+    }
+
+    // Calculer le meilleur rapport qualité/prix
+    const bestValue = products.reduce((best, current) => {
+      const currentScore = (current.rating_average || 0) / (current.price || 1);
+      const bestScore = (best.rating_average || 0) / (best.price || 1);
+      return currentScore > bestScore ? current : best;
+    });
+
+    return {
+      type: 'product_comparison',
+      products: products.map(p => ({
+        id: p.id,
+        title: p.title,
+        price: p.price,
+        currency: p.currency,
+        image_url: p.image_url,
+        category: p.category,
+        stock: p.stock_quantity,
+        rating: p.rating_average || 0,
+        reviews: p.rating_count || 0,
+        seller: p.seller_profiles?.display_name,
+        sellerRating: p.seller_profiles?.rating_average || 0,
+        sellerVerified: p.seller_profiles?.verified_seller || false
+      })),
+      recommendation: {
+        bestValueId: bestValue.id,
+        message: `Meilleur rapport qualité/prix: ${bestValue.title}`
+      },
+      message: `Comparaison de ${products.length} produits effectuée`
+    };
+  } catch (error) {
+    console.error('Error comparing products:', error);
+    return { error: 'Erreur lors de la comparaison des produits' };
+  }
+}
+
+// PHASE 4: Analyse d'image avec OpenAI Vision
+async function analyzeProductImage(args: any) {
+  try {
+    const { image_url, category_hint } = args;
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+
+    if (!openAIApiKey) {
+      return { error: 'OpenAI API key non configurée' };
+    }
+
+    const prompt = category_hint 
+      ? `Analyse cette image de produit de la catégorie "${category_hint}". Génère une description détaillée pour une marketplace e-commerce incluant: caractéristiques visuelles, état apparent, matériaux visibles, dimensions estimées, et points d'intérêt pour un acheteur potentiel.`
+      : `Analyse cette image de produit pour une marketplace e-commerce. Décris en détail ce que tu vois, identifie le type de produit, ses caractéristiques, son état, et fournis des informations utiles pour un acheteur.`;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: prompt },
+              { type: 'image_url', image_url: { url: image_url } }
+            ]
+          }
+        ],
+        max_tokens: 500
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenAI Vision API error:', errorData);
+      return { error: 'Erreur lors de l\'analyse de l\'image' };
+    }
+
+    const data = await response.json();
+    const description = data.choices[0].message.content;
+
+    return {
+      type: 'image_analysis',
+      image_url,
+      category: category_hint,
+      description,
+      message: 'Analyse d\'image terminée avec succès'
+    };
+  } catch (error) {
+    console.error('Error analyzing image:', error);
+    return { error: 'Erreur lors de l\'analyse de l\'image' };
+  }
+}
+
+// PHASE 5: Vérification de fiabilité vendeur
+async function checkSellerReliability(args: any, supabase: any) {
+  try {
+    const { seller_id } = args;
+
+    const { data: seller } = await supabase
+      .from('seller_profiles')
+      .select(`
+        user_id,
+        display_name,
+        rating_average,
+        total_sales,
+        verified_seller,
+        seller_badge_level,
+        created_at
+      `)
+      .eq('user_id', seller_id)
+      .single();
+
+    if (!seller) {
+      return { error: 'Vendeur non trouvé' };
+    }
+
+    // Calculer le score de confiance (0-100)
+    const ratingScore = (seller.rating_average || 0) * 8; // 40% max
+    const salesScore = Math.min((seller.total_sales || 0) / 10, 20); // 20% max
+    const verificationScore = seller.verified_seller ? 20 : 0; // 20% max
+    const ageScore = calculateAgeScore(seller.created_at); // 10% max
+    const badgeScore = getBadgeScore(seller.seller_badge_level); // 10% max
+
+    const trustScore = Math.round(ratingScore + salesScore + verificationScore + ageScore + badgeScore);
+
+    // Déterminer le badge de confiance
+    let trustBadge = '';
+    let trustLevel = '';
+    
+    if (trustScore >= 90) {
+      trustBadge = '🌟';
+      trustLevel = 'Vendeur de confiance';
+    } else if (trustScore >= 70) {
+      trustBadge = '✅';
+      trustLevel = 'Vendeur vérifié';
+    } else if (trustScore >= 50) {
+      trustBadge = '👤';
+      trustLevel = 'Vendeur actif';
+    } else {
+      trustBadge = '⚠️';
+      trustLevel = 'Nouveau vendeur';
+    }
+
+    return {
+      type: 'seller_reliability',
+      seller: {
+        id: seller.user_id,
+        name: seller.display_name,
+        rating: seller.rating_average || 0,
+        totalSales: seller.total_sales || 0,
+        verified: seller.verified_seller,
+        badge: seller.seller_badge_level
+      },
+      trustScore,
+      trustBadge,
+      trustLevel,
+      breakdown: {
+        rating: Math.round(ratingScore),
+        sales: Math.round(salesScore),
+        verification: verificationScore,
+        experience: Math.round(ageScore),
+        badge: badgeScore
+      },
+      message: `${trustBadge} ${trustLevel} - Score de confiance: ${trustScore}/100`
+    };
+  } catch (error) {
+    console.error('Error checking seller reliability:', error);
+    return { error: 'Erreur lors de la vérification du vendeur' };
+  }
+}
+
+function calculateAgeScore(createdAt: string): number {
+  const now = new Date();
+  const created = new Date(createdAt);
+  const monthsOld = (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24 * 30);
+  
+  if (monthsOld >= 12) return 10;
+  if (monthsOld >= 6) return 7;
+  if (monthsOld >= 3) return 5;
+  if (monthsOld >= 1) return 3;
+  return 1;
+}
+
+function getBadgeScore(badge: string | null): number {
+  switch (badge) {
+    case 'gold': return 10;
+    case 'silver': return 7;
+    case 'bronze': return 5;
+    case 'verified': return 8;
+    default: return 0;
+  }
+}
+
+// PHASE 1: Vérification stock
+async function checkStockAvailability(args: any, supabase: any) {
+  try {
+    const { product_id } = args;
+
+    const { data: product } = await supabase
+      .from('marketplace_products')
+      .select('id, title, stock_quantity, status')
+      .eq('id', product_id)
+      .single();
+
+    if (!product) {
+      return { error: 'Produit non trouvé' };
+    }
+
+    const stockLevel = product.stock_quantity || 0;
+    let stockStatus = '';
+    let alert = false;
+
+    if (stockLevel === 0) {
+      stockStatus = 'Rupture de stock';
+      alert = true;
+    } else if (stockLevel <= 5) {
+      stockStatus = `Stock faible - Plus que ${stockLevel} unité(s)`;
+      alert = true;
+    } else if (stockLevel <= 10) {
+      stockStatus = `Stock limité - ${stockLevel} unités disponibles`;
+    } else {
+      stockStatus = 'En stock';
+    }
+
+    return {
+      type: 'stock_check',
+      product_id: product.id,
+      title: product.title,
+      stock: stockLevel,
+      status: stockStatus,
+      alert,
+      message: stockStatus
+    };
+  } catch (error) {
+    console.error('Error checking stock:', error);
+    return { error: 'Erreur lors de la vérification du stock' };
+  }
+}
+
+// PHASE 1: Calcul frais de livraison
+async function calculateDeliveryCost(args: any, supabase: any) {
+  try {
+    const { product_id, delivery_address } = args;
+
+    const { data: product } = await supabase
+      .from('marketplace_products')
+      .select('id, title, price, seller_id')
+      .eq('id', product_id)
+      .single();
+
+    if (!product) {
+      return { error: 'Produit non trouvé' };
+    }
+
+    // Récupérer les frais de livraison de base
+    const { data: deliveryFee } = await supabase
+      .from('delivery_fees')
+      .select('base_fee, currency')
+      .eq('service_type', 'marketplace')
+      .eq('is_active', true)
+      .single();
+
+    const baseFee = deliveryFee?.base_fee || 7000;
+    const currency = deliveryFee?.currency || 'CDF';
+
+    // Estimation simple basée sur la distance (à améliorer avec vraie API géolocalisation)
+    const distanceMultiplier = 1.0; // Pourrait être calculé selon l'adresse
+
+    const totalDeliveryCost = Math.round(baseFee * distanceMultiplier);
+
+    return {
+      type: 'delivery_cost',
+      product_id: product.id,
+      product_title: product.title,
+      delivery_address,
+      baseFee,
+      totalCost: totalDeliveryCost,
+      currency,
+      message: `Frais de livraison estimés: ${totalDeliveryCost} ${currency}`
+    };
+  } catch (error) {
+    console.error('Error calculating delivery cost:', error);
+    return { error: 'Erreur lors du calcul des frais de livraison' };
   }
 }

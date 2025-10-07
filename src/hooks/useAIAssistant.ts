@@ -107,10 +107,12 @@ export const useAIAssistant = (context?: string) => {
         "Tarifs pour un gros colis Maxicharge"
       ],
       marketplace: [
-        "Cherche des produits électroniques",
-        "Quels sont les produits populaires ?",
-        "Recommande-moi des vendeurs fiables",
-        "Trouve des produits moins de 50000 CDF"
+        "Cherche des smartphones Samsung",
+        "Compare ces 2 produits pour moi",
+        "Ce vendeur est-il fiable ?",
+        "Vérifie si ce produit est en stock",
+        "Calcule les frais de livraison",
+        "Analyse cette image de produit"
       ],
       rental: [
         "Quels véhicules sont disponibles en location ?",
