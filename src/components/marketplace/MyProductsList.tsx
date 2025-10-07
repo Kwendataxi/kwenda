@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Info } from 'lucide-react';
+import { Info, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -65,12 +65,51 @@ export const MyProductsList = ({ loadMyProducts }: MyProductsListProps) => {
       </CardHeader>
       <CardContent className="space-y-4">
         {myProducts.some(p => p.moderation_status === 'pending') && (
-          <div className="flex items-start gap-2 p-4 bg-muted rounded-lg">
-            <Info className="w-5 h-5 text-primary mt-0.5" />
+          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 flex items-start space-x-3 shadow-sm">
+            <div className="bg-yellow-200 rounded-full p-2">
+              <Clock className="h-5 w-5 text-yellow-700" />
+            </div>
             <div className="flex-1">
-              <p className="text-sm font-medium">Validation en cours</p>
-              <p className="text-sm text-muted-foreground">
-                Vos produits sont en cours de validation et seront visibles après approbation par un administrateur.
+              <h3 className="font-semibold text-yellow-900 text-base">
+                {myProducts.filter(p => p.moderation_status === 'pending').length} produit(s) en attente de modération
+              </h3>
+              <p className="text-sm text-yellow-800 mt-2 leading-relaxed">
+                Vos produits sont en cours de vérification par notre équipe. Ils seront visibles sur la marketplace après validation (généralement sous 24 heures).
+              </p>
+              <p className="text-xs text-yellow-700 mt-2">
+                📢 Vous recevrez une notification dès que vos produits seront modérés.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {myProducts.some(p => p.moderation_status === 'rejected') && (
+          <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4 flex items-start space-x-3 shadow-sm">
+            <div className="bg-red-200 rounded-full p-2">
+              <XCircle className="h-5 w-5 text-red-700" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-red-900 text-base">
+                {myProducts.filter(p => p.moderation_status === 'rejected').length} produit(s) rejeté(s)
+              </h3>
+              <p className="text-sm text-red-800 mt-2 leading-relaxed">
+                Certains de vos produits ont été rejetés. Vérifiez les raisons ci-dessous, corrigez les problèmes et soumettez à nouveau.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {myProducts.some(p => p.moderation_status === 'approved') && (
+          <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4 flex items-start space-x-3 shadow-sm">
+            <div className="bg-green-200 rounded-full p-2">
+              <CheckCircle className="h-5 w-5 text-green-700" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-green-900 text-base">
+                {myProducts.filter(p => p.moderation_status === 'approved').length} produit(s) approuvé(s) et visible(s)
+              </h3>
+              <p className="text-sm text-green-800 mt-2 leading-relaxed">
+                🎉 Vos produits sont visibles sur la marketplace et disponibles à l'achat !
               </p>
             </div>
           </div>
@@ -91,29 +130,37 @@ export const MyProductsList = ({ loadMyProducts }: MyProductsListProps) => {
                 <p className="text-lg font-bold text-primary mb-2">
                   {product.price} {product.currency}
                 </p>
-                <div className="flex items-center justify-between">
-                  <Badge
-                    variant={
-                      product.moderation_status === 'approved'
-                        ? 'default'
-                        : product.moderation_status === 'rejected'
-                        ? 'destructive'
-                        : 'secondary'
-                    }
-                  >
-                    {product.moderation_status === 'approved' && '✓ Approuvé'}
-                    {product.moderation_status === 'pending' && '⏳ En attente'}
-                    {product.moderation_status === 'rejected' && '✗ Rejeté'}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(product.created_at).toLocaleDateString()}
-                  </span>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    {product.moderation_status === 'approved' && (
+                      <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Approuvé
+                      </Badge>
+                    )}
+                    {product.moderation_status === 'pending' && (
+                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                        <Clock className="h-3 w-3 mr-1" />
+                        En attente
+                      </Badge>
+                    )}
+                    {product.moderation_status === 'rejected' && (
+                      <Badge variant="destructive">
+                        <XCircle className="h-3 w-3 mr-1" />
+                        Rejeté
+                      </Badge>
+                    )}
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(product.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  {product.moderation_status === 'rejected' && product.rejection_reason && (
+                    <div className="p-2 bg-red-50 border border-red-200 rounded text-xs text-red-800">
+                      <strong className="block mb-1">Raison du rejet:</strong>
+                      {product.rejection_reason}
+                    </div>
+                  )}
                 </div>
-                {product.moderation_status === 'rejected' && product.rejection_reason && (
-                  <p className="text-xs text-destructive mt-2">
-                    Raison: {product.rejection_reason}
-                  </p>
-                )}
               </CardContent>
             </Card>
           ))}

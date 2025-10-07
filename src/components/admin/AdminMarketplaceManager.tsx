@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { SellerModerationPanel } from './marketplace/SellerModerationPanel';
 import { SellerVerificationPanel } from './marketplace/SellerVerificationPanel';
 import { ProductAnalyticsDashboard } from './marketplace/ProductAnalyticsDashboard';
+import { ProductModerationQueue } from './marketplace/ProductModerationQueue';
 
 export function AdminMarketplaceManager() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -22,9 +23,10 @@ export function AdminMarketplaceManager() {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['marketplaceStats'],
     queryFn: async () => {
-      const [productsRes, ordersRes] = await Promise.all([
-        supabase.from('marketplace_products').select('id, status', { count: 'exact' }),
-        supabase.from('marketplace_orders').select('id, status, total_amount', { count: 'exact' })
+      const [productsRes, ordersRes, sellersRes] = await Promise.all([
+        supabase.from('marketplace_products').select('id, moderation_status', { count: 'exact' }),
+        supabase.from('marketplace_orders').select('id, status, total_amount', { count: 'exact' }),
+        supabase.from('seller_profiles').select('id', { count: 'exact' })
       ]);
 
       const products = productsRes.data || [];
@@ -32,10 +34,12 @@ export function AdminMarketplaceManager() {
 
       return {
         totalProducts: productsRes.count || 0,
-        pendingProducts: products.filter(p => p.status === 'pending').length,
+        pendingModeration: products.filter(p => p.moderation_status === 'pending').length,
+        approvedProducts: products.filter(p => p.moderation_status === 'approved').length,
+        rejectedProducts: products.filter(p => p.moderation_status === 'rejected').length,
         totalOrders: ordersRes.count || 0,
         pendingOrders: orders.filter(o => o.status === 'pending').length,
-        totalSellers: 8, // À implémenter avec une vraie table vendeurs
+        totalSellers: sellersRes.count || 0,
         totalRevenue: orders.filter(o => o.status === 'completed').reduce((sum, o) => sum + (o.total_amount || 0), 0)
       };
     },
@@ -59,14 +63,32 @@ export function AdminMarketplaceManager() {
       const { data, error } = await query;
       if (error) throw error;
 
-      return data?.map(p => ({
-        id: p.id,
-        name: p.title,
-        price: p.price,
-        status: p.status,
-        created_at: p.created_at,
-        profiles: { display_name: 'Vendeur', email: '' } // Simplifié pour éviter les erreurs de relation
-      })) || [];
+      // Fetch seller info separately
+      const productsWithSellers = await Promise.all(
+        (data || []).map(async (p) => {
+          const { data: seller } = await supabase
+            .from('seller_profiles')
+            .select('display_name, verified_seller')
+            .eq('user_id', p.seller_id)
+            .single();
+
+          return {
+            id: p.id,
+            name: p.title,
+            price: p.price,
+            moderation_status: p.moderation_status,
+            status: p.status,
+            created_at: p.created_at,
+            seller_id: p.seller_id,
+            profiles: { 
+              display_name: seller?.display_name || 'Vendeur inconnu',
+              verified_seller: seller?.verified_seller || false
+            }
+          };
+        })
+      );
+
+      return productsWithSellers;
     }
   });
 
@@ -93,39 +115,56 @@ export function AdminMarketplaceManager() {
     }
   });
 
-  // Update product status
+  // Update product moderation status
   const updateProductStatus = useMutation({
-    mutationFn: async ({ productId, status }: { productId: string; status: string }) => {
-      const { error } = await supabase
-        .from('marketplace_products')
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', productId);
+    mutationFn: async ({ 
+      productId, 
+      action, 
+      rejectionReason 
+    }: { 
+      productId: string; 
+      action: 'approve' | 'reject';
+      rejectionReason?: string;
+    }) => {
+      const { data, error } = await supabase.functions.invoke('moderate-product', {
+        body: { productId, action, rejectionReason }
+      });
 
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['marketplaceProducts'] });
       queryClient.invalidateQueries({ queryKey: ['marketplaceStats'] });
       toast({
         title: "Succès",
-        description: "Statut du produit mis à jour",
+        description: "Produit modéré avec succès",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Erreur",
-        description: "Erreur lors de la mise à jour du produit",
+        description: error.message || "Erreur lors de la modération",
         variant: "destructive",
       });
-      console.error('Product update error:', error);
+      console.error('Product moderation error:', error);
     }
   });
 
-  const getStatusBadge = (status: string) => {
+  const getModerationBadge = (status: string) => {
     const statusMap = {
       pending: { variant: 'secondary' as const, label: 'En attente' },
       approved: { variant: 'default' as const, label: 'Approuvé' },
-      rejected: { variant: 'destructive' as const, label: 'Rejeté' },
+      rejected: { variant: 'destructive' as const, label: 'Rejeté' }
+    };
+    
+    const config = statusMap[status as keyof typeof statusMap] || { variant: 'secondary' as const, label: status };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const getOrderStatusBadge = (status: string) => {
+    const statusMap = {
+      pending: { variant: 'secondary' as const, label: 'En attente' },
       completed: { variant: 'default' as const, label: 'Terminé' },
       cancelled: { variant: 'destructive' as const, label: 'Annulé' }
     };
@@ -150,8 +189,16 @@ export function AdminMarketplaceManager() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+          <TabsTrigger value="moderation" className="relative">
+            Modération
+            {stats && stats.pendingModeration > 0 && (
+              <Badge variant="destructive" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                {stats.pendingModeration}
+              </Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="products">Produits</TabsTrigger>
           <TabsTrigger value="orders">Commandes</TabsTrigger>
           <TabsTrigger value="sellers">Vendeurs</TabsTrigger>
@@ -168,7 +215,7 @@ export function AdminMarketplaceManager() {
               <CardContent>
                 <div className="text-2xl font-bold">{stats?.totalProducts || 0}</div>
                 <p className="text-xs text-muted-foreground">
-                  {stats?.pendingProducts || 0} en attente de modération
+                  {stats?.pendingModeration || 0} en attente • {stats?.approvedProducts || 0} approuvés
                 </p>
               </CardContent>
             </Card>
@@ -214,6 +261,10 @@ export function AdminMarketplaceManager() {
           </div>
         </TabsContent>
 
+        <TabsContent value="moderation" className="space-y-6">
+          <ProductModerationQueue />
+        </TabsContent>
+
         <TabsContent value="products" className="space-y-6">
           <div className="flex items-center space-x-2">
             <div className="relative flex-1">
@@ -247,19 +298,19 @@ export function AdminMarketplaceManager() {
                           Par {product.profiles?.display_name || 'Vendeur inconnu'} • {product.price} CDF
                         </p>
                         <div className="flex items-center space-x-2">
-                          {getStatusBadge(product.status || 'pending')}
+                          {getModerationBadge(product.moderation_status || 'pending')}
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button variant="outline" size="sm">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        {product.status === 'pending' && (
+                        {product.moderation_status === 'pending' && (
                           <>
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => updateProductStatus.mutate({ productId: product.id, status: 'approved' })}
+                              onClick={() => updateProductStatus.mutate({ productId: product.id, action: 'approve' })}
                               disabled={updateProductStatus.isPending}
                             >
                               <CheckCircle className="h-4 w-4 text-green-600" />
@@ -267,7 +318,7 @@ export function AdminMarketplaceManager() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => updateProductStatus.mutate({ productId: product.id, status: 'rejected' })}
+                              onClick={() => updateProductStatus.mutate({ productId: product.id, action: 'reject', rejectionReason: 'Rejeté par admin' })}
                               disabled={updateProductStatus.isPending}
                             >
                               <XCircle className="h-4 w-4 text-red-600" />
@@ -304,7 +355,7 @@ export function AdminMarketplaceManager() {
                           {order.profiles?.display_name} • {order.total_amount} CDF
                         </p>
                         <div className="flex items-center space-x-2">
-                          {getStatusBadge(order.status || 'pending')}
+                          {getOrderStatusBadge(order.status || 'pending')}
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
