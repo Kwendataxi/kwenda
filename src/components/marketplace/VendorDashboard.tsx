@@ -294,9 +294,29 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
   };
 
   const renderProductsTab = () => {
+    const pendingProducts = myProducts.filter(p => p.moderation_status === 'pending');
+    const hasPendingProducts = pendingProducts.length > 0;
+
     if (isMobile) {
       return (
-        <div className="px-4 pb-20">
+        <div className="px-4 pb-20 space-y-4">
+          {hasPendingProducts && (
+            <Card className="border-orange-500/50 bg-orange-50 dark:bg-orange-950/20">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-sm mb-1">Validation en cours</p>
+                    <p className="text-xs text-muted-foreground">
+                      {pendingProducts.length} produit{pendingProducts.length > 1 ? 's' : ''} en attente de modération. 
+                      Ils seront visibles après approbation par un administrateur.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
           {myProducts.length === 0 ? (
             <Card>
               <CardContent className="p-6 text-center">
@@ -322,6 +342,23 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
 
     return (
       <div className="space-y-4">
+        {hasPendingProducts && (
+          <Card className="border-orange-500/50 bg-orange-50 dark:bg-orange-950/20">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <Clock className="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-sm mb-1">Validation en cours</p>
+                  <p className="text-xs text-muted-foreground">
+                    {pendingProducts.length} produit{pendingProducts.length > 1 ? 's' : ''} en attente de modération. 
+                    Ils seront visibles après approbation par un administrateur.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
         {myProducts.map(product => (
           <Card key={product.id}>
             <CardContent className="p-4">
@@ -342,16 +379,35 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
                       <p className="font-semibold text-primary">{product.price.toLocaleString()} FC</p>
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                      <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
-                        {product.status === 'active' ? 'Actif' : 'Inactif'}
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge variant={
+                        product.moderation_status === 'approved' ? 'default' : 
+                        product.moderation_status === 'rejected' ? 'destructive' : 
+                        'secondary'
+                      }>
+                        {product.moderation_status === 'approved' ? '✓ Approuvé' :
+                         product.moderation_status === 'rejected' ? '✗ Rejeté' :
+                         '⏳ En attente'}
                       </Badge>
-                      <Switch
-                        checked={product.status === 'active'}
-                        onCheckedChange={() => toggleProductStatus(product.id, product.status)}
-                      />
+                      {product.moderation_status === 'approved' && (
+                        <div className="flex items-center gap-2">
+                          <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
+                            {product.status === 'active' ? 'Actif' : 'Inactif'}
+                          </Badge>
+                          <Switch
+                            checked={product.status === 'active'}
+                            onCheckedChange={() => toggleProductStatus(product.id, product.status)}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
+                  
+                  {product.moderation_status === 'rejected' && product.rejection_reason && (
+                    <div className="mt-2 p-2 bg-destructive/10 rounded text-xs text-destructive">
+                      Raison du rejet: {product.rejection_reason}
+                    </div>
+                  )}
 
                   <div className="flex items-center gap-2 mt-2">
                     <Button variant="outline" size="sm">

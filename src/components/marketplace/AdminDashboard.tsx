@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Users, Package, AlertTriangle, DollarSign, Shield } from 'lucide-react';
 import { AdminUserVerificationManager } from '@/components/admin/AdminUserVerificationManager';
+import { ProductModerationPanel } from './ProductModerationPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,7 +19,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
     totalUsers: 0,
     totalProducts: 0,
     pendingOrders: 0,
-    totalRevenue: 0
+    totalRevenue: 0,
+    pending_products: 0
   });
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -31,12 +33,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   const loadDashboardData = async () => {
     try {
       // Load statistics from real user tables
-      const [clientsResult, driversResult, partnersResult, productsResult, ordersResult] = await Promise.all([
+      const [clientsResult, driversResult, partnersResult, productsResult, ordersResult, pendingProductsResult] = await Promise.all([
         supabase.from('clients').select('id', { count: 'exact' }),
         supabase.from('chauffeurs').select('id', { count: 'exact' }),
         supabase.from('partenaires').select('id', { count: 'exact' }),
         supabase.from('marketplace_products').select('id, price', { count: 'exact' }),
-        supabase.from('marketplace_orders').select('*', { count: 'exact' })
+        supabase.from('marketplace_orders').select('*', { count: 'exact' }),
+        supabase.from('marketplace_products').select('id', { count: 'exact' }).eq('moderation_status', 'pending')
       ]);
 
       const totalUsers = (clientsResult.count || 0) + (driversResult.count || 0) + (partnersResult.count || 0);
@@ -45,7 +48,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
         totalUsers,
         totalProducts: productsResult.count || 0,
         pendingOrders: ordersResult.data?.filter(order => order.status === 'pending').length || 0,
-        totalRevenue: ordersResult.data?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0
+        totalRevenue: ordersResult.data?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0,
+        pending_products: pendingProductsResult.count || 0
       });
 
       // Load recent products
@@ -180,8 +184,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
 
         {/* Tabs for different sections */}
         <Tabs defaultValue="products" className="space-y-4">
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-5 w-full">
             <TabsTrigger value="products">Produits</TabsTrigger>
+            <TabsTrigger value="moderation" className="relative">
+              Modération
+              {stats.pending_products > 0 && (
+                <Badge className="ml-2 h-5 min-w-5 flex items-center justify-center bg-destructive text-destructive-foreground">
+                  {stats.pending_products}
+                </Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="orders">Commandes</TabsTrigger>
             <TabsTrigger value="verifications">
               <Shield className="w-4 h-4 mr-1" />
@@ -209,8 +221,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
-                          {product.status}
+                        <Badge variant={
+                          product.moderation_status === 'approved' ? 'default' : 
+                          product.moderation_status === 'rejected' ? 'destructive' : 
+                          'secondary'
+                        }>
+                          {product.moderation_status === 'approved' ? 'Approuvé' :
+                           product.moderation_status === 'rejected' ? 'Rejeté' :
+                           'En attente'}
                         </Badge>
                         {product.status === 'active' && (
                           <Button
@@ -227,6 +245,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="moderation">
+            <ProductModerationPanel />
           </TabsContent>
 
           <TabsContent value="orders" className="space-y-4">

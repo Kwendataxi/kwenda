@@ -629,23 +629,24 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
           <TabsContent value="sell" className="mt-4">
             <VerifiedSellerGuard>
-              <SellProductForm
-                onBack={() => setCurrentTab('shop')}
-                  onSubmit={async (formData) => {
-                  // Handle product creation with auto-location
-                  try {
-                    await handleProductSubmit({
-                      ...formData,
-                      coordinates: coordinates,
-                      location: 'Kinshasa'
-                    });
-                    setCurrentTab('shop');
-                    loadProducts();
-                  } catch (error) {
-                    console.error('Error submitting product:', error);
-                  }
-                }}
-              />
+              <div className="space-y-6">
+                <SellProductForm
+                  onBack={() => setCurrentTab('shop')}
+                    onSubmit={async (formData) => {
+                    // Handle product creation with auto-location
+                    try {
+                      await handleProductSubmit({
+                        ...formData,
+                        coordinates: coordinates,
+                        location: 'Kinshasa'
+                      });
+                      setCurrentTab('vendor');
+                    } catch (error) {
+                      console.error('Error submitting product:', error);
+                    }
+                  }}
+                />
+              </div>
             </VerifiedSellerGuard>
           </TabsContent>
 
