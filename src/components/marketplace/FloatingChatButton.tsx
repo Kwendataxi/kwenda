@@ -1,27 +1,25 @@
 import React, { useState } from 'react';
-import { ModernChatInterface } from './ModernChatInterface';
-import { MessageCircle } from 'lucide-react';
-import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
-import { Badge } from '@/components/ui/badge';
+import { AIAssistantWidget } from '@/components/ai/AIAssistantWidget';
+import { Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const FloatingChatButton: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { conversations, messages } = useMarketplaceChat();
-
-  // Calculate total unread messages
-  const totalUnread = conversations.reduce((total, conv) => {
-    const convMessages = messages[conv.id] || [];
-    return total + convMessages.filter(msg => !msg.is_read).length;
-  }, 0);
 
   return (
     <>
       {isOpen && (
-        <ModernChatInterface
-          isFloating={true}
-          onClose={() => setIsOpen(false)}
-        />
+        <div className="fixed bottom-20 right-4 z-50 w-full max-w-md">
+          <div className="relative">
+            <button
+              onClick={() => setIsOpen(false)}
+              className="absolute -top-2 -right-2 z-10 h-8 w-8 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 flex items-center justify-center"
+            >
+              ×
+            </button>
+            <AIAssistantWidget context="marketplace" />
+          </div>
+        </div>
       )}
       {!isOpen && (
         <div className="fixed bottom-20 right-4 z-40">
@@ -34,19 +32,9 @@ export const FloatingChatButton: React.FC = () => {
               "transition-all duration-300 hover:scale-105",
               "flex items-center justify-center"
             )}
-            aria-label="Ouvrir le chat marketplace"
+            aria-label="Ouvrir l'assistant IA Kwenda"
           >
-            <MessageCircle className="h-5 w-5 text-primary group-hover:text-primary/80 transition-colors" />
-            
-            {/* Subtle unread indicator - Red dot instead of badge */}
-            {totalUnread > 0 && (
-              <div className="absolute -top-0.5 -right-0.5">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></span>
-                </span>
-              </div>
-            )}
+            <Bot className="h-5 w-5 text-primary group-hover:text-primary/80 transition-colors" />
           </button>
         </div>
       )}
