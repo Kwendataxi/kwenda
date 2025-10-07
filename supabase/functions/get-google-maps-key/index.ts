@@ -57,45 +57,44 @@ serve(async (req) => {
   }
 
   try {
-    // ✅ SÉCURITÉ CRITIQUE: Vérifier l'authentification
+    // MODE DÉGRADÉ: Authentification optionnelle avec fallback
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      console.error('❌ No authorization header')
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401,
-        },
-      )
-    }
-
-    // Extract user ID from JWT
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } }
-    })
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
     
-    if (authError || !user) {
-      console.error('❌ Authentication failed:', authError)
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication' }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401,
-        },
-      )
+    let userId: string | null = null
+    let isAuthenticated = false
+
+    // Tenter l'authentification si le header est présent
+    if (authHeader) {
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+        const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!
+        const supabase = createClient(supabaseUrl, supabaseKey, {
+          global: { headers: { Authorization: authHeader } }
+        })
+
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        
+        if (!authError && user) {
+          userId = user.id
+          isAuthenticated = true
+          console.log(`🔑 get-google-maps-key called by authenticated user ${user.id}`)
+        } else {
+          console.warn('⚠️ Authentication header present but invalid, falling back to IP-based rate limiting')
+        }
+      } catch (error) {
+        console.warn('⚠️ Authentication error, falling back to IP-based rate limiting:', error)
+      }
+    } else {
+      console.log(`🔓 get-google-maps-key called without authentication (IP: ${clientIp})`)
     }
 
-    console.log(`🔑 get-google-maps-key called by user ${user.id}`)
-
-    // ✅ SÉCURITÉ CRITIQUE: Vérifier le rate limiting
-    const rateLimitCheck = await checkRateLimit(user.id)
+    // Rate limiting: par utilisateur si authentifié, par IP sinon
+    const rateLimitId = userId || `ip:${clientIp}`
+    const rateLimitCheck = await checkRateLimit(rateLimitId)
+    
     if (!rateLimitCheck.allowed) {
-      console.warn(`⚠️ Rate limit exceeded for user ${user.id}`)
+      console.warn(`⚠️ Rate limit exceeded for ${rateLimitId}`)
       return new Response(
         JSON.stringify({ 
           error: 'Rate limit exceeded. Please try again later.',
@@ -112,7 +111,7 @@ serve(async (req) => {
       )
     }
 
-    console.log(`✅ Rate limit OK - ${rateLimitCheck.remaining} requests remaining`)
+    console.log(`✅ Rate limit OK - ${rateLimitCheck.remaining} requests remaining (${isAuthenticated ? 'authenticated' : 'IP-based'})`)
 
     const googleMapsApiKey = Deno.env.get('GOOGLE_MAPS_API_KEY')
     const googleMapsMapId = Deno.env.get('GOOGLE_MAPS_MAP_ID')
@@ -134,14 +133,16 @@ serve(async (req) => {
       JSON.stringify({ 
         apiKey: googleMapsApiKey,
         mapId: googleMapsMapId,
-        requestsRemaining: rateLimitCheck.remaining
+        requestsRemaining: rateLimitCheck.remaining,
+        authenticated: isAuthenticated
       }),
       {
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json',
           'X-RateLimit-Remaining': rateLimitCheck.remaining.toString(),
-          'X-RateLimit-Limit': MAX_REQUESTS_PER_HOUR.toString()
+          'X-RateLimit-Limit': MAX_REQUESTS_PER_HOUR.toString(),
+          'X-Auth-Mode': isAuthenticated ? 'authenticated' : 'ip-based'
         },
         status: 200,
       },

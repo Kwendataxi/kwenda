@@ -42,7 +42,7 @@ verify_jwt = true
 verify_jwt = true  # ✅ PHASE 2: JWT requis pour géocodage
 
 [functions.get-google-maps-key]
-verify_jwt = true  # ✅ SÉCURITÉ CRITIQUE: JWT requis
+verify_jwt = false  # MODE DÉGRADÉ: Authentification optionnelle avec rate limiting par IP
 
 [functions.google-maps-security-monitor]
 verify_jwt = true
