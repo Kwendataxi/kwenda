@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Phone, FileText, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
+import { VendorVerificationFlow } from './VendorVerificationFlow';
 
 interface VerifiedSellerGuardProps {
   children: React.ReactNode;
@@ -45,14 +46,27 @@ export const VerifiedSellerGuard: React.FC<VerifiedSellerGuardProps> = ({ childr
     }
   }, [verification, loading, isVerifiedForSelling]);
 
-  const handleStartVerification = () => {
-    navigate('/client', { state: { scrollTo: 'security' } });
-    setTimeout(() => {
-      const securitySection = document.getElementById('security-section');
-      if (securitySection) {
-        securitySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const [showVerificationFlow, setShowVerificationFlow] = useState(false);
+
+  const handleStartVerification = async () => {
+    // Vérifier d'abord si une demande existe déjà
+    const { data: existingRequest } = await supabase
+      .from('seller_verification_requests')
+      .select('*')
+      .eq('user_id', verification?.user_id)
+      .single();
+    
+    if (existingRequest) {
+      if (existingRequest.verification_status === 'pending') {
+        alert('Votre demande de vérification est en cours de traitement. Vous recevrez une réponse sous 24-48h.');
+        return;
       }
-    }, 100);
+      if (existingRequest.verification_status === 'rejected') {
+        alert(`Votre demande a été rejetée: ${existingRequest.rejection_reason || 'Raison non spécifiée'}. Vous pouvez soumettre une nouvelle demande.`);
+      }
+    }
+    
+    setShowVerificationFlow(true);
   };
 
   if (loading) {
@@ -60,6 +74,19 @@ export const VerifiedSellerGuard: React.FC<VerifiedSellerGuardProps> = ({ childr
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
+    );
+  }
+
+  // Afficher le flux de vérification si demandé
+  if (showVerificationFlow) {
+    return (
+      <VendorVerificationFlow 
+        onSuccess={() => {
+          setShowVerificationFlow(false);
+          alert('✅ Demande envoyée ! Vous recevrez une réponse sous 24-48h.');
+        }}
+        onCancel={() => setShowVerificationFlow(false)}
+      />
     );
   }
 

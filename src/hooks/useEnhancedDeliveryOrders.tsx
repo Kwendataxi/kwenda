@@ -244,19 +244,30 @@ export const useEnhancedDeliveryOrders = () => {
       // Créer la commande avec données sécurisées et validation stricte
       const validDeliveryType = orderData.mode || 'flex'; // Fallback par défaut
       
+      // CORRECTION CRITIQUE: Extraire correctement les contacts normalisés
+      const senderName = normalizedData.pickup.contactName || 'Expéditeur';
+      const senderPhone = normalizedData.pickup.contactPhone || '';
+      const recipientName = normalizedData.destination.contactName || 'Destinataire';
+      const recipientPhone = normalizedData.destination.contactPhone || '';
+      
+      console.log('📞 Contact info extracted:', {
+        sender: { name: senderName, phone: senderPhone },
+        recipient: { name: recipientName, phone: recipientPhone }
+      });
+      
       const orderPayload = {
         user_id: user.id,
         pickup_location: securePickup?.address || 'Adresse de collecte non définie',
         delivery_location: secureDestination?.address || 'Adresse de livraison non définie',
+        sender_name: senderName,
+        sender_phone: senderPhone,
+        recipient_name: recipientName,
+        recipient_phone: recipientPhone,
         pickup_coordinates: pickupCoords,
         delivery_coordinates: deliveryCoords,
         delivery_type: validDeliveryType,
         estimated_price: orderData.estimatedPrice || 0,
-        status: 'pending',
-        sender_name: normalizedData.pickup.contactName || '',
-        sender_phone: normalizedData.pickup.contactPhone || '',
-        recipient_name: normalizedData.destination.contactName || '',
-        recipient_phone: normalizedData.destination.contactPhone || ''
+        status: 'pending'
       };
 
       console.log('Données sécurisées à insérer:', orderPayload);
