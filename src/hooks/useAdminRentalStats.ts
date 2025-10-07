@@ -1,6 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+// Types explicites pour les stats
+interface VehicleStats {
+  total_vehicles: number;
+  pending_moderation: number;
+  approved_vehicles: number;
+  active_vehicles: number;
+}
+
+interface BookingStats {
+  total_bookings: number;
+  completed_bookings: number;
+  pending_bookings: number;
+  total_revenue: number;
+}
+
+interface SubscriptionStats {
+  active_subscriptions: number;
+}
+
 export interface AdminRentalStats {
   totalVehicles: number;
   pendingModeration: number;
@@ -18,30 +37,30 @@ export const useAdminRentalStats = () => {
   return useQuery({
     queryKey: ['admin-rental-stats'],
     queryFn: async (): Promise<AdminRentalStats> => {
-      console.log('🔍 [RENTAL STATS] Fetching from materialized views...');
+      console.log('🔍 [RENTAL STATS] Fetching from secure stats tables...');
       
-      // Utiliser les vues matérialisées pour de meilleures performances
+      // Utiliser les tables de stats sécurisées
       const [
         vehicleStatsResult,
         bookingStatsResult,
         subscriptionStatsResult,
         categoriesResult
       ] = await Promise.all([
-        // Stats véhicules depuis vue matérialisée
+        // Stats véhicules depuis table sécurisée
         supabase
-          .from('mv_admin_rental_vehicle_stats')
+          .from('rental_vehicle_stats_secure')
           .select('*')
           .single(),
         
-        // Stats réservations depuis vue matérialisée
+        // Stats réservations depuis table sécurisée
         supabase
-          .from('mv_admin_rental_booking_stats')
+          .from('rental_booking_stats_secure')
           .select('*')
           .single(),
         
-        // Stats abonnements depuis vue matérialisée
+        // Stats abonnements depuis table sécurisée
         supabase
-          .from('mv_admin_rental_subscription_stats')
+          .from('rental_subscription_stats_secure')
           .select('*')
           .single(),
         
@@ -53,7 +72,7 @@ export const useAdminRentalStats = () => {
       ]);
 
       // Log des résultats
-      console.log('📊 [RENTAL STATS] Materialized views results:', {
+      console.log('📊 [RENTAL STATS] Secure stats results:', {
         vehicleStats: {
           success: !vehicleStatsResult.error,
           data: vehicleStatsResult.data,
@@ -76,7 +95,7 @@ export const useAdminRentalStats = () => {
         }
       });
 
-      // Extraire les données des vues matérialisées
+      // Extraire les données des tables sécurisées avec types explicites
       const vehicleStats = vehicleStatsResult.data || {
         total_vehicles: 0,
         pending_moderation: 0,
