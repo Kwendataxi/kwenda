@@ -3667,7 +3667,9 @@ export type Database = {
           id: string
           images: Json | null
           location: string | null
+          moderated_at: string | null
           moderation_status: string | null
+          moderator_id: string | null
           price: number
           rating_average: number | null
           rating_count: number | null
@@ -3691,7 +3693,9 @@ export type Database = {
           id?: string
           images?: Json | null
           location?: string | null
+          moderated_at?: string | null
           moderation_status?: string | null
+          moderator_id?: string | null
           price: number
           rating_average?: number | null
           rating_count?: number | null
@@ -3715,7 +3719,9 @@ export type Database = {
           id?: string
           images?: Json | null
           location?: string | null
+          moderated_at?: string | null
           moderation_status?: string | null
+          moderator_id?: string | null
           price?: number
           rating_average?: number | null
           rating_count?: number | null
