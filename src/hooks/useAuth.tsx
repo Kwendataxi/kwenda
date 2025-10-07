@@ -81,16 +81,39 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const signOut = async () => {
+    // Récupérer le rôle AVANT la déconnexion pour redirection intelligente
+    let redirectPath = '/auth'; // Défaut pour clients/chauffeurs
+    
+    try {
+      const cached = localStorage.getItem('kwenda_user_roles_cache');
+      if (cached) {
+        const { data } = JSON.parse(cached);
+        const primaryRole = data?.find((r: any) => r.role === 'admin')?.role || 
+                           data?.find((r: any) => r.role === 'partner')?.role || 
+                           data?.[0]?.role;
+        
+        if (primaryRole === 'admin') {
+          redirectPath = '/admin/auth';
+        } else if (primaryRole === 'partner') {
+          redirectPath = '/partner/auth';
+        }
+      }
+    } catch (error) {
+      logger.warn('Unable to determine role for redirect:', error);
+    }
+    
     const { error } = await supabase.auth.signOut();
     if (!error) {
       setUser(null);
       setSession(null);
+      
       // Clear any localStorage data
       localStorage.removeItem('supabase.auth.token');
       localStorage.removeItem('sb-wddlktajnhwhyquwcdgf-auth-token');
+      localStorage.removeItem('kwenda_user_roles_cache');
       
-      // Force redirect to auth page
-      window.location.href = '/auth';
+      // Redirection intelligente selon le rôle
+      window.location.href = redirectPath;
     }
   };
 
