@@ -10016,6 +10016,57 @@ export type Database = {
       }
     }
     Views: {
+      admin_registration_debug: {
+        Row: {
+          activity_type: string | null
+          attempted_user_id: string | null
+          auth_uid_at_time: string | null
+          created_at: string | null
+          description: string | null
+          driver_profile_exists: boolean | null
+          driver_role_exists: boolean | null
+          error_message: string | null
+          failed_step: string | null
+          id: string | null
+          metadata: Json | null
+          user_exists_in_auth: boolean | null
+          user_id: string | null
+          validation_errors: string | null
+        }
+        Insert: {
+          activity_type?: string | null
+          attempted_user_id?: never
+          auth_uid_at_time?: never
+          created_at?: string | null
+          description?: string | null
+          driver_profile_exists?: never
+          driver_role_exists?: never
+          error_message?: never
+          failed_step?: never
+          id?: string | null
+          metadata?: Json | null
+          user_exists_in_auth?: never
+          user_id?: string | null
+          validation_errors?: never
+        }
+        Update: {
+          activity_type?: string | null
+          attempted_user_id?: never
+          auth_uid_at_time?: never
+          created_at?: string | null
+          description?: string | null
+          driver_profile_exists?: never
+          driver_role_exists?: never
+          error_message?: never
+          failed_step?: never
+          id?: string | null
+          metadata?: Json | null
+          user_exists_in_auth?: never
+          user_id?: string | null
+          validation_errors?: never
+        }
+        Relationships: []
+      }
       admin_users_cache: {
         Row: {
           admin_level: string | null
@@ -10262,6 +10313,10 @@ export type Database = {
           p_subscription_id: string
           p_subscription_type: string
         }
+        Returns: Json
+      }
+      admin_repair_orphan_driver: {
+        Args: { p_user_id: string }
         Returns: Json
       }
       anonymize_old_location_data: {
