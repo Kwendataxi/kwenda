@@ -54,6 +54,19 @@ export const usePartnerRegistrationSecure = () => {
       if (authResult?.user?.id) {
         console.log('✅ Auth account created:', authResult.user.id);
         
+        // ✅ QUICK FIX: Attendre 500ms pour que auth.users soit bien propagé
+        console.log('⏳ Waiting 500ms for auth propagation...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // ✅ QUICK FIX: Vérifier que le user existe bien dans auth.users
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        console.log('🔍 User verification:', { userData, userError });
+        
+        if (userError || !userData?.user) {
+          console.error('❌ User not found in auth.users after signup:', userError);
+          throw new Error('Compte créé mais non accessible. Veuillez réessayer dans quelques instants.');
+        }
+        
         // Appeler la fonction RPC sécurisée pour créer le profil partenaire
         console.log('📞 Calling create_partner_profile_secure RPC...');
         const { data: rpcResult, error: rpcError } = await supabase.rpc(
