@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useServiceNotifications } from '@/hooks/useServiceNotifications';
 import ModernRentalPreview from './ModernRentalPreview';
+import ModernFooter from '@/components/landing/ModernFooter';
 
 interface ModernHomeScreenProps {
   onServiceSelect: (service: string) => void;
@@ -102,6 +103,9 @@ export const ModernHomeScreen = ({
             onProductSelect={onProductSelect}
             onViewAll={onMarketplaceViewAll}
           />
+          
+          {/* Footer */}
+          <ModernFooter />
         </div>
       </div>
 
