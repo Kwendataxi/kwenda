@@ -140,6 +140,8 @@ export const VendorProductsList: React.FC = () => {
     }
   };
 
+  const isDraft = (product: Product) => product.status === 'draft' || (product.images?.length === 0);
+
   const canEdit = (product: Product) => {
     // Can only edit if approved or rejected (not pending)
     return product.moderation_status === 'approved' || product.moderation_status === 'rejected';
@@ -180,18 +182,29 @@ export const VendorProductsList: React.FC = () => {
                     <CardTitle className="text-base line-clamp-1">{product.title}</CardTitle>
                     <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{product.description}</p>
                   </div>
-                  {getStatusBadge(product.moderation_status)}
+                  <div className="flex flex-col gap-2">
+                    {getStatusBadge(product.moderation_status)}
+                    {isDraft(product) && (
+                      <Badge variant="outline" className="bg-orange-500/10 text-orange-700 border-orange-500/20">
+                        <AlertCircle className="w-3 h-3 mr-1" />Draft
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 {/* Image + Price */}
                 <div className="flex items-center gap-4">
-                  {product.images?.[0] && (
+                  {product.images?.[0] ? (
                     <img 
                       src={product.images[0]} 
                       alt={product.title}
                       className="w-20 h-20 object-cover rounded-lg border"
                     />
+                  ) : (
+                    <div className="w-20 h-20 bg-muted rounded-lg border flex items-center justify-center">
+                      <Package className="w-8 h-8 text-muted-foreground/50" />
+                    </div>
                   )}
                   <div className="flex-1">
                     <p className="text-2xl font-bold text-primary">{product.price.toLocaleString()} FC</p>
@@ -210,8 +223,21 @@ export const VendorProductsList: React.FC = () => {
                   </div>
                 )}
 
+                {/* Draft Message */}
+                {isDraft(product) && (
+                  <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-orange-700 mb-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      Produit incomplet (sans images)
+                    </p>
+                    <p className="text-xs text-orange-700/80">
+                      Certaines images n'ont pas pu être uploadées. Vous pouvez modifier le produit pour réessayer.
+                    </p>
+                  </div>
+                )}
+
                 {/* Pending Message */}
-                {product.moderation_status === 'pending' && (
+                {product.moderation_status === 'pending' && !isDraft(product) && (
                   <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
                     <p className="text-xs text-yellow-700">
                       <Clock className="w-3 h-3 inline mr-1" />

@@ -348,26 +348,96 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     });
 
     try {
-      // ✅ Fonction helper pour retry upload
-      const uploadWithRetry = async (file: File, fileName: string, retries = 1) => {
+      // ✅ Compression et validation d'image
+      const compressImage = async (file: File): Promise<File> => {
+        const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+        if (file.size <= MAX_SIZE) return file;
+
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target?.result as string;
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d')!;
+              
+              const maxDim = 1920;
+              let width = img.width;
+              let height = img.height;
+              
+              if (width > height && width > maxDim) {
+                height = (height * maxDim) / width;
+                width = maxDim;
+              } else if (height > maxDim) {
+                width = (width * maxDim) / height;
+                height = maxDim;
+              }
+              
+              canvas.width = width;
+              canvas.height = height;
+              ctx.drawImage(img, 0, 0, width, height);
+              
+              canvas.toBlob(
+                (blob) => {
+                  if (blob) {
+                    resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+                  } else {
+                    reject(new Error('Compression failed'));
+                  }
+                },
+                'image/jpeg',
+                0.85
+              );
+            };
+          };
+        });
+      };
+
+      // ✅ Fonction helper pour retry upload avec timeout
+      const uploadWithRetry = async (file: File, fileName: string, retries = 3) => {
         for (let attempt = 0; attempt <= retries; attempt++) {
-          const { data, error } = await supabase.storage
-            .from('marketplace-products')
-            .upload(fileName, file, {
-              cacheControl: '3600',
-              upsert: false,
-              contentType: file.type
-            });
+          try {
+            const uploadPromise = supabase.storage
+              .from('marketplace-products')
+              .upload(fileName, file, {
+                cacheControl: '3600',
+                upsert: false,
+                contentType: file.type
+              });
+
+            const timeoutPromise = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('Upload timeout')), 30000)
+            );
+
+            const { data, error } = await Promise.race([
+              uploadPromise,
+              timeoutPromise
+            ]) as any;
           
-          if (!error) return { data, error: null };
+            if (!error) {
+              console.log(`✅ Upload réussi (tentative ${attempt + 1}): ${fileName}`);
+              return { data, error: null };
+            }
           
-          if (attempt < retries && error.message.includes('fetch')) {
-            console.warn(`⚠️ Retry ${attempt + 1}/${retries} for ${fileName}`);
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            continue;
+            if (attempt < retries) {
+              const delay = 5000 * (attempt + 1);
+              console.warn(`⚠️ Retry ${attempt + 1}/${retries} après ${delay}ms pour ${fileName}`);
+              await new Promise(resolve => setTimeout(resolve, delay));
+              continue;
+            }
+          
+            return { data: null, error };
+          } catch (err: any) {
+            if (attempt < retries) {
+              const delay = 5000 * (attempt + 1);
+              console.warn(`⚠️ Exception retry ${attempt + 1}/${retries} après ${delay}ms`);
+              await new Promise(resolve => setTimeout(resolve, delay));
+              continue;
+            }
+            return { data: null, error: err };
           }
-          
-          return { data: null, error };
         }
         return { data: null, error: new Error('Max retries reached') };
       };
@@ -383,32 +453,80 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         });
 
         for (let i = 0; i < productData.images.length; i++) {
-          const file = productData.images[i];
-          console.log(`📤 [Marketplace] Uploading image ${i + 1}/${productData.images.length}:`, {
-            name: file.name,
-            size: `${(file.size / 1024).toFixed(2)} KB`,
-            type: file.type
+          const originalFile = productData.images[i];
+          console.log(`📤 [Marketplace] Processing image ${i + 1}/${productData.images.length}:`, {
+            name: originalFile.name,
+            size: `${(originalFile.size / 1024).toFixed(2)} KB`,
+            type: originalFile.type
           });
+
+          // ✅ Validation taille
+          if (originalFile.size > 5 * 1024 * 1024) {
+            toast({
+              title: '⚠️ Image trop volumineuse',
+              description: `L'image ${i + 1} dépasse 5MB. Compression en cours...`,
+            });
+          }
+
+          // ✅ Compression si nécessaire
+          let file = originalFile;
+          try {
+            file = await compressImage(originalFile);
+            console.log(`✅ Image ${i + 1} compressée: ${(file.size / 1024).toFixed(2)} KB`);
+          } catch (compressError) {
+            console.warn(`⚠️ Compression échouée pour image ${i + 1}, utilisation de l'original`);
+          }
           
           // Generate unique filename avec préfixe products/
           const fileExt = file.name.split('.').pop();
           const fileName = `${user.id}/products/${Date.now()}-${i}.${fileExt}`;
           
-          // ✅ Upload vers bucket marketplace-products avec retry
+          // ✅ Upload vers bucket marketplace-products avec retry avancé
+          toast({
+            title: `📤 Upload ${i + 1}/${productData.images.length}`,
+            description: 'Upload en cours...',
+          });
+
           const { data: uploadData, error: uploadError } = await uploadWithRetry(file, fileName);
 
           if (uploadError) {
             console.error('❌ [Marketplace] Image upload error:', {
               message: uploadError.message,
               fileName: fileName,
-              userId: user.id
+              userId: user.id,
+              attempts: 'Max retries reached'
             });
+
+            // ✅ Logger l'erreur pour debug admin
+            await supabase.from('activity_logs').insert({
+              user_id: user.id,
+              activity_type: 'product_image_upload_failed',
+              description: `Échec upload image ${i + 1} pour produit "${productData.title}"`,
+              metadata: {
+                fileName,
+                error: uploadError.message,
+                fileSize: file.size,
+                productTitle: productData.title
+              }
+            });
+
+            const errorType = uploadError.message.includes('fetch') 
+              ? 'Problème réseau' 
+              : uploadError.message.includes('timeout')
+              ? 'Timeout dépassé'
+              : uploadError.message.includes('permission')
+              ? 'Permissions insuffisantes'
+              : 'Erreur inconnue';
+
             toast({
-              title: '❌ Erreur upload image',
-              description: `Impossible d'uploader l'image ${i + 1}: ${uploadError.message}`,
+              title: `❌ Erreur upload image ${i + 1}`,
+              description: `${errorType}: ${uploadError.message}. Le produit sera créé sans images.`,
               variant: 'destructive',
             });
-            return false;
+
+            // ✅ Continue sans cette image au lieu de bloquer
+            console.warn(`⚠️ Continuing without image ${i + 1}`);
+            continue;
           }
 
           // Get public URL depuis marketplace-products
@@ -424,6 +542,10 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
       // 2. Create product in Supabase with uploaded image URLs
       console.log('💾 [Marketplace] Creating product in database');
+      
+      // ✅ Créer le produit même sans images (mode draft)
+      const isDraft = imageUrls.length === 0 && productData.images && productData.images.length > 0;
+      
       const productPayload = {
         title: productData.title,
         description: productData.description,
@@ -437,10 +559,14 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         stock_count: productData.stock_count || 1,
         brand: productData.brand || null,
         specifications: productData.specifications || {},
-        status: 'active',
+        status: isDraft ? 'draft' : 'active',
         moderation_status: 'pending'
       };
       console.log('💾 [Marketplace] Product payload:', productPayload);
+      
+      if (isDraft) {
+        console.warn('⚠️ [Marketplace] Creating product as DRAFT (no images uploaded)');
+      }
 
       const { data, error } = await supabase
         .from('marketplace_products')
