@@ -1840,7 +1840,15 @@ export type Database = {
           updated_at?: string
           vehicle_class?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "driver_locations_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: true
+            referencedRelation: "chauffeurs"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       driver_online_status_table: {
         Row: {

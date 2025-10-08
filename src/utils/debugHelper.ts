@@ -21,7 +21,7 @@ export class DebugHelper {
           is_available,
           vehicle_class,
           last_ping,
-          driver_profiles!inner(
+          chauffeurs!inner(
             user_id,
             vehicle_make,
             vehicle_model,
