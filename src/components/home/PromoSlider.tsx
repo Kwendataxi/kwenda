@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Autoplay from 'embla-carousel-autoplay';
 import { Carousel, CarouselContent, CarouselItem, CarouselApi } from '@/components/ui/carousel';
 import { defaultPromos } from '@/data/promos';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { ShoppingBag, Truck, Zap, Bike } from 'lucide-react';
+import { ShoppingBag, Zap } from 'lucide-react';
 
 interface PromoSliderProps {
   onServiceSelect: (service: string) => void;
@@ -13,6 +13,12 @@ interface PromoSliderProps {
 export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
+  const autoplayRef = useRef(
+    Autoplay({
+      delay: 5000,
+      stopOnInteraction: false,
+    })
+  );
 
   useEffect(() => {
     if (!api) return;
@@ -39,16 +45,11 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   };
 
   return (
-    <div className="w-full">{/* Removed px-4 to prevent double padding */}
+    <div className="w-full">
       <Carousel
         setApi={setApi}
-        opts={{ loop: true }}
-        plugins={[
-          Autoplay({
-            delay: 5000,
-            stopOnInteraction: false,
-          }),
-        ]}
+        opts={{ loop: true, align: 'start' }}
+        plugins={[autoplayRef.current]}
         className="w-full"
       >
         <CarouselContent className="-ml-2 md:-ml-4">
