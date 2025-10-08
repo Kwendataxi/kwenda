@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon, Shield } from 'lucide-react';
+import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon, Shield, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +26,7 @@ import { DeliveryCalculator } from './DeliveryCalculator';
 import { OrderTracker } from './OrderTracker';
 import { AdvancedOrderTracker } from './AdvancedOrderTracker';
 import { VerifiedSellerGuard } from './VerifiedSellerGuard';
+import { AdvancedFilters } from './AdvancedFilters';
 
 import { DeliveryFeeApprovalDialog } from './DeliveryFeeApprovalDialog';
 import { EditProductForm } from './EditProductForm';
@@ -127,11 +128,18 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   
   // Filters
   const [filters, setFilters] = useState({
-    priceRange: [0, 1000000] as [number, number],
-    inStockOnly: false,
-    nearbyOnly: false,
-    maxDistance: 10, // km
+    searchQuery: '',
+    selectedCategory: 'all',
+    priceRange: [0, 2000000] as [number, number],
+    minRating: 0,
+    conditions: [] as string[],
+    maxDistance: 50,
+    availability: 'all' as 'all' | 'available' | 'unavailable',
+    sortBy: 'popularity',
+    showOnlyFavorites: false,
   });
+  
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   // Hooks
   const ordersHook = useMarketplaceOrders();
@@ -242,15 +250,83 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     return R * c;
   };
 
+  // Filter management functions
+  const handleUpdateFilter = <K extends keyof typeof filters>(
+    key: K, 
+    value: typeof filters[K]
+  ) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      searchQuery: '',
+      selectedCategory: 'all',
+      priceRange: [0, 2000000],
+      minRating: 0,
+      conditions: [],
+      maxDistance: 50,
+      availability: 'all',
+      sortBy: 'popularity',
+      showOnlyFavorites: false,
+    });
+  };
+
+  const handleApplyQuickFilter = (preset: string) => {
+    switch (preset) {
+      case 'nearby':
+        handleUpdateFilter('maxDistance', 5);
+        break;
+      case 'cheap':
+        handleUpdateFilter('priceRange', [0, 50000]);
+        handleUpdateFilter('sortBy', 'price_low');
+        break;
+      case 'premium':
+        handleUpdateFilter('minRating', 4.5);
+        handleUpdateFilter('sortBy', 'rating');
+        break;
+      case 'new':
+        handleUpdateFilter('conditions', ['new']);
+        break;
+      case 'deals':
+        handleUpdateFilter('priceRange', [0, 100000]);
+        break;
+    }
+  };
+
+  // Calculate filter stats
+  const hasActiveFilters = 
+    filters.priceRange[0] > 0 ||
+    filters.priceRange[1] < 2000000 ||
+    filters.minRating > 0 ||
+    filters.conditions.length > 0 ||
+    filters.maxDistance < 50 ||
+    filters.availability !== 'all' ||
+    filters.showOnlyFavorites;
+
+  const activeFiltersCount = [
+    filters.priceRange[0] > 0 || filters.priceRange[1] < 2000000,
+    filters.minRating > 0,
+    filters.conditions.length > 0,
+    filters.maxDistance < 50,
+    filters.availability !== 'all',
+    filters.showOnlyFavorites,
+  ].filter(Boolean).length;
+
+  const calculateAveragePrice = (prods: Product[]) => {
+    if (prods.length === 0) return 0;
+    return prods.reduce((sum, p) => sum + p.price, 0) / prods.length;
+  };
+
   // Filter products
   const filteredProducts = products.filter(product => {
     // Category filter
-    if (selectedCategory !== 'all' && product.category !== selectedCategory) {
-      return false;
-    }
+    const categoryMatch = filters.selectedCategory === 'all' || product.category === filters.selectedCategory;
+    if (!categoryMatch) return false;
 
-    // Search filter
-    if (searchQuery && !product.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+    // Search filter (from filters state + legacy searchQuery)
+    const query = filters.searchQuery || searchQuery;
+    if (query && !product.title.toLowerCase().includes(query.toLowerCase())) {
       return false;
     }
 
@@ -259,13 +335,26 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       return false;
     }
 
-    // Stock filter
-    if (filters.inStockOnly && !product.inStock) {
+    // Rating filter
+    if (filters.minRating > 0 && product.rating < filters.minRating) {
+      return false;
+    }
+
+    // Condition filter
+    if (filters.conditions.length > 0 && !filters.conditions.includes(product.condition)) {
+      return false;
+    }
+
+    // Availability filter
+    if (filters.availability === 'available' && !product.inStock) {
+      return false;
+    }
+    if (filters.availability === 'unavailable' && product.inStock) {
       return false;
     }
 
     // Distance filter
-    if (filters.nearbyOnly && coordinates && product.coordinates) {
+    if (filters.maxDistance < 50 && coordinates && product.coordinates) {
       const distance = calculateDistance(
         coordinates.lat, coordinates.lng,
         product.coordinates.lat, product.coordinates.lng
@@ -276,6 +365,28 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     }
 
     return true;
+  }).sort((a, b) => {
+    // Apply sorting
+    switch (filters.sortBy) {
+      case 'price_low':
+        return a.price - b.price;
+      case 'price_high':
+        return b.price - a.price;
+      case 'rating':
+        return b.rating - a.rating;
+      case 'distance':
+        if (coordinates && a.coordinates && b.coordinates) {
+          const distA = calculateDistance(coordinates.lat, coordinates.lng, a.coordinates.lat, a.coordinates.lng);
+          const distB = calculateDistance(coordinates.lat, coordinates.lng, b.coordinates.lat, b.coordinates.lng);
+          return distA - distB;
+        }
+        return 0;
+      case 'newest':
+        return b.id.localeCompare(a.id);
+      case 'popularity':
+      default:
+        return (b.rating * b.reviews) - (a.rating * a.reviews);
+    }
   });
 
   // Cart functions
@@ -721,13 +832,36 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         />
       )}
 
-      <SearchBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSearch={() => {}}
-        filters={{ ...filters, freeShipping: false }}
-        onFiltersChange={setFilters}
-      />
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <SearchBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onSearch={() => {}}
+            filters={{ priceRange: filters.priceRange, inStockOnly: filters.availability === 'available', freeShipping: false }}
+            onFiltersChange={(newFilters) => {
+              setFilters(prev => ({ 
+                ...prev, 
+                priceRange: newFilters.priceRange,
+                availability: newFilters.inStockOnly ? 'available' : 'all'
+              }));
+            }}
+          />
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => setIsFiltersOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <Filter className="w-4 h-4" />
+          Filtres
+          {hasActiveFilters && (
+            <Badge variant="secondary" className="ml-1">
+              {activeFiltersCount}
+            </Badge>
+          )}
+        </Button>
+      </div>
       
       <CategoryFilter
         selectedCategory={selectedCategory}
@@ -1139,6 +1273,22 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           }}
         />
       )}
+
+      {/* Advanced Filters Panel */}
+      <AdvancedFilters
+        isOpen={isFiltersOpen}
+        onClose={() => setIsFiltersOpen(false)}
+        filters={filters}
+        onUpdateFilter={handleUpdateFilter}
+        onResetFilters={handleResetFilters}
+        onApplyQuickFilter={handleApplyQuickFilter}
+        hasActiveFilters={hasActiveFilters}
+        filterStats={{
+          totalProducts: products.length,
+          filteredCount: filteredProducts.length,
+          averagePrice: calculateAveragePrice(filteredProducts),
+        }}
+      />
 
     </div>
   );
