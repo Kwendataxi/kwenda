@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRoleInfo, Permission, UserRole, AdminRole } from '@/types/roles';
+import { useSelectedRole } from './useSelectedRole';
 
 interface UseUserRolesReturn {
   userRoles: UserRoleInfo[];
@@ -60,6 +61,7 @@ const setCachedRoles = (data: UserRoleInfo[]) => {
 
 export const useUserRoles = (): UseUserRolesReturn => {
   const { user } = useAuth();
+  const { selectedRole } = useSelectedRole();
   const [isDegradedMode, setIsDegradedMode] = useState(false);
 
   const fetchUserRoles = async (): Promise<{ roles: UserRoleInfo[]; permissions: Permission[] }> => {
@@ -168,10 +170,12 @@ export const useUserRoles = (): UseUserRolesReturn => {
     return userRoles.some(userRole => userRole.role === role);
   };
 
-  // Calculer le rôle principal (priorité aux rôles admin)
-  const primaryRole: UserRole | null = userRoles.length > 0 
-    ? userRoles.find(role => role.role === 'admin')?.role || userRoles[0]?.role || null
-    : null;
+  // Calculer le rôle principal : utiliser le rôle sélectionné si disponible, sinon priorité admin
+  const primaryRole: UserRole | null = selectedRole || (
+    userRoles.length > 0 
+      ? userRoles.find(role => role.role === 'admin')?.role || userRoles[0]?.role || null
+      : null
+  );
 
   // Obtenir le rôle admin s'il existe
   const adminRole: AdminRole | null = userRoles.find(role => role.admin_role)?.admin_role || null;

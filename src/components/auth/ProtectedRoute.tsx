@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
+import { useSelectedRole } from '@/hooks/useSelectedRole';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -11,6 +12,8 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
+  const { userRoles, primaryRole, loading: rolesLoading } = useUserRoles();
+  const { hasSelectedRole } = useSelectedRole();
   const location = useLocation();
 
   // Afficher un loader pendant la vérification de l'authentification
@@ -34,11 +37,13 @@ const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) =
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
+  // Si l'utilisateur a plusieurs rôles et n'a pas sélectionné de rôle
+  if (user && !rolesLoading && userRoles.length > 1 && !hasSelectedRole() && location.pathname !== '/role-selection') {
+    return <Navigate to="/role-selection" replace />;
+  }
+
   // Si l'utilisateur est connecté mais ne devrait pas accéder à cette page
-  if (!requireAuth && user) {
-    // Utiliser useRoleBasedNavigation pour obtenir le rôle depuis user_roles
-    const { primaryRole } = useUserRoles();
-    
+  if (!requireAuth && user && location.pathname !== '/role-selection') {
     if (!primaryRole) {
       return <Navigate to="/auth" replace />;
     }
