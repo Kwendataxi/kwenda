@@ -4,7 +4,7 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { useProfile } from '@/hooks/useProfile';
-import { AnimatedKwendaIcon } from './AnimatedKwendaIcon';
+
 import { GooglePlacesService } from '@/services/googlePlacesService';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { LocationDetailsSheet } from './LocationDetailsSheet';
@@ -92,29 +92,18 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
 
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[150] overflow-hidden border-b border-border/50 shadow-md backdrop-blur-xl bg-gradient-to-r from-primary/5 via-background/95 to-secondary/5">
-      {/* Fond gradient animé subtil */}
-      <div className="absolute inset-0 bg-gradient-to-r from-congo-red/5 via-congo-yellow/5 to-congo-green/5 opacity-50 animate-congo-gradient bg-[length:200%_100%]" />
-      
-      <div className="relative px-6 py-3 pt-safe pb-4 z-10">
+    <header className="fixed top-0 left-0 right-0 z-[150] bg-background/80 backdrop-blur-md">
+      <div className="relative px-4 py-2.5 pt-safe z-10">
         {/* Structure en 2 colonnes améliorée */}
         <div className="flex items-center justify-between">
           {/* Salutation personnalisée et localisation */}
           <div className="flex-1 min-w-0">
-            {/* Logo Kwenda avec effet shimmer */}
-            <div className="flex items-center gap-3 mb-2">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full blur-md animate-pulse" />
-                <AnimatedKwendaIcon />
-              </div>
-            </div>
-            
             {/* Greeting et nom sur la même ligne */}
             <div className="flex items-baseline gap-2 mb-1">
-              <p className="text-lg font-bold text-[#E31E24]">
+              <p className="text-sm font-semibold text-[#E31E24]">
                 {getGreeting()},
               </p>
-              <p className="text-3xl font-black text-foreground">
+              <p className="text-xl font-semibold text-foreground">
                 {profileLoading ? '...' : displayName.split(' ')[0]}
               </p>
             </div>
@@ -125,19 +114,19 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setLocationSheetOpen(true)}
-                className="flex items-center gap-1.5 h-auto p-1.5 -ml-1.5 hover:bg-muted/70 transition-all group rounded-lg"
+                className="flex items-center gap-1.5 h-auto p-1.5 -ml-1.5 hover:bg-muted/70 transition-all rounded-lg"
               >
                 <span className="text-xs text-muted-foreground font-medium">
                   {geocodingLoading ? 'Localisation...' : 'Ma Position'}
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-primary flex-shrink-0 transition-transform duration-300 group-hover:rotate-180 group-hover:scale-110" />
+                <ChevronDown className="h-3.5 w-3.5 text-primary flex-shrink-0" />
               </Button>
             )}
           </div>
           
           {/* Actions à droite - uniquement thème et langue */}
-          <div className="flex items-center gap-2">
-            <ThemeToggle variant="icon" size="md" className="bg-card border border-border shadow-lg" />
+          <div className="flex items-center gap-1.5">
+            <ThemeToggle variant="icon" size="md" />
             <LanguageSelector />
           </div>
         </div>
