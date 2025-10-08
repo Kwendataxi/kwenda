@@ -68,8 +68,8 @@ export const ModernHomeScreen = ({
           WebkitOverflowScrolling: 'touch'
         } as React.CSSProperties}
       >
-        {/* Petit espace de 8px après le header */}
-        <div className="pt-2">
+        {/* Espace suffisant pour le header fixe */}
+        <div className="pt-[140px]">
           {/* Subtle Background Elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-20 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl" />
