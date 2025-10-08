@@ -66,18 +66,19 @@ export const ModernHomeScreen = ({
   }, [primaryRole, roleLoading, navigate]);
 
   return (
-    <div className="flex flex-col h-screen max-h-screen overflow-hidden bg-background">
+    <div className="min-h-screen bg-background">
       {/* Header - Fixe en haut */}
       <ModernHeader />
       
-      {/* Contenu scrollable au milieu */}
+      {/* Contenu scrollable avec marges pour header et nav fixes */}
       <div 
-        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
+        className="overflow-y-auto overflow-x-hidden scrollbar-hide"
         style={{ 
           touchAction: 'pan-y', 
           WebkitOverflowScrolling: 'touch',
+          paddingTop: '9rem',
           paddingBottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))',
-          maxHeight: 'calc(100vh - 4rem)'
+          minHeight: '100vh'
         } as React.CSSProperties}
       >
         {/* Subtle Background Elements */}
