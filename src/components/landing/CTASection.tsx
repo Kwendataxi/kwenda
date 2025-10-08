@@ -15,24 +15,16 @@ const CTASection = () => {
       description: "Commandez vos courses, livraisons et découvrez notre marketplace",
       benefits: ["Transport immédiat", "Livraison express", "Achats sécurisés", "Tombola gratuite"],
       cta: "Commencer maintenant",
-      gradient: "from-primary to-primary-glow",
+      gradient: "from-red-500 via-red-600 to-pink-600",
       popular: true
     },
     {
       icon: <Users className="w-8 h-8" />,
-      title: "Pour les Chauffeurs",
+      title: "Pour les Chauffeurs / Livreurs",
       description: "Rejoignez notre réseau et augmentez vos revenus facilement",
       benefits: ["Revenus réguliers", "Flexibilité totale", "Support 24/7", "Formation gratuite"],
       cta: "Devenir chauffeur",
-      gradient: "from-secondary to-accent"
-    },
-    {
-      icon: <Store className="w-8 h-8" />,
-      title: "Pour les Commerçants",
-      description: "Vendez vos produits dans les 3 grandes villes avec livraison intégrée",
-      benefits: ["Audience élargie", "Livraison incluse", "Paiements sécurisés", "Commission faible"],
-      cta: "Vendre en ligne",
-      gradient: "from-accent to-primary"
+      gradient: "from-orange-500 via-amber-600 to-yellow-600"
     }
   ];
 
@@ -76,13 +68,13 @@ const CTASection = () => {
             </span>
           </h2>
           <p className="text-body-lg text-muted-foreground max-w-3xl mx-auto">
-            Que vous soyez client, chauffeur ou commerçant, Kwenda Taxi a la solution parfaite pour vous. 
+            Que vous soyez client ou chauffeur, Kwenda Taxi a la solution parfaite pour vous. 
             Rejoignez dès aujourd'hui la communauté qui révolutionne Kinshasa, Lubumbashi et Kolwezi !
           </p>
         </div>
 
         {/* User Type Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-12 lg:mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-12 lg:mb-16 max-w-4xl mx-auto">
           {userTypes.map((userType, index) => (
             <Card 
               key={index}

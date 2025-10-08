@@ -105,30 +105,30 @@ const ModernHero = () => {
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-4 pt-4">
-              {/* 4 boutons de connexion distincts */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <Link to="/auth" className="flex-1">
-                  <Button size="lg" className="w-full h-16 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white flex flex-col items-center justify-center gap-1 rounded-xl">
-                    <span className="text-2xl">👤</span>
-                    <span className="font-bold text-sm">Client</span>
+              {/* 2 boutons modernes Client et Chauffeur */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto w-full">
+                <Link to="/auth" className="w-full">
+                  <Button 
+                    size="lg" 
+                    className="w-full h-20 bg-gradient-to-br from-red-500 via-red-600 to-pink-600 hover:from-red-600 hover:via-red-700 hover:to-pink-700 text-white flex flex-col items-center justify-center gap-1.5 rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group"
+                  >
+                    <span className="text-4xl mb-1 group-hover:scale-110 transition-transform">👤</span>
+                    <div className="text-center">
+                      <div className="font-bold text-lg">Client</div>
+                      <div className="text-xs opacity-90">Réserver et commander</div>
+                    </div>
                   </Button>
                 </Link>
-                <Link to="/driver/auth" className="flex-1">
-                  <Button size="lg" className="w-full h-16 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white flex flex-col items-center justify-center gap-1 rounded-xl">
-                    <span className="text-2xl">🚗</span>
-                    <span className="font-bold text-sm">Chauffeur</span>
-                  </Button>
-                </Link>
-                <Link to="/partner/auth" className="flex-1">
-                  <Button size="lg" className="w-full h-16 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white flex flex-col items-center justify-center gap-1 rounded-xl">
-                    <span className="text-2xl">🤝</span>
-                    <span className="font-bold text-sm">Partenaire</span>
-                  </Button>
-                </Link>
-                <Link to="/admin/auth" className="flex-1">
-                  <Button variant="outline" size="lg" className="w-full h-16 border-2 flex flex-col items-center justify-center gap-1 rounded-xl">
-                    <span className="text-2xl">🛡️</span>
-                    <span className="font-bold text-sm">Admin</span>
+                <Link to="/driver/auth" className="w-full">
+                  <Button 
+                    size="lg" 
+                    className="w-full h-20 bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 hover:from-orange-600 hover:via-amber-700 hover:to-yellow-700 text-white flex flex-col items-center justify-center gap-1.5 rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group"
+                  >
+                    <span className="text-4xl mb-1 group-hover:scale-110 transition-transform">🚗</span>
+                    <div className="text-center">
+                      <div className="font-bold text-lg">Chauffeur / Livreur</div>
+                      <div className="text-xs opacity-90">Transporter et livrer</div>
+                    </div>
                   </Button>
                 </Link>
               </div>
@@ -142,25 +142,15 @@ const ModernHero = () => {
                 </Link>
               </div>
               
-              {/* Liens inscription Chauffeur et Partenaire */}
-              <div className="flex flex-col sm:flex-row gap-3 text-center sm:text-left">
-                <Link to="/partners/devenir-chauffeur" className="flex-1">
+              {/* Lien inscription Chauffeur */}
+              <div className="flex justify-center text-center">
+                <Link to="/partners/devenir-chauffeur" className="w-full max-w-md">
                   <Button 
                     variant="outline" 
                     size="sm"
                     className="w-full border-primary/30 hover:bg-primary/10 text-primary group"
                   >
                     🚗 Devenir Chauffeur
-                    <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-                <Link to="/partner/register" className="flex-1">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="w-full border-secondary/30 hover:bg-secondary/10 text-secondary group"
-                  >
-                    🤝 Devenir Partenaire
                     <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
