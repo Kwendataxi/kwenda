@@ -85,22 +85,28 @@ export const ModernHomeScreen = ({
           <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl" />
         </div>
         
-        <div className="relative space-y-6 px-4 pt-2">
+        <div className="relative space-y-6 pt-2">
           {/* Slider publicitaire moderne */}
-          <PromoSlider onServiceSelect={onServiceSelect} />
+          <div className="px-4">
+            <PromoSlider onServiceSelect={onServiceSelect} />
+          </div>
           
           {/* Services compacts */}
-          <ServiceGrid 
-            onServiceSelect={onServiceSelect} 
-            serviceNotifications={serviceNotifications}
-          />
+          <div className="px-4">
+            <ServiceGrid 
+              onServiceSelect={onServiceSelect} 
+              serviceNotifications={serviceNotifications}
+            />
+          </div>
           
           {/* Marketplace preview */}
-          <MarketplacePreview
-            featuredProducts={featuredProducts}
-            onProductSelect={onProductSelect}
-            onViewAll={onMarketplaceViewAll}
-          />
+          <div className="px-4">
+            <MarketplacePreview
+              featuredProducts={featuredProducts}
+              onProductSelect={onProductSelect}
+              onViewAll={onMarketplaceViewAll}
+            />
+          </div>
         </div>
       </main>
 

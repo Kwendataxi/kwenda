@@ -39,7 +39,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   };
 
   return (
-    <div className="w-full px-4">
+    <div className="w-full">{/* Removed px-4 to prevent double padding */}
       <Carousel
         setApi={setApi}
         opts={{ loop: true }}
