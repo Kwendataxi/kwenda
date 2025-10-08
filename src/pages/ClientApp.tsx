@@ -303,12 +303,6 @@ const ClientApp = () => {
         <ModernHomeScreen
           onServiceSelect={handleServiceSelect}
           onSearch={handleUniversalSearch}
-          featuredProducts={homeProducts}
-          onProductSelect={(product) => {
-            setServiceType('marketplace');
-            setCurrentView('service');
-          }}
-          onMarketplaceViewAll={handleMarketplaceViewAll}
           onNavigateToTestData={() => setCurrentView('test-data')}
         />
       </div>

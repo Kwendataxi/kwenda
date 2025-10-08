@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { ModernHeader } from './ModernHeader';
 import { ServiceGrid } from './ServiceGrid';
 import { PromoSlider } from './PromoSlider';
-import { MarketplacePreview } from './MarketplacePreview';
 import { ModernBottomNavigation } from './ModernBottomNavigation';
 import { HomeTrendsSheet } from './HomeTrendsSheet';
 import { HomeRecentPlacesSheet } from './HomeRecentPlacesSheet';
@@ -15,20 +14,12 @@ import { useServiceNotifications } from '@/hooks/useServiceNotifications';
 interface ModernHomeScreenProps {
   onServiceSelect: (service: string) => void;
   onSearch: (query: string, coordinates?: { lat: number; lng: number }) => void;
-  featuredProducts: any[];
-  trendingProducts?: any[];
-  onProductSelect: (product: any) => void;
-  onMarketplaceViewAll: () => void;
   onNavigateToTestData?: () => void;
 }
 
 export const ModernHomeScreen = ({
   onServiceSelect,
   onSearch,
-  featuredProducts,
-  trendingProducts,
-  onProductSelect,
-  onMarketplaceViewAll,
   onNavigateToTestData
 }: ModernHomeScreenProps) => {
   const [activeTab, setActiveTab] = useState('home');
@@ -95,15 +86,6 @@ export const ModernHomeScreen = ({
             <ServiceGrid 
               onServiceSelect={onServiceSelect} 
               serviceNotifications={serviceNotifications}
-            />
-          </div>
-          
-          {/* Marketplace preview */}
-          <div className="px-4">
-            <MarketplacePreview
-              featuredProducts={featuredProducts}
-              onProductSelect={onProductSelect}
-              onViewAll={onMarketplaceViewAll}
             />
           </div>
         </div>

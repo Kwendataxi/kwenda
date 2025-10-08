@@ -45,7 +45,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full min-h-[180px]">
       <Carousel
         setApi={setApi}
         opts={{ loop: true, align: 'start' }}
