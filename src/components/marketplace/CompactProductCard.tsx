@@ -138,7 +138,7 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
         </div>
 
         {/* Chat button - Always visible in bottom right */}
-        <div className="absolute bottom-2 right-2 z-10">
+        <div className="absolute bottom-12 right-2 z-10">
           <button
             onClick={(e) => {
               e.stopPropagation();

@@ -26,7 +26,7 @@ import { DeliveryCalculator } from './DeliveryCalculator';
 import { OrderTracker } from './OrderTracker';
 import { AdvancedOrderTracker } from './AdvancedOrderTracker';
 import { VerifiedSellerGuard } from './VerifiedSellerGuard';
-import { FloatingChatButton } from './FloatingChatButton';
+
 import { DeliveryFeeApprovalDialog } from './DeliveryFeeApprovalDialog';
 import { EditProductForm } from './EditProductForm';
 
@@ -1009,8 +1009,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         />
       )}
 
-      {/* Floating Chat Button - Marketplace */}
-      <FloatingChatButton />
     </div>
   );
 };
