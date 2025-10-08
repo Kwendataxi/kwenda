@@ -62,7 +62,7 @@ export const ModernHomeScreen = ({
       
       {/* Contenu scrollable qui prend l'espace restant */}
       <main 
-        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide content-with-bottom-nav-scrollable"
+        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide content-with-header-and-nav"
         style={{ 
           touchAction: 'pan-y', 
           WebkitOverflowScrolling: 'touch'
@@ -74,7 +74,7 @@ export const ModernHomeScreen = ({
           <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl" />
         </div>
         
-        <div className="relative space-y-6 pt-2">
+        <div className="relative space-y-6">
           {/* Slider publicitaire moderne */}
           <div className="px-4">
             <PromoSlider onServiceSelect={onServiceSelect} />
