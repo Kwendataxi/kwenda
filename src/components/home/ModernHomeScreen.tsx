@@ -69,7 +69,7 @@ export const ModernHomeScreen = ({
         } as React.CSSProperties}
       >
         {/* Espace pour header fixe + marge visuelle */}
-        <div className="pt-[190px]">
+        <div className="pt-[120px]">
           {/* Subtle Background Elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-20 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl" />
