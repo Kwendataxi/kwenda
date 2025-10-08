@@ -654,8 +654,8 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       // 2. Create product in Supabase with uploaded image URLs
       console.log('💾 [Marketplace] Creating product in database');
       
-      // ✅ Créer le produit même sans images (mode draft)
-      const isDraft = imageUrls.length === 0 && productData.images && productData.images.length > 0;
+      // ✅ Créer le produit même sans images (mode inactive)
+      const hasFailedImages = imageUrls.length === 0 && productData.images && productData.images.length > 0;
       
       const productPayload = {
         title: productData.title,
@@ -670,13 +670,13 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         stock_count: productData.stock_count || 1,
         brand: productData.brand || null,
         specifications: productData.specifications || {},
-        status: isDraft ? 'draft' : 'active',
+        status: hasFailedImages ? 'inactive' : 'active',
         moderation_status: 'pending'
       };
       console.log('💾 [Marketplace] Product payload:', productPayload);
       
-      if (isDraft) {
-        console.warn('⚠️ [Marketplace] Creating product as DRAFT (no images uploaded)');
+      if (hasFailedImages) {
+        console.warn('⚠️ [Marketplace] Creating product as INACTIVE (no images uploaded)');
       }
 
       const { data, error } = await supabase

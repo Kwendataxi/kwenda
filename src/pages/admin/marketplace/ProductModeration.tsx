@@ -188,7 +188,7 @@ export const ProductModeration = () => {
           moderation_status: "rejected",
           moderated_at: new Date().toISOString(),
           moderator_id: (await supabase.auth.getUser()).data.user?.id,
-          status: "draft",
+          status: "inactive",
         })
         .eq("id", selectedProduct.id);
 

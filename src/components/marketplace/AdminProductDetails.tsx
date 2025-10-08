@@ -55,8 +55,7 @@ interface AdminProductDetailsProps {
 const statuses = [
   { id: 'active', name: 'Actif', variant: 'default' as const },
   { id: 'inactive', name: 'Inactif', variant: 'secondary' as const },
-  { id: 'sold', name: 'Vendu', variant: 'outline' as const },
-  { id: 'draft', name: 'Brouillon', variant: 'outline' as const }
+  { id: 'sold', name: 'Vendu', variant: 'outline' as const }
 ];
 
 const moderationStatuses = [

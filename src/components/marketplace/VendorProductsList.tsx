@@ -140,7 +140,7 @@ export const VendorProductsList: React.FC = () => {
     }
   };
 
-  const isDraft = (product: Product) => product.status === 'draft' || (product.images?.length === 0);
+  const isDraft = (product: Product) => product.status === 'inactive' && (product.images?.length === 0);
 
   const canEdit = (product: Product) => {
     // Can only edit if approved or rejected (not pending)
