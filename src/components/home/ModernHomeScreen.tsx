@@ -11,7 +11,6 @@ import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useServiceNotifications } from '@/hooks/useServiceNotifications';
-import ModernRentalPreview from './ModernRentalPreview';
 
 interface ModernHomeScreenProps {
   onServiceSelect: (service: string) => void;
