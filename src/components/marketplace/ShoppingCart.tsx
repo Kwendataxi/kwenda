@@ -32,8 +32,6 @@ export const ShoppingCart: React.FC<ShoppingCartProps> = ({
   onCheckout,
 }) => {
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const deliveryFee = 2000;
-  const grandTotal = total + deliveryFee;
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -136,19 +134,18 @@ export const ShoppingCart: React.FC<ShoppingCartProps> = ({
                   <span className="font-medium">{total.toLocaleString()} FC</span>
                 </div>
                 
-                <div className="flex justify-between text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    <span>Livraison</span>
-                  </div>
-                  <span className="font-medium">{deliveryFee.toLocaleString()} FC</span>
-                </div>
-                
                 <Separator />
                 
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>
-                  <span className="text-primary">{grandTotal.toLocaleString()} FC</span>
+                  <span className="text-primary">{total.toLocaleString()} FC</span>
+                </div>
+                
+                <div className="flex items-start gap-2 mt-2 p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                  <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    Frais de livraison définis par le vendeur
+                  </p>
                 </div>
               </div>
 
@@ -160,7 +157,7 @@ export const ShoppingCart: React.FC<ShoppingCartProps> = ({
               </Button>
               
               <p className="text-xs text-center text-muted-foreground">
-                Livraison sous 24-48h • Paiement sécurisé
+                Paiement sécurisé • Frais wallet déjà inclus
               </p>
             </div>
           </>

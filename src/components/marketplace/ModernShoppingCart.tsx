@@ -46,9 +46,7 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const deliveryFee = cartItems.length > 0 ? 2000 : 0; // Base delivery fee
-  const serviceFee = Math.round(subtotal * 0.02); // 2% service fee
-  const total = subtotal + deliveryFee + serviceFee;
+  const total = subtotal; // Total = prix des produits uniquement
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371; // Earth's radius in km
@@ -125,8 +123,7 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
               totalAmount: total,
               escrowEnabled: true,
               sellerAmount: item.price * item.quantity,
-              driverAmount: Math.round(deliveryFee / items.length),
-              platformFee: Math.round(serviceFee / items.length)
+              platformFee: 0
             }
           });
         }
@@ -300,24 +297,18 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
                     <span className="font-medium">{subtotal.toLocaleString()} FC</span>
                   </div>
                   
-                  <div className="flex justify-between">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="w-4 h-4" />
-                      <span>Livraison</span>
-                    </div>
-                    <span className="font-medium">{deliveryFee.toLocaleString()} FC</span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Frais de service</span>
-                    <span className="font-medium">{serviceFee.toLocaleString()} FC</span>
-                  </div>
-                  
                   <Separator />
                   
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
                     <span className="text-primary">{total.toLocaleString()} FC</span>
+                  </div>
+                  
+                  <div className="flex items-start gap-2 mt-3 p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                    <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                      Les frais de livraison seront définis par le vendeur après validation de votre commande
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -333,7 +324,7 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
             </Button>
             
             <p className="text-xs text-center text-muted-foreground">
-              🔒 Paiement sécurisé • Livraison rapide • Protection acheteur
+              🔒 Paiement sécurisé • Protection acheteur • Frais wallet déjà inclus
             </p>
           </div>
         </>
