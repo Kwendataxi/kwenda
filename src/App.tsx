@@ -16,6 +16,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminAuth from "./pages/AdminAuth";
 import PartnerAuth from "./pages/PartnerAuth";
+import DriverAuth from "./pages/DriverAuth";
 import ClientApp from "./pages/ClientApp";
 import DriverApp from "./pages/DriverApp";
 import PartnerApp from "./pages/PartnerApp";
@@ -121,6 +122,11 @@ const AppContent = () => {
                 <Route path="/partner/auth" element={
                   <OnboardingRedirect>
                     <PartnerAuth />
+                  </OnboardingRedirect>
+                } />
+                <Route path="/driver/auth" element={
+                  <OnboardingRedirect>
+                    <DriverAuth />
                   </OnboardingRedirect>
                 } />
                 <Route path="/reset-password" element={<ResetPassword />} />

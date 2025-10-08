@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Shield, Lock, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
 import { logger } from '@/utils/logger';
 
@@ -157,12 +157,18 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
           </CardContent>
         </Card>
 
-        <div className="text-center mt-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/auth')}
-            className="text-muted-foreground hover:text-foreground"
-          >
+        <div className="text-center mt-6 space-y-3">
+          <div className="text-center space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-muted-foreground">Pas admin ?</p>
+            <div className="flex flex-wrap justify-center gap-2 text-sm">
+              <Link to="/auth" className="text-primary hover:underline font-medium">Espace Client</Link>
+              <span className="text-muted-foreground">•</span>
+              <Link to="/driver/auth" className="text-primary hover:underline font-medium">Espace Chauffeur</Link>
+              <span className="text-muted-foreground">•</span>
+              <Link to="/partner/auth" className="text-primary hover:underline font-medium">Espace Partenaire</Link>
+            </div>
+          </div>
+          <Button variant="ghost" onClick={() => navigate('/')} className="text-muted-foreground hover:text-foreground">
             ← Retour à l'accueil
           </Button>
         </div>

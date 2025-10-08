@@ -1,7 +1,7 @@
-import { EnhancedAuth } from "@/components/auth/EnhancedAuth";
+import { ClientLogin } from "@/components/auth/ClientLogin";
 
 const Auth = () => {
-  return <EnhancedAuth />;
+  return <ClientLogin />;
 };
 
 export default Auth;

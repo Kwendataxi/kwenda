@@ -82,22 +82,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signOut = async () => {
     // Récupérer le rôle AVANT la déconnexion pour redirection intelligente
-    let redirectPath = '/auth'; // Défaut pour clients/chauffeurs
+    let redirectPath = '/auth'; // Défaut pour clients
     
     try {
-      const cached = localStorage.getItem('kwenda_user_roles_cache');
-      if (cached) {
-        const { data } = JSON.parse(cached);
-        const primaryRole = data?.find((r: any) => r.role === 'admin')?.role || 
-                           data?.find((r: any) => r.role === 'partner')?.role || 
-                           data?.[0]?.role;
-        
-        if (primaryRole === 'admin') {
-          redirectPath = '/admin/auth';
-        } else if (primaryRole === 'partner') {
-          redirectPath = '/partner/auth';
-        }
-      }
+      const selectedRole = localStorage.getItem('kwenda_selected_role');
+      
+      // Mapping rôle → page de connexion
+      const roleRedirectMap: Record<string, string> = {
+        'driver': '/driver/auth',
+        'partner': '/partner/auth',
+        'admin': '/admin/auth',
+        'client': '/auth'
+      };
+      
+      redirectPath = roleRedirectMap[selectedRole as string] || '/auth';
     } catch (error) {
       logger.warn('Unable to determine role for redirect:', error);
     }
@@ -113,6 +111,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem('supabase.auth.token');
     localStorage.removeItem('sb-wddlktajnhwhyquwcdgf-auth-token');
     localStorage.removeItem('kwenda_user_roles_cache');
+    localStorage.removeItem('kwenda_selected_role');
     
     // Redirection intelligente selon le rôle (utiliser setTimeout pour éviter les race conditions)
     setTimeout(() => {

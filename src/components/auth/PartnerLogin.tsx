@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Building, Lock, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
 import { logger } from '@/utils/logger';
 
@@ -38,20 +38,38 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
 
       if (error) throw error;
 
-      // Vérifier si l'utilisateur est bien un partenaire
-      const { data: partnerData } = await supabase
-        .from('partenaires')
-        .select('*')
-        .eq('user_id', data.user.id)
-        .eq('is_active', true)
-        .single();
-
-      if (!partnerData) {
-        await supabase.auth.signOut();
-        toast.error('Accès non autorisé', {
-          description: 'Ce compte n\'est pas autorisé à accéder à l\'espace partenaire'
+      if (data.user) {
+        // Vérifier que l'utilisateur a bien le rôle partner
+        const { data: roles, error: rolesError } = await supabase.rpc('get_user_roles', {
+          p_user_id: data.user.id
         });
-        return;
+
+        if (rolesError) {
+          logger.error('Error fetching user roles', rolesError);
+          throw new Error('Erreur lors de la vérification du rôle');
+        }
+
+        const hasPartnerRole = roles?.some((r: any) => r.role === 'partner');
+
+        if (!hasPartnerRole) {
+          await supabase.auth.signOut();
+          
+          const otherRole = roles?.[0]?.role;
+          let suggestion = '';
+          
+          if (otherRole === 'client') {
+            suggestion = ' Connectez-vous via l\'espace client.';
+          } else if (otherRole === 'driver') {
+            suggestion = ' Connectez-vous via l\'espace chauffeur.';
+          } else if (otherRole === 'admin') {
+            suggestion = ' Connectez-vous via l\'espace admin.';
+          }
+          
+          toast.error('Accès refusé', {
+            description: "Ce compte n'est pas un compte partenaire." + suggestion
+          });
+          return;
+        }
       }
 
       toast.success('Connexion réussie', {
@@ -172,9 +190,26 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
             >
               Pas encore partenaire ? S'inscrire
             </Button>
+            
+            {/* Footer avec liens vers autres espaces */}
+            <div className="text-center space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-sm text-muted-foreground">
+                Pas partenaire ?
+              </p>
+              <div className="flex flex-wrap justify-center gap-2 text-sm">
+                <Link to="/auth" className="text-green-600 dark:text-green-400 hover:underline font-medium">
+                  Espace Client
+                </Link>
+                <span className="text-muted-foreground">•</span>
+                <Link to="/driver/auth" className="text-green-600 dark:text-green-400 hover:underline font-medium">
+                  Espace Chauffeur
+                </Link>
+              </div>
+            </div>
+            
             <Button
               variant="ghost"
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/')}
               className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
             >
               ← Retour à l'accueil

@@ -105,23 +105,37 @@ const ModernHero = () => {
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-4 pt-4">
-              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+              {/* 4 boutons de connexion distincts */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <Link to="/auth" className="flex-1">
-                  <Button 
-                    size="lg" 
-                    className="w-full text-body-lg px-8 py-6 bg-congo-red hover:bg-congo-red/90 text-white hover:shadow-congo transition-all duration-500 group min-h-[56px] rounded-xl animate-congo-pulse border-2 border-congo-yellow/30"
-                  >
-                    <Car className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
-                    {t('hero.start_now')}
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <Button size="lg" className="w-full h-16 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white flex flex-col items-center justify-center gap-1 rounded-xl">
+                    <span className="text-2xl">👤</span>
+                    <span className="font-bold text-sm">Client</span>
                   </Button>
                 </Link>
-                <Link to="/demo" className="flex-1 sm:flex-initial">
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    className="w-full text-body-lg px-8 py-6 border-congo-yellow border-2 hover:bg-congo-yellow/20 text-congo-yellow group min-h-[56px] rounded-xl backdrop-blur-sm bg-white/10"
-                  >
+                <Link to="/driver/auth" className="flex-1">
+                  <Button size="lg" className="w-full h-16 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white flex flex-col items-center justify-center gap-1 rounded-xl">
+                    <span className="text-2xl">🚗</span>
+                    <span className="font-bold text-sm">Chauffeur</span>
+                  </Button>
+                </Link>
+                <Link to="/partner/auth" className="flex-1">
+                  <Button size="lg" className="w-full h-16 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white flex flex-col items-center justify-center gap-1 rounded-xl">
+                    <span className="text-2xl">🤝</span>
+                    <span className="font-bold text-sm">Partenaire</span>
+                  </Button>
+                </Link>
+                <Link to="/admin/auth" className="flex-1">
+                  <Button variant="outline" size="lg" className="w-full h-16 border-2 flex flex-col items-center justify-center gap-1 rounded-xl">
+                    <span className="text-2xl">🛡️</span>
+                    <span className="font-bold text-sm">Admin</span>
+                  </Button>
+                </Link>
+              </div>
+              
+              <div className="flex justify-center pt-2">
+                <Link to="/demo">
+                  <Button variant="outline" size="lg" className="text-body-lg px-8 py-4 border-congo-yellow border-2 hover:bg-congo-yellow/20 text-congo-yellow group rounded-xl">
                     <Play className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
                     {t('hero.view_demo')}
                   </Button>
