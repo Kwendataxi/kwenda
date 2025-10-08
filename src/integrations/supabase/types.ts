@@ -11822,6 +11822,15 @@ export type Database = {
         }
         Returns: string
       }
+      sync_missing_user_roles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action_type: string
+          affected_user_id: string
+          assigned_role: string
+          source_table: string
+        }[]
+      }
       system_health_check: {
         Args: Record<PropertyKey, never>
         Returns: Json
