@@ -62,30 +62,36 @@ export const ModernHomeScreen = ({
       
       {/* Contenu scrollable qui prend l'espace restant */}
       <main 
-        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide content-with-header-and-nav"
+        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
         style={{ 
           touchAction: 'pan-y', 
           WebkitOverflowScrolling: 'touch'
         } as React.CSSProperties}
       >
-        {/* Subtle Background Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl" />
-        </div>
+        {/* Espace pour le header fixe */}
+        <div className="header-spacer" />
         
-        <div className="relative space-y-6">
-          {/* Slider publicitaire moderne */}
-          <div className="px-4">
-            <PromoSlider onServiceSelect={onServiceSelect} />
+        {/* Contenu avec padding pour le footer */}
+        <div className="content-with-bottom-nav-padding">
+          {/* Subtle Background Elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-20 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl" />
+            <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl" />
           </div>
           
-          {/* Services compacts */}
-          <div className="px-4">
-            <ServiceGrid 
-              onServiceSelect={onServiceSelect} 
-              serviceNotifications={serviceNotifications}
-            />
+          <div className="relative space-y-6">
+            {/* Slider publicitaire moderne */}
+            <div className="px-4">
+              <PromoSlider onServiceSelect={onServiceSelect} />
+            </div>
+            
+            {/* Services compacts */}
+            <div className="px-4">
+              <ServiceGrid 
+                onServiceSelect={onServiceSelect} 
+                serviceNotifications={serviceNotifications}
+              />
+            </div>
           </div>
         </div>
       </main>

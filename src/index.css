@@ -144,8 +144,8 @@ All colors MUST be HSL.
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
     
     /* Layout heights */
-    --header-height: 140px;
-    --bottom-nav-height: 80px;
+    --header-height: 120px;
+    --bottom-nav-height: 90px;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -416,10 +416,15 @@ All colors MUST be HSL.
     padding-bottom: calc(var(--bottom-nav-height) + 2rem + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Content with header and bottom navigation */
-  .content-with-header-and-nav {
-    padding-top: var(--header-height);
-    padding-bottom: calc(var(--bottom-nav-height) + 2rem + env(safe-area-inset-bottom, 0px));
+  /* Header spacer for fixed header */
+  .header-spacer {
+    height: var(--header-height);
+    flex-shrink: 0;
+  }
+
+  /* Content with bottom navigation */
+  .content-with-bottom-nav-padding {
+    padding-bottom: calc(var(--bottom-nav-height) + 1.5rem + env(safe-area-inset-bottom, 0px));
   }
 
 /* Safe area support for mobile devices */
