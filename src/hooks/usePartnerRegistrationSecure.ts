@@ -54,17 +54,25 @@ export const usePartnerRegistrationSecure = () => {
       if (authResult?.user?.id) {
         console.log('✅ Auth account created:', authResult.user.id);
         
-        // ✅ QUICK FIX: Attendre 500ms pour que auth.users soit bien propagé
-        console.log('⏳ Waiting 500ms for auth propagation...');
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // ✅ QUICK FIX: Vérifier que le user existe bien dans auth.users
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        console.log('🔍 User verification:', { userData, userError });
-        
-        if (userError || !userData?.user) {
-          console.error('❌ User not found in auth.users after signup:', userError);
-          throw new Error('Compte créé mais non accessible. Veuillez réessayer dans quelques instants.');
+        // ✅ AMÉLIORATION: Gérer immédiatement sans attente inutile
+        if (!authResult.session) {
+          console.warn('⚠️ Aucune session immédiate - email confirmation requise');
+          
+          // Stocker les données pour compléter l'inscription après confirmation
+          localStorage.setItem('pendingPartnerRegistration', JSON.stringify({
+            email: data.contact_email,
+            company_name: data.company_name,
+            phone_number: data.phone,
+            business_type: data.business_type,
+            service_areas: data.service_areas
+          }));
+          
+          toast.success('Inscription réussie ! Veuillez vérifier votre email pour confirmer votre compte.');
+          return { 
+            success: true, 
+            user: authResult.user, 
+            emailConfirmationRequired: true 
+          };
         }
         
         // Appeler la fonction RPC sécurisée pour créer le profil partenaire

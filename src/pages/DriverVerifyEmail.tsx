@@ -6,12 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 
-const PartnerVerifyEmail = () => {
+const DriverVerifyEmail = () => {
   const navigate = useNavigate();
   const [resending, setResending] = useState(false);
   const [completing, setCompleting] = useState(false);
 
   useEffect(() => {
+    // Vérifier si l'utilisateur vient de confirmer son email
     const checkEmailConfirmation = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -27,12 +28,12 @@ const PartnerVerifyEmail = () => {
   const completeRegistration = async (userId: string) => {
     setCompleting(true);
     try {
-      const pendingData = localStorage.getItem('pendingPartnerRegistration');
+      const pendingData = localStorage.getItem('pendingDriverRegistration');
       
       if (!pendingData) {
         console.warn('⚠️ Aucune donnée d\'inscription en attente');
         toast.error('Données d\'inscription introuvables');
-        navigate('/partner/auth');
+        navigate('/driver/auth');
         return;
       }
 
@@ -43,7 +44,7 @@ const PartnerVerifyEmail = () => {
       const { data, error } = await supabase.functions.invoke('complete-registration', {
         body: {
           user_id: userId,
-          registration_type: 'partner',
+          registration_type: 'driver',
           registration_data: registrationData
         }
       });
@@ -56,9 +57,9 @@ const PartnerVerifyEmail = () => {
 
       if (data?.success) {
         console.log('✅ Inscription complétée avec succès');
-        localStorage.removeItem('pendingPartnerRegistration');
-        toast.success('Inscription complétée ! Votre demande est en cours de traitement');
-        navigate('/partner/auth');
+        localStorage.removeItem('pendingDriverRegistration');
+        toast.success('Inscription complétée ! Bienvenue sur Kwenda');
+        navigate('/driver/dashboard');
       } else {
         console.error('❌ Erreur:', data?.error);
         toast.error(data?.error || 'Erreur lors de la finalisation');
@@ -75,11 +76,11 @@ const PartnerVerifyEmail = () => {
   const handleResendEmail = async () => {
     setResending(true);
     try {
-      const pendingData = localStorage.getItem('pendingPartnerRegistration');
+      const pendingData = localStorage.getItem('pendingDriverRegistration');
       
       if (!pendingData) {
         toast.error('Email non trouvé. Veuillez réessayer l\'inscription.');
-        navigate('/partner/auth');
+        navigate('/driver/auth');
         return;
       }
 
@@ -105,7 +106,7 @@ const PartnerVerifyEmail = () => {
 
   if (completing) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-yellow-500/20 via-orange-500/15 to-amber-500/20 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center justify-center space-y-4">
@@ -119,11 +120,11 @@ const PartnerVerifyEmail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-500/20 via-orange-500/15 to-amber-500/20 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-            <Mail className="w-8 h-8 text-primary" />
+          <div className="mx-auto w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mb-4">
+            <Mail className="w-8 h-8 text-yellow-600" />
           </div>
           <CardTitle className="text-2xl">Vérifiez votre email</CardTitle>
           <CardDescription>
@@ -133,7 +134,7 @@ const PartnerVerifyEmail = () => {
         <CardContent className="space-y-4">
           <div className="bg-muted/50 p-4 rounded-lg space-y-2">
             <p className="text-sm text-muted-foreground">
-              Pour compléter votre inscription en tant que partenaire, veuillez:
+              Pour compléter votre inscription en tant que chauffeur, veuillez:
             </p>
             <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground ml-2">
               <li>Ouvrir votre boîte email</li>
@@ -157,24 +158,17 @@ const PartnerVerifyEmail = () => {
           </div>
 
           <Button
-            onClick={() => navigate('/partner/auth')}
+            onClick={() => navigate('/driver/auth')}
             variant="ghost"
             className="w-full"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour à la connexion
           </Button>
-
-          <div className="pt-4 border-t">
-            <p className="text-xs text-muted-foreground text-center">
-              Une fois votre email confirmé, votre demande sera examinée par nos équipes.
-              Vous recevrez une notification par email lors de l'approbation.
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>
   );
 };
 
-export default PartnerVerifyEmail;
+export default DriverVerifyEmail;

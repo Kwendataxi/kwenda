@@ -122,29 +122,33 @@ export const useDriverRegistration = () => {
         throw new Error(errorMsg);
       }
 
-      // ✅ PHASE 2: Gestion améliorée de la session
+      // ✅ AMÉLIORATION: Gérer cas avec et sans email confirmation
       if (!authData.session) {
-        console.warn('⚠️ Aucune session immédiate après signUp - email confirmation probablement requise');
-        console.log('📧 Un email de confirmation a été envoyé à:', data.email);
+        console.warn('⚠️ Aucune session immédiate - email confirmation requise');
+        console.log('📧 Email de confirmation envoyé à:', data.email);
+        
+        // Stocker les données pour compléter l'inscription après confirmation
+        localStorage.setItem('pendingDriverRegistration', JSON.stringify({
+          email: data.email,
+          display_name: data.displayName,
+          phone_number: data.phoneNumber,
+          license_number: data.licenseNumber,
+          vehicle_plate: data.hasOwnVehicle ? data.vehiclePlate : null,
+          service_type: data.serviceType,
+          delivery_capacity: data.deliveryCapacity,
+          vehicle_class: 'standard',
+          has_own_vehicle: data.hasOwnVehicle
+        }));
         
         toast({
           title: "Vérification email requise",
-          description: "Un email de confirmation vous a été envoyé. Veuillez vérifier votre boîte mail et cliquer sur le lien pour activer votre compte.",
-        });
-
-        // Logger cette situation
-        await supabase.rpc('log_driver_registration_attempt', {
-          p_email: data.email,
-          p_phone_number: data.phoneNumber,
-          p_license_number: data.licenseNumber,
-          p_success: false,
-          p_error_message: 'No immediate session - email confirmation required'
+          description: "Un email de confirmation vous a été envoyé. Cliquez sur le lien pour activer votre compte et compléter votre inscription.",
         });
 
         return {
-          success: false,
+          success: true,
           hasOwnVehicle: data.hasOwnVehicle,
-          redirectPath: '/auth?message=check-email',
+          redirectPath: '/driver/verify-email',
           user: authData.user,
           session: null,
           requiresEmailConfirmation: true

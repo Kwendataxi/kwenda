@@ -10513,6 +10513,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      complete_driver_registration_after_email: {
+        Args: { p_registration_data: Json; p_user_id: string }
+        Returns: Json
+      }
+      complete_partner_registration_after_email: {
+        Args: { p_registration_data: Json; p_user_id: string }
+        Returns: Json
+      }
       create_driver_profile_secure: {
         Args: {
           p_delivery_capacity?: string
