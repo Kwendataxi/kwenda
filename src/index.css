@@ -416,15 +416,16 @@ All colors MUST be HSL.
     padding-bottom: calc(var(--bottom-nav-height) + 2rem + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Header spacer for fixed header */
-  .header-spacer {
-    height: var(--header-height);
+  /* Header spacer with small gap for slider */
+  .header-spacer-with-gap {
+    height: calc(var(--header-height) + 0.5rem);
     flex-shrink: 0;
   }
 
-  /* Content with bottom navigation */
-  .content-with-bottom-nav-padding {
-    padding-bottom: calc(var(--bottom-nav-height) + 1.5rem + env(safe-area-inset-bottom, 0px));
+  /* Content with sufficient space for footer */
+  .content-with-footer-space {
+    padding-bottom: calc(var(--bottom-nav-height) + 2rem + env(safe-area-inset-bottom, 0px));
+    min-height: calc(100vh - var(--header-height) - 0.5rem);
   }
 
 /* Safe area support for mobile devices */

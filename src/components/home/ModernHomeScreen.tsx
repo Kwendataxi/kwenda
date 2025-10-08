@@ -56,7 +56,7 @@ export const ModernHomeScreen = ({
   }, [primaryRole, roleLoading, navigate]);
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-background">
+    <div className="h-screen flex flex-col bg-background">
       {/* Header - Fixe en haut */}
       <ModernHeader />
       
@@ -68,11 +68,11 @@ export const ModernHomeScreen = ({
           WebkitOverflowScrolling: 'touch'
         } as React.CSSProperties}
       >
-        {/* Espace pour le header fixe */}
-        <div className="header-spacer" />
+        {/* Espace pour le header fixe avec petit gap */}
+        <div className="header-spacer-with-gap" />
         
-        {/* Contenu avec padding pour le footer */}
-        <div className="content-with-bottom-nav-padding">
+        {/* Contenu avec espace suffisant pour le footer */}
+        <div className="content-with-footer-space">
           {/* Subtle Background Elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-20 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl" />
