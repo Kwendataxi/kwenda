@@ -66,19 +66,17 @@ export const ModernHomeScreen = ({
   }, [primaryRole, roleLoading, navigate]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen flex flex-col overflow-hidden bg-background">
       {/* Header - Fixe en haut */}
       <ModernHeader />
       
-      {/* Contenu scrollable avec marges pour header et nav fixes */}
-      <div 
-        className="overflow-y-auto overflow-x-hidden scrollbar-hide"
+      {/* Contenu scrollable qui prend l'espace restant */}
+      <main 
+        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
         style={{ 
           touchAction: 'pan-y', 
           WebkitOverflowScrolling: 'touch',
-          paddingTop: '9rem',
-          paddingBottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))',
-          minHeight: '100vh'
+          paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom, 0px))'
         } as React.CSSProperties}
       >
         {/* Subtle Background Elements */}
@@ -87,7 +85,7 @@ export const ModernHomeScreen = ({
           <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl" />
         </div>
         
-        <div className="relative space-y-6 pt-4">
+        <div className="relative space-y-6 px-4 pt-2">
           {/* Slider publicitaire moderne */}
           <PromoSlider onServiceSelect={onServiceSelect} />
           
@@ -104,7 +102,7 @@ export const ModernHomeScreen = ({
             onViewAll={onMarketplaceViewAll}
           />
         </div>
-      </div>
+      </main>
 
       {/* Navigation - Fixe en bas */}
       <ModernBottomNavigation
