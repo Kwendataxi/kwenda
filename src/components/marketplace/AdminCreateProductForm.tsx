@@ -52,8 +52,7 @@ const conditions = [
 
 const statuses = [
   { id: 'active', name: 'Actif' },
-  { id: 'inactive', name: 'Inactif' },
-  { id: 'draft', name: 'Brouillon' }
+  { id: 'inactive', name: 'Inactif' }
 ];
 
 export const AdminCreateProductForm: React.FC<AdminCreateProductFormProps> = ({ onBack, onSuccess }) => {
