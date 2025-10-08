@@ -141,16 +141,8 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
     
     try {
       await onSubmit(formData);
-      toast({
-        title: "Produit mis en vente",
-        description: "Votre produit a été publié avec succès!",
-      });
     } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la publication",
-        variant: "destructive"
-      });
+      console.error('Error in form submission:', error);
     } finally {
       setIsSubmitting(false);
     }

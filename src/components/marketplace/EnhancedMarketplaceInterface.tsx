@@ -317,7 +317,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     setCartItems(cartItems.filter(item => item.id !== productId));
   };
 
-  const handleProductSubmit = async (productData: any) => {
+  const handleProductSubmit = async (productData: any): Promise<boolean> => {
     console.log('📦 [Marketplace] Starting product submission');
     console.log('📦 [Marketplace] Product data:', {
       title: productData.title,
@@ -360,7 +360,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
           if (uploadError) {
             console.error('❌ [Marketplace] Image upload error:', uploadError);
-            throw new Error(`Erreur upload image ${i + 1}: ${uploadError.message}`);
+            toast({
+              title: '❌ Erreur upload image',
+              description: `Impossible d'uploader l'image ${i + 1}: ${uploadError.message}`,
+              variant: 'destructive',
+            });
+            return false;
           }
 
           // Get public URL
@@ -402,7 +407,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
       if (error) {
         console.error('❌ [Marketplace] Error creating product:', error);
-        throw error;
+        toast({
+          title: '❌ Erreur de création',
+          description: error.message || 'Impossible de créer le produit. Veuillez réessayer.',
+          variant: 'destructive',
+        });
+        return false;
       }
 
       console.log('✅ [Marketplace] Product created successfully:', {
@@ -445,17 +455,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         console.error('❌ [Marketplace] Error in admin notification process:', notifError);
       }
 
-      // ✅ Notification vendeur améliorée
-      console.log('✅ [Marketplace] Product submission completed successfully');
-      toast({
-        title: '✅ Produit créé avec succès!',
-        description: 'Votre produit a été soumis pour modération. Il sera visible sur la marketplace une fois approuvé par notre équipe (24-48h).',
-        duration: 7000,
-      });
-
       // Reload products
       console.log('🔄 [Marketplace] Reloading products list');
       await loadProducts();
+      
+      console.log('✅ [Marketplace] Product submission completed successfully');
+      return true;
       
     } catch (error: any) {
       console.error('❌ [Marketplace] Product submission failed:', error);
@@ -469,7 +474,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         description: error.message || 'Impossible de créer le produit. Veuillez réessayer.',
         variant: 'destructive',
       });
-      throw error;
+      return false;
     }
   };
 
@@ -780,17 +785,21 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
               <div className="space-y-6">
                 <SellProductForm
                   onBack={() => setCurrentTab('shop')}
-                    onSubmit={async (formData) => {
+                  onSubmit={async (formData) => {
                     // Handle product creation with auto-location
-                    try {
-                      await handleProductSubmit({
-                        ...formData,
-                        coordinates: coordinates,
-                        location: 'Kinshasa'
-                      });
+                    const success = await handleProductSubmit({
+                      ...formData,
+                      coordinates: coordinates,
+                      location: 'Kinshasa'
+                    });
+                    
+                    if (success) {
                       setCurrentTab('vendor');
-                    } catch (error) {
-                      console.error('Error submitting product:', error);
+                      toast({
+                        title: '✅ Produit soumis avec succès!',
+                        description: 'Redirection vers votre tableau de bord vendeur...',
+                        duration: 5000,
+                      });
                     }
                   }}
                 />
