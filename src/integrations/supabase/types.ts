@@ -3700,10 +3700,12 @@ export type Database = {
           moderated_at: string | null
           moderation_status: string | null
           moderator_id: string | null
+          popularity_score: number | null
           price: number
           rating_average: number | null
           rating_count: number | null
           rejection_reason: string | null
+          sales_count: number | null
           seller_id: string
           specifications: Json | null
           status: string | null
@@ -3711,6 +3713,7 @@ export type Database = {
           subcategory: string | null
           title: string
           updated_at: string
+          view_count: number | null
         }
         Insert: {
           brand?: string | null
@@ -3726,10 +3729,12 @@ export type Database = {
           moderated_at?: string | null
           moderation_status?: string | null
           moderator_id?: string | null
+          popularity_score?: number | null
           price: number
           rating_average?: number | null
           rating_count?: number | null
           rejection_reason?: string | null
+          sales_count?: number | null
           seller_id: string
           specifications?: Json | null
           status?: string | null
@@ -3737,6 +3742,7 @@ export type Database = {
           subcategory?: string | null
           title: string
           updated_at?: string
+          view_count?: number | null
         }
         Update: {
           brand?: string | null
@@ -3752,10 +3758,12 @@ export type Database = {
           moderated_at?: string | null
           moderation_status?: string | null
           moderator_id?: string | null
+          popularity_score?: number | null
           price?: number
           rating_average?: number | null
           rating_count?: number | null
           rejection_reason?: string | null
+          sales_count?: number | null
           seller_id?: string
           specifications?: Json | null
           status?: string | null
@@ -3763,6 +3771,7 @@ export type Database = {
           subcategory?: string | null
           title?: string
           updated_at?: string
+          view_count?: number | null
         }
         Relationships: []
       }
@@ -5529,6 +5538,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_views_log: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string
+          user_id: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id: string
+          user_id?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          user_id?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_views_log_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "marketplace_products"

@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Star, Eye, Heart, MessageCircle } from 'lucide-react';
+import { Star, Eye, Heart, MessageCircle, TrendingUp, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useChat } from '@/components/chat/ChatProvider';
 
@@ -29,6 +29,9 @@ interface Product {
   isPremium?: boolean;
   condition?: 'new' | 'used' | 'refurbished';
   tags?: string[];
+  viewCount?: number;
+  salesCount?: number;
+  popularityScore?: number;
 }
 
 interface CompactProductCardProps {
@@ -163,6 +166,12 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
               -{product.discount}%
             </Badge>
           )}
+          {product.popularityScore && product.popularityScore > 200 && (
+            <Badge className="bg-orange-500 text-white text-xs px-1.5 py-0.5 border-0 flex items-center gap-0.5">
+              <TrendingUp className="h-2.5 w-2.5" />
+              Tendance
+            </Badge>
+          )}
           {!product.isAvailable && (
             <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-grey-500 text-white">
               Épuisé
@@ -218,6 +227,24 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
           >
             {product.seller}
           </button>
+        )}
+
+        {/* Métriques de popularité */}
+        {(product.viewCount || product.salesCount) && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {product.viewCount !== undefined && product.viewCount > 0 && (
+              <div className="flex items-center gap-0.5">
+                <Eye className="h-2.5 w-2.5" />
+                <span>{product.viewCount.toLocaleString()}</span>
+              </div>
+            )}
+            {product.salesCount !== undefined && product.salesCount > 0 && (
+              <div className="flex items-center gap-0.5">
+                <ShoppingCart className="h-2.5 w-2.5" />
+                <span>{product.salesCount}</span>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Distance - Only if close */}

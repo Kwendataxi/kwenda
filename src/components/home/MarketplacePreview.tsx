@@ -1,8 +1,9 @@
-import { ShoppingBag, ArrowRight, TrendingUp, Star, Clock, Flame } from 'lucide-react';
+import { ShoppingBag, ArrowRight, TrendingUp, Star, Clock, Flame, Eye, ShoppingCart } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useProductView } from '@/hooks/useProductView';
 
 interface Product {
   id: string;
@@ -12,6 +13,9 @@ interface Product {
   image: string;
   rating: number;
   isPopular?: boolean;
+  viewCount?: number;
+  salesCount?: number;
+  popularityScore?: number;
 }
 
 interface MarketplacePreviewProps {
@@ -26,6 +30,14 @@ export const MarketplacePreview = ({
   onViewAll 
 }: MarketplacePreviewProps) => {
   const { t } = useLanguage();
+  const { trackView } = useProductView();
+
+  const handleProductClick = async (product: Product) => {
+    // Tracker la vue du produit
+    await trackView(product.id);
+    // Ouvrir les détails
+    onProductSelect(product);
+  };
   return (
     <div className="px-4">
       {/* Section header simplifiée */}
@@ -50,7 +62,7 @@ export const MarketplacePreview = ({
           <Card 
             key={product.id}
             className="min-w-[150px] cursor-pointer border-0 rounded-xl hover:shadow-md transition-all duration-200"
-            onClick={() => onProductSelect(product)}
+            onClick={() => handleProductClick(product)}
           >
             <div className="aspect-square rounded-t-xl relative overflow-hidden bg-grey-50">
               {product.image && (
@@ -61,7 +73,14 @@ export const MarketplacePreview = ({
                 />
               )}
               
-              {product.isPopular && (
+              {product.popularityScore && product.popularityScore > 200 && (
+                <div className="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3" />
+                  Tendance
+                </div>
+              )}
+
+              {product.isPopular && !product.popularityScore && (
                 <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded-full font-medium">
                   {t('home.marketplace.popular')}
                 </div>
@@ -89,6 +108,24 @@ export const MarketplacePreview = ({
                   </div>
                 )}
               </div>
+
+              {/* Métriques de popularité */}
+              {(product.viewCount || product.salesCount) && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                  {product.viewCount !== undefined && product.viewCount > 0 && (
+                    <div className="flex items-center gap-0.5">
+                      <Eye className="h-3 w-3" />
+                      <span>{product.viewCount.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {product.salesCount !== undefined && product.salesCount > 0 && (
+                    <div className="flex items-center gap-0.5">
+                      <ShoppingCart className="h-3 w-3" />
+                      <span>{product.salesCount}</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </Card>
         ))}

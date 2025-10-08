@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Star, ShoppingCart, Heart, Eye, MapPin, Shield } from 'lucide-react';
+import { Star, ShoppingCart, Heart, Eye, MapPin, Shield, TrendingUp } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 
 interface Product {
@@ -17,6 +17,10 @@ interface Product {
   category: string;
   inStock: boolean;
   coordinates?: { lat: number; lng: number };
+  viewCount?: number;
+  salesCount?: number;
+  popularityScore?: number;
+  discount?: number;
 }
 
 interface ModernProductCardProps {
@@ -101,15 +105,22 @@ export const ModernProductCard: React.FC<ModernProductCardProps> = ({
 
         {/* Premium Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
-          {product.originalPrice && product.originalPrice > product.price && (
+          {product.discount && (
             <Badge variant="destructive" className="bg-gradient-to-r from-primary to-primary-light text-white font-bold px-3 py-1 text-xs shadow-lg">
-              -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+              -{product.discount}%
             </Badge>
           )}
-          <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white font-medium px-2 py-1 text-xs shadow-lg">
-            <Shield className="w-3 h-3 mr-1" />
-            Sécurisé
-          </Badge>
+          {product.popularityScore && product.popularityScore > 200 ? (
+            <Badge className="bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium px-2 py-1 text-xs shadow-lg">
+              <TrendingUp className="w-3 h-3 mr-1" />
+              Tendance
+            </Badge>
+          ) : (
+            <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white font-medium px-2 py-1 text-xs shadow-lg">
+              <Shield className="w-3 h-3 mr-1" />
+              Sécurisé
+            </Badge>
+          )}
         </div>
 
         {/* Distance Badge */}
@@ -149,6 +160,24 @@ export const ModernProductCard: React.FC<ModernProductCardProps> = ({
             {product.category}
           </Badge>
         </div>
+
+        {/* Métriques de popularité */}
+        {(product.viewCount || product.salesCount) && (
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            {product.viewCount !== undefined && product.viewCount > 0 && (
+              <div className="flex items-center gap-1">
+                <Eye className="h-3 w-3" />
+                <span>{product.viewCount.toLocaleString()}</span>
+              </div>
+            )}
+            {product.salesCount !== undefined && product.salesCount > 0 && (
+              <div className="flex items-center gap-1">
+                <ShoppingCart className="h-3 w-3" />
+                <span>{product.salesCount} vendus</span>
+              </div>
+            )}
+          </div>
+        )}
         
         {/* Seller */}
         <div className="flex items-center gap-2">

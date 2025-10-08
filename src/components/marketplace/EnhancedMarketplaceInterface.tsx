@@ -156,11 +156,13 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     try {
       setLoading(true);
       // ✅ FILTRE : Uniquement les produits approuvés visibles sur la marketplace
+      // Tri par popularité (view_count + sales_count)
       const { data, error } = await supabase
         .from('marketplace_products')
         .select('*')
         .eq('status', 'active')
         .eq('moderation_status', 'approved')  // ✅ Produits approuvés uniquement
+        .order('popularity_score', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -202,6 +204,9 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           reviews: product.rating_count || 0,
           brand: product.brand,
           specifications: specsObj,
+          viewCount: product.view_count || 0,
+          salesCount: product.sales_count || 0,
+          popularityScore: product.popularity_score || 0,
         };
       });
 

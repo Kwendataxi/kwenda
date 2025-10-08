@@ -22,7 +22,10 @@ import {
   FileText,
   Sparkles,
   Store,
-  Package
+  Package,
+  Eye,
+  ShoppingCart as CartIcon,
+  TrendingUp
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
 import { toast } from 'sonner';
@@ -56,6 +59,9 @@ interface Product {
   stockCount?: number;
   images?: string[];
   specifications?: Record<string, string>;
+  viewCount?: number;
+  salesCount?: number;
+  popularityScore?: number;
 }
 
 interface ProductDetailsDialogProps {
@@ -115,7 +121,7 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md sm:max-w-lg mx-auto max-h-[95vh] p-0 gap-0">
+      <DialogContent className="max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto max-h-[95vh] p-0 gap-0">
         <DialogHeader className="p-2.5 sm:p-3 pb-2 border-b bg-background/95 backdrop-blur">
           <DialogTitle className="text-sm sm:text-base font-semibold line-clamp-1 pr-6">
             {product.name}
@@ -237,6 +243,44 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                   specifications={product.specifications}
                 />
               </div>
+
+              {/* Statistiques de popularité */}
+              {(product.viewCount || product.salesCount) && (
+                <div className="mb-2.5 p-2.5 rounded-lg border bg-muted/30">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                    <h4 className="text-xs font-semibold">Popularité</h4>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {product.viewCount !== undefined && (
+                      <div className="text-center p-2 rounded bg-background">
+                        <Eye className="h-3.5 w-3.5 text-muted-foreground mx-auto mb-1" />
+                        <p className="text-xs font-semibold">{product.viewCount.toLocaleString()}</p>
+                        <p className="text-[10px] text-muted-foreground">Vues</p>
+                      </div>
+                    )}
+                    {product.salesCount !== undefined && (
+                      <div className="text-center p-2 rounded bg-background">
+                        <CartIcon className="h-3.5 w-3.5 text-muted-foreground mx-auto mb-1" />
+                        <p className="text-xs font-semibold">{product.salesCount}</p>
+                        <p className="text-[10px] text-muted-foreground">Vendus</p>
+                      </div>
+                    )}
+                    <div className="text-center p-2 rounded bg-background">
+                      <Star className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400 mx-auto mb-1" />
+                      <p className="text-xs font-semibold">{product.rating.toFixed(1)}</p>
+                      <p className="text-[10px] text-muted-foreground">Note</p>
+                    </div>
+                  </div>
+                  {product.salesCount && product.salesCount > 10 && (
+                    <div className="mt-2 p-1.5 bg-primary/10 rounded text-center">
+                      <p className="text-[10px] text-primary font-medium">
+                        ✅ Produit populaire - {product.salesCount}+ clients satisfaits
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Similar Products Section */}
               {similarProducts.length > 0 && (
