@@ -832,22 +832,8 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         />
       )}
 
-      <div className="flex gap-2">
-        <div className="flex-1">
-          <SearchBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onSearch={() => {}}
-            filters={{ priceRange: filters.priceRange, inStockOnly: filters.availability === 'available', freeShipping: false }}
-            onFiltersChange={(newFilters) => {
-              setFilters(prev => ({ 
-                ...prev, 
-                priceRange: newFilters.priceRange,
-                availability: newFilters.inStockOnly ? 'available' : 'all'
-              }));
-            }}
-          />
-        </div>
+      {/* Modern Filter Button */}
+      <div className="flex justify-end">
         <Button
           variant="outline"
           onClick={() => setIsFiltersOpen(true)}
@@ -862,12 +848,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           )}
         </Button>
       </div>
-      
-      <CategoryFilter
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        productCounts={{}}
-      />
 
       {/* Horizontal Product Sections */}
       {featuredProducts.length > 0 && (
