@@ -52,12 +52,12 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
 
   const getContextTitle = () => {
     switch (context) {
-      case 'transport': return 'Assistant Transport';
-      case 'delivery': return 'Assistant Livraison';
-      case 'marketplace': return 'Assistant Marketplace';
-      case 'rental': return 'Assistant Location';
-      case 'support': return 'Support Client';
-      default: return 'Assistant Kwenda Taxi';
+      case 'transport': return 'Kwenda AI - Transport';
+      case 'delivery': return 'Kwenda AI - Livraison';
+      case 'marketplace': return 'Kwenda AI';
+      case 'rental': return 'Kwenda AI - Location';
+      case 'support': return 'Kwenda AI - Support';
+      default: return 'Kwenda AI';
     }
   };
 
@@ -319,7 +319,7 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
               >
                 <Bot className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">
-                  Bonjour ! Je suis votre assistant Kwenda Taxi.
+                  Bonjour ! Je suis Kwenda AI, votre assistant intelligent.
                   <br />
                   Comment puis-je vous aider aujourd'hui ?
                 </p>
@@ -362,7 +362,7 @@ export const AIAssistantWidget: React.FC<AIAssistantWidgetProps> = ({
                 <div className="bg-muted rounded-lg p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
-                    Assistant en train de réfléchir...
+                    Kwenda AI réfléchit...
                   </div>
                 </div>
               </motion.div>
