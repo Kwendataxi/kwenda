@@ -207,9 +207,9 @@ export class UniversalGeolocationService {
   }
 
   /**
-   * 🎯 Vérifier si les coordonnées sont dans les limites d'une ville
+   * 🎯 Vérifier si les coordonnées sont dans les limites d'une ville (méthode publique)
    */
-  private isWithinCityBounds(coordinates: { lat: number; lng: number }, city: CityConfig): boolean {
+  isWithinCityBounds(coordinates: { lat: number; lng: number }, city: CityConfig): boolean {
     const { lat, lng } = coordinates;
     const { bounds } = city;
 

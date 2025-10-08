@@ -17,6 +17,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
 import { z } from 'zod';
 import ContactsStep from './ContactsStep';
+import { universalGeolocation } from '@/services/universalGeolocation';
 
 interface SlideDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
@@ -137,8 +138,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     }
   }, [deliveryData.pickupLocation, deliveryData.deliveryLocation, deliveryData.serviceType, calculateDistance]);
 
-  const handleLocationSelect = (location: LocationData, type: 'pickup' | 'delivery') => {
-    // ✅ ACTION 1: Validation robuste des coordonnées avec fallback
+  const handleLocationSelect = async (location: LocationData, type: 'pickup' | 'delivery') => {
     console.log(`📍 [${type}] Location sélectionnée:`, location);
 
     // Validation stricte des coordonnées
@@ -157,18 +157,24 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
       return;
     }
 
-    // Vérification des limites géographiques (Kinshasa approximatif)
-    if (location.lat < -10 || location.lat > 0 || location.lng < 10 || location.lng > 20) {
-      console.warn(`⚠️ [${type}] Coordonnées hors zone Kinshasa:`, location);
+    // ✅ VALIDATION DYNAMIQUE MULTI-VILLES
+    const currentCity = await universalGeolocation.detectUserCity();
+    const isInServiceArea = universalGeolocation.isWithinCityBounds(
+      { lat: location.lat, lng: location.lng },
+      currentCity
+    );
+
+    if (!isInServiceArea) {
+      console.warn(`⚠️ [${type}] Coordonnées hors zone ${currentCity.name}:`, location);
       toast({
         title: "Zone non couverte",
-        description: "Cette adresse semble être en dehors de notre zone de service",
+        description: `Cette adresse est en dehors de ${currentCity.name}. Assurez-vous d'être dans la zone de service.`,
         variant: "destructive"
       });
       return;
     }
 
-    console.log(`✅ [${type}] Coordonnées validées:`, { lat: location.lat, lng: location.lng });
+    console.log(`✅ [${type}] Coordonnées validées pour ${currentCity.name}:`, { lat: location.lat, lng: location.lng });
 
     if (type === 'pickup') {
       setDeliveryData(prev => ({ ...prev, pickupLocation: location }));
