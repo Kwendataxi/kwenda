@@ -74,15 +74,33 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
           return;
         }
 
-        toast({
-          title: "Connexion réussie !",
-          description: "Bienvenue dans votre espace chauffeur",
-        });
-
-        if (onSuccess) {
-          onSuccess();
+        // Gérer les multi-rôles
+        const userRoles = roles || [];
+        
+        if (userRoles.length === 1) {
+          // Un seul rôle → Redirection directe
+          toast({
+            title: "Connexion réussie !",
+            description: "Bienvenue dans votre espace chauffeur",
+          });
+          
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            navigate('/chauffeur');
+          }
         } else {
-          navigate('/chauffeur');
+          // Plusieurs rôles → Sauvegarder une "intention" puis laisser ProtectedRoute gérer
+          toast({
+            title: "Connexion réussie !",
+            description: "Sélectionnez votre espace de travail",
+          });
+          
+          // Sauvegarder que l'utilisateur vient de la page driver
+          localStorage.setItem('kwenda_login_intent', 'driver');
+          
+          // Laisser ProtectedRoute rediriger vers /role-selection
+          navigate('/chauffeur'); // Sera intercepté par ProtectedRoute
         }
       }
     } catch (error: any) {

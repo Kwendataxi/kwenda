@@ -170,11 +170,12 @@ export const useUserRoles = (): UseUserRolesReturn => {
     return userRoles.some(userRole => userRole.role === role);
   };
 
-  // Calculer le rôle principal : utiliser le rôle sélectionné si disponible, sinon priorité admin
+  // Calculer le rôle principal : utiliser le rôle sélectionné si disponible
+  // Pour les utilisateurs multi-rôles, on force à null pour déclencher /role-selection
   const primaryRole: UserRole | null = selectedRole || (
-    userRoles.length > 0 
-      ? userRoles.find(role => role.role === 'admin')?.role || userRoles[0]?.role || null
-      : null
+    userRoles.length === 1 
+      ? userRoles[0]?.role || null  // Un seul rôle → on le prend
+      : null  // Plusieurs rôles → on force à null pour déclencher /role-selection
   );
 
   // Obtenir le rôle admin s'il existe

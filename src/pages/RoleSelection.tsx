@@ -14,16 +14,26 @@ const RoleSelection = () => {
   const { toast } = useToast();
   const { userRoles, loading } = useUserRoles();
   const { selectedRole, setSelectedRole } = useSelectedRole();
-  const [tempSelectedRole, setTempSelectedRole] = useState<UserRole | null>(selectedRole);
+  
+  // Récupérer l'intention de connexion (driver/partner/client) si disponible
+  const loginIntent = localStorage.getItem('kwenda_login_intent') as UserRole | null;
+  const [tempSelectedRole, setTempSelectedRole] = useState<UserRole | null>(
+    loginIntent || selectedRole || null
+  );
 
   useEffect(() => {
+    // Nettoyer l'intention après utilisation
+    if (loginIntent) {
+      localStorage.removeItem('kwenda_login_intent');
+    }
+    
     // Si l'utilisateur n'a qu'un seul rôle, rediriger automatiquement
     if (!loading && userRoles.length === 1) {
       const role = userRoles[0].role as UserRole;
       setSelectedRole(role);
       navigateToRole(role);
     }
-  }, [loading, userRoles]);
+  }, [loading, userRoles, loginIntent]);
 
   const navigateToRole = (role: UserRole) => {
     const paths: Record<UserRole, string> = {
