@@ -56,30 +56,27 @@ export const ModernHomeScreen = ({
   }, [primaryRole, roleLoading, navigate]);
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-      {/* Header - Fixe en haut */}
+    <div className="h-screen grid grid-rows-[auto_1fr_auto] bg-background">
+      {/* Header - Position naturelle dans la grille */}
       <ModernHeader />
       
-      {/* Contenu scrollable qui prend l'espace restant */}
+      {/* Contenu scrollable - Prend tout l'espace restant */}
       <main 
-        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
+        className="overflow-y-auto overflow-x-hidden scrollbar-hide"
         style={{ 
           touchAction: 'pan-y', 
           WebkitOverflowScrolling: 'touch'
         } as React.CSSProperties}
       >
-        {/* Espace pour le header fixe avec petit gap */}
-        <div className="header-spacer-with-gap" />
-        
-        {/* Contenu avec espace suffisant pour le footer */}
-        <div className="content-with-footer-space">
+        {/* Petit espace de 8px après le header */}
+        <div className="pt-2">
           {/* Subtle Background Elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-20 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl" />
             <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl" />
           </div>
           
-          <div className="relative space-y-6">
+          <div className="relative space-y-6 pb-6">
             {/* Slider publicitaire moderne */}
             <div className="px-4">
               <PromoSlider onServiceSelect={onServiceSelect} />
@@ -96,7 +93,7 @@ export const ModernHomeScreen = ({
         </div>
       </main>
 
-      {/* Navigation - Fixe en bas */}
+      {/* Navigation - Position naturelle dans la grille (toujours visible en bas) */}
       <ModernBottomNavigation
         activeTab={activeTab}
         onTabChange={handleTabChange}
