@@ -12,6 +12,10 @@ export interface LocationData {
   accuracy?: number;
   name?: string;
   subtitle?: string;
+  contact?: {
+    name?: string;
+    phone?: string;
+  };
 }
 
 // Format de retour unifié pour les résultats de recherche

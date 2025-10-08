@@ -126,16 +126,20 @@ export const useEnhancedDeliveryOrders = () => {
       console.log('🔍 Debug orderData reçu:', JSON.stringify(orderData, null, 2));
       
       // ============================================================
-      // ACTION 1 & 3: VALIDATION STRICTE DES CONTACTS AVEC LOGS DÉTAILLÉS
+      // VALIDATION STRICTE DES CONTACTS - SUPPORT MULTI-FORMAT
       // ============================================================
-      console.log('📋 useEnhancedDeliveryOrders - Validation initiale:', {
+      console.log('📋 useEnhancedDeliveryOrders - Structure reçue:', {
         senderPhone: orderData.senderPhone,
         recipientPhone: orderData.recipientPhone,
-        pickup: orderData.pickup,
-        destination: orderData.destination
+        pickupContact: orderData.pickup?.contact,
+        destinationContact: orderData.destination?.contact
       });
       
-      if (!orderData.senderPhone || orderData.senderPhone.trim() === '') {
+      // Extraction intelligente des numéros avec fallback sur format imbriqué
+      const extractedSenderPhone = orderData.senderPhone || orderData.pickup?.contact?.phone;
+      const extractedRecipientPhone = orderData.recipientPhone || orderData.destination?.contact?.phone;
+      
+      if (!extractedSenderPhone || extractedSenderPhone.trim() === '') {
         console.error('❌ VALIDATION FAILED: Numéro de téléphone expéditeur manquant');
         console.error('📦 orderData reçu:', JSON.stringify(orderData, null, 2));
         toast({
@@ -146,7 +150,7 @@ export const useEnhancedDeliveryOrders = () => {
         throw new Error('Numéro de téléphone de l\'expéditeur requis');
       }
       
-      if (!orderData.recipientPhone || orderData.recipientPhone.trim() === '') {
+      if (!extractedRecipientPhone || extractedRecipientPhone.trim() === '') {
         console.error('❌ VALIDATION FAILED: Numéro de téléphone destinataire manquant');
         console.error('📦 orderData reçu:', JSON.stringify(orderData, null, 2));
         toast({
@@ -158,8 +162,8 @@ export const useEnhancedDeliveryOrders = () => {
       }
       
       console.log('✅ Validation des contacts réussie:', {
-        senderPhone: orderData.senderPhone,
-        recipientPhone: orderData.recipientPhone
+        senderPhone: extractedSenderPhone,
+        recipientPhone: extractedRecipientPhone
       });
 
       // Normalisation et validation des données essentielles
@@ -221,11 +225,34 @@ export const useEnhancedDeliveryOrders = () => {
           throw new Error('Adresse de destination requise et valide');
         }
         
-        // MAPPING CORRIGÉ : Supporter à la fois contactName/contactPhone ET senderName/senderPhone
-        const senderName = (data.senderName || pickup.contactName || '').trim();
-        const senderPhone = (data.senderPhone || pickup.contactPhone || '').trim();
-        const recipientName = (data.recipientName || destination.contactName || '').trim();
-        const recipientPhone = (data.recipientPhone || destination.contactPhone || '').trim();
+        // EXTRACTION MULTI-FORMAT : Support format imbriqué ET legacy
+        const senderName = (
+          data.senderName || 
+          pickup.contact?.name || 
+          pickup.contactName || 
+          ''
+        ).trim();
+        
+        const senderPhone = (
+          data.senderPhone || 
+          pickup.contact?.phone || 
+          pickup.contactPhone || 
+          ''
+        ).trim();
+        
+        const recipientName = (
+          data.recipientName || 
+          destination.contact?.name || 
+          destination.contactName || 
+          ''
+        ).trim();
+        
+        const recipientPhone = (
+          data.recipientPhone || 
+          destination.contact?.phone || 
+          destination.contactPhone || 
+          ''
+        ).trim();
 
         console.log('📞 Contacts extraits:', {
           senderName,
