@@ -8,9 +8,29 @@
  */
 
 import CryptoJS from 'crypto-js';
+import { secureLog } from './secureLogger';
 
-// Clé de chiffrement - En production, devrait être générée dynamiquement
-const ENCRYPTION_KEY = import.meta.env.VITE_STORAGE_ENCRYPTION_KEY || 'kwenda-secure-2025-prod';
+/**
+ * Génère une clé de chiffrement unique par appareil
+ * Utilise une combinaison de données uniques pour créer une clé stable
+ */
+const generateDeviceKey = (): string => {
+  // Récupérer ou créer un ID unique pour cet appareil
+  let deviceId = localStorage.getItem('__device_id');
+  
+  if (!deviceId) {
+    // Générer un UUID v4 comme ID d'appareil
+    deviceId = crypto.randomUUID();
+    localStorage.setItem('__device_id', deviceId);
+  }
+  
+  // Combiner avec un salt statique pour renforcer la sécurité
+  const salt = 'kwenda-secure-2025';
+  return CryptoJS.SHA256(deviceId + salt).toString();
+};
+
+// Clé de chiffrement générée dynamiquement par appareil
+const ENCRYPTION_KEY = generateDeviceKey();
 
 /**
  * Interface de stockage sécurisé compatible localStorage
@@ -27,9 +47,9 @@ export const secureStorage = {
       const encrypted = CryptoJS.AES.encrypt(serialized, ENCRYPTION_KEY).toString();
       localStorage.setItem(key, encrypted);
     } catch (error) {
-      console.error('❌ Erreur de chiffrement:', error);
-      // Fallback: stockage non chiffré en cas d'erreur critique
-      localStorage.setItem(key, JSON.stringify(value));
+      secureLog.error('❌ Erreur de chiffrement:', error);
+      // Ne PAS faire de fallback non chiffré - sécurité critique
+      throw new Error('Échec du chiffrement des données');
     }
   },
 
@@ -49,20 +69,14 @@ export const secureStorage = {
       
       if (!decryptedString) {
         // Données potentiellement corrompues ou clé incorrecte
-        console.warn('⚠️ Impossible de déchiffrer les données pour:', key);
+        secureLog.warn('⚠️ Impossible de déchiffrer les données pour:', key);
         return null;
       }
 
       return JSON.parse(decryptedString);
     } catch (error) {
-      console.error('❌ Erreur de déchiffrement:', error);
-      // Tentative de lecture directe (compatibilité avec ancien stockage non chiffré)
-      try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : null;
-      } catch {
-        return null;
-      }
+      secureLog.error('❌ Erreur de déchiffrement:', error);
+      return null;
     }
   },
 
@@ -104,11 +118,38 @@ export const migrateToSecureStorage = (key: string): void => {
       const parsed = JSON.parse(existing);
       // Si parsing réussit, c'est du non-chiffré → rechiffrer
       secureStorage.setItem(key, parsed);
-      console.log(`✅ Migré vers stockage sécurisé: ${key}`);
+      secureLog.log(`✅ Migré vers stockage sécurisé: ${key}`);
     } catch {
       // Déjà chiffré ou invalide, ne rien faire
     }
   } catch (error) {
-    console.error('❌ Erreur de migration:', error);
+    secureLog.error('❌ Erreur de migration:', error);
   }
+};
+
+/**
+ * Migre TOUTES les données localStorage vers secureStorage
+ * À exécuter une fois au démarrage de l'app
+ */
+export const migrateAllToSecureStorage = (): void => {
+  const keysToMigrate = [
+    'user_preferences',
+    'recent_searches',
+    'saved_places',
+    'app_settings',
+    'theme_preference',
+    'language_preference'
+  ];
+
+  let migratedCount = 0;
+  keysToMigrate.forEach(key => {
+    try {
+      migrateToSecureStorage(key);
+      migratedCount++;
+    } catch (error) {
+      secureLog.error(`Échec migration ${key}:`, error);
+    }
+  });
+
+  secureLog.log(`✅ Migration complète: ${migratedCount}/${keysToMigrate.length} clés migrées`);
 };
