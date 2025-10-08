@@ -11560,8 +11560,8 @@ export type Database = {
       log_sensitive_access: {
         Args: {
           access_type: string
+          accessed_user_id?: string
           table_name: string
-          target_user_id?: string
         }
         Returns: string
       }
