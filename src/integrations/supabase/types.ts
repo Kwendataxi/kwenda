@@ -10658,14 +10658,11 @@ export type Database = {
         Returns: {
           distance_km: number
           driver_id: string
-          is_verified: boolean
-          last_ping: string
-          latitude: number
-          longitude: number
+          estimated_arrival_minutes: number
+          is_available: boolean
           rating_average: number
           rides_remaining: number
-          subscription_status: string
-          total_rides: number
+          service_type: string
           vehicle_class: string
         }[]
       }
@@ -11509,7 +11506,7 @@ export type Database = {
               p_success?: boolean
             }
           | { p_details?: Json; p_event_type: string; p_severity?: string }
-        Returns: undefined
+        Returns: string
       }
       log_sensitive_access: {
         Args: {

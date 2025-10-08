@@ -319,15 +319,54 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
   const handleProductSubmit = async (productData: any): Promise<boolean> => {
     console.log('📦 [Marketplace] Starting product submission');
+    
+    // ✅ Vérification authentification STRICTE
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user?.id) {
+      console.error('❌ [Marketplace] User not authenticated');
+      toast({
+        title: '❌ Non authentifié',
+        description: 'Vous devez être connecté pour publier un produit',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    
+    console.log('✅ [Marketplace] User authenticated:', user.id);
     console.log('📦 [Marketplace] Product data:', {
       title: productData.title,
       category: productData.category,
       price: productData.price,
       imagesCount: productData.images?.length || 0,
-      sellerId: user?.id
+      sellerId: user.id
     });
 
     try {
+      // ✅ Fonction helper pour retry upload
+      const uploadWithRetry = async (file: File, fileName: string, retries = 1) => {
+        for (let attempt = 0; attempt <= retries; attempt++) {
+          const { data, error } = await supabase.storage
+            .from('marketplace-products')
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: false,
+              contentType: file.type
+            });
+          
+          if (!error) return { data, error: null };
+          
+          if (attempt < retries && error.message.includes('fetch')) {
+            console.warn(`⚠️ Retry ${attempt + 1}/${retries} for ${fileName}`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            continue;
+          }
+          
+          return { data: null, error };
+        }
+        return { data: null, error: new Error('Max retries reached') };
+      };
+
       // 1. Upload images to Supabase Storage
       const imageUrls: string[] = [];
       
@@ -346,20 +385,19 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
             type: file.type
           });
           
-          // Generate unique filename
+          // Generate unique filename avec préfixe products/
           const fileExt = file.name.split('.').pop();
-          const fileName = `${user?.id}/${Date.now()}-${i}.${fileExt}`;
+          const fileName = `${user.id}/products/${Date.now()}-${i}.${fileExt}`;
           
-          // Upload to profile-pictures bucket (ou créer un bucket dédié products)
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('profile-pictures')
-            .upload(fileName, file, {
-              cacheControl: '3600',
-              upsert: false
-            });
+          // ✅ Upload vers bucket marketplace-products avec retry
+          const { data: uploadData, error: uploadError } = await uploadWithRetry(file, fileName);
 
           if (uploadError) {
-            console.error('❌ [Marketplace] Image upload error:', uploadError);
+            console.error('❌ [Marketplace] Image upload error:', {
+              message: uploadError.message,
+              fileName: fileName,
+              userId: user.id
+            });
             toast({
               title: '❌ Erreur upload image',
               description: `Impossible d'uploader l'image ${i + 1}: ${uploadError.message}`,
@@ -368,9 +406,9 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
             return false;
           }
 
-          // Get public URL
+          // Get public URL depuis marketplace-products
           const { data: { publicUrl } } = supabase.storage
-            .from('profile-pictures')
+            .from('marketplace-products')
             .getPublicUrl(fileName);
           
           console.log(`✅ [Marketplace] Image ${i + 1} uploaded:`, publicUrl);
@@ -388,7 +426,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         category: productData.category,
         condition: productData.condition || 'new',
         images: imageUrls,
-        seller_id: user?.id,
+        seller_id: user.id,
         location: productData.location,
         coordinates: productData.coordinates,
         stock_count: productData.stock_count || 1,
