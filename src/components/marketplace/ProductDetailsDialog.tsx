@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils';
 import { ProductChatTab } from './ProductChatTab';
 import { ProductSpecifications } from './ProductSpecifications';
 import { HorizontalProductScroll } from './HorizontalProductScroll';
+import { MarketplaceAIChat } from './MarketplaceAIChat';
 import { getCategoryName, getConditionLabel } from '@/config/marketplaceCategories';
 
 interface Product {
@@ -114,7 +115,7 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[95vh] p-0 gap-0">
+      <DialogContent className="max-w-md sm:max-w-lg mx-auto max-h-[95vh] p-0 gap-0">
         <DialogHeader className="p-2.5 sm:p-3 pb-2 border-b bg-background/95 backdrop-blur">
           <DialogTitle className="text-sm sm:text-base font-semibold line-clamp-1 pr-6">
             {product.name}
@@ -122,14 +123,18 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
         </DialogHeader>
 
         <Tabs defaultValue="details" className="flex-1 flex flex-col">
-          <TabsList className="mx-2.5 sm:mx-3 my-1.5 grid w-auto grid-cols-2 h-8">
-            <TabsTrigger value="details" className="flex items-center gap-1 text-xs px-2">
+          <TabsList className="mx-2.5 sm:mx-3 my-1.5 grid w-auto grid-cols-3 h-8 sm:h-9">
+            <TabsTrigger value="details" className="flex items-center gap-1 text-xs px-1.5 sm:px-2">
               <Info className="h-3.5 w-3.5" />
-              Détails
+              <span className="hidden sm:inline">Détails</span>
             </TabsTrigger>
-            <TabsTrigger value="chat" className="flex items-center gap-1 text-xs px-2">
+            <TabsTrigger value="chat" className="flex items-center gap-1 text-xs px-1.5 sm:px-2">
               <MessageCircle className="h-3.5 w-3.5" />
-              Chat vendeur
+              <span className="hidden sm:inline">Vendeur</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai" className="flex items-center gap-1 text-xs px-1.5 sm:px-2">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Kwenda AI</span>
             </TabsTrigger>
           </TabsList>
 
@@ -360,6 +365,15 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
               productId={product.id}
               sellerId={product.sellerId}
               productTitle={product.name}
+            />
+          </TabsContent>
+
+          <TabsContent value="ai" className="flex-1 mt-0 h-[calc(85vh-120px)]">
+            <MarketplaceAIChat
+              productId={product.id}
+              productName={product.name}
+              productPrice={product.price}
+              sellerName={product.seller}
             />
           </TabsContent>
         </Tabs>

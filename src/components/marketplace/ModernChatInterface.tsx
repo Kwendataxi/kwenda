@@ -19,6 +19,7 @@ import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDistance } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface ModernChatInterfaceProps {
@@ -420,33 +421,40 @@ const ChatView: React.FC<{
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick messages - Always visible */}
-      <div className="px-3 py-2 border-t bg-muted/30 overflow-x-auto">
-        <div className="flex gap-2 pb-1">
+      {/* Quick messages - Enhanced with icons */}
+      <div className="px-2 sm:px-3 py-2 border-t bg-gradient-to-r from-muted/50 to-muted/30 overflow-x-auto">
+        <div className="flex gap-1.5 sm:gap-2 pb-1">
           {quickMessages.map((msg, index) => (
-            <button
+            <motion.button
               key={index}
-              className="flex-shrink-0 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs hover:bg-primary/20 transition-colors whitespace-nowrap"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex-shrink-0 px-2 sm:px-3 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] sm:text-xs hover:bg-primary/20 hover:shadow-sm transition-all whitespace-nowrap border border-primary/20"
               onClick={() => setNewMessage(msg)}
             >
               {msg}
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>
 
-      {/* Message input */}
-      <div className="p-3 border-t bg-card">
-        <div className="flex gap-2">
+      {/* Message input - Enhanced responsive */}
+      <div className="p-2 sm:p-3 border-t bg-background/95 backdrop-blur">
+        <div className="flex gap-1.5 sm:gap-2">
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={onKeyPress}
-            placeholder="Tapez votre message..."
-            className="flex-1"
+            placeholder="Message..."
+            className="flex-1 text-xs sm:text-sm h-9 sm:h-10"
           />
-          <Button onClick={onSendMessage} disabled={!newMessage.trim()} size="sm" className="px-4">
-            <Send className="h-4 w-4" />
+          <Button 
+            onClick={onSendMessage} 
+            disabled={!newMessage.trim()} 
+            size="sm" 
+            className="px-3 sm:px-4 h-9 sm:h-10 transition-transform hover:scale-105"
+          >
+            <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
         </div>
       </div>
