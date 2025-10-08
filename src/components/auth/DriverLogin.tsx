@@ -244,6 +244,15 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
 
             {/* Footer avec liens vers autres espaces */}
             <div className="text-center mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 space-y-3">
+              {/* Bouton d'inscription */}
+              <Button
+                variant="outline"
+                onClick={() => navigate('/driver/register')}
+                className="w-full h-12 text-orange-600 dark:text-orange-400 border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 font-medium"
+              >
+                Pas encore chauffeur ? S'inscrire
+              </Button>
+              
               <p className="text-sm text-muted-foreground">
                 Pas chauffeur ?
               </p>

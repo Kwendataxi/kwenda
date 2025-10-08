@@ -10449,6 +10449,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      check_test_account_exists: {
+        Args: { p_email: string }
+        Returns: boolean
+      }
       check_user_admin_role_secure: {
         Args: { check_user_id?: string }
         Returns: boolean
@@ -10568,6 +10572,24 @@ export type Database = {
           updated_at: string
           user_id: string
         }[]
+      }
+      create_test_driver_profile: {
+        Args: {
+          p_display_name: string
+          p_email: string
+          p_phone: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      create_test_partner_profile: {
+        Args: {
+          p_company_name: string
+          p_email: string
+          p_phone: string
+          p_user_id: string
+        }
+        Returns: string
       }
       create_trip_share_link: {
         Args: {

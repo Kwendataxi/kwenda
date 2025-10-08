@@ -75,6 +75,7 @@ import { DriverFindPartner } from "./pages/DriverFindPartner";
 import PublicPartnerRegistration from "./pages/partner/PublicPartnerRegistration";
 import PartnerDashboard from "./pages/partner/PartnerDashboard";
 import UnifiedTracking from "./pages/UnifiedTracking";
+import DriverRegistration from "./pages/DriverRegistration";
 
 const queryClient = new QueryClient();
 
@@ -146,6 +147,7 @@ const AppContent = () => {
                         <DriverAuth />
                       </OnboardingRedirect>
                     } />
+                    <Route path="/driver/register" element={<DriverRegistration />} />
                     <Route path="/chauffeur" element={
                       <ProtectedRoute>
                         <DriverApp />
