@@ -142,6 +142,9 @@ All colors MUST be HSL.
     
     /* Safe area pour mobile */
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    
+    /* Navigation bottom height */
+    --bottom-nav-height: 80px;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -401,6 +404,15 @@ All colors MUST be HSL.
     .content-scrollable {
       max-height: calc(100vh - 5rem - env(safe-area-inset-bottom, 0));
     }
+  }
+
+  /* Content with bottom navigation */
+  .content-with-bottom-nav {
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .content-with-bottom-nav-scrollable {
+    padding-bottom: calc(var(--bottom-nav-height) + 1rem + env(safe-area-inset-bottom, 0px));
   }
 
 /* Safe area support for mobile devices */

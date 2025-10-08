@@ -62,11 +62,10 @@ export const ModernHomeScreen = ({
       
       {/* Contenu scrollable qui prend l'espace restant */}
       <main 
-        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
+        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide content-with-bottom-nav-scrollable"
         style={{ 
           touchAction: 'pan-y', 
-          WebkitOverflowScrolling: 'touch',
-          paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom, 0px))'
+          WebkitOverflowScrolling: 'touch'
         } as React.CSSProperties}
       >
         {/* Subtle Background Elements */}

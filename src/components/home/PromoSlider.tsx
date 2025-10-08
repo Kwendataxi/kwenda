@@ -45,20 +45,20 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   };
 
   return (
-    <div className="w-full min-h-[180px]">
+    <div className="w-full h-[180px] relative">
       <Carousel
         setApi={setApi}
         opts={{ loop: true, align: 'start' }}
         plugins={[autoplayRef.current]}
-        className="w-full"
+        className="w-full h-full"
       >
-        <CarouselContent className="-ml-2 md:-ml-4">
+        <CarouselContent className="-ml-2 md:-ml-4 h-[180px]">
           {defaultPromos.map((promo) => (
-            <CarouselItem key={promo.id} className="pl-2 md:pl-4">
+            <CarouselItem key={promo.id} className="pl-2 md:pl-4 h-[180px]">
               <div
                 onClick={() => handlePromoClick(promo)}
                 className={cn(
-                  'relative h-36 rounded-2xl overflow-hidden cursor-pointer group',
+                  'relative h-[180px] rounded-2xl overflow-hidden cursor-pointer group',
                   'bg-gradient-to-br shadow-[0_4px_20px_rgba(0,0,0,0.1)]',
                   promo.gradient,
                   'transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.16)] hover:scale-[1.01]'

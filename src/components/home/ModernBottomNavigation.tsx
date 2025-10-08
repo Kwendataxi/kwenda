@@ -44,8 +44,9 @@ export const ModernBottomNavigation = ({
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         willChange: 'transform',
         pointerEvents: 'auto',
-        position: 'fixed'
-      }}
+        position: 'fixed',
+        bottom: '0'
+      } as React.CSSProperties}
     >
       <div 
         className="border-t border-border/30 shadow-2xl rounded-t-3xl overflow-hidden"
