@@ -4,6 +4,7 @@ import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { secureLog } from '@/utils/secureLogger';
 
 interface PushNotificationState {
   isRegistered: boolean;
@@ -46,14 +47,14 @@ export const useCapacitorPushNotifications = () => {
         }, { onConflict: 'user_id,token' });
 
       if (error) {
-        console.error('Error saving push token:', error);
+        secureLog.error('Error saving push token:', error);
         setState(prev => ({ ...prev, error: error.message }));
       } else {
-        console.log('✅ Push token registered:', token);
+        secureLog.sensitive('Push token registered', { tokenLength: token.length });
         setState(prev => ({ ...prev, isRegistered: true, token, error: null }));
       }
     } catch (err) {
-      console.error('Error in registerToken:', err);
+      secureLog.error('Error in registerToken:', err);
       setState(prev => ({ ...prev, error: 'Failed to register token' }));
     }
   }, [user]);
@@ -77,7 +78,7 @@ export const useCapacitorPushNotifications = () => {
   // Initialiser les notifications push
   const initializePushNotifications = useCallback(async () => {
     if (!isMobile) {
-      console.log('⚠️ Push notifications only available on mobile');
+      secureLog.warn('⚠️ Push notifications only available on mobile');
       return;
     }
 
@@ -91,7 +92,7 @@ export const useCapacitorPushNotifications = () => {
         // 2. Enregistrer avec FCM/APNS
         await PushNotifications.register();
         
-        console.log('✅ Push notifications initialized');
+        secureLog.log('✅ Push notifications initialized');
       } else {
         setState(prev => ({ 
           ...prev, 
@@ -104,7 +105,7 @@ export const useCapacitorPushNotifications = () => {
         });
       }
     } catch (error) {
-      console.error('Error initializing push notifications:', error);
+      secureLog.error('Error initializing push notifications:', error);
       setState(prev => ({ ...prev, error: String(error) }));
       
       toast.error('Erreur de notification', {
@@ -125,13 +126,13 @@ export const useCapacitorPushNotifications = () => {
     const setupListeners = async () => {
       // Registration success - FCM/APNS token reçu
       registrationListener = await PushNotifications.addListener('registration', (token: Token) => {
-        console.log('📱 Push registration success:', token.value);
+        secureLog.sensitive('Push registration success', { tokenLength: token.value.length });
         registerToken(token.value);
       });
 
       // Registration error
       registrationErrorListener = await PushNotifications.addListener('registrationError', (error: any) => {
-        console.error('❌ Push registration error:', error);
+        secureLog.error('❌ Push registration error:', error);
         setState(prev => ({ 
           ...prev, 
           error: error.error || 'Registration failed',
@@ -143,7 +144,7 @@ export const useCapacitorPushNotifications = () => {
       notificationReceivedListener = await PushNotifications.addListener(
         'pushNotificationReceived',
         (notification: PushNotificationSchema) => {
-          console.log('📩 Push notification received:', notification);
+          secureLog.log('📩 Push notification received:', notification.title);
           
           toast.info(notification.title || 'Nouvelle notification', {
             description: notification.body,
@@ -156,7 +157,7 @@ export const useCapacitorPushNotifications = () => {
       notificationActionListener = await PushNotifications.addListener(
         'pushNotificationActionPerformed',
         (action: ActionPerformed) => {
-          console.log('🔔 Push notification action:', action);
+          secureLog.log('🔔 Push notification action:', action.actionId);
           
           const notification = action.notification;
           const data = notification.data;
@@ -198,7 +199,7 @@ export const useCapacitorPushNotifications = () => {
       const result = await PushNotifications.getDeliveredNotifications();
       return result.notifications;
     } catch (error) {
-      console.error('Error getting delivered notifications:', error);
+      secureLog.error('Error getting delivered notifications:', error);
       return [];
     }
   }, [isMobile]);
@@ -209,9 +210,9 @@ export const useCapacitorPushNotifications = () => {
     
     try {
       await PushNotifications.removeAllDeliveredNotifications();
-      console.log('✅ All notifications cleared');
+      secureLog.log('✅ All notifications cleared');
     } catch (error) {
-      console.error('Error clearing notifications:', error);
+      secureLog.error('Error clearing notifications:', error);
     }
   }, [isMobile]);
 
