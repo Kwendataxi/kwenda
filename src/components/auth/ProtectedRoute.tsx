@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useSelectedRole } from '@/hooks/useSelectedRole';
 import { Loader2 } from 'lucide-react';
+import { APP_CONFIG } from '@/config/appConfig';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -33,8 +34,8 @@ const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) =
 
   // Si l'authentification est requise mais l'utilisateur n'est pas connecté
   if (requireAuth && !user) {
-    // Sauvegarder la page demandée pour redirection après connexion
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    // Rediriger vers la page d'auth appropriée selon l'app
+    return <Navigate to={APP_CONFIG.authRoute} state={{ from: location }} replace />;
   }
 
   // Si l'utilisateur a plusieurs rôles et n'a pas sélectionné de rôle
@@ -45,7 +46,7 @@ const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) =
   // Si l'utilisateur est connecté mais ne devrait pas accéder à cette page
   if (!requireAuth && user && location.pathname !== '/role-selection') {
     if (!primaryRole) {
-      return <Navigate to="/auth" replace />;
+      return <Navigate to={APP_CONFIG.authRoute} replace />;
     }
     
     switch (primaryRole) {
@@ -58,7 +59,7 @@ const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) =
       case 'client':
         return <Navigate to="/client" replace />;
       default:
-        return <Navigate to="/" replace />;
+        return <Navigate to={APP_CONFIG.defaultRoute} replace />;
     }
   }
 

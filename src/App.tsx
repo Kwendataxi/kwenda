@@ -12,6 +12,7 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import DynamicTheme from "@/components/theme/DynamicTheme";
 import ParticleBackground from "@/components/theme/ParticleBackground";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { APP_CONFIG, isClientApp, isDriverApp, isPartnerApp, isSpecificBuild } from "@/config/appConfig";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminAuth from "./pages/AdminAuth";
@@ -107,133 +108,151 @@ const AppContent = () => {
             <StartupExperience />
             <OnboardingRedirect>
               <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/auth" element={
-                  <OnboardingRedirect>
-                    <Auth />
-                  </OnboardingRedirect>
-                } />
-                <Route path="/admin/auth" element={
-                  <OnboardingRedirect>
-                    <AdminAuth />
-                  </OnboardingRedirect>
-                } />
-                <Route path="/partner/auth" element={
-                  <OnboardingRedirect>
-                    <PartnerAuth />
-                  </OnboardingRedirect>
-                } />
-                <Route path="/driver/auth" element={
-                  <OnboardingRedirect>
-                    <DriverAuth />
-                  </OnboardingRedirect>
-                } />
+                {/* Routes communes à toutes les apps */}
+                {!isSpecificBuild() && <Route path="/" element={<Index />} />}
+                {!isSpecificBuild() && <Route path="/onboarding" element={<Onboarding />} />}
                 <Route path="/reset-password" element={<ResetPassword />} />
+                
+                {/* Routes CLIENT uniquement */}
+                {(!isSpecificBuild() || isClientApp()) && (
+                  <>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={
+                      <OnboardingRedirect>
+                        <Auth />
+                      </OnboardingRedirect>
+                    } />
+                    <Route path="/client" element={
+                      <ProtectedRoute>
+                        <ClientApp />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/marketplace" element={<Marketplace />} />
+                    <Route path="/mes-adresses" element={<MesAdresses />} />
+                    <Route path="/transport" element={
+                      <ProtectedRoute>
+                        <TransportPage />
+                      </ProtectedRoute>
+                    } />
+                  </>
+                )}
+                
+                {/* Routes DRIVER uniquement */}
+                {(!isSpecificBuild() || isDriverApp()) && (
+                  <>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/driver/auth" element={
+                      <OnboardingRedirect>
+                        <DriverAuth />
+                      </OnboardingRedirect>
+                    } />
+                    <Route path="/chauffeur" element={
+                      <ProtectedRoute>
+                        <DriverApp />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/driver/find-partner" element={
+                      <ProtectedRoute>
+                        <DriverFindPartner />
+                      </ProtectedRoute>
+                    } />
+                  </>
+                )}
+                
+                {/* Routes PARTNER uniquement */}
+                {(!isSpecificBuild() || isPartnerApp()) && (
+                  <>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/partner/auth" element={
+                      <OnboardingRedirect>
+                        <PartnerAuth />
+                      </OnboardingRedirect>
+                    } />
+                    <Route path="/partenaire" element={
+                      <ProtectedRoute>
+                        <PartnerApp />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/partner/register" element={<PublicPartnerRegistration />} />
+                    <Route path="/partner/dashboard" element={
+                      <ProtectedRoute>
+                        <PartnerDashboard />
+                      </ProtectedRoute>
+                    } />
+                  </>
+                )}
+                
+                {/* Routes ADMIN (jamais dans les builds mobiles) */}
+                {!isSpecificBuild() && (
+                  <>
+                    <Route path="/admin/auth" element={
+                      <OnboardingRedirect>
+                        <AdminAuth />
+                      </OnboardingRedirect>
+                    } />
+                    <Route path="/admin" element={
+                      <ProtectedRoute>
+                        <AdminApp />
+                      </ProtectedRoute>
+                    } />
+                  </>
+                )}
+                
+                {/* Routes communes avec protection */}
                 <Route path="/role-selection" element={
                   <ProtectedRoute>
                     <RoleSelection />
                   </ProtectedRoute>
                 } />
-                <Route path="/client" element={
+                <Route path="/escrow" element={
                   <ProtectedRoute>
-                    <ClientApp />
-                  </ProtectedRoute>
-                } />
-                <Route path="/chauffeur" element={
-                  <ProtectedRoute>
-                    <DriverApp />
-                  </ProtectedRoute>
-                } />
-                <Route path="/partenaire" element={
-                  <ProtectedRoute>
-                    <PartnerApp />
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin" element={
-                  <ProtectedRoute>
-                    <AdminApp />
-                  </ProtectedRoute>
-                 } />
-                 <Route path="/escrow" element={
-                   <ProtectedRoute>
-                     <EscrowPage />
-                   </ProtectedRoute>
-                 } />
-                 <Route path="/driver/find-partner" element={
-                   <ProtectedRoute>
-                     <DriverFindPartner />
-                   </ProtectedRoute>
-                 } />
-                 
-                {/* Footer Pages */}
-                <Route path="/support/help-center" element={<HelpCenter />} />
-                <Route path="/support/contact" element={<Contact />} />
-                <Route path="/support/faq" element={<FAQ />} />
-                <Route path="/legal/terms" element={<Terms />} />
-                <Route path="/legal/privacy" element={<Privacy />} />
-                <Route path="/locations/kinshasa" element={<Kinshasa />} />
-                <Route path="/locations/lubumbashi" element={<Lubumbashi />} />
-                <Route path="/locations/kolwezi" element={<Kolwezi />} />
-                <Route path="/about" element={<About />} />
-                
-                {/* Transport Page */}
-                <Route path="/transport" element={
-                  <ProtectedRoute>
-                    <TransportPage />
+                    <EscrowPage />
                   </ProtectedRoute>
                 } />
                 
-                {/* Services Pages */}
-                <Route path="/services/taxi-vtc" element={<TransportVTC />} />
-                <Route path="/services/livraison-express" element={<LivraisonExpress />} />
-                <Route path="/services/location-vehicules" element={<LocationVehicules />} />
-                <Route path="/services/kwenda-tombola" element={<KwendaTombola />} />
+                {/* Pages publiques (toujours disponibles) */}
+                {!isSpecificBuild() && (
+                  <>
+                    <Route path="/support/help-center" element={<HelpCenter />} />
+                    <Route path="/support/contact" element={<Contact />} />
+                    <Route path="/support/faq" element={<FAQ />} />
+                    <Route path="/legal/terms" element={<Terms />} />
+                    <Route path="/legal/privacy" element={<Privacy />} />
+                    <Route path="/locations/kinshasa" element={<Kinshasa />} />
+                    <Route path="/locations/lubumbashi" element={<Lubumbashi />} />
+                    <Route path="/locations/kolwezi" element={<Kolwezi />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/services/taxi-vtc" element={<TransportVTC />} />
+                    <Route path="/services/livraison-express" element={<LivraisonExpress />} />
+                    <Route path="/services/location-vehicules" element={<LocationVehicules />} />
+                    <Route path="/services/kwenda-tombola" element={<KwendaTombola />} />
+                    <Route path="/partners/devenir-chauffeur" element={<DevenirChauffeur />} />
+                    <Route path="/partners/louer-vehicule" element={<LouerVehicule />} />
+                    <Route path="/partners/devenir-livreur" element={<DevenirLivreur />} />
+                    <Route path="/partners/vendre-en-ligne" element={<VendreEnLigne />} />
+                    <Route path="/support/signaler-probleme" element={<SignalerProbleme />} />
+                    <Route path="/locations/expansion" element={<Expansion />} />
+                    <Route path="/demo" element={<Demo />} />
+                    <Route path="/partner" element={<ProgrammePartenaire />} />
+                    <Route path="/locations/coverage-map" element={<CarteCouverture />} />
+                    <Route path="/tracking/:type/:id" element={<UnifiedTracking />} />
+                    
+                    {/* Test Routes (dev uniquement) */}
+                    <Route path="/test/auth-system" element={<AuthSystemTest />} />
+                    <Route path="/test/tracking" element={<TrackingTest />} />
+                    <Route path="/test/modern-tracking" element={<ModernTrackingTest />} />
+                    <Route path="/test/modern-navigation" element={<ModernNavigationTest />} />
+                    <Route path="/test/intelligent-location" element={<SmartLocationTest />} />
+                    <Route path="/test/universal-location" element={<UniversalLocationTest />} />
+                    <Route path="/test/universal-location-advanced" element={<UniversalLocationTestAdvanced />} />
+                    <Route path="/test/edge-functions" element={<EdgeFunctionTest />} />
+                    <Route path="/test/map-validation" element={<MapValidationTest />} />
+                    <Route path="/test/modern-map" element={<ModernMapDemo />} />
+                  </>
+                )}
                 
-                {/* Partners Pages */}
-                <Route path="/partners/devenir-chauffeur" element={<DevenirChauffeur />} />
-                <Route path="/partners/louer-vehicule" element={<LouerVehicule />} />
-                <Route path="/partners/devenir-livreur" element={<DevenirLivreur />} />
-                <Route path="/partners/vendre-en-ligne" element={<VendreEnLigne />} />
-                
-                {/* Support Pages */}
-                <Route path="/support/signaler-probleme" element={<SignalerProbleme />} />
-                
-                {/* Locations Pages */}
-                <Route path="/locations/expansion" element={<Expansion />} />
-                
-                {/* New Pages */}
-                <Route path="/demo" element={<Demo />} />
-                <Route path="/partner" element={<ProgrammePartenaire />} />
-                <Route path="/partner/register" element={<PublicPartnerRegistration />} />
-                <Route path="/partner/dashboard" element={
-                  <ProtectedRoute>
-                    <PartnerDashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/locations/coverage-map" element={<CarteCouverture />} />
-                <Route path="/marketplace" element={<Marketplace />} />
-                
-                {/* Address Pages */}
-                <Route path="/mes-adresses" element={<MesAdresses />} />
-                
-                {/* Tracking Routes */}
-                <Route path="/tracking/:type/:id" element={<UnifiedTracking />} />
-                
-                {/* Test Routes */}
-                <Route path="/test/auth-system" element={<AuthSystemTest />} />
-                <Route path="/test/tracking" element={<TrackingTest />} />
-        <Route path="/test/modern-tracking" element={<ModernTrackingTest />} />
-        <Route path="/test/modern-navigation" element={<ModernNavigationTest />} />
-        <Route path="/test/intelligent-location" element={<SmartLocationTest />} />
-        <Route path="/test/universal-location" element={<UniversalLocationTest />} />
-        <Route path="/test/universal-location-advanced" element={<UniversalLocationTestAdvanced />} />
-        <Route path="/test/edge-functions" element={<EdgeFunctionTest />} />
-        <Route path="/test/map-validation" element={<MapValidationTest />} />
-        <Route path="/test/modern-map" element={<ModernMapDemo />} />
-                
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </OnboardingRedirect>
           </BrowserRouter>
