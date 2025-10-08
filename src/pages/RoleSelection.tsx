@@ -22,9 +22,24 @@ const RoleSelection = () => {
   );
 
   useEffect(() => {
-    // Nettoyer l'intention après utilisation
+    // Si une intention de connexion existe (ex: connexion via /driver/auth)
     if (loginIntent) {
       localStorage.removeItem('kwenda_login_intent');
+      
+      // Vérifier si l'utilisateur a bien ce rôle
+      const availableRoles = userRoles.map(ur => ur.role as UserRole);
+      const hasIntendedRole = availableRoles.includes(loginIntent);
+      
+      if (hasIntendedRole) {
+        // Redirection automatique sans attendre le clic
+        toast({
+          title: "Redirection automatique",
+          description: `Accès à votre espace ${loginIntent === 'driver' ? 'chauffeur' : loginIntent}`,
+        });
+        setSelectedRole(loginIntent);
+        navigateToRole(loginIntent);
+        return;
+      }
     }
     
     // Si l'utilisateur n'a qu'un seul rôle, rediriger automatiquement

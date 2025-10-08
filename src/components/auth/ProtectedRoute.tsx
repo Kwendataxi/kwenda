@@ -40,6 +40,14 @@ const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) =
 
   // Si l'utilisateur a plusieurs rôles et n'a pas sélectionné de rôle
   if (user && !rolesLoading && userRoles.length > 1 && !hasSelectedRole() && location.pathname !== '/role-selection') {
+    // Vérifier s'il y a une intention de connexion (driver/partner/client)
+    const loginIntent = localStorage.getItem('kwenda_login_intent');
+    
+    // Si une intention existe, laisser RoleSelection gérer la redirection automatique
+    if (loginIntent && userRoles.some(r => r.role === loginIntent)) {
+      return <Navigate to="/role-selection" replace />;
+    }
+    
     return <Navigate to="/role-selection" replace />;
   }
 
