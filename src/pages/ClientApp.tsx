@@ -63,6 +63,8 @@ import DeliveryTracking from '@/components/delivery/DeliveryTracking';
 
 // Rental components
 import FluidRentalInterface from '@/components/rental/FluidRentalInterface';
+import ModernRentalScreen from '@/components/rental/ModernRentalScreen';
+import ModernRentalBooking from '@/components/rental/ModernRentalBooking';
 
   // Marketplace components
   import { EnhancedMarketplaceInterface } from '@/components/marketplace/EnhancedMarketplaceInterface';
@@ -474,14 +476,13 @@ const ClientApp = () => {
       );
     }
 
-    return (
-      <div className="content-with-bottom-nav">
-        <FluidRentalInterface
-          onCancel={() => setCurrentView('home')}
-          onBookingComplete={handleRentalBookingComplete}
-        />
-      </div>
-    );
+    // Check if we're in booking mode via URL
+    const pathParts = window.location.pathname.split('/');
+    if (pathParts.includes('rental-booking')) {
+      return <ModernRentalBooking />;
+    }
+
+    return <ModernRentalScreen />;
   };
 
 
@@ -662,11 +663,7 @@ const ClientApp = () => {
                 </div>
               );
             case 'rental':
-              return (
-                <div className="min-h-screen bg-background glassmorphism">
-                  {renderRentalService()}
-                </div>
-              );
+              return renderRentalService();
             case 'marketplace':
               return (
                 <EnhancedMarketplaceInterface 

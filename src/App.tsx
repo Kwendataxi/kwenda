@@ -135,6 +135,11 @@ const AppContent = () => {
                         <TransportPage />
                       </ProtectedRoute>
                     } />
+                    <Route path="/rental-booking/:vehicleId" element={
+                      <ProtectedRoute>
+                        <ClientApp />
+                      </ProtectedRoute>
+                    } />
                   </>
                 )}
                 

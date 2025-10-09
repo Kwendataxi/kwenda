@@ -108,7 +108,7 @@ export function useModernRentals(selectedCity?: string) {
         .eq("is_available", true)
         .eq("is_active", true)
         .eq("moderation_status", "approved")
-        .contains("available_cities", [userLocation])
+        .filter("available_cities", "cs", `{${userLocation}}`)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
