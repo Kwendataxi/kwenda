@@ -67,20 +67,25 @@ serve(async (req) => {
 
     console.log('✅ Notification admin créée avec succès');
 
-    // 3. Créer une notification pour le vendeur
-    const { error: vendorNotificationError } = await supabase
-      .from('user_notifications')
-      .insert({
-        user_id: payload.sellerId,
-        title: '⏳ Produit en cours de modération',
-        content: `Votre produit "${payload.productTitle}" est en cours de vérification. Vous serez notifié une fois la modération terminée.`,
-        priority: 'normal',
-        action_url: '/marketplace/my-products',
-        action_label: 'Voir mes produits'
-      });
-
-    if (vendorNotificationError) {
-      console.error('⚠️ Erreur notification vendeur:', vendorNotificationError);
+    // 3. Créer une notification pour le vendeur (non bloquant)
+    try {
+      await supabase
+        .from('push_notifications')
+        .insert({
+          user_id: payload.sellerId,
+          title: '⏳ Produit en cours de modération',
+          message: `Votre produit "${payload.productTitle}" est en cours de vérification. Vous serez notifié une fois la modération terminée.`,
+          type: 'product_status',
+          priority: 'normal',
+          data: {
+            product_id: payload.productId,
+            action_url: '/marketplace/my-products'
+          }
+        });
+      console.log('✅ Notification vendeur créée');
+    } catch (vendorError) {
+      console.error('⚠️ Erreur notification vendeur (non bloquant):', vendorError);
+      // Ne pas throw - la notification vendeur n'est pas critique
     }
 
     // 4. Logger l'activité
