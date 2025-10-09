@@ -86,14 +86,8 @@ verify_jwt = true  # ✅ PHASE 2: JWT requis pour dispatcher
 [functions.smart-ride-dispatcher]
 verify_jwt = false
 
-[functions.rental-moderation]
-verify_jwt = true
-
 [functions.auto-renew-subscriptions]
 verify_jwt = false  # Sera appelé par CRON, pas par les utilisateurs
-
-[functions.taxi-moderation]
-verify_jwt = true
 
 [functions.subscription-manager]
 verify_jwt = true
