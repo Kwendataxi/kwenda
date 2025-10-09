@@ -133,8 +133,9 @@ serve(async (req) => {
         user_id: product.seller_id,
         title: notificationTitle,
         content: notificationMessage,
-        type: 'marketplace',
-        priority: action === 'reject' ? 'high' : 'normal'
+        priority: action === 'reject' ? 'high' : 'normal',
+        action_url: '/marketplace/my-products',
+        action_label: 'Voir mes produits'
       });
 
     // 🆕 Notification vendor_notifications (enrichie avec métadonnées)

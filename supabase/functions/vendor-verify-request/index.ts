@@ -113,10 +113,11 @@ serve(async (req) => {
       .from('user_notifications')
       .insert({
         user_id: user.id,
-        notification_type: 'verification_submitted',
         title: 'Demande de vérification soumise',
-        message: 'Votre demande de vérification vendeur a été soumise avec succès. Nous examinerons votre dossier sous 24-48h.',
-        metadata: { verification_request_id: verificationRequest.id }
+        content: 'Votre demande de vérification vendeur a été soumise avec succès. Nous examinerons votre dossier sous 24-48h.',
+        priority: 'normal',
+        action_url: '/marketplace/vendor-verification',
+        action_label: 'Voir ma demande'
       });
 
     // Notification admin
@@ -128,13 +129,11 @@ serve(async (req) => {
     if (admins && admins.length > 0) {
       const adminNotifications = admins.map(admin => ({
         user_id: admin.user_id,
-        notification_type: 'new_vendor_verification',
         title: 'Nouvelle demande de vérification vendeur',
-        message: `${business_name || 'Un nouveau vendeur'} a soumis une demande de vérification`,
-        metadata: { 
-          verification_request_id: verificationRequest.id,
-          requesting_user_id: user.id
-        }
+        content: `${business_name || 'Un nouveau vendeur'} a soumis une demande de vérification`,
+        priority: 'high',
+        action_url: `/admin/vendor-verifications/${verificationRequest.id}`,
+        action_label: 'Examiner la demande'
       }));
 
       await supabase
