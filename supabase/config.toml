@@ -139,3 +139,9 @@ verify_jwt = false
 
 [functions.refresh-admin-cache]
 verify_jwt = false  # Appelé automatiquement par CRON toutes les 5 minutes
+
+[functions.notify-admin-new-product]
+verify_jwt = true  # ✅ PHASE 2: JWT requis pour création produit
+
+[functions.vendor-verify-request]
+verify_jwt = true  # ✅ PHASE 2: JWT requis pour vérification vendeur

@@ -725,8 +725,18 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
           if (notifError) {
             console.error('❌ [Marketplace] Admin notification error:', notifError);
+            // ⚠️ Ne pas bloquer la soumission si la notification échoue
+            toast({
+              title: '⚠️ Produit créé avec succès',
+              description: 'Le produit a été créé mais les notifications n\'ont pas pu être envoyées. Un administrateur sera informé.',
+              variant: 'default',
+            });
           } else {
             console.log('✅ [Marketplace] Admin notification sent successfully:', notifData);
+            toast({
+              title: "✅ Produit soumis avec succès !",
+              description: "Votre produit est en cours de modération. Vous recevrez une notification dès validation.",
+            });
           }
         } else {
           console.warn('⚠️ [Marketplace] No session available for admin notification');
