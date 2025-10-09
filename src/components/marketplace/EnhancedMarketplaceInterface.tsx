@@ -1076,13 +1076,17 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                       location: 'Kinshasa'
                     });
                     
-                    if (success) {
-                      setCurrentTab('vendor');
+                     if (success) {
                       toast({
                         title: '✅ Produit soumis avec succès!',
-                        description: 'Redirection vers votre tableau de bord vendeur...',
+                        description: 'Votre produit est en cours de modération. Vous serez notifié dès validation.',
                         duration: 5000,
                       });
+                      
+                      // Redirection automatique après 2 secondes
+                      setTimeout(() => {
+                        setCurrentTab('vendor');
+                      }, 2000);
                     }
                   }}
                 />

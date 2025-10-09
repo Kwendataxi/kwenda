@@ -73,12 +73,10 @@ serve(async (req) => {
       .insert({
         user_id: payload.sellerId,
         title: '⏳ Produit en cours de modération',
-        message: `Votre produit "${payload.productTitle}" est en cours de vérification. Vous serez notifié une fois la modération terminée.`,
-        type: 'product_status',
-        metadata: {
-          product_id: payload.productId,
-          status: 'pending'
-        }
+        content: `Votre produit "${payload.productTitle}" est en cours de vérification. Vous serez notifié une fois la modération terminée.`,
+        priority: 'normal',
+        action_url: '/marketplace/my-products',
+        action_label: 'Voir mes produits'
       });
 
     if (vendorNotificationError) {
