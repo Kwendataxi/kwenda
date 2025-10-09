@@ -56,13 +56,13 @@ export const ModernHomeScreen = ({
   }, [primaryRole, roleLoading, navigate]);
 
   return (
-    <div className="h-screen grid grid-rows-[auto_1fr_auto] bg-background">
-      {/* Header - Position naturelle dans la grille */}
+    <div className="h-full flex flex-col bg-background">
+      {/* Header */}
       <ModernHeader />
       
-      {/* Contenu scrollable - Prend tout l'espace restant */}
-      <main 
-        className="overflow-y-auto overflow-x-hidden scrollbar-hide"
+      {/* Contenu scrollable */}
+      <div 
+        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
         style={{ 
           touchAction: 'pan-y', 
           WebkitOverflowScrolling: 'touch'
@@ -91,15 +91,7 @@ export const ModernHomeScreen = ({
             </div>
           </div>
         </div>
-      </main>
-
-      {/* Navigation - Position naturelle dans la grille (toujours visible en bas) */}
-      <ModernBottomNavigation
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        notificationCount={3}
-        favoritesCount={5}
-      />
+      </div>
     </div>
   );
 };

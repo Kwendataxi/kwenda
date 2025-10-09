@@ -139,6 +139,9 @@ const ClientApp = () => {
   const [serviceType, setServiceType] = useState('transport');
   const [isLoading, setIsLoading] = useState(false);
   
+  // Bottom navigation state
+  const [activeTab, setActiveTab] = useState('home');
+  
   // Transport states
   const [activeBooking, setActiveBooking] = useState<any>(null);
   const [isTripChatOpen, setIsTripChatOpen] = useState(false);
@@ -258,6 +261,7 @@ const ClientApp = () => {
   const handleServiceSelect = (service: string) => {
     if (service === 'history' || service === 'activity') {
       setCurrentView('history');
+      setActiveTab('activity');
       return;
     }
     if (service === 'lottery' || service === 'tombola') {
@@ -266,16 +270,33 @@ const ClientApp = () => {
     }
     if (service === 'profil' || service === 'profile') {
       setCurrentView('profil');
+      setActiveTab('profil');
       return;
     }
     setServiceType(service);
     setCurrentView('service');
+    setActiveTab('home');
     if (service === 'delivery') {
       setDeliveryStep('interface');
     } else if (service === 'marketplace') {
       // Marketplace handled by EnhancedMarketplaceInterface
     } else if (service === 'rental') {
       setRentalStep('interface');
+    }
+  };
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    switch (tab) {
+      case 'home':
+        setCurrentView('home');
+        break;
+      case 'activity':
+        setCurrentView('history');
+        break;
+      case 'profil':
+        setCurrentView('profil');
+        break;
     }
   };
 
@@ -609,8 +630,9 @@ const ClientApp = () => {
 
   return (
     <ChatProvider>
-      <div className={`mobile-safe-layout ${optimizations.reducedAnimations ? 'reduce-animations' : ''} ${optimizations.cacheEnabled ? 'memory-efficient' : ''}`}>
-        <main className="flex-1 overflow-y-auto content-scrollable">
+      <div className="h-screen grid grid-rows-[1fr_auto] bg-background">
+        {/* Contenu scrollable */}
+        <main className="overflow-y-auto overflow-x-hidden scrollbar-hide pb-[90px]">
         {/* Connection Indicator - Hidden */}
         {/* <ConnectionIndicator /> */}
         
@@ -783,6 +805,14 @@ const ClientApp = () => {
       ))}
       
         </main>
+        
+        {/* Footer de navigation fixe global */}
+        <ModernBottomNavigation
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          notificationCount={0}
+          favoritesCount={0}
+        />
         
         {/* Toast notifications */}
         <div id="toast-container" />
