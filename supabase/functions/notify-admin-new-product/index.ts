@@ -1,3 +1,7 @@
+// Version 2.0 - Fix: Use vendor_notifications instead of push_notifications
+// Deployed: 2025-10-09
+// Forcer le redéploiement pour résoudre l'erreur "column message does not exist"
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -67,22 +71,26 @@ serve(async (req) => {
 
     console.log('✅ Notification admin créée avec succès');
 
-    // 3. Créer une notification pour le vendeur (non bloquant)
+    // 3. Créer une notification pour le vendeur via vendor_notifications (non bloquant)
     try {
       await supabase
-        .from('push_notifications')
+        .from('vendor_notifications')
         .insert({
-          user_id: payload.sellerId,
+          vendor_id: payload.sellerId,
+          order_id: payload.productId, // Utilisé comme reference pour le produit
+          notification_type: 'product_moderation',
           title: '⏳ Produit en cours de modération',
           message: `Votre produit "${payload.productTitle}" est en cours de vérification. Vous serez notifié une fois la modération terminée.`,
-          type: 'product_status',
           priority: 'normal',
-          data: {
+          metadata: {
             product_id: payload.productId,
+            product_title: payload.productTitle,
+            product_category: payload.productCategory,
+            product_price: payload.productPrice,
             action_url: '/marketplace/my-products'
           }
         });
-      console.log('✅ Notification vendeur créée');
+      console.log('✅ Notification vendeur créée via vendor_notifications');
     } catch (vendorError) {
       console.error('⚠️ Erreur notification vendeur (non bloquant):', vendorError);
       // Ne pas throw - la notification vendeur n'est pas critique

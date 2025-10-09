@@ -126,17 +126,7 @@ serve(async (req) => {
       ? `Votre produit "${product.title}" a été approuvé et est maintenant visible sur la marketplace.`
       : `Votre produit "${product.title}" a été rejeté. Raison: ${rejectionReason || 'Non spécifiée'}`;
 
-    // Notification user_notifications (existante)
-    await supabase
-      .from('user_notifications')
-      .insert({
-        user_id: product.seller_id,
-        title: notificationTitle,
-        content: notificationMessage,
-        priority: action === 'reject' ? 'high' : 'normal',
-        action_url: '/marketplace/my-products',
-        action_label: 'Voir mes produits'
-      });
+    // ✅ NETTOYÉ : Utiliser uniquement vendor_notifications au lieu du double insert
 
     // 🆕 Notification vendor_notifications (enrichie avec métadonnées)
     const vendorNotificationType = action === 'approve' ? 'product_approved' : 'product_rejected';

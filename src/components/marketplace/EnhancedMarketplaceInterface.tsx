@@ -716,12 +716,46 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           };
           console.log('📧 [Marketplace] Notification payload:', notificationPayload);
 
-          const { data: notifData, error: notifError } = await supabase.functions.invoke('notify-admin-new-product', {
-            headers: {
-              Authorization: `Bearer ${session.access_token}`
-            },
-            body: notificationPayload
-          });
+          // ✅ Retry logic pour gérer les déploiements en cours
+          let retryCount = 0;
+          const maxRetries = 2;
+          let notifData = null;
+          let notifError = null;
+
+          while (retryCount <= maxRetries) {
+            try {
+              const result = await supabase.functions.invoke('notify-admin-new-product', {
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`
+                },
+                body: notificationPayload
+              });
+
+              notifData = result.data;
+              notifError = result.error;
+
+              if (!notifError) {
+                console.log('✅ Notifications sent successfully');
+                break;
+              }
+              
+              if (retryCount < maxRetries) {
+                console.log(`⚠️ Retry ${retryCount + 1}/${maxRetries}`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                retryCount++;
+              } else {
+                throw notifError;
+              }
+            } catch (err) {
+              if (retryCount >= maxRetries) {
+                console.error('❌ Max retries reached');
+                notifError = err;
+                break;
+              }
+              retryCount++;
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
 
           if (notifError) {
             console.error('❌ [Marketplace] Admin notification error:', notifError);
