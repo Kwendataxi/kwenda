@@ -103,59 +103,6 @@ const ModernHero = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-4 pt-4">
-              {/* 2 boutons modernes Client et Chauffeur */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto w-full">
-                <Link to="/auth" className="w-full">
-                  <Button 
-                    size="lg" 
-                    className="w-full h-20 bg-gradient-to-br from-red-500 via-red-600 to-pink-600 hover:from-red-600 hover:via-red-700 hover:to-pink-700 text-white flex flex-col items-center justify-center gap-1.5 rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group"
-                  >
-                    <span className="text-4xl mb-1 group-hover:scale-110 transition-transform">👤</span>
-                    <div className="text-center">
-                      <div className="font-bold text-lg">Client</div>
-                      <div className="text-xs opacity-90">Réserver et commander</div>
-                    </div>
-                  </Button>
-                </Link>
-                <Link to="/driver/auth" className="w-full">
-                  <Button 
-                    size="lg" 
-                    className="w-full h-20 bg-gradient-to-br from-orange-500 via-amber-600 to-yellow-600 hover:from-orange-600 hover:via-amber-700 hover:to-yellow-700 text-white flex flex-col items-center justify-center gap-1.5 rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group"
-                  >
-                    <span className="text-4xl mb-1 group-hover:scale-110 transition-transform">🚗</span>
-                    <div className="text-center">
-                      <div className="font-bold text-lg">Chauffeur / Livreur</div>
-                      <div className="text-xs opacity-90">Transporter et livrer</div>
-                    </div>
-                  </Button>
-                </Link>
-              </div>
-              
-              <div className="flex justify-center pt-2">
-                <Link to="/demo">
-                  <Button variant="outline" size="lg" className="text-body-lg px-8 py-4 border-congo-yellow border-2 hover:bg-congo-yellow/20 text-congo-yellow group rounded-xl">
-                    <Play className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
-                    {t('hero.view_demo')}
-                  </Button>
-                </Link>
-              </div>
-              
-              {/* Lien inscription Chauffeur */}
-              <div className="flex justify-center text-center">
-                <Link to="/partners/devenir-chauffeur" className="w-full max-w-md">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="w-full border-primary/30 hover:bg-primary/10 text-primary group"
-                  >
-                    🚗 Devenir Chauffeur
-                    <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
 
           </div>
 
