@@ -24,11 +24,12 @@ export const useDeliveryOrders = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
-  // Validation des numéros de téléphone
+  // Validation des numéros de téléphone (assouplie)
   const validatePhoneNumber = (phone: string | undefined): boolean => {
     if (!phone) return false;
-    // Regex identique à celle de la contrainte DB: +243878754545 ou 243878754545 ou 0878754545
-    return /^\+?[0-9]{9,15}$/.test(phone);
+    // Accepter formats internationaux et locaux
+    const cleanPhone = phone.replace(/\s/g, '');
+    return /^\+?[0-9]{9,15}$/.test(cleanPhone) || /^0[0-9]{9}$/.test(cleanPhone);
   };
 
   const createDeliveryOrder = async (data: DeliveryData) => {

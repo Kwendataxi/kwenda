@@ -8758,6 +8758,7 @@ export type Database = {
           expires_at: string | null
           id: string
           is_read: boolean
+          message: string | null
           priority: string
           read_at: string | null
           title: string
@@ -8773,6 +8774,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_read?: boolean
+          message?: string | null
           priority?: string
           read_at?: string | null
           title: string
@@ -8788,6 +8790,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_read?: boolean
+          message?: string | null
           priority?: string
           read_at?: string | null
           title?: string
