@@ -13,6 +13,7 @@ import { ChatProvider } from '@/components/chat/ChatProvider';
 // Components
 import { CategoryFilter } from './CategoryFilter';
 import { SearchBar } from './SearchBar';
+import { ImageUploadProgress, ImageUploadStatus } from './ImageUploadProgress';
 import { CompactProductCard } from './CompactProductCard';
 import { ModernShoppingCart } from './ModernShoppingCart';
 import { ProductDetailsDialog } from './ProductDetailsDialog';
@@ -113,6 +114,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const [currentTab, setCurrentTab] = useState<'shop' | 'sell' | 'orders' | 'escrow' | 'vendor'>('shop');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [imageUploadStatuses, setImageUploadStatuses] = useState<ImageUploadStatus[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -601,6 +603,11 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           const { data: uploadData, error: uploadError } = await uploadWithRetry(file, fileName);
 
           if (uploadError) {
+            // Update status to error
+            setImageUploadStatuses(prev => prev.map((status, idx) => 
+              idx === i ? { ...status, status: 'error', error: uploadError.message } : status
+            ));
+            
             console.error('❌ [Marketplace] Image upload error:', {
               message: uploadError.message,
               fileName: fileName,
@@ -608,7 +615,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
               attempts: 'Max retries reached'
             });
 
-            // ✅ Logger l'erreur pour debug admin
             await supabase.from('activity_logs').insert({
               user_id: user.id,
               activity_type: 'product_image_upload_failed',
@@ -621,21 +627,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
               }
             });
 
-            const errorType = uploadError.message.includes('fetch') 
-              ? 'Problème réseau' 
-              : uploadError.message.includes('timeout')
-              ? 'Timeout dépassé'
-              : uploadError.message.includes('permission')
-              ? 'Permissions insuffisantes'
-              : 'Erreur inconnue';
-
-            toast({
-              title: `❌ Erreur upload image ${i + 1}`,
-              description: `${errorType}: ${uploadError.message}. Le produit sera créé sans images.`,
-              variant: 'destructive',
-            });
-
-            // ✅ Continue sans cette image au lieu de bloquer
             console.warn(`⚠️ Continuing without image ${i + 1}`);
             continue;
           }
@@ -644,6 +635,11 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           const { data: { publicUrl } } = supabase.storage
             .from('marketplace-products')
             .getPublicUrl(fileName);
+          
+          // Update status to success
+          setImageUploadStatuses(prev => prev.map((status, idx) => 
+            idx === i ? { ...status, status: 'success', progress: 100, url: publicUrl } : status
+          ));
           
           console.log(`✅ [Marketplace] Image ${i + 1} uploaded:`, publicUrl);
           imageUrls.push(publicUrl);
@@ -700,6 +696,9 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         title: data.title,
         status: data.moderation_status
       });
+
+      // Clear image upload statuses
+      setImageUploadStatuses([]);
 
       // ✅ Appeler la edge function pour notifier les admins
       console.log('📧 [Marketplace] Notifying admins about new product');
@@ -1134,6 +1133,16 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                     }
                   }}
                 />
+                
+                {/* Image Upload Progress */}
+                {imageUploadStatuses.length > 0 && (
+                  <ImageUploadProgress
+                    images={imageUploadStatuses}
+                    onRemove={(index) => {
+                      setImageUploadStatuses(prev => prev.filter((_, i) => i !== index));
+                    }}
+                  />
+                )}
               </div>
             </VerifiedSellerGuard>
           </TabsContent>

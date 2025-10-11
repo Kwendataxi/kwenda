@@ -76,6 +76,8 @@ import PublicPartnerRegistration from "./pages/partner/PublicPartnerRegistration
 import PartnerDashboard from "./pages/partner/PartnerDashboard";
 import UnifiedTracking from "./pages/UnifiedTracking";
 import DriverRegistration from "./pages/DriverRegistration";
+import VendorShop from "./pages/VendorShop";
+import VendorOrders from "./pages/VendorOrders";
 
 const queryClient = new QueryClient();
 
@@ -129,6 +131,12 @@ const AppContent = () => {
                       </ProtectedRoute>
                     } />
                     <Route path="/marketplace" element={<Marketplace />} />
+                    <Route path="/marketplace/shop/:vendorId" element={<VendorShop />} />
+                    <Route path="/vendor/orders" element={
+                      <ProtectedRoute>
+                        <VendorOrders />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/mes-adresses" element={<MesAdresses />} />
                     <Route path="/transport" element={
                       <ProtectedRoute>

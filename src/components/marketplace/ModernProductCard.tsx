@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Star, ShoppingCart, Heart, Eye, MapPin, Shield, TrendingUp } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
+import { ProductShareButtons } from './ProductShareButtons';
 
 interface Product {
   id: string;
@@ -216,6 +217,19 @@ export const ModernProductCard: React.FC<ModernProductCardProps> = ({
           <ShoppingCart className="w-5 h-5 mr-2" />
           {product.inStock ? 'J\'achète' : 'Indisponible'}
         </Button>
+
+        {/* Share Buttons */}
+        <div className="mt-3 pt-3 border-t">
+          <ProductShareButtons
+            productId={product.id}
+            productTitle={product.name}
+            productPrice={product.price}
+            productImage={product.image}
+            sellerName={product.seller}
+            vendorId={product.seller}
+            compact
+          />
+        </div>
       </CardContent>
     </Card>
   );

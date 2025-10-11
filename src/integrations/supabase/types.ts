@@ -3842,6 +3842,44 @@ export type Database = {
           },
         ]
       }
+      marketplace_share_analytics: {
+        Row: {
+          clicks: number | null
+          conversions: number | null
+          id: string
+          product_id: string | null
+          share_type: string
+          shared_at: string | null
+          vendor_id: string
+        }
+        Insert: {
+          clicks?: number | null
+          conversions?: number | null
+          id?: string
+          product_id?: string | null
+          share_type: string
+          shared_at?: string | null
+          vendor_id: string
+        }
+        Update: {
+          clicks?: number | null
+          conversions?: number | null
+          id?: string
+          product_id?: string | null
+          share_type?: string
+          shared_at?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_share_analytics_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       merchant_accounts: {
         Row: {
           balance: number
@@ -9505,6 +9543,45 @@ export type Database = {
           sound_played?: boolean
           title?: string
           vendor_id?: string
+        }
+        Relationships: []
+      }
+      vendor_profiles: {
+        Row: {
+          average_rating: number | null
+          created_at: string | null
+          follower_count: number | null
+          id: string
+          shop_banner_url: string | null
+          shop_description: string | null
+          shop_name: string
+          total_sales: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          average_rating?: number | null
+          created_at?: string | null
+          follower_count?: number | null
+          id?: string
+          shop_banner_url?: string | null
+          shop_description?: string | null
+          shop_name: string
+          total_sales?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          average_rating?: number | null
+          created_at?: string | null
+          follower_count?: number | null
+          id?: string
+          shop_banner_url?: string | null
+          shop_description?: string | null
+          shop_name?: string
+          total_sales?: number | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

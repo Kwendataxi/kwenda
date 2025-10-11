@@ -36,6 +36,8 @@ import { MobileVendorStats } from './mobile/MobileVendorStats';
 import { MobileVendorTabs } from './mobile/MobileVendorTabs';
 import { MobileProductCard } from './mobile/MobileProductCard';
 import { VendorPendingProductsAlert } from './VendorPendingProductsAlert';
+import { VendorShopSettings } from './VendorShopSettings';
+import { VendorShopShareButtons } from './VendorShopShareButtons';
 
 interface VendorDashboardProps {
   onProductUpdate: () => void;
@@ -487,6 +489,27 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onProductUpdat
   const renderRevenueTab = () => (
     <div className={isMobile ? "px-4 pb-20" : ""}>
       <VendorRevenueDashboard />
+    </div>
+  );
+
+  const renderSettingsTab = () => (
+    <div className={isMobile ? "px-4 pb-20" : ""}>
+      <div className="grid gap-4 max-w-2xl mx-auto">
+        <VendorShopSettings />
+        <Card>
+          <CardHeader>
+            <CardTitle>Partager ma boutique</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <VendorShopShareButtons
+              vendorId={user?.id || ''}
+              vendorName={user?.user_metadata?.display_name || 'Ma Boutique'}
+              productCount={myProducts.length}
+              rating={0}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 
