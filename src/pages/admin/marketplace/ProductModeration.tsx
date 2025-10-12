@@ -140,11 +140,17 @@ export const ProductModeration = () => {
       if (error) throw error;
 
       // ✅ Créer notification pour le vendeur
-      const { error: notifError } = await supabase.from("user_notifications").insert({
-        user_id: product.seller_id,
+      const { error: notifError } = await supabase.from("vendor_product_notifications").insert({
+        vendor_id: product.seller_id,
+        product_id: productId,
+        notification_type: 'product_approved',
         title: "✅ Produit approuvé",
-        content: `Félicitations ! Votre produit "${product.title}" a été approuvé et est maintenant visible sur la marketplace.`,
-        priority: 'normal',
+        message: `Félicitations ! Votre produit "${product.title}" a été approuvé et est maintenant visible sur la marketplace.`,
+        priority: 'high',
+        metadata: {
+          product_id: productId,
+          approved_at: new Date().toISOString()
+        }
       });
 
       if (notifError) {
@@ -195,11 +201,17 @@ export const ProductModeration = () => {
       if (error) throw error;
 
       // Créer notification pour le vendeur
-      const { error: notifError } = await supabase.from("user_notifications").insert({
-        user_id: selectedProduct.seller_id,
+      const { error: notifError } = await supabase.from("vendor_product_notifications").insert({
+        vendor_id: selectedProduct.seller_id,
+        product_id: selectedProduct.id,
+        notification_type: 'product_rejected',
         title: "❌ Produit rejeté",
-        content: `Votre produit "${selectedProduct.title}" a été rejeté. Raison: ${rejectionReason}`,
+        message: `Votre produit "${selectedProduct.title}" a été rejeté. Raison: ${rejectionReason}`,
         priority: 'high',
+        metadata: {
+          product_id: selectedProduct.id,
+          rejection_reason: rejectionReason
+        }
       });
 
       if (notifError) {

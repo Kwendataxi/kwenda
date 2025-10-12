@@ -78,6 +78,7 @@ import UnifiedTracking from "./pages/UnifiedTracking";
 import DriverRegistration from "./pages/DriverRegistration";
 import VendorShop from "./pages/VendorShop";
 import VendorOrders from "./pages/VendorOrders";
+import MyProducts from "./pages/marketplace/MyProducts";
 
 const queryClient = new QueryClient();
 
@@ -132,6 +133,11 @@ const AppContent = () => {
                     } />
                     <Route path="/marketplace" element={<Marketplace />} />
                     <Route path="/marketplace/shop/:vendorId" element={<VendorShop />} />
+                    <Route path="/marketplace/my-products" element={
+                      <ProtectedRoute>
+                        <MyProducts />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/vendor/orders" element={
                       <ProtectedRoute>
                         <VendorOrders />

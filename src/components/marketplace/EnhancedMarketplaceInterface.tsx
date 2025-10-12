@@ -700,83 +700,67 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       // Clear image upload statuses
       setImageUploadStatuses([]);
 
-      // ✅ Appeler la edge function pour notifier les admins
-      console.log('📧 [Marketplace] Notifying admins about new product');
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          console.log('🔐 [Marketplace] Session found, calling notify-admin-new-product');
-          const notificationPayload = {
-            productId: data.id,
-            sellerId: user?.id,
-            productTitle: data.title,
-            productCategory: data.category,
-            productPrice: data.price
-          };
-          console.log('📧 [Marketplace] Notification payload:', notificationPayload);
+      // ✅ Notifications DIRECTES (sans Edge Function)
+      console.log('📧 [Marketplace] Sending direct notifications');
+      
+      // 1. Log activity
+      await supabase.from('activity_logs').insert({
+        user_id: user.id,
+        activity_type: 'product_created',
+        description: `Produit créé: ${data.title}`,
+        metadata: { product_id: data.id }
+      });
 
-          // ✅ Retry logic pour gérer les déploiements en cours
-          let retryCount = 0;
-          const maxRetries = 2;
-          let notifData = null;
-          let notifError = null;
-
-          while (retryCount <= maxRetries) {
-            try {
-              const result = await supabase.functions.invoke('notify-admin-new-product', {
-                headers: {
-                  Authorization: `Bearer ${session.access_token}`
-                },
-                body: notificationPayload
-              });
-
-              notifData = result.data;
-              notifError = result.error;
-
-              if (!notifError) {
-                console.log('✅ Notifications sent successfully');
-                break;
-              }
-              
-              if (retryCount < maxRetries) {
-                console.log(`⚠️ Retry ${retryCount + 1}/${maxRetries}`);
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                retryCount++;
-              } else {
-                throw notifError;
-              }
-            } catch (err) {
-              if (retryCount >= maxRetries) {
-                console.error('❌ Max retries reached');
-                notifError = err;
-                break;
-              }
-              retryCount++;
-              await new Promise(resolve => setTimeout(resolve, 1000));
-            }
+      // 2. Notification admin DIRECTE
+      const { error: adminNotifError } = await supabase
+        .from('admin_notifications')
+        .insert({
+          type: 'product_moderation',
+          severity: 'info',
+          title: '📦 Nouveau produit à modérer',
+          message: `${user.email} a publié "${data.title}" - ${data.price} CDF`,
+          data: {
+            product_id: data.id,
+            seller_id: user.id
           }
-
-          if (notifError) {
-            console.error('❌ [Marketplace] Admin notification error:', notifError);
-            // ⚠️ Ne pas bloquer la soumission si la notification échoue
-            toast({
-              title: '⚠️ Produit créé avec succès',
-              description: 'Le produit a été créé mais les notifications n\'ont pas pu être envoyées. Un administrateur sera informé.',
-              variant: 'default',
-            });
-          } else {
-            console.log('✅ [Marketplace] Admin notification sent successfully:', notifData);
-            toast({
-              title: "✅ Produit soumis avec succès !",
-              description: "Votre produit est en cours de modération. Vous recevrez une notification dès validation.",
-            });
-          }
-        } else {
-          console.warn('⚠️ [Marketplace] No session available for admin notification');
-        }
-      } catch (notifError) {
-        console.error('❌ [Marketplace] Error in admin notification process:', notifError);
+        });
+      
+      if (adminNotifError) {
+        console.error('❌ [Marketplace] Admin notification error:', adminNotifError);
+      } else {
+        console.log('✅ [Marketplace] Admin notification sent successfully');
       }
+
+      // 3. Notification vendeur DIRECTE
+      const { error: vendorNotifError } = await supabase
+        .from('vendor_product_notifications')
+        .insert({
+          vendor_id: user.id,
+          product_id: data.id,
+          notification_type: 'product_submitted',
+          title: '✅ Produit soumis',
+          message: `Votre produit "${data.title}" est en cours de modération (24-48h)`,
+          priority: 'normal',
+          metadata: {
+            product_id: data.id,
+            product_title: data.title
+          }
+        });
+      
+      if (vendorNotifError) {
+        console.error('❌ [Marketplace] Vendor notification error:', vendorNotifError);
+      } else {
+        console.log('✅ [Marketplace] Vendor notification sent successfully');
+      }
+
+      // 4. Toast de confirmation et redirection vers vendor
+      toast({
+        title: "✅ Produit soumis avec succès !",
+        description: "Votre produit sera modéré sous 24-48h. Vous recevrez une notification.",
+      });
+
+      // 5. Redirection vers Vue vendeur
+      setCurrentTab('vendor');
 
       // Reload products
       console.log('🔄 [Marketplace] Reloading products list');
