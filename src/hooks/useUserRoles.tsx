@@ -171,11 +171,13 @@ export const useUserRoles = (): UseUserRolesReturn => {
   };
 
   // Calculer le rôle principal : utiliser le rôle sélectionné si disponible
-  // Pour les utilisateurs multi-rôles, on force à null pour déclencher /role-selection
+  // Pour les utilisateurs multi-rôles, respecter l'intention de connexion
+  const loginIntent = localStorage.getItem('kwenda_login_intent') as UserRole | null;
+  
   const primaryRole: UserRole | null = selectedRole || (
     userRoles.length === 1 
       ? userRoles[0]?.role || null  // Un seul rôle → on le prend
-      : null  // Plusieurs rôles → on force à null pour déclencher /role-selection
+      : (loginIntent && userRoles.some(r => r.role === loginIntent) ? loginIntent : null)  // Multi-rôles → utiliser loginIntent
   );
 
   // Obtenir le rôle admin s'il existe

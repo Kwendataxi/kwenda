@@ -13,6 +13,7 @@ import SimplifiedInterface from '@/components/ui/SimplifiedInterface';
 import MobileMoneyPayment from '@/components/advanced/MobileMoneyPayment';
 import { ReferralPanel } from '@/components/profile/ReferralPanel';
 import NotificationCenter from '@/components/advanced/NotificationCenter';
+import SimpleTaxiBooking from '@/components/transport/SimpleTaxiBooking';
 import OfflineMode from '@/components/advanced/OfflineMode';
 import SecurityVerification from '@/components/advanced/SecurityVerification';
 import { ResponsiveUserProfile } from '@/components/profile/ResponsiveUserProfile';

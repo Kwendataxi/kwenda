@@ -681,20 +681,28 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         .select()
         .single();
 
+      console.log('🧪 [DEBUG] Product insert result:', { data, error });
+
       if (error) {
-        console.error('❌ [Marketplace] Error creating product:', error);
+        console.error('❌ [DEBUG] Product insert error:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         toast({
           title: '❌ Erreur de création',
-          description: error.message || 'Impossible de créer le produit. Veuillez réessayer.',
+          description: `${error.message} - Vérifiez les logs de la console`,
           variant: 'destructive',
         });
         return false;
       }
 
-      console.log('✅ [Marketplace] Product created successfully:', {
+      console.log('✅ [DEBUG] Product created successfully:', {
         id: data.id,
         title: data.title,
-        status: data.moderation_status
+        status: data.moderation_status,
+        seller_id: data.seller_id
       });
 
       // Clear image upload statuses
