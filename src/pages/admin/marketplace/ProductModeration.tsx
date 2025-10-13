@@ -240,9 +240,35 @@ export const ProductModeration = () => {
   };
 
   const getImageUrl = (images: any): string => {
-    if (!images) return "/placeholder.svg";
-    const imageArray = Array.isArray(images) ? images : [];
-    return imageArray[0] || "/placeholder.svg";
+    console.log('🖼️ [ProductModeration] getImageUrl input:', images, typeof images);
+    
+    if (!images) {
+      console.warn('⚠️ No images provided, using placeholder');
+      return "/placeholder.svg";
+    }
+    
+    // Si c'est déjà un array
+    if (Array.isArray(images)) {
+      const firstImage = images[0];
+      console.log('✅ Array detected, first image:', firstImage);
+      return firstImage || "/placeholder.svg";
+    }
+    
+    // Si c'est un JSONB string (possible avec Supabase)
+    if (typeof images === 'string') {
+      try {
+        const parsed = JSON.parse(images);
+        if (Array.isArray(parsed)) {
+          console.log('✅ Parsed JSONB array, first image:', parsed[0]);
+          return parsed[0] || "/placeholder.svg";
+        }
+      } catch (e) {
+        console.warn('⚠️ Failed to parse images string:', e);
+      }
+    }
+    
+    console.warn('⚠️ Unknown image format, using placeholder');
+    return "/placeholder.svg";
   };
 
   if (loading) {
