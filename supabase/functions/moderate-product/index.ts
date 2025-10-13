@@ -126,12 +126,9 @@ serve(async (req) => {
       ? `Votre produit "${product.title}" a été approuvé et est maintenant visible sur la marketplace.`
       : `Votre produit "${product.title}" a été rejeté. Raison: ${rejectionReason || 'Non spécifiée'}`;
 
-    // ✅ NETTOYÉ : Utiliser uniquement vendor_notifications au lieu du double insert
-
-    // 🆕 Notification vendor_notifications (enrichie avec métadonnées)
+    // ✅ Notification vendeur (vendor_product_notifications)
     const vendorNotificationType = action === 'approve' ? 'product_approved' : 'product_rejected';
-    const vendorNotificationData = {
-      product_id: productId,
+    const vendorNotificationMetadata = {
       product_title: product.title,
       product_image: product.images?.[0] || null,
       action,
@@ -140,17 +137,23 @@ serve(async (req) => {
       moderated_at: new Date().toISOString()
     };
 
-    await supabase
-      .from('vendor_notifications')
+    const { error: notificationError } = await supabase
+      .from('vendor_product_notifications')
       .insert({
-        user_id: product.seller_id,
-        type: vendorNotificationType,
+        vendor_id: product.seller_id,
+        product_id: productId,
+        notification_type: vendorNotificationType,
         title: notificationTitle,
         message: notificationMessage,
-        priority: action === 'reject' ? 'urgent' : 'high',
-        data: vendorNotificationData,
-        requires_action: action === 'reject'
+        metadata: vendorNotificationMetadata,
+        is_read: false
       });
+
+    if (notificationError) {
+      console.error('❌ Error creating vendor notification:', notificationError);
+    } else {
+      console.log('✅ Vendor notification created:', vendorNotificationType);
+    }
 
     console.log('✅ Vendor notification created:', vendorNotificationType);
 
