@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { SellerModerationPanel } from './marketplace/SellerModerationPanel';
 import { SellerVerificationPanel } from './marketplace/SellerVerificationPanel';
 import { ProductAnalyticsDashboard } from './marketplace/ProductAnalyticsDashboard';
-import { ProductModerationQueue } from './marketplace/ProductModerationQueue';
+
 
 export function AdminMarketplaceManager() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -189,16 +189,8 @@ export function AdminMarketplaceManager() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-          <TabsTrigger value="moderation" className="relative">
-            Modération
-            {stats && stats.pendingModeration > 0 && (
-              <Badge variant="destructive" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
-                {stats.pendingModeration}
-              </Badge>
-            )}
-          </TabsTrigger>
           <TabsTrigger value="products">Produits</TabsTrigger>
           <TabsTrigger value="orders">Commandes</TabsTrigger>
           <TabsTrigger value="sellers">Vendeurs</TabsTrigger>
@@ -261,9 +253,6 @@ export function AdminMarketplaceManager() {
           </div>
         </TabsContent>
 
-        <TabsContent value="moderation" className="space-y-6">
-          <ProductModerationQueue />
-        </TabsContent>
 
         <TabsContent value="products" className="space-y-6">
           <div className="flex items-center space-x-2">

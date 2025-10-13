@@ -120,14 +120,14 @@ const AdminDashboard = () => {
 
       {/* Main Management Tabs */}
       <Tabs defaultValue="partners" className="w-full">
-        <TabsList className="grid w-full grid-cols-13">
+        <TabsList className="grid w-full grid-cols-12">
           <TabsTrigger value="partners">Partenaires</TabsTrigger>
           <TabsTrigger value="moderation">Modération</TabsTrigger>
           <TabsTrigger value="rental">Location</TabsTrigger>
           <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
-          <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
+          <TabsTrigger value="marketplace">Vendeurs</TabsTrigger>
           <TabsTrigger value="product-moderation" className="relative">
-            Produits
+            Modération Produits
             {(dashboardData?.pendingProducts ?? 0) > 0 && (
               <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
                 {dashboardData?.pendingProducts}

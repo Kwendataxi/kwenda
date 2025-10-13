@@ -44,6 +44,7 @@ export const ProductModerationPanel: React.FC = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   // Fonction pour charger les produits (mémorisée)
   const loadProducts = useCallback(async () => {
@@ -58,6 +59,10 @@ export const ProductModerationPanel: React.FC = () => {
 
       if (filterStatus !== 'all') {
         query = query.eq('moderation_status', filterStatus);
+      }
+
+      if (categoryFilter !== 'all') {
+        query = query.eq('category', categoryFilter);
       }
 
       const { data: productsData, error } = await query;
@@ -127,7 +132,7 @@ export const ProductModerationPanel: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [filterStatus, toast]);
+  }, [filterStatus, categoryFilter, toast]);
 
   // Effect 1: Vérifier les permissions admin (sans useCallback pour éviter la boucle)
   useEffect(() => {
@@ -263,22 +268,42 @@ export const ProductModerationPanel: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold">Modération des produits</h2>
           <p className="text-muted-foreground">Approuver ou rejeter les produits soumis par les vendeurs</p>
         </div>
-        <Select value={filterStatus} onValueChange={(v: any) => setFilterStatus(v)}>
-          <SelectTrigger className="w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les produits</SelectItem>
-            <SelectItem value="pending">En attente</SelectItem>
-            <SelectItem value="approved">Approuvés</SelectItem>
-            <SelectItem value="rejected">Rejetés</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2">
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filtrer par catégorie" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les catégories</SelectItem>
+              <SelectItem value="electronics">Électronique</SelectItem>
+              <SelectItem value="fashion">Mode & Vêtements</SelectItem>
+              <SelectItem value="home">Maison & Jardin</SelectItem>
+              <SelectItem value="beauty">Beauté & Santé</SelectItem>
+              <SelectItem value="sports">Sports & Loisirs</SelectItem>
+              <SelectItem value="food">Alimentation</SelectItem>
+              <SelectItem value="auto">Automobile</SelectItem>
+              <SelectItem value="books">Livres & Éducation</SelectItem>
+              <SelectItem value="baby">Jouets & Bébé</SelectItem>
+              <SelectItem value="games">Jeux Vidéo</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterStatus} onValueChange={(v: any) => setFilterStatus(v)}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les produits</SelectItem>
+              <SelectItem value="pending">En attente</SelectItem>
+              <SelectItem value="approved">Approuvés</SelectItem>
+              <SelectItem value="rejected">Rejetés</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {loading ? (
