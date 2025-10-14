@@ -9739,6 +9739,7 @@ export type Database = {
           is_active: boolean
           notification_preferences: Json | null
           subscribed_at: string
+          subscriber_id: string | null
           updated_at: string
           vendor_id: string
         }
@@ -9749,6 +9750,7 @@ export type Database = {
           is_active?: boolean
           notification_preferences?: Json | null
           subscribed_at?: string
+          subscriber_id?: string | null
           updated_at?: string
           vendor_id: string
         }
@@ -9759,6 +9761,7 @@ export type Database = {
           is_active?: boolean
           notification_preferences?: Json | null
           subscribed_at?: string
+          subscriber_id?: string | null
           updated_at?: string
           vendor_id?: string
         }
@@ -11563,24 +11566,23 @@ export type Database = {
               user_lng?: number
             }
         Returns: {
-          aliases: string[]
+          avenue: string
+          badge: string
           category: string
           city: string
           commune: string
-          country_code: string
-          distance_km: number
+          distance_meters: number
+          formatted_address: string
           hierarchy_level: number
           id: string
-          is_popular: boolean
           latitude: number
           longitude: number
           name: string
-          name_fr: string
-          name_local: string
-          place_type: string
           popularity_score: number
+          quartier: string
           relevance_score: number
-          search_keywords: string[]
+          subcategory: string
+          subtitle: string
         }[]
       }
       intelligent_places_search_enhanced: {

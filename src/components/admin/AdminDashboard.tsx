@@ -18,6 +18,7 @@ import { ClientVerificationPanel } from './users/ClientVerificationPanel';
 import { ProductModerationPanel } from '../marketplace/ProductModerationPanel';
 import { ProductReportsManager } from '../marketplace/ProductReportsManager';
 import { MarketplaceCommissionSettings } from './marketplace/MarketplaceCommissionSettings';
+import { CategoryManager } from './marketplace/CategoryManager';
 import { Building2, Car, Users, Activity, MapPin, Package, Settings, BarChart, Shield, Bell, CheckCircle, Percent } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -197,6 +198,10 @@ const AdminDashboard = () => {
 
         <TabsContent value="product-reports" className="mt-6">
           <ProductReportsManager />
+        </TabsContent>
+
+        <TabsContent value="categories" className="mt-6">
+          <CategoryManager />
         </TabsContent>
 
         <TabsContent value="commissions" className="mt-6">

@@ -1,3 +1,4 @@
+// Version 2.1 - Fixed vendor notifications
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -19,7 +20,6 @@ serve(async (req) => {
 
     const { productId, action, rejectionReason } = await req.json();
 
-    // Validation des paramètres
     if (!productId || !action) {
       throw new Error('Missing required parameters: productId and action');
     }
@@ -30,7 +30,6 @@ serve(async (req) => {
 
     console.log('🔍 Moderating product:', { productId, action, rejectionReason });
 
-    // Vérifier que l'utilisateur est admin
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       throw new Error('No authorization header');
@@ -43,7 +42,6 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    // Vérifier le rôle admin
     const { data: adminData, error: adminError } = await supabase
       .from('user_roles')
       .select('role')
@@ -56,7 +54,6 @@ serve(async (req) => {
       throw new Error('Admin privileges required');
     }
 
-    // Récupérer le produit
     const { data: product, error: productError } = await supabase
       .from('marketplace_products')
       .select('*')
@@ -72,14 +69,12 @@ serve(async (req) => {
       throw new Error('Product not found');
     }
 
-    // Récupérer les informations du vendeur depuis profiles
     const { data: sellerProfile } = await supabase
       .from('profiles')
       .select('display_name')
       .eq('id', product.seller_id)
       .single();
 
-    // Si pas de profil, essayer depuis clients
     let sellerName = sellerProfile?.display_name;
     if (!sellerName) {
       const { data: clientProfile } = await supabase
@@ -93,7 +88,6 @@ serve(async (req) => {
 
     console.log('✅ Product found:', product.title, 'Seller:', sellerName);
 
-    // Mettre à jour le statut de modération
     const newStatus = action === 'approve' ? 'approved' : 'rejected';
     const updateData: any = {
       moderation_status: newStatus,
@@ -117,7 +111,6 @@ serve(async (req) => {
 
     console.log('✅ Product status updated to:', newStatus);
 
-    // Créer une notification pour le vendeur
     const notificationTitle = action === 'approve' 
       ? 'Produit approuvé ✅' 
       : 'Produit rejeté ❌';
@@ -126,7 +119,6 @@ serve(async (req) => {
       ? `Votre produit "${product.title}" a été approuvé et est maintenant visible sur la marketplace.`
       : `Votre produit "${product.title}" a été rejeté. Raison: ${rejectionReason || 'Non spécifiée'}`;
 
-    // ✅ Notification vendeur (vendor_product_notifications)
     const vendorNotificationType = action === 'approve' ? 'product_approved' : 'product_rejected';
     const vendorNotificationMetadata = {
       product_title: product.title,
@@ -155,9 +147,6 @@ serve(async (req) => {
       console.log('✅ Vendor notification created:', vendorNotificationType);
     }
 
-    console.log('✅ Vendor notification created:', vendorNotificationType);
-
-    // Logger l'action dans activity_logs
     await supabase
       .from('activity_logs')
       .insert({

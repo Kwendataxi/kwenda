@@ -7,11 +7,14 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Save, Store } from 'lucide-react';
+import { VendorShopShareButtons } from './VendorShopShareButtons';
 
 export const VendorShopSettings: React.FC = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [vendorId, setVendorId] = useState<string>('');
+  const [productCount, setProductCount] = useState(0);
   const [profile, setProfile] = useState({
     shop_name: '',
     shop_description: '',
@@ -28,7 +31,7 @@ export const VendorShopSettings: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const { data: vendorProfile, error } = await supabase
         .from('vendor_profiles')
         .select('*')
         .eq('user_id', user.id)
@@ -38,13 +41,23 @@ export const VendorShopSettings: React.FC = () => {
         throw error;
       }
 
-      if (data) {
+      if (vendorProfile) {
+        setVendorId(vendorProfile.id);
         setProfile({
-          shop_name: data.shop_name || '',
-          shop_description: data.shop_description || '',
-          shop_banner_url: data.shop_banner_url || ''
+          shop_name: vendorProfile.shop_name || '',
+          shop_description: vendorProfile.shop_description || '',
+          shop_banner_url: vendorProfile.shop_banner_url || ''
         });
       }
+
+      // Get product count
+      const { count } = await supabase
+        .from('marketplace_products')
+        .select('*', { count: 'exact', head: true })
+        .eq('seller_id', user.id)
+        .eq('moderation_status', 'approved');
+      
+      setProductCount(count || 0);
     } catch (error) {
       console.error('Error loading profile:', error);
     } finally {
@@ -82,6 +95,11 @@ export const VendorShopSettings: React.FC = () => {
         title: 'Boutique mise à jour',
         description: 'Les informations de votre boutique ont été enregistrées.'
       });
+
+      // Reload to get vendor ID if it was just created
+      if (!vendorId) {
+        loadProfile();
+      }
     } catch (error) {
       console.error('Error saving profile:', error);
       toast({
@@ -105,72 +123,89 @@ export const VendorShopSettings: React.FC = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Store className="h-5 w-5" />
-          Configuration de la boutique
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="shop_name">Nom de la boutique *</Label>
-          <Input
-            id="shop_name"
-            value={profile.shop_name}
-            onChange={(e) => setProfile({ ...profile, shop_name: e.target.value })}
-            placeholder="Ex: Électronique Plus"
-            maxLength={100}
-          />
-        </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Store className="h-5 w-5" />
+            Configuration de la boutique
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="shop_name">Nom de la boutique *</Label>
+            <Input
+              id="shop_name"
+              value={profile.shop_name}
+              onChange={(e) => setProfile({ ...profile, shop_name: e.target.value })}
+              placeholder="Ex: Électronique Plus"
+              maxLength={100}
+            />
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="shop_description">Description</Label>
-          <Textarea
-            id="shop_description"
-            value={profile.shop_description}
-            onChange={(e) => setProfile({ ...profile, shop_description: e.target.value })}
-            placeholder="Décrivez votre boutique et vos produits..."
-            maxLength={500}
-            rows={4}
-          />
-          <p className="text-xs text-muted-foreground">
-            {profile.shop_description.length}/500 caractères
-          </p>
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="shop_description">Description</Label>
+            <Textarea
+              id="shop_description"
+              value={profile.shop_description}
+              onChange={(e) => setProfile({ ...profile, shop_description: e.target.value })}
+              placeholder="Décrivez votre boutique et vos produits..."
+              maxLength={500}
+              rows={4}
+            />
+            <p className="text-xs text-muted-foreground">
+              {profile.shop_description.length}/500 caractères
+            </p>
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="shop_banner">URL de la bannière (optionnel)</Label>
-          <Input
-            id="shop_banner"
-            type="url"
-            value={profile.shop_banner_url}
-            onChange={(e) => setProfile({ ...profile, shop_banner_url: e.target.value })}
-            placeholder="https://..."
-          />
-          <p className="text-xs text-muted-foreground">
-            Recommandé: 1200x300px (ratio 16:9)
-          </p>
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="shop_banner">URL de la bannière (optionnel)</Label>
+            <Input
+              id="shop_banner"
+              type="url"
+              value={profile.shop_banner_url}
+              onChange={(e) => setProfile({ ...profile, shop_banner_url: e.target.value })}
+              placeholder="https://..."
+            />
+            <p className="text-xs text-muted-foreground">
+              Recommandé: 1200x300px (ratio 16:9)
+            </p>
+          </div>
 
-        <Button
-          onClick={handleSave}
-          disabled={saving || !profile.shop_name.trim()}
-          className="w-full"
-        >
-          {saving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Enregistrement...
-            </>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              Enregistrer
-            </>
-          )}
-        </Button>
-      </CardContent>
-    </Card>
+          <Button
+            onClick={handleSave}
+            disabled={saving || !profile.shop_name.trim()}
+            className="w-full"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Enregistrement...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Enregistrer
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {vendorId && profile.shop_name && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Partager ma boutique</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <VendorShopShareButtons
+              vendorId={vendorId}
+              vendorName={profile.shop_name}
+              productCount={productCount}
+            />
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
