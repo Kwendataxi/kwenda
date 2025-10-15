@@ -9643,6 +9643,7 @@ export type Database = {
           id: string
           shop_banner_url: string | null
           shop_description: string | null
+          shop_logo_url: string | null
           shop_name: string
           total_sales: number | null
           updated_at: string | null
@@ -9655,6 +9656,7 @@ export type Database = {
           id?: string
           shop_banner_url?: string | null
           shop_description?: string | null
+          shop_logo_url?: string | null
           shop_name: string
           total_sales?: number | null
           updated_at?: string | null
@@ -9667,6 +9669,7 @@ export type Database = {
           id?: string
           shop_banner_url?: string | null
           shop_description?: string | null
+          shop_logo_url?: string | null
           shop_name?: string
           total_sales?: number | null
           updated_at?: string | null

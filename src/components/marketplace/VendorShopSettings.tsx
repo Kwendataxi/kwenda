@@ -18,7 +18,8 @@ export const VendorShopSettings: React.FC = () => {
   const [profile, setProfile] = useState({
     shop_name: '',
     shop_description: '',
-    shop_banner_url: ''
+    shop_banner_url: '',
+    shop_logo_url: ''
   });
 
   useEffect(() => {
@@ -46,7 +47,8 @@ export const VendorShopSettings: React.FC = () => {
         setProfile({
           shop_name: vendorProfile.shop_name || '',
           shop_description: vendorProfile.shop_description || '',
-          shop_banner_url: vendorProfile.shop_banner_url || ''
+          shop_banner_url: vendorProfile.shop_banner_url || '',
+          shop_logo_url: vendorProfile.shop_logo_url || ''
         });
       }
 
@@ -84,7 +86,8 @@ export const VendorShopSettings: React.FC = () => {
           user_id: user.id,
           shop_name: profile.shop_name,
           shop_description: profile.shop_description,
-          shop_banner_url: profile.shop_banner_url
+          shop_banner_url: profile.shop_banner_url,
+          shop_logo_url: profile.shop_logo_url
         }, {
           onConflict: 'user_id'
         });
@@ -155,6 +158,20 @@ export const VendorShopSettings: React.FC = () => {
             />
             <p className="text-xs text-muted-foreground">
               {profile.shop_description.length}/500 caractères
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="shop_logo">URL du logo (optionnel)</Label>
+            <Input
+              id="shop_logo"
+              type="url"
+              value={profile.shop_logo_url}
+              onChange={(e) => setProfile({ ...profile, shop_logo_url: e.target.value })}
+              placeholder="https://..."
+            />
+            <p className="text-xs text-muted-foreground">
+              Recommandé: 200x200px (format carré)
             </p>
           </div>
 
