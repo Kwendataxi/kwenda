@@ -1,6 +1,8 @@
-// Version 2.1 - Fixed vendor notifications
+// Version 2.2.0 - Deployed 2025-10-15 - Force rebuild
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const FUNCTION_VERSION = '2.2.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

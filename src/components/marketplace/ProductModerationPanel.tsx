@@ -45,6 +45,8 @@ export const ProductModerationPanel: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [showRejectionDialog, setShowRejectionDialog] = useState(false);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
   // Fonction pour charger les produits (mémorisée)
   const loadProducts = useCallback(async () => {
@@ -197,11 +199,18 @@ export const ProductModerationPanel: React.FC = () => {
       setSelectedProduct(null);
       setRejectionReason('');
       loadProducts();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error moderating product:', error);
+      const errorMessage = error?.message || error?.error || 'Erreur inconnue lors de la modération';
+      console.error('Détails de l\'erreur:', {
+        error,
+        productId,
+        action,
+        reason
+      });
       toast({
-        title: 'Erreur',
-        description: 'Impossible de modérer le produit',
+        title: 'Erreur de modération',
+        description: `Impossible de modérer le produit. ${errorMessage}`,
         variant: 'destructive',
       });
     } finally {
@@ -367,7 +376,10 @@ export const ProductModerationPanel: React.FC = () => {
                     variant="outline"
                     size="sm"
                     className="flex-1"
-                    onClick={() => setSelectedProduct(product)}
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setShowDetailsDialog(true);
+                    }}
                   >
                     <Eye className="h-4 w-4 mr-1" />
                     Détails
@@ -389,6 +401,7 @@ export const ProductModerationPanel: React.FC = () => {
                         onClick={() => {
                           setSelectedProduct(product);
                           setRejectionReason('');
+                          setShowRejectionDialog(true);
                         }}
                         disabled={actionLoading}
                         title="Rejeter"
@@ -404,6 +417,7 @@ export const ProductModerationPanel: React.FC = () => {
                       onClick={() => {
                         setSelectedProduct(product);
                         setRejectionReason('');
+                        setShowRejectionDialog(true);
                       }}
                       disabled={actionLoading}
                       title="Rejeter ce produit"
@@ -431,12 +445,151 @@ export const ProductModerationPanel: React.FC = () => {
         </div>
       )}
 
+      {/* Details Dialog */}
+      <Dialog 
+        open={showDetailsDialog} 
+        onOpenChange={(open) => {
+          setShowDetailsDialog(open);
+          if (!open) setSelectedProduct(null);
+        }}
+      >
+        {selectedProduct && (
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Détails du produit</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6">
+              {/* Image Gallery */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {selectedProduct.images && selectedProduct.images.length > 0 ? (
+                  selectedProduct.images.map((image, index) => (
+                    <div key={index} className="aspect-square relative rounded-lg overflow-hidden border">
+                      <img
+                        src={image}
+                        alt={`${selectedProduct.title} - Image ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <div className="aspect-square bg-muted flex items-center justify-center rounded-lg border">
+                    <Package className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+
+              {/* Product Info */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">{selectedProduct.title}</h3>
+                  <p className="text-muted-foreground">{selectedProduct.description}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-sm text-muted-foreground">Prix</span>
+                    <p className="font-bold text-xl">{formatCurrency(selectedProduct.price, 'CDF')}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">Catégorie</span>
+                    <p className="font-medium">{selectedProduct.category}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">Condition</span>
+                    <p className="font-medium capitalize">{selectedProduct.condition}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">Statut</span>
+                    <div className="mt-1">{getStatusBadge(selectedProduct.moderation_status)}</div>
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <span className="text-sm text-muted-foreground">Vendeur</span>
+                  <p className="font-medium">{selectedProduct.seller?.display_name || 'Inconnu'}</p>
+                  <p className="text-sm text-muted-foreground">{selectedProduct.seller?.email}</p>
+                </div>
+
+                {selectedProduct.rejection_reason && (
+                  <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-md border border-destructive/20">
+                    <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-destructive">Raison du rejet</p>
+                      <p className="text-sm text-destructive/80">{selectedProduct.rejection_reason}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <DialogFooter className="gap-2">
+                {selectedProduct.moderation_status === 'pending' && (
+                  <>
+                    <Button
+                      variant="default"
+                      onClick={() => {
+                        moderateProduct(selectedProduct.id, 'approve');
+                        setShowDetailsDialog(false);
+                      }}
+                      disabled={actionLoading}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Approuver
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        setShowDetailsDialog(false);
+                        setShowRejectionDialog(true);
+                      }}
+                      disabled={actionLoading}
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Rejeter
+                    </Button>
+                  </>
+                )}
+                {selectedProduct.moderation_status === 'approved' && (
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setShowDetailsDialog(false);
+                      setShowRejectionDialog(true);
+                    }}
+                    disabled={actionLoading}
+                  >
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Rejeter ce produit
+                  </Button>
+                )}
+                {selectedProduct.moderation_status === 'rejected' && (
+                  <Button
+                    variant="default"
+                    onClick={() => {
+                      moderateProduct(selectedProduct.id, 'approve');
+                      setShowDetailsDialog(false);
+                    }}
+                    disabled={actionLoading}
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Réapprouver
+                  </Button>
+                )}
+              </DialogFooter>
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
+
       {/* Rejection Dialog */}
       <Dialog 
-        open={!!selectedProduct && selectedProduct.moderation_status !== 'pending'} 
-        onOpenChange={() => {
-          setSelectedProduct(null);
-          setRejectionReason('');
+        open={showRejectionDialog} 
+        onOpenChange={(open) => {
+          setShowRejectionDialog(open);
+          if (!open) {
+            setRejectionReason('');
+            setSelectedProduct(null);
+          }
         }}
       >
         <DialogContent>
@@ -483,21 +636,23 @@ export const ProductModerationPanel: React.FC = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => {
-              setSelectedProduct(null);
+              setShowRejectionDialog(false);
               setRejectionReason('');
+              setSelectedProduct(null);
             }}>
               Annuler
             </Button>
             <Button
               variant="destructive"
               onClick={() => {
-                if (selectedProduct && rejectionReason) {
+                if (selectedProduct && rejectionReason.trim()) {
                   moderateProduct(selectedProduct.id, 'reject', rejectionReason);
+                  setShowRejectionDialog(false);
                 }
               }}
-              disabled={!rejectionReason || actionLoading}
+              disabled={!rejectionReason.trim() || actionLoading}
             >
-              Rejeter le produit
+              {actionLoading ? 'Traitement...' : 'Confirmer le rejet'}
             </Button>
           </DialogFooter>
         </DialogContent>
