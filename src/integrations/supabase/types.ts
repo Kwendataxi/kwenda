@@ -2852,6 +2852,48 @@ export type Database = {
         }
         Relationships: []
       }
+      geocode_cache: {
+        Row: {
+          address: string
+          cache_key: string
+          cached_at: string
+          city: string | null
+          country_code: string | null
+          created_at: string
+          formatted_address: string
+          id: string
+          latitude: number
+          longitude: number
+          place_id: string | null
+        }
+        Insert: {
+          address: string
+          cache_key: string
+          cached_at?: string
+          city?: string | null
+          country_code?: string | null
+          created_at?: string
+          formatted_address: string
+          id?: string
+          latitude: number
+          longitude: number
+          place_id?: string | null
+        }
+        Update: {
+          address?: string
+          cache_key?: string
+          cached_at?: string
+          city?: string | null
+          country_code?: string | null
+          created_at?: string
+          formatted_address?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          place_id?: string | null
+        }
+        Relationships: []
+      }
       geolocation_audit_trail: {
         Row: {
           action_type: string

@@ -153,6 +153,26 @@ const ProductionDriverInterface: React.FC<ProductionDriverInterfaceProps> = ({ c
       {/* Driver Status */}
       <DriverStatusToggle />
 
+      {/* ✅ PHASE 2.3 : Message quand aucune course disponible */}
+      {!loading && pendingNotifications.length === 0 && activeOrders.length === 0 && (
+        <Card className="border-muted">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <AlertCircle className="h-16 w-16 text-muted-foreground mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Aucune course disponible</h3>
+            <p className="text-muted-foreground text-center mb-4 max-w-sm">
+              Vous êtes en ligne et prêt à recevoir des courses. 
+              Les nouvelles commandes apparaîtront ici automatiquement.
+            </p>
+            <Button
+              onClick={() => window.location.reload()}
+              variant="outline"
+            >
+              Actualiser
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Pending Notifications */}
       {pendingNotifications.length > 0 && (
         <Card className="border-primary/20 bg-primary/5">
@@ -185,11 +205,17 @@ const ProductionDriverInterface: React.FC<ProductionDriverInterfaceProps> = ({ c
                         </Badge>
                       </div>
                       <p className="text-sm mb-2">{notification.message}</p>
-                      <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-4 text-sm flex-wrap">
                         <div className="flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
                           {notification.location}
                         </div>
+                        {notification.distance && (
+                          <div className="flex items-center gap-1 text-primary">
+                            <Navigation className="h-3 w-3" />
+                            {notification.distance.toFixed(1)} km de vous
+                          </div>
+                        )}
                         <div className="flex items-center gap-1">
                           <Euro className="h-3 w-3" />
                           {notification.estimatedPrice.toLocaleString()} CDF

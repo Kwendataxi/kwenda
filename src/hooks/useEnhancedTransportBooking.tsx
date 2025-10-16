@@ -52,14 +52,49 @@ export const useEnhancedTransportBooking = () => {
     setLoading(true);
     
     try {
-      // Valider les coordonnées d'abord
+      // ✅ PHASE 2.2 : Valider et géocoder si nécessaire via geocode-fallback
       console.log('🔍 [Transport] Validation coordonnées...');
-      const validatedCoords = await supabase.rpc('validate_booking_coordinates', {
-        pickup_coords: data.pickupCoordinates,
-        delivery_coords: data.destinationCoordinates
-      });
+      
+      let validPickupCoords = data.pickupCoordinates;
+      let validDestCoords = data.destinationCoordinates;
 
-      console.log('✅ [Transport] Coordonnées validées:', validatedCoords);
+      // Vérifier si pickup coordinates sont valides
+      if (!validPickupCoords || !validPickupCoords.lat || !validPickupCoords.lng) {
+        console.log('📍 Geocoding pickup address:', data.pickupLocation);
+        const { data: geocodeResult, error: geocodeError } = await supabase.functions.invoke('geocode-fallback', {
+          body: {
+            address: data.pickupLocation,
+            city: data.city || 'Kinshasa'
+          }
+        });
+
+        if (geocodeError || !geocodeResult?.success) {
+          throw new Error('Impossible de localiser l\'adresse de départ');
+        }
+
+        validPickupCoords = geocodeResult.coordinates;
+        console.log('✅ Pickup geocoded:', validPickupCoords);
+      }
+
+      // Vérifier si destination coordinates sont valides
+      if (!validDestCoords || !validDestCoords.lat || !validDestCoords.lng) {
+        console.log('📍 Geocoding destination address:', data.destination);
+        const { data: geocodeResult, error: geocodeError } = await supabase.functions.invoke('geocode-fallback', {
+          body: {
+            address: data.destination,
+            city: data.city || 'Kinshasa'
+          }
+        });
+
+        if (geocodeError || !geocodeResult?.success) {
+          throw new Error('Impossible de localiser l\'adresse de destination');
+        }
+
+        validDestCoords = geocodeResult.coordinates;
+        console.log('✅ Destination geocoded:', validDestCoords);
+      }
+
+      console.log('✅ [Transport] Coordonnées validées:', { validPickupCoords, validDestCoords });
 
       // Calculer le prix avec les règles
       const { data: pricingRules, error: pricingError } = await supabase
@@ -88,8 +123,8 @@ export const useEnhancedTransportBooking = () => {
           user_id: user.id,
           pickup_location: data.pickupLocation,
           destination: data.destination,
-          pickup_coordinates: (validatedCoords.data as any)?.pickup || data.pickupCoordinates,
-          destination_coordinates: (validatedCoords.data as any)?.delivery || data.destinationCoordinates,
+          pickup_coordinates: validPickupCoords,
+          destination_coordinates: validDestCoords,
           intermediate_stops: data.intermediateStops || [],
           vehicle_type: data.vehicleType,
           estimated_price: Math.round(finalPrice),
@@ -99,7 +134,7 @@ export const useEnhancedTransportBooking = () => {
           city: (() => {
             // Détecter intelligemment la ville
             const cityDetection = cityDetectionService.detectCity({
-              coordinates: (validatedCoords.data as any)?.pickup || data.pickupCoordinates,
+              coordinates: validPickupCoords,
               address: data.pickupLocation,
               userSelection: data.city
             });
@@ -119,11 +154,10 @@ export const useEnhancedTransportBooking = () => {
       console.log('✅ [Transport] Réservation créée:', booking);
       toast.success('Réservation créée avec succès');
       
-      // Déclencher immédiatement l'assignation automatique via Edge Function
+      // Déclencher immédiatement l'assignation automatique
       try {
         console.log('🔍 [Transport] Lancement ride-dispatcher...');
-        const pickupCoords = (validatedCoords.data as any)?.pickup || data.pickupCoordinates;
-        await triggerRideDispatch(booking.id, pickupCoords);
+        await triggerRideDispatch(booking.id, validPickupCoords);
       } catch (dispatchError) {
         console.error('❌ [Transport] Erreur dispatch:', dispatchError);
         toast.error('Recherche de chauffeur en cours...');
