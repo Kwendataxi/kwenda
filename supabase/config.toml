@@ -2,6 +2,9 @@ project_id = "wddlktajnhwhyquwcdgf"
 
 # Configuration optimisée Kwenda - Fonctions actives uniquement
 
+[functions.google-maps-proxy]
+verify_jwt = true  # ✅ SÉCURITÉ CRITIQUE: Proxy sécurisé pour API Google Maps
+
 [functions.admin-operations]
 verify_jwt = true
 
