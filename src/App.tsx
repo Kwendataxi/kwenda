@@ -63,6 +63,7 @@ import DispatchValidationTest from "./pages/test/DispatchValidationTest";
 import MapValidationTest from "./pages/test/MapValidationTest";
 import { ComponentsDemo } from "./pages/test/ComponentsDemo";
 import ModernMapDemo from "./pages/test/ModernMapDemo";
+import ProductionConfig from "./pages/admin/ProductionConfig";
 import { ChatProvider } from "@/components/chat/ChatProvider";
 import Onboarding from "./pages/Onboarding";
 import MesAdresses from "./pages/address/MesAdresses";
@@ -217,6 +218,11 @@ const AppContent = () => {
                     <Route path="/admin" element={
                       <ProtectedRoute>
                         <AdminApp />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/production-config" element={
+                      <ProtectedRoute>
+                        <ProductionConfig />
                       </ProtectedRoute>
                     } />
                   </>
