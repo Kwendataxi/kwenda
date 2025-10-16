@@ -7284,6 +7284,33 @@ export type Database = {
         }
         Relationships: []
       }
+      security_definer_views_audit: {
+        Row: {
+          detected_at: string | null
+          id: string
+          remediated: boolean | null
+          remediation_notes: string | null
+          view_definition: string | null
+          view_name: string
+        }
+        Insert: {
+          detected_at?: string | null
+          id?: string
+          remediated?: boolean | null
+          remediation_notes?: string | null
+          view_definition?: string | null
+          view_name: string
+        }
+        Update: {
+          detected_at?: string | null
+          id?: string
+          remediated?: boolean | null
+          remediation_notes?: string | null
+          view_definition?: string | null
+          view_name?: string
+        }
+        Relationships: []
+      }
       security_events: {
         Row: {
           created_at: string | null

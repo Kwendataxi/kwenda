@@ -78,7 +78,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.delivery-dispatcher]
-verify_jwt = true  # ✅ PHASE 2: JWT requis pour dispatcher livraisons
+verify_jwt = true  # ✅ SÉCURITÉ CRITIQUE: JWT requis pour empêcher abus
 
 [functions.ride-dispatcher]
 verify_jwt = true  # ✅ PHASE 2: JWT requis pour dispatcher
