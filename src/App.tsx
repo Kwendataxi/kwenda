@@ -85,6 +85,8 @@ import DriverRegistration from "./pages/DriverRegistration";
 import VendorShop from "./pages/VendorShop";
 import VendorOrders from "./pages/VendorOrders";
 import MyProducts from "./pages/marketplace/MyProducts";
+import QRCodeManager from "./pages/admin/QRCodeManager";
+import QRAnalytics from "./pages/admin/QRAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -227,6 +229,16 @@ const AppContent = () => {
                     <Route path="/admin/production-config" element={
                       <ProtectedRoute>
                         <ProductionConfig />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/qr-manager" element={
+                      <ProtectedRoute>
+                        <QRCodeManager />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/qr-analytics" element={
+                      <ProtectedRoute>
+                        <QRAnalytics />
                       </ProtectedRoute>
                     } />
                   </>

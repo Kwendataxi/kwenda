@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useQRTracking } from "@/hooks/useQRTracking";
 import {
   Accordion,
   AccordionContent,
@@ -22,6 +23,9 @@ const Install = () => {
   const { platform, isInstalled, canInstall, install } = useInstallPrompt();
   const [showInstructions, setShowInstructions] = useState(false);
   const navigate = useNavigate();
+  
+  // Tracking QR codes
+  useQRTracking();
 
   const handleInstall = async () => {
     if (platform === 'ios' || !canInstall) {

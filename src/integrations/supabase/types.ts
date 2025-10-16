@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.4"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -6363,6 +6363,57 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      qr_code_scans: {
+        Row: {
+          channel_id: string
+          city: string | null
+          converted: boolean | null
+          converted_at: string | null
+          created_at: string | null
+          device_type: string | null
+          id: string
+          ip_address: string | null
+          referrer: string | null
+          scanned_at: string | null
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          channel_id: string
+          city?: string | null
+          converted?: boolean | null
+          converted_at?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          referrer?: string | null
+          scanned_at?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          channel_id?: string
+          city?: string | null
+          converted?: boolean | null
+          converted_at?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          referrer?: string | null
+          scanned_at?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
       }
       referral_rewards: {
         Row: {
