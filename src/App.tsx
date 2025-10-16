@@ -59,6 +59,7 @@ import UniversalLocationTest from "./pages/test/UniversalLocationTest";
 import UniversalLocationTestAdvanced from "./pages/test/UniversalLocationTestAdvanced";
 import EdgeFunctionTest from "./pages/test/EdgeFunctionTest";
 import DispatchSystemTest from "./pages/test/DispatchSystemTest";
+import DispatchValidationTest from "./pages/test/DispatchValidationTest";
 import MapValidationTest from "./pages/test/MapValidationTest";
 import ModernMapDemo from "./pages/test/ModernMapDemo";
 import { ChatProvider } from "@/components/chat/ChatProvider";
@@ -269,6 +270,7 @@ const AppContent = () => {
                     <Route path="/test/universal-location-advanced" element={<UniversalLocationTestAdvanced />} />
           <Route path="/test/edge-functions" element={<EdgeFunctionTest />} />
           <Route path="/test/dispatch-system" element={<DispatchSystemTest />} />
+          <Route path="/test/dispatch-validation" element={<DispatchValidationTest />} />
                     <Route path="/test/map-validation" element={<MapValidationTest />} />
                     <Route path="/test/modern-map" element={<ModernMapDemo />} />
                   </>
