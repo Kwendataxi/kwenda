@@ -227,7 +227,7 @@ npx cap build ios --release
 
 ## 📞 Contact Support Chauffeur
 
-- **Email**: driver@kwenda.cd
+- **Email**: driver@kwenda.app
 - **Support WhatsApp**: +243 XXX XXX XXX
-- **Site web**: https://kwenda.cd/drivers
-- **FAQ Chauffeurs**: https://kwenda.cd/support/drivers-faq
+- **Site web**: https://kwenda.app/drivers
+- **FAQ Chauffeurs**: https://kwenda.app/support/drivers-faq

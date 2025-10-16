@@ -125,7 +125,7 @@ class GoogleMapsSecurityService {
     const allowedOrigins = [
       'localhost',
       '127.0.0.1',
-      'lovable.app',
+      'kwenda.app',
       'lovable.dev',
       window.location.hostname,
     ];

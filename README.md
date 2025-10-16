@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/e825ab56-72bd-4bca-b104-8ec14fdf48d8
+**URL**: https://kwenda.app
 
 ## How can I edit this code?
 
@@ -10,7 +10,7 @@ There are several ways of editing your application.
 
 **Use Lovable**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e825ab56-72bd-4bca-b104-8ec14fdf48d8) and start prompting.
+Simply visit the [Kwenda App](https://kwenda.app) and start prompting.
 
 Changes made via Lovable will be committed automatically to this repo.
 
@@ -62,7 +62,7 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/e825ab56-72bd-4bca-b104-8ec14fdf48d8) and click on Share -> Publish.
+The application is deployed at [https://kwenda.app](https://kwenda.app).
 
 ## Can I connect a custom domain to my Lovable project?
 

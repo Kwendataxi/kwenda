@@ -140,7 +140,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       email: formData.email,
       password: formData.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: `https://kwenda.app/`,
         data: {
           display_name: formData.displayName,
           phone_number: formData.phoneNumber,

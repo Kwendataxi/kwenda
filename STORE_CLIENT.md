@@ -197,11 +197,11 @@ npx cap build ios --release
 - [ ] Descriptions traduites FR/EN
 - [ ] Politique de confidentialité publiée
 - [ ] Conditions d'utilisation publiées
-- [ ] Support email configuré (support@kwenda.cd)
+- [ ] Support email configuré (support@kwenda.app)
 
 ## 📞 Contact Support
 
-- **Email**: support@kwenda.cd
-- **Site web**: https://kwenda.cd
-- **Politique de confidentialité**: https://kwenda.cd/legal/privacy
-- **Conditions d'utilisation**: https://kwenda.cd/legal/terms
+- **Email**: support@kwenda.app
+- **Site web**: https://kwenda.app
+- **Politique de confidentialité**: https://kwenda.app/legal/privacy
+- **Conditions d'utilisation**: https://kwenda.app/legal/terms

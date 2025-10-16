@@ -26,9 +26,9 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProp
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `https://kwenda.app/reset-password`,
+    });
 
       if (error) {
         toast.error(error.message);

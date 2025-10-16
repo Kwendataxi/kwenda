@@ -232,8 +232,8 @@ npx cap build ios --release
 
 ## 📞 Contact Support Partenaire
 
-- **Email**: partner@kwenda.cd
+- **Email**: partner@kwenda.app
 - **Support dédié**: +243 XXX XXX XXX
-- **Site web**: https://kwenda.cd/partners
-- **FAQ Partenaires**: https://kwenda.cd/support/partners-faq
-- **Programme partenaire**: https://kwenda.cd/partner
+- **Site web**: https://kwenda.app/partners
+- **FAQ Partenaires**: https://kwenda.app/support/partners-faq
+- **Programme partenaire**: https://kwenda.app/partner
