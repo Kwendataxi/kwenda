@@ -22,10 +22,14 @@ export const secureLog = {
   },
 
   /**
-   * Log d'erreur (toujours affiché même en production pour debug critique)
+   * Log d'erreur (SECURE: Only in development, masked in production)
    */
   error: (...args: any[]): void => {
-    console.error(...args);
+    if (IS_DEV) {
+      console.error(...args);
+    }
+    // In production, errors should be sent to secure logging service
+    // Not logged to console to prevent data leakage
   },
 
   /**

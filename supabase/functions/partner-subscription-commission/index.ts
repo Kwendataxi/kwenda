@@ -68,13 +68,15 @@ serve(async (req) => {
 
     console.log(`[Partner Commission] Calculating 5% of ${subscription_amount} = ${commissionAmount} CDF`)
 
-    // 3. Créditer le wallet du partenaire
+    // 3. Créditer le wallet du partenaire (SECURE: No SQL injection)
     const { data: partnerWallet, error: walletError } = await supabaseService
       .from('user_wallets')
       .select('id, balance')
       .eq('user_id', partnerUserId)
       .eq('currency', 'CDF')
       .maybeSingle()
+
+    let currentBalance = 0
 
     if (walletError || !partnerWallet) {
       console.error('[Partner Commission] Partner wallet not found, creating one')
@@ -97,13 +99,19 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
+      currentBalance = 0
+    } else {
+      currentBalance = partnerWallet.balance || 0
     }
 
-    // Mettre à jour le solde du wallet partenaire
+    // Calculer le nouveau solde de manière sécurisée (pas de SQL injection possible)
+    const newBalance = currentBalance + Number(commissionAmount)
+
+    // Mettre à jour le solde du wallet partenaire avec une valeur calculée (SECURE)
     const { error: updateWalletError } = await supabaseService
       .from('user_wallets')
       .update({
-        balance: supabaseService.raw(`balance + ${commissionAmount}`),
+        balance: newBalance,
         updated_at: new Date().toISOString()
       })
       .eq('user_id', partnerUserId)

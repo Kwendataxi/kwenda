@@ -36,7 +36,7 @@ class GoogleMapsSecurityService {
     this.keyAccessCount++;
 
     if (this.keyAccessCount > this.MAX_REQUESTS_PER_MINUTE) {
-      console.warn('🚨 [GoogleMapsSecurity] Trop de requêtes d\'accès à la clé');
+      // Don't log to console in production (SECURE)
       return false;
     }
 
@@ -45,6 +45,7 @@ class GoogleMapsSecurityService {
 
   /**
    * Log l'utilisation de la clé Google Maps
+   * SECURE: Logs to database instead of console to prevent data leakage
    */
   async logKeyUsage(action: string, metadata?: Record<string, any>): Promise<void> {
     try {
@@ -52,13 +53,35 @@ class GoogleMapsSecurityService {
       
       if (!user) return;
 
-      // Temporarily disable logging until types are regenerated
-      console.log(`📊 [GoogleMapsSecurity] Usage: ${action}`, metadata);
-
-      console.log(`📊 [GoogleMapsSecurity] Usage logged: ${action}`);
+      // Store in database audit table instead of console (SECURE)
+      await supabase.from('activity_logs').insert({
+        user_id: user.id,
+        activity_type: 'google_maps_api_usage',
+        description: `Google Maps API: ${action}`,
+        metadata: this.maskSensitiveData(metadata || {})
+      }).select().maybeSingle();
     } catch (error) {
-      console.error('❌ [GoogleMapsSecurity] Erreur logging:', error);
+      // Silent fail - don't expose errors in production console
+      if (import.meta.env.DEV) {
+        console.error('❌ [GoogleMapsSecurity] Erreur logging:', error);
+      }
     }
+  }
+
+  /**
+   * Mask sensitive data before logging
+   */
+  private maskSensitiveData(data: Record<string, any>): Record<string, any> {
+    const sensitiveKeys = ['token', 'password', 'key', 'secret', 'coordinate', 'lat', 'lng', 'latitude', 'longitude'];
+    const masked = { ...data };
+    
+    Object.keys(masked).forEach(key => {
+      if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive))) {
+        masked[key] = '***MASKED***';
+      }
+    });
+    
+    return masked;
   }
 
   /**
@@ -78,7 +101,7 @@ class GoogleMapsSecurityService {
 
       return data;
     } catch (error) {
-      console.error('❌ [GoogleMapsSecurity] Erreur monitoring:', error);
+      // Silent fail in production (SECURE)
       return {
         status: 'ok',
         usage: { last_hour: 0, last_24h: 0 },
@@ -92,7 +115,7 @@ class GoogleMapsSecurityService {
    */
   clearSensitiveData(): void {
     // Ne pas stocker la clé en localStorage/sessionStorage
-    console.log('🧹 [GoogleMapsSecurity] Nettoyage des données sensibles');
+    // Silent operation - no console logging (SECURE)
   }
 
   /**
@@ -110,10 +133,7 @@ class GoogleMapsSecurityService {
     const currentOrigin = window.location.hostname;
     const isValid = allowedOrigins.some(origin => currentOrigin.includes(origin));
 
-    if (!isValid) {
-      console.error('🚫 [GoogleMapsSecurity] Origine non autorisée:', currentOrigin);
-    }
-
+    // Don't log security warnings to console (SECURE)
     return isValid;
   }
 }
