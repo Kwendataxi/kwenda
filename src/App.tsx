@@ -131,6 +131,7 @@ const AppContent = () => {
                 {(!isSpecificBuild() || isClientApp()) && (
                   <>
                     <Route path="/" element={<Index />} />
+                    <Route path="/install" element={<Install />} />
                     <Route path="/auth" element={
                       <OnboardingRedirect>
                         <Auth />
@@ -171,6 +172,7 @@ const AppContent = () => {
                 {(!isSpecificBuild() || isDriverApp()) && (
                   <>
                     <Route path="/" element={<Index />} />
+                    <Route path="/install" element={<Install />} />
                     <Route path="/driver/auth" element={
                       <OnboardingRedirect>
                         <DriverAuth />
@@ -194,6 +196,7 @@ const AppContent = () => {
                 {(!isSpecificBuild() || isPartnerApp()) && (
                   <>
                     <Route path="/" element={<Index />} />
+                    <Route path="/install" element={<Install />} />
                     <Route path="/partner/auth" element={
                       <OnboardingRedirect>
                         <PartnerAuth />
