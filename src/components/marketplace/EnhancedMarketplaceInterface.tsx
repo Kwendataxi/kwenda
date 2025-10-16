@@ -184,19 +184,36 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         return;
       }
 
+      // ✅ PHASE 1.4 : Fonction de normalisation d'images
+      const normalizeProductImages = (images: any): string[] => {
+        if (!images) return [];
+        if (Array.isArray(images)) {
+          return images.map(img => typeof img === 'string' ? img : String(img)).filter(Boolean);
+        }
+        if (typeof images === 'string') {
+          try {
+            const parsed = JSON.parse(images);
+            return Array.isArray(parsed) ? parsed : [images];
+          } catch {
+            return [images];
+          }
+        }
+        return [];
+      };
+
       const transformedProducts = data.map(product => {
         const specsObj = product.specifications && typeof product.specifications === 'object' 
           ? product.specifications as Record<string, any>
           : {};
         
+        const normalizedImages = normalizeProductImages(product.images);
+        
         return {
           id: product.id,
           title: product.title,
           price: product.price,
-          images: Array.isArray(product.images) ? product.images.map(img => String(img)) : [],
-          image: Array.isArray(product.images) && product.images.length > 0 
-            ? String(product.images[0])
-            : 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
+          images: normalizedImages,
+          image: normalizedImages[0] || 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=300&fit=crop',
           category: product.category,
           condition: product.condition || 'new',
           description: product.description || '',

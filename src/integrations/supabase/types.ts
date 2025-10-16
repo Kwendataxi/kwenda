@@ -3724,6 +3724,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_marketplace_orders_buyer"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_marketplace_orders_seller"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "marketplace_orders_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -3736,6 +3750,7 @@ export type Database = {
         Row: {
           brand: string | null
           category: string
+          category_id: string | null
           condition: string | null
           coordinates: Json | null
           created_at: string
@@ -3745,6 +3760,7 @@ export type Database = {
           images: Json | null
           location: string | null
           moderated_at: string | null
+          moderation_notified_at: string | null
           moderation_status: string | null
           moderator_id: string | null
           popularity_score: number | null
@@ -3765,6 +3781,7 @@ export type Database = {
         Insert: {
           brand?: string | null
           category: string
+          category_id?: string | null
           condition?: string | null
           coordinates?: Json | null
           created_at?: string
@@ -3774,6 +3791,7 @@ export type Database = {
           images?: Json | null
           location?: string | null
           moderated_at?: string | null
+          moderation_notified_at?: string | null
           moderation_status?: string | null
           moderator_id?: string | null
           popularity_score?: number | null
@@ -3794,6 +3812,7 @@ export type Database = {
         Update: {
           brand?: string | null
           category?: string
+          category_id?: string | null
           condition?: string | null
           coordinates?: Json | null
           created_at?: string
@@ -3803,6 +3822,7 @@ export type Database = {
           images?: Json | null
           location?: string | null
           moderated_at?: string | null
+          moderation_notified_at?: string | null
           moderation_status?: string | null
           moderator_id?: string | null
           popularity_score?: number | null
@@ -3820,7 +3840,15 @@ export type Database = {
           updated_at?: string
           view_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       marketplace_promotions: {
         Row: {

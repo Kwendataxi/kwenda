@@ -175,6 +175,40 @@ export const ProductModerationPanel: React.FC = () => {
     }
   }, [isAdmin, loadProducts]);
 
+  // Effect 3: Subscription temps réel pour nouveaux produits en attente (PHASE 1.2)
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const channel = supabase
+      .channel('marketplace-moderation-realtime')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'marketplace_products',
+        filter: 'moderation_status=eq.pending'
+      }, (payload) => {
+        console.log('📢 Nouveau produit à modérer:', payload);
+        toast({
+          title: '🆕 Nouveau produit à modérer',
+          description: `"${payload.new.title}" en attente d'approbation`,
+        });
+        loadProducts(); // Rafraîchir la liste
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'marketplace_products',
+        filter: 'moderation_status=eq.pending'
+      }, () => {
+        loadProducts(); // Rafraîchir si un produit pending est modifié
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAdmin, toast, loadProducts]);
+
   const moderateProduct = async (productId: string, action: 'approve' | 'reject', reason?: string) => {
     try {
       setActionLoading(true);

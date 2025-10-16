@@ -64,16 +64,19 @@ export const useMarketplaceOrders = () => {
   const [orders, setOrders] = useState<MarketplaceOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch orders
+  // Fetch orders avec JOIN optimisé (PHASE 1.3)
   const fetchOrders = async () => {
     if (!user) return;
 
     try {
+      // ✅ CORRECTION : Utiliser foreign keys pour LEFT JOIN automatique
       const { data, error } = await supabase
         .from('marketplace_orders')
         .select(`
           *,
-          marketplace_products!inner(title, price, images),
+          marketplace_products!inner(title, price, images, seller_id),
+          buyer:profiles!fk_marketplace_orders_buyer(display_name, phone_number),
+          seller:profiles!fk_marketplace_orders_seller(display_name, phone_number),
           escrow_payments(id, status, amount)
         `)
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
@@ -84,21 +87,22 @@ export const useMarketplaceOrders = () => {
       const formattedOrders = data?.map(order => ({
         ...order,
         product: {
-          ...order.marketplace_products,
+          title: order.marketplace_products.title,
+          price: order.marketplace_products.price,
           images: Array.isArray(order.marketplace_products.images) 
             ? order.marketplace_products.images as string[] 
             : [],
           seller: {
-            display_name: 'Vendeur'
+            display_name: order.seller?.display_name || 'Vendeur inconnu'
           }
         },
         buyer: {
-          display_name: 'Acheteur',
-          phone_number: undefined
+          display_name: order.buyer?.display_name || 'Acheteur',
+          phone_number: order.buyer?.phone_number
         },
         seller: {
-          display_name: 'Vendeur',
-          phone_number: undefined
+          display_name: order.seller?.display_name || 'Vendeur',
+          phone_number: order.seller?.phone_number
         },
         escrow_payment: order.escrow_payments?.[0]
       })) || [];

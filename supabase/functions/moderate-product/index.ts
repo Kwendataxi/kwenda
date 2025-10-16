@@ -113,6 +113,7 @@ serve(async (req) => {
 
     console.log('✅ Product status updated to:', newStatus);
 
+    // ✅ PHASE 1.2 : Notification vendeur améliorée avec logs détaillés
     const notificationTitle = action === 'approve' 
       ? 'Produit approuvé ✅' 
       : 'Produit rejeté ❌';
@@ -131,6 +132,12 @@ serve(async (req) => {
       moderated_at: new Date().toISOString()
     };
 
+    console.log('📧 Sending notification to vendor:', {
+      vendor_id: product.seller_id,
+      type: vendorNotificationType,
+      title: notificationTitle
+    });
+
     const { error: notificationError } = await supabase
       .from('vendor_product_notifications')
       .insert({
@@ -145,8 +152,19 @@ serve(async (req) => {
 
     if (notificationError) {
       console.error('❌ Error creating vendor notification:', notificationError);
+      console.error('Notification details:', JSON.stringify({
+        vendor_id: product.seller_id,
+        product_id: productId,
+        error: notificationError.message
+      }));
     } else {
-      console.log('✅ Vendor notification created:', vendorNotificationType);
+      console.log('✅ Vendor notification created successfully:', vendorNotificationType);
+      
+      // ✅ Marquer la notification comme envoyée
+      await supabase
+        .from('marketplace_products')
+        .update({ moderation_notified_at: new Date().toISOString() })
+        .eq('id', productId);
     }
 
     await supabase
