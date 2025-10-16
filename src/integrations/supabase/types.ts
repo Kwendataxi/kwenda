@@ -10578,12 +10578,40 @@ export type Database = {
         Args: { p_admin_notes?: string; p_user_id: string }
         Returns: Json
       }
+      audit_functions_without_search_path: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          arguments: string
+          fix_command: string
+          function_name: string
+          owner: string
+          priority: string
+          schema_name: string
+        }[]
+      }
       audit_security_definer_functions: {
         Args: Record<PropertyKey, never>
         Returns: {
           function_name: string
           risk_level: string
           security_justification: string
+        }[]
+      }
+      audit_security_definer_views: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          definition_preview: string
+          fix_recommendation: string
+          owner: string
+          schema_name: string
+          view_name: string
+        }[]
+      }
+      auto_fix_function_search_paths: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          function_fixed: string
+          status: string
         }[]
       }
       auto_monitor_edge_functions: {
@@ -12094,6 +12122,15 @@ export type Database = {
           check_name: string
           recommendation: string
           result: string
+        }[]
+      }
+      security_diagnostic_report: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action_required: string
+          check_category: string
+          details: string
+          status: string
         }[]
       }
       security_health_check: {
