@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import PerformanceOptimizer from "@/components/performance/PerformanceOptimizer";
@@ -58,6 +58,7 @@ import SmartLocationTest from "./pages/test/SmartLocationTest";
 import UniversalLocationTest from "./pages/test/UniversalLocationTest";
 import UniversalLocationTestAdvanced from "./pages/test/UniversalLocationTestAdvanced";
 import EdgeFunctionTest from "./pages/test/EdgeFunctionTest";
+import DispatchSystemTest from "./pages/test/DispatchSystemTest";
 import MapValidationTest from "./pages/test/MapValidationTest";
 import ModernMapDemo from "./pages/test/ModernMapDemo";
 import { ChatProvider } from "@/components/chat/ChatProvider";
@@ -266,7 +267,8 @@ const AppContent = () => {
                     <Route path="/test/intelligent-location" element={<SmartLocationTest />} />
                     <Route path="/test/universal-location" element={<UniversalLocationTest />} />
                     <Route path="/test/universal-location-advanced" element={<UniversalLocationTestAdvanced />} />
-                    <Route path="/test/edge-functions" element={<EdgeFunctionTest />} />
+          <Route path="/test/edge-functions" element={<EdgeFunctionTest />} />
+          <Route path="/test/dispatch-system" element={<DispatchSystemTest />} />
                     <Route path="/test/map-validation" element={<MapValidationTest />} />
                     <Route path="/test/modern-map" element={<ModernMapDemo />} />
                   </>
