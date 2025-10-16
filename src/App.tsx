@@ -61,6 +61,7 @@ import EdgeFunctionTest from "./pages/test/EdgeFunctionTest";
 import DispatchSystemTest from "./pages/test/DispatchSystemTest";
 import DispatchValidationTest from "./pages/test/DispatchValidationTest";
 import MapValidationTest from "./pages/test/MapValidationTest";
+import { ComponentsDemo } from "./pages/test/ComponentsDemo";
 import ModernMapDemo from "./pages/test/ModernMapDemo";
 import { ChatProvider } from "@/components/chat/ChatProvider";
 import Onboarding from "./pages/Onboarding";
@@ -273,6 +274,7 @@ const AppContent = () => {
           <Route path="/test/dispatch-validation" element={<DispatchValidationTest />} />
                     <Route path="/test/map-validation" element={<MapValidationTest />} />
                     <Route path="/test/modern-map" element={<ModernMapDemo />} />
+                    <Route path="/test/components" element={<ComponentsDemo />} />
                   </>
                 )}
                 
