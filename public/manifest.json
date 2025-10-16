@@ -3,13 +3,16 @@
   "short_name": "Kwenda",
   "description": "Application VTC multimodale pour l'Afrique francophone - Transport, Livraison, Marketplace",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#0B1220",
   "theme_color": "#DC2626",
   "orientation": "portrait",
   "categories": ["travel", "business"],
   "lang": "fr",
   "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/android-chrome-192x192.png",

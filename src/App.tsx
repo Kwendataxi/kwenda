@@ -66,6 +66,8 @@ import ModernMapDemo from "./pages/test/ModernMapDemo";
 import ProductionConfig from "./pages/admin/ProductionConfig";
 import { ChatProvider } from "@/components/chat/ChatProvider";
 import Onboarding from "./pages/Onboarding";
+import Install from "./pages/Install";
+import { InstallBanner } from "@/components/pwa/InstallBanner";
 import MesAdresses from "./pages/address/MesAdresses";
 import ResetPassword from "./pages/ResetPassword";
 import RoleSelection from "./pages/RoleSelection";
@@ -111,6 +113,7 @@ const AppContent = () => {
         <PerformanceOptimizer>
           <Toaster />
           <Sonner />
+          <InstallBanner />
           <BrowserRouter>
             <ScrollToTop />
             <StartupExperience />
@@ -119,6 +122,7 @@ const AppContent = () => {
                 {/* Routes communes à toutes les apps */}
                 {!isSpecificBuild() && <Route path="/" element={<Index />} />}
                 {!isSpecificBuild() && <Route path="/onboarding" element={<Onboarding />} />}
+                <Route path="/install" element={<Install />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 
                 {/* Routes CLIENT uniquement */}

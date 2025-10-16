@@ -52,8 +52,8 @@ const Header = () => {
             <Button asChild variant="outline" size="sm">
               <a href="/admin">{t('nav.admin')}</a>
             </Button>
-            <Button variant="hero" size="sm">
-              {t('nav.download_app')}
+            <Button asChild variant="hero" size="sm">
+              <a href="/install">{t('nav.download_app')}</a>
             </Button>
           </div>
 
@@ -85,8 +85,8 @@ const Header = () => {
                   <Phone className="w-4 h-4 text-primary" />
                   <span>+225 XX XX XX XX</span>
                 </div>
-                <Button variant="hero" size="sm" className="w-full">
-                  {t('nav.download_app')}
+                <Button asChild variant="hero" size="sm" className="w-full">
+                  <a href="/install">{t('nav.download_app')}</a>
                 </Button>
               </div>
             </nav>

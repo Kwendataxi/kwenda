@@ -100,67 +100,16 @@ export class PWAInstaller {
     return 'Pour installer Kwenda Taxi sur iOS: Appuyez sur le bouton Partager puis "Ajouter à l\'écran d\'accueil"';
   }
 
-  // Rediriger vers les stores appropriés ou afficher message d'attente
+  // Rediriger vers la page d'installation PWA
   redirectToStore() {
-    const deviceType = this.getDeviceType();
-    
-    switch (deviceType) {
-      case 'ios':
-        this.showComingSoonMessage('iOS App Store');
-        break;
-      case 'android':
-        this.showComingSoonMessage('Google Play Store');
-        break;
-      default:
-        // Pour desktop, utiliser la PWA
-        if (this.canInstall()) {
-          this.installPWA();
-        } else {
-          // Rediriger vers l'application web
-          window.location.href = '/auth';
-        }
-        break;
-    }
-  }
-
-  // Afficher un message élégant pour les apps en cours de publication
-  private showComingSoonMessage(storeName: string) {
-    const message = `🚀 Kwenda Taxi arrive bientôt sur ${storeName}!\n\nEn attendant, utilisez notre version web complète en cliquant sur "Utiliser l'app web" sur la page d'accueil.`;
-    
-    if (confirm(message + '\n\nVoulez-vous être redirigé vers l\'application web ?')) {
-      window.location.href = '/auth';
-    }
+    window.location.href = '/install';
   }
 }
 
 // Instance globale
 export const pwaInstaller = new PWAInstaller();
 
-// Fonction helper pour gérer les téléchargements avec gestion élégante des apps en publication
+// Fonction helper pour gérer les téléchargements - redirige vers /install
 export const handleDownload = (platform: 'android' | 'ios' | 'web') => {
-  switch (platform) {
-    case 'android':
-      showAppComingSoon('Google Play Store');
-      break;
-    case 'ios':
-      showAppComingSoon('iOS App Store');
-      break;
-    case 'web':
-      if (pwaInstaller.canInstall()) {
-        pwaInstaller.installPWA();
-      } else {
-        // Fallback: rediriger vers l'application
-        window.location.href = '/auth';
-      }
-      break;
-  }
-};
-
-// Fonction helper pour afficher un message d'attente élégant
-const showAppComingSoon = (storeName: string) => {
-  const message = `🚀 Kwenda Taxi arrive bientôt sur ${storeName}!\n\nNotre équipe finalise la soumission aux stores. En attendant, profitez de notre version web complète qui offre toutes les fonctionnalités.`;
-  
-  if (confirm(message + '\n\nVoulez-vous accéder à l\'application web ?')) {
-    window.location.href = '/auth';
-  }
+  window.location.href = '/install';
 };

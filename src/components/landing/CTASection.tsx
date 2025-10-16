@@ -6,6 +6,7 @@ import {
   ArrowRight, Smartphone, Star, Zap, Heart
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { InstallButton } from "@/components/pwa/InstallButton";
 
 const CTASection = () => {
   const userTypes = [
@@ -33,22 +34,19 @@ const CTASection = () => {
       platform: "Android",
       icon: "📱",
       available: true,
-      note: "Google Play Store",
-      url: "https://play.google.com/store/apps/details?id=cd.kwenda.taxi"
+      note: "Installation instantanée"
     },
     {
       platform: "iOS",
       icon: "📲", 
       available: true,
-      note: "App Store",
-      url: "https://apps.apple.com/app/kwenda-taxi/id1234567890"
+      note: "Ajout à l'écran d'accueil"
     },
     {
       platform: "Web App",
       icon: "🌐",
       available: true,
-      note: "Accès direct",
-      url: "/auth"
+      note: "Accès direct"
     }
   ];
 
@@ -143,13 +141,13 @@ const CTASection = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
             {downloadOptions.map((option, index) => (
-              <Card key={index} className={`text-center ${option.available ? 'hover:shadow-lg transition-all duration-300 touch-manipulation' : 'opacity-60'}`}>
+              <Card key={index} className="text-center hover:shadow-lg transition-all duration-300 touch-manipulation">
                 <CardContent className="p-4 lg:p-6">
                   <div className="text-3xl lg:text-4xl mb-3 lg:mb-4">{option.icon}</div>
                   <h4 className="text-base lg:text-heading-sm mb-2">{option.platform}</h4>
                   <p className="text-xs lg:text-sm text-muted-foreground mb-3 lg:mb-4">{option.note}</p>
                   {option.platform === "Web App" ? (
-                    <Link to={option.url}>
+                    <Link to="/auth">
                       <Button 
                         variant="default"
                         className="w-full min-h-[44px] text-sm lg:text-base"
@@ -159,17 +157,13 @@ const CTASection = () => {
                       </Button>
                     </Link>
                   ) : (
-                    <Button 
+                    <InstallButton 
+                      platform={option.platform === "Android" ? "android" : "ios"}
                       variant="default"
-                      className="w-full min-h-[44px] text-sm lg:text-base"
                       size="lg"
-                      onClick={() => {
-                        // Ouvrir dans un nouvel onglet pour les stores
-                        window.open(option.url, '_blank', 'noopener,noreferrer');
-                      }}
-                    >
-                      Télécharger
-                    </Button>
+                      className="w-full min-h-[44px] text-sm lg:text-base"
+                      showText
+                    />
                   )}
                 </CardContent>
               </Card>
@@ -178,12 +172,12 @@ const CTASection = () => {
 
           <div className="text-center">
             <p className="text-xs lg:text-sm text-muted-foreground mb-3 lg:mb-4">
-              Ou utilisez directement notre application web
+              📱 Installation gratuite - Fonctionne hors ligne
             </p>
-            <Link to="/auth">
+            <Link to="/install">
               <Button size="lg" className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-glow min-h-[48px] text-sm lg:text-base">
-                <Smartphone className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
-                Lancer l'application web
+                <Download className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
+                Installer l'application
                 <ArrowRight className="w-3 h-3 lg:w-4 lg:h-4 ml-2" />
               </Button>
             </Link>
