@@ -77,7 +77,7 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
       
       return {
         id: serviceId,
-        name: category === 'taxi' ? 'Taxi' : (service.display_name || nameMap[category]),
+        name: category === 'taxi' ? 'Taxi' : (category === 'food' ? 'Food' : (service.display_name || nameMap[category])),
         icon: iconMap[category],
         gradient: gradientMap[category],
         available: service.is_active
