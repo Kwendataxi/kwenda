@@ -14,26 +14,21 @@ export const SmartHome = () => {
   const { user, session, loading } = useAuth();
   const isMobilePlatform = isMobileApp() || isPWA();
 
-  // Si en chargement sur mobile/PWA, afficher splash
-  if (loading && isMobilePlatform) {
+  // Sur mobile/PWA, toujours afficher le splash (il gère la suite)
+  if (loading || isMobilePlatform) {
     return <MobileSplash />;
   }
 
-  // Si mobile/PWA et pas connecté, afficher splash
-  if (isMobilePlatform && !user && !session) {
-    return <MobileSplash />;
-  }
-
-  // Si connecté sur mobile/PWA, rediriger vers le dashboard client
-  if (user && session && isMobilePlatform) {
+  // Sur web standard et connecté, rediriger vers client
+  if (user && session && !isMobilePlatform) {
     return <Navigate to="/client" replace />;
   }
 
-  // Si web standard, afficher Index
+  // Sur web standard et non connecté, afficher Index
   if (!isMobilePlatform) {
     return <Index />;
   }
 
-  // Fallback : splash
+  // Fallback
   return <MobileSplash />;
 };

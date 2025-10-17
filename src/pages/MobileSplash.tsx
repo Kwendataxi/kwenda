@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import BrandLogo from "@/components/brand/BrandLogo";
@@ -8,71 +8,64 @@ import { supabase } from "@/integrations/supabase/client";
 
 const MobileSplash: React.FC = () => {
   const navigate = useNavigate();
+  const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    // ✅ SKIP INSTANTANÉ si utilisateur déjà connecté
-    const checkSession = async () => {
+    const ctx = localStorage.getItem("last_context") || APP_CONFIG.type || "client";
+    
+    // ✅ TOUJOURS afficher le splash pendant 1.8s (animation complète)
+    const exitTimer = setTimeout(() => setIsExiting(true), 1600); // Démarrer fade-out 200ms avant
+    
+    const timer = setTimeout(async () => {
+      // Vérifier la session
       const { data: { session } } = await supabase.auth.getSession();
+      
       if (session) {
-        logger.info('🔥 User already logged in - fetching role and redirecting');
+        // Utilisateur connecté
+        const onboardingSeen = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
         
-        // ✅ Récupérer le rôle depuis la session
-        const { data: roles } = await supabase.rpc('get_user_roles', {
-          p_user_id: session.user.id
-        });
-        
-        const primaryRole = roles?.[0]?.role || 'client';
-        
-        // ✅ Rediriger vers le bon dashboard selon le rôle
-        const redirectPath = primaryRole === 'admin' ? '/admin' 
-          : primaryRole === 'partner' ? '/partenaire'
-          : primaryRole === 'driver' ? '/chauffeur'
-          : '/client'; // Client dashboard
-        
-        logger.info('🚀 Redirecting to dashboard', { primaryRole, redirectPath });
-        navigate(redirectPath, { replace: true });
-        return true;
-      }
-      return false;
-    };
-
-    checkSession().then((skipped) => {
-      if (skipped) return;
-
-      const ctx = localStorage.getItem("last_context") || APP_CONFIG.type || "client";
-      const splashShown = localStorage.getItem(`splash_shown::${ctx}`) === "1";
-      const onboardingSeen = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
-      
-      // ✅ SKIP IMMÉDIAT si déjà vu (pas de setTimeout)
-      if (splashShown && onboardingSeen) {
-        navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
-        return;
-      }
-      
-      // Marquer le splash comme vu
-      try {
-        localStorage.setItem(`splash_shown::${ctx}`, "1");
-      } catch {}
-      
-      const timer = setTimeout(() => {
         if (!onboardingSeen) {
+          // Nouveau user → onboarding
+          logger.info('🎓 New user - redirecting to onboarding');
           navigate(`/onboarding?context=${encodeURIComponent(ctx)}`, { replace: true });
         } else {
+          // User existant → dashboard
+          const { data: roles } = await supabase.rpc('get_user_roles', {
+            p_user_id: session.user.id
+          });
+          const primaryRole = roles?.[0]?.role || 'client';
+          const redirectPath = primaryRole === 'admin' ? '/admin' 
+            : primaryRole === 'partner' ? '/partenaire'
+            : primaryRole === 'driver' ? '/chauffeur'
+            : '/client';
+          
+          logger.info('🚀 Redirecting to dashboard', { primaryRole, redirectPath });
+          navigate(redirectPath, { replace: true });
+        }
+      } else {
+        // Pas connecté → onboarding puis auth
+        const onboardingSeen = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
+        if (!onboardingSeen) {
+          logger.info('🎓 Not logged in - redirecting to onboarding');
+          navigate(`/onboarding?context=${encodeURIComponent(ctx)}`, { replace: true });
+        } else {
+          logger.info('🔐 Not logged in - redirecting to auth');
           navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
         }
-      }, 200); // ⚡ Réduit à 200ms
+      }
+    }, 1800); // ⚡ 1.8s pour voir toute l'animation
 
-      // Safety timeout ultra-agressif : 1s max
-      const safetyTimer = setTimeout(() => {
-        logger.warn('⚠️ Splash safety timeout - forcing /auth');
-        navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
-      }, 1000);
+    // Safety timeout
+    const safetyTimer = setTimeout(() => {
+      logger.warn('⚠️ Splash safety timeout');
+      navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
+    }, 3000);
 
-      return () => {
-        clearTimeout(timer);
-        clearTimeout(safetyTimer);
-      };
-    });
+    return () => {
+      clearTimeout(exitTimer);
+      clearTimeout(timer);
+      clearTimeout(safetyTimer);
+    };
   }, [navigate]);
 
   // Slogan dynamique selon le contexte
@@ -88,7 +81,11 @@ const MobileSplash: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+    <motion.div 
+      className="min-h-screen relative overflow-hidden flex items-center justify-center"
+      animate={{ opacity: isExiting ? 0 : 1 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+    >
       {/* Fond rouge dégradé avec couches multiples */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#DC2626] via-[#EF4444] to-[#F87171]" />
       
@@ -251,7 +248,7 @@ const MobileSplash: React.FC = () => {
           </motion.p>
         </motion.div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 };
 

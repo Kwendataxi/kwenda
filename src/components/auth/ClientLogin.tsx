@@ -72,7 +72,7 @@ export const ClientLogin = () => {
     if (user && session && roleLoading) {
       const absoluteTimer = setTimeout(() => {
         logger.warn('🚨 [ClientLogin] roleLoading timeout - forcing redirect');
-        navigate('/'); // Force redirection client dashboard
+        navigate('/client');
       }, 2000);
 
       return () => clearTimeout(absoluteTimer);
@@ -90,6 +90,24 @@ export const ClientLogin = () => {
     }
 
     if (user && session && primaryRole && !roleLoading) {
+      // ✅ CHECK : Est-ce un nouveau user ?
+      const createdAt = new Date(user.created_at);
+      const now = new Date();
+      const isNewUser = (now.getTime() - createdAt.getTime()) < 5 * 60 * 1000; // < 5 min
+      
+      const ctx = primaryRole === 'admin' ? 'admin'
+        : primaryRole === 'partner' ? 'partenaire'
+        : primaryRole === 'driver' ? 'chauffeur'
+        : 'client';
+      
+      const onboardingSeen = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
+      
+      if (isNewUser && !onboardingSeen) {
+        logger.info('🎉 New user detected - redirecting to onboarding', { userId: user.id });
+        navigate(`/onboarding?context=${encodeURIComponent(ctx)}`, { replace: true });
+        return;
+      }
+      
       const redirectPath = getRedirectPath(primaryRole);
       logger.info('🚀 Redirecting authenticated user', { userId: user.id, primaryRole, redirectPath });
       navigate(redirectPath);
