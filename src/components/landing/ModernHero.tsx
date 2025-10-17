@@ -2,12 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, Star, MapPin, Clock, Car, ArrowRight, Zap, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import heroImage from "@/assets/kwenda-campaign.png";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect } from "react";
+import { HeroCampaignSlider } from "./HeroCampaignSlider";
 
 const ModernHero = () => {
   const { user } = useAuth();
@@ -106,29 +106,13 @@ const ModernHero = () => {
 
           </div>
 
-          {/* Hero Image - Campaign Poster Full Display */}
+          {/* Hero Campaign Slider - Dynamic Carousel */}
           <div className="relative animate-scale-fade order-1 lg:order-2 flex items-center justify-center px-4 lg:px-8">
-            <div className="relative w-full max-w-2xl lg:max-w-4xl xl:max-w-5xl">
-              <div className="relative group">
-                {/* Glow background effect - Red theme matching poster */}
-                <div className="absolute -inset-6 bg-gradient-radial from-primary/15 via-red-500/8 to-transparent rounded-3xl blur-3xl opacity-50 group-hover:opacity-70 transition-opacity duration-500"></div>
-                
-                {/* Image poster with aspect ratio preserved */}
-                <div className="relative rounded-2xl overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.35)] group-hover:shadow-[0_30px_60px_-10px_rgba(239,68,68,0.4)] transition-all duration-500 ease-out">
-                  <div className="relative aspect-[9/16] w-full">
-                    <img 
-                      src={heroImage} 
-                      alt="Kwenda - Simplifiez vos trajets, profitez de chaque moment"
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <HeroCampaignSlider />
             
             {/* Subtle Decorative Background Elements */}
-            <div className="absolute -top-20 -left-20 w-32 h-32 lg:w-40 lg:h-40 bg-primary/6 rounded-full blur-3xl animate-float"></div>
-            <div className="absolute -bottom-20 -right-20 w-40 h-40 lg:w-48 lg:h-48 bg-red-500/8 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+            <div className="absolute -top-20 -left-20 w-32 h-32 lg:w-40 lg:h-40 bg-primary/6 rounded-full blur-3xl animate-float pointer-events-none"></div>
+            <div className="absolute -bottom-20 -right-20 w-40 h-40 lg:w-48 lg:h-48 bg-red-500/8 rounded-full blur-3xl animate-float pointer-events-none" style={{animationDelay: '2s'}}></div>
           </div>
         </div>
       </div>
