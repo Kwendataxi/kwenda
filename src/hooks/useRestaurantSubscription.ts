@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Json } from '@/integrations/supabase/types';
+import { notificationSoundService } from '@/services/notificationSound';
 
 interface SubscriptionPlan {
   id: string;
@@ -156,6 +157,9 @@ export const useRestaurantSubscription = () => {
       if (error) throw error;
 
       if (data.success) {
+        // 🔊 SON PAIEMENT RÉUSSI
+        await notificationSoundService.playNotificationSound('paymentReceived');
+        
         toast({
           title: '🎉 Abonnement activé !',
           description: data.message,

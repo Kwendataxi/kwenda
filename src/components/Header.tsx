@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, UtensilsCrossed } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -48,6 +48,12 @@ const Header = () => {
             </Button>
             <Button asChild variant="outline" size="sm">
               <a href="/chauffeur">{t('nav.driver')}</a>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <a href="/restaurant/auth">
+                <UtensilsCrossed className="h-4 w-4 mr-1" />
+                Restaurant
+              </a>
             </Button>
             <Button asChild variant="outline" size="sm">
               <a href="/admin">{t('nav.admin')}</a>

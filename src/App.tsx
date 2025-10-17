@@ -96,6 +96,7 @@ import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
 import RestaurantMenuManager from "./pages/restaurant/RestaurantMenuManager";
 import RestaurantOrders from "./pages/restaurant/RestaurantOrders";
 import RestaurantSubscription from "./pages/restaurant/RestaurantSubscription";
+import RestaurantAuth from "./pages/RestaurantAuth";
 
 const queryClient = new QueryClient();
 
@@ -149,6 +150,7 @@ const AppContent = () => {
                 <Route path="/campaign-thank-you" element={<CampaignThankYou />} />
                 
                 {/* Routes RESTAURANT */}
+                <Route path="/restaurant/auth" element={<RestaurantAuth />} />
                 <Route path="/restaurant" element={
                   <ProtectedRoute>
                     <RestaurantDashboard />

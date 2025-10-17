@@ -5,9 +5,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Package, DollarSign, Star, Clock, Bell } from 'lucide-react';
+import { Loader2, Plus, Package, DollarSign, Star, Clock, Bell, ChefHat } from 'lucide-react';
 import { useFoodOrders } from '@/hooks/useFoodOrders';
 import { useRestaurantSubscription } from '@/hooks/useRestaurantSubscription';
+import { useFoodNotifications } from '@/hooks/useFoodNotifications';
 
 interface RestaurantStats {
   todayOrders: number;
@@ -30,6 +31,9 @@ export default function RestaurantDashboard() {
 
   const { activeSubscription, checkExpirationWarning } = useRestaurantSubscription();
   const { subscribeToOrders } = useFoodOrders();
+  
+  // Hook de notifications sonores
+  useFoodNotifications(restaurantId || undefined);
 
   useEffect(() => {
     loadRestaurantData();
@@ -94,24 +98,13 @@ export default function RestaurantDashboard() {
     }
   };
 
-  // Notifications en temps réel
+  // Notifications en temps réel pour rafraîchir les données
   useEffect(() => {
     if (!restaurantId) return;
 
     const unsubscribe = subscribeToOrders(
       restaurantId,
-      (newOrder) => {
-        // Notification sonore
-        const audio = new Audio('/notification.mp3');
-        audio.play().catch(() => {});
-
-        toast({
-          title: '🍽️ Nouvelle commande !',
-          description: `Commande #${newOrder.order_number}`,
-        });
-
-        loadRestaurantData();
-      },
+      () => loadRestaurantData(),
       () => loadRestaurantData()
     );
 
@@ -144,6 +137,64 @@ export default function RestaurantDashboard() {
             Ajouter un plat
           </Button>
         </div>
+
+        {/* Message bienvenue nouveaux restaurants */}
+        {stats.todayOrders === 0 && (
+          <Card className="border-primary/20 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ChefHat className="h-6 w-6 text-primary" />
+                Bienvenue sur Kwenda Food !
+              </CardTitle>
+              <CardDescription>
+                Voici les prochaines étapes pour commencer à recevoir des commandes
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-start gap-3">
+                <Badge>1</Badge>
+                <div>
+                  <p className="font-medium">Complétez votre profil</p>
+                  <p className="text-sm text-muted-foreground">
+                    Logo, horaires, zones de livraison
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Badge>2</Badge>
+                <div>
+                  <p className="font-medium">Ajoutez votre menu</p>
+                  <p className="text-sm text-muted-foreground">
+                    Minimum 5 plats avec photos
+                  </p>
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto"
+                    onClick={() => navigate('/restaurant/menu')}
+                  >
+                    Gérer mon menu →
+                  </Button>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Badge>3</Badge>
+                <div>
+                  <p className="font-medium">Choisissez votre abonnement</p>
+                  <p className="text-sm text-muted-foreground">
+                    Plans dès 50 000 CDF/mois
+                  </p>
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto"
+                    onClick={() => navigate('/restaurant/subscription')}
+                  >
+                    Voir les plans →
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Alerte abonnement */}
         {subscriptionWarning?.isExpiring && (
