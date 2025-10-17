@@ -6,6 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import type { CarouselApi } from "@/components/ui/carousel";
 import BrandLogo from "@/components/brand/BrandLogo";
+import { TypeAnimation } from 'react-type-animation';
+import { AnimatedBackground } from "@/components/onboarding/AnimatedBackground";
+import { OnboardingIllustration } from "@/components/onboarding/OnboardingIllustrations";
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
@@ -49,13 +52,26 @@ const slidesByContext: Record<OnboardingContext, Array<{ title: string; desc: st
 };
 
 const Dots: React.FC<{ total: number; index: number }> = ({ total, index }) => (
-  <div className="mt-6 flex items-center justify-center gap-2">
+  <div className="mt-6 flex items-center justify-center gap-3">
     {Array.from({ length: total }).map((_, i) => (
-      <span
+      <motion.span
         key={i}
-        className={`h-2 w-2 rounded-full transition-all ${i === index ? "bg-primary w-4" : "bg-muted"}`}
+        className={`relative h-3 rounded-full overflow-hidden ${i === index ? "w-12" : "w-3"}`}
+        whileHover={{ scale: 1.2 }}
+        whileTap={{ scale: 0.9 }}
         aria-label={i === index ? "Étape active" : "Étape"}
-      />
+      >
+        <div className="absolute inset-0 bg-muted-foreground/30" />
+        {i === index && (
+          <motion.div
+            className="absolute inset-0 bg-primary"
+            initial={{ width: '0%' }}
+            animate={{ width: '100%' }}
+            transition={{ duration: 3, ease: 'linear' }}
+            key={`progress-${index}`}
+          />
+        )}
+      </motion.span>
     ))}
   </div>
 );
@@ -104,35 +120,74 @@ const Onboarding: React.FC = () => {
 
   return (
     <motion.main 
-      className="min-h-screen bg-background text-foreground"
+      className="min-h-screen text-foreground relative"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
     >
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {/* Animated gradient background */}
+      <AnimatedBackground />
+      
+      <header className="sticky top-0 z-10 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40 border-b border-border/50">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
+          <motion.div 
+            className="flex items-center gap-3"
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
             <BrandLogo size={32} />
             <h1 className="text-lg font-semibold">Bienvenue</h1>
-          </div>
-          <Button variant="ghost" onClick={finish} aria-label="Passer l'onboarding" className="hover-scale">
-            Passer
-          </Button>
+          </motion.div>
+          <motion.div
+            initial={{ x: 20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Button variant="ghost" onClick={finish} aria-label="Passer l'onboarding" className="hover-scale">
+              Passer
+            </Button>
+          </motion.div>
         </div>
       </header>
 
       <section className="mx-auto max-w-2xl px-6 py-8 animate-fade-in">
-        <Card className="border-border bg-card">
+        <Card className="border-border/50 bg-card/80 backdrop-blur-xl shadow-2xl">
           <CardContent className="p-0">
             <Carousel setApi={setApi}>
               <CarouselContent className="-ml-0">
                 {slides.map((s, i) => (
                   <CarouselItem key={i} className="pl-0">
-                    <div className="flex min-h-[60vh] flex-col items-center justify-center px-6 py-10 text-center">
-                      <BrandLogo size={160} className="mb-6" alt={s.title} />
-                      <h2 className="text-2xl font-semibold">{s.title}</h2>
-                      <p className="mt-2 text-muted-foreground">{s.desc}</p>
-                    </div>
+                    <motion.div 
+                      className="flex min-h-[60vh] flex-col items-center justify-center px-6 py-10 text-center"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      {/* Illustration animée selon le contexte */}
+                      <OnboardingIllustration context={ctx} className="mb-6" />
+                      
+                      {/* Typing animation pour le titre */}
+                      <TypeAnimation
+                        sequence={[
+                          s.title,
+                          2000,
+                        ]}
+                        wrapper="h2"
+                        speed={50}
+                        className="text-2xl font-semibold mb-2"
+                        cursor={false}
+                      />
+                      
+                      <motion.p 
+                        className="mt-2 text-muted-foreground max-w-md"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        {s.desc}
+                      </motion.p>
+                    </motion.div>
                   </CarouselItem>
                 ))}
               </CarouselContent>
@@ -144,13 +199,23 @@ const Onboarding: React.FC = () => {
 
         <div className="mx-auto mt-6 flex max-w-2xl items-center justify-end gap-3 px-1">
           {index < slides.length - 1 ? (
-            <Button onClick={onNext} className="hover-scale" aria-label="Écran suivant">
-              Suivant
-            </Button>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button onClick={onNext} className="hover-scale" aria-label="Écran suivant">
+                Suivant
+              </Button>
+            </motion.div>
           ) : (
-            <Button onClick={finish} className="hover-scale" aria-label="Commencer">
-              Commencer
-            </Button>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button onClick={finish} className="hover-scale" aria-label="Commencer">
+                Commencer
+              </Button>
+            </motion.div>
           )}
         </div>
       </section>
