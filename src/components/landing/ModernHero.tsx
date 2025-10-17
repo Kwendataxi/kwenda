@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, Star, MapPin, Clock, Car, ArrowRight, Zap, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import heroImage from "@/assets/hero-kwenda.png";
+import heroImage from "@/assets/kwenda-campaign.png";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
@@ -106,40 +106,22 @@ const ModernHero = () => {
 
           </div>
 
-          {/* Hero Image */}
-          <div className="relative animate-scale-fade order-1 lg:order-2 max-w-lg mx-auto lg:max-w-none">
-            <div className="relative z-10 group">
-              <div className="relative overflow-hidden rounded-3xl shadow-elegant transform hover:rotate-0 lg:rotate-1 transition-all duration-700 hover:shadow-glow interactive-scale">
+          {/* Hero Image - Campaign Poster */}
+          <div className="relative animate-scale-fade order-1 lg:order-2">
+            <div className="relative z-10 group max-w-2xl mx-auto">
+              <div className="relative overflow-hidden rounded-2xl shadow-2xl transition-all duration-700 hover:shadow-glow interactive-scale">
                 <img 
                   src={heroImage} 
                   alt={t('hero.alt_text')}
-                  className="w-full h-auto object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-700"
+                  className="w-full h-auto object-contain group-hover:scale-102 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-primary/20 group-hover:from-black/20 transition-all duration-500"></div>
-                
-                {/* Interactive overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-transparent to-accent/0 group-hover:from-primary/10 group-hover:to-accent/10 transition-all duration-500"></div>
-              </div>
-              
-              {/* Enhanced Floating Elements */}
-              <div className="hidden sm:block absolute -top-6 -right-6 bg-gradient-to-r from-secondary to-accent text-white px-6 py-3 rounded-full shadow-glow text-sm font-semibold animate-float glass border border-white/20">
-                🚀 {t('marketplace.new_badge')}
-              </div>
-              
-              <div className="hidden sm:block absolute -bottom-6 -left-6 bg-gradient-to-r from-primary to-primary-glow text-white px-6 py-3 rounded-full shadow-glow text-sm font-semibold animate-float glass border border-white/20" style={{animationDelay: '1s'}}>
-                🎲 + {t('lottery.free_lottery')}
-              </div>
-              
-              {/* Side floating element */}
-              <div className="hidden lg:block absolute top-1/2 -left-12 transform -translate-y-1/2 bg-gradient-to-r from-accent to-secondary text-white px-4 py-2 rounded-full shadow-lg text-xs font-semibold animate-pulse">
-                💫 5 Services
               </div>
             </div>
             
             {/* Soft Modern Decorative Background Elements */}
-            <div className="absolute -top-12 -left-12 w-24 h-24 lg:w-28 lg:h-28 bg-primary/8 rounded-full blur-3xl animate-float"></div>
-            <div className="absolute -bottom-12 -right-12 w-28 h-28 lg:w-32 lg:h-32 bg-secondary/6 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-            <div className="absolute top-1/2 -right-8 w-16 h-16 bg-accent/5 rounded-full blur-2xl animate-pulse"></div>
+            <div className="absolute -top-12 -left-12 w-24 h-24 lg:w-32 lg:h-32 bg-primary/8 rounded-full blur-3xl animate-float"></div>
+            <div className="absolute -bottom-12 -right-12 w-28 h-28 lg:w-36 lg:h-36 bg-secondary/6 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+            <div className="absolute top-1/2 -right-8 w-20 h-20 bg-accent/5 rounded-full blur-2xl animate-pulse"></div>
           </div>
         </div>
       </div>
