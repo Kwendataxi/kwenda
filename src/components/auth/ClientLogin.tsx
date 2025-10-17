@@ -68,6 +68,16 @@ export const ClientLogin = () => {
       roleLoading 
     });
 
+    // ✅ TIMEOUT ABSOLU : Forcer redirection après 2s MAX si roleLoading
+    if (user && session && roleLoading) {
+      const absoluteTimer = setTimeout(() => {
+        logger.warn('🚨 [ClientLogin] roleLoading timeout - forcing redirect');
+        navigate('/'); // Force redirection client dashboard
+      }, 2000);
+
+      return () => clearTimeout(absoluteTimer);
+    }
+
     // ✅ FALLBACK CRITIQUE : Forcer redirection après 1.5s si primaryRole est null
     if (user && session && !primaryRole && !roleLoading) {
       const fallbackTimer = setTimeout(() => {
@@ -196,9 +206,23 @@ export const ClientLogin = () => {
   };
 
   if (roleLoading) {
+    // ✅ Safety : Ne JAMAIS bloquer plus de 3s
+    setTimeout(() => {
+      if (roleLoading && user && session) {
+        logger.error('🚨 roleLoading still true after 3s - emergency redirect');
+        navigate('/');
+      }
+    }, 3000);
+
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-rose-50">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-red-600 mx-auto" />
+          <div className="space-y-2">
+            <p className="text-lg font-semibold text-gray-800">Connexion en cours...</p>
+            <p className="text-sm text-gray-500">Vérification de votre compte</p>
+          </div>
+        </div>
       </div>
     );
   }

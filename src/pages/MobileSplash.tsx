@@ -4,44 +4,60 @@ import { motion } from "framer-motion";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { APP_CONFIG } from "@/config/appConfig";
 import { logger } from "@/utils/logger";
+import { supabase } from "@/integrations/supabase/client";
 
 const MobileSplash: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const ctx = localStorage.getItem("last_context") || APP_CONFIG.type || "client";
-    const splashShown = localStorage.getItem(`splash_shown::${ctx}`) === "1";
-    const onboardingSeen = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
-    
-    // ✅ SKIP IMMÉDIAT si déjà vu (pas de setTimeout)
-    if (splashShown && onboardingSeen) {
-      navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
-      return;
-    }
-    
-    // Marquer le splash comme vu
-    try {
-      localStorage.setItem(`splash_shown::${ctx}`, "1");
-    } catch {}
-    
-    const timer = setTimeout(() => {
-      if (!onboardingSeen) {
-        navigate(`/onboarding?context=${encodeURIComponent(ctx)}`, { replace: true });
-      } else {
-        navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
+    // ✅ SKIP INSTANTANÉ si utilisateur déjà connecté
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        logger.info('🔥 User already logged in - skipping splash');
+        navigate('/auth', { replace: true });
+        return true;
       }
-    }, 800); // ⚡ Réduit à 800ms
-
-    // Safety timeout ultra-agressif : 2.5s max
-    const safetyTimer = setTimeout(() => {
-      logger.warn('⚠️ Splash safety timeout - forcing /auth');
-      navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
-    }, 2500);
-
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(safetyTimer);
+      return false;
     };
+
+    checkSession().then((skipped) => {
+      if (skipped) return;
+
+      const ctx = localStorage.getItem("last_context") || APP_CONFIG.type || "client";
+      const splashShown = localStorage.getItem(`splash_shown::${ctx}`) === "1";
+      const onboardingSeen = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
+      
+      // ✅ SKIP IMMÉDIAT si déjà vu (pas de setTimeout)
+      if (splashShown && onboardingSeen) {
+        navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
+        return;
+      }
+      
+      // Marquer le splash comme vu
+      try {
+        localStorage.setItem(`splash_shown::${ctx}`, "1");
+      } catch {}
+      
+      const timer = setTimeout(() => {
+        if (!onboardingSeen) {
+          navigate(`/onboarding?context=${encodeURIComponent(ctx)}`, { replace: true });
+        } else {
+          navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
+        }
+      }, 400); // ⚡ Réduit à 400ms
+
+      // Safety timeout ultra-agressif : 1.5s max
+      const safetyTimer = setTimeout(() => {
+        logger.warn('⚠️ Splash safety timeout - forcing /auth');
+        navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
+      }, 1500);
+
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(safetyTimer);
+      };
+    });
   }, [navigate]);
 
   // Slogan dynamique selon le contexte
