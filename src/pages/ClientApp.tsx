@@ -24,6 +24,8 @@ import { ResponsiveContainer } from '@/components/layout/ResponsiveContainer';
 import { MobileOptimizedLayout } from '@/components/layout/MobileOptimizedLayout';
 import ModernTaxiInterface from '@/components/transport/ModernTaxiInterface';
 import StepByStepDeliveryInterface from '@/components/delivery/StepByStepDeliveryInterface';
+import { FoodOrderInterface } from '@/components/food/FoodOrderInterface';
+import { FoodOrderTracking } from '@/components/food/FoodOrderTracking';
 import { VerificationDocumentUpload } from '@/components/client/VerificationDocumentUpload';
 import { 
   MapPin, 
