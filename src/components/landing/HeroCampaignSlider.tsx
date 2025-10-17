@@ -5,11 +5,17 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Images des campagnes publicitaires
+import campaignClient from '@/assets/campaign-client.png';
 import campaignDelivery from '@/assets/campaign-delivery.png';
 
 const slides = [
   {
     id: 1,
+    image: campaignClient,
+    alt: 'Kwenda - Simplifiez vos trajets, profitez de chaque instant',
+  },
+  {
+    id: 2,
     image: campaignDelivery,
     alt: 'Devenez livreur Kwenda et gagnez plus rapidement',
   }
