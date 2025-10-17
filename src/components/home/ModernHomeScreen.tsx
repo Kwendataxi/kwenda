@@ -6,6 +6,7 @@ import { PromoSlider } from './PromoSlider';
 import { ModernBottomNavigation } from './ModernBottomNavigation';
 import { HomeTrendsSheet } from './HomeTrendsSheet';
 import { HomeRecentPlacesSheet } from './HomeRecentPlacesSheet';
+import { MoreServicesSheet } from './MoreServicesSheet';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
@@ -25,6 +26,7 @@ export const ModernHomeScreen = ({
   const [activeTab, setActiveTab] = useState('home');
   const [trendsOpen, setTrendsOpen] = useState(false);
   const [placesOpen, setPlacesOpen] = useState(false);
+  const [moreServicesOpen, setMoreServicesOpen] = useState(false);
   const { unreadCount } = useRealtimeNotifications();
   const serviceNotifications = useServiceNotifications();
 
@@ -85,13 +87,26 @@ export const ModernHomeScreen = ({
             {/* Services compacts */}
             <div className="px-4">
               <ServiceGrid 
-                onServiceSelect={onServiceSelect} 
+                onServiceSelect={(service) => {
+                  if (service === 'more') {
+                    setMoreServicesOpen(true);
+                  } else {
+                    onServiceSelect(service);
+                  }
+                }} 
                 serviceNotifications={serviceNotifications}
               />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Popup Plus de Services */}
+      <MoreServicesSheet
+        isOpen={moreServicesOpen}
+        onClose={() => setMoreServicesOpen(false)}
+        onServiceSelect={onServiceSelect}
+      />
     </div>
   );
 };

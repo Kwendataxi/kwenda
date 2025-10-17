@@ -6,7 +6,7 @@ interface ServiceNotificationCounts {
   transport: number;
   delivery: number;
   marketplace: number;
-  lottery: number;
+  food: number;
   rental: number;
 }
 
@@ -15,8 +15,12 @@ export const useServiceNotifications = (): ServiceNotificationCounts => {
   const { unreadCount: orderUnreadCount, notifications: orderNotifications } = useOrderNotifications();
 
   const serviceCounts = useMemo(() => {
-    // Lottery: tickets disponibles + gains non réclamés
-    const lotteryCount = availableTickets + myWins.filter(win => win.status === 'pending').length;
+    // Food: notifications de commandes food non lues
+    const foodCount = orderNotifications?.filter(
+      notification => 
+        !notification.is_read && 
+        ['food_order', 'food_status', 'food_delivery'].includes(notification.notification_type)
+    ).length || 0;
 
     // Delivery: notifications de livraison non lues
     const deliveryCount = orderNotifications?.filter(
@@ -50,10 +54,10 @@ export const useServiceNotifications = (): ServiceNotificationCounts => {
       transport: transportCount,
       delivery: deliveryCount,
       marketplace: marketplaceCount,
-      lottery: lotteryCount,
+      food: foodCount,
       rental: rentalCount
     };
-  }, [availableTickets, myWins, orderNotifications]);
+  }, [orderNotifications]);
 
   return serviceCounts;
 };

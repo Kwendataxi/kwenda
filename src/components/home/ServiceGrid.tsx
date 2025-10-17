@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Car, Truck, ShoppingBag, Zap } from 'lucide-react';
+import { Car, Truck, ShoppingBag, Utensils, MoreHorizontal } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useServiceConfigurations } from '@/hooks/useServiceConfigurations';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,7 +11,7 @@ interface ServiceGridProps {
     transport: number;
     delivery: number;
     marketplace: number;
-    lottery: number;
+    food: number;
     rental: number;
   };
 }
@@ -26,7 +26,8 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
     delivery: Truck,
     rental: Car,
     marketplace: ShoppingBag,
-    lottery: Zap
+    food: Utensils,
+    more: MoreHorizontal
   };
   
   const gradientMap: Record<string, string> = {
@@ -34,7 +35,8 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
     delivery: 'from-congo-yellow-electric via-congo-yellow to-congo-yellow-vibrant',
     rental: 'from-congo-green-electric via-congo-green to-congo-green-vibrant',
     marketplace: 'from-secondary via-accent to-secondary-light',
-    lottery: 'from-purple-500 via-pink-500 to-purple-600'
+    food: 'from-orange-500 via-red-500 to-orange-600',
+    more: 'from-gray-500 via-gray-600 to-gray-700'
   };
 
   const nameMap: Record<string, string> = {
@@ -42,7 +44,8 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
     delivery: t('home.services.delivery'),
     rental: t('home.services.rental'),
     marketplace: t('home.services.shopping'),
-    lottery: t('home.services.lottery')
+    food: t('home.services.food'),
+    more: t('home.services.more')
   };
 
   // Charger les services dynamiquement depuis la DB
@@ -54,15 +57,16 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
         { id: 'delivery', name: t('home.services.delivery'), icon: Truck, gradient: 'from-secondary to-secondary-light', available: true },
         { id: 'rental', name: t('home.services.rental'), icon: Car, gradient: 'from-green-500 to-green-600', available: true },
         { id: 'marketplace', name: t('home.services.shopping'), icon: ShoppingBag, gradient: 'from-accent to-accent-light', available: true },
-        { id: 'lottery', name: t('home.services.lottery'), icon: Zap, gradient: 'from-purple-500 to-pink-500', available: true }
+        { id: 'food', name: t('home.services.food'), icon: Utensils, gradient: 'from-orange-500 to-red-500', available: true },
+        { id: 'more', name: t('home.services.more'), icon: MoreHorizontal, gradient: 'from-gray-500 to-gray-700', available: true }
       ];
     }
     
     // Grouper par catégorie et prendre le premier service actif de chaque catégorie
-    const categories: Array<'taxi' | 'delivery' | 'rental' | 'marketplace' | 'lottery'> = 
-      ['taxi', 'delivery', 'rental', 'marketplace', 'lottery'];
+    const categories: Array<'taxi' | 'delivery' | 'rental' | 'marketplace' | 'food'> = 
+      ['taxi', 'delivery', 'rental', 'marketplace', 'food'];
     
-    return categories.map(category => {
+    const servicesList = categories.map(category => {
       const service = configurations.find(
         c => c.service_category === category && c.is_active
       );
@@ -85,6 +89,15 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
       gradient: string;
       available: boolean;
     }>;
+
+    // Ajouter le service "Plus" à la fin
+    return [...servicesList, {
+      id: 'more',
+      name: t('home.services.more'),
+      icon: MoreHorizontal,
+      gradient: 'linear-gradient(135deg, #6B7280 0%, #374151 100%)',
+      available: true
+    }];
   }, [configurations, loading, t]);
 
   // Skeleton loader pendant le chargement
@@ -109,7 +122,8 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
     delivery: '#F4B223',
     rental: '#00A651',
     marketplace: 'linear-gradient(135deg, #2596be 0%, #5b21b6 100%)',
-    lottery: 'linear-gradient(135deg, #9333EA 0%, #EC4899 100%)'
+    food: '#FF6B35',
+    more: 'linear-gradient(135deg, #6B7280 0%, #374151 100%)'
   };
 
   return (
