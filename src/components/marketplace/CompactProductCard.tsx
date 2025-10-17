@@ -117,58 +117,9 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
           loading="lazy"
         />
         
-        {/* Overlay Actions - Animated */}
-        <motion.div 
-          className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"
-          initial={{ opacity: 0 }}
-          whileHover={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 w-7 p-0 bg-white/90 hover:bg-white"
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewDetails(product);
-              }}
-            >
-              <Eye className="h-3 w-3 text-grey-700" />
-            </Button>
-          </div>
-
-          {/* Quick Buy Button */}
-          <div className="absolute bottom-2 left-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <Button
-              size="sm"
-              variant="default"
-              className="flex-1 h-7 text-xs bg-primary hover:bg-primary/90"
-              disabled={!product.isAvailable}
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddToCart(product);
-              }}
-            >
-              <ShoppingCart className="h-3 w-3 mr-1" />
-              Acheter
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              className="h-7 w-7 p-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewDetails(product);
-              }}
-            >
-              <Eye className="h-3 w-3" />
-            </Button>
-          </div>
-        </motion.div>
 
         {/* Chat button - Always visible in bottom right */}
-        <div className="absolute bottom-12 right-2 z-10">
+        <div className="absolute bottom-2 right-2 z-10">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -179,10 +130,10 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
                 title: product.name
               });
             }}
-            className="group/chat h-9 w-9 rounded-full bg-card/90 backdrop-blur-sm shadow-md hover:shadow-lg border border-border/30 flex items-center justify-center transition-all active:scale-95 hover:scale-105"
+            className="group/chat h-8 w-8 rounded-full bg-card/90 backdrop-blur-sm shadow-md hover:shadow-lg border border-border/30 flex items-center justify-center transition-all active:scale-95 hover:scale-105"
             aria-label="Contacter le vendeur"
           >
-            <MessageCircle className="h-4 w-4 text-primary group-hover/chat:text-primary/80 transition-colors" />
+            <MessageCircle className="h-3.5 w-3.5 text-primary group-hover/chat:text-primary/80 transition-colors" />
           </button>
         </div>
 
@@ -288,6 +239,34 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
             {distance < 1 ? `${(distance * 1000).toFixed(0)}m` : `${distance.toFixed(1)}km`}
           </div>
         )}
+
+        {/* Actions toujours visibles */}
+        <div className="flex gap-1 pt-1">
+          <Button
+            size="sm"
+            variant="default"
+            className="flex-1 h-8 text-xs"
+            disabled={!product.isAvailable}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToCart(product);
+            }}
+          >
+            <ShoppingCart className="h-3 w-3 mr-1" />
+            Acheter
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 w-8 p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails(product);
+            }}
+          >
+            <Eye className="h-3 w-3" />
+          </Button>
+        </div>
       </div>
       </Card>
     </motion.div>

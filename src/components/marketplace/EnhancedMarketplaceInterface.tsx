@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon, Shield, Filter, Sparkles, TrendingUp } from 'lucide-react';
+import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon, Shield, Filter, Sparkles, TrendingUp, LayoutGrid, List } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -120,6 +120,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const [currentTab, setCurrentTab] = useState<'shop' | 'sell' | 'orders' | 'escrow' | 'vendor'>('shop');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [imageUploadStatuses, setImageUploadStatuses] = useState<ImageUploadStatus[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -877,76 +878,42 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   };
 
   const renderShopTab = () => (
-    <div className="space-y-8">
-      {/* HERO BANNER ANIMÉ */}
-      <motion.div
-        className="relative h-48 rounded-2xl overflow-hidden shadow-xl"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-purple-600/80 to-pink-500/70" />
-        <div className="absolute inset-0 flex items-center justify-between px-8">
-          <div className="text-white space-y-2">
-            <motion.h1
-              className="text-4xl font-black drop-shadow-lg"
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
+    <div className="space-y-4">
+      {/* En-tête compact */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Marketplace</h1>
+          <p className="text-sm text-muted-foreground">
+            {filteredProducts.length} produits disponibles
+          </p>
+        </div>
+        
+        <div className="flex gap-2">
+          {/* Vue grille/liste */}
+          <div className="flex items-center gap-1 border rounded-lg p-1">
+            <Button 
+              variant={viewMode === 'grid' ? 'default' : 'ghost'} 
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setViewMode('grid')}
             >
-              Marketplace Kwenda
-            </motion.h1>
-            <motion.p
-              className="text-lg opacity-90"
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
+              <LayoutGrid className="h-3.5 w-3.5" />
+            </Button>
+            <Button 
+              variant={viewMode === 'list' ? 'default' : 'ghost'} 
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setViewMode('list')}
             >
-              {filteredProducts.length} produits disponibles près de vous
-            </motion.p>
+              <List className="h-3.5 w-3.5" />
+            </Button>
           </div>
           
-          {/* Stats animées */}
-          <motion.div
-            className="hidden md:flex gap-6"
-            initial={{ x: 50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <div className="text-center text-white">
-              <p className="text-3xl font-bold">{products.length}</p>
-              <p className="text-sm opacity-80">Produits</p>
-            </div>
-            <div className="text-center text-white">
-              <p className="text-3xl font-bold">500+</p>
-              <p className="text-sm opacity-80">Vendeurs</p>
-            </div>
-            <div className="text-center text-white">
-              <p className="text-3xl font-bold">98%</p>
-              <p className="text-sm opacity-80">Satisfaction</p>
-            </div>
-          </motion.div>
+          <Button variant="outline" size="sm" onClick={() => setIsFiltersOpen(true)}>
+            <Filter className="h-4 w-4 mr-2" />
+            Filtres {activeFiltersCount > 0 && `(${activeFiltersCount})`}
+          </Button>
         </div>
-      </motion.div>
-
-      {/* QUICK FILTERS (Chips cliquables) */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        {[
-          { id: 'nearby', label: '📍 Près de moi', action: () => handleApplyQuickFilter('nearby') },
-          { id: 'new', label: '✨ Nouveautés', action: () => handleApplyQuickFilter('new') },
-          { id: 'deals', label: '🔥 Promotions', action: () => handleApplyQuickFilter('deals') },
-          { id: 'premium', label: '⭐ Premium', action: () => handleApplyQuickFilter('premium') }
-        ].map((filter) => (
-          <motion.button
-            key={filter.id}
-            whileTap={{ scale: 0.95 }}
-            whileHover={{ scale: 1.05 }}
-            onClick={filter.action}
-            className="px-4 py-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary font-medium whitespace-nowrap transition-colors"
-          >
-            {filter.label}
-          </motion.button>
-        ))}
       </div>
 
       {/* Barre de recherche et filtres */}
@@ -1053,46 +1020,54 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         </section>
       )}
 
-      {/* SECTION PRÈS DE CHEZ VOUS */}
-      {nearbyCalculated.length > 0 && (
+      {/* SECTION PRÈS DE VOUS - seulement si >3 produits */}
+      {nearbyCalculated.length > 3 && (
         <section>
-          <motion.h2 
-            className="text-2xl font-bold flex items-center gap-2 mb-4"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <MapPin className="h-6 w-6 text-green-500" />
+          <h2 className="text-lg font-bold flex items-center gap-2 mb-3">
+            <MapPin className="h-5 w-5 text-green-500" />
             Près de chez vous
-          </motion.h2>
-          <ProductGrid
-            products={nearbyCalculated.map(p => convertToHorizontalProduct(p))}
-            onAddToCart={(product) => {
-              const originalProduct = nearbyCalculated.find(p => p.id === product.id);
-              if (originalProduct) addToCart(originalProduct);
-            }}
-            onViewDetails={(product) => {
-              const originalProduct = nearbyCalculated.find(p => p.id === product.id);
-              if (originalProduct) {
-                setSelectedProduct(originalProduct);
-                setIsProductDetailsOpen(true);
-              }
-            }}
-            onViewSeller={setSelectedVendorId}
-            userLocation={coordinates}
-          />
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {nearbyCalculated.slice(0, 4).map(p => {
+              const converted = convertToHorizontalProduct(p);
+              return (
+                <CompactProductCard 
+                  key={converted.id} 
+                  product={converted}
+                  onAddToCart={() => {
+                    const originalProduct = nearbyCalculated.find(pr => pr.id === p.id);
+                    if (originalProduct) addToCart(originalProduct);
+                  }}
+                  onViewDetails={() => {
+                    setSelectedProduct(p);
+                    setIsProductDetailsOpen(true);
+                  }}
+                  onViewSeller={setSelectedVendorId}
+                  userLocation={coordinates}
+                />
+              );
+            })}
+          </div>
         </section>
       )}
 
       {/* TOUS LES PRODUITS */}
       <section>
-        <div className="flex items-center justify-between mb-4">
-          <motion.h2 
-            className="text-2xl font-bold"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-bold">Tous les produits</h2>
+          
+          {/* Tri rapide */}
+          <select 
+            value={filters.sortBy} 
+            onChange={(e) => setFilters(prev => ({...prev, sortBy: e.target.value}))}
+            className="h-8 text-xs border rounded-md px-2 bg-background"
           >
-            Tous les produits
-          </motion.h2>
+            <option value="popularity">Popularité</option>
+            <option value="price_low">Prix croissant</option>
+            <option value="price_high">Prix décroissant</option>
+            <option value="rating">Meilleures notes</option>
+            <option value="newest">Plus récents</option>
+          </select>
         </div>
         <ProductGrid
           products={filteredProducts.map(p => convertToHorizontalProduct(p))}
