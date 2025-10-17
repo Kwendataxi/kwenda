@@ -26,46 +26,30 @@ export const MoreServicesSheet = ({
     {
       id: 'lottery',
       name: t('home.services.lottery'),
-      description: t('home.services.lottery_desc'),
       icon: Ticket,
-      gradient: 'from-purple-600 via-pink-500 to-rose-500',
-      iconColor: '#A855F7',
-      shadowColor: 'rgba(168, 85, 247, 0.5)',
-      emoji: '🎰',
-      popular: true
+      gradient: 'hsl(262, 83%, 58%), hsl(330, 81%, 60%), hsl(350, 89%, 60%)',
+      iconColor: 'hsl(262, 83%, 58%)'
     },
     {
       id: 'gift_cards',
       name: t('home.services.gift_cards'),
-      description: t('home.services.gift_cards_desc'),
       icon: Gift,
-      gradient: 'from-rose-500 via-pink-600 to-red-500',
-      iconColor: '#EC4899',
-      shadowColor: 'rgba(236, 72, 153, 0.5)',
-      emoji: '🎁',
-      popular: false
+      gradient: 'hsl(350, 89%, 60%), hsl(330, 81%, 45%), hsl(0, 72%, 51%)',
+      iconColor: 'hsl(330, 81%, 60%)'
     },
     {
       id: 'airtime',
       name: t('home.services.airtime'),
-      description: t('home.services.airtime_desc'),
       icon: Smartphone,
-      gradient: 'from-blue-600 via-cyan-500 to-teal-500',
-      iconColor: '#3B82F6',
-      shadowColor: 'rgba(59, 130, 246, 0.5)',
-      emoji: '📱',
-      popular: false
+      gradient: 'hsl(221, 83%, 53%), hsl(189, 94%, 43%), hsl(173, 80%, 40%)',
+      iconColor: 'hsl(221, 83%, 53%)'
     },
     {
       id: 'bill_payment',
       name: t('home.services.bill_payment'),
-      description: t('home.services.bill_payment_desc'),
       icon: CreditCard,
-      gradient: 'from-emerald-600 via-green-500 to-teal-500',
-      iconColor: '#10B981',
-      shadowColor: 'rgba(16, 185, 129, 0.5)',
-      emoji: '💳',
-      popular: false
+      gradient: 'hsl(158, 64%, 52%), hsl(142, 71%, 45%), hsl(173, 80%, 40%)',
+      iconColor: 'hsl(142, 71%, 45%)'
     }
   ];
 
@@ -95,28 +79,43 @@ export const MoreServicesSheet = ({
             return (
               <motion.button
                 key={service.id}
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                whileHover={{ scale: 1.02 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -4, scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ 
+                  delay: index * 0.08,
+                  type: "spring",
+                  stiffness: 260,
+                  damping: 20
+                }}
                 onClick={() => handleServiceClick(service.id)}
-                className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-primary/50 transition-all duration-200 shadow-sm hover:shadow-md min-h-[140px]"
+                className="group relative flex flex-col items-center justify-center gap-4 p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-xl min-h-[160px] overflow-hidden"
               >
-                {/* Icône simple avec gradient */}
-                <div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center"
-                  style={{ 
-                    background: `linear-gradient(135deg, ${service.gradient.replace('from-', '').replace('via-', ', ').replace('to-', ', ')})` 
-                  }}
+                {/* Icône avec animation */}
+                <motion.div
+                  whileHover={{ rotate: [0, -5, 5, 0], scale: 1.1 }}
+                  transition={{ duration: 0.4, type: "spring", stiffness: 300 }}
+                  className="relative"
                 >
-                  <Icon className="w-6 h-6 text-white" strokeWidth={2} />
-                </div>
+                  <div 
+                    className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${service.gradient})`,
+                      boxShadow: `0 8px 24px -8px ${service.iconColor}`
+                    }}
+                  >
+                    <Icon className="w-7 h-7 text-white" strokeWidth={2.5} />
+                  </div>
+                </motion.div>
 
-                {/* Nom du service uniquement */}
-                <h3 className="font-semibold text-sm text-center text-foreground dark:text-white">
+                {/* Nom du service */}
+                <h3 className="font-semibold text-base text-center text-foreground dark:text-white">
                   {service.name}
                 </h3>
+                
+                {/* Effet de brillance au survol */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
               </motion.button>
             );
           })}
