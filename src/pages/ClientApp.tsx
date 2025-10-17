@@ -70,7 +70,7 @@ import ModernRentalScreen from '@/components/rental/ModernRentalScreen';
 import ModernRentalBooking from '@/components/rental/ModernRentalBooking';
 
   // Marketplace components
-  import { EnhancedMarketplaceInterface } from '@/components/marketplace/EnhancedMarketplaceInterface';
+import { EnhancedMarketplaceInterface } from '@/components/marketplace/EnhancedMarketplaceInterface';
   import { Badge } from '@/components/ui/badge';
   import { ShoppingCart, ShoppingBag } from 'lucide-react';
   import { useToast } from '@/hooks/use-toast';
@@ -141,7 +141,7 @@ const ClientApp = () => {
   const { optimizations, measureLoadTime } = usePerformanceMonitor();
   const { transitionToView } = useViewTransition();
   const [currentView, setCurrentView] = useState('home');
-  const [serviceType, setServiceType] = useState('transport');
+  const [serviceType, setServiceType] = useState<'transport' | 'delivery' | 'marketplace' | 'rental' | 'food'>('transport');
   const [isLoading, setIsLoading] = useState(false);
   
   // Bottom navigation state
@@ -278,7 +278,13 @@ const ClientApp = () => {
       setActiveTab('profil');
       return;
     }
-    setServiceType(service);
+    if (service === 'food') {
+      setServiceType('food');
+      setCurrentView('service');
+      setActiveTab('home');
+      return;
+    }
+    setServiceType(service as any);
     setCurrentView('service');
     setActiveTab('home');
     if (service === 'delivery') {
@@ -671,6 +677,18 @@ const ClientApp = () => {
               return (
                 <EnhancedMarketplaceInterface 
                   onNavigate={(path) => setCurrentView('home')}
+                />
+              );
+            case 'food':
+              return (
+                <FoodOrderInterface
+                  onOrderComplete={(orderId) => {
+                    toast({
+                      title: '✅ Commande passée !',
+                      description: 'Votre commande a été confirmée'
+                    });
+                  }}
+                  onBack={() => setCurrentView('home')}
                 />
               );
             default:
