@@ -96,7 +96,58 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({ win, onReveal }) => {
         }
       }
 
-      toast.success(`Vous avez gagné ${win.name} !`);
+      // Attribuer des points de fidélité en fonction de la rareté
+      const pointsConfig = {
+        common: 10,
+        rare: 50,
+        epic: 200,
+        legendary: 1000
+      };
+
+      const pointsToAward = pointsConfig[win.rarity] || 10;
+
+      // Récupérer l'utilisateur
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser) {
+        // Récupérer/créer le compte de points
+        let { data: loyaltyAccount } = await supabase
+          .from('user_loyalty_points')
+          .select('*')
+          .eq('user_id', currentUser.id)
+          .single();
+
+        if (!loyaltyAccount) {
+          const { data: newAccount } = await supabase
+            .from('user_loyalty_points')
+            .insert({ user_id: currentUser.id, points_balance: 0 })
+            .select()
+            .single();
+          loyaltyAccount = newAccount;
+        }
+
+        if (loyaltyAccount) {
+          // Mettre à jour le solde de points
+          await supabase
+            .from('user_loyalty_points')
+            .update({
+              points_balance: ((loyaltyAccount as any).points_balance || 0) + pointsToAward,
+              points_earned_total: ((loyaltyAccount as any).points_earned_total || 0) + pointsToAward
+            } as any)
+            .eq('user_id', currentUser.id);
+
+          // Enregistrer la transaction
+          await (supabase as any).from('loyalty_points_transactions').insert({
+            user_id: currentUser.id,
+            transaction_type: 'earned',
+            points_amount: pointsToAward,
+            source_type: 'scratch_card',
+            source_id: win.win_id,
+            description: `Gain de ${pointsToAward} points (carte ${win.rarity})`
+          });
+        }
+      }
+
+      toast.success(`Vous avez gagné ${win.name} ! +${pointsToAward} points`);
     } catch (error) {
       console.error('Error revealing prize:', error);
       toast.error('Erreur lors de la révélation du prix');

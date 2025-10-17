@@ -11,6 +11,7 @@ import { LotteryDrawCard } from './LotteryDrawCard';
 import { LotteryTicketsList } from './LotteryTicketsList';
 import { LotteryWinsList } from './LotteryWinsList';
 import { ScratchCardGallery } from './scratch/ScratchCardGallery';
+import { LoyaltyPointsWidget } from '@/components/loyalty/LoyaltyPointsWidget';
 
 export const LotteryDashboard = () => {
   const { t } = useLanguage();
@@ -40,6 +41,11 @@ export const LotteryDashboard = () => {
         <p className="text-sm text-muted-foreground mb-4">
           Gagnez des tickets et remportez des prix !
         </p>
+      </div>
+
+      {/* Widget Points de Fidélité */}
+      <div className="px-4 mb-4">
+        <LoyaltyPointsWidget />
       </div>
 
       {/* Statistiques en chips horizontales */}
