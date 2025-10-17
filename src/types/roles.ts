@@ -1,12 +1,13 @@
 // Types pour le système de rôles et permissions
 
-export type UserRole = 'client' | 'driver' | 'partner' | 'admin';
+export type UserRole = 'client' | 'driver' | 'partner' | 'admin' | 'restaurant';
 
 export type AdminRole = 
   | 'super_admin'
   | 'admin_financier' 
   | 'admin_transport'
   | 'admin_marketplace'
+  | 'admin_food'
   | 'admin_support'
   | 'moderator';
 
@@ -73,7 +74,8 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   client: 'Client',
   driver: 'Chauffeur',
   partner: 'Partenaire', 
-  admin: 'Administrateur'
+  admin: 'Administrateur',
+  restaurant: 'Restaurant'
 };
 
 export const ADMIN_ROLE_LABELS: Record<AdminRole, string> = {
@@ -81,6 +83,7 @@ export const ADMIN_ROLE_LABELS: Record<AdminRole, string> = {
   admin_financier: 'Admin Financier',
   admin_transport: 'Admin Transport',
   admin_marketplace: 'Admin Marketplace',
+  admin_food: 'Admin Food',
   admin_support: 'Admin Support',
   moderator: 'Modérateur'
 };

@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
+import { UserRoleData } from '@/types/roles';
 import {
   LogIn,
   UserPlus,
@@ -32,14 +33,6 @@ interface AuthPageProps {
   onAuthSuccess?: (user: User, session: Session) => void;
 }
 
-interface UserRole {
-  id: string;
-  role: 'admin' | 'driver' | 'partner' | 'client';
-  admin_role?: string; // Flexible pour gérer tous les types
-  is_active: boolean;
-  created_at: string;
-}
-
 const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
@@ -47,7 +40,7 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
+  const [userRoles, setUserRoles] = useState<UserRoleData[]>([]);
   
   // Formulaires
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
