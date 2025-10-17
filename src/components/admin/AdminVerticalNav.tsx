@@ -31,6 +31,7 @@ import {
   ChevronDown,
   ChevronRight,
   XCircle,
+  UtensilsCrossed,
 } from 'lucide-react';
 
 interface AdminVerticalNavProps {
