@@ -106,22 +106,26 @@ const ModernHero = () => {
 
           </div>
 
-          {/* Hero Image - Campaign Poster */}
-          <div className="relative animate-scale-fade order-1 lg:order-2">
-            <div className="relative z-10 group max-w-2xl mx-auto">
-              <div className="relative overflow-hidden rounded-2xl shadow-2xl transition-all duration-700 hover:shadow-glow interactive-scale">
+          {/* Hero Image - Campaign Poster Full Display */}
+          <div className="relative animate-scale-fade order-1 lg:order-2 flex items-center justify-center">
+            <div className="relative z-10 group w-full max-w-md mx-auto lg:max-w-lg">
+              {/* Professional poster frame */}
+              <div className="relative overflow-hidden rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.4)] transition-all duration-700 hover:shadow-[0_25px_70px_-10px_rgba(239,68,68,0.3)] interactive-scale bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-sm p-1">
                 <img 
                   src={heroImage} 
-                  alt={t('hero.alt_text')}
-                  className="w-full h-auto object-contain group-hover:scale-102 transition-transform duration-700"
+                  alt="Kwenda Campaign - Simplifiez vos trajets"
+                  className="w-full h-auto object-contain rounded-2xl group-hover:scale-[1.02] transition-transform duration-700"
                 />
               </div>
+              
+              {/* Premium glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             </div>
             
             {/* Soft Modern Decorative Background Elements */}
-            <div className="absolute -top-12 -left-12 w-24 h-24 lg:w-32 lg:h-32 bg-primary/8 rounded-full blur-3xl animate-float"></div>
-            <div className="absolute -bottom-12 -right-12 w-28 h-28 lg:w-36 lg:h-36 bg-secondary/6 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-            <div className="absolute top-1/2 -right-8 w-20 h-20 bg-accent/5 rounded-full blur-2xl animate-pulse"></div>
+            <div className="absolute -top-16 -left-16 w-32 h-32 lg:w-40 lg:h-40 bg-primary/10 rounded-full blur-3xl animate-float"></div>
+            <div className="absolute -bottom-16 -right-16 w-36 h-36 lg:w-44 lg:h-44 bg-red-500/10 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+            <div className="absolute top-1/3 -right-12 w-24 h-24 bg-secondary/8 rounded-full blur-2xl animate-pulse"></div>
           </div>
         </div>
       </div>
