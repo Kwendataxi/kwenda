@@ -13,6 +13,7 @@ import { ChatVendorModal } from '@/components/vendor/modern/ChatVendorModal';
 import { VendorNotificationCenter } from '@/components/vendor/modern/VendorNotificationCenter';
 import { VendorProductManager } from '@/components/vendor/VendorProductManager';
 import { VendorOrdersList } from '@/components/vendor/VendorOrdersList';
+import { VendorProfileSetup } from '@/components/vendor/VendorProfileSetup';
 import { Package, CheckCircle, DollarSign, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -107,6 +108,7 @@ export default function ModernVendorDashboard() {
 
         {activeTab === 'shop' && <VendorProductManager onUpdate={loadStats} />}
         {activeTab === 'orders' && <VendorOrdersList onRefresh={loadStats} />}
+        {activeTab === 'profile' && <VendorProfileSetup />}
       </div>
 
       <ChatVendorModal open={chatModalOpen} onClose={() => setChatModalOpen(false)} />

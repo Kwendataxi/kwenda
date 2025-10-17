@@ -11919,6 +11919,23 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_stats_cache: {
+        Row: {
+          average_rating: number | null
+          created_at: string | null
+          follower_count: number | null
+          shop_banner_url: string | null
+          shop_description: string | null
+          shop_logo_url: string | null
+          shop_name: string | null
+          total_reviews: number | null
+          total_sales: number | null
+          updated_at: string | null
+          user_id: string | null
+          vendor_profile_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_approve_verification_manual: {
@@ -13029,6 +13046,10 @@ export type Database = {
         Args: { p_city?: string }
         Returns: Json
       }
+      get_vendor_average_rating: {
+        Args: { vendor_user_id: string }
+        Returns: number
+      }
       get_vendor_dashboard_data: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -13053,6 +13074,18 @@ export type Database = {
           total_earnings: number
           total_orders: number
         }[]
+      }
+      get_vendor_follower_count: {
+        Args: { vendor_user_id: string }
+        Returns: number
+      }
+      get_vendor_total_reviews: {
+        Args: { vendor_user_id: string }
+        Returns: number
+      }
+      get_vendor_total_sales: {
+        Args: { vendor_user_id: string }
+        Returns: number
       }
       get_zone_for_coordinates: {
         Args: { lat: number; lng: number }

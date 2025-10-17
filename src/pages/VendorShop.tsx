@@ -21,6 +21,7 @@ interface VendorProfile {
   total_sales: number;
   average_rating: number;
   follower_count: number;
+  total_reviews?: number;
 }
 
 interface Product {
@@ -71,24 +72,43 @@ const VendorShop: React.FC = () => {
   const loadVendorData = async () => {
     setLoading(true);
     try {
-      // Load vendor profile
+      // Load vendor profile from cache with real stats
       const { data: profileData, error: profileError } = await supabase
-        .from('vendor_profiles')
+        .from('vendor_stats_cache')
         .select('*')
         .eq('user_id', vendorId)
-        .single();
+        .maybeSingle();
 
-      if (profileError) {
-        toast({
-          variant: 'destructive',
-          title: 'Erreur',
-          description: 'Boutique introuvable.'
-        });
-        navigate('/marketplace');
-        return;
+      if (profileError || !profileData) {
+        // Fallback to vendor_profiles if not in cache yet
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('vendor_profiles')
+          .select('*')
+          .eq('user_id', vendorId)
+          .single();
+
+        if (fallbackError) {
+          toast({
+            variant: 'destructive',
+            title: 'Erreur',
+            description: 'Boutique introuvable.'
+          });
+          navigate('/marketplace');
+          return;
+        }
+        
+        setProfile({
+          ...fallbackData,
+          total_sales: 0,
+          average_rating: 0,
+          follower_count: 0,
+          total_reviews: 0
+        } as any);
+        setTotalReviews(0);
+      } else {
+        setProfile(profileData as any);
+        setTotalReviews(profileData.total_reviews || 0);
       }
-
-      setProfile(profileData);
 
       // Check if current user is subscribed
       const { data: { user } } = await supabase.auth.getUser();
@@ -140,9 +160,6 @@ const VendorShop: React.FC = () => {
       }));
 
       setProducts(formattedProducts);
-
-      // Get reviews count (approximation based on rating)
-      setTotalReviews(profileData.average_rating > 0 ? Math.ceil(profileData.total_sales * 0.3) : 0);
     } catch (error) {
       console.error('Error loading vendor data:', error);
       toast({
@@ -182,24 +199,26 @@ const VendorShop: React.FC = () => {
           description: 'Vous ne recevrez plus de notifications de cette boutique.'
         });
       } else {
-        // Subscribe
+        // Subscribe with confetti
         await supabase
           .from('vendor_subscriptions')
-          .insert({
+          .upsert({
             customer_id: user.id,
             subscriber_id: user.id,
             vendor_id: profile.user_id,
             is_active: true
           });
         
+        setIsSubscribed(true);
+        
         toast({
-          title: '✅ Abonné !',
+          title: '🎉 Abonné !',
           description: `Vous recevrez des notifications des nouveautés de ${profile.shop_name}.`
         });
       }
       
-      // Reload to update follower count
-      loadVendorData();
+      // Reload to update follower count (will be auto-updated by trigger)
+      setTimeout(() => loadVendorData(), 500);
     } catch (error) {
       console.error('Subscribe error:', error);
       toast({
