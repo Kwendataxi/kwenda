@@ -8,12 +8,18 @@ export const StartupExperience: React.FC = () => {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
+    // ✅ NE PAS afficher le splash sur les pages d'auth
+    if (location.pathname.includes('/auth') || location.pathname === '/splash') {
+      setVisible(false);
+      return;
+    }
+
     const ctx = getStartupContext(location.pathname);
     try {
       localStorage.setItem("last_context", ctx);
     } catch {}
 
-    const timer = setTimeout(() => setVisible(false), 1200);
+    const timer = setTimeout(() => setVisible(false), 800); // ⚡ Réduit à 800ms
 
     return () => clearTimeout(timer);
   }, [location.pathname]);

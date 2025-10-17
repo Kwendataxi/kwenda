@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { APP_CONFIG } from "@/config/appConfig";
+import { logger } from "@/utils/logger";
 
 const MobileSplash: React.FC = () => {
   const navigate = useNavigate();
@@ -20,9 +21,18 @@ const MobileSplash: React.FC = () => {
         // Sinon aller vers la route d'auth ou route par défaut
         navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
       }
-    }, 2000); // 2 secondes de splash
+    }, 1500); // ⚡ Réduit de 2000ms à 1500ms
 
-    return () => clearTimeout(timer);
+    // ✅ NOUVEAU : Timeout de sécurité à 5 secondes
+    const safetyTimer = setTimeout(() => {
+      logger.warn('⚠️ Splash timeout exceeded, forcing navigation to /auth');
+      navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(safetyTimer);
+    };
   }, [navigate]);
 
   // Couleurs selon le contexte

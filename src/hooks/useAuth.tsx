@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  sessionReady: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -28,6 +29,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -77,6 +79,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         logger.info('✅ Initial session loaded', { hasSession: !!session, userId: session?.user?.id });
         setSession(session);
         setUser(session?.user ?? null);
+        setSessionReady(true);
         
       } catch (error) {
         logger.error('❌ Auth initialization error', error);
@@ -87,6 +90,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       } finally {
         if (mounted) {
           setLoading(false);
+          setSessionReady(true);
         }
       }
     };
@@ -142,6 +146,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     session,
     loading,
+    sessionReady,
     signOut,
   };
 

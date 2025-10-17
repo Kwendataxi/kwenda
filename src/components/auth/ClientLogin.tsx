@@ -61,6 +61,24 @@ export const ClientLogin = () => {
 
   // Rediriger si l'utilisateur est déjà connecté et a un rôle
   useEffect(() => {
+    logger.debug('🔍 [ClientLogin] State check', { 
+      hasUser: !!user, 
+      hasSession: !!session, 
+      primaryRole, 
+      roleLoading 
+    });
+
+    // ✅ FALLBACK CRITIQUE : Forcer redirection après 3s si primaryRole est null
+    if (user && session && !primaryRole && !roleLoading) {
+      const fallbackTimer = setTimeout(() => {
+        logger.warn('⚠️ No primaryRole after 3s, forcing client role');
+        const redirectPath = getRedirectPath('client');
+        navigate(redirectPath);
+      }, 3000);
+
+      return () => clearTimeout(fallbackTimer);
+    }
+
     if (user && session && primaryRole && !roleLoading) {
       const redirectPath = getRedirectPath(primaryRole);
       logger.info('🚀 Redirecting authenticated user', { userId: user.id, primaryRole, redirectPath });

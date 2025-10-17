@@ -4,6 +4,7 @@ import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRoleInfo, Permission, UserRole, AdminRole } from '@/types/roles';
 import { useSelectedRole } from './useSelectedRole';
+import { logger } from '@/utils/logger';
 
 interface UseUserRolesReturn {
   userRoles: UserRoleInfo[];
@@ -60,11 +61,12 @@ const setCachedRoles = (data: UserRoleInfo[]) => {
 };
 
 export const useUserRoles = (): UseUserRolesReturn => {
-  const { user } = useAuth();
+  const { user, sessionReady } = useAuth();
   const { selectedRole } = useSelectedRole();
   const [isDegradedMode, setIsDegradedMode] = useState(false);
 
   const fetchUserRoles = async (): Promise<{ roles: UserRoleInfo[]; permissions: Permission[] }> => {
+    logger.debug('🔍 [UserRoles] Starting fetch', { userId: user?.id, sessionReady });
     if (!user?.id) {
       const defaultRole = {
         role: 'client' as UserRole,
@@ -149,7 +151,7 @@ export const useUserRoles = (): UseUserRolesReturn => {
     queryFn: fetchUserRoles,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
-    enabled: !!user?.id,
+    enabled: !!user?.id && sessionReady, // ✅ Attendre que la session soit prête
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
