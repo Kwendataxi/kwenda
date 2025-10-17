@@ -68,13 +68,13 @@ export const ClientLogin = () => {
       roleLoading 
     });
 
-    // ✅ FALLBACK CRITIQUE : Forcer redirection après 3s si primaryRole est null
+    // ✅ FALLBACK CRITIQUE : Forcer redirection après 1.5s si primaryRole est null
     if (user && session && !primaryRole && !roleLoading) {
       const fallbackTimer = setTimeout(() => {
-        logger.warn('⚠️ No primaryRole after 3s, forcing client role');
+        logger.warn('⚠️ No primaryRole after 1.5s, forcing client role');
         const redirectPath = getRedirectPath('client');
         navigate(redirectPath);
-      }, 3000);
+      }, 1500);
 
       return () => clearTimeout(fallbackTimer);
     }

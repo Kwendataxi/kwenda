@@ -122,7 +122,7 @@ const AppContent = () => {
           <InstallBanner />
           <BrowserRouter>
             <ScrollToTop />
-            <StartupExperience />
+            {/* <StartupExperience /> */}
             <OnboardingRedirect>
               <Routes>
                 {/* Route Splash pour mobile/PWA */}

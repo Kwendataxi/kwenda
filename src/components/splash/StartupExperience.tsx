@@ -19,7 +19,7 @@ export const StartupExperience: React.FC = () => {
       localStorage.setItem("last_context", ctx);
     } catch {}
 
-    const timer = setTimeout(() => setVisible(false), 800); // ⚡ Réduit à 800ms
+    const timer = setTimeout(() => setVisible(false), 600); // ⚡ Réduit à 600ms
 
     return () => clearTimeout(timer);
   }, [location.pathname]);

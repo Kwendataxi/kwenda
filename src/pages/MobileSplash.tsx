@@ -13,7 +13,7 @@ const MobileSplash: React.FC = () => {
     const splashShown = localStorage.getItem(`splash_shown::${ctx}`) === "1";
     const onboardingSeen = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
     
-    // ✅ Si le splash a déjà été montré ET onboarding vu, skip direct
+    // ✅ SKIP IMMÉDIAT si déjà vu (pas de setTimeout)
     if (splashShown && onboardingSeen) {
       navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
       return;
@@ -30,13 +30,13 @@ const MobileSplash: React.FC = () => {
       } else {
         navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
       }
-    }, 1200); // ⚡ Optimisé à 1200ms
+    }, 800); // ⚡ Réduit à 800ms
 
-    // Safety timeout réduit à 4s
+    // Safety timeout ultra-agressif : 2.5s max
     const safetyTimer = setTimeout(() => {
-      logger.warn('⚠️ Splash timeout exceeded, forcing navigation');
+      logger.warn('⚠️ Splash safety timeout - forcing /auth');
       navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
-    }, 4000);
+    }, 2500);
 
     return () => {
       clearTimeout(timer);
@@ -121,7 +121,7 @@ const MobileSplash: React.FC = () => {
         initial={{ scale: 0.5, opacity: 0, rotateY: -90 }}
         animate={{ scale: 1, opacity: 1, rotateY: 0 }}
         transition={{
-          duration: 0.8,
+          duration: 0.5,
           ease: [0.34, 1.56, 0.64, 1],
         }}
         className="relative z-10 flex flex-col items-center"
@@ -161,25 +161,12 @@ const MobileSplash: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Badge "NOUVEAU" glassmorphism */}
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
-          className="mt-12 inline-block px-4 py-1.5 rounded-full backdrop-blur-md"
-          style={{ background: 'rgba(255, 255, 255, 0.2)' }}
-        >
-          <span className="text-white text-xs font-semibold tracking-wide">
-            ✨ NOUVEAU
-          </span>
-        </motion.div>
-
         {/* Slogan principal avec effet de lueur */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.6 }}
-          className="mt-4 text-center px-8"
+          transition={{ delay: 0.3, duration: 0.4 }}
+          className="mt-8 text-center px-8"
         >
           <h2
             className="text-white text-3xl font-black tracking-tight leading-tight"
@@ -206,7 +193,7 @@ const MobileSplash: React.FC = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
+          transition={{ delay: 0.5 }}
           className="mt-10 flex flex-col items-center gap-4"
         >
           {/* Spinner glassmorphism */}

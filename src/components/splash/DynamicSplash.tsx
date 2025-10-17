@@ -79,7 +79,7 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
       <motion.div
         initial={{ scale: 0.5, opacity: 0, rotateY: -90 }}
         animate={{ scale: 1, opacity: 1, rotateY: 0 }}
-        transition={{ duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
+        transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
         className="relative z-10 flex flex-col items-center px-6"
       >
         {/* Logo avec halo */}
@@ -98,23 +98,12 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
           </motion.div>
         </div>
 
-        {/* Badge NOUVEAU */}
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
-          className="mt-12 inline-block px-4 py-1.5 rounded-full backdrop-blur-md"
-          style={{ background: 'rgba(255, 255, 255, 0.2)' }}
-        >
-          <span className="text-white text-xs font-semibold tracking-wide">✨ NOUVEAU</span>
-        </motion.div>
-
         {/* Slogan dynamique */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.6 }}
-          className="mt-4 text-center px-8"
+          transition={{ delay: 0.3, duration: 0.4 }}
+          className="mt-8 text-center px-8"
         >
           <h2
             className="text-white text-3xl font-black tracking-tight leading-tight"
@@ -135,7 +124,7 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
+          transition={{ delay: 0.5 }}
           className="mt-10 flex flex-col items-center gap-4"
         >
           <div className="relative">
