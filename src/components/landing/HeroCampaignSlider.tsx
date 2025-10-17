@@ -6,18 +6,18 @@ import { Button } from '@/components/ui/button';
 
 // Images des campagnes publicitaires
 import campaignDark from '@/assets/campaign-dark.png';
-import campaignLight from '@/assets/campaign-light.png';
+import campaignDelivery from '@/assets/campaign-delivery.png';
 
 const slides = [
   {
     id: 1,
     image: campaignDark,
-    alt: 'Kwenda - Simplifiez vos trajets, profitez de chaque instant (Version sombre)',
+    alt: 'Kwenda - Simplifiez vos trajets, profitez de chaque instant',
   },
   {
     id: 2,
-    image: campaignLight,
-    alt: 'Kwenda - Simplifiez vos trajets, profitez de chaque instant (Version claire)',
+    image: campaignDelivery,
+    alt: 'Devenez livreur Kwenda et gagnez plus rapidement',
   }
 ];
 
