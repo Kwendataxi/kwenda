@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useRoleBasedAuth } from '@/hooks/useRoleBasedAuth';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { RoleSelectionPage } from './RoleSelectionPage';
 import { ClientRegistrationForm } from './forms/ClientRegistrationForm';
 import { DriverRegistrationChoice } from '@/components/driver/registration/DriverRegistrationChoice';
@@ -36,19 +36,37 @@ export const ClientLogin = () => {
   });
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const { user } = useAuth();
-  const { userRole, loading: roleLoading, getRedirectPath } = useRoleBasedAuth();
+  const { user, session } = useAuth();
+  const { primaryRole, loading: roleLoading } = useUserRoles();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Fonction de redirection unifiée qui gère les deux conventions de rôles
+  const getRedirectPath = (role: string): string => {
+    switch (role) {
+      case 'admin':
+        return '/admin';
+      case 'partner':
+      case 'partenaire':
+        return '/partner';
+      case 'driver':
+      case 'chauffeur':
+        return '/chauffeur';
+      case 'client':
+      case 'simple_user_client':
+      default:
+        return '/';
+    }
+  };
+
   // Rediriger si l'utilisateur est déjà connecté et a un rôle
   useEffect(() => {
-    if (user && userRole && !roleLoading) {
-      const redirectPath = getRedirectPath(userRole.role);
+    if (user && session && primaryRole && !roleLoading) {
+      const redirectPath = getRedirectPath(primaryRole);
+      logger.info('🚀 Redirecting authenticated user', { userId: user.id, primaryRole, redirectPath });
       navigate(redirectPath);
-      logger.info('User authenticated', { userId: user?.id, role: userRole });
     }
-  }, [user, userRole, roleLoading, navigate, getRedirectPath]);
+  }, [user, session, primaryRole, roleLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,7 +149,7 @@ export const ClientLogin = () => {
           description: "Redirection en cours...",
         });
 
-        // La redirection sera gérée par useEffect avec useRoleBasedAuth
+        // La redirection sera gérée par useEffect avec useUserRoles
       }
     } catch (error: any) {
       logger.error("Login error", error);
