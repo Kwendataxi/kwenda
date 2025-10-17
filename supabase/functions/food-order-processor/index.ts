@@ -57,17 +57,16 @@ Deno.serve(async (req) => {
     console.log('📦 Items:', orderData.items.length);
     console.log('💳 Payment Method:', orderData.payment_method);
 
-    // 1. Vérifier que le restaurant est actif et a un abonnement valide
+    // 1. Vérifier que le restaurant est actif et son modèle de paiement
     const { data: restaurant, error: restaurantError } = await supabaseClient
       .from('restaurant_profiles')
       .select(`
         *,
-        restaurant_subscriptions!inner(
+        restaurant_subscriptions(
           id,
           status,
           end_date,
-          plan_id,
-          restaurant_subscription_plans(commission_rate)
+          plan_id
         )
       `)
       .eq('id', orderData.restaurant_id)
@@ -83,17 +82,22 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Vérifier abonnement actif
-    const activeSubscription = restaurant.restaurant_subscriptions.find(
-      (sub: any) => sub.status === 'active' && new Date(sub.end_date) > new Date()
-    );
+    console.log('💳 Payment Model:', restaurant.payment_model);
 
-    if (!activeSubscription) {
-      console.error('❌ No active subscription');
-      return new Response(
-        JSON.stringify({ error: 'Restaurant sans abonnement actif' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    // Vérifier selon le modèle de paiement
+    if (restaurant.payment_model === 'subscription') {
+      // Mode abonnement : vérifier qu'un abonnement actif existe
+      const activeSubscription = restaurant.restaurant_subscriptions?.find(
+        (sub: any) => sub.status === 'active' && new Date(sub.end_date) > new Date()
       );
+
+      if (!activeSubscription) {
+        console.error('❌ No active subscription');
+        return new Response(
+          JSON.stringify({ error: 'Restaurant sans abonnement actif' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // 2. Vérifier la disponibilité des produits
@@ -133,12 +137,11 @@ Deno.serve(async (req) => {
     // 3. Calculer les montants
     const subtotal = orderData.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const deliveryFee = 5000; // Frais de livraison fixes (à adapter selon zone)
-    const serviceFee = Math.round(subtotal * 0.02); // 2% de frais de service
+    const serviceFee = 0; // Supprimé : pas de service fee client
     const totalAmount = subtotal + deliveryFee + serviceFee;
 
     console.log('💰 Subtotal:', subtotal);
     console.log('🚚 Delivery Fee:', deliveryFee);
-    console.log('📊 Service Fee:', serviceFee);
     console.log('💵 Total:', totalAmount);
 
     // 4. Si paiement KwendaPay, vérifier le solde et débiter
@@ -261,7 +264,36 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 7. Créer notification pour le restaurant
+    // 7. Créer commission si modèle = 'commission'
+    if (restaurant.payment_model === 'commission') {
+      const { data: rateData, error: rateError } = await supabaseClient
+        .rpc('get_restaurant_commission_rate', { p_restaurant_id: orderData.restaurant_id });
+
+      const commissionRate = rateError ? 5.00 : (rateData || 5.00);
+      const commissionAmount = Math.round(subtotal * (commissionRate / 100));
+
+      const { error: commissionError } = await supabaseClient
+        .from('restaurant_commissions')
+        .insert({
+          restaurant_id: orderData.restaurant_id,
+          order_id: order.id,
+          order_subtotal: subtotal,
+          commission_rate: commissionRate,
+          commission_amount: commissionAmount,
+          currency: 'CDF',
+          status: 'pending'
+        });
+
+      if (commissionError) {
+        console.error('⚠️ Commission creation failed:', commissionError);
+      } else {
+        console.log(`💰 Commission créée: ${commissionAmount} CDF (${commissionRate}% de ${subtotal} CDF)`);
+      }
+    } else {
+      console.log('✅ Restaurant avec abonnement - Pas de commission');
+    }
+
+    // 8. Créer notification pour le restaurant
     await supabaseClient.from('delivery_notifications').insert({
       user_id: restaurant.user_id,
       title: '🍽️ Nouvelle commande !',

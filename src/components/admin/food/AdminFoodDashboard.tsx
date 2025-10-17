@@ -6,6 +6,7 @@ import { RestaurantManagement } from './RestaurantManagement';
 import { FoodProductModeration } from './FoodProductModeration';
 import { FoodOrdersMonitor } from './FoodOrdersMonitor';
 import { FoodAnalytics } from './FoodAnalytics';
+import { CommissionRateManager } from '@/components/admin/CommissionRateManager';
 import { useAdminFoodAnalytics } from '@/hooks/admin/useAdminFoodAnalytics';
 import { useAdminFoodProducts } from '@/hooks/admin/useAdminFoodProducts';
 
@@ -94,10 +95,11 @@ export const AdminFoodDashboard = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
           <TabsTrigger value="products">Produits</TabsTrigger>
           <TabsTrigger value="orders">Commandes</TabsTrigger>
+          <TabsTrigger value="commissions">Commissions</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
@@ -111,6 +113,10 @@ export const AdminFoodDashboard = () => {
 
         <TabsContent value="orders" className="mt-6">
           <FoodOrdersMonitor />
+        </TabsContent>
+
+        <TabsContent value="commissions" className="mt-6">
+          <CommissionRateManager />
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-6">
