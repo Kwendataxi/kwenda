@@ -51,7 +51,7 @@ export const WinsHistory = () => {
       const formattedWins = data?.map(w => ({
         id: w.id,
         name: `Prix ${w.rarity}`,
-        value: w.value || 0,
+        value: w.prize_value || 0,
         currency: w.currency,
         rarity: w.rarity,
         reward_type: w.reward_type || 'cash',
@@ -63,7 +63,7 @@ export const WinsHistory = () => {
 
       // Calculer les stats
       const totalValue = formattedWins.reduce((sum, win) => sum + win.value, 0);
-      const totalCount = data?.length || 0;
+      const totalCount = formattedWins.length;
       
       setStats({
         total_value: totalValue,
