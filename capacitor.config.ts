@@ -4,6 +4,11 @@ const config: CapacitorConfig = {
   appId: 'cd.kwenda.taxi',
   appName: 'Kwenda Taxi',
   webDir: 'dist',
+  server: {
+    url: "capacitor://localhost",
+    cleartext: false
+  },
+  appUrlScheme: "kwenda",
   plugins: {
     Geolocation: {
       permissions: ["location", "coarseLocation"],
@@ -25,8 +30,10 @@ const config: CapacitorConfig = {
     },
     SplashScreen: {
       launchAutoHide: true,
-      launchFadeOutDuration: 400,
-      backgroundColor: "#0B1220"
+      launchShowDuration: 2000,
+      launchFadeOutDuration: 500,
+      backgroundColor: "#0B1220",
+      androidScaleType: "CENTER_CROP"
     },
     BackgroundMode: {
       enabled: true,

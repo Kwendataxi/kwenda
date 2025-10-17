@@ -13,7 +13,20 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Kwenda" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="manifest" id="app-manifest" href="/manifest.json" />
+    <script>
+      // Sélection dynamique du manifest selon le contexte
+      (function() {
+        const appType = new URLSearchParams(window.location.search).get('app');
+        let manifestPath = '/manifest.json';
+        
+        if (appType === 'client') manifestPath = '/manifest.client.json';
+        else if (appType === 'driver') manifestPath = '/manifest.driver.json';
+        else if (appType === 'partner') manifestPath = '/manifest.partner.json';
+        
+        document.getElementById('app-manifest').setAttribute('href', manifestPath);
+      })();
+    </script>
     
     <!-- Montserrat Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

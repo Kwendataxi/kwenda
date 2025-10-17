@@ -4,6 +4,11 @@ const config: CapacitorConfig = {
   appId: 'cd.kwenda.partner',
   appName: 'Kwenda Partner',
   webDir: 'dist',
+  server: {
+    url: "capacitor://localhost",
+    cleartext: false
+  },
+  appUrlScheme: "kwenda",
   plugins: {
     Camera: {
       permissions: ["camera", "photos"]
@@ -18,8 +23,10 @@ const config: CapacitorConfig = {
     },
     SplashScreen: {
       launchAutoHide: true,
-      launchFadeOutDuration: 400,
-      backgroundColor: "#10B981"
+      launchShowDuration: 2000,
+      launchFadeOutDuration: 500,
+      backgroundColor: "#10B981",
+      androidScaleType: "CENTER_CROP"
     }
   },
   bundledWebRuntime: false,

@@ -13,8 +13,10 @@ import DynamicTheme from "@/components/theme/DynamicTheme";
 import ParticleBackground from "@/components/theme/ParticleBackground";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { APP_CONFIG, isClientApp, isDriverApp, isPartnerApp, isSpecificBuild } from "@/config/appConfig";
+import { isMobileApp, isPWA } from "@/services/platformDetection";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import MobileSplash from "./pages/MobileSplash";
 import AdminAuth from "./pages/AdminAuth";
 import PartnerAuth from "./pages/PartnerAuth";
 import DriverAuth from "./pages/DriverAuth";
@@ -123,8 +125,11 @@ const AppContent = () => {
             <StartupExperience />
             <OnboardingRedirect>
               <Routes>
+                {/* Route Splash pour mobile/PWA */}
+                <Route path="/splash" element={<MobileSplash />} />
+                
                 {/* Routes communes à toutes les apps */}
-                {!isSpecificBuild() && <Route path="/" element={<Index />} />}
+                {!isSpecificBuild() && <Route path="/" element={isMobileApp() || isPWA() ? <MobileSplash /> : <Index />} />}
                 {!isSpecificBuild() && <Route path="/onboarding" element={<Onboarding />} />}
                 <Route path="/install" element={<Install />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
@@ -134,7 +139,7 @@ const AppContent = () => {
                 {/* Routes CLIENT uniquement */}
                 {(!isSpecificBuild() || isClientApp()) && (
                   <>
-                    <Route path="/" element={<Index />} />
+                    <Route path="/" element={isMobileApp() || (isSpecificBuild() && isClientApp()) ? <MobileSplash /> : <Index />} />
                     <Route path="/install" element={<Install />} />
                     <Route path="/auth" element={
                       <OnboardingRedirect>
@@ -175,7 +180,7 @@ const AppContent = () => {
                 {/* Routes DRIVER uniquement */}
                 {(!isSpecificBuild() || isDriverApp()) && (
                   <>
-                    <Route path="/" element={<Index />} />
+                    <Route path="/" element={isMobileApp() || (isSpecificBuild() && isDriverApp()) ? <MobileSplash /> : <Index />} />
                     <Route path="/install" element={<Install />} />
                     <Route path="/driver/auth" element={
                       <OnboardingRedirect>
@@ -199,7 +204,7 @@ const AppContent = () => {
                 {/* Routes PARTNER uniquement */}
                 {(!isSpecificBuild() || isPartnerApp()) && (
                   <>
-                    <Route path="/" element={<Index />} />
+                    <Route path="/" element={isMobileApp() || (isSpecificBuild() && isPartnerApp()) ? <MobileSplash /> : <Index />} />
                     <Route path="/install" element={<Install />} />
                     <Route path="/partner/auth" element={
                       <OnboardingRedirect>

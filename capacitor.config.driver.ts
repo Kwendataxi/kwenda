@@ -4,6 +4,11 @@ const config: CapacitorConfig = {
   appId: 'cd.kwenda.driver',
   appName: 'Kwenda Driver',
   webDir: 'dist',
+  server: {
+    url: "capacitor://localhost",
+    cleartext: false
+  },
+  appUrlScheme: "kwenda",
   plugins: {
     Geolocation: {
       permissions: ["location", "coarseLocation"],
@@ -25,8 +30,10 @@ const config: CapacitorConfig = {
     },
     SplashScreen: {
       launchAutoHide: true,
-      launchFadeOutDuration: 400,
-      backgroundColor: "#F59E0B"
+      launchShowDuration: 2000,
+      launchFadeOutDuration: 500,
+      backgroundColor: "#F59E0B",
+      androidScaleType: "CENTER_CROP"
     },
     BackgroundMode: {
       enabled: true,

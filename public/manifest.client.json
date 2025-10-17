@@ -1,12 +1,12 @@
 {
-  "name": "Kwenda",
+  "name": "Kwenda Client",
   "short_name": "Kwenda",
-  "description": "Application VTC multimodale pour l'Afrique francophone - Transport, Livraison, Marketplace",
-  "start_url": "/",
+  "description": "Application client Kwenda - Transport, Livraison, Marketplace",
+  "start_url": "/splash",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-  "background_color": "#0B1220",
+  "background_color": "#DC2626",
   "theme_color": "#DC2626",
   "orientation": "portrait",
   "categories": ["travel", "business"],
@@ -33,15 +33,6 @@
       "purpose": "maskable any"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/splash-screen.png",
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Écran d'accueil Kwenda Taxi"
-    }
-  ],
   "shortcuts": [
     {
       "name": "Réserver un taxi",
@@ -52,16 +43,9 @@
     },
     {
       "name": "Livraison",
-      "short_name": "Livraison", 
+      "short_name": "Livraison",
       "description": "Commander une livraison",
       "url": "/client?service=delivery",
-      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Marketplace",
-      "short_name": "Shop",
-      "description": "Acheter des produits",
-      "url": "/client?service=marketplace",
       "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
     }
   ]

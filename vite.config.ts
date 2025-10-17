@@ -9,6 +9,15 @@ export default defineConfig(({ mode }) => {
   // Charger les variables d'environnement selon le mode
   const env = loadEnv(mode, process.cwd(), '');
   
+  // Déterminer le manifest selon le type d'app
+  const getManifestPath = () => {
+    const appType = env.VITE_APP_TYPE;
+    if (appType === 'client') return './public/manifest.client.json';
+    if (appType === 'driver') return './public/manifest.driver.json';
+    if (appType === 'partner') return './public/manifest.partner.json';
+    return './public/manifest.json';
+  };
+  
   return {
     server: {
       host: "::",

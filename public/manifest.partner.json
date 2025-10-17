@@ -1,0 +1,52 @@
+{
+  "name": "Kwenda Partner",
+  "short_name": "Kwenda Partner",
+  "description": "Application partenaire Kwenda - Gérez votre flotte",
+  "start_url": "/splash",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#10B981",
+  "theme_color": "#10B981",
+  "orientation": "portrait",
+  "categories": ["business", "productivity"],
+  "lang": "fr",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/app-icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ma flotte",
+      "short_name": "Flotte",
+      "description": "Gérer ma flotte de véhicules",
+      "url": "/partenaire?tab=fleet",
+      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Finances",
+      "short_name": "Finances",
+      "description": "Consulter les finances",
+      "url": "/partenaire?tab=finances",
+      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}
