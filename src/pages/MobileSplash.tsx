@@ -9,25 +9,34 @@ const MobileSplash: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Déterminer la prochaine destination
     const ctx = localStorage.getItem("last_context") || APP_CONFIG.type || "client";
+    const splashShown = localStorage.getItem(`splash_shown::${ctx}`) === "1";
     const onboardingSeen = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
+    
+    // ✅ Si le splash a déjà été montré ET onboarding vu, skip direct
+    if (splashShown && onboardingSeen) {
+      navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
+      return;
+    }
+    
+    // Marquer le splash comme vu
+    try {
+      localStorage.setItem(`splash_shown::${ctx}`, "1");
+    } catch {}
     
     const timer = setTimeout(() => {
       if (!onboardingSeen) {
-        // Rediriger vers onboarding si jamais vu
         navigate(`/onboarding?context=${encodeURIComponent(ctx)}`, { replace: true });
       } else {
-        // Sinon aller vers la route d'auth ou route par défaut
         navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
       }
-    }, 1500); // ⚡ Réduit de 2000ms à 1500ms
+    }, 1200); // ⚡ Optimisé à 1200ms
 
-    // ✅ NOUVEAU : Timeout de sécurité à 5 secondes
+    // Safety timeout réduit à 4s
     const safetyTimer = setTimeout(() => {
-      logger.warn('⚠️ Splash timeout exceeded, forcing navigation to /auth');
+      logger.warn('⚠️ Splash timeout exceeded, forcing navigation');
       navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
-    }, 5000);
+    }, 4000);
 
     return () => {
       clearTimeout(timer);
@@ -35,94 +44,193 @@ const MobileSplash: React.FC = () => {
     };
   }, [navigate]);
 
-  // Couleurs selon le contexte
-  const getGradient = () => {
+  // Slogan dynamique selon le contexte
+  const getSlogan = () => {
     switch (APP_CONFIG.type) {
-      case 'client':
-        return 'from-[#DC2626] to-[#EF4444]';
       case 'driver':
-        return 'from-[#F59E0B] to-[#FBBF24]';
+        return 'Gagnez plus, roulez mieux !';
       case 'partner':
-        return 'from-[#10B981] to-[#34D399]';
+        return 'Gérez votre flotte efficacement !';
       default:
-        return 'from-[#1B365D] to-[#2563EB]';
+        return 'Courses abordables tous les jours !';
     }
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${getGradient()} flex items-center justify-center relative overflow-hidden`}>
-      {/* Particules d'arrière-plan */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-2 h-2 bg-white/20 rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              opacity: [0.2, 0.5, 0.2],
-            }}
-            transition={{
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+      {/* Fond rouge dégradé avec couches multiples */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#DC2626] via-[#EF4444] to-[#F87171]" />
+      
+      {/* Lueurs dynamiques d'ambiance */}
+      <motion.div 
+        className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl"
+        style={{ background: 'rgba(255, 255, 255, 0.1)' }}
+        animate={{ 
+          scale: [1, 1.2, 1],
+          opacity: [0.3, 0.5, 0.3] 
+        }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div 
+        className="absolute bottom-1/3 right-1/4 w-80 h-80 rounded-full blur-3xl"
+        style={{ background: 'rgba(252, 165, 165, 0.2)' }}
+        animate={{ 
+          scale: [1, 1.3, 1],
+          opacity: [0.2, 0.4, 0.2] 
+        }}
+        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
+      />
+
+      {/* Particules avancées avec trajectoires variées */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(30)].map((_, i) => {
+          const size = Math.random() * 3 + 1;
+          const duration = Math.random() * 4 + 3;
+          const delay = Math.random() * 3;
+          
+          return (
+            <motion.div
+              key={i}
+              className="absolute rounded-full bg-white/30"
+              style={{
+                width: `${size}px`,
+                height: `${size}px`,
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                filter: 'blur(1px)',
+              }}
+              animate={{
+                x: [0, Math.random() * 100 - 50, 0],
+                y: [0, Math.random() * -150 - 50, 0],
+                opacity: [0, 0.8, 0],
+                scale: [0.5, 1.2, 0.5],
+              }}
+              transition={{
+                duration,
+                delay,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+          );
+        })}
       </div>
 
-      {/* Logo central avec animation */}
+      {/* Contenu central */}
       <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
+        initial={{ scale: 0.5, opacity: 0, rotateY: -90 }}
+        animate={{ scale: 1, opacity: 1, rotateY: 0 }}
         transition={{
-          duration: 0.5,
-          ease: "easeOut"
+          duration: 0.8,
+          ease: [0.34, 1.56, 0.64, 1],
         }}
-        className="relative z-10"
+        className="relative z-10 flex flex-col items-center"
       >
+        {/* Halo lumineux autour du logo */}
+        <div className="relative">
+          <motion.div
+            className="absolute -inset-8 rounded-full blur-2xl"
+            style={{ background: 'rgba(255, 255, 255, 0.2)' }}
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+          
+          {/* Logo avec effet de lévitation */}
+          <motion.div
+            animate={{
+              y: [0, -10, 0],
+              scale: [1, 1.02, 1],
+            }}
+            transition={{
+              duration: 2.5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          >
+            <BrandLogo 
+              size={200} 
+              className="drop-shadow-2xl relative z-10" 
+            />
+          </motion.div>
+        </div>
+
+        {/* Badge "NOUVEAU" glassmorphism */}
         <motion.div
-          animate={{
-            scale: [1, 1.05, 1],
-          }}
-          transition={{
-            duration: 1.5,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
+          className="mt-12 inline-block px-4 py-1.5 rounded-full backdrop-blur-md"
+          style={{ background: 'rgba(255, 255, 255, 0.2)' }}
         >
-          <BrandLogo 
-            size={180} 
-            className="drop-shadow-2xl" 
+          <span className="text-white text-xs font-semibold tracking-wide">
+            ✨ NOUVEAU
+          </span>
+        </motion.div>
+
+        {/* Slogan principal avec effet de lueur */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          className="mt-4 text-center px-8"
+        >
+          <h2
+            className="text-white text-3xl font-black tracking-tight leading-tight"
+            style={{
+              textShadow: '0 4px 20px rgba(0,0,0,0.3), 0 0 40px rgba(255,255,255,0.2)',
+            }}
+          >
+            {getSlogan()}
+          </h2>
+
+          {/* Ligne décorative animée */}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
+            className="mt-4 mx-auto h-1 w-24 rounded-full"
+            style={{
+              background: 'linear-gradient(to right, transparent, white, transparent)',
+            }}
           />
         </motion.div>
 
-        {/* Texte sous le logo */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="mt-8 text-center"
-        >
-          <h1 className="text-white text-2xl font-bold drop-shadow-lg">
-            {APP_CONFIG.name}
-          </h1>
-          <p className="text-white/80 text-sm mt-2">
-            Chargement...
-          </p>
-        </motion.div>
-
-        {/* Loading spinner */}
+        {/* Loading indicator premium */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-6 flex justify-center"
+          transition={{ delay: 0.9 }}
+          className="mt-10 flex flex-col items-center gap-4"
         >
-          <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+          {/* Spinner glassmorphism */}
+          <div className="relative">
+            <motion.div
+              className="w-12 h-12 rounded-full border-4 border-white/30 border-t-white"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            />
+            {/* Glow effect */}
+            <div className="absolute inset-0 rounded-full blur-xl animate-pulse" style={{ background: 'rgba(255, 255, 255, 0.2)' }} />
+          </div>
+
+          {/* Texte "Chargement" avec animation */}
+          <motion.p
+            className="text-white/80 text-sm font-medium"
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          >
+            Chargement<motion.span
+              animate={{ opacity: [0, 1, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >...</motion.span>
+          </motion.p>
         </motion.div>
       </motion.div>
     </div>
