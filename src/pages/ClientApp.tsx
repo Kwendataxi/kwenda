@@ -96,9 +96,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useEnhancedDeliveryOrders } from '@/hooks/useEnhancedDeliveryOrders';
 import { LotteryDashboard } from '@/components/lottery/LotteryDashboard';
 import { useLotteryTickets } from '@/hooks/useLotteryTickets';
-import { useLotteryNotifications } from '@/hooks/useLotteryNotifications';
-import { LotteryNotification } from '@/components/transport/LotteryNotification';
-import { LotteryTicketFloater } from '@/components/lottery/LotteryTicketFloater';
 import { UnifiedActivityScreen } from '@/components/activity/UnifiedActivityScreen';
 import { CancellationNotification } from '@/components/notifications/CancellationNotification';
 
