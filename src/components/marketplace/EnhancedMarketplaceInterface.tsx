@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon, Shield, Filter, Sparkles, TrendingUp, LayoutGrid, List } from 'lucide-react';
+import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon, Shield, Filter, Sparkles, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -120,7 +120,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const [currentTab, setCurrentTab] = useState<'shop' | 'sell' | 'orders' | 'escrow' | 'vendor'>('shop');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [imageUploadStatuses, setImageUploadStatuses] = useState<ImageUploadStatus[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -879,45 +878,16 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
   const renderShopTab = () => (
     <div className="space-y-4">
-      {/* En-tête compact */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Marketplace</h1>
-          <p className="text-sm text-muted-foreground">
-            {filteredProducts.length} produits disponibles
-          </p>
-        </div>
-        
-        <div className="flex gap-2">
-          {/* Vue grille/liste */}
-          <div className="flex items-center gap-1 border rounded-lg p-1">
-            <Button 
-              variant={viewMode === 'grid' ? 'default' : 'ghost'} 
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => setViewMode('grid')}
-            >
-              <LayoutGrid className="h-3.5 w-3.5" />
-            </Button>
-            <Button 
-              variant={viewMode === 'list' ? 'default' : 'ghost'} 
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => setViewMode('list')}
-            >
-              <List className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-          
-          <Button variant="outline" size="sm" onClick={() => setIsFiltersOpen(true)}>
-            <Filter className="h-4 w-4 mr-2" />
-            Filtres {activeFiltersCount > 0 && `(${activeFiltersCount})`}
-          </Button>
-        </div>
+      {/* En-tête simplifié */}
+      <div>
+        <h1 className="text-2xl font-bold">Marketplace</h1>
+        <p className="text-sm text-muted-foreground">
+          {filteredProducts.length} produits disponibles
+        </p>
       </div>
 
-      {/* Barre de recherche et filtres */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* Barre de recherche avec filtre unique */}
+      <div className="flex gap-2">
         <div className="flex-1">
           <SearchBar
             searchQuery={searchQuery}
@@ -938,15 +908,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           />
         </div>
         <Button
-          variant="outline"
+          variant="default"
+          size="icon"
           onClick={() => setIsFiltersOpen(true)}
-          className="flex items-center gap-2"
+          className="h-10 w-10 shrink-0"
         >
           <Filter className="h-4 w-4" />
-          Filtres avancés
-          {activeFiltersCount > 0 && (
-            <Badge className="ml-2">{activeFiltersCount}</Badge>
-          )}
         </Button>
       </div>
 
