@@ -10,6 +10,7 @@ import { useLottery } from '@/hooks/useLottery';
 import { LotteryDrawCard } from './LotteryDrawCard';
 import { LotteryTicketsList } from './LotteryTicketsList';
 import { LotteryWinsList } from './LotteryWinsList';
+import { ScratchCardGallery } from './scratch/ScratchCardGallery';
 
 export const LotteryDashboard = () => {
   const { t } = useLanguage();
@@ -79,7 +80,14 @@ export const LotteryDashboard = () => {
       {/* Navigation sticky moderne */}
       <Tabs defaultValue="draws" className="flex-1 flex flex-col">
         <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-b px-4 py-3">
-          <TabsList className="w-full h-11 p-1 bg-muted/50 backdrop-blur-sm grid grid-cols-4">
+          <TabsList className="w-full h-11 p-1 bg-muted/50 backdrop-blur-sm grid grid-cols-5">
+            <TabsTrigger 
+              value="scratch" 
+              className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+            >
+              <Sparkles className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Cartes</span>
+            </TabsTrigger>
             <TabsTrigger 
               value="draws" 
               className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
@@ -121,6 +129,10 @@ export const LotteryDashboard = () => {
         </div>
 
         <div className="flex-1 overflow-auto">
+          <TabsContent value="scratch" className="p-4 m-0 overflow-auto">
+            <ScratchCardGallery />
+          </TabsContent>
+
           <TabsContent value="draws" className="p-4 space-y-3 m-0 overflow-auto">
             <div className="grid gap-3">
               {currentDraws.length > 0 ? (

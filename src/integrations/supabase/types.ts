@@ -3799,8 +3799,13 @@ export type Database = {
           currency: string
           description: string | null
           id: string
+          image_url: string | null
           is_active: boolean
           name: string
+          partner_id: string | null
+          physical_delivery_required: boolean | null
+          probability: number | null
+          rarity: string | null
           updated_at: string
           value: number
         }
@@ -3810,8 +3815,13 @@ export type Database = {
           currency?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           name: string
+          partner_id?: string | null
+          physical_delivery_required?: boolean | null
+          probability?: number | null
+          rarity?: string | null
           updated_at?: string
           value?: number
         }
@@ -3821,12 +3831,25 @@ export type Database = {
           currency?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           name?: string
+          partner_id?: string | null
+          physical_delivery_required?: boolean | null
+          probability?: number | null
+          rarity?: string | null
           updated_at?: string
           value?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "lottery_prize_types_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partenaires"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lottery_tickets: {
         Row: {
@@ -3887,11 +3910,16 @@ export type Database = {
           expires_at: string | null
           id: string
           physical_delivery_info: Json | null
+          points_awarded: number | null
           prize_details: Json
           prize_type_id: string | null
           prize_value: number
           proof_of_delivery: Json | null
+          rarity: string | null
           recipient_signature: string | null
+          reward_type: string | null
+          scratch_percentage: number | null
+          scratch_revealed_at: string | null
           status: string
           user_id: string
           validated_at: string | null
@@ -3911,11 +3939,16 @@ export type Database = {
           expires_at?: string | null
           id?: string
           physical_delivery_info?: Json | null
+          points_awarded?: number | null
           prize_details: Json
           prize_type_id?: string | null
           prize_value: number
           proof_of_delivery?: Json | null
+          rarity?: string | null
           recipient_signature?: string | null
+          reward_type?: string | null
+          scratch_percentage?: number | null
+          scratch_revealed_at?: string | null
           status?: string
           user_id: string
           validated_at?: string | null
@@ -3935,11 +3968,16 @@ export type Database = {
           expires_at?: string | null
           id?: string
           physical_delivery_info?: Json | null
+          points_awarded?: number | null
           prize_details?: Json
           prize_type_id?: string | null
           prize_value?: number
           proof_of_delivery?: Json | null
+          rarity?: string | null
           recipient_signature?: string | null
+          reward_type?: string | null
+          scratch_percentage?: number | null
+          scratch_revealed_at?: string | null
           status?: string
           user_id?: string
           validated_at?: string | null
