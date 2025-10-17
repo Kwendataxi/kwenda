@@ -49,22 +49,126 @@ serve(async (req) => {
       throw new Error('Aucun prix disponible');
     }
 
-    // Weighted random selection based on probability
-    const totalProbability = prizeTypes.reduce((sum: number, p: PrizeType) => sum + p.probability, 0);
-    let random = Math.random() * totalProbability;
+    // ========== PHASE 3: INTELLIGENT PRIZE SELECTION ==========
     
-    let selectedPrize: PrizeType | null = null;
-    for (const prize of prizeTypes) {
-      random -= prize.probability;
-      if (random <= 0) {
-        selectedPrize = prize;
-        break;
+    // 1. Get user's pity tracker
+    let { data: pityTracker } = await supabaseClient
+      .from('scratch_card_pity_tracker')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    // Create tracker if doesn't exist
+    if (!pityTracker) {
+      const { data: newTracker } = await supabaseClient
+        .from('scratch_card_pity_tracker')
+        .insert({ user_id: user.id })
+        .select()
+        .single();
+      pityTracker = newTracker;
+    }
+
+    const tracker = pityTracker || {
+      total_scratched: 0,
+      commons_streak: 0,
+      guaranteed_rare_at: 10,
+      guaranteed_epic_at: 50,
+      guaranteed_legendary_at: 200,
+      active_multiplier: 1.0
+    };
+
+    // 2. Check for pity system guarantees
+    let forcedRarity: string | null = null;
+
+    // Legendary garanti tous les 200
+    if (tracker.total_scratched > 0 && (tracker.total_scratched + 1) % tracker.guaranteed_legendary_at === 0) {
+      forcedRarity = 'legendary';
+      console.log('🌟 PITY SYSTEM: Legendary garanti !', { total_scratched: tracker.total_scratched + 1 });
+    }
+    // Epic garanti tous les 50
+    else if (tracker.total_scratched > 0 && (tracker.total_scratched + 1) % tracker.guaranteed_epic_at === 0) {
+      forcedRarity = 'epic';
+      console.log('💜 PITY SYSTEM: Epic garanti !', { total_scratched: tracker.total_scratched + 1 });
+    }
+    // Rare garanti après 10 commons consécutifs
+    else if (tracker.commons_streak >= tracker.guaranteed_rare_at - 1) {
+      forcedRarity = 'rare';
+      console.log('💙 PITY SYSTEM: Rare garanti après 10 commons !', { commons_streak: tracker.commons_streak });
+    }
+
+    // 3. Apply temporal multipliers
+    const now = new Date();
+    const hour = now.getHours();
+    const dayOfWeek = now.getDay();
+
+    let timeMultiplier = 1.0;
+
+    // Happy hour (18h-20h) : x1.5 pour rare+
+    if (hour >= 18 && hour < 20) {
+      timeMultiplier = 1.5;
+      console.log('⏰ Happy Hour actif: x1.5 !');
+    }
+
+    // Weekend bonus : x1.2
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      timeMultiplier *= 1.2;
+      console.log('🎉 Weekend Bonus: x1.2 !');
+    }
+
+    // Multiplicateur actif du tracker
+    if (tracker.active_multiplier > 1.0 && tracker.multiplier_expires_at && new Date(tracker.multiplier_expires_at) > now) {
+      timeMultiplier *= tracker.active_multiplier;
+      console.log(`🔥 Multiplicateur actif: x${tracker.active_multiplier} !`);
+    }
+
+    // 4. Select prize intelligently
+    let selectedPrize: PrizeType;
+
+    if (forcedRarity) {
+      // Pity system: force specific rarity
+      const forcedPrizes = prizeTypes.filter((p: PrizeType) => p.rarity === forcedRarity);
+      selectedPrize = forcedPrizes[Math.floor(Math.random() * forcedPrizes.length)];
+      console.log('🎯 Prize forced by pity system:', { rarity: forcedRarity, prize: selectedPrize.name });
+    } else {
+      // Normal selection with time multipliers
+      const adjustedPrizes = prizeTypes.map((p: PrizeType) => ({
+        ...p,
+        adjustedProbability: p.probability * (p.rarity !== 'common' ? timeMultiplier : 1.0)
+      }));
+
+      // Normalize probabilities (total = 1.0)
+      const totalProb = adjustedPrizes.reduce((sum: number, p: any) => sum + p.adjustedProbability, 0);
+      const normalizedPrizes = adjustedPrizes.map((p: any) => ({
+        ...p,
+        normalizedProb: p.adjustedProbability / totalProb
+      }));
+
+      // Weighted random with adjusted probabilities
+      let random = Math.random();
+      for (const prize of normalizedPrizes) {
+        random -= prize.normalizedProb;
+        if (random <= 0) {
+          selectedPrize = prize;
+          break;
+        }
+      }
+
+      if (!selectedPrize) {
+        selectedPrize = prizeTypes[prizeTypes.length - 1];
       }
     }
 
-    if (!selectedPrize) {
-      selectedPrize = prizeTypes[prizeTypes.length - 1]; // Fallback to last prize
-    }
+    // 5. Log stats for debugging
+    console.log('🎲 Tirage effectué:', {
+      user_id: user.id,
+      total_scratched: tracker.total_scratched + 1,
+      commons_streak: tracker.commons_streak,
+      forced_rarity: forcedRarity,
+      time_multiplier: timeMultiplier,
+      won_prize: selectedPrize.name,
+      won_rarity: selectedPrize.rarity,
+      won_value: selectedPrize.value
+    });
 
     // Create lottery win with scratch card
     const { data: win, error: winError } = await supabaseClient

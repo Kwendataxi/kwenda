@@ -8187,6 +8187,57 @@ export type Database = {
         }
         Relationships: []
       }
+      scratch_card_pity_tracker: {
+        Row: {
+          active_multiplier: number | null
+          commons_streak: number | null
+          created_at: string | null
+          guaranteed_epic_at: number | null
+          guaranteed_legendary_at: number | null
+          guaranteed_rare_at: number | null
+          id: string
+          last_epic_at: string | null
+          last_legendary_at: string | null
+          last_rare_at: string | null
+          multiplier_expires_at: string | null
+          total_scratched: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          active_multiplier?: number | null
+          commons_streak?: number | null
+          created_at?: string | null
+          guaranteed_epic_at?: number | null
+          guaranteed_legendary_at?: number | null
+          guaranteed_rare_at?: number | null
+          id?: string
+          last_epic_at?: string | null
+          last_legendary_at?: string | null
+          last_rare_at?: string | null
+          multiplier_expires_at?: string | null
+          total_scratched?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          active_multiplier?: number | null
+          commons_streak?: number | null
+          created_at?: string | null
+          guaranteed_epic_at?: number | null
+          guaranteed_legendary_at?: number | null
+          guaranteed_rare_at?: number | null
+          id?: string
+          last_epic_at?: string | null
+          last_legendary_at?: string | null
+          last_rare_at?: string | null
+          multiplier_expires_at?: string | null
+          total_scratched?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       security_audit_logs: {
         Row: {
           action_type: string
