@@ -878,45 +878,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
   const renderShopTab = () => (
     <div className="space-y-4">
-      {/* En-tête simplifié */}
-      <div>
-        <h1 className="text-2xl font-bold">Marketplace</h1>
-        <p className="text-sm text-muted-foreground">
-          {filteredProducts.length} produits disponibles
-        </p>
-      </div>
-
-      {/* Barre de recherche avec filtre unique */}
-      <div className="flex gap-2">
-        <div className="flex-1">
-          <SearchBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onSearch={() => {}}
-            filters={{
-              priceRange: filters.priceRange,
-              inStockOnly: filters.availability === 'available',
-              freeShipping: false
-            }}
-            onFiltersChange={(newFilters) => {
-              setFilters(prev => ({
-                ...prev,
-                priceRange: newFilters.priceRange,
-                availability: newFilters.inStockOnly ? 'available' : 'all'
-              }));
-            }}
-          />
-        </div>
-        <Button
-          variant="default"
-          size="icon"
-          onClick={() => setIsFiltersOpen(true)}
-          className="h-10 w-10 shrink-0"
-        >
-          <Filter className="h-4 w-4" />
-        </Button>
-      </div>
-
       <CategoryFilter
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
