@@ -187,6 +187,7 @@ const AppContent = () => {
                         <Auth />
                       </OnboardingRedirect>
                     } />
+                    <Route path="/client/verify-email" element={<ClientVerifyEmail />} />
                     <Route path="/client" element={
                       <ProtectedRoute>
                         <ClientApp />
