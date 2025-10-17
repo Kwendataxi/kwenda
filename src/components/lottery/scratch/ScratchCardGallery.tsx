@@ -7,6 +7,8 @@ import { ScratchCardWin } from '@/types/scratch-card';
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket, Trophy, Gift, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
+import { StatsCard } from '../StatsCard';
 
 export const ScratchCardGallery: React.FC = () => {
   const [wins, setWins] = useState<ScratchCardWin[]>([]);
@@ -102,29 +104,47 @@ export const ScratchCardGallery: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <Ticket className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <p className="text-2xl font-bold">{unscratched.length}</p>
-            <p className="text-sm text-muted-foreground">À gratter</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <Trophy className="h-8 w-8 mx-auto mb-2 text-yellow-600" />
-            <p className="text-2xl font-bold">{revealed.length}</p>
-            <p className="text-sm text-muted-foreground">Révélées</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <Gift className="h-8 w-8 mx-auto mb-2 text-green-600" />
-            <p className="text-2xl font-bold">{wins.length}</p>
-            <p className="text-sm text-muted-foreground">Total</p>
-          </CardContent>
-        </Card>
+      {/* Stats améliorées avec animations */}
+      <div className="grid grid-cols-3 gap-3">
+        <StatsCard
+          icon={<Ticket className="h-6 w-6" />}
+          value={unscratched.length}
+          label="À gratter"
+          color="from-blue-500 to-cyan-500"
+          trend={unscratched.length > 0 ? 'Nouveau!' : undefined}
+        >
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-t from-blue-500/20 to-transparent"
+            animate={{ opacity: [0.3, 0.7, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        </StatsCard>
+        
+        <StatsCard
+          icon={<Trophy className="h-6 w-6" />}
+          value={revealed.length}
+          label="Révélées"
+          color="from-yellow-500 to-orange-500"
+        >
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-t from-yellow-500/20 to-transparent"
+            animate={{ opacity: [0.3, 0.7, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+          />
+        </StatsCard>
+        
+        <StatsCard
+          icon={<Gift className="h-6 w-6" />}
+          value={wins.length}
+          label="Total"
+          color="from-green-500 to-emerald-500"
+        >
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-t from-green-500/20 to-transparent"
+            animate={{ opacity: [0.3, 0.7, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+          />
+        </StatsCard>
       </div>
 
       {/* Tabs */}
@@ -140,15 +160,33 @@ export const ScratchCardGallery: React.FC = () => {
 
         <TabsContent value="scratch" className="space-y-4 mt-6">
           {unscratched.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {unscratched.map(win => (
-                <ScratchCard
-                  key={win.win_id}
-                  win={win}
-                  onReveal={loadWins}
-                />
-              ))}
-            </div>
+            <motion.div 
+              layout
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            >
+              <AnimatePresence mode="popLayout">
+                {unscratched.map((win, index) => (
+                  <motion.div
+                    key={win.win_id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                    animate={{ 
+                      opacity: 1, 
+                      scale: 1, 
+                      y: 0,
+                      transition: { delay: index * 0.1 } 
+                    }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    whileHover={{ scale: 1.03, zIndex: 10 }}
+                  >
+                    <ScratchCard
+                      win={win}
+                      onReveal={loadWins}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           ) : (
             <Card>
               <CardContent className="pt-12 pb-12 text-center">
@@ -166,15 +204,31 @@ export const ScratchCardGallery: React.FC = () => {
 
         <TabsContent value="revealed" className="space-y-4 mt-6">
           {revealed.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {revealed.map(win => (
-                <ScratchCard
-                  key={win.win_id}
-                  win={win}
-                  onReveal={loadWins}
-                />
-              ))}
-            </div>
+            <motion.div 
+              layout
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            >
+              <AnimatePresence mode="popLayout">
+                {revealed.map((win, index) => (
+                  <motion.div
+                    key={win.win_id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ 
+                      opacity: 1, 
+                      scale: 1,
+                      transition: { delay: index * 0.1 }
+                    }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                  >
+                    <ScratchCard
+                      win={win}
+                      onReveal={loadWins}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           ) : (
             <Card>
               <CardContent className="pt-12 pb-12 text-center">

@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
+import { useLotteryFeedback } from '@/hooks/useLotteryFeedback';
 
 interface ScratchCardProps {
   win: ScratchCardWin;
@@ -18,12 +19,23 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({ win, onReveal }) => {
   const [scratchPercentage, setScratchPercentage] = useState(win.scratch_percentage || 0);
   const [showReveal, setShowReveal] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
+  const { vibrateLight, vibrateByRarity } = useLotteryFeedback();
 
   const config = RARITY_CONFIG[win.rarity];
   const isRevealed = win.scratch_revealed_at !== null || scratchPercentage >= 70;
 
   const handleScratch = async (percentage: number) => {
     setScratchPercentage(percentage);
+
+    // Feedback haptique progressif
+    if (percentage % 10 === 0 && percentage > 0) {
+      vibrateLight();
+    }
+
+    // Encouragement à 50%
+    if (percentage >= 50 && percentage < 55) {
+      toast.success('Encore un peu ! 🔥');
+    }
 
     // Update percentage in database
     if (percentage >= 10 && percentage < 70) {
@@ -43,6 +55,7 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({ win, onReveal }) => {
     
     setIsRevealing(true);
     setShowReveal(true);
+    vibrateByRarity(win.rarity);
 
     try {
       // Mark as revealed
@@ -165,13 +178,24 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({ win, onReveal }) => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        whileHover={{ 
+          scale: 1.05,
+          rotateY: 5,
+          rotateX: 2,
+          transition: { type: 'spring', stiffness: 300 }
+        }}
         transition={{ duration: 0.3 }}
+        style={{
+          transformStyle: 'preserve-3d',
+          perspective: '1000px'
+        }}
       >
         <Card 
-          className="overflow-hidden border-2 relative"
+          className="overflow-hidden border-2 relative shadow-2xl"
           style={{ 
             borderColor: config.color,
-            boxShadow: `0 0 20px ${config.glowColor}`
+            boxShadow: `0 20px 60px ${config.glowColor}, 0 0 40px ${config.glowColor}`,
+            transform: 'translateZ(20px)'
           }}
         >
           <CardContent className="p-0 relative aspect-[3/2]">
@@ -193,16 +217,28 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({ win, onReveal }) => {
                 <div 
                   className={`absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br ${config.bgGradient} p-6`}
                 >
-                  <Badge 
-                    variant="outline"
-                    className="mb-4"
-                    style={{ 
-                      borderColor: config.color,
-                      color: config.color
-                    }}
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', damping: 10 }}
                   >
-                    {config.label}
-                  </Badge>
+                    <Badge 
+                      variant="outline"
+                      className="mb-4 relative overflow-hidden"
+                      style={{ 
+                        borderColor: config.color,
+                        color: config.color,
+                        background: `linear-gradient(135deg, ${config.color}20, transparent)`
+                      }}
+                    >
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                        animate={{ x: ['-100%', '200%'] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                      <span className="relative z-10">{config.label}</span>
+                    </Badge>
+                  </motion.div>
                   <div className="text-6xl mb-4">
                     {win.image_url || '🎁'}
                   </div>

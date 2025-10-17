@@ -41,7 +41,6 @@ import About from "./pages/about/About";
 import TransportVTC from "./pages/services/TransportVTC";
 import LivraisonExpress from "./pages/services/LivraisonExpress";
 import LocationVehicules from "./pages/services/LocationVehicules";
-import KwendaTombola from "./pages/services/KwendaTombola";
 import DevenirChauffeur from "./pages/partners/DevenirChauffeur";
 import LouerVehicule from "./pages/partners/LouerVehicule";
 import DevenirLivreur from "./pages/partners/DevenirLivreur";
@@ -333,7 +332,6 @@ const AppContent = () => {
                     <Route path="/services/taxi-vtc" element={<TransportVTC />} />
                     <Route path="/services/livraison-express" element={<LivraisonExpress />} />
                     <Route path="/services/location-vehicules" element={<LocationVehicules />} />
-                    <Route path="/services/kwenda-tombola" element={<KwendaTombola />} />
                     <Route path="/partners/devenir-chauffeur" element={<DevenirChauffeur />} />
                     <Route path="/partners/louer-vehicule" element={<LouerVehicule />} />
                     <Route path="/partners/devenir-livreur" element={<DevenirLivreur />} />

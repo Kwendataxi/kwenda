@@ -9,9 +9,11 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useLottery } from '@/hooks/useLottery';
 import { LotteryDrawCard } from './LotteryDrawCard';
 import { LotteryTicketsList } from './LotteryTicketsList';
-import { LotteryWinsList } from './LotteryWinsList';
+import { LotteryWinsGallery } from './LotteryWinsGallery';
 import { ScratchCardGallery } from './scratch/ScratchCardGallery';
 import { LoyaltyPointsWidget } from '@/components/loyalty/LoyaltyPointsWidget';
+import { FloatingParticles } from '@/components/wallet/FloatingParticles';
+import { motion } from 'framer-motion';
 
 export const LotteryDashboard = () => {
   const { t } = useLanguage();
@@ -32,67 +34,131 @@ export const LotteryDashboard = () => {
 
   return (
     <div className="h-full bg-gradient-to-b from-background to-muted/20 flex flex-col">
-      {/* En-tête compact - masqué en modal */}
-      <div className="p-4 pb-0 hidden sm:block">
-        <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="h-5 w-5 text-primary" />
-          <h1 className="text-xl font-bold">Tombola Kwenda</h1>
+      {/* Hero Header Animé */}
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="relative p-6 bg-gradient-to-r from-primary via-purple-600 to-pink-500 rounded-b-3xl shadow-2xl overflow-hidden"
+      >
+        <FloatingParticles />
+        
+        <div className="relative z-10 flex items-center justify-between">
+          <div>
+            <motion.h1 
+              className="text-3xl font-black text-white drop-shadow-lg"
+              animate={{ scale: [1, 1.02, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              ✨ Kwenda Tombola
+            </motion.h1>
+            <p className="text-white/90 text-sm mt-1">
+              Grattez, gagnez, convertissez !
+            </p>
+          </div>
+          <motion.div
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Sparkles className="h-10 w-10 text-white drop-shadow-lg" />
+          </motion.div>
         </div>
-        <p className="text-sm text-muted-foreground mb-4">
-          Gagnez des tickets et remportez des prix !
-        </p>
-      </div>
+      </motion.div>
 
       {/* Widget Points de Fidélité */}
       <div className="px-4 mb-4">
         <LoyaltyPointsWidget />
       </div>
 
-      {/* Statistiques en chips horizontales */}
+      {/* Statistiques avec effets 3D */}
       <div className="px-4 mb-4 flex-shrink-0">
         <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 no-scrollbar">
-          <div className="flex-shrink-0 bg-gradient-to-r from-primary/20 to-primary/10 backdrop-blur-sm border border-primary/20 rounded-xl px-4 py-3 min-w-[120px]">
-            <div className="flex items-center gap-2">
-              <Ticket className="h-4 w-4 text-primary" />
+          <motion.div
+            whileHover={{ scale: 1.05, rotateY: 5 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex-shrink-0 relative overflow-hidden bg-gradient-to-br from-blue-500/20 via-blue-600/10 to-transparent backdrop-blur-xl border border-blue-500/30 rounded-2xl px-4 py-3 min-w-[120px] shadow-xl"
+            style={{
+              boxShadow: '0 8px 32px rgba(59, 130, 246, 0.3)',
+              transformStyle: 'preserve-3d'
+            }}
+          >
+            <motion.div
+              className="absolute -top-4 -right-4 w-20 h-20 bg-blue-500/20 rounded-full blur-2xl"
+              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 3, repeat: Infinity }}
+            />
+            <div className="flex items-center gap-2 relative z-10">
+              <Ticket className="h-5 w-5 text-blue-500" />
               <div>
-                <p className="text-lg font-bold text-primary">{availableTickets}</p>
+                <p className="text-2xl font-black text-blue-600">{availableTickets}</p>
                 <p className="text-xs text-muted-foreground">Tickets</p>
               </div>
             </div>
-          </div>
+          </motion.div>
           
-          <div className="flex-shrink-0 bg-gradient-to-r from-secondary/20 to-secondary/10 backdrop-blur-sm border border-secondary/20 rounded-xl px-4 py-3 min-w-[120px]">
-            <div className="flex items-center gap-2">
-              <Timer className="h-4 w-4 text-secondary" />
+          <motion.div
+            whileHover={{ scale: 1.05, rotateY: 5 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex-shrink-0 relative overflow-hidden bg-gradient-to-br from-purple-500/20 via-purple-600/10 to-transparent backdrop-blur-xl border border-purple-500/30 rounded-2xl px-4 py-3 min-w-[120px] shadow-xl"
+            style={{
+              boxShadow: '0 8px 32px rgba(168, 85, 247, 0.3)',
+              transformStyle: 'preserve-3d'
+            }}
+          >
+            <motion.div
+              className="absolute -top-4 -right-4 w-20 h-20 bg-purple-500/20 rounded-full blur-2xl"
+              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
+            />
+            <div className="flex items-center gap-2 relative z-10">
+              <Timer className="h-5 w-5 text-purple-500" />
               <div>
-                <p className="text-lg font-bold text-secondary">{currentDraws.length}</p>
+                <p className="text-2xl font-black text-purple-600">{currentDraws.length}</p>
                 <p className="text-xs text-muted-foreground">Tirages</p>
               </div>
             </div>
-          </div>
+          </motion.div>
           
-          <div className="flex-shrink-0 bg-gradient-to-r from-accent/20 to-accent/10 backdrop-blur-sm border border-accent/20 rounded-xl px-4 py-3 min-w-[120px]">
-            <div className="flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-accent" />
+          <motion.div
+            whileHover={{ scale: 1.05, rotateY: 5 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex-shrink-0 relative overflow-hidden bg-gradient-to-br from-yellow-500/20 via-orange-500/10 to-transparent backdrop-blur-xl border border-yellow-500/30 rounded-2xl px-4 py-3 min-w-[120px] shadow-xl"
+            style={{
+              boxShadow: '0 8px 32px rgba(251, 191, 36, 0.3)',
+              transformStyle: 'preserve-3d'
+            }}
+          >
+            <motion.div
+              className="absolute -top-4 -right-4 w-20 h-20 bg-yellow-500/20 rounded-full blur-2xl"
+              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+            />
+            <div className="flex items-center gap-2 relative z-10">
+              <Trophy className="h-5 w-5 text-yellow-600" />
               <div>
-                <p className="text-lg font-bold text-accent">{myWins.length}</p>
+                <p className="text-2xl font-black text-yellow-600">{myWins.length}</p>
                 <p className="text-xs text-muted-foreground">Gains</p>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 
-      {/* Navigation sticky moderne */}
-      <Tabs defaultValue="draws" className="flex-1 flex flex-col">
-        <div className="flex-shrink-0 bg-background/95 backdrop-blur-sm border-b px-4 py-3">
-          <TabsList className="w-full h-11 p-1 bg-muted/50 backdrop-blur-sm grid grid-cols-5">
+      {/* Navigation moderne avec glassmorphism */}
+      <Tabs defaultValue="scratch" className="flex-1 flex flex-col">
+        <div className="flex-shrink-0 bg-background/60 backdrop-blur-2xl border-b border-border/50 px-4 py-3 shadow-lg">
+          <TabsList className="w-full h-12 p-1 bg-muted/50 backdrop-blur-sm grid grid-cols-5 rounded-2xl">
             <TabsTrigger 
               value="scratch" 
-              className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+              className="relative text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl transition-all duration-300"
             >
-              <Sparkles className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Cartes</span>
+              <motion.div
+                className="flex items-center gap-2"
+                whileHover={{ scale: 1.05 }}
+              >
+                <Sparkles className="h-4 w-4" />
+                <span className="hidden sm:inline font-semibold">Cartes</span>
+              </motion.div>
             </TabsTrigger>
             <TabsTrigger 
               value="draws" 
@@ -159,7 +225,7 @@ export const LotteryDashboard = () => {
           </TabsContent>
 
           <TabsContent value="wins" className="p-4 m-0 overflow-auto">
-            <LotteryWinsList wins={myWins} />
+            <LotteryWinsGallery wins={myWins} />
           </TabsContent>
 
           <TabsContent value="how" className="p-4 space-y-4 m-0 overflow-auto">
