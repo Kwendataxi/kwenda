@@ -4243,6 +4243,47 @@ export type Database = {
         }
         Relationships: []
       }
+      marketplace_chats: {
+        Row: {
+          buyer_id: string
+          created_at: string | null
+          id: string
+          last_message_at: string | null
+          product_id: string
+          seller_id: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          product_id: string
+          seller_id: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          product_id?: string
+          seller_id?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_chats_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_commission_config: {
         Row: {
           commission_rate: number
@@ -4343,6 +4384,47 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_messages: {
+        Row: {
+          chat_id: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          message_type: string | null
+          sender_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          message_type?: string | null
+          sender_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          message_type?: string | null
+          sender_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_chats"
             referencedColumns: ["id"]
           },
         ]
