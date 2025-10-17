@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, Star, MapPin, Clock, Car, ArrowRight, Zap, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import heroImage from "@/assets/hero-vtc.jpg";
+import heroImage from "@/assets/hero-kwenda.png";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
