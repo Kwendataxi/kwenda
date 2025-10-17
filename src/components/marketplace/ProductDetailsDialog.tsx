@@ -121,51 +121,53 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto max-h-[95vh] p-0 gap-0">
-        <DialogHeader className="p-2.5 sm:p-3 pb-2 border-b bg-background/95 backdrop-blur">
+      <DialogContent className="max-w-md sm:max-w-2xl lg:max-w-3xl mx-auto max-h-[95vh] p-0 gap-0">
+        <DialogHeader className="p-2 sm:p-3 pb-2 border-b bg-background/95 backdrop-blur sticky top-0 z-10">
           <DialogTitle className="text-sm sm:text-base font-semibold line-clamp-1 pr-6">
             {product.name}
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="details" className="flex-1 flex flex-col">
-          <TabsList className="mx-2.5 sm:mx-3 my-1.5 grid w-auto grid-cols-3 h-8 sm:h-9">
-            <TabsTrigger value="details" className="flex items-center gap-1 text-xs px-1.5 sm:px-2">
-              <Info className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Détails</span>
+          <TabsList className="mx-2 sm:mx-3 my-1.5 grid w-auto grid-cols-2 h-9 sm:h-10">
+            <TabsTrigger value="details" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+              <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span>Détails</span>
             </TabsTrigger>
-            <TabsTrigger value="chat" className="flex items-center gap-1 text-xs px-1.5 sm:px-2">
-              <MessageCircle className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Vendeur</span>
-            </TabsTrigger>
-            <TabsTrigger value="ai" className="flex items-center gap-1 text-xs px-1.5 sm:px-2">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Kwenda AI</span>
+            <TabsTrigger value="chat" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+              <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span>Vendeur</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="flex-1 mt-0">
-            <ScrollArea className="h-[calc(95vh-260px)] sm:h-[calc(95vh-240px)] px-2.5 sm:px-3">
-              {/* Product Image */}
-              <div className="aspect-[4/3] w-full max-h-48 sm:max-h-56 overflow-hidden rounded-lg mb-2.5">
+            <ScrollArea className="h-[calc(95vh-220px)] sm:h-[calc(95vh-200px)] px-2 sm:px-3">
+              {/* Product Image - optimized loading */}
+              <div className="aspect-[4/3] w-full max-h-56 sm:max-h-64 overflow-hidden rounded-lg mb-3">
                 <img
                   src={product.image}
                   alt={product.name}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               </div>
 
-              {/* Category & Price Card */}
-              <div className="mb-2.5 p-2.5 rounded-lg border border-primary/20 bg-primary/5">
-                {/* Category Badge */}
-                <div className="flex items-center gap-2 mb-2">
-                  <Package className="h-3.5 w-3.5 text-primary" />
-                  <Badge variant="outline" className="text-xs">
+              {/* Category & Price Card - compact */}
+              <div className="mb-3 p-2.5 sm:p-3 rounded-lg border border-primary/20 bg-primary/5">
+                {/* Category & Condition Badges */}
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-2 flex-wrap">
+                  <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
+                  <Badge variant="outline" className="text-[10px] sm:text-xs">
                     {getCategoryName(product.category)}
                   </Badge>
                   {product.condition && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-[10px] sm:text-xs">
                       {getConditionLabel(product.condition)}
+                    </Badge>
+                  )}
+                  {product.stockCount !== undefined && product.stockCount > 0 && (
+                    <Badge variant="default" className="text-[10px] sm:text-xs ml-auto">
+                      ✅ En stock ({product.stockCount})
                     </Badge>
                   )}
                 </div>
@@ -173,7 +175,7 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="space-y-0.5">
                     <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="text-lg sm:text-xl font-bold text-primary">
+                      <span className="text-xl sm:text-2xl font-bold text-primary">
                         {formatCurrency(product.price)}
                       </span>
                       {product.originalPrice && product.originalPrice > product.price && (
@@ -191,26 +193,26 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                     </div>
                   </div>
                   <div className="flex items-center gap-1 bg-background rounded-md px-2 py-1 w-fit">
-                    <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                    <span className="font-semibold text-xs">{product.rating.toFixed(1)}</span>
+                    <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-yellow-400 text-yellow-400" />
+                    <span className="font-semibold text-xs sm:text-sm">{product.rating.toFixed(1)}</span>
                     {product.reviewCount > 0 && (
-                      <span className="text-[10px] text-muted-foreground">({product.reviewCount})</span>
+                      <span className="text-[10px] sm:text-xs text-muted-foreground">({product.reviewCount})</span>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* Seller Info Card */}
-              <div className="mb-2.5 p-2.5 rounded-lg border">
+              {/* Seller Info Card - simplified */}
+              <div className="mb-3 p-2.5 sm:p-3 rounded-lg border">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                    <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <span className="text-xs font-medium truncate">{product.seller}</span>
+                    <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+                    <span className="text-xs sm:text-sm font-medium truncate">{product.seller}</span>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="shrink-0 text-[10px] h-7 px-2"
+                    className="shrink-0 text-[10px] sm:text-xs h-7 sm:h-8 px-2 sm:px-3"
                     onClick={() => {
                       onViewSeller(product.sellerId);
                       onClose();
@@ -221,156 +223,136 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                 </div>
               </div>
 
-              {/* Description */}
+              {/* Description - compact */}
               {product.description && (
-                <div className="mb-2.5 space-y-1.5">
+                <div className="mb-3 space-y-1.5">
                   <div className="flex items-center gap-1.5">
-                    <FileText className="h-3.5 w-3.5 text-primary" />
-                    <h4 className="text-xs font-semibold">Description</h4>
+                    <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                    <h4 className="text-xs sm:text-sm font-semibold">Description</h4>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-3">
                     {product.description}
                   </p>
                 </div>
               )}
 
-              {/* Product Specifications */}
-              <div className="mb-2.5">
-                <ProductSpecifications
-                  brand={product.brand}
-                  condition={product.condition}
-                  stockCount={product.stockCount}
-                  specifications={product.specifications}
-                />
-              </div>
-
-              {/* Statistiques de popularité */}
-              {(product.viewCount || product.salesCount) && (
-                <div className="mb-2.5 p-2.5 rounded-lg border bg-muted/30">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <TrendingUp className="h-3.5 w-3.5 text-primary" />
-                    <h4 className="text-xs font-semibold">Popularité</h4>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {product.viewCount !== undefined && (
-                      <div className="text-center p-2 rounded bg-background">
-                        <Eye className="h-3.5 w-3.5 text-muted-foreground mx-auto mb-1" />
-                        <p className="text-xs font-semibold">{product.viewCount.toLocaleString()}</p>
-                        <p className="text-[10px] text-muted-foreground">Vues</p>
-                      </div>
-                    )}
-                    {product.salesCount !== undefined && (
-                      <div className="text-center p-2 rounded bg-background">
-                        <CartIcon className="h-3.5 w-3.5 text-muted-foreground mx-auto mb-1" />
-                        <p className="text-xs font-semibold">{product.salesCount}</p>
-                        <p className="text-[10px] text-muted-foreground">Vendus</p>
-                      </div>
-                    )}
-                    <div className="text-center p-2 rounded bg-background">
-                      <Star className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400 mx-auto mb-1" />
-                      <p className="text-xs font-semibold">{product.rating.toFixed(1)}</p>
-                      <p className="text-[10px] text-muted-foreground">Note</p>
-                    </div>
-                  </div>
-                  {product.salesCount && product.salesCount > 10 && (
-                    <div className="mt-2 p-1.5 bg-primary/10 rounded text-center">
-                      <p className="text-[10px] text-primary font-medium">
-                        ✅ Produit populaire - {product.salesCount}+ clients satisfaits
-                      </p>
-                    </div>
-                  )}
+              {/* Product Specifications - only if exists */}
+              {(product.brand || product.specifications) && (
+                <div className="mb-3">
+                  <ProductSpecifications
+                    brand={product.brand}
+                    condition={product.condition}
+                    stockCount={product.stockCount}
+                    specifications={product.specifications}
+                  />
                 </div>
               )}
 
-              {/* Similar Products Section */}
+              {/* Statistiques de popularité - seulement si significatives (>10 ventes) */}
+              {product.salesCount && product.salesCount > 10 && (
+                <div className="mb-3 p-2.5 sm:p-3 rounded-lg border bg-muted/30">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                    <h4 className="text-xs sm:text-sm font-semibold">Produit populaire</h4>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-center p-2 rounded bg-background">
+                      <CartIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground mx-auto mb-1" />
+                      <p className="text-xs sm:text-sm font-semibold">{product.salesCount}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">Vendus</p>
+                    </div>
+                    <div className="text-center p-2 rounded bg-background">
+                      <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400 fill-yellow-400 mx-auto mb-1" />
+                      <p className="text-xs sm:text-sm font-semibold">{product.rating.toFixed(1)}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">Note</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 p-1.5 bg-primary/10 rounded text-center">
+                    <p className="text-[10px] sm:text-xs text-primary font-medium">
+                      ✅ {product.salesCount}+ clients satisfaits
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Similar Products Section - limitées à 3 et compactes */}
               {similarProducts.length > 0 && (
                 <div className="mb-3 space-y-1.5">
                   <div className="flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5 text-primary" />
-                    <h4 className="text-xs font-semibold">Produits similaires</h4>
+                    <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                    <h4 className="text-xs sm:text-sm font-semibold">Produits similaires</h4>
                   </div>
-                  <HorizontalProductScroll
-                    title=""
-                    products={similarProducts}
-                    onAddToCart={onAddToCart}
-                    onViewDetails={(prod) => {
-                      onClose();
-                      setTimeout(() => {}, 100);
-                    }}
-                    onViewSeller={onViewSeller}
-                    userLocation={userLocation}
-                  />
-                </div>
-              )}
-
-              {/* Seller Other Products Section */}
-              {sellerProducts.length > 0 && (
-                <div className="mb-3 space-y-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <Store className="h-3.5 w-3.5 text-primary" />
-                    <h4 className="text-xs font-semibold">Autres produits de ce vendeur</h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    {similarProducts.slice(0, 3).map((prod) => (
+                      <div 
+                        key={prod.id} 
+                        className="cursor-pointer p-1.5 sm:p-2 border rounded-lg hover:border-primary/50 transition-colors"
+                        onClick={() => {
+                          onClose();
+                          setTimeout(() => {}, 100);
+                        }}
+                      >
+                        <img 
+                          src={prod.image} 
+                          alt={prod.name} 
+                          className="w-full aspect-square object-cover rounded mb-1"
+                          loading="lazy"
+                        />
+                        <p className="text-[10px] sm:text-xs font-medium line-clamp-1">{prod.name}</p>
+                        <p className="text-[10px] sm:text-xs text-primary font-bold">{formatCurrency(prod.price)}</p>
+                      </div>
+                    ))}
                   </div>
-                  <HorizontalProductScroll
-                    title=""
-                    products={sellerProducts}
-                    onAddToCart={onAddToCart}
-                    onViewDetails={(prod) => {
-                      onClose();
-                      setTimeout(() => {}, 100);
-                    }}
-                    onViewSeller={onViewSeller}
-                    userLocation={userLocation}
-                  />
                 </div>
               )}
 
             </ScrollArea>
 
-            {/* Sticky Footer Actions */}
+            {/* Sticky Footer Actions - optimized */}
             <div className="p-2.5 sm:p-3 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <div className="space-y-2">
-                {/* Quantity and Total Row */}
+                {/* Quantity and Total Row - compact */}
                 <div className="flex items-center justify-between gap-2">
                   {/* Quantity Selector */}
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1 sm:gap-1.5">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-7 w-7 shrink-0"
+                      className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 touch-manipulation"
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       disabled={quantity <= 1}
                     >
-                      <Minus className="h-3 w-3" />
+                      <Minus className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     </Button>
-                    <span className="font-medium text-xs min-w-5 text-center">{quantity}</span>
+                    <span className="font-medium text-xs sm:text-sm min-w-5 text-center tabular-nums">{quantity}</span>
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-7 w-7 shrink-0"
+                      className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 touch-manipulation"
                       onClick={() => setQuantity(quantity + 1)}
                     >
-                      <Plus className="h-3 w-3" />
+                      <Plus className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     </Button>
                   </div>
 
                   {/* Total Price */}
                   <div className="text-right flex-1 min-w-0">
-                    <p className="text-[10px] text-muted-foreground">Total</p>
-                    <p className="text-base sm:text-lg font-bold text-primary truncate">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Total</p>
+                    <p className="text-base sm:text-lg font-bold text-primary truncate tabular-nums">
                       {formatCurrency(totalPrice)}
                     </p>
                   </div>
                 </div>
 
-                {/* Buy Button */}
+                {/* Buy Button - touch-optimized */}
                 {!canAfford ? (
                   <div className="space-y-1.5">
-                    <p className="text-[10px] text-center text-muted-foreground">
+                    <p className="text-[10px] sm:text-xs text-center text-muted-foreground">
                       Solde insuffisant. Rechargez votre wallet.
                     </p>
                     <Button 
                       onClick={handleRecharge}
-                      className="w-full h-9 text-xs"
+                      className="w-full h-10 sm:h-11 text-xs sm:text-sm min-h-[44px] touch-manipulation"
                       variant="secondary"
                       size="sm"
                     >
@@ -381,19 +363,19 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                   <Button 
                     onClick={handleBuyNow}
                     disabled={!product.isAvailable}
-                    className="w-full h-9 text-xs"
+                    className="w-full h-10 sm:h-11 text-xs sm:text-sm min-h-[44px] touch-manipulation active:scale-[0.98] transition-transform"
                   >
-                    <ShoppingBag className="h-3.5 w-3.5 mr-1.5" />
+                    <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
                     <span>{product.isAvailable ? 'Acheter maintenant' : 'Produit épuisé'}</span>
                   </Button>
                 )}
 
-                {/* Wallet Balance */}
+                {/* Wallet Balance - compact */}
                 {wallet && (
-                  <div className="flex justify-between items-center text-[10px] text-muted-foreground pt-0.5">
+                  <div className="flex justify-between items-center text-[10px] sm:text-xs text-muted-foreground pt-0.5">
                     <span>Solde KwendaPay</span>
                     <span className={cn(
-                      "font-medium",
+                      "font-medium tabular-nums",
                       canAfford ? "text-green-600" : "text-red-600"
                     )}>
                       {formatCurrency(wallet.balance)}
@@ -409,15 +391,6 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
               productId={product.id}
               sellerId={product.sellerId}
               productTitle={product.name}
-            />
-          </TabsContent>
-
-          <TabsContent value="ai" className="flex-1 mt-0 h-[calc(85vh-120px)]">
-            <MarketplaceAIChat
-              productId={product.id}
-              productName={product.name}
-              productPrice={product.price}
-              sellerName={product.seller}
             />
           </TabsContent>
         </Tabs>
