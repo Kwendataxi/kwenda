@@ -31,6 +31,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     let mounted = true;
+    let authSubscription: any = null;
     
     const initializeAuth = async () => {
       if (!mounted) return;
@@ -38,18 +39,47 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setLoading(true);
       
       try {
+        logger.info('🔐 Auth Provider initializing...');
+        
+        // ✅ ÉTAPE 1 : Établir le listener EN PREMIER
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (mounted) {
+            logger.info('🔄 Auth state changed', { event: _event, hasSession: !!session, userId: session?.user?.id });
+            setSession(session);
+            setUser(session?.user ?? null);
+            setLoading(false);
+          }
+        });
+        
+        authSubscription = subscription;
+        
+        if (!mounted) {
+          authSubscription?.unsubscribe();
+          return;
+        }
+        
+        // ✅ ÉTAPE 2 : Attendre que le listener soit prêt
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // ✅ ÉTAPE 3 : Récupérer la session existante
+        logger.info('⏳ Loading initial session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (!mounted) return;
+        if (!mounted) {
+          authSubscription?.unsubscribe();
+          return;
+        }
         
-      if (error) {
-        logger.error('Auth session error', error);
-      }
+        if (error) {
+          logger.error('❌ Auth session error', error);
+        }
         
+        logger.info('✅ Initial session loaded', { hasSession: !!session, userId: session?.user?.id });
         setSession(session);
         setUser(session?.user ?? null);
+        
       } catch (error) {
-        logger.error('Auth initialization error', error);
+        logger.error('❌ Auth initialization error', error);
         if (mounted) {
           setSession(null);
           setUser(null);
@@ -63,20 +93,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     initializeAuth();
 
-    // Écouter les changements d'état d'auth
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (mounted) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    });
-
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      authSubscription?.unsubscribe();
     };
   }, []);
 

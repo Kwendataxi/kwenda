@@ -56,15 +56,32 @@ export const ClientLogin = () => {
     setError(null);
 
     try {
+      logger.info('🔐 Attempting login for:', loginForm.email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: loginForm.email,
         password: loginForm.password
       });
 
       if (error) {
-        logger.error('Login error', error);
+        logger.error('❌ Login error', error);
         throw error;
       }
+
+      logger.info('✅ Login successful', { userId: data.user?.id, hasSession: !!data.session });
+
+      // ✅ CORRECTION : Attendre que la session soit bien établie
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // ✅ CORRECTION : Forcer un refresh de la session
+      const { data: { session: refreshedSession } } = await supabase.auth.getSession();
+      
+      if (!refreshedSession) {
+        logger.error('❌ Session non établie après connexion');
+        throw new Error('Session non établie après connexion');
+      }
+      
+      logger.info('📦 Session refreshed', { hasSession: !!refreshedSession });
 
       const user = data.user;
 
