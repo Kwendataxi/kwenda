@@ -68,6 +68,13 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
 
   const handleConfirmPayment = async () => {
     setIsProcessing(true);
+    let transaction = null;
+    
+    console.log('💳 [Payment] Starting payment process', {
+      totalPrice,
+      walletBalance: wallet?.balance,
+      cartItemsCount: cartItems.length,
+    });
     
     try {
       if (!wallet || wallet.balance < totalPrice) {
@@ -83,7 +90,7 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Utilisateur non authentifié");
 
-      const { data: transaction, error } = await supabase
+      const { data: txData, error } = await supabase
         .from('wallet_transactions')
         .insert([{
           user_id: user.id,
@@ -95,11 +102,15 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
           status: 'completed',
           balance_before: wallet.balance,
           balance_after: wallet.balance - totalPrice,
+          payment_method: 'kwenda_pay',
+          currency: 'CDF',
         }])
         .select()
         .single();
 
       if (error) throw error;
+      transaction = txData;
+      console.log('✅ [Payment] Transaction created', { transactionId: transaction.id });
 
       const { error: updateError } = await supabase
         .from('user_wallets')
@@ -110,28 +121,80 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
         .eq('id', wallet.id);
 
       if (updateError) throw updateError;
+      console.log('✅ [Payment] Wallet updated', { 
+        oldBalance: wallet.balance, 
+        newBalance: wallet.balance - totalPrice 
+      });
+
+      // Créer les commandes marketplace par vendeur
+      const vendorGroups = cartItems.reduce((groups, item) => {
+        if (!groups[item.seller_id]) {
+          groups[item.seller_id] = [];
+        }
+        groups[item.seller_id].push(item);
+        return groups;
+      }, {} as Record<string, CartItem[]>);
+
+      const orderPromises = Object.entries(vendorGroups).map(async ([sellerId, items]) => {
+        for (const item of items) {
+          await supabase.from('marketplace_orders').insert({
+            buyer_id: user.id,
+            seller_id: sellerId,
+            product_id: item.id,
+            quantity: item.quantity,
+            unit_price: item.price,
+            total_amount: item.price * item.quantity,
+            delivery_method: 'pickup',
+            payment_status: 'paid',
+            status: 'pending_confirmation',
+            notes: `Payé via KwendaPay - Transaction ${transaction.id}`,
+          });
+        }
+      });
+
+      await Promise.all(orderPromises);
+      console.log('✅ [Payment] Orders created', { ordersCount: Object.keys(vendorGroups).length });
 
       setShowConfetti(true);
       setShowPaymentDialog(false);
       
       toast({
         title: "✅ Paiement réussi",
-        description: `${totalPrice.toLocaleString()} CDF débités de votre compte KwendaPay`,
+        description: `${totalPrice.toLocaleString()} CDF débités - Commandes créées`,
       });
 
       if (onCheckout) {
         setTimeout(() => {
           onCheckout();
           setShowConfetti(false);
+          onClose();
         }, 2000);
       }
     } catch (error: any) {
-      console.error('Payment error:', error);
+      console.error('❌ [Payment] Error:', error);
+      
+      let errorMessage = "Une erreur est survenue lors du paiement";
+      
+      if (error.message?.includes('wallet_transactions')) {
+        errorMessage = "Erreur lors de l'enregistrement de la transaction";
+      } else if (error.message?.includes('user_wallets')) {
+        errorMessage = "Erreur lors de la mise à jour du solde";
+      } else if (error.message?.includes('marketplace_orders')) {
+        errorMessage = "Erreur lors de la création de la commande";
+      } else if (error.code === '23503') {
+        errorMessage = "Erreur de référence de données (clé étrangère)";
+      }
+      
       toast({
         title: "❌ Erreur de paiement",
-        description: error.message || "Une erreur est survenue lors du paiement",
+        description: errorMessage,
         variant: "destructive",
       });
+      
+      // Rollback si transaction créée mais échec ensuite
+      if (transaction?.id) {
+        await supabase.from('wallet_transactions').delete().eq('id', transaction.id);
+      }
     } finally {
       setIsProcessing(false);
     }

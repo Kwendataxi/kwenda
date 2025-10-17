@@ -811,60 +811,16 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   };
 
   const handleCheckout = async () => {
-    if (!coordinates) {
-      toast({
-        title: t('marketplace.location_required'),
-        description: t('marketplace.location_required_desc'),
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Calculate delivery for each vendor
-    const vendorGroups = cartItems.reduce((groups, item) => {
-      const vendorId = item.seller_id;
-      if (!groups[vendorId]) {
-        groups[vendorId] = [];
-      }
-      groups[vendorId].push(item);
-      return groups;
-    }, {} as Record<string, CartItem[]>);
-
-    // Process orders for each vendor
-    for (const [vendorId, items] of Object.entries(vendorGroups)) {
-      const vendorLocation = items[0].coordinates;
-      if (vendorLocation) {
-        const distance = calculateDistance(
-          coordinates.lat, coordinates.lng,
-          vendorLocation.lat, vendorLocation.lng
-        );
-        
-        // Calculate delivery fee (base 2000 CDF + 500 CDF per km)
-        const deliveryFee = 2000 + (distance * 500);
-        
-        // Create order for this vendor
-        for (const item of items) {
-          await ordersHook.createOrder(
-            item.id,
-            vendorId,
-            item.quantity,
-            item.price,
-            `${coordinates.lat}, ${coordinates.lng}`,
-            coordinates,
-            'delivery',
-            `Commande via marketplace - Distance: ${distance.toFixed(1)}km - Frais de livraison: ${deliveryFee.toLocaleString()} CDF`
-          );
-        }
-      }
-    }
-
-    // Clear cart and close
+    // Vider le panier local
     setCartItems([]);
-    setIsCartOpen(false);
     
+    // Rafraîchir les commandes
+    ordersHook.refetch();
+    
+    // Toast de confirmation
     toast({
-      title: t('marketplace.orders_created'),
-      description: t('marketplace.orders_created_desc'),
+      title: "✅ Commande validée",
+      description: "Vos commandes ont été créées avec succès",
     });
   };
 

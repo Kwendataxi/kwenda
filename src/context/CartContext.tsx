@@ -9,7 +9,7 @@ interface CartItem {
   image: string;
   quantity: number;
   seller: string;
-  sellerId: string;
+  seller_id: string;
   category: string;
   isAvailable: boolean;
 }
@@ -85,7 +85,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         image: product.image,
         quantity: 1,
         seller: product.seller,
-        sellerId: product.sellerId,
+        seller_id: product.seller_id || product.sellerId,
         category: product.category,
         isAvailable: product.isAvailable,
       };
