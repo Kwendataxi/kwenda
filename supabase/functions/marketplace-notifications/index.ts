@@ -75,17 +75,38 @@ serve(async (req) => {
         break
 
       case 'new_message':
-        // Get conversation details
+        // Get conversation details with product info
         const { data: conversation } = await supabaseClient
           .from('conversations')
-          .select('buyer_id, seller_id')
+          .select(`
+            buyer_id, 
+            seller_id,
+            product:marketplace_products(title)
+          `)
           .eq('id', message.conversation_id)
           .single()
 
         if (conversation) {
-          recipients = [conversation.buyer_id === userId ? conversation.seller_id : conversation.buyer_id]
+          const recipientId = conversation.buyer_id === userId 
+            ? conversation.seller_id 
+            : conversation.buyer_id
+          
+          recipients = [recipientId]
           notificationTitle = 'Nouveau message'
-          notificationBody = message.content.substring(0, 100)
+          notificationBody = `Vous avez reçu un message concernant "${conversation.product.title}"`
+
+          // Create in-app notification
+          await supabaseClient.from('delivery_notifications').insert({
+            user_id: recipientId,
+            notification_type: 'new_marketplace_message',
+            title: notificationTitle,
+            message: message.content.substring(0, 100),
+            metadata: {
+              conversation_id: message.conversation_id,
+              product_id: conversation.product_id,
+              sender_id: userId
+            }
+          })
         }
         break
 

@@ -144,6 +144,39 @@ export const useMarketplaceChat = () => {
     }
   };
 
+  // Update conversation status
+  const updateConversationStatus = async (
+    conversationId: string, 
+    status: 'active' | 'waiting' | 'completed'
+  ) => {
+    const { error } = await supabase
+      .from('conversations')
+      .update({ 
+        status, 
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', conversationId);
+
+    if (!error) {
+      fetchConversations();
+    }
+  };
+
+  // Reopen conversation
+  const reopenConversation = async (conversationId: string) => {
+    const { error } = await supabase
+      .from('conversations')
+      .update({ 
+        status: 'active',
+        last_message_at: new Date().toISOString() 
+      })
+      .eq('id', conversationId);
+    
+    if (!error) {
+      fetchConversations();
+    }
+  };
+
   // Start a conversation
   const startConversation = async (productId: string, sellerId: string) => {
     if (!user || user.id === sellerId) return null;
@@ -243,6 +276,8 @@ export const useMarketplaceChat = () => {
     fetchMessages,
     sendMessage,
     startConversation,
+    updateConversationStatus,
+    reopenConversation,
     refetch: fetchConversations
   };
 };

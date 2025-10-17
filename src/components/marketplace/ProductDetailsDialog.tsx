@@ -33,7 +33,7 @@ import { cn } from '@/lib/utils';
 import { ProductChatTab } from './ProductChatTab';
 import { ProductSpecifications } from './ProductSpecifications';
 import { HorizontalProductScroll } from './HorizontalProductScroll';
-import { MarketplaceAIChat } from './MarketplaceAIChat';
+
 import { getCategoryName, getConditionLabel } from '@/config/marketplaceCategories';
 
 interface Product {
@@ -121,15 +121,15 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md sm:max-w-2xl lg:max-w-3xl mx-auto max-h-[95vh] p-0 gap-0">
+      <DialogContent className="max-w-md sm:max-w-2xl lg:max-w-3xl mx-auto h-[100vh] sm:h-[95vh] sm:max-h-[95vh] p-0 gap-0 sm:rounded-lg">
         <DialogHeader className="p-2 sm:p-3 pb-2 border-b bg-background/95 backdrop-blur sticky top-0 z-10">
           <DialogTitle className="text-sm sm:text-base font-semibold line-clamp-1 pr-6">
             {product.name}
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="details" className="flex-1 flex flex-col">
-          <TabsList className="mx-2 sm:mx-3 my-1.5 grid w-auto grid-cols-2 h-9 sm:h-10">
+        <Tabs defaultValue="details" className="flex-1 flex flex-col h-full">
+          <TabsList className="mx-2 sm:mx-3 my-1.5 grid grid-cols-2 h-10 sm:h-11 sticky top-0 z-10 bg-background">
             <TabsTrigger value="details" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
               <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Détails</span>
@@ -143,7 +143,7 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
           <TabsContent value="details" className="flex-1 mt-0">
             <ScrollArea className="h-[calc(95vh-220px)] sm:h-[calc(95vh-200px)] px-2 sm:px-3">
               {/* Product Image - optimized loading */}
-              <div className="aspect-[4/3] w-full max-h-56 sm:max-h-64 overflow-hidden rounded-lg mb-3">
+              <div className="aspect-square sm:aspect-[4/3] w-full max-h-64 sm:max-h-80 overflow-hidden rounded-lg mb-3">
                 <img
                   src={product.image}
                   alt={product.name}
@@ -309,7 +309,7 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
             </ScrollArea>
 
             {/* Sticky Footer Actions - optimized */}
-            <div className="p-2.5 sm:p-3 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="sticky bottom-0 p-2.5 sm:p-3 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <div className="space-y-2">
                 {/* Quantity and Total Row - compact */}
                 <div className="flex items-center justify-between gap-2">
