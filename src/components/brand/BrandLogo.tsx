@@ -1,6 +1,6 @@
 import React from "react";
 import clsx from "clsx";
-const brandLogo = "/lovable-uploads/e5018ec7-a9e4-44b2-ad57-174b4cb5891b.png"; // Provided logo
+import brandLogo from "@/assets/kwenda-logo.png";
 
 interface BrandLogoProps {
   size?: number; // px
