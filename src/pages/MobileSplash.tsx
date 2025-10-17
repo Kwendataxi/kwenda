@@ -14,8 +14,23 @@ const MobileSplash: React.FC = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        logger.info('🔥 User already logged in - skipping splash');
-        navigate('/auth', { replace: true });
+        logger.info('🔥 User already logged in - fetching role and redirecting');
+        
+        // ✅ Récupérer le rôle depuis la session
+        const { data: roles } = await supabase.rpc('get_user_roles', {
+          p_user_id: session.user.id
+        });
+        
+        const primaryRole = roles?.[0]?.role || 'client';
+        
+        // ✅ Rediriger vers le bon dashboard selon le rôle
+        const redirectPath = primaryRole === 'admin' ? '/admin' 
+          : primaryRole === 'partner' ? '/partenaire'
+          : primaryRole === 'driver' ? '/chauffeur'
+          : '/client'; // Client dashboard
+        
+        logger.info('🚀 Redirecting to dashboard', { primaryRole, redirectPath });
+        navigate(redirectPath, { replace: true });
         return true;
       }
       return false;
@@ -45,13 +60,13 @@ const MobileSplash: React.FC = () => {
         } else {
           navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
         }
-      }, 400); // ⚡ Réduit à 400ms
+      }, 200); // ⚡ Réduit à 200ms
 
-      // Safety timeout ultra-agressif : 1.5s max
+      // Safety timeout ultra-agressif : 1s max
       const safetyTimer = setTimeout(() => {
         logger.warn('⚠️ Splash safety timeout - forcing /auth');
         navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
-      }, 1500);
+      }, 1000);
 
       return () => {
         clearTimeout(timer);
@@ -137,7 +152,7 @@ const MobileSplash: React.FC = () => {
         initial={{ scale: 0.5, opacity: 0, rotateY: -90 }}
         animate={{ scale: 1, opacity: 1, rotateY: 0 }}
         transition={{
-          duration: 0.5,
+          duration: 0.3,
           ease: [0.34, 1.56, 0.64, 1],
         }}
         className="relative z-10 flex flex-col items-center"
@@ -181,7 +196,7 @@ const MobileSplash: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
+          transition={{ delay: 0.15, duration: 0.3 }}
           className="mt-8 text-center px-8"
         >
           <h2
@@ -209,7 +224,7 @@ const MobileSplash: React.FC = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.25 }}
           className="mt-10 flex flex-col items-center gap-4"
         >
           {/* Spinner glassmorphism */}

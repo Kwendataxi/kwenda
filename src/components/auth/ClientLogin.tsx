@@ -205,15 +205,19 @@ export const ClientLogin = () => {
     setStep('role-selection');
   };
 
-  if (roleLoading) {
-    // ✅ Safety : Ne JAMAIS bloquer plus de 3s
-    setTimeout(() => {
-      if (roleLoading && user && session) {
+  // ✅ Emergency timeout dans useEffect (évite les timers multiples)
+  useEffect(() => {
+    if (roleLoading && user && session) {
+      const emergencyTimer = setTimeout(() => {
         logger.error('🚨 roleLoading still true after 3s - emergency redirect');
         navigate('/');
-      }
-    }, 3000);
+      }, 3000);
 
+      return () => clearTimeout(emergencyTimer);
+    }
+  }, [roleLoading, user, session, navigate]);
+
+  if (roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-rose-50">
         <div className="text-center space-y-4">

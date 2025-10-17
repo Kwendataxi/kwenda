@@ -17,6 +17,7 @@ import { isMobileApp, isPWA } from "@/services/platformDetection";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import MobileSplash from "./pages/MobileSplash";
+import { SmartHome } from "./components/navigation/SmartHome";
 import AdminAuth from "./pages/AdminAuth";
 import PartnerAuth from "./pages/PartnerAuth";
 import DriverAuth from "./pages/DriverAuth";
@@ -129,7 +130,7 @@ const AppContent = () => {
                 <Route path="/splash" element={<MobileSplash />} />
                 
                 {/* Routes communes à toutes les apps */}
-                {!isSpecificBuild() && <Route path="/" element={isMobileApp() || isPWA() ? <MobileSplash /> : <Index />} />}
+                {!isSpecificBuild() && <Route path="/" element={<SmartHome />} />}
                 {!isSpecificBuild() && <Route path="/onboarding" element={<Onboarding />} />}
                 <Route path="/install" element={<Install />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
