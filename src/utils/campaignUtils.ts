@@ -48,7 +48,7 @@ export const CAMPAIGN_TEMPLATES: Record<string, CampaignData> = {
     city: 'Kinshasa',
     headline: '🔥 Kinshasa : -50% sur ta première course !',
     subheadline: 'Rejoins 12,000+ Kinois qui utilisent déjà Kwenda',
-    hero_image: '/campaigns/kinshasa-hero.jpg',
+    hero_image: '/campaigns/kwenda-hero.png',
     offer: {
       bonus_credits: 2000,
       first_ride_discount: 50,
@@ -68,7 +68,7 @@ export const CAMPAIGN_TEMPLATES: Record<string, CampaignData> = {
     city: 'all',
     headline: '💰 Deviens chauffeur Kwenda et gagne jusqu\'à 200,000 CDF/mois',
     subheadline: 'Formation gratuite • Flexibilité totale • Revenus réguliers',
-    hero_image: '/campaigns/driver-hero.jpg',
+    hero_image: '/campaigns/kwenda-hero.png',
     offer: {
       signup_bonus: 5000,
       first_week_guarantee: 15000,
@@ -88,7 +88,7 @@ export const CAMPAIGN_TEMPLATES: Record<string, CampaignData> = {
     city: 'Lubumbashi',
     headline: '🎉 Kwenda arrive à Lubumbashi !',
     subheadline: 'Profite de l\'offre de lancement exclusive',
-    hero_image: '/campaigns/lubumbashi-hero.jpg',
+    hero_image: '/campaigns/kwenda-hero.png',
     offer: {
       bonus_credits: 3000,
       first_ride_discount: 50,
@@ -108,7 +108,7 @@ export const CAMPAIGN_TEMPLATES: Record<string, CampaignData> = {
     city: 'all',
     headline: '👥 Parraine 5 amis = 10,000 CDF GRATUITS',
     subheadline: 'Plus tu parraines, plus tu gagnes. Illimité !',
-    hero_image: '/campaigns/referral-hero.jpg',
+    hero_image: '/campaigns/kwenda-hero.png',
     offer: {
       referral_bonus: 2000,
       referee_bonus: 2000,

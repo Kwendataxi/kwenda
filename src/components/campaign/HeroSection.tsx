@@ -119,6 +119,22 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ campaign, onCtaClick }
             )}
           </motion.div>
 
+          {/* Hero Image */}
+          {campaign.hero_image && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.7 }}
+              className="mt-8 mb-8"
+            >
+              <img
+                src={campaign.hero_image}
+                alt={campaign.headline}
+                className="w-full max-w-3xl mx-auto rounded-2xl shadow-2xl"
+              />
+            </motion.div>
+          )}
+
           {/* Social Proof */}
           <motion.div
             initial={{ opacity: 0 }}
