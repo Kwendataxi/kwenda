@@ -1,4 +1,4 @@
-import { useEffect, lazy } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import PerformanceOptimizer from "@/components/performance/PerformanceOptimizer";
@@ -92,6 +92,10 @@ import VendorOrders from "./pages/VendorOrders";
 import MyProducts from "./pages/marketplace/MyProducts";
 import QRCodeManager from "./pages/admin/QRCodeManager";
 import QRAnalytics from "./pages/admin/QRAnalytics";
+import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
+import RestaurantMenuManager from "./pages/restaurant/RestaurantMenuManager";
+import RestaurantOrders from "./pages/restaurant/RestaurantOrders";
+import RestaurantSubscription from "./pages/restaurant/RestaurantSubscription";
 
 const queryClient = new QueryClient();
 
@@ -144,6 +148,28 @@ const AppContent = () => {
                 <Route path="/campaign/:campaignId" element={<CampaignLanding />} />
                 <Route path="/campaign-thank-you" element={<CampaignThankYou />} />
                 
+                {/* Routes RESTAURANT */}
+                <Route path="/restaurant" element={
+                  <ProtectedRoute>
+                    <RestaurantDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/restaurant/menu" element={
+                  <ProtectedRoute>
+                    <RestaurantMenuManager />
+                  </ProtectedRoute>
+                } />
+                <Route path="/restaurant/orders" element={
+                  <ProtectedRoute>
+                    <RestaurantOrders />
+                  </ProtectedRoute>
+                } />
+                <Route path="/restaurant/subscription" element={
+                  <ProtectedRoute>
+                    <RestaurantSubscription />
+                  </ProtectedRoute>
+                } />
+
                 {/* Routes CLIENT uniquement */}
                 {(!isSpecificBuild() || isClientApp()) && (
                   <>

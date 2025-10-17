@@ -1,0 +1,262 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Plus, Package, DollarSign, Star, Clock, Bell } from 'lucide-react';
+import { useFoodOrders } from '@/hooks/useFoodOrders';
+import { useRestaurantSubscription } from '@/hooks/useRestaurantSubscription';
+
+interface RestaurantStats {
+  todayOrders: number;
+  todayRevenue: number;
+  avgRating: number;
+  pendingOrders: number;
+}
+
+export default function RestaurantDashboard() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const [stats, setStats] = useState<RestaurantStats>({
+    todayOrders: 0,
+    todayRevenue: 0,
+    avgRating: 0,
+    pendingOrders: 0,
+  });
+
+  const { activeSubscription, checkExpirationWarning } = useRestaurantSubscription();
+  const { subscribeToOrders } = useFoodOrders();
+
+  useEffect(() => {
+    loadRestaurantData();
+  }, []);
+
+  const loadRestaurantData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
+
+      // Récupérer le profil restaurant
+      const { data: profile, error } = await supabase
+        .from('restaurant_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          toast({
+            title: 'Profil manquant',
+            description: 'Créez votre profil restaurant',
+            variant: 'destructive',
+          });
+          navigate('/restaurant/setup');
+        }
+        throw error;
+      }
+
+      setRestaurantId(profile.id);
+
+      // Charger les stats du jour
+      const today = new Date().toISOString().split('T')[0];
+      const { data: orders } = await supabase
+        .from('food_orders')
+        .select('total_amount, status')
+        .eq('restaurant_id', profile.id)
+        .gte('created_at', today);
+
+      const todayRevenue = orders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;
+      const pendingOrders = orders?.filter(o => ['pending', 'confirmed'].includes(o.status)).length || 0;
+
+      setStats({
+        todayOrders: orders?.length || 0,
+        todayRevenue,
+        avgRating: profile.rating_average || 0,
+        pendingOrders,
+      });
+
+    } catch (error: any) {
+      console.error('Error loading restaurant data:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger les données',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Notifications en temps réel
+  useEffect(() => {
+    if (!restaurantId) return;
+
+    const unsubscribe = subscribeToOrders(
+      restaurantId,
+      (newOrder) => {
+        // Notification sonore
+        const audio = new Audio('/notification.mp3');
+        audio.play().catch(() => {});
+
+        toast({
+          title: '🍽️ Nouvelle commande !',
+          description: `Commande #${newOrder.order_number}`,
+        });
+
+        loadRestaurantData();
+      },
+      () => loadRestaurantData()
+    );
+
+    return unsubscribe;
+  }, [restaurantId]);
+
+  const subscriptionWarning = activeSubscription 
+    ? checkExpirationWarning(activeSubscription)
+    : null;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background p-4 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Dashboard Restaurant</h1>
+            <p className="text-muted-foreground">Gérez votre restaurant Kwenda Food</p>
+          </div>
+          <Button onClick={() => navigate('/restaurant/menu')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Ajouter un plat
+          </Button>
+        </div>
+
+        {/* Alerte abonnement */}
+        {subscriptionWarning?.isExpiring && (
+          <Card className="border-warning bg-warning/10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-warning" />
+                Abonnement expire bientôt
+              </CardTitle>
+              <CardDescription>
+                Il reste {subscriptionWarning.daysRemaining} jours. Renouvelez maintenant.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => navigate('/restaurant/subscription')}>
+                Renouveler maintenant
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Commandes aujourd'hui</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-primary" />
+                <span className="text-3xl font-bold">{stats.todayOrders}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Revenus du jour</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-green-600" />
+                <span className="text-3xl font-bold">{stats.todayRevenue.toLocaleString()} FC</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Note moyenne</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                <span className="text-3xl font-bold">{stats.avgRating.toFixed(1)}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>En attente</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Bell className="h-5 w-5 text-orange-500" />
+                <span className="text-3xl font-bold">{stats.pendingOrders}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Actions rapides */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Actions rapides</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button 
+              variant="outline" 
+              className="h-20"
+              onClick={() => navigate('/restaurant/orders')}
+            >
+              <div className="flex flex-col items-center gap-2">
+                <Package className="h-6 w-6" />
+                <span>Voir les commandes</span>
+              </div>
+            </Button>
+
+            <Button 
+              variant="outline" 
+              className="h-20"
+              onClick={() => navigate('/restaurant/menu')}
+            >
+              <div className="flex flex-col items-center gap-2">
+                <Plus className="h-6 w-6" />
+                <span>Gérer le menu</span>
+              </div>
+            </Button>
+
+            <Button 
+              variant="outline" 
+              className="h-20"
+              onClick={() => navigate('/restaurant/subscription')}
+            >
+              <div className="flex flex-col items-center gap-2">
+                <DollarSign className="h-6 w-6" />
+                <span>Mon abonnement</span>
+              </div>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
