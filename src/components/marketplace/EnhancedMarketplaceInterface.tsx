@@ -3,7 +3,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon, Shield, Filter } from 'lucide-react';
+import { MapPin, Package, Store, User, Plus, ArrowLeft, ShoppingBag, ShoppingCart as CartIcon, Shield, Filter, Sparkles, TrendingUp } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -59,6 +60,10 @@ interface Product {
   reviews: number;
   brand?: string;
   specifications?: Record<string, any>;
+  viewCount?: number;
+  salesCount?: number;
+  popularityScore?: number;
+  created_at?: string;
 }
 
 interface HorizontalProduct {
@@ -830,164 +835,283 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const popularProducts = filteredProducts.filter(p => p.rating >= 4.5).slice(0, 6);
   const nearbyProducts = filteredProducts.filter(p => p.coordinates).slice(0, 6);
 
-  const renderShopTab = () => (
-    <div className="space-y-4">
-      {/* Wallet Balance */}
-      {wallet && (
-        <WalletBalance 
-          balance={wallet.balance}
-          currency={wallet.currency}
-          compact
-        />
-      )}
+  // Calcul des sous-ensembles de produits
+  const trendingProducts = filteredProducts
+    .filter(p => p.popularityScore && p.popularityScore > 200)
+    .slice(0, 10);
+  
+  const newProducts = filteredProducts
+    .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+    .slice(0, 10);
+  
+  const nearbyCalculated = coordinates
+    ? filteredProducts
+        .filter(p => p.coordinates)
+        .sort((a, b) => {
+          const distA = calculateDistance(coordinates.lat, coordinates.lng, a.coordinates!.lat, a.coordinates!.lng);
+          const distB = calculateDistance(coordinates.lat, coordinates.lng, b.coordinates!.lat, b.coordinates!.lng);
+          return distA - distB;
+        })
+        .slice(0, 10)
+    : [];
 
-      {/* Modern Filter Button */}
-      <div className="flex justify-end">
+  const convertToHorizontalProduct = (product: Product): HorizontalProduct => ({
+    id: product.id,
+    name: product.title,
+    price: product.price,
+    image: product.image,
+    rating: product.rating || 0,
+    reviewCount: product.reviews || 0,
+    category: product.category,
+    seller: product.seller?.display_name || 'Vendeur',
+    sellerId: product.seller_id,
+    isAvailable: product.inStock,
+    location: product.coordinates,
+  });
+
+  const calculatePopularityScore = (product: Product) => {
+    const views = product.viewCount || 0;
+    const sales = product.salesCount || 0;
+    const rating = product.rating || 0;
+    return (views * 0.3) + (sales * 0.5) + (rating * 20);
+  };
+
+  const renderShopTab = () => (
+    <div className="space-y-8">
+      {/* HERO BANNER ANIMÉ */}
+      <motion.div
+        className="relative h-48 rounded-2xl overflow-hidden shadow-xl"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-purple-600/80 to-pink-500/70" />
+        <div className="absolute inset-0 flex items-center justify-between px-8">
+          <div className="text-white space-y-2">
+            <motion.h1
+              className="text-4xl font-black drop-shadow-lg"
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              Marketplace Kwenda
+            </motion.h1>
+            <motion.p
+              className="text-lg opacity-90"
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              {filteredProducts.length} produits disponibles près de vous
+            </motion.p>
+          </div>
+          
+          {/* Stats animées */}
+          <motion.div
+            className="hidden md:flex gap-6"
+            initial={{ x: 50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <div className="text-center text-white">
+              <p className="text-3xl font-bold">{products.length}</p>
+              <p className="text-sm opacity-80">Produits</p>
+            </div>
+            <div className="text-center text-white">
+              <p className="text-3xl font-bold">500+</p>
+              <p className="text-sm opacity-80">Vendeurs</p>
+            </div>
+            <div className="text-center text-white">
+              <p className="text-3xl font-bold">98%</p>
+              <p className="text-sm opacity-80">Satisfaction</p>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* QUICK FILTERS (Chips cliquables) */}
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {[
+          { id: 'nearby', label: '📍 Près de moi', action: () => handleApplyQuickFilter('nearby') },
+          { id: 'new', label: '✨ Nouveautés', action: () => handleApplyQuickFilter('new') },
+          { id: 'deals', label: '🔥 Promotions', action: () => handleApplyQuickFilter('deals') },
+          { id: 'premium', label: '⭐ Premium', action: () => handleApplyQuickFilter('premium') }
+        ].map((filter) => (
+          <motion.button
+            key={filter.id}
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05 }}
+            onClick={filter.action}
+            className="px-4 py-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary font-medium whitespace-nowrap transition-colors"
+          >
+            {filter.label}
+          </motion.button>
+        ))}
+      </div>
+
+      {/* Barre de recherche et filtres */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex-1">
+          <SearchBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onSearch={() => {}}
+            filters={{
+              priceRange: filters.priceRange,
+              inStockOnly: filters.availability === 'available',
+              freeShipping: false
+            }}
+            onFiltersChange={(newFilters) => {
+              setFilters(prev => ({
+                ...prev,
+                priceRange: newFilters.priceRange,
+                availability: newFilters.inStockOnly ? 'available' : 'all'
+              }));
+            }}
+          />
+        </div>
         <Button
           variant="outline"
           onClick={() => setIsFiltersOpen(true)}
           className="flex items-center gap-2"
         >
-          <Filter className="w-4 h-4" />
-          Filtres
-          {hasActiveFilters && (
-            <Badge variant="secondary" className="ml-1">
-              {activeFiltersCount}
-            </Badge>
+          <Filter className="h-4 w-4" />
+          Filtres avancés
+          {activeFiltersCount > 0 && (
+            <Badge className="ml-2">{activeFiltersCount}</Badge>
           )}
         </Button>
       </div>
 
-      {/* Horizontal Product Sections */}
-      {featuredProducts.length > 0 && (
-        <HorizontalProductScroll
-          title={`✨ ${t('marketplace.featured')}`}
-          products={featuredProducts.map(p => ({ 
-            id: p.id,
-            name: p.title, 
-            price: p.price,
-            image: p.image,
-            rating: p.rating,
-            reviewCount: p.reviews,
-            category: p.category,
-            seller: p.seller.display_name,
-            sellerId: p.seller_id,
-            isAvailable: p.inStock,
-            location: p.coordinates
-          })) as HorizontalProduct[]}
-          onAddToCart={(product) => {
-            const originalProduct = featuredProducts.find(p => p.id === product.id);
-            if (originalProduct) addToCart(originalProduct);
-          }}
-          onViewDetails={(product) => {
-            const originalProduct = featuredProducts.find(p => p.id === product.id);
-            if (originalProduct) {
-              setSelectedProduct(originalProduct);
-              setIsProductDetailsOpen(true);
-            }
-          }}
-          onViewSeller={(sellerId) => setSelectedVendorId(sellerId)}
-          userLocation={coordinates}
-          loading={loading}
-        />
-      )}
-
-      {popularProducts.length > 0 && (
-        <HorizontalProductScroll
-          title={`⭐ ${t('marketplace.popular')}`}
-          products={popularProducts.map(p => ({ 
-            id: p.id,
-            name: p.title, 
-            price: p.price,
-            image: p.image,
-            rating: p.rating,
-            reviewCount: p.reviews,
-            category: p.category,
-            seller: p.seller.display_name,
-            sellerId: p.seller_id,
-            isAvailable: p.inStock,
-            location: p.coordinates
-          })) as HorizontalProduct[]}
-          onAddToCart={(product) => {
-            const originalProduct = popularProducts.find(p => p.id === product.id);
-            if (originalProduct) addToCart(originalProduct);
-          }}
-          onViewDetails={(product) => {
-            const originalProduct = popularProducts.find(p => p.id === product.id);
-            if (originalProduct) {
-              setSelectedProduct(originalProduct);
-              setIsProductDetailsOpen(true);
-            }
-          }}
-          onViewSeller={(sellerId) => setSelectedVendorId(sellerId)}
-          userLocation={coordinates}
-          loading={loading}
-        />
-      )}
-
-      {nearbyProducts.length > 0 && coordinates && (
-        <HorizontalProductScroll
-          title={`📍 ${t('marketplace.nearby')}`}
-          products={nearbyProducts.map(p => ({ 
-            id: p.id,
-            name: p.title, 
-            price: p.price,
-            image: p.image,
-            rating: p.rating,
-            reviewCount: p.reviews,
-            category: p.category,
-            seller: p.seller.display_name,
-            sellerId: p.seller_id,
-            isAvailable: p.inStock,
-            location: p.coordinates
-          })) as HorizontalProduct[]}
-          onAddToCart={(product) => {
-            const originalProduct = nearbyProducts.find(p => p.id === product.id);
-            if (originalProduct) addToCart(originalProduct);
-          }}
-          onViewDetails={(product) => {
-            const originalProduct = nearbyProducts.find(p => p.id === product.id);
-            if (originalProduct) {
-              setSelectedProduct(originalProduct);
-              setIsProductDetailsOpen(true);
-            }
-          }}
-          onViewSeller={(sellerId) => setSelectedVendorId(sellerId)}
-          userLocation={coordinates}
-          loading={loading}
-        />
-      )}
-
-
-      <ProductGrid
-        products={filteredProducts.map(p => ({
-          id: p.id,
-          name: p.title,
-          price: p.price,
-          image: p.image,
-          rating: p.rating,
-          reviewCount: p.reviews,
-          category: p.category,
-          seller: p.seller.display_name,
-          sellerId: p.seller_id,
-          isAvailable: p.inStock,
-          location: p.coordinates
-        }))}
-        onAddToCart={(product) => {
-          const originalProduct = filteredProducts.find(p => p.id === product.id);
-          if (originalProduct) addToCart(originalProduct);
-        }}
-        onViewDetails={(product) => {
-          const originalProduct = filteredProducts.find(p => p.id === product.id);
-          if (originalProduct) {
-            setSelectedProduct(originalProduct);
-            setIsProductDetailsOpen(true);
-          }
-        }}
-        onViewSeller={(sellerId) => setSelectedVendorId(sellerId)}
-        userLocation={coordinates}
-        loading={loading}
+      <CategoryFilter
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
       />
+
+      {/* SECTION TENDANCES */}
+      {trendingProducts.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <motion.h2 
+              className="text-2xl font-bold flex items-center gap-2"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <TrendingUp className="h-6 w-6 text-orange-500" />
+              En Tendance
+            </motion.h2>
+            <Button variant="ghost" size="sm">Voir tout →</Button>
+          </div>
+          <HorizontalProductScroll
+            title="En Tendance"
+            products={trendingProducts.map(p => convertToHorizontalProduct(p))}
+            onAddToCart={(product) => {
+              const originalProduct = trendingProducts.find(p => p.id === product.id);
+              if (originalProduct) addToCart(originalProduct);
+            }}
+            onViewDetails={(product) => {
+              const originalProduct = trendingProducts.find(p => p.id === product.id);
+              if (originalProduct) {
+                setSelectedProduct(originalProduct);
+                setIsProductDetailsOpen(true);
+              }
+            }}
+            onViewSeller={setSelectedVendorId}
+            userLocation={coordinates}
+            autoScroll={true}
+          />
+        </section>
+      )}
+
+      {/* SECTION NOUVEAUTÉS */}
+      {newProducts.length > 0 && (
+        <section>
+          <motion.h2 
+            className="text-2xl font-bold flex items-center gap-2 mb-4"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <Sparkles className="h-6 w-6 text-purple-500" />
+            Nouveautés
+          </motion.h2>
+          <ProductGrid
+            products={newProducts.slice(0, 8).map(p => convertToHorizontalProduct(p))}
+            onAddToCart={(product) => {
+              const originalProduct = newProducts.find(p => p.id === product.id);
+              if (originalProduct) addToCart(originalProduct);
+            }}
+            onViewDetails={(product) => {
+              const originalProduct = newProducts.find(p => p.id === product.id);
+              if (originalProduct) {
+                setSelectedProduct(originalProduct);
+                setIsProductDetailsOpen(true);
+              }
+            }}
+            onViewSeller={setSelectedVendorId}
+            userLocation={coordinates}
+          />
+        </section>
+      )}
+
+      {/* SECTION PRÈS DE CHEZ VOUS */}
+      {nearbyCalculated.length > 0 && (
+        <section>
+          <motion.h2 
+            className="text-2xl font-bold flex items-center gap-2 mb-4"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <MapPin className="h-6 w-6 text-green-500" />
+            Près de chez vous
+          </motion.h2>
+          <ProductGrid
+            products={nearbyCalculated.map(p => convertToHorizontalProduct(p))}
+            onAddToCart={(product) => {
+              const originalProduct = nearbyCalculated.find(p => p.id === product.id);
+              if (originalProduct) addToCart(originalProduct);
+            }}
+            onViewDetails={(product) => {
+              const originalProduct = nearbyCalculated.find(p => p.id === product.id);
+              if (originalProduct) {
+                setSelectedProduct(originalProduct);
+                setIsProductDetailsOpen(true);
+              }
+            }}
+            onViewSeller={setSelectedVendorId}
+            userLocation={coordinates}
+          />
+        </section>
+      )}
+
+      {/* TOUS LES PRODUITS */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <motion.h2 
+            className="text-2xl font-bold"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            Tous les produits
+          </motion.h2>
+        </div>
+        <ProductGrid
+          products={filteredProducts.map(p => convertToHorizontalProduct(p))}
+          onAddToCart={(product) => {
+            const originalProduct = filteredProducts.find(p => p.id === product.id);
+            if (originalProduct) addToCart(originalProduct);
+          }}
+          onViewDetails={(product) => {
+            const originalProduct = filteredProducts.find(p => p.id === product.id);
+            if (originalProduct) {
+              setSelectedProduct(originalProduct);
+              setIsProductDetailsOpen(true);
+            }
+          }}
+          onViewSeller={setSelectedVendorId}
+          userLocation={coordinates}
+          loading={loading}
+        />
+      </section>
     </div>
   );
 
@@ -1076,6 +1200,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                         setCurrentTab('vendor');
                       }, 2000);
                     }
+                    return success;
                   }}
                 />
                 

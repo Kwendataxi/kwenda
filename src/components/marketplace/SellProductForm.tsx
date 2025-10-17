@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
@@ -6,9 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
-import { Camera, Upload, X, ArrowLeft, Plus, Minus } from 'lucide-react';
+import { Progress } from '../ui/progress';
+import { Camera, Upload, X, ArrowLeft, ArrowRight, CheckCircle, Eye, Plus, Minus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useImageUpload } from '@/hooks/useImageUpload';
+import { useProductFormValidation } from '@/hooks/useProductFormValidation';
+import { CompactProductCard } from './CompactProductCard';
 import { MARKETPLACE_CATEGORIES, PRODUCT_CONDITIONS } from '@/config/marketplaceCategories';
+import { cn } from '@/lib/utils';
 
 interface SellProductFormData {
   title: string;
@@ -24,12 +30,12 @@ interface SellProductFormData {
 
 interface SellProductFormProps {
   onBack: () => void;
-  onSubmit: (data: SellProductFormData) => void;
+  onSubmit: (data: SellProductFormData) => Promise<boolean>;
 }
-
 
 export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubmit }) => {
   const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<SellProductFormData>({
     title: '',
     description: '',
@@ -41,10 +47,43 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
     brand: '',
     specifications: {}
   });
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [specKey, setSpecKey] = useState('');
-  const [specValue, setSpecValue] = useState('');
+
+  const { 
+    imagePreviews, 
+    uploadImages, 
+    removeImage, 
+    isDragging, 
+    setIsDragging 
+  } = useImageUpload(5, 5);
+
+  const { errors, completionRate, isValid } = useProductFormValidation({
+    ...formData,
+    images: imagePreviews as any
+  });
+
+  const steps = [
+    { number: 1, title: 'Photos', icon: Camera },
+    { number: 2, title: 'Détails', icon: Upload },
+    { number: 3, title: 'Aperçu', icon: Eye }
+  ];
+
+  const handleNext = () => {
+    if (currentStep === 1 && imagePreviews.length === 0) {
+      toast({
+        title: "Photos requises",
+        description: "Ajoutez au moins une photo de votre produit",
+        variant: "destructive"
+      });
+      return;
+    }
+    setCurrentStep(prev => Math.min(prev + 1, 3));
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    uploadImages(e.dataTransfer.files);
+  };
 
   const handleInputChange = (field: keyof SellProductFormData, value: string | number) => {
     if (field === 'stock_count') {
@@ -54,365 +93,390 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
     }
   };
 
-  const addSpecification = () => {
-    if (!specKey.trim() || !specValue.trim()) {
-      toast({
-        title: "Champs requis",
-        description: "Veuillez remplir la clé et la valeur de la spécification",
-        variant: "destructive"
-      });
-      return;
-    }
-    setFormData(prev => ({
-      ...prev,
-      specifications: { ...prev.specifications, [specKey.trim()]: specValue.trim() }
-    }));
-    setSpecKey('');
-    setSpecValue('');
-  };
-
-  const removeSpecification = (key: string) => {
-    setFormData(prev => {
-      const newSpecs = { ...prev.specifications };
-      delete newSpecs[key];
-      return { ...prev, specifications: newSpecs };
-    });
-  };
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
-
-    const newFiles = Array.from(files).slice(0, 5 - formData.images.length);
-    
-    newFiles.forEach(file => {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "Fichier trop volumineux",
-          description: "Les images doivent faire moins de 5MB",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreviews(prev => [...prev, e.target?.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
-
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, ...newFiles]
-    }));
-  };
-
-  const removeImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }));
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.title || !formData.description || !formData.price || !formData.category) {
-      toast({
-        title: "Champs requis manquants",
-        description: "Veuillez remplir tous les champs obligatoires",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (formData.images.length === 0) {
-      toast({
-        title: "Images requises",
-        description: "Ajoutez au moins une photo de votre produit",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    
-    try {
-      await onSubmit(formData);
-    } catch (error) {
-      console.error('Error in form submission:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-border/40 backdrop-blur-md">
-        <div className="flex items-center gap-4 px-4 py-3">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={onBack}
-            className="h-9 w-9 p-0 rounded-full"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-lg font-semibold text-foreground">Vendre un produit</h1>
-            <p className="text-sm text-muted-foreground">Ajoutez les détails de votre produit</p>
-          </div>
-        </div>
+    <div className="space-y-6 pb-20">
+      {/* Progress Stepper */}
+      <div className="flex items-center justify-between">
+        {steps.map((step, index) => (
+          <React.Fragment key={step.number}>
+            <motion.div
+              className={cn(
+                "flex flex-col items-center gap-2",
+                currentStep >= step.number ? "opacity-100" : "opacity-50"
+              )}
+              whileHover={{ scale: 1.05 }}
+            >
+              <div className={cn(
+                "w-12 h-12 rounded-full flex items-center justify-center transition-all",
+                currentStep >= step.number 
+                  ? "bg-primary text-white shadow-lg" 
+                  : "bg-muted text-muted-foreground"
+              )}>
+                <step.icon className="h-5 w-5" />
+              </div>
+              <span className="text-xs font-medium">{step.title}</span>
+            </motion.div>
+            {index < steps.length - 1 && (
+              <div className="flex-1 h-0.5 mx-2 bg-muted relative">
+                <motion.div
+                  className="absolute inset-0 bg-primary"
+                  initial={{ width: 0 }}
+                  animate={{ 
+                    width: currentStep > step.number ? '100%' : '0%' 
+                  }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+            )}
+          </React.Fragment>
+        ))}
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 space-y-6">
-        {/* Images Upload */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Camera className="w-4 h-4" />
-              Photos du produit *
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">Ajoutez jusqu'à 5 photos (max 5MB chacune)</p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-3">
-              {imagePreviews.map((preview, index) => (
-                <div key={index} className="relative aspect-square">
-                  <img 
-                    src={preview} 
-                    alt={`Preview ${index + 1}`}
-                    className="w-full h-full object-cover rounded-lg border"
+      {/* Progress Bar */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">Profil du produit</span>
+            <Badge variant={completionRate === 100 ? "default" : "secondary"}>
+              {completionRate}%
+            </Badge>
+          </div>
+          <Progress value={completionRate} className="h-2" />
+        </CardContent>
+      </Card>
+
+      {/* Step Content */}
+      <AnimatePresence mode="wait">
+        {/* ÉTAPE 1 : PHOTOS */}
+        {currentStep === 1 && (
+          <motion.div
+            key="step1"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-4"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Camera className="h-5 w-5" />
+                  Photos du produit
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* Drag & Drop Zone */}
+                <motion.div
+                  className={cn(
+                    "border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer",
+                    isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                  )}
+                  whileHover={{ scale: 1.01 }}
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={handleDrop}
+                  onClick={() => document.getElementById('image-upload')?.click()}
+                >
+                  <Upload className="w-12 h-12 mx-auto mb-4 text-primary" />
+                  <p className="font-medium text-lg mb-1">Glissez vos photos ici</p>
+                  <p className="text-sm text-muted-foreground">ou cliquez pour parcourir</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Maximum 5 photos • Max 5MB par photo
+                  </p>
+                  <input
+                    id="image-upload"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => uploadImages(e.target.files)}
                   />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
-                    onClick={() => removeImage(index)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                  {index === 0 && (
-                    <Badge className="absolute bottom-2 left-2 text-xs bg-primary text-white">
-                      Principal
-                    </Badge>
+                </motion.div>
+
+                {/* Image Previews - Masonry Grid */}
+                {imagePreviews.length > 0 && (
+                  <div className="columns-3 gap-3 mt-6">
+                    <AnimatePresence>
+                      {imagePreviews.map((img, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="relative mb-3 break-inside-avoid group"
+                        >
+                          <img 
+                            src={img} 
+                            className="w-full rounded-lg shadow-md" 
+                            alt={`Preview ${i + 1}`}
+                          />
+                          <motion.button
+                            whileHover={{ scale: 1.2, rotate: 90 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeImage(i)}
+                          >
+                            <X className="h-4 w-4" />
+                          </motion.button>
+                          {i === 0 && (
+                            <Badge className="absolute top-2 left-2 bg-primary">
+                              Photo principale
+                            </Badge>
+                          )}
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* ÉTAPE 2 : DÉTAILS */}
+        {currentStep === 2 && (
+          <motion.div
+            key="step2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-4"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Détails du produit</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Titre avec validation */}
+                <div className="relative">
+                  <Label>Titre du produit *</Label>
+                  <Input
+                    value={formData.title}
+                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    placeholder="Ex: iPhone 13 Pro Max 256GB"
+                    className={cn(
+                      "border-2 transition-colors",
+                      formData.title.length >= 10 ? "border-green-500" : "border-border"
+                    )}
+                  />
+                  <AnimatePresence>
+                    {formData.title.length >= 10 && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute right-3 top-9"
+                      >
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  {errors.title && (
+                    <p className="text-xs text-destructive mt-1">{errors.title}</p>
                   )}
                 </div>
-              ))}
-              
-              {formData.images.length < 5 && (
-                <label className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
-                  <Upload className="w-6 h-6 text-muted-foreground mb-2" />
-                  <span className="text-xs text-muted-foreground text-center">Ajouter photo</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={handleImageUpload}
+
+                {/* Description */}
+                <div>
+                  <Label>Description *</Label>
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    placeholder="Décrivez votre produit en détail..."
+                    rows={4}
                   />
-                </label>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Product Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Détails du produit</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="title">Titre du produit *</Label>
-              <Input
-                id="title"
-                placeholder="Ex: iPhone 15 Pro Max 256GB"
-                value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                maxLength={100}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                {formData.title.length}/100 caractères
-              </p>
-            </div>
-
-            <div>
-              <Label htmlFor="description">Description *</Label>
-              <Textarea
-                id="description"
-                placeholder="Décrivez votre produit, son état, ses caractéristiques..."
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                rows={4}
-                maxLength={500}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                {formData.description.length}/500 caractères
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="category">Catégorie *</Label>
-                <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choisir une catégorie" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MARKETPLACE_CATEGORIES.filter(cat => cat.id !== 'all').map(category => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="condition">État *</Label>
-                <Select value={formData.condition} onValueChange={(value) => handleInputChange('condition', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="État du produit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRODUCT_CONDITIONS.map(condition => (
-                      <SelectItem key={condition.value} value={condition.value}>
-                        {condition.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="stock">Quantité en stock *</Label>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-9 w-9 p-0"
-                    onClick={() => handleInputChange('stock_count', String(Math.max(1, formData.stock_count - 1)))}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <Input
-                    id="stock"
-                    type="number"
-                    value={formData.stock_count}
-                    onChange={(e) => handleInputChange('stock_count', e.target.value)}
-                    min="1"
-                    className="text-center"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-9 w-9 p-0"
-                    onClick={() => handleInputChange('stock_count', String(formData.stock_count + 1))}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formData.description.length}/500 caractères
+                  </p>
                 </div>
-              </div>
 
-              <div>
-                <Label htmlFor="brand">Marque (optionnel)</Label>
-                <Input
-                  id="brand"
-                  placeholder="Ex: Apple, Samsung..."
-                  value={formData.brand}
-                  onChange={(e) => handleInputChange('brand', e.target.value)}
-                />
-              </div>
-            </div>
+                {/* Prix */}
+                <div className="relative">
+                  <Label>Prix (CDF) *</Label>
+                  <Input
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => handleInputChange('price', e.target.value)}
+                    placeholder="0"
+                  />
+                </div>
 
-            <div>
-              <Label htmlFor="price">Prix (FC) *</Label>
-              <Input
-                id="price"
-                type="number"
-                placeholder="Ex: 850000"
-                value={formData.price}
-                onChange={(e) => handleInputChange('price', e.target.value)}
-                min="0"
-              />
-            </div>
+                {/* Catégorie et Condition */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Catégorie *</Label>
+                    <Select 
+                      value={formData.category}
+                      onValueChange={(value) => handleInputChange('category', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choisir" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MARKETPLACE_CATEGORIES.filter(cat => cat.id !== 'all').map(cat => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            {/* Spécifications techniques */}
-            <div className="space-y-3">
-              <Label>Spécifications techniques (optionnel)</Label>
-              <div className="space-y-2">
-                {Object.entries(formData.specifications).map(([key, value]) => (
-                  <div key={key} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
-                    <span className="text-sm">
-                      <span className="font-medium">{key}:</span> {value}
-                    </span>
+                  <div>
+                    <Label>État *</Label>
+                    <Select
+                      value={formData.condition}
+                      onValueChange={(value) => handleInputChange('condition', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="État" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PRODUCT_CONDITIONS.map(cond => (
+                          <SelectItem key={cond.value} value={cond.value}>
+                            {cond.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Stock */}
+                <div>
+                  <Label>Quantité en stock</Label>
+                  <div className="flex items-center gap-2">
                     <Button
                       type="button"
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      onClick={() => removeSpecification(key)}
-                      className="h-7 w-7 p-0"
+                      className="h-9 w-9 p-0"
+                      onClick={() => handleInputChange('stock_count', String(Math.max(1, formData.stock_count - 1)))}
                     >
-                      <X className="h-3 w-3" />
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <Input
+                      type="number"
+                      value={formData.stock_count}
+                      onChange={(e) => handleInputChange('stock_count', e.target.value)}
+                      min={1}
+                      className="text-center"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 w-9 p-0"
+                      onClick={() => handleInputChange('stock_count', String(formData.stock_count + 1))}
+                    >
+                      <Plus className="h-4 w-4" />
                     </Button>
                   </div>
-                ))}
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  placeholder="Ex: Processeur"
-                  value={specKey}
-                  onChange={(e) => setSpecKey(e.target.value)}
-                />
-                <Input
-                  placeholder="Ex: Intel Core i5"
-                  value={specValue}
-                  onChange={(e) => setSpecValue(e.target.value)}
-                />
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addSpecification}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Ajouter une spécification
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
-        {/* Submit Button */}
-        <div className="flex gap-3">
-          <Button 
-            type="button" 
-            variant="outline" 
+        {/* ÉTAPE 3 : APERÇU */}
+        {currentStep === 3 && (
+          <motion.div
+            key="step3"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="h-5 w-5" />
+                  Aperçu en direct
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-center">
+                  <CompactProductCard
+                    product={{
+                      id: 'preview',
+                      name: formData.title || "Titre du produit",
+                      price: Number(formData.price) || 0,
+                      image: imagePreviews[0] || '/placeholder.png',
+                      rating: 0,
+                      reviewCount: 0,
+                      category: formData.category,
+                      seller: "Vous",
+                      sellerId: "preview",
+                      isAvailable: true,
+                    }}
+                    onAddToCart={() => {}}
+                    onViewDetails={() => {}}
+                  />
+                </div>
+                <p className="text-center text-sm text-muted-foreground mt-4">
+                  Voici comment votre produit apparaîtra sur la marketplace
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Navigation Buttons */}
+      <div className="flex gap-3">
+        {currentStep > 1 ? (
+          <Button
+            variant="outline"
+            onClick={() => setCurrentStep(prev => prev - 1)}
+            className="flex-1"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Précédent
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
             onClick={onBack}
             className="flex-1"
           >
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Annuler
           </Button>
-          <Button 
-            type="submit" 
+        )}
+
+        {currentStep < 3 ? (
+          <Button
+            onClick={handleNext}
             className="flex-1"
-            disabled={isSubmitting}
           >
-            {isSubmitting ? 'Publication...' : 'Mettre en vente'}
+            Suivant
+            <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
-        </div>
-      </form>
+        ) : (
+          <Button
+            onClick={async () => {
+              const success = await onSubmit({ ...formData, images: imagePreviews as any });
+              if (success) {
+                setCurrentStep(1);
+                setFormData({
+                  title: '',
+                  description: '',
+                  price: '',
+                  category: '',
+                  condition: '',
+                  images: [],
+                  stock_count: 1,
+                  brand: '',
+                  specifications: {}
+                });
+              }
+            }}
+            disabled={!isValid}
+            className="flex-1 bg-primary hover:bg-primary/90"
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Publier le produit
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
