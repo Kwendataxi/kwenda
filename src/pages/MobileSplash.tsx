@@ -13,8 +13,8 @@ const MobileSplash: React.FC = () => {
   useEffect(() => {
     const ctx = localStorage.getItem("last_context") || APP_CONFIG.type || "client";
     
-    // ✅ TOUJOURS afficher le splash pendant 1.8s (animation complète)
-    const exitTimer = setTimeout(() => setIsExiting(true), 1600); // Démarrer fade-out 200ms avant
+    // ✅ TOUJOURS afficher le splash pendant 3s (animation complète)
+    const exitTimer = setTimeout(() => setIsExiting(true), 2500); // Démarrer fade-out 500ms avant
     
     const timer = setTimeout(async () => {
       // Vérifier la session
@@ -53,13 +53,13 @@ const MobileSplash: React.FC = () => {
           navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
         }
       }
-    }, 1800); // ⚡ 1.8s pour voir toute l'animation
+    }, 3000); // ⚡ 3s pour voir toute l'animation
 
     // Safety timeout
     const safetyTimer = setTimeout(() => {
       logger.warn('⚠️ Splash safety timeout');
       navigate(APP_CONFIG.authRoute || "/auth", { replace: true });
-    }, 3000);
+    }, 4000);
 
     return () => {
       clearTimeout(exitTimer);
@@ -84,169 +84,58 @@ const MobileSplash: React.FC = () => {
     <motion.div 
       className="min-h-screen relative overflow-hidden flex items-center justify-center"
       animate={{ opacity: isExiting ? 0 : 1 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+      transition={{ duration: 0.5, ease: [0.43, 0.13, 0.23, 0.96] }}
     >
-      {/* Fond rouge dégradé avec couches multiples */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#DC2626] via-[#EF4444] to-[#F87171]" />
-      
-      {/* Lueurs dynamiques d'ambiance */}
+      {/* Fond rouge dégradé animé - Phase 1 */}
       <motion.div 
-        className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl"
-        style={{ background: 'rgba(255, 255, 255, 0.1)' }}
-        animate={{ 
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0.5, 0.3] 
+        className="absolute inset-0"
+        animate={{
+          background: [
+            'linear-gradient(135deg, #DC2626 0%, #DC2626 100%)', // Rouge vif pur (0s)
+            'linear-gradient(135deg, #EF4444 0%, #F87171 100%)', // Éclaircissement progressif (0.8s)
+          ]
         }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div 
-        className="absolute bottom-1/3 right-1/4 w-80 h-80 rounded-full blur-3xl"
-        style={{ background: 'rgba(252, 165, 165, 0.2)' }}
-        animate={{ 
-          scale: [1, 1.3, 1],
-          opacity: [0.2, 0.4, 0.2] 
-        }}
-        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
-      />
-
-      {/* Particules avancées avec trajectoires variées */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(30)].map((_, i) => {
-          const size = Math.random() * 3 + 1;
-          const duration = Math.random() * 4 + 3;
-          const delay = Math.random() * 3;
-          
-          return (
-            <motion.div
-              key={i}
-              className="absolute rounded-full bg-white/30"
-              style={{
-                width: `${size}px`,
-                height: `${size}px`,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                filter: 'blur(1px)',
-              }}
-              animate={{
-                x: [0, Math.random() * 100 - 50, 0],
-                y: [0, Math.random() * -150 - 50, 0],
-                opacity: [0, 0.8, 0],
-                scale: [0.5, 1.2, 0.5],
-              }}
-              transition={{
-                duration,
-                delay,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            />
-          );
-        })}
-      </div>
-
-      {/* Contenu central */}
-      <motion.div
-        initial={{ scale: 0.5, opacity: 0, rotateY: -90 }}
-        animate={{ scale: 1, opacity: 1, rotateY: 0 }}
         transition={{
-          duration: 0.3,
-          ease: [0.34, 1.56, 0.64, 1],
+          duration: 0.8,
+          ease: [0.43, 0.13, 0.23, 0.96],
+        }}
+      />
+
+      {/* Contenu central - Phase 2 : Logo Zoom-In */}
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{
+          delay: 0.3,
+          duration: 0.9,
+          ease: [0.16, 1, 0.3, 1],
         }}
         className="relative z-10 flex flex-col items-center"
       >
-        {/* Halo lumineux autour du logo */}
         <div className="relative">
-          <motion.div
-            className="absolute -inset-8 rounded-full blur-2xl"
-            style={{ background: 'rgba(255, 255, 255, 0.2)' }}
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
+          <BrandLogo 
+            size={200} 
+            className="drop-shadow-2xl relative z-10" 
           />
           
-          {/* Logo avec effet de lévitation */}
+          {/* Phase 3 : Balayage lumineux horizontal */}
           <motion.div
-            animate={{
-              y: [0, -10, 0],
-              scale: [1, 1.02, 1],
+            className="absolute inset-0 z-20 pointer-events-none"
+            style={{
+              background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%)',
+              width: '150%',
+              height: '100%',
+              left: '-25%',
             }}
+            initial={{ x: '-150%' }}
+            animate={{ x: '150%' }}
             transition={{
-              duration: 2.5,
-              repeat: Infinity,
+              delay: 1.0,
+              duration: 0.5,
               ease: 'easeInOut',
             }}
-          >
-            <BrandLogo 
-              size={200} 
-              className="drop-shadow-2xl relative z-10" 
-            />
-          </motion.div>
-        </div>
-
-        {/* Slogan principal avec effet de lueur */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.3 }}
-          className="mt-8 text-center px-8"
-        >
-          <h2
-            className="text-white text-3xl font-black tracking-tight leading-tight"
-            style={{
-              textShadow: '0 4px 20px rgba(0,0,0,0.3), 0 0 40px rgba(255,255,255,0.2)',
-            }}
-          >
-            {getSlogan()}
-          </h2>
-
-          {/* Ligne décorative animée */}
-          <motion.div
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
-            className="mt-4 mx-auto h-1 w-24 rounded-full"
-            style={{
-              background: 'linear-gradient(to right, transparent, white, transparent)',
-            }}
           />
-        </motion.div>
-
-        {/* Loading indicator premium */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.25 }}
-          className="mt-10 flex flex-col items-center gap-4"
-        >
-          {/* Spinner glassmorphism */}
-          <div className="relative">
-            <motion.div
-              className="w-12 h-12 rounded-full border-4 border-white/30 border-t-white"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-            />
-            {/* Glow effect */}
-            <div className="absolute inset-0 rounded-full blur-xl animate-pulse" style={{ background: 'rgba(255, 255, 255, 0.2)' }} />
-          </div>
-
-          {/* Texte "Chargement" avec animation */}
-          <motion.p
-            className="text-white/80 text-sm font-medium"
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          >
-            Chargement<motion.span
-              animate={{ opacity: [0, 1, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >...</motion.span>
-          </motion.p>
-        </motion.div>
+        </div>
       </motion.div>
     </motion.div>
   );
