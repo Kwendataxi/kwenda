@@ -28,28 +28,32 @@ export const MoreServicesSheet = ({
       name: t('home.services.lottery'),
       icon: Ticket,
       gradient: 'hsl(262, 83%, 58%), hsl(330, 81%, 60%), hsl(350, 89%, 60%)',
-      iconColor: 'hsl(262, 83%, 58%)'
+      iconColor: 'hsl(262, 83%, 58%)',
+      comingSoon: false
     },
     {
       id: 'gift_cards',
       name: t('home.services.gift_cards'),
       icon: Gift,
       gradient: 'hsl(350, 89%, 60%), hsl(330, 81%, 45%), hsl(0, 72%, 51%)',
-      iconColor: 'hsl(330, 81%, 60%)'
+      iconColor: 'hsl(330, 81%, 60%)',
+      comingSoon: true
     },
     {
       id: 'airtime',
       name: t('home.services.airtime'),
       icon: Smartphone,
       gradient: 'hsl(221, 83%, 53%), hsl(189, 94%, 43%), hsl(173, 80%, 40%)',
-      iconColor: 'hsl(221, 83%, 53%)'
+      iconColor: 'hsl(221, 83%, 53%)',
+      comingSoon: true
     },
     {
       id: 'bill_payment',
       name: t('home.services.bill_payment'),
       icon: CreditCard,
       gradient: 'hsl(158, 64%, 52%), hsl(142, 71%, 45%), hsl(173, 80%, 40%)',
-      iconColor: 'hsl(142, 71%, 45%)'
+      iconColor: 'hsl(142, 71%, 45%)',
+      comingSoon: true
     }
   ];
 
@@ -81,20 +85,45 @@ export const MoreServicesSheet = ({
                 key={service.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                whileHover={{ y: -4, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={!service.comingSoon ? { y: -4, scale: 1.02 } : {}}
+                whileTap={!service.comingSoon ? { scale: 0.98 } : {}}
                 transition={{ 
                   delay: index * 0.08,
                   type: "spring",
                   stiffness: 260,
                   damping: 20
                 }}
-                onClick={() => handleServiceClick(service.id)}
-                className="group relative flex flex-col items-center justify-center gap-4 p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-xl min-h-[160px] overflow-hidden"
+                onClick={() => !service.comingSoon && handleServiceClick(service.id)}
+                disabled={service.comingSoon}
+                className={`group relative flex flex-col items-center justify-center gap-4 p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 transition-all duration-300 shadow-sm min-h-[160px] overflow-hidden ${
+                  service.comingSoon 
+                    ? 'cursor-not-allowed opacity-75' 
+                    : 'cursor-pointer hover:border-primary/50 hover:shadow-xl'
+                }`}
               >
+                {/* Badge "Bientôt disponible" */}
+                {service.comingSoon && (
+                  <motion.div
+                    initial={{ scale: 0, rotate: -12 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ 
+                      type: "spring", 
+                      stiffness: 260, 
+                      damping: 15,
+                      delay: index * 0.1 + 0.3 
+                    }}
+                    className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg border-2 border-white dark:border-gray-900 z-10"
+                  >
+                    <span className="flex items-center gap-1">
+                      <span className="animate-pulse">⏳</span>
+                      Bientôt
+                    </span>
+                  </motion.div>
+                )}
+
                 {/* Icône avec animation */}
                 <motion.div
-                  whileHover={{ rotate: [0, -5, 5, 0], scale: 1.1 }}
+                  whileHover={!service.comingSoon ? { rotate: [0, -5, 5, 0], scale: 1.1 } : {}}
                   transition={{ duration: 0.4, type: "spring", stiffness: 300 }}
                   className="relative"
                 >
@@ -115,7 +144,9 @@ export const MoreServicesSheet = ({
                 </h3>
                 
                 {/* Effet de brillance au survol */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
+                {!service.comingSoon && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
+                )}
               </motion.button>
             );
           })}
