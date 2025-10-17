@@ -1,6 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
+import { Navigate } from 'react-router-dom';
 import MobileSplash from '@/pages/MobileSplash';
-import ClientApp from '@/pages/ClientApp';
 import Index from '@/pages/Index';
 import { isMobileApp, isPWA } from '@/services/platformDetection';
 
@@ -24,9 +24,9 @@ export const SmartHome = () => {
     return <MobileSplash />;
   }
 
-  // Si connecté sur mobile/PWA, afficher le dashboard client
+  // Si connecté sur mobile/PWA, rediriger vers le dashboard client
   if (user && session && isMobilePlatform) {
-    return <ClientApp />;
+    return <Navigate to="/client" replace />;
   }
 
   // Si web standard, afficher Index

@@ -131,6 +131,13 @@ const AppContent = () => {
                 
                 {/* Routes communes à toutes les apps */}
                 {!isSpecificBuild() && <Route path="/" element={<SmartHome />} />}
+                {!isSpecificBuild() && (
+                  <Route path="/client" element={
+                    <ProtectedRoute>
+                      <ClientApp />
+                    </ProtectedRoute>
+                  } />
+                )}
                 {!isSpecificBuild() && <Route path="/onboarding" element={<Onboarding />} />}
                 <Route path="/install" element={<Install />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
@@ -140,7 +147,7 @@ const AppContent = () => {
                 {/* Routes CLIENT uniquement */}
                 {(!isSpecificBuild() || isClientApp()) && (
                   <>
-                    <Route path="/" element={isMobileApp() || (isSpecificBuild() && isClientApp()) ? <MobileSplash /> : <Index />} />
+                    
                     <Route path="/install" element={<Install />} />
                     <Route path="/auth" element={
                       <OnboardingRedirect>

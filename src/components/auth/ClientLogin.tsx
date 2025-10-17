@@ -55,7 +55,7 @@ export const ClientLogin = () => {
       case 'client':
       case 'simple_user_client':
       default:
-        return '/';
+        return '/client';
     }
   };
 
