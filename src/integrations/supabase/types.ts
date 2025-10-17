@@ -492,6 +492,149 @@ export type Database = {
           },
         ]
       }
+      campaign_conversions: {
+        Row: {
+          campaign_id: string
+          conversion_value: number | null
+          created_at: string | null
+          id: string
+          user_id: string | null
+          visitor_id: string
+        }
+        Insert: {
+          campaign_id: string
+          conversion_value?: number | null
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+          visitor_id: string
+        }
+        Update: {
+          campaign_id?: string
+          conversion_value?: number | null
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+          visitor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_conversions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_conversions_visitor_id_fkey"
+            columns: ["visitor_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_visitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_events: {
+        Row: {
+          campaign_id: string
+          created_at: string | null
+          event_data: Json | null
+          event_name: string
+          id: string
+          visitor_id: string | null
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string | null
+          event_data?: Json | null
+          event_name: string
+          id?: string
+          visitor_id?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string | null
+          event_data?: Json | null
+          event_name?: string
+          id?: string
+          visitor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_events_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_events_visitor_id_fkey"
+            columns: ["visitor_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_visitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_visitors: {
+        Row: {
+          campaign_id: string
+          city: string | null
+          converted: boolean | null
+          converted_at: string | null
+          created_at: string | null
+          device_type: string | null
+          id: string
+          ip_address: string | null
+          qr_channel: string | null
+          referrer: string | null
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          campaign_id: string
+          city?: string | null
+          converted?: boolean | null
+          converted_at?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          qr_channel?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          city?: string | null
+          converted?: boolean | null
+          converted_at?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          qr_channel?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_visitors_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cancellation_history: {
         Row: {
           admin_notes: string | null
@@ -3500,6 +3643,72 @@ export type Database = {
           validated_at?: string | null
           validated_by?: string | null
           wallet_transaction_id?: string | null
+        }
+        Relationships: []
+      }
+      marketing_campaigns: {
+        Row: {
+          city: string
+          colors: Json
+          countdown: boolean | null
+          created_at: string | null
+          cta_primary: string
+          cta_secondary: string | null
+          headline: string
+          hero_image: string | null
+          hero_video: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          offer: Json
+          scarcity: Json | null
+          share_buttons: Json | null
+          subheadline: string
+          target: string
+          testimonials: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          city: string
+          colors?: Json
+          countdown?: boolean | null
+          created_at?: string | null
+          cta_primary: string
+          cta_secondary?: string | null
+          headline: string
+          hero_image?: string | null
+          hero_video?: string | null
+          id: string
+          is_active?: boolean | null
+          name: string
+          offer?: Json
+          scarcity?: Json | null
+          share_buttons?: Json | null
+          subheadline: string
+          target: string
+          testimonials?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          city?: string
+          colors?: Json
+          countdown?: boolean | null
+          created_at?: string | null
+          cta_primary?: string
+          cta_secondary?: string | null
+          headline?: string
+          hero_image?: string | null
+          hero_video?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          offer?: Json
+          scarcity?: Json | null
+          share_buttons?: Json | null
+          subheadline?: string
+          target?: string
+          testimonials?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

@@ -78,6 +78,8 @@ import { ThemeNotification } from "@/components/theme/ThemeNotification";
 import { useOrderCleanup } from "@/hooks/useOrderCleanup";
 import { DebugHelper } from "@/utils/debugHelper";
 import { DriverFindPartner } from "./pages/DriverFindPartner";
+import CampaignLanding from "./pages/campaign/CampaignLanding";
+import CampaignThankYou from "./pages/campaign/CampaignThankYou";
 import PublicPartnerRegistration from "./pages/partner/PublicPartnerRegistration";
 import PartnerDashboard from "./pages/partner/PartnerDashboard";
 import UnifiedTracking from "./pages/UnifiedTracking";
@@ -126,6 +128,8 @@ const AppContent = () => {
                 {!isSpecificBuild() && <Route path="/onboarding" element={<Onboarding />} />}
                 <Route path="/install" element={<Install />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/campaign/:campaignId" element={<CampaignLanding />} />
+                <Route path="/campaign-thank-you" element={<CampaignThankYou />} />
                 
                 {/* Routes CLIENT uniquement */}
                 {(!isSpecificBuild() || isClientApp()) && (
