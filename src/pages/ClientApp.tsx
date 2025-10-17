@@ -181,7 +181,6 @@ const ClientApp = () => {
   
   // Lottery hooks
   const lotteryTickets = useLotteryTickets();
-  const { notifications, showNotification, hideNotification } = useLotteryNotifications();
   const [isLotteryOpen, setIsLotteryOpen] = useState(false);
 
   // Simplified marketplace data for home preview only
@@ -807,20 +806,7 @@ const ClientApp = () => {
       )}
       
       {/* Lottery Notifications */}
-      {notifications.map((notification) => (
-        <LotteryNotification
-          key={notification.id}
-          show={notification.show}
-          ticketCount={notification.ticketCount}
-          sourceType={notification.sourceType}
-          multiplier={notification.multiplier}
-          onClose={() => hideNotification(notification.id)}
-          onViewLottery={() => {
-            setCurrentView('lottery');
-            hideNotification(notification.id);
-          }}
-        />
-      ))}
+      {/* Notifications gérées par NotificationCenter dans le header */}
       
         </main>
         

@@ -9,6 +9,7 @@ import { GooglePlacesService } from '@/services/googlePlacesService';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { LocationDetailsSheet } from './LocationDetailsSheet';
 import { Button } from '@/components/ui/button';
+import { NotificationCenter } from '@/components/lottery/notifications/NotificationCenter';
 
 interface ModernHeaderProps {}
 
@@ -124,8 +125,9 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
             )}
           </div>
           
-          {/* Actions à droite - uniquement thème et langue */}
+          {/* Actions à droite - notifications, thème et langue */}
           <div className="flex items-center gap-1.5">
+            <NotificationCenter />
             <ThemeToggle variant="icon" size="md" />
             <LanguageSelector />
           </div>

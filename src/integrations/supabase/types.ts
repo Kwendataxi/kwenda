@@ -3624,6 +3624,38 @@ export type Database = {
         }
         Relationships: []
       }
+      lottery_config: {
+        Row: {
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lottery_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "admins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lottery_draws: {
         Row: {
           created_at: string
@@ -3710,6 +3742,48 @@ export type Database = {
           prize_won?: Json | null
           ticket_ids?: Json
           tickets_used?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lottery_notifications: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          expires_at: string | null
+          id: string
+          message: string
+          notification_type: string
+          priority: string | null
+          read: boolean | null
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          expires_at?: string | null
+          id?: string
+          message: string
+          notification_type: string
+          priority?: string | null
+          read?: boolean | null
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          expires_at?: string | null
+          id?: string
+          message?: string
+          notification_type?: string
+          priority?: string | null
+          read?: boolean | null
+          read_at?: string | null
+          title?: string
           user_id?: string
         }
         Relationships: []
@@ -3851,6 +3925,48 @@ export type Database = {
           },
         ]
       }
+      lottery_special_events: {
+        Row: {
+          card_design_url: string | null
+          created_at: string | null
+          end_date: string
+          event_name: string
+          event_type: string
+          id: string
+          is_active: boolean | null
+          multiplier: number | null
+          special_prizes: Json | null
+          start_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          card_design_url?: string | null
+          created_at?: string | null
+          end_date: string
+          event_name: string
+          event_type: string
+          id?: string
+          is_active?: boolean | null
+          multiplier?: number | null
+          special_prizes?: Json | null
+          start_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          card_design_url?: string | null
+          created_at?: string | null
+          end_date?: string
+          event_name?: string
+          event_type?: string
+          id?: string
+          is_active?: boolean | null
+          multiplier?: number | null
+          special_prizes?: Json | null
+          start_date?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       lottery_tickets: {
         Row: {
           created_at: string
@@ -3893,6 +4009,42 @@ export type Database = {
           used_at?: string | null
           used_in_draw_id?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      lottery_user_limits: {
+        Row: {
+          cards_earned_today: number | null
+          created_at: string | null
+          daily_limit: number | null
+          id: string
+          last_reset_date: string | null
+          unlimited_until: string | null
+          updated_at: string | null
+          user_id: string
+          vip_bonus: number | null
+        }
+        Insert: {
+          cards_earned_today?: number | null
+          created_at?: string | null
+          daily_limit?: number | null
+          id?: string
+          last_reset_date?: string | null
+          unlimited_until?: string | null
+          updated_at?: string | null
+          user_id: string
+          vip_bonus?: number | null
+        }
+        Update: {
+          cards_earned_today?: number | null
+          created_at?: string | null
+          daily_limit?: number | null
+          id?: string
+          last_reset_date?: string | null
+          unlimited_until?: string | null
+          updated_at?: string | null
+          user_id?: string
+          vip_bonus?: number | null
         }
         Relationships: []
       }
@@ -9011,6 +9163,83 @@ export type Database = {
           },
         ]
       }
+      super_lottery_draws: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          draw_date: string
+          entry_cost_points: number | null
+          id: string
+          max_entries: number | null
+          name: string
+          prize_pool: Json | null
+          status: string | null
+          updated_at: string | null
+          winner_ids: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          draw_date: string
+          entry_cost_points?: number | null
+          id?: string
+          max_entries?: number | null
+          name: string
+          prize_pool?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          winner_ids?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          draw_date?: string
+          entry_cost_points?: number | null
+          id?: string
+          max_entries?: number | null
+          name?: string
+          prize_pool?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          winner_ids?: string[] | null
+        }
+        Relationships: []
+      }
+      super_lottery_entries: {
+        Row: {
+          created_at: string | null
+          draw_id: string
+          entry_number: string
+          id: string
+          points_spent: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          draw_id: string
+          entry_number: string
+          id?: string
+          points_spent: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          draw_id?: string
+          entry_number?: string
+          id?: string
+          points_spent?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "super_lottery_entries_draw_id_fkey"
+            columns: ["draw_id"]
+            isOneToOne: false
+            referencedRelation: "super_lottery_draws"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_categories: {
         Row: {
           created_at: string
@@ -9822,6 +10051,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_lottery_badges: {
+        Row: {
+          badge_description: string | null
+          badge_name: string
+          badge_type: string
+          earned_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_description?: string | null
+          badge_name: string
+          badge_type: string
+          earned_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_description?: string | null
+          badge_name?: string
+          badge_type?: string
+          earned_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_loyalty_points: {
         Row: {
           created_at: string
@@ -10427,6 +10683,7 @@ export type Database = {
           currency: string
           id: string
           is_active: boolean
+          kwenda_points: number | null
           updated_at: string
           user_id: string
         }
@@ -10436,6 +10693,7 @@ export type Database = {
           currency?: string
           id?: string
           is_active?: boolean
+          kwenda_points?: number | null
           updated_at?: string
           user_id: string
         }
@@ -10445,6 +10703,7 @@ export type Database = {
           currency?: string
           id?: string
           is_active?: boolean
+          kwenda_points?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -11826,6 +12085,10 @@ export type Database = {
         Args: { p_registration_data: Json; p_user_id: string }
         Returns: Json
       }
+      convert_points_to_credits: {
+        Args: { p_credits: number; p_points: number; p_user_id: string }
+        Returns: undefined
+      }
       create_driver_profile_secure: {
         Args: {
           p_delivery_capacity?: string
@@ -11959,6 +12222,10 @@ export type Database = {
           p_driver_id: string
         }
         Returns: Json
+      }
+      deduct_kwenda_points: {
+        Args: { p_points: number; p_user_id: string }
+        Returns: undefined
       }
       delivery_status_manager: {
         Args: {
@@ -13121,6 +13388,10 @@ export type Database = {
           p_payment_method: string
         }
         Returns: Json
+      }
+      reset_daily_lottery_limits: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       run_security_maintenance: {
         Args: Record<PropertyKey, never>
