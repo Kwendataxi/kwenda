@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Package, DollarSign, Star, Clock, Bell, ChefHat, CreditCard } from 'lucide-react';
+import { Loader2, Plus, Package, DollarSign, Star, Clock, Bell, ChefHat } from 'lucide-react';
 import { useFoodOrders } from '@/hooks/useFoodOrders';
 import { useRestaurantSubscription } from '@/hooks/useRestaurantSubscription';
 import { useFoodNotifications } from '@/hooks/useFoodNotifications';
@@ -272,7 +272,7 @@ export default function RestaurantDashboard() {
           <CardHeader>
             <CardTitle>Actions rapides</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button 
               variant="outline" 
               className="h-20"
@@ -292,17 +292,6 @@ export default function RestaurantDashboard() {
               <div className="flex flex-col items-center gap-2">
                 <Plus className="h-6 w-6" />
                 <span>Gérer le menu</span>
-              </div>
-            </Button>
-
-            <Button 
-              variant="outline" 
-              className="h-20"
-              onClick={() => navigate('/restaurant/billing')}
-            >
-              <div className="flex flex-col items-center gap-2">
-                <CreditCard className="h-6 w-6" />
-                <span>Facturation</span>
               </div>
             </Button>
 

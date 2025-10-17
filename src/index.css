@@ -8,15 +8,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Smooth scroll snap for carousels */
-.scroll-smooth {
-  scroll-behavior: smooth;
-}
-
-.scroll-snap-align-center {
-  scroll-snap-align: center;
-}
-
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */

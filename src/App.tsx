@@ -360,8 +360,8 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
+  <ThemeProvider>
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <FavoritesProvider>
           <LanguageProvider>
@@ -373,8 +373,8 @@ const App = () => (
           </LanguageProvider>
         </FavoritesProvider>
       </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

@@ -5,9 +5,7 @@ import { defaultPromos } from '@/data/promos';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { ShoppingBag, Zap } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useSwipeable } from 'react-swipeable';
-import { FloatingParticles } from '@/components/wallet/FloatingParticles';
+import { motion } from 'framer-motion';
 
 interface PromoSliderProps {
   onServiceSelect: (service: string) => void;
@@ -33,26 +31,6 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
     });
   }, [api]);
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') api?.scrollPrev();
-      if (e.key === 'ArrowRight') api?.scrollNext();
-    };
-    
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [api]);
-
-  // Touch gestures
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => api?.scrollNext(),
-    onSwipedRight: () => api?.scrollPrev(),
-    trackMouse: true,
-    preventScrollOnSwipe: true,
-    delta: 10
-  });
-
   const handlePromoClick = (promo: typeof defaultPromos[0]) => {
     // Gestion code promo BIENVENUE30
     if (promo.id === '1') {
@@ -68,177 +46,96 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   };
 
   return (
-    <div className="w-full h-[220px] sm:h-[260px] md:h-[300px] relative" {...swipeHandlers}>
+    <div className="w-full h-[180px] relative">
       <Carousel
         setApi={setApi}
         opts={{ loop: true, align: 'start' }}
         plugins={[autoplayRef.current]}
         className="w-full h-full"
       >
-        <CarouselContent className="-ml-2 md:-ml-4 h-full scroll-smooth">
-          {defaultPromos.map((promo, index) => (
-            <CarouselItem key={promo.id} className="pl-2 md:pl-4 h-full scroll-snap-align-center">
-              <motion.div
+        <CarouselContent className="-ml-2 md:-ml-4 h-[180px]">
+          {defaultPromos.map((promo) => (
+            <CarouselItem key={promo.id} className="pl-2 md:pl-4 h-[180px]">
+              <div
                 onClick={() => handlePromoClick(promo)}
                 className={cn(
-                  'relative h-full rounded-2xl overflow-hidden cursor-pointer group',
+                  'relative h-[180px] rounded-2xl overflow-hidden cursor-pointer group',
                   'bg-gradient-to-br shadow-[0_4px_20px_rgba(0,0,0,0.1)]',
-                  promo.gradient
+                  promo.gradient,
+                  'transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.16)] hover:scale-[1.01]'
                 )}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ 
-                  opacity: current === index ? 1 : 0.7,
-                  scale: current === index ? 1 : 0.95,
-                }}
-                whileHover={{ 
-                  scale: 1.02,
-                  rotateY: 2,
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                  transition: { duration: 0.3 }
-                }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
               >
-                {/* Ken Burns Background Animation */}
-                <motion.div
-                  className={cn('absolute inset-0 bg-gradient-to-br', promo.gradient)}
-                  animate={{
-                    scale: [1, 1.05, 1],
-                  }}
-                  transition={{
-                    duration: 20,
-                    repeat: Infinity,
-                    ease: "linear"
-                  }}
-                />
-
-                {/* Floating Particles */}
-                <FloatingParticles color="primary-foreground" count={12} />
                 {/* Overlay gradients sophistiqués */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50 z-10" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.25),transparent_60%)] z-10" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.25),transparent_60%)]" />
                 
                 {/* Slide 1: 30% Discount */}
                 {promo.id === '1' && (
-                  <div className="absolute inset-0 p-4 sm:p-6 flex items-center justify-between text-white z-20">
+                  <div className="absolute inset-0 p-4 flex items-center justify-between text-white">
                     {/* Contenu gauche */}
-                    <motion.div 
-                      className="flex-1"
-                      initial={{ x: -50, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: 0.2, type: "spring" }}
-                    >
-                      <motion.h3 
-                        className="text-3xl sm:text-4xl md:text-5xl font-black drop-shadow-2xl leading-none mb-1.5 -rotate-1"
-                        whileHover={{ scale: 1.05, rotate: 0 }}
-                      >
+                    <div className="flex-1">
+                      <h3 className="text-3xl font-black drop-shadow-2xl leading-none mb-1.5 -rotate-1">
                         30% OFF
-                      </motion.h3>
-                      <p className="text-sm sm:text-base font-bold opacity-95 drop-shadow-lg mb-3">
+                      </h3>
+                      <p className="text-sm font-bold opacity-95 drop-shadow-lg mb-2">
                         sur ta 1ère course 🎉
                       </p>
                       
                       {/* CTA Button */}
-                      <motion.div 
-                        className="inline-block bg-white text-primary px-5 py-2 rounded-xl font-black text-xs sm:text-sm shadow-xl"
-                        whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}
-                        whileTap={{ scale: 0.95 }}
-                      >
+                      <div className="inline-block bg-white text-primary px-5 py-2 rounded-xl font-black text-xs shadow-xl hover:scale-105 active:scale-95 transition-all duration-200">
                         {promo.cta} →
-                      </motion.div>
-                    </motion.div>
+                      </div>
+                    </div>
 
                     {/* Badge promo à droite */}
-                    <motion.div 
-                      className="bg-yellow-400 text-black px-3 py-1 rounded-full font-black text-xs shadow-xl rotate-3"
-                      animate={{ rotate: [3, -3, 3] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
+                    <div className="bg-yellow-400 text-black px-3 py-1 rounded-full font-black text-xs shadow-xl rotate-3 animate-pulse">
                       {promo.description}
-                    </motion.div>
+                    </div>
 
                     {/* Déco circles */}
-                    <motion.div 
-                      className="absolute bottom-4 right-4 w-16 h-16 sm:w-24 sm:h-24 bg-white/20 rounded-full blur-2xl"
-                      animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
-                      transition={{ duration: 3, repeat: Infinity }}
-                    />
+                    <div className="absolute bottom-4 right-4 w-16 h-16 bg-white/20 rounded-full blur-2xl" />
                   </div>
                 )}
 
                 {/* Slide 2: Flash Express Delivery - Modern & Clean */}
                 {promo.id === '2' && (
-                  <div className="absolute inset-0 p-3 sm:p-5 flex flex-col text-white z-20">
+                  <div className="absolute inset-0 p-3 flex flex-col text-white">
                     {/* Header with badge + lightning icon */}
                     <div className="flex items-start justify-between mb-2">
-                      <motion.div 
-                        className="bg-black/40 backdrop-blur-md text-white px-2.5 py-0.5 rounded-full font-black text-[9px] sm:text-xs shadow-lg border border-white/20"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.1 }}
-                      >
+                      <div className="bg-black/40 backdrop-blur-md text-white px-2.5 py-0.5 rounded-full font-black text-[9px] shadow-lg border border-white/20">
                         EXPRESS
-                      </motion.div>
-                      <motion.div
-                        animate={{ 
-                          rotate: [0, -10, 10, 0],
-                          filter: ['drop-shadow(0 0 15px rgba(253,224,71,0.6))', 'drop-shadow(0 0 25px rgba(253,224,71,0.9))', 'drop-shadow(0 0 15px rgba(253,224,71,0.6))']
-                        }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        <Zap 
-                          className="w-8 h-8 sm:w-12 sm:h-12 text-yellow-300" 
-                          fill="currentColor" 
-                          strokeWidth={0}
-                        />
-                      </motion.div>
+                      </div>
+                      <Zap 
+                        className="w-8 h-8 text-yellow-300 drop-shadow-[0_0_15px_rgba(253,224,71,0.6)]" 
+                        fill="currentColor" 
+                        strokeWidth={0}
+                      />
                     </div>
 
                     {/* Main content - centered and compact */}
                     <div className="flex-1 flex flex-col justify-center relative z-10 -mt-2">
-                      <motion.h3 
-                        className="text-2xl sm:text-3xl md:text-4xl font-black drop-shadow-[0_4px_15px_rgba(0,0,0,0.5)] leading-none tracking-tighter mb-0.5 bg-gradient-to-r from-white via-yellow-100 to-white bg-clip-text text-transparent"
-                        initial={{ x: -30, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                      >
+                      <h3 className="text-2xl font-black drop-shadow-[0_4px_15px_rgba(0,0,0,0.5)] leading-none tracking-tighter mb-0.5 bg-gradient-to-r from-white via-yellow-100 to-white bg-clip-text text-transparent">
                         Livrez Rapide
-                      </motion.h3>
-                      <motion.h3 
-                        className="text-2xl sm:text-3xl md:text-4xl font-black drop-shadow-[0_4px_15px_rgba(0,0,0,0.5)] leading-none tracking-tighter bg-gradient-to-r from-yellow-300 via-white to-yellow-300 bg-clip-text text-transparent"
-                        initial={{ x: -30, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.3 }}
-                      >
+                      </h3>
+                      <h3 className="text-2xl font-black drop-shadow-[0_4px_15px_rgba(0,0,0,0.5)] leading-none tracking-tighter bg-gradient-to-r from-yellow-300 via-white to-yellow-300 bg-clip-text text-transparent">
                         en Flash
-                      </motion.h3>
+                      </h3>
                     </div>
 
                     {/* Footer with timing + CTA - compact */}
                     <div className="flex items-center justify-between gap-2 mt-auto">
-                      <div className="text-[10px] sm:text-xs font-bold bg-white/10 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/20">
+                      <div className="text-[10px] font-bold bg-white/10 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/20">
                         30 min
                       </div>
                       
-                      <motion.div 
-                        className="inline-flex items-center gap-1 px-4 py-1.5 sm:px-6 sm:py-2 bg-white text-orange-600 rounded-xl font-black text-[11px] sm:text-sm shadow-[0_4px_15px_rgba(255,255,255,0.3)]"
-                        whileHover={{ scale: 1.05, boxShadow: '0 8px 24px rgba(255,255,255,0.4)' }}
-                        whileTap={{ scale: 0.95 }}
-                      >
+                      <div className="inline-flex items-center gap-1 px-4 py-1.5 bg-white text-orange-600 rounded-xl font-black text-[11px] shadow-[0_4px_15px_rgba(255,255,255,0.3)] hover:scale-105 transition-all duration-200">
                         {promo.cta} →
-                      </motion.div>
+                      </div>
                     </div>
 
                     {/* Enhanced glow effects - animated */}
-                    <motion.div 
-                      className="absolute bottom-6 left-1/2 -translate-x-1/2 w-28 h-28 sm:w-40 sm:h-40 bg-yellow-400/40 rounded-full blur-3xl pointer-events-none"
-                      animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-                      transition={{ duration: 3, repeat: Infinity }}
-                    />
-                    <motion.div 
-                      className="absolute top-1/2 -translate-y-1/2 right-6 w-20 h-20 sm:w-32 sm:h-32 bg-orange-400/30 rounded-full blur-2xl pointer-events-none"
-                      animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.4, 0.2] }}
-                      transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
-                    />
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-28 h-28 bg-yellow-400/40 rounded-full blur-3xl animate-pulse pointer-events-none" />
+                    <div className="absolute top-1/2 -translate-y-1/2 right-6 w-20 h-20 bg-orange-400/30 rounded-full blur-2xl pointer-events-none" />
                   </div>
                 )}
 
@@ -544,39 +441,25 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                     />
                   </div>
                 )}
-              </motion.div>
+              </div>
             </CarouselItem>
           ))}
         </CarouselContent>
 
-        {/* Pagination dots - Enhanced avec progression animée */}
-        <div className="flex justify-center gap-2 sm:gap-3 mt-4 sm:mt-6">
+        {/* Pagination dots - style exact de la référence */}
+        <div className="flex justify-center gap-1.5 mt-3">
           {defaultPromos.map((_, index) => (
-            <motion.button
+            <button
               key={index}
               onClick={() => api?.scrollTo(index)}
               className={cn(
-                'relative h-3 rounded-full overflow-hidden transition-all duration-300',
-                current === index ? 'w-12' : 'w-3'
+                'h-1.5 rounded-full transition-all duration-300',
+                current === index
+                  ? 'w-6 bg-[#E31E24]'
+                  : 'w-1.5 bg-gray-400/60 hover:bg-gray-400'
               )}
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.9 }}
               aria-label={`Go to slide ${index + 1}`}
-            >
-              {/* Background */}
-              <div className="absolute inset-0 bg-muted-foreground/30" />
-              
-              {/* Progress bar active */}
-              {current === index && (
-                <motion.div
-                  className="absolute inset-0 bg-primary"
-                  initial={{ width: '0%' }}
-                  animate={{ width: '100%' }}
-                  transition={{ duration: 5, ease: 'linear' }}
-                  key={`progress-${index}`}
-                />
-              )}
-            </motion.button>
+            />
           ))}
         </div>
       </Carousel>
