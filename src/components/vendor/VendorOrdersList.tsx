@@ -80,6 +80,49 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
     };
   };
 
+  const handleOrderComplete = async (orderId: string) => {
+    try {
+      // Mettre à jour le statut
+      const { error: updateError } = await supabase
+        .from('marketplace_orders')
+        .update({ 
+          status: 'completed', 
+          completed_at: new Date().toISOString() 
+        })
+        .eq('id', orderId);
+
+      if (updateError) throw updateError;
+
+      // Libérer le paiement escrow
+      const { error: releaseError } = await supabase.functions.invoke('release-escrow-payment', {
+        body: { orderId }
+      });
+
+      if (releaseError) {
+        console.error('Escrow release error:', releaseError);
+        toast({ 
+          title: "Attention", 
+          description: "Commande terminée mais erreur lors de la libération du paiement" 
+        });
+      } else {
+        toast({ 
+          title: "✅ Commande terminée", 
+          description: "Le paiement a été libéré sur votre wallet vendeur" 
+        });
+      }
+
+      loadOrders();
+      onRefresh?.();
+    } catch (error) {
+      console.error('Error completing order:', error);
+      toast({ 
+        title: "Erreur", 
+        description: "Impossible de terminer la commande", 
+        variant: "destructive" 
+      });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: any; label: string; icon: any }> = {
       'pending': { variant: 'outline', label: 'En attente', icon: Clock },
@@ -177,6 +220,17 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
                     </div>
                   </div>
                 </CardHeader>
+                <CardContent>
+                  {order.status === 'in_transit' && (
+                    <Button 
+                      onClick={() => handleOrderComplete(order.id)}
+                      className="w-full"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Marquer comme livrée
+                    </Button>
+                  )}
+                </CardContent>
               </Card>
             ))
           )}
