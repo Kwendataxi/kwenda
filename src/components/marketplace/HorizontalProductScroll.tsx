@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { CompactProductCard } from './CompactProductCard';
 import { Skeleton } from '../ui/skeleton';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -27,6 +28,7 @@ interface HorizontalProductScrollProps {
   onViewSeller?: (sellerId: string) => void;
   userLocation?: { lat: number; lng: number } | null;
   loading?: boolean;
+  autoScroll?: boolean;
 }
 
 export const HorizontalProductScroll: React.FC<HorizontalProductScrollProps> = ({ 
@@ -36,9 +38,23 @@ export const HorizontalProductScroll: React.FC<HorizontalProductScrollProps> = (
   onViewDetails, 
   onViewSeller,
   userLocation, 
-  loading = false 
+  loading = false,
+  autoScroll = false
 }) => {
   const scrollRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!autoScroll || !scrollRef.current) return;
+
+    const interval = setInterval(() => {
+      scrollRef.current?.scrollBy({ 
+        left: 300, 
+        behavior: 'smooth' 
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [autoScroll]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -103,12 +119,15 @@ export const HorizontalProductScroll: React.FC<HorizontalProductScrollProps> = (
       {/* Horizontal scroll container */}
       <div 
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto scrollbar-hide pb-2"
+        className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 smooth-scroll"
         style={{ scrollSnapType: 'x mandatory' }}
       >
-        {products.map((product) => (
-          <div 
-            key={product.id} 
+        {products.map((product, i) => (
+          <motion.div
+            key={product.id}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.05 }}
             className="flex-shrink-0"
             style={{ scrollSnapAlign: 'start' }}
           >
@@ -119,7 +138,7 @@ export const HorizontalProductScroll: React.FC<HorizontalProductScrollProps> = (
               onViewSeller={onViewSeller}
               userLocation={userLocation}
             />
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>

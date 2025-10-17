@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
   ArrowLeft, 
   Star, 
@@ -11,8 +13,14 @@ import {
   Calendar,
   Search,
   Grid3X3,
-  List
+  List,
+  Package,
+  TrendingUp,
+  Users,
+  Shield
 } from 'lucide-react';
+import { FollowButton } from './FollowButton';
+import { useVendorFollowers } from '@/hooks/useVendorFollowers';
 import { CompactProductCard } from './CompactProductCard';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -52,6 +60,7 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const { followerCount } = useVendorFollowers(vendorId);
 
   useEffect(() => {
     loadVendorData();
@@ -138,22 +147,77 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
 
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col">
-      {/* Header */}
-      <div className="flex items-center gap-4 p-4 border-b bg-background/95 backdrop-blur-sm">
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <div className="flex-1 min-w-0">
-          <h1 className="font-semibold text-lg truncate">
-            {vendor?.display_name || 'Boutique'}
-          </h1>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span>4.8</span>
-            <span>•</span>
-            <span>{filteredProducts.length} produits</span>
+      {/* Hero Header with Cover */}
+      <div className="relative h-48 bg-gradient-to-br from-primary/20 to-secondary/20">
+        {vendor?.cover_url && (
+          <img src={vendor.cover_url} className="absolute inset-0 w-full h-full object-cover opacity-50" />
+        )}
+        
+        <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+          <Button variant="ghost" size="icon" onClick={onClose} className="bg-background/80 backdrop-blur-sm">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <FollowButton vendorId={vendorId} />
+        </div>
+
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 bg-gradient-to-t from-black/80 to-transparent">
+          <div className="flex items-end gap-4">
+            {/* Avatar with verified badge */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="relative"
+            >
+              <div className="w-20 h-20 rounded-full border-4 border-white overflow-hidden">
+                {vendor?.avatar_url ? (
+                  <img src={vendor.avatar_url} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-primary flex items-center justify-center text-white text-2xl">
+                    {vendor?.display_name?.[0] || 'V'}
+                  </div>
+                )}
+              </div>
+              <motion.div
+                className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1"
+                whileHover={{ scale: 1.2 }}
+              >
+                <Shield className="h-4 w-4 text-white" />
+              </motion.div>
+            </motion.div>
+
+            <div className="flex-1 text-white">
+              <h1 className="text-2xl font-bold">{vendor?.display_name || 'Boutique'}</h1>
+              <p className="text-sm opacity-90">{vendor?.bio || 'Vendeur certifié Kwenda'}</p>
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-4 gap-2 p-4 border-b">
+        {[
+          { label: "Produits", value: filteredProducts.length, icon: Package, color: "text-blue-500" },
+          { label: "Ventes", value: "2.3k", icon: TrendingUp, color: "text-green-500" },
+          { label: "Note", value: "4.9", icon: Star, color: "text-yellow-500" },
+          { label: "Abonnés", value: followerCount, icon: Users, color: "text-purple-500" }
+        ].map((stat, i) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            <Card className="p-3 text-center">
+              <stat.icon className={`h-5 w-5 mx-auto mb-1 ${stat.color}`} />
+              <p className="text-lg font-bold">{stat.value}</p>
+              <p className="text-xs text-muted-foreground">{stat.label}</p>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Header with view controls */}
+      <div className="flex items-center gap-4 p-4 border-b bg-background/95 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <Button
             variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
@@ -185,45 +249,6 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
         </div>
       </div>
 
-      {/* Vendor Info */}
-      {vendor && (
-        <div className="p-4 border-b space-y-3">
-          <div className="flex items-start gap-3">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-              <span className="text-lg font-semibold text-primary">
-                {vendor.display_name?.charAt(0) || 'V'}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <h2 className="font-medium text-base">{vendor.display_name || 'Vendeur'}</h2>
-              {vendor.bio && (
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {vendor.bio}
-                </p>
-              )}
-              <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  <span>Membre depuis 2023</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  <span>Kinshasa</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex gap-2">
-            <Badge variant="secondary" className="text-xs">
-              Vendeur vérifié
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              Livraison rapide
-            </Badge>
-          </div>
-        </div>
-      )}
 
       {/* Products Grid */}
       <ScrollArea className="flex-1">

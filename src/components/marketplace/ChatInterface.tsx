@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Send, Package } from 'lucide-react';
+import { TypingIndicator } from '@/components/marketplace/TypingIndicator';
+import { QuickReplies } from '@/components/marketplace/QuickReplies';
 import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDistance } from 'date-fns';
@@ -25,6 +28,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const { conversations, messages, sendMessage, fetchMessages } = useMarketplaceChat();
   const [newMessage, setNewMessage] = useState('');
   const [selectedConversation, setSelectedConversation] = useState(conversationId);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const currentConversation = conversations.find(c => c.id === selectedConversation);
@@ -190,33 +194,49 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {currentMessages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.sender_id === currentConversation?.buyer_id ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`max-w-[70%] p-3 rounded-lg ${
-                message.sender_id === currentConversation?.buyer_id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-foreground'
-              }`}
+        <AnimatePresence mode="popLayout">
+          {currentMessages.map((message) => (
+            <motion.div
+              key={message.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className={`flex ${message.sender_id === currentConversation?.buyer_id ? 'justify-end' : 'justify-start'}`}
             >
-              <p className="text-sm">{message.content}</p>
-              <span className="text-xs opacity-70 mt-1 block">
-                {formatDistance(new Date(message.created_at), new Date(), {
-                  addSuffix: true,
-                  locale: fr
-                })}
-              </span>
-            </div>
-          </div>
-        ))}
+              <div
+                className={`max-w-[70%] p-3 rounded-lg ${
+                  message.sender_id === currentConversation?.buyer_id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-foreground'
+                }`}
+              >
+                <p className="text-sm">{message.content}</p>
+                <span className="text-xs opacity-70 mt-1 block">
+                  {formatDistance(new Date(message.created_at), new Date(), {
+                    addSuffix: true,
+                    locale: fr
+                  })}
+                </span>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        
+        {/* Typing Indicator */}
+        <AnimatePresence>
+          {isTyping && (
+            <TypingIndicator sellerName={currentConversation?.other_participant?.display_name} />
+          )}
+        </AnimatePresence>
+        
         <div ref={messagesEndRef} />
       </div>
 
       {/* Message input */}
-      <div className="p-4 border-t bg-card">
+      <div className="p-4 border-t bg-card space-y-2">
+        {/* Quick Replies */}
+        <QuickReplies onSelect={(msg) => setNewMessage(msg)} />
+        
         <div className="flex gap-2">
           <Input
             value={newMessage}

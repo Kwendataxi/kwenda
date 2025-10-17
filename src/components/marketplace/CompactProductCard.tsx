@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -85,30 +86,44 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
     : null;
 
   return (
-    <Card className={cn(
-      "group relative overflow-hidden bg-card border border-border/50 rounded-lg",
-      "hover:shadow-md transition-all duration-300 touch-scale w-full max-w-[160px]",
-      className
-    )}>
-      {/* Image Container - Compact */}
-      <div className="relative aspect-square overflow-hidden">
+    <motion.div
+      whileHover={{ 
+        scale: 1.05,
+        rotateY: 5,
+        transition: { type: 'spring', stiffness: 300 }
+      }}
+      style={{ transformStyle: 'preserve-3d', perspective: '1000px' }}
+      className={cn("w-full max-w-[160px]", className)}
+    >
+      <Card className={cn(
+        "group relative overflow-hidden bg-card border border-border/50 rounded-lg",
+        "hover:shadow-lg transition-all duration-300 touch-scale"
+      )}>
+        {/* Image Container - Compact */}
+        <div className="relative aspect-square overflow-hidden">
         {!imageLoaded && (
           <Skeleton className="absolute inset-0 bg-grey-100" />
         )}
-        <img
+        <motion.img
           src={product.image}
           alt={product.name}
           className={cn(
             "w-full h-full object-cover transition-all duration-300",
-            "group-hover:scale-105",
             imageLoaded ? "opacity-100" : "opacity-0"
           )}
+          whileHover={{ scale: 1.1 }}
+          transition={{ duration: 0.3 }}
           onLoad={() => setImageLoaded(true)}
           loading="lazy"
         />
         
-        {/* Overlay Actions - Minimal */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300">
+        {/* Overlay Actions - Animated */}
+        <motion.div 
+          className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"
+          initial={{ opacity: 0 }}
+          whileHover={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
           <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <Button
               size="sm"
@@ -124,21 +139,33 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
           </div>
 
           {/* Quick Buy Button */}
-          <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute bottom-2 left-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <Button
               size="sm"
               variant="default"
-              className="w-full h-7 text-xs bg-primary hover:bg-primary/90"
+              className="flex-1 h-7 text-xs bg-primary hover:bg-primary/90"
               disabled={!product.isAvailable}
               onClick={(e) => {
                 e.stopPropagation();
                 onAddToCart(product);
               }}
             >
-              J'achète
+              <ShoppingCart className="h-3 w-3 mr-1" />
+              Acheter
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-7 w-7 p-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetails(product);
+              }}
+            >
+              <Eye className="h-3 w-3" />
             </Button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Chat button - Always visible in bottom right */}
         <div className="absolute bottom-12 right-2 z-10">
@@ -167,10 +194,18 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
             </Badge>
           )}
           {product.popularityScore && product.popularityScore > 200 && (
-            <Badge className="bg-orange-500 text-white text-xs px-1.5 py-0.5 border-0 flex items-center gap-0.5">
-              <TrendingUp className="h-2.5 w-2.5" />
-              Tendance
-            </Badge>
+            <motion.div
+              animate={{ 
+                scale: [1, 1.1, 1],
+                rotate: [0, 5, -5, 0]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Badge className="bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs px-1.5 py-0.5 border-0 flex items-center gap-0.5">
+                <TrendingUp className="h-2.5 w-2.5" />
+                Tendance
+              </Badge>
+            </motion.div>
           )}
           {!product.isAvailable && (
             <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-grey-500 text-white">
@@ -254,6 +289,7 @@ export const CompactProductCard: React.FC<CompactProductCardProps> = ({
           </div>
         )}
       </div>
-    </Card>
+      </Card>
+    </motion.div>
   );
 };

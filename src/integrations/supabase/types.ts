@@ -6321,10 +6321,12 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          cover_url: string | null
           created_at: string
           display_name: string | null
           id: string
           is_public: boolean | null
+          is_verified_seller: boolean | null
           last_seen: string | null
           phone_number: string | null
           updated_at: string
@@ -6334,10 +6336,12 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          cover_url?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
           is_public?: boolean | null
+          is_verified_seller?: boolean | null
           last_seen?: string | null
           phone_number?: string | null
           updated_at?: string
@@ -6347,10 +6351,12 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          cover_url?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
           is_public?: boolean | null
+          is_verified_seller?: boolean | null
           last_seen?: string | null
           phone_number?: string | null
           updated_at?: string
@@ -10576,6 +10582,48 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_followers: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+          user_id: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_followers_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_followers_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_stats"
+            referencedColumns: ["vendor_id"]
+          },
+        ]
+      }
       vendor_notifications: {
         Row: {
           acknowledged_at: string | null
@@ -11435,6 +11483,21 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_stats: {
+        Row: {
+          avatar_url: string | null
+          avg_rating: number | null
+          bio: string | null
+          cover_url: string | null
+          display_name: string | null
+          followers_count: number | null
+          is_verified_seller: boolean | null
+          products_count: number | null
+          sales_count: number | null
+          vendor_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_approve_verification_manual: {
@@ -11873,10 +11936,12 @@ export type Database = {
         Returns: {
           avatar_url: string | null
           bio: string | null
+          cover_url: string | null
           created_at: string
           display_name: string | null
           id: string
           is_public: boolean | null
+          is_verified_seller: boolean | null
           last_seen: string | null
           phone_number: string | null
           updated_at: string
