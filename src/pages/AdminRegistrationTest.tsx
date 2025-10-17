@@ -265,12 +265,10 @@ export default function AdminRegistrationTest() {
     }
   };
 
-  // Charger les logs de debug
+  // Charger les logs de debug via fonction sécurisée
   const loadDebugLogs = async () => {
     const { data, error } = await supabase
-      .from('admin_registration_debug')
-      .select('*')
-      .limit(20);
+      .rpc('get_admin_registration_debug_logs', { limit_count: 20 });
 
     if (error) {
       toast({

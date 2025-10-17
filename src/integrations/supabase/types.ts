@@ -10654,57 +10654,6 @@ export type Database = {
       }
     }
     Views: {
-      admin_registration_debug: {
-        Row: {
-          activity_type: string | null
-          attempted_user_id: string | null
-          auth_uid_at_time: string | null
-          created_at: string | null
-          description: string | null
-          driver_profile_exists: boolean | null
-          driver_role_exists: boolean | null
-          error_message: string | null
-          failed_step: string | null
-          id: string | null
-          metadata: Json | null
-          user_exists_in_auth: boolean | null
-          user_id: string | null
-          validation_errors: string | null
-        }
-        Insert: {
-          activity_type?: string | null
-          attempted_user_id?: never
-          auth_uid_at_time?: never
-          created_at?: string | null
-          description?: string | null
-          driver_profile_exists?: never
-          driver_role_exists?: never
-          error_message?: never
-          failed_step?: never
-          id?: string | null
-          metadata?: Json | null
-          user_exists_in_auth?: never
-          user_id?: string | null
-          validation_errors?: never
-        }
-        Update: {
-          activity_type?: string | null
-          attempted_user_id?: never
-          auth_uid_at_time?: never
-          created_at?: string | null
-          description?: string | null
-          driver_profile_exists?: never
-          driver_role_exists?: never
-          error_message?: never
-          failed_step?: never
-          id?: string | null
-          metadata?: Json | null
-          user_exists_in_auth?: never
-          user_id?: string | null
-          validation_errors?: never
-        }
-        Relationships: []
-      }
       ai_performance_stats_secure: {
         Row: {
           avg_response_time_ms: number | null
@@ -11367,6 +11316,25 @@ export type Database = {
       geocode_location: {
         Args: { query_text: string }
         Returns: Json
+      }
+      get_admin_registration_debug_logs: {
+        Args: { limit_count?: number }
+        Returns: {
+          activity_type: string
+          attempted_user_id: string
+          auth_uid_at_time: string
+          created_at: string
+          description: string
+          driver_profile_exists: boolean
+          driver_role_exists: boolean
+          error_message: string
+          failed_step: string
+          id: string
+          metadata: Json
+          user_exists_in_auth: boolean
+          user_id: string
+          validation_errors: string
+        }[]
       }
       get_admin_subscriptions_unified: {
         Args: Record<PropertyKey, never>
