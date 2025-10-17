@@ -7590,6 +7590,71 @@ export type Database = {
           },
         ]
       }
+      restaurant_commission_config: {
+        Row: {
+          created_at: string | null
+          default_commission_rate: number
+          id: string
+          max_commission_rate: number
+          min_commission_rate: number
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          default_commission_rate?: number
+          id?: string
+          max_commission_rate?: number
+          min_commission_rate?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          default_commission_rate?: number
+          id?: string
+          max_commission_rate?: number
+          min_commission_rate?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      restaurant_custom_commission_rates: {
+        Row: {
+          created_at: string | null
+          custom_commission_rate: number
+          id: string
+          reason: string | null
+          restaurant_id: string
+          set_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          custom_commission_rate: number
+          id?: string
+          reason?: string | null
+          restaurant_id: string
+          set_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          custom_commission_rate?: number
+          id?: string
+          reason?: string | null
+          restaurant_id?: string
+          set_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_custom_commission_rates_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurant_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurant_profiles: {
         Row: {
           address: string
@@ -7611,6 +7676,7 @@ export type Database = {
           logo_url: string | null
           minimum_order_amount: number | null
           opening_hours: Json | null
+          payment_model: string
           phone_number: string
           quartier: string | null
           rating_average: number | null
@@ -7647,6 +7713,7 @@ export type Database = {
           logo_url?: string | null
           minimum_order_amount?: number | null
           opening_hours?: Json | null
+          payment_model?: string
           phone_number: string
           quartier?: string | null
           rating_average?: number | null
@@ -7683,6 +7750,7 @@ export type Database = {
           logo_url?: string | null
           minimum_order_amount?: number | null
           opening_hours?: Json | null
+          payment_model?: string
           phone_number?: string
           quartier?: string | null
           rating_average?: number | null
@@ -12248,6 +12316,10 @@ export type Database = {
           rejected_vehicles: number
           total_vehicles: number
         }[]
+      }
+      get_restaurant_commission_rate: {
+        Args: { p_restaurant_id: string }
+        Returns: number
       }
       get_safe_user_info: {
         Args: { user_id_param: string }
