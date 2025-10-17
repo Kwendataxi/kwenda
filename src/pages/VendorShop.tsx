@@ -5,9 +5,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft, Star, Package, Loader2, Store, Heart, ThumbsUp, Share2, X, Camera } from 'lucide-react';
-import { ModernProductCard } from '@/components/marketplace/ModernProductCard';
+import { YangoProductCard } from '@/components/marketplace/YangoProductCard';
 import { VendorShopShareButtons } from '@/components/marketplace/VendorShopShareButtons';
 import { useToast } from '@/hooks/use-toast';
+import { useCart } from '@/context/CartContext';
+import { useProductFavorites } from '@/hooks/useProductFavorites';
 
 interface VendorProfile {
   id: string;
@@ -40,12 +42,25 @@ const VendorShop: React.FC = () => {
   const { vendorId } = useParams<{ vendorId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { addToCart } = useCart();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<VendorProfile | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [totalReviews, setTotalReviews] = useState(0);
+  const [user, setUser] = useState<any>(null);
+
+  // Hook pour gérer les favoris
+  const { isFavorite, toggleFavorite } = useProductFavorites(user?.id);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, []);
 
   useEffect(() => {
     if (vendorId) {
@@ -202,6 +217,33 @@ const VendorShop: React.FC = () => {
     return diffDays <= 7;
   };
 
+  const handleAddToCart = (product: Product) => {
+    if (!product.in_stock) {
+      toast({
+        variant: 'destructive',
+        title: 'Produit indisponible',
+        description: 'Ce produit est actuellement en rupture de stock.'
+      });
+      return;
+    }
+
+    addToCart({
+      id: product.id,
+      name: product.title,
+      price: product.price,
+      image: product.images[0] || '/placeholder.svg',
+      seller: product.seller.display_name,
+      seller_id: product.seller.id,
+      category: product.category,
+      isAvailable: product.in_stock
+    });
+
+    toast({
+      title: '✅ Ajouté au panier',
+      description: `${product.title} a été ajouté à votre panier.`
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -226,11 +268,11 @@ const VendorShop: React.FC = () => {
                 <img 
                   src={profile.shop_logo_url} 
                   alt={profile.shop_name}
-                  className="w-14 h-14 rounded-full object-cover border-2 border-border"
+                  className="w-16 h-16 rounded-full object-cover border-2 border-border"
                 />
               ) : (
-                <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center border-2 border-border">
-                  <Camera className="h-6 w-6 text-muted-foreground" />
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center border-2 border-border">
+                  <Camera className="h-7 w-7 text-muted-foreground" />
                 </div>
               )}
               <div>
@@ -245,6 +287,12 @@ const VendorShop: React.FC = () => {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
+              {/* Avatar Vendeur */}
+              {profile.shop_name && (
+                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg">
+                  {profile.shop_name.charAt(0).toUpperCase()}
+                </div>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
@@ -277,37 +325,37 @@ const VendorShop: React.FC = () => {
 
       <div className="container mx-auto px-4 py-6 space-y-6">
         {/* Statistiques Style Yango */}
-        <div className="flex items-center justify-around bg-card rounded-lg p-4 border">
+        <div className="grid grid-cols-4 gap-2 bg-card rounded-lg p-4 border">
           <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <ThumbsUp className="h-4 w-4" />
-              <span className="text-xs">Évaluations</span>
+            <div className="flex items-center gap-1 mb-1">
+              <ThumbsUp className="h-4 w-4 text-blue-500" />
+              <span className="text-xs text-muted-foreground">{totalReviews}</span>
             </div>
-            <div className="text-lg font-bold">{totalReviews}</div>
+            <span className="text-xs font-medium">Évaluation</span>
           </div>
 
           <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-1 text-muted-foreground">
+            <div className="flex items-center gap-1 mb-1">
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-xs">Note</span>
+              <span className="text-xs text-muted-foreground">{profile.average_rating.toFixed(1)}</span>
             </div>
-            <div className="text-lg font-bold">{profile.average_rating.toFixed(1)}</div>
+            <span className="text-xs font-medium">Note</span>
           </div>
 
           <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Package className="h-4 w-4" />
-              <span className="text-xs">Livraisons</span>
+            <div className="flex items-center gap-1 mb-1">
+              <Package className="h-4 w-4 text-green-500" />
+              <span className="text-xs text-muted-foreground">{profile.total_sales}</span>
             </div>
-            <div className="text-lg font-bold">{profile.total_sales}</div>
+            <span className="text-xs font-medium">Livraisons</span>
           </div>
 
           <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Heart className="h-4 w-4" />
-              <span className="text-xs">Abonnés</span>
+            <div className="flex items-center gap-1 mb-1">
+              <Heart className="h-4 w-4 text-red-500" />
+              <span className="text-xs text-muted-foreground">{profile.follower_count}</span>
             </div>
-            <div className="text-lg font-bold">{profile.follower_count}</div>
+            <span className="text-xs font-medium">Abonnés</span>
           </div>
         </div>
 
@@ -339,31 +387,22 @@ const VendorShop: React.FC = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {products.map((product) => (
-                <div key={product.id} className="relative">
-                  {/* Badge NOUVEAUTÉ */}
-                  {isNewProduct(product.created_at) && (
-                    <div className="absolute top-2 left-2 z-10 bg-green-500 text-white px-2 py-0.5 text-xs font-bold rounded">
-                      NOUVEAUTÉ
-                    </div>
-                  )}
-                  <ModernProductCard
-                    product={{
-                      id: product.id,
-                      name: product.title,
-                      price: product.price,
-                      image: product.images[0] || '/placeholder.svg',
-                      rating: profile.average_rating,
-                      reviews: totalReviews,
-                      seller: product.seller.display_name,
-                      category: product.category,
-                      inStock: product.in_stock
-                    }}
-                    onAddToCart={() => {}}
-                    onViewDetails={() => navigate(`/marketplace/product/${product.id}`)}
-                  />
-                </div>
+                <YangoProductCard
+                  key={product.id}
+                  product={{
+                    id: product.id,
+                    title: product.title,
+                    price: product.price,
+                    image: product.images[0] || '/placeholder.svg',
+                    isNew: isNewProduct(product.created_at),
+                    inStock: product.in_stock
+                  }}
+                  isFavorite={isFavorite(product.id)}
+                  onAddToCart={() => handleAddToCart(product)}
+                  onToggleFavorite={() => toggleFavorite(product.id)}
+                />
               ))}
             </div>
           )}
