@@ -139,81 +139,105 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                   </div>
                 )}
 
-                {/* Slide 3: Lottery - ULTRA ANIMÉ */}
+                {/* Slide 3: Lottery - Design moderne et organisé */}
                 {promo.id === '3' && (
                   <div className="absolute inset-0 p-4 flex flex-col text-white overflow-hidden">
-                    {/* Confettis animés - multiples */}
-                    <div className="absolute top-2 right-4 text-2xl animate-bounce">🎉</div>
-                    <div className="absolute top-6 left-6 text-xl animate-pulse">✨</div>
-                    <div className="absolute bottom-8 right-8 text-2xl animate-bounce" style={{ animationDelay: '0.5s' }}>💰</div>
-                    
-                    {/* Étoiles scintillantes */}
-                    <div className="absolute top-1/4 left-1/3 w-2 h-2 bg-yellow-300 rounded-full animate-ping" />
-                    <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-yellow-300 rounded-full animate-ping" style={{ animationDelay: '0.3s' }} />
-                    <div className="absolute bottom-1/3 left-1/4 w-2 h-2 bg-yellow-300 rounded-full animate-ping" style={{ animationDelay: '0.6s' }} />
-
-                    {/* Badge NOUVEAU animé */}
-                    <div className="absolute top-3 left-3 bg-yellow-400 text-purple-900 text-[9px] font-black px-2.5 py-1 rounded-full animate-bounce shadow-xl">
+                    {/* Badge NOUVEAU - Coin supérieur gauche */}
+                    <motion.div 
+                      className="absolute top-3 left-3 bg-yellow-400 text-purple-900 text-[10px] font-black px-3 py-1 rounded-full shadow-xl z-20"
+                      initial={{ scale: 0, rotate: -12 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.2 }}
+                    >
                       NOUVEAU
-                    </div>
+                    </motion.div>
 
-                    {/* Main content */}
-                    <div className="flex-1 flex flex-col justify-center relative z-10">
-                      <motion.h3 
-                        className="text-3xl font-black drop-shadow-[0_6px_20px_rgba(0,0,0,0.6)] leading-none tracking-tight mb-1"
-                        animate={{ 
-                          scale: [1, 1.05, 1],
-                          rotate: [-1, 1, -1]
-                        }}
-                        transition={{ 
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
+                    {/* Icône célébration - Coin supérieur droit */}
+                    <motion.div 
+                      className="absolute top-3 right-3 text-3xl z-20"
+                      animate={{ 
+                        rotate: [0, -10, 10, -10, 0],
+                        scale: [1, 1.1, 1]
+                      }}
+                      transition={{ 
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      🎉
+                    </motion.div>
+
+                    {/* Titre principal centré */}
+                    <div className="flex-1 flex flex-col justify-center items-center relative z-10 -mt-2">
+                      {/* Tombola + KwendaPay */}
+                      <motion.div 
+                        className="text-center mb-3"
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
                       >
-                        Tombola
-                      </motion.h3>
-                      <h3 className="text-3xl font-black drop-shadow-[0_6px_20px_rgba(0,0,0,0.6)] leading-none tracking-tight mb-3 bg-gradient-to-r from-yellow-300 via-yellow-100 to-yellow-300 bg-clip-text text-transparent animate-pulse">
-                        KwendaPay
-                      </h3>
+                        <h3 className="text-[32px] font-black drop-shadow-[0_6px_20px_rgba(0,0,0,0.6)] leading-none tracking-tight text-white">
+                          Tombola
+                        </h3>
+                        <h3 className="text-[32px] font-black drop-shadow-[0_6px_20px_rgba(0,0,0,0.6)] leading-none tracking-tight bg-gradient-to-r from-yellow-300 via-yellow-100 to-yellow-300 bg-clip-text text-transparent">
+                          KwendaPay
+                        </h3>
+                      </motion.div>
                       
-                      <div className="flex items-center gap-2 mb-4">
-                        <span className="text-xs font-bold opacity-95 drop-shadow-lg">
+                      {/* Gagnez jusqu'à + montant */}
+                      <motion.div 
+                        className="flex flex-col items-center gap-2"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        <span className="text-sm font-bold opacity-95 drop-shadow-lg">
                           Gagnez jusqu'à
                         </span>
-                        <motion.span 
-                          className="text-2xl font-black bg-yellow-400 text-purple-900 px-3 py-1 rounded-lg shadow-xl"
+                        <motion.div 
+                          className="bg-yellow-400 text-purple-900 px-6 py-2.5 rounded-2xl shadow-[0_8px_24px_rgba(234,179,8,0.4)]"
                           animate={{ 
-                            scale: [1, 1.1, 1]
+                            scale: [1, 1.05, 1],
+                            boxShadow: [
+                              '0 8px 24px rgba(234,179,8,0.4)',
+                              '0 12px 32px rgba(234,179,8,0.6)',
+                              '0 8px 24px rgba(234,179,8,0.4)'
+                            ]
                           }}
                           transition={{ 
-                            duration: 1.5,
+                            duration: 2,
                             repeat: Infinity,
                             ease: "easeInOut"
                           }}
                         >
-                          100 000 CDF
-                        </motion.span>
-                      </div>
+                          <span className="text-2xl font-black tracking-tight">
+                            100 000 CDF
+                          </span>
+                        </motion.div>
+                      </motion.div>
                     </div>
 
-                    {/* CTA Button avec animation */}
+                    {/* CTA Button en bas centré */}
                     <motion.div 
-                      className="flex justify-center pb-2"
+                      className="flex justify-center pb-2 mt-auto"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.7 }}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <div className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-400 text-purple-900 rounded-xl font-black text-sm shadow-2xl hover:shadow-yellow-400/50 transition-all duration-300">
+                      <div className="inline-flex items-center gap-2 px-8 py-3 bg-yellow-400 text-purple-900 rounded-2xl font-black text-sm shadow-[0_8px_24px_rgba(234,179,8,0.5)] hover:shadow-[0_12px_32px_rgba(234,179,8,0.7)] transition-all duration-300">
                         {promo.cta} 🎁
                       </div>
                     </motion.div>
 
-                    {/* Glow effects animés */}
+                    {/* Effets de lumière subtils */}
                     <motion.div 
-                      className="absolute top-1/3 right-1/4 w-32 h-32 bg-yellow-400/40 rounded-full blur-3xl pointer-events-none"
+                      className="absolute top-1/3 right-1/4 w-32 h-32 bg-yellow-400/30 rounded-full blur-3xl pointer-events-none"
                       animate={{ 
-                        scale: [1, 1.3, 1],
-                        opacity: [0.3, 0.6, 0.3]
+                        scale: [1, 1.2, 1],
+                        opacity: [0.3, 0.5, 0.3]
                       }}
                       transition={{ 
                         duration: 3,
@@ -222,16 +246,56 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                       }}
                     />
                     <motion.div 
-                      className="absolute bottom-1/4 left-1/4 w-28 h-28 bg-purple-400/30 rounded-full blur-3xl pointer-events-none"
+                      className="absolute bottom-1/3 left-1/4 w-28 h-28 bg-purple-400/20 rounded-full blur-3xl pointer-events-none"
                       animate={{ 
-                        scale: [1.3, 1, 1.3],
+                        scale: [1.2, 1, 1.2],
                         opacity: [0.4, 0.2, 0.4]
                       }}
                       transition={{ 
                         duration: 3,
                         repeat: Infinity,
                         ease: "easeInOut",
-                        delay: 0.5
+                        delay: 1.5
+                      }}
+                    />
+
+                    {/* Particules scintillantes subtiles */}
+                    <motion.div 
+                      className="absolute top-1/4 left-1/3 w-1.5 h-1.5 bg-yellow-300 rounded-full"
+                      animate={{ 
+                        opacity: [0, 1, 0],
+                        scale: [0, 1, 0]
+                      }}
+                      transition={{ 
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    />
+                    <motion.div 
+                      className="absolute top-1/2 right-1/4 w-1.5 h-1.5 bg-yellow-300 rounded-full"
+                      animate={{ 
+                        opacity: [0, 1, 0],
+                        scale: [0, 1, 0]
+                      }}
+                      transition={{ 
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 0.7
+                      }}
+                    />
+                    <motion.div 
+                      className="absolute bottom-1/3 left-1/4 w-1.5 h-1.5 bg-yellow-300 rounded-full"
+                      animate={{ 
+                        opacity: [0, 1, 0],
+                        scale: [0, 1, 0]
+                      }}
+                      transition={{ 
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 1.4
                       }}
                     />
                   </div>
