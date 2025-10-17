@@ -107,47 +107,48 @@ export const WinsHistory = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-4 px-2 sm:px-0">
       {/* Stats Overview */}
-      <div className="grid grid-cols-3 gap-3">
-        <Card className="p-4 text-center">
-          <p className="text-2xl font-bold text-primary">{stats.total_wins}</p>
-          <p className="text-xs text-muted-foreground">Gains Totaux</p>
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <Card className="p-3 sm:p-4 text-center">
+          <p className="text-xl sm:text-2xl font-bold text-primary">{stats.total_wins}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">Gains Totaux</p>
         </Card>
-        <Card className="p-4 text-center">
-          <p className="text-2xl font-bold text-primary">
+        <Card className="p-3 sm:p-4 text-center">
+          <p className="text-xl sm:text-2xl font-bold text-primary">
             {stats.total_value.toLocaleString()}
           </p>
-          <p className="text-xs text-muted-foreground">CDF Gagnés</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">CDF Gagnés</p>
         </Card>
-        <Card className="p-4 text-center">
-          <p className="text-2xl font-bold text-primary">
+        <Card className="p-3 sm:p-4 text-center">
+          <p className="text-xl sm:text-2xl font-bold text-primary">
             {stats.win_rate.toFixed(0)}%
           </p>
-          <p className="text-xs text-muted-foreground">Taux de Gain</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">Taux de Gain</p>
         </Card>
       </div>
 
       {/* History Tabs */}
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
-            Historique des Gains
+          <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+            <span className="hidden xs:inline">Historique des Gains</span>
+            <span className="xs:hidden">Historique</span>
           </h3>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-1" />
-            Exporter
+          <Button variant="outline" size="sm" className="text-xs">
+            <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1" />
+            <span className="hidden sm:inline">Exporter</span>
           </Button>
         </div>
 
         <Tabs defaultValue="all">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="all">Tous</TabsTrigger>
-            <TabsTrigger value="common">Commun</TabsTrigger>
-            <TabsTrigger value="rare">Rare</TabsTrigger>
-            <TabsTrigger value="epic">Epic</TabsTrigger>
-            <TabsTrigger value="legendary">Légendaire</TabsTrigger>
+          <TabsList className="w-full justify-start sm:justify-center overflow-x-auto">
+            <TabsTrigger value="all" className="min-w-[60px] flex-shrink-0">Tous</TabsTrigger>
+            <TabsTrigger value="common" className="min-w-[75px] flex-shrink-0">Commun</TabsTrigger>
+            <TabsTrigger value="rare" className="min-w-[55px] flex-shrink-0">Rare</TabsTrigger>
+            <TabsTrigger value="epic" className="min-w-[55px] flex-shrink-0">Epic</TabsTrigger>
+            <TabsTrigger value="legendary" className="min-w-[90px] sm:min-w-[95px] flex-shrink-0">Légendaire</TabsTrigger>
           </TabsList>
 
           {['all', 'common', 'rare', 'epic', 'legendary'].map(tab => (
