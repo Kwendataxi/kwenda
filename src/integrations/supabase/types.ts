@@ -12353,6 +12353,28 @@ export type Database = {
         }
         Returns: Json
       }
+      get_top_food_products: {
+        Args: { date_end: string; date_start: string; limit_count?: number }
+        Returns: {
+          id: string
+          image_url: string
+          name: string
+          restaurant_name: string
+          total_orders: number
+          total_revenue: number
+        }[]
+      }
+      get_top_restaurants: {
+        Args: { date_end: string; date_start: string; limit_count?: number }
+        Returns: {
+          city: string
+          id: string
+          name: string
+          orders_count: number
+          rating: number
+          total_revenue: number
+        }[]
+      }
       get_transport_chat_messages: {
         Args: { p_booking_id: string }
         Returns: {
