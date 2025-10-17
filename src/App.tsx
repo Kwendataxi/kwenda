@@ -90,7 +90,7 @@ import UnifiedTracking from "./pages/UnifiedTracking";
 import DriverRegistration from "./pages/DriverRegistration";
 import VendorShop from "./pages/VendorShop";
 import VendorOrders from "./pages/VendorOrders";
-import VendorDashboard from "./pages/VendorDashboard";
+import ModernVendorDashboard from "./pages/ModernVendorDashboard";
 import MyProducts from "./pages/marketplace/MyProducts";
 import QRCodeManager from "./pages/admin/QRCodeManager";
 import QRAnalytics from "./pages/admin/QRAnalytics";
@@ -206,7 +206,7 @@ const AppContent = () => {
                     } />
                     <Route path="/vendor/dashboard" element={
                       <ProtectedRoute>
-                        <VendorDashboard />
+                        <ModernVendorDashboard />
                       </ProtectedRoute>
                     } />
                     <Route path="/vendor/orders" element={
