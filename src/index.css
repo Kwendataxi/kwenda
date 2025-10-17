@@ -1402,3 +1402,66 @@ All colors MUST be HSL.
   background-color: hsl(var(--congo-red)); 
   color: white; 
 }
+
+/* ============================================
+   SPRINT 2: RESPONSIVE & TOUCH OPTIMIZATIONS
+   ============================================ */
+
+/* Touch-optimized elements (44px minimum WCAG standard) */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+/* Touch target minimum size */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Responsive content safe area */
+.content-safe {
+  max-height: calc(100vh - 200px);
+  max-height: calc(100svh - 200px);
+}
+
+/* Tabular numbers for prices and quantities */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Break long words safely */
+.break-words {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Improved scrolling for mobile */
+.content-scrollable {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary) / 0.3) transparent;
+  overscroll-behavior: contain;
+}
+
+.content-scrollable::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.content-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.content-scrollable::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.3);
+  border-radius: 3px;
+}
+
+.content-scrollable::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}

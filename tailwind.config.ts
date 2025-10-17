@@ -26,6 +26,7 @@ export default {
 				'18': '4.5rem',
 				'88': '22rem',
 				'128': '32rem',
+				'touch': '44px', // Touch target minimum
 			},
 			fontFamily: {
 				'montserrat': ['Montserrat', 'sans-serif'],
