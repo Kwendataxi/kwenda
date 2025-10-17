@@ -16,7 +16,7 @@ import { useUniversalChat } from '@/hooks/useUniversalChat';
 export const ComponentsDemo = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const { notifications, unreadCount, addNotification } = useEnhancedNotifications();
-  const { availableTickets, currentDraws, myWins } = useLottery();
+  const { myWins } = useLottery();
   const { conversations } = useUniversalChat();
 
   const testNotification = () => {
@@ -87,9 +87,9 @@ export const ComponentsDemo = () => {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Tickets Loterie</p>
-                  <p className="text-3xl font-bold">{availableTickets}</p>
-                  <p className="text-xs text-muted-foreground">Disponibles</p>
+                  <p className="text-sm text-muted-foreground">Gains Loterie</p>
+                  <p className="text-3xl font-bold">{myWins.length}</p>
+                  <p className="text-xs text-muted-foreground">Cartes gagnées</p>
                 </div>
                 <Gift className="h-12 w-12 text-yellow-500 opacity-50" />
               </div>
@@ -100,9 +100,9 @@ export const ComponentsDemo = () => {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Tirages Actifs</p>
-                  <p className="text-3xl font-bold">{currentDraws.length}</p>
-                  <p className="text-xs text-muted-foreground">En cours</p>
+                  <p className="text-sm text-muted-foreground">Système Nouveau</p>
+                  <p className="text-3xl font-bold">✨</p>
+                  <p className="text-xs text-muted-foreground">Scratch cards</p>
                 </div>
                 <Sparkles className="h-12 w-12 text-green-500 opacity-50" />
               </div>
@@ -168,8 +168,8 @@ export const ComponentsDemo = () => {
             <TabsTrigger value="lottery" className="flex items-center gap-2">
               <Gift className="h-4 w-4" />
               <span className="hidden sm:inline">Loterie</span>
-              {availableTickets > 0 && (
-                <Badge variant="secondary" className="ml-1">{availableTickets}</Badge>
+              {myWins.length > 0 && (
+                <Badge variant="secondary" className="ml-1">{myWins.length}</Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="chat" className="flex items-center gap-2">

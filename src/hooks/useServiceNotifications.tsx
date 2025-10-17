@@ -11,7 +11,7 @@ interface ServiceNotificationCounts {
 }
 
 export const useServiceNotifications = (): ServiceNotificationCounts => {
-  const { availableTickets, myWins } = useLottery();
+  const { myWins } = useLottery();
   const { unreadCount: orderUnreadCount, notifications: orderNotifications } = useOrderNotifications();
 
   const serviceCounts = useMemo(() => {
