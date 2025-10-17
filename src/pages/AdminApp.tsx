@@ -289,7 +289,7 @@ const AdminApp = () => {
       case 'food':
         return (
           <Suspense fallback={<LoadingFallback />}>
-            <FlexiblePermissionGuard requiredPermissions={['marketplace_read']}>
+            <FlexiblePermissionGuard requiredPermissions={['food_admin']}>
               <AdminFoodDashboard />
             </FlexiblePermissionGuard>
           </Suspense>

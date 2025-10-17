@@ -5,7 +5,7 @@ import {
   Car, Package, Store, Truck, Dice1, 
   CheckCircle, ArrowRight, Zap, Clock,
   Shield, Users, MapPin, CreditCard,
-  Bike, Bus
+  Bike, Bus, UtensilsCrossed
 } from "lucide-react";
 import { useState } from "react";
 
@@ -79,6 +79,20 @@ const InteractiveServicesGrid = () => {
         { icon: <CreditCard className="w-4 h-4" />, text: "Gains réels en CDF" }
       ],
       stats: { winners: "100+", prizes: "50M CDF", draws: "Weekly" }
+    },
+    {
+      id: "food",
+      icon: <UtensilsCrossed className="w-10 h-10" />,
+      title: "Kwenda Food",
+      description: "Commandez vos plats préférés auprès de restaurants locaux",
+      price: "Livraison gratuite dès 10K CDF",
+      new: true,
+      gradient: "from-orange-500 via-amber-500 to-yellow-500",
+      features: [
+        { icon: <UtensilsCrossed className="w-4 h-4" />, text: "Restaurants locaux vérifiés" },
+        { icon: <Clock className="w-4 h-4" />, text: "Livraison rapide 30-45min" }
+      ],
+      stats: { restaurants: "50+", dishes: "500+", delivery: "30-45min" }
     }
   ];
 
@@ -87,13 +101,13 @@ const InteractiveServicesGrid = () => {
       <div className="container-section">
         <div className="text-center mb-20 space-y-fluid animate-fade-up">
           <Badge variant="outline" className="border-primary/30 text-primary mb-6 px-6 py-3 text-base bg-primary/5 animate-glow-pulse">
-            🚀 Cinq Services Révolutionnaires
+            🚀 Six Services Révolutionnaires
           </Badge>
           <h2 className="text-display-lg bg-gradient-to-r from-foreground via-primary to-accent bg-clip-text text-transparent animate-gradient">
             Tout ce dont vous avez besoin
           </h2>
           <p className="text-body-lg text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-            Kwenda Taxi combine transport, livraison, location, marketplace et divertissement 
+            Kwenda Taxi combine transport, livraison, location, marketplace, food et divertissement 
             dans une seule application intelligente. Disponible à Kinshasa, Lubumbashi et Kolwezi.
           </p>
         </div>
@@ -124,6 +138,14 @@ const InteractiveServicesGrid = () => {
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                   <Badge className="bg-gradient-to-r from-accent to-secondary text-white shadow-glow px-4 py-2 animate-float">
                     🔥 Nouveau !
+                  </Badge>
+                </div>
+              )}
+
+              {service.new && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                  <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-glow px-4 py-2 animate-glow-pulse">
+                    ✨ NOUVEAU
                   </Badge>
                 </div>
               )}

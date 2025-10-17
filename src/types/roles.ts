@@ -30,6 +30,10 @@ export type Permission =
   | 'marketplace_read'
   | 'marketplace_write'
   | 'marketplace_moderate'
+  | 'food_read'
+  | 'food_write'
+  | 'food_moderate'
+  | 'food_admin'
   | 'support_read'
   | 'support_write'
   | 'support_admin'
@@ -107,6 +111,10 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   marketplace_read: 'Voir marketplace',
   marketplace_write: 'Modifier marketplace',
   marketplace_moderate: 'Modérer marketplace',
+  food_read: 'Voir Food',
+  food_write: 'Modifier Food',
+  food_moderate: 'Modérer Food',
+  food_admin: 'Admin Food',
   support_read: 'Voir support',
   support_write: 'Modifier support',
   support_admin: 'Admin support',

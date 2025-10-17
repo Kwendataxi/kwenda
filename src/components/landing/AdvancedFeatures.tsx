@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { 
   MapPin, Clock, CreditCard, Shield, Smartphone, 
   Wifi, Users, Zap, Globe, Heart, Star, TrendingUp,
-  CheckCircle, ArrowRight
+  CheckCircle, ArrowRight, UtensilsCrossed
 } from "lucide-react";
 import { useState } from "react";
 
@@ -59,6 +59,18 @@ const AdvancedFeatures = () => {
       ],
       gradient: "from-primary via-secondary to-accent",
       stats: { verified: "100%", insurance: "Complète", incidents: "<0.1%" }
+    },
+    {
+      id: "food",
+      icon: <UtensilsCrossed className="w-8 h-8" />,
+      title: "Kwenda Food - Restaurants locaux",
+      description: "Découvrez et commandez auprès de restaurants vérifiés. Livraison rapide en 30-45 minutes.",
+      benefits: [
+        "Restaurants locaux vérifiés",
+        "Livraison express 30-45min"
+      ],
+      gradient: "from-orange-500 to-amber-500",
+      stats: { restaurants: "50+", plats: "500+", livraison: "30-45min" }
     }
   ];
 

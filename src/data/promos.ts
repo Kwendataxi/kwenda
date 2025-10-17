@@ -45,5 +45,14 @@ export const defaultPromos: Promo[] = [
     gradient: 'from-blue-500 via-indigo-500 to-purple-600',
     cta: 'Shopping',
     service: 'marketplace'
+  },
+  {
+    id: '6',
+    title: 'Kwenda Food',
+    description: 'Commandez vos plats préférés',
+    image: '',
+    gradient: 'from-orange-500 via-amber-500 to-yellow-500',
+    cta: 'Commander',
+    service: 'food'
   }
 ];

@@ -71,7 +71,7 @@ const ModernHero = () => {
               </div>
               
               <h2 className="text-display-lg leading-tight text-center lg:text-left stagger-3">
-                Transport rapide et fiable à Kinshasa, Lubumbashi & Kolwezi
+                Transport, livraison, food et plus à Kinshasa, Lubumbashi & Kolwezi
               </h2>
               
               <p className="text-2xl font-semibold text-primary text-center lg:text-left stagger-4">

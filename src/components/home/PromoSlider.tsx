@@ -328,6 +328,119 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                     <div className="absolute bottom-1/4 left-1/4 w-24 h-24 bg-indigo-400/20 rounded-full blur-3xl pointer-events-none" />
                   </div>
                 )}
+
+                {/* Slide 6: Food - Style similaire à Tombola */}
+                {promo.id === '6' && (
+                  <div className="absolute inset-0 p-5 flex flex-col text-white overflow-hidden">
+                    {/* Badge NOUVEAU */}
+                    <motion.div 
+                      className="absolute top-3 left-3 bg-yellow-400/90 text-orange-900 px-3 py-1 rounded-full text-xs font-bold shadow-lg"
+                      initial={{ scale: 0, rotate: -12 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.1 }}
+                    >
+                      NOUVEAU
+                    </motion.div>
+
+                    {/* Icône Food */}
+                    <motion.div 
+                      className="absolute top-3 right-3 text-2xl"
+                      animate={{ rotate: [0, -5, 5, 0], scale: [1, 1.05, 1] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+                    >
+                      🍔
+                    </motion.div>
+
+                    {/* Zone supérieure : Titre */}
+                    <div className="flex-[0.3] flex items-end justify-center pb-2">
+                      <div className="text-center space-y-1">
+                        <motion.h3 
+                          className="text-[28px] font-bold drop-shadow-lg leading-tight"
+                          initial={{ opacity: 0, y: -20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 }}
+                        >
+                          Kwenda
+                        </motion.h3>
+                        <motion.h3 
+                          className="text-[36px] font-black drop-shadow-2xl leading-none bg-gradient-to-r from-yellow-300 via-orange-100 to-yellow-300 bg-clip-text text-transparent"
+                          initial={{ opacity: 0, y: -20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.4 }}
+                        >
+                          Food
+                        </motion.h3>
+                      </div>
+                    </div>
+
+                    {/* Zone centrale : Description */}
+                    <div className="flex-[0.4] flex flex-col items-center justify-center gap-3">
+                      <motion.span 
+                        className="text-base font-semibold opacity-90 drop-shadow-md tracking-wide"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        Vos restaurants préférés
+                      </motion.span>
+                      
+                      <motion.div 
+                        className="bg-orange-400/90 backdrop-blur-sm px-7 py-3 rounded-2xl shadow-[0_8px_24px_rgba(251,146,60,0.4)]"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ 
+                          opacity: 1, 
+                          scale: 1,
+                          boxShadow: [
+                            '0 8px 24px rgba(251,146,60,0.3)',
+                            '0 10px 28px rgba(251,146,60,0.45)',
+                            '0 8px 24px rgba(251,146,60,0.3)'
+                          ]
+                        }}
+                        transition={{ 
+                          delay: 0.6,
+                          duration: 2.5,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      >
+                        <span className="text-[26px] font-black tracking-tighter">
+                          Livraison 30-45min
+                        </span>
+                      </motion.div>
+                    </div>
+
+                    {/* Zone inférieure : CTA */}
+                    <div className="flex-[0.3] flex items-start justify-center pt-2">
+                      <motion.button
+                        className="inline-flex items-center gap-2 px-10 py-3.5 bg-orange-400 text-white rounded-full font-black text-base shadow-[0_8px_24px_rgba(251,146,60,0.4)] border-2 border-orange-300"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 }}
+                        whileHover={{ 
+                          scale: 1.05,
+                          boxShadow: '0 12px 32px rgba(251,146,60,0.6)'
+                        }}
+                        whileTap={{ scale: 0.97 }}
+                      >
+                        Commander 🍕
+                      </motion.button>
+                    </div>
+
+                    {/* Halo lumineux */}
+                    <motion.div 
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-orange-400/20 rounded-full blur-[80px] pointer-events-none"
+                      animate={{ 
+                        scale: [1, 1.1, 1],
+                        opacity: [0.2, 0.3, 0.2]
+                      }}
+                      transition={{ 
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </CarouselItem>
           ))}
