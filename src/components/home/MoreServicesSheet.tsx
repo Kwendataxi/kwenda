@@ -112,7 +112,7 @@ export const MoreServicesSheet = ({
                       damping: 15,
                       delay: index * 0.1 + 0.3 
                     }}
-                    className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg border-2 border-white dark:border-gray-900 z-10"
+                    className="absolute top-2 right-2 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10"
                   >
                     <span className="flex items-center gap-1">
                       <span className="animate-pulse">⏳</span>
