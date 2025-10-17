@@ -436,11 +436,115 @@ export const useMarketplaceOrders = () => {
     }
   };
 
+  // Create bulk orders grouped by vendor (Sprint 1 optimization)
+  const createBulkOrder = async (
+    cartItems: Array<{
+      id: string;
+      seller_id: string;
+      price: number;
+      quantity: number;
+      coordinates?: { lat: number; lng: number };
+    }>,
+    userCoordinates?: { lat: number; lng: number }
+  ) => {
+    if (!user) throw new Error('User not authenticated');
+
+    // Group items by seller
+    const vendorGroups = cartItems.reduce((groups, item) => {
+      if (!groups[item.seller_id]) {
+        groups[item.seller_id] = [];
+      }
+      groups[item.seller_id].push(item);
+      return groups;
+    }, {} as Record<string, typeof cartItems>);
+
+    const totalAmount = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    // Check wallet balance
+    if (!wallet || wallet.balance < totalAmount) {
+      throw new Error(`Solde insuffisant. Vous avez besoin de ${totalAmount.toLocaleString()} CDF`);
+    }
+
+    try {
+      const orderIds: string[] = [];
+
+      // Create one order per vendor
+      for (const [sellerId, items] of Object.entries(vendorGroups)) {
+        for (const item of items) {
+          const itemTotal = item.price * item.quantity;
+
+          // Create order
+          const { data: order, error: orderError } = await supabase
+            .from('marketplace_orders')
+            .insert({
+              buyer_id: user.id,
+              seller_id: sellerId,
+              product_id: item.id,
+              quantity: item.quantity,
+              unit_price: item.price,
+              total_amount: itemTotal,
+              delivery_address: userCoordinates ? `${userCoordinates.lat}, ${userCoordinates.lng}` : undefined,
+              delivery_coordinates: userCoordinates,
+              pickup_coordinates: item.coordinates,
+              delivery_method: 'pickup',
+              status: 'pending',
+              payment_status: 'pending',
+              notes: `Commande groupée marketplace`
+            })
+            .select()
+            .single();
+
+          if (orderError) throw orderError;
+
+          // Create escrow payment
+          const { error: escrowError } = await supabase
+            .from('escrow_payments')
+            .insert({
+              order_id: order.id,
+              buyer_id: user.id,
+              seller_id: sellerId,
+              amount: itemTotal,
+              payment_method: 'wallet',
+              status: 'held'
+            });
+
+          if (escrowError) throw escrowError;
+
+          orderIds.push(order.id);
+        }
+      }
+
+      // Deduct total from wallet
+      await transferFunds(
+        'system',
+        totalAmount,
+        `Paiement groupé pour ${orderIds.length} commande(s)`
+      );
+
+      // Update all orders to held status
+      await supabase
+        .from('marketplace_orders')
+        .update({ 
+          payment_status: 'held',
+          status: 'pending'
+        })
+        .in('id', orderIds);
+
+      fetchOrders();
+      return orderIds;
+
+    } catch (error) {
+      console.error('Error creating bulk order:', error);
+      throw error;
+    }
+  };
+
   return {
     orders,
     loading,
     createOrder,
     createOrderFlexible,
+    createBulkOrder,
     updateOrderStatus,
     confirmOrder,
     markAsPreparing,

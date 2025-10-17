@@ -15,7 +15,7 @@ import { CategoryFilter } from './CategoryFilter';
 import { SearchBar } from './SearchBar';
 import { ImageUploadProgress, ImageUploadStatus } from './ImageUploadProgress';
 import { CompactProductCard } from './CompactProductCard';
-import { ModernShoppingCart } from './ModernShoppingCart';
+import { UnifiedShoppingCart } from './cart/UnifiedShoppingCart';
 import { ProductDetailsDialog } from './ProductDetailsDialog';
 import { VendorStoreView } from './VendorStoreView';
 import { ClientEscrowDashboard } from '../escrow/ClientEscrowDashboard';
@@ -1140,8 +1140,8 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         </Tabs>
       </div>
 
-      {/* Modern Shopping Cart with Escrow */}
-      <ModernShoppingCart
+      {/* Unified Shopping Cart (Sprint 1) */}
+      <UnifiedShoppingCart
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cartItems={cartItems}

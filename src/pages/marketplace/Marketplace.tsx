@@ -18,7 +18,7 @@ import { AdvancedFilters } from '@/components/marketplace/AdvancedFilters';
 import { ProductCard } from '@/components/marketplace/ProductCard';
 import { FilterDialog } from '@/components/marketplace/FilterDialog';
 import { CompactProductCard } from '@/components/marketplace/CompactProductCard';
-import { ShoppingCartComponent } from '@/components/marketplace/ShoppingCartComponent';
+import { UnifiedShoppingCart } from '@/components/marketplace/cart/UnifiedShoppingCart';
 import { useMarketplaceFilters } from '@/hooks/useMarketplaceFilters';
 import { useCart } from '@/context/CartContext';
 import { useFavorites } from '@/context/FavoritesContext';
@@ -445,13 +445,13 @@ const MarketplaceContent = () => {
           filterStats={filterStats}
         />
 
-        <ShoppingCartComponent
+        <UnifiedShoppingCart
           isOpen={showCart}
           onClose={() => setShowCart(false)}
           cartItems={cartItems}
           onUpdateQuantity={updateQuantity}
           onRemoveItem={removeFromCart}
-          onCheckout={handleCheckout}
+          userCoordinates={userLocation}
         />
       </div>
     </PageTransition>
