@@ -15,6 +15,7 @@ import { CategoryFilter } from './CategoryFilter';
 import { SearchBar } from './SearchBar';
 import { ImageUploadProgress, ImageUploadStatus } from './ImageUploadProgress';
 import { CompactProductCard } from './CompactProductCard';
+import { ProductGrid } from './ProductGrid';
 import { UnifiedShoppingCart } from './cart/UnifiedShoppingCart';
 import { ProductDetailsDialog } from './ProductDetailsDialog';
 import { VendorStoreView } from './VendorStoreView';
@@ -958,56 +959,35 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       )}
 
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-        {loading ? (
-          Array.from({ length: 12 }).map((_, index) => (
-            <Card key={index} className="overflow-hidden animate-pulse card-modern">
-              <div className="aspect-square bg-muted/60"></div>
-              <div className="p-3 space-y-2">
-                <div className="h-3 bg-muted/60 rounded"></div>
-                <div className="h-2 bg-muted/60 rounded w-3/4"></div>
-                <div className="h-3 bg-muted/60 rounded w-1/2"></div>
-              </div>
-            </Card>
-          ))
-        ) : filteredProducts.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-20 h-20 bg-gradient-congo-subtle rounded-full flex items-center justify-center mb-6 shadow-md">
-              <Package className="w-10 h-10 text-congo-red" />
-            </div>
-            <h3 className="font-semibold text-responsive-lg mb-3">Aucun produit trouvé</h3>
-            <p className="text-muted-foreground text-responsive-sm max-w-sm">
-              Essayez de modifier vos critères de recherche ou explorez d'autres catégories
-            </p>
-          </div>
-        ) : (
-          filteredProducts.map(product => (
-            <CompactProductCard
-              key={product.id}
-              product={{ 
-                id: product.id,
-                name: product.title,
-                price: product.price,
-                image: product.image,
-                rating: product.rating,
-                reviewCount: product.reviews,
-                category: product.category,
-                seller: product.seller.display_name,
-                sellerId: product.seller_id,
-                isAvailable: product.inStock,
-                location: product.coordinates
-              }}
-              onAddToCart={() => addToCart(product)}
-              onViewDetails={() => {
-                setSelectedProduct(product);
-                setIsProductDetailsOpen(true);
-              }}
-              onViewSeller={(sellerId) => setSelectedVendorId(sellerId)}
-              userLocation={coordinates}
-            />
-          ))
-        )}
-      </div>
+      <ProductGrid
+        products={filteredProducts.map(p => ({
+          id: p.id,
+          name: p.title,
+          price: p.price,
+          image: p.image,
+          rating: p.rating,
+          reviewCount: p.reviews,
+          category: p.category,
+          seller: p.seller.display_name,
+          sellerId: p.seller_id,
+          isAvailable: p.inStock,
+          location: p.coordinates
+        }))}
+        onAddToCart={(product) => {
+          const originalProduct = filteredProducts.find(p => p.id === product.id);
+          if (originalProduct) addToCart(originalProduct);
+        }}
+        onViewDetails={(product) => {
+          const originalProduct = filteredProducts.find(p => p.id === product.id);
+          if (originalProduct) {
+            setSelectedProduct(originalProduct);
+            setIsProductDetailsOpen(true);
+          }
+        }}
+        onViewSeller={(sellerId) => setSelectedVendorId(sellerId)}
+        userLocation={coordinates}
+        loading={loading}
+      />
     </div>
   );
 

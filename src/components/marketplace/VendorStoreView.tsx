@@ -22,6 +22,7 @@ import {
 import { FollowButton } from './FollowButton';
 import { useVendorFollowers } from '@/hooks/useVendorFollowers';
 import { CompactProductCard } from './CompactProductCard';
+import { ProductGrid } from './ProductGrid';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
@@ -263,11 +264,15 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
                 Essayez un autre terme de recherche
               </p>
             </div>
+          ) : viewMode === 'grid' ? (
+            <ProductGrid
+              products={filteredProducts}
+              onAddToCart={onAddToCart}
+              onViewDetails={onViewDetails}
+              userLocation={userLocation}
+            />
           ) : (
-            <div className={cn(
-              "grid gap-3",
-              viewMode === 'grid' ? "grid-cols-3" : "grid-cols-1"
-            )}>
+            <div className="grid gap-3 grid-cols-1">
               {filteredProducts.map((product) => (
                 <CompactProductCard
                   key={product.id}
@@ -275,7 +280,7 @@ export const VendorStoreView: React.FC<VendorStoreViewProps> = ({
                   onAddToCart={() => onAddToCart(product)}
                   onViewDetails={() => onViewDetails(product)}
                   userLocation={userLocation}
-                  className={viewMode === 'list' ? 'flex-row' : ''}
+                  className="flex-row"
                 />
               ))}
             </div>

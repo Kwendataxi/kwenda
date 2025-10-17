@@ -3,6 +3,7 @@
 @import './styles/lottery.css';
 @import './styles/wallet-theme.css';
 @import './styles/dark-mode-improvements.css';
+@import './styles/marketplace.css';
 
 @tailwind base;
 @tailwind components;
