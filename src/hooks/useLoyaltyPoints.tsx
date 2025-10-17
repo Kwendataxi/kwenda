@@ -208,20 +208,38 @@ export const useLoyaltyPoints = () => {
   const getNextTierProgress = () => {
     if (!loyaltyData) return { nextTier: null, progress: 0, pointsNeeded: 0 };
 
-    const tiers: LoyaltyTier[] = ['bronze', 'silver', 'gold', 'platinum'];
-    const currentTierIndex = tiers.indexOf(loyaltyData.tier);
+    // Normaliser le tier au cas où il y aurait des problèmes de casse
+    const currentTier = (loyaltyData.tier?.toLowerCase() || 'bronze') as LoyaltyTier;
     
-    if (currentTierIndex === tiers.length - 1) {
+    // Vérifier que le tier actuel existe dans la config
+    if (!TIER_CONFIG[currentTier]) {
+      console.warn('Tier invalide:', loyaltyData.tier, '- Utilisation de bronze par défaut');
+      return { nextTier: 'silver' as LoyaltyTier, progress: 0, pointsNeeded: TIER_CONFIG.silver.minPoints };
+    }
+
+    const tiers: LoyaltyTier[] = ['bronze', 'silver', 'gold', 'platinum'];
+    const currentTierIndex = tiers.indexOf(currentTier);
+    
+    // Si tier inconnu ou platinum
+    if (currentTierIndex === -1 || currentTierIndex === tiers.length - 1) {
       return { nextTier: null, progress: 100, pointsNeeded: 0 };
     }
 
     const nextTier = tiers[currentTierIndex + 1];
-    const currentTierMin = TIER_CONFIG[loyaltyData.tier].minPoints;
-    const nextTierMin = TIER_CONFIG[nextTier].minPoints;
-    const progress = ((loyaltyData.points_earned_total - currentTierMin) / (nextTierMin - currentTierMin)) * 100;
-    const pointsNeeded = nextTierMin - loyaltyData.points_earned_total;
+    
+    // Vérifier que le nextTier existe dans la config
+    if (!TIER_CONFIG[nextTier]) {
+      console.error('Next tier invalide:', nextTier);
+      return { nextTier: null, progress: 100, pointsNeeded: 0 };
+    }
 
-    return { nextTier, progress: Math.min(progress, 100), pointsNeeded: Math.max(pointsNeeded, 0) };
+    const currentTierMin = TIER_CONFIG[currentTier].minPoints;
+    const nextTierMin = TIER_CONFIG[nextTier].minPoints;
+    const earnedTotal = (loyaltyData as any).points_earned_total || 0;
+    const progress = ((earnedTotal - currentTierMin) / (nextTierMin - currentTierMin)) * 100;
+    const pointsNeeded = nextTierMin - earnedTotal;
+
+    return { nextTier, progress: Math.min(Math.max(progress, 0), 100), pointsNeeded: Math.max(pointsNeeded, 0) };
   };
 
   useEffect(() => {

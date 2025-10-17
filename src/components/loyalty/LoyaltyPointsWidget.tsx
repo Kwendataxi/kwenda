@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useLoyaltyPoints, TIER_CONFIG, CONVERSION_RATE } from '@/hooks/useLoyaltyPoints';
+import { useLoyaltyPoints, TIER_CONFIG, CONVERSION_RATE, LoyaltyTier } from '@/hooks/useLoyaltyPoints';
 
 export const LoyaltyPointsWidget = () => {
   const { loyaltyData, loading, redeeming, redeemPoints, getNextTierProgress } = useLoyaltyPoints();
@@ -30,9 +30,14 @@ export const LoyaltyPointsWidget = () => {
     );
   }
 
-  const tierConfig = TIER_CONFIG[loyaltyData.tier];
+  // Normaliser le tier
+  const currentTier = (loyaltyData.tier?.toLowerCase() || 'bronze') as LoyaltyTier;
+  const tierConfig = TIER_CONFIG[currentTier] || TIER_CONFIG.bronze;
   const { nextTier, progress, pointsNeeded } = getNextTierProgress();
-  const cdfValue = (loyaltyData.points_balance / CONVERSION_RATE.points) * CONVERSION_RATE.cdf;
+  
+  // S'assurer que points_balance est un nombre
+  const pointsBalance = (loyaltyData as any).points_balance || 0;
+  const cdfValue = (pointsBalance / CONVERSION_RATE.points) * CONVERSION_RATE.cdf;
 
   const handleRedeem = async () => {
     const points = parseInt(pointsToRedeem);
@@ -72,12 +77,12 @@ export const LoyaltyPointsWidget = () => {
         <div className="mb-4">
           <div className="flex items-baseline gap-2 mb-1">
             <motion.span
-              key={loyaltyData.points_balance}
+              key={pointsBalance}
               initial={{ scale: 1.2, color: 'rgb(var(--primary))' }}
               animate={{ scale: 1, color: 'currentColor' }}
               className="text-3xl font-bold"
             >
-              {loyaltyData.points_balance.toLocaleString()}
+              {pointsBalance.toLocaleString()}
             </motion.span>
             <span className="text-muted-foreground">points</span>
           </div>
@@ -105,7 +110,7 @@ export const LoyaltyPointsWidget = () => {
           <DialogTrigger asChild>
             <Button 
               className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 group"
-              disabled={loyaltyData.points_balance < 100}
+              disabled={pointsBalance < 100}
             >
               Convertir en crédit
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -124,11 +129,11 @@ export const LoyaltyPointsWidget = () => {
                   value={pointsToRedeem}
                   onChange={(e) => setPointsToRedeem(e.target.value)}
                   min="100"
-                  max={loyaltyData.points_balance}
+                  max={pointsBalance}
                   step="100"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Solde disponible: {loyaltyData.points_balance.toLocaleString()} points
+                  Solde disponible: {pointsBalance.toLocaleString()} points
                 </p>
                 {pointsToRedeem && parseInt(pointsToRedeem) >= 100 && (
                   <motion.p
@@ -174,11 +179,11 @@ export const LoyaltyPointsWidget = () => {
         <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t">
           <div className="text-center">
             <p className="text-xs text-muted-foreground">Gagnés</p>
-            <p className="text-sm font-semibold">{loyaltyData.points_earned_total.toLocaleString()}</p>
+            <p className="text-sm font-semibold">{((loyaltyData as any).points_earned_total || 0).toLocaleString()}</p>
           </div>
           <div className="text-center">
             <p className="text-xs text-muted-foreground">Dépensés</p>
-            <p className="text-sm font-semibold">{loyaltyData.points_spent_total.toLocaleString()}</p>
+            <p className="text-sm font-semibold">{((loyaltyData as any).points_spent_total || 0).toLocaleString()}</p>
           </div>
         </div>
       </CardContent>
