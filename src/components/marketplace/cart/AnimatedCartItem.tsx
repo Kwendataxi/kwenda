@@ -56,10 +56,10 @@ export const AnimatedCartItem: React.FC<AnimatedCartItemProps> = ({
       }}
       className="relative group"
     >
-      <div className="flex gap-3 bg-gradient-to-br from-card/50 to-card/80 backdrop-blur-sm p-4 rounded-xl border border-border/50 hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-md">
-        {/* Product image with loading skeleton */}
+      <div className="flex gap-2 sm:gap-3 bg-gradient-to-br from-card/50 to-card/80 backdrop-blur-sm p-3 sm:p-4 rounded-xl border border-border/50 hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-md">
+      {/* Product image with loading skeleton */}
         <motion.div 
-          className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0"
+          className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0"
           whileHover={{ scale: 1.05 }}
           transition={{ type: 'spring', stiffness: 400 }}
         >
@@ -92,7 +92,7 @@ export const AnimatedCartItem: React.FC<AnimatedCartItemProps> = ({
               initial={{ scale: 1.2, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 400 }}
-              className="font-bold text-primary text-sm"
+              className="font-bold text-primary text-xs sm:text-sm"
             >
               {itemTotal.toLocaleString()} CDF
             </motion.div>
@@ -104,7 +104,7 @@ export const AnimatedCartItem: React.FC<AnimatedCartItemProps> = ({
                 size="sm"
                 onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
                 disabled={item.quantity <= 1}
-                className="h-7 w-7 p-0 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                className="h-6 w-6 sm:h-7 sm:w-7 p-0 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
               >
                 <Minus className="w-3 h-3" />
               </Button>
@@ -123,7 +123,7 @@ export const AnimatedCartItem: React.FC<AnimatedCartItemProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                className="h-7 w-7 p-0 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                className="h-6 w-6 sm:h-7 sm:w-7 p-0 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
               >
                 <Plus className="w-3 h-3" />
               </Button>

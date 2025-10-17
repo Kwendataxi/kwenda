@@ -10,7 +10,7 @@ export const AnimatedCartTotal: React.FC<AnimatedCartTotalProps> = ({ total }) =
   return (
     <motion.div
       layout
-      className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 p-4 border border-primary/20"
+      className="relative overflow-hidden rounded-lg sm:rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 p-3 sm:p-4 border border-primary/20"
     >
       {/* Shimmer effect */}
       <motion.div
@@ -26,7 +26,7 @@ export const AnimatedCartTotal: React.FC<AnimatedCartTotalProps> = ({ total }) =
       />
 
       <div className="relative flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">
+        <span className="text-xs sm:text-sm font-medium text-muted-foreground">
           Total à payer
         </span>
         <AnimatedBalance value={total} currency="CDF" duration={0.8} />
