@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 
-const DriverVerifyEmail = () => {
+const RestaurantVerifyEmail = () => {
   const navigate = useNavigate();
   const [resending, setResending] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -19,39 +19,22 @@ const DriverVerifyEmail = () => {
       if (session) {
         setCompleting(true);
         
-        // Vérifier que le profil chauffeur existe
-        const { data: driver, error } = await supabase
-          .from('chauffeurs')
+        // Vérifier que le profil restaurant existe
+        const { data: restaurant, error } = await supabase
+          .from('restaurant_profiles')
           .select('*')
           .eq('user_id', session.user.id)
           .single();
         
-        if (driver && !error) {
-          const pendingData = localStorage.getItem('pendingDriverRegistration');
-          
-          if (pendingData) {
-            // Compléter l'inscription avec complete-registration
-            const { error: completeError } = await supabase.functions.invoke('complete-registration', {
-              body: {
-                user_id: session.user.id,
-                registration_type: 'driver',
-                registration_data: JSON.parse(pendingData)
-              }
-            });
-            
-            if (!completeError) {
-              localStorage.removeItem('pendingDriverRegistration');
-            }
-          }
-          
+        if (restaurant && !error) {
           setVerified(true);
-          toast.success('Email confirmé ! En attente de validation...');
+          toast.success('Email confirmé ! En attente de validation admin...');
           
           setTimeout(() => {
-            navigate('/chauffeur');
-          }, 2000);
+            navigate('/auth');
+          }, 3000);
         } else {
-          console.error('Driver profile not found:', error);
+          console.error('Restaurant profile not found:', error);
           setCompleting(false);
         }
       }
@@ -85,14 +68,15 @@ const DriverVerifyEmail = () => {
 
   if (completing || verified) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="pt-8 text-center space-y-4">
             {verified ? (
               <>
                 <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto" />
                 <h2 className="text-2xl font-bold text-green-700">Email confirmé !</h2>
-                <p className="text-gray-600">En attente de validation admin...</p>
+                <p className="text-gray-600">Votre compte est en attente de validation par un administrateur.</p>
+                <p className="text-sm text-gray-500">Vous recevrez un email dès validation.</p>
               </>
             ) : (
               <>
@@ -107,11 +91,11 @@ const DriverVerifyEmail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
-            <Mail className="w-8 h-8 text-yellow-600" />
+          <div className="mx-auto mb-4 w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
+            <Mail className="w-8 h-8 text-orange-600" />
           </div>
           <CardTitle className="text-2xl">Vérifiez votre email</CardTitle>
           <CardDescription className="text-base">
@@ -127,7 +111,7 @@ const DriverVerifyEmail = () => {
               </p>
               <ol className="text-sm text-blue-700 mt-2 ml-4 list-decimal space-y-1">
                 <li>Confirmez votre email via le lien envoyé</li>
-                <li>Un administrateur validera votre profil chauffeur</li>
+                <li>Un administrateur validera votre restaurant</li>
                 <li>Vous recevrez un email de confirmation</li>
               </ol>
             </div>
@@ -150,7 +134,7 @@ const DriverVerifyEmail = () => {
 
           <Button
             variant="ghost"
-            onClick={() => navigate('/driver/auth')}
+            onClick={() => navigate('/auth')}
             className="w-full"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -162,4 +146,4 @@ const DriverVerifyEmail = () => {
   );
 };
 
-export default DriverVerifyEmail;
+export default RestaurantVerifyEmail;

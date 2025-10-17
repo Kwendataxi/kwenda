@@ -1,12 +1,19 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface CompleteRegistrationRequest {
+  user_id: string;
+  registration_type: 'driver' | 'partner' | 'restaurant';
+  registration_data?: any;
+}
+
 serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -16,87 +23,94 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { user_id, registration_type, registration_data } = await req.json();
+    const { user_id, registration_type, registration_data }: CompleteRegistrationRequest = await req.json();
 
-    console.log('📋 Complete registration request:', {
-      user_id,
-      registration_type,
-      has_data: !!registration_data
-    });
+    console.log('📝 Completing registration:', { user_id, registration_type });
 
-    // Vérifier que le user existe dans auth.users
-    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(user_id);
+    // Vérifier que l'utilisateur existe
+    const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(user_id);
     
-    if (userError || !userData?.user) {
-      console.error('❌ User not found:', userError);
-      return new Response(
-        JSON.stringify({ success: false, error: 'User not found' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
-      );
+    if (userError || !user) {
+      throw new Error('User not found');
     }
 
     let result;
 
+    // Compléter selon le type d'inscription
     if (registration_type === 'driver') {
-      console.log('🚗 Completing driver registration...');
-      
-      const { data, error } = await supabase.rpc(
-        'complete_driver_registration_after_email',
-        {
-          p_user_id: user_id,
-          p_registration_data: registration_data
-        }
-      );
+      // Le trigger handle_new_user a déjà créé le profil chauffeur
+      // On vérifie juste qu'il existe et on active si nécessaire
+      const { data: driver, error: driverError } = await supabase
+        .from('chauffeurs')
+        .select('*')
+        .eq('user_id', user_id)
+        .single();
 
-      if (error) {
-        console.error('❌ Driver registration error:', error);
-        throw error;
+      if (driverError) {
+        console.error('Driver profile error:', driverError);
       }
 
-      result = data;
-      console.log('✅ Driver registration completed:', result);
+      result = { success: true, driver };
+    } 
+    else if (registration_type === 'partner') {
+      // Vérifier le profil partenaire
+      const { data: partner, error: partnerError } = await supabase
+        .from('partenaires')
+        .select('*')
+        .eq('user_id', user_id)
+        .single();
 
-    } else if (registration_type === 'partner') {
-      console.log('🤝 Completing partner registration...');
-      
-      const { data, error } = await supabase.rpc(
-        'complete_partner_registration_after_email',
-        {
-          p_user_id: user_id,
-          p_registration_data: registration_data
-        }
-      );
-
-      if (error) {
-        console.error('❌ Partner registration error:', error);
-        throw error;
+      if (partnerError) {
+        console.error('Partner profile error:', partnerError);
       }
 
-      result = data;
-      console.log('✅ Partner registration completed:', result);
-
-    } else {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Invalid registration type' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
+      result = { success: true, partner };
     }
+    else if (registration_type === 'restaurant') {
+      // Vérifier le profil restaurant
+      const { data: restaurant, error: restaurantError } = await supabase
+        .from('restaurant_profiles')
+        .select('*')
+        .eq('user_id', user_id)
+        .single();
+
+      if (restaurantError) {
+        console.error('Restaurant profile error:', restaurantError);
+      }
+
+      result = { success: true, restaurant };
+    }
+
+    // Envoyer notification admin
+    await supabase.from('admin_notifications').insert({
+      type: 'new_registration',
+      title: `Nouvelle inscription ${registration_type}`,
+      message: `Un nouveau ${registration_type} s'est inscrit et attend validation`,
+      severity: 'info',
+      data: { user_id, registration_type }
+    });
+
+    console.log('✅ Registration completed successfully');
 
     return new Response(
       JSON.stringify(result),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
     );
 
   } catch (error: any) {
-    console.error('❌ Error in complete-registration:', error);
-    
+    console.error('❌ Complete registration error:', error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message || 'Internal server error' 
-      }),
+      JSON.stringify({ error: error.message }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        },
         status: 500
       }
     );

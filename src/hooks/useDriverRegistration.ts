@@ -80,12 +80,17 @@ export const useDriverRegistration = () => {
 
       console.log('✅ Validation réussie, création du compte...');
 
-      // 2. Créer le compte Supabase Auth sans métadonnées (pas de trigger)
+      // 2. Créer le compte Supabase Auth avec rôle normalisé
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}/driver/verify-email`,
+          data: {
+            role: 'driver', // ✅ Rôle normalisé simplifié
+            display_name: data.displayName,
+            phone_number: data.phoneNumber
+          }
         }
       });
 

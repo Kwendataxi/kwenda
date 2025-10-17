@@ -136,15 +136,17 @@ const handleSubmit = async (e: React.FormEvent) => {
   setLoading(true);
 
   try {
+    const redirectUrl = `${window.location.origin}/client/verify-email`;
+    
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
       options: {
-        emailRedirectTo: `https://kwenda.app/`,
+        emailRedirectTo: redirectUrl,
         data: {
           display_name: formData.displayName,
           phone_number: formData.phoneNumber,
-          role: 'simple_user_client',
+          role: 'client', // ✅ Rôle normalisé
           date_of_birth: formData.dateOfBirth,
           gender: formData.gender,
           emergency_contact_name: formData.emergencyContactName,
@@ -159,10 +161,19 @@ const handleSubmit = async (e: React.FormEvent) => {
       throw authError;
     }
 
-    if (authData.user) {
+    if (authData.user && !authData.session) {
+      // Email confirmation requise
+      logger.info('Email confirmation required for client');
+      toast({
+        title: "Vérifiez votre email",
+        description: "Un email de confirmation a été envoyé. Cliquez sur le lien pour activer votre compte.",
+      });
+      onSuccess();
+    } else if (authData.session) {
+      // Connexion immédiate (email confirmation désactivée)
       toast({
         title: "Succès !",
-        description: "Votre compte a été créé avec succès. Vérifiez votre email pour confirmer.",
+        description: "Votre compte client a été créé avec succès.",
       });
       onSuccess();
     }

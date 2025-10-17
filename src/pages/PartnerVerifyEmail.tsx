@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, ArrowLeft, Loader2 } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -10,108 +10,87 @@ const PartnerVerifyEmail = () => {
   const navigate = useNavigate();
   const [resending, setResending] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
     const checkEmailConfirmation = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
-        console.log('✅ Session détectée après confirmation email');
-        await completeRegistration(session.user.id);
+        setCompleting(true);
+        
+        // Vérifier que le profil partenaire existe
+        const { data: partner, error } = await supabase
+          .from('partenaires')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+        
+        if (partner && !error) {
+          // Compléter l'inscription
+          await supabase.functions.invoke('complete-registration', {
+            body: {
+              user_id: session.user.id,
+              registration_type: 'partner'
+            }
+          });
+          
+          setVerified(true);
+          toast.success('Email confirmé ! En attente de validation...');
+          
+          setTimeout(() => {
+            navigate('/partenaire');
+          }, 2000);
+        } else {
+          console.error('Partner profile not found:', error);
+          setCompleting(false);
+        }
       }
     };
-
+    
     checkEmailConfirmation();
-  }, []);
-
-  const completeRegistration = async (userId: string) => {
-    setCompleting(true);
-    try {
-      const pendingData = localStorage.getItem('pendingPartnerRegistration');
-      
-      if (!pendingData) {
-        console.warn('⚠️ Aucune donnée d\'inscription en attente');
-        toast.error('Données d\'inscription introuvables');
-        navigate('/partner/auth');
-        return;
-      }
-
-      const registrationData = JSON.parse(pendingData);
-      
-      console.log('🔧 Complétion de l\'inscription via Edge Function...');
-      
-      const { data, error } = await supabase.functions.invoke('complete-registration', {
-        body: {
-          user_id: userId,
-          registration_type: 'partner',
-          registration_data: registrationData
-        }
-      });
-
-      if (error) {
-        console.error('❌ Erreur Edge Function:', error);
-        toast.error('Erreur lors de la finalisation de votre inscription');
-        return;
-      }
-
-      if (data?.success) {
-        console.log('✅ Inscription complétée avec succès');
-        localStorage.removeItem('pendingPartnerRegistration');
-        toast.success('Inscription complétée ! Votre demande est en cours de traitement');
-        navigate('/partner/auth');
-      } else {
-        console.error('❌ Erreur:', data?.error);
-        toast.error(data?.error || 'Erreur lors de la finalisation');
-      }
-
-    } catch (error: any) {
-      console.error('❌ Exception:', error);
-      toast.error('Erreur inattendue');
-    } finally {
-      setCompleting(false);
-    }
-  };
+  }, [navigate]);
 
   const handleResendEmail = async () => {
     setResending(true);
     try {
-      const pendingData = localStorage.getItem('pendingPartnerRegistration');
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (!pendingData) {
-        toast.error('Email non trouvé. Veuillez réessayer l\'inscription.');
-        navigate('/partner/auth');
-        return;
-      }
-
-      const { email } = JSON.parse(pendingData);
-
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email,
-      });
-
-      if (error) {
-        toast.error('Erreur lors de l\'envoi de l\'email: ' + error.message);
-      } else {
+      if (user?.email) {
+        const { error } = await supabase.auth.resend({
+          type: 'signup',
+          email: user.email
+        });
+        
+        if (error) throw error;
+        
         toast.success('Email de confirmation renvoyé !');
       }
-    } catch (error) {
-      console.error('Resend email error:', error);
-      toast.error('Erreur lors de l\'envoi de l\'email');
+    } catch (error: any) {
+      toast.error('Erreur lors du renvoi de l\'email');
+      console.error(error);
     } finally {
       setResending(false);
     }
   };
 
-  if (completing) {
+  if (completing || verified) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <Loader2 className="w-12 h-12 text-primary animate-spin" />
-              <p className="text-lg font-medium">Finalisation de votre inscription...</p>
-            </div>
+          <CardContent className="pt-8 text-center space-y-4">
+            {verified ? (
+              <>
+                <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto" />
+                <h2 className="text-2xl font-bold text-green-700">Email confirmé !</h2>
+                <p className="text-gray-600">En attente de validation admin...</p>
+              </>
+            ) : (
+              <>
+                <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto" />
+                <p className="text-gray-600">Vérification en cours...</p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -119,58 +98,55 @@ const PartnerVerifyEmail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
             <Mail className="w-8 h-8 text-primary" />
           </div>
           <CardTitle className="text-2xl">Vérifiez votre email</CardTitle>
-          <CardDescription>
+          <CardDescription className="text-base">
             Un email de confirmation a été envoyé à votre adresse
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Pour compléter votre inscription en tant que partenaire, veuillez:
-            </p>
-            <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground ml-2">
-              <li>Ouvrir votre boîte email</li>
-              <li>Chercher l'email de Kwenda</li>
-              <li>Cliquer sur le lien de confirmation</li>
-            </ol>
-          </div>
+        
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Prochaines étapes :</strong>
+              </p>
+              <ol className="text-sm text-blue-700 mt-2 ml-4 list-decimal space-y-1">
+                <li>Confirmez votre email via le lien envoyé</li>
+                <li>Un administrateur validera votre partenariat</li>
+                <li>Vous recevrez un email de confirmation</li>
+              </ol>
+            </div>
 
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground text-center">
-              Vous n'avez pas reçu l'email ?
-            </p>
-            <Button
-              onClick={handleResendEmail}
-              disabled={resending}
-              variant="outline"
-              className="w-full"
-            >
-              {resending ? 'Envoi en cours...' : 'Renvoyer l\'email'}
-            </Button>
+            <div className="text-center space-y-3">
+              <p className="text-sm text-gray-600">
+                Vous n'avez pas reçu l'email ?
+              </p>
+              <Button
+                onClick={handleResendEmail}
+                disabled={resending}
+                variant="outline"
+                className="w-full"
+              >
+                {resending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {resending ? 'Envoi en cours...' : 'Renvoyer l\'email'}
+              </Button>
+            </div>
           </div>
 
           <Button
-            onClick={() => navigate('/partner/auth')}
             variant="ghost"
+            onClick={() => navigate('/partner/auth')}
             className="w-full"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour à la connexion
           </Button>
-
-          <div className="pt-4 border-t">
-            <p className="text-xs text-muted-foreground text-center">
-              Une fois votre email confirmé, votre demande sera examinée par nos équipes.
-              Vous recevrez une notification par email lors de l'approbation.
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>

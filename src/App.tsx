@@ -97,6 +97,10 @@ import RestaurantMenuManager from "./pages/restaurant/RestaurantMenuManager";
 import RestaurantOrders from "./pages/restaurant/RestaurantOrders";
 import RestaurantSubscription from "./pages/restaurant/RestaurantSubscription";
 import RestaurantAuth from "./pages/RestaurantAuth";
+import DriverVerifyEmail from "./pages/DriverVerifyEmail";
+import PartnerVerifyEmail from "./pages/PartnerVerifyEmail";
+import ClientVerifyEmail from "./pages/ClientVerifyEmail";
+import RestaurantVerifyEmail from "./pages/RestaurantVerifyEmail";
 
 const queryClient = new QueryClient();
 
@@ -151,6 +155,7 @@ const AppContent = () => {
                 
                 {/* Routes RESTAURANT */}
                 <Route path="/restaurant/auth" element={<RestaurantAuth />} />
+                <Route path="/restaurant/verify-email" element={<RestaurantVerifyEmail />} />
                 <Route path="/restaurant" element={
                   <ProtectedRoute>
                     <RestaurantDashboard />
@@ -224,6 +229,7 @@ const AppContent = () => {
                       </OnboardingRedirect>
                     } />
                     <Route path="/driver/register" element={<DriverRegistration />} />
+                    <Route path="/driver/verify-email" element={<DriverVerifyEmail />} />
                     <Route path="/chauffeur" element={
                       <ProtectedRoute>
                         <DriverApp />
@@ -247,6 +253,7 @@ const AppContent = () => {
                         <PartnerAuth />
                       </OnboardingRedirect>
                     } />
+                    <Route path="/partner/verify-email" element={<PartnerVerifyEmail />} />
                     <Route path="/partenaire" element={
                       <ProtectedRoute>
                         <PartnerApp />
