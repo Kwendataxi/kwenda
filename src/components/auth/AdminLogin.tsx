@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, Lock, Eye, EyeOff } from 'lucide-react';
+import { Shield, Lock, Eye, EyeOff, Mail } from 'lucide-react';
+import BrandLogo from '@/components/brand/BrandLogo';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate, Link } from 'react-router-dom';
@@ -70,48 +71,52 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:via-background dark:to-orange-950/20 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-50 dark:from-background dark:to-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/30 dark:border dark:border-primary/30 flex items-center justify-center backdrop-blur-sm">
-            <Shield className="h-10 w-10 text-red-600 dark:text-red-400" />
+        <div className="text-center mb-10 space-y-6 animate-fade-in">
+          <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white dark:bg-gray-950 shadow-lg mb-6 overflow-hidden hover:scale-105 transition-transform duration-300">
+            <BrandLogo size={72} />
           </div>
-          <h1 className="text-3xl font-bold text-foreground dark:text-foreground/95 mb-2">
-            Administration Kwenda
+          
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+            <Shield className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+              Espace Administrateur
+            </span>
+          </div>
+          
+          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
+            Kwenda Admin
           </h1>
-          <p className="text-muted-foreground dark:text-foreground/80">
+          
+          <p className="text-base text-gray-600 dark:text-gray-400">
             Accès sécurisé pour les administrateurs
           </p>
         </div>
 
-        <Card className="shadow-lg dark:bg-card/95 dark:border-border/60 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="h-5 w-5" />
-              Connexion Administrateur
-            </CardTitle>
-            <CardDescription>
-              Connectez-vous avec vos identifiants d'administrateur
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
+        <Card className="shadow-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 animate-scale-in">
+          <CardContent className="pt-8 pb-6">
+            <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="dark:text-foreground/90">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="admin@kwendataxi.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="dark:bg-background/50 dark:border-border/60"
-                />
+                <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-100">Email</Label>
+                <div className="relative group">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-red-600 transition-colors" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="admin@kwendataxi.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="h-12 pl-10 pr-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:border-red-600 focus:ring-2 focus:ring-red-600/20 transition-all"
+                  />
+                </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password" className="dark:text-foreground/90">Mot de passe</Label>
-                <div className="relative">
+                <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-100">Mot de passe</Label>
+                <div className="relative group">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-red-600 transition-colors" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -119,19 +124,19 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="dark:bg-background/50 dark:border-border/60"
+                    className="h-12 pl-10 pr-12 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:border-red-600 focus:ring-2 focus:ring-red-600/20 transition-all"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
+                      <EyeOff className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                     ) : (
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                     )}
                   </Button>
                 </div>
@@ -139,7 +144,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
 
               <Button 
                 type="submit" 
-                className="w-full bg-red-600 hover:bg-red-700"
+                className="w-full h-12 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
                 disabled={loading}
               >
                 {loading ? 'Connexion...' : 'Se connecter'}

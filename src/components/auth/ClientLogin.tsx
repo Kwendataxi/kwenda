@@ -186,37 +186,25 @@ export const ClientLogin = () => {
 
   // Page de connexion client
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
-      {/* Arrière-plan dynamique avec dominante rouge */}
-      <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 via-red-500/15 to-rose-500/20 dark:from-red-700/30 dark:via-red-600/25 dark:to-rose-600/30" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(220,38,38,0.15),transparent_50%)] dark:bg-[radial-gradient(circle_at_50%_120%,rgba(220,38,38,0.25),transparent_50%)]" />
-      
-      {/* Formes géométriques rouge intense */}
-      <div className="absolute top-20 left-10 w-64 h-64 bg-red-500/15 dark:bg-red-600/25 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 right-10 w-80 h-80 bg-red-600/15 dark:bg-red-700/25 rounded-full blur-3xl animate-pulse delay-1000" />
-      <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-rose-500/15 dark:bg-rose-600/25 rounded-full blur-2xl animate-pulse delay-500" />
-
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-50 dark:from-background dark:to-background flex items-center justify-center p-4">
       <div className="w-full max-w-md relative z-10">
-        {/* En-tête impactant avec logo Kwenda */}
-        <div className="text-center mb-8 space-y-4 animate-fade-in">
-          <div className="relative inline-flex items-center justify-center w-32 h-32 rounded-2xl bg-white dark:bg-black shadow-2xl shadow-red-600/50 dark:shadow-red-500/60 mb-6 ring-2 ring-red-500/40 dark:ring-red-400/50 overflow-hidden group cursor-pointer hover:scale-105 transition-all duration-500">
-            <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 via-transparent to-red-500/20 animate-pulse" />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/30 to-transparent animate-[slide-in-right_3s_ease-in-out_infinite]" />
-            <BrandLogo size={80} className="relative z-10 animate-float" />
+        {/* En-tête épuré avec logo Kwenda */}
+        <div className="text-center mb-10 space-y-6 animate-fade-in">
+          <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white dark:bg-gray-950 shadow-lg mb-6 overflow-hidden hover:scale-105 transition-transform duration-300">
+            <BrandLogo size={72} />
           </div>
           
-          <h1 className="text-6xl font-bold animate-gradient bg-gradient-to-r from-red-700 via-red-600 to-red-500 dark:from-red-500 dark:via-red-400 dark:to-rose-400 bg-clip-text text-transparent mb-2 tracking-tight drop-shadow-lg">
+          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
             Kwenda
           </h1>
           
-          <p className="text-base text-gray-700 dark:text-gray-200 drop-shadow-sm">
-            Courses abordables tous les jours.
+          <p className="text-base text-gray-600 dark:text-gray-400">
+            Courses abordables tous les jours
           </p>
         </div>
 
-        {/* Carte de connexion ultra-moderne */}
-        <Card className="relative shadow-2xl backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-white/10 overflow-hidden animate-scale-in">
-          <div className="absolute inset-0 bg-gradient-to-br from-red-600/25 via-red-500/20 to-rose-500/25 dark:from-red-500/35 dark:via-red-600/30 dark:to-rose-500/35 opacity-50 pointer-events-none" />
+        {/* Carte de connexion professionnelle */}
+        <Card className="shadow-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 animate-scale-in">
           
           <CardContent className="pt-8 pb-6 relative z-10">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -238,11 +226,11 @@ export const ClientLogin = () => {
               <TabsContent value="login" className="space-y-6">
                 <form onSubmit={handleLogin} className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-bold text-gray-700 dark:text-gray-100">
+                   <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-100">
                       Adresse email
                     </Label>
                     <div className="relative group">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-red-600 dark:group-focus-within:text-red-500 transition-colors" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-red-600 transition-colors" />
                       <Input
                         id="email"
                         type="email"
@@ -250,17 +238,17 @@ export const ClientLogin = () => {
                         value={loginForm.email}
                         onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
                         required
-                        className="h-14 pl-12 pr-4 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-700 rounded-xl text-base font-medium text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-red-600 dark:focus:border-red-500 focus:ring-4 focus:ring-red-600/25 dark:focus:ring-red-500/25 transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-600"
+                        className="h-12 pl-10 pr-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:border-red-600 focus:ring-2 focus:ring-red-600/20 transition-all"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-bold text-gray-700 dark:text-gray-100">
+                   <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-100">
                       Mot de passe
                     </Label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-red-600 dark:group-focus-within:text-red-500 transition-colors" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-red-600 transition-colors" />
                       <Input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
@@ -268,19 +256,19 @@ export const ClientLogin = () => {
                         value={loginForm.password}
                         onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                         required
-                        className="h-14 pl-12 pr-14 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-700 rounded-xl text-base font-medium text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-red-600 dark:focus:border-red-500 focus:ring-4 focus:ring-red-600/25 dark:focus:ring-red-500/25 transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-600"
+                        className="h-12 pl-10 pr-12 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:border-red-600 focus:ring-2 focus:ring-red-600/20 transition-all"
                       />
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
-                          <EyeOff className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                          <EyeOff className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                         ) : (
-                          <Eye className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                          <Eye className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                         )}
                       </Button>
                     </div>
@@ -295,23 +283,20 @@ export const ClientLogin = () => {
                     </Alert>
                   )}
 
-                  <Button 
+                   <Button 
                     type="submit" 
-                    className="relative w-full h-14 bg-gradient-to-r from-red-600 via-red-500 to-rose-500 hover:from-red-700 hover:via-red-600 hover:to-rose-600 dark:from-red-600 dark:via-red-500 dark:to-rose-500 dark:hover:from-red-500 dark:hover:via-red-400 dark:hover:to-rose-400 text-white text-base font-bold rounded-xl shadow-xl shadow-red-600/50 dark:shadow-red-500/50 hover:shadow-2xl hover:shadow-red-600/60 dark:hover:shadow-red-500/60 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden group" 
+                    className="w-full h-12 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
                     disabled={loading}
                   >
-                    <span className="relative z-10 flex items-center justify-center">
-                      {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                      {loading ? 'Connexion...' : 'Se connecter'}
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {loading ? 'Connexion...' : 'Se connecter'}
                   </Button>
 
                   <div className="flex items-center justify-center pt-2">
                     <Button
                       type="button"
                       variant="link"
-                      className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-semibold underline-offset-4 hover:underline transition-all"
+                      className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium underline-offset-4 hover:underline"
                       onClick={() => setShowForgotPassword(true)}
                     >
                       Mot de passe oublié ?

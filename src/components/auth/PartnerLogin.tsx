@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building, Lock, Eye, EyeOff } from 'lucide-react';
+import { Briefcase, Lock, Eye, EyeOff, Mail } from 'lucide-react';
+import BrandLogo from '@/components/brand/BrandLogo';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate, Link } from 'react-router-dom';
@@ -92,50 +93,52 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 dark:from-background dark:to-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8 animate-fade-in">
-          <div className="mx-auto mb-6 w-24 h-24 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center shadow-lg backdrop-blur-sm border border-green-200/50 dark:border-green-700/50">
-            <Building className="h-12 w-12 text-green-600 dark:text-green-400" />
+        <div className="text-center mb-10 space-y-6 animate-fade-in">
+          <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white dark:bg-gray-950 shadow-lg mb-6 overflow-hidden hover:scale-105 transition-transform duration-300">
+            <BrandLogo size={72} />
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent mb-3">
-            Espace Partenaire
+          
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+            <Briefcase className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+              Espace Partenaire
+            </span>
+          </div>
+          
+          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
+            Kwenda Partner
           </h1>
-          <p className="text-lg font-medium text-gray-700 dark:text-gray-200">
-            Gérez votre flotte et vos chauffeurs
+          
+          <p className="text-base text-gray-600 dark:text-gray-400">
+            Gérez votre flotte et développez votre activité
           </p>
         </div>
 
-        <Card className="shadow-2xl dark:bg-gray-800/95 dark:border-gray-700/60 backdrop-blur-sm border-green-100 dark:border-green-900/30">
-          <CardHeader className="space-y-3 pb-6">
-            <CardTitle className="flex items-center gap-3 text-2xl">
-              <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                <Lock className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <span className="dark:text-gray-100">Connexion Partenaire</span>
-            </CardTitle>
-            <CardDescription className="text-base dark:text-gray-300">
-              Connectez-vous avec vos identifiants de partenaire
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        <Card className="shadow-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 animate-scale-in">
+          <CardContent className="pt-8 pb-6">
             <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-semibold dark:text-gray-200">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="partenaire@entreprise.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-12 dark:bg-gray-900/50 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400"
-                />
+                <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-100">Email</Label>
+                <div className="relative group">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-green-600 transition-colors" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="partenaire@entreprise.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="h-12 pl-10 pr-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all"
+                  />
+                </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-semibold dark:text-gray-200">Mot de passe</Label>
-                <div className="relative">
+                <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-100">Mot de passe</Label>
+                <div className="relative group">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-green-600 transition-colors" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -143,19 +146,19 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-12 dark:bg-gray-900/50 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400"
+                    className="h-12 pl-10 pr-12 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:border-green-600 focus:ring-2 focus:ring-green-600/20 transition-all"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent dark:text-gray-300 dark:hover:text-gray-100"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
+                      <EyeOff className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                     ) : (
-                      <Eye className="h-5 w-5" />
+                      <Eye className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                     )}
                   </Button>
                 </div>
@@ -163,36 +166,34 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
 
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 dark:from-green-500 dark:to-emerald-500 dark:hover:from-green-600 dark:hover:to-emerald-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                className="w-full h-12 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
                 disabled={loading}
               >
                 {loading ? 'Connexion...' : 'Se connecter'}
               </Button>
 
-              <Button
-                type="button"
-                variant="link"
-                className="w-full text-sm text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium"
-                onClick={() => setShowForgotPassword(true)}
-              >
-                Mot de passe oublié ?
-              </Button>
+              <div className="flex items-center justify-center pt-2">
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-sm text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium underline-offset-4 hover:underline"
+                  onClick={() => setShowForgotPassword(true)}
+                >
+                  Mot de passe oublié ?
+                </Button>
+              </div>
             </form>
-          </CardContent>
-        </Card>
 
-        <div className="text-center mt-6">
-          <div className="flex flex-col gap-3">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/partner/register')}
-              className="h-12 text-green-600 dark:text-green-400 border-green-300 dark:border-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 font-medium"
-            >
-              Pas encore partenaire ? S'inscrire
-            </Button>
-            
             {/* Footer avec liens vers autres espaces */}
-            <div className="text-center space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="text-center mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 space-y-3">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/partner/register')}
+                className="w-full h-12 text-green-600 dark:text-green-400 border-green-300 dark:border-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 font-medium"
+              >
+                Pas encore partenaire ? S'inscrire
+              </Button>
+              
               <p className="text-sm text-muted-foreground">
                 Pas partenaire ?
               </p>
@@ -205,17 +206,15 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
                   Espace Chauffeur
                 </Link>
               </div>
+              
+              <div className="pt-2">
+                <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  ← Retour à l'accueil
+                </Link>
+              </div>
             </div>
-            
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/')}
-              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
-            >
-              ← Retour à l'accueil
-            </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         <ForgotPasswordModal 
           isOpen={showForgotPassword}

@@ -112,56 +112,43 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
-      {/* Arrière-plan dynamique jaune/orange professionnel */}
-      <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 via-orange-500/15 to-amber-500/20 dark:from-yellow-600/30 dark:via-orange-600/25 dark:to-amber-600/30" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(251,191,36,0.15),transparent_50%)] dark:bg-[radial-gradient(circle_at_50%_120%,rgba(251,191,36,0.25),transparent_50%)]" />
-      
-      {/* Formes géométriques jaune/orange */}
-      <div className="absolute top-20 left-10 w-64 h-64 bg-yellow-500/15 dark:bg-yellow-600/25 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 right-10 w-80 h-80 bg-orange-500/15 dark:bg-orange-600/25 rounded-full blur-3xl animate-pulse delay-1000" />
-      <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-amber-500/15 dark:bg-amber-600/25 rounded-full blur-2xl animate-pulse delay-500" />
-
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-background dark:to-background flex items-center justify-center p-4">
       <div className="w-full max-w-md relative z-10">
-        {/* En-tête avec logo et badge professionnel */}
-        <div className="text-center mb-8 space-y-4 animate-fade-in">
-          {/* Logo dans fond avec thème jaune */}
-          <div className="relative inline-flex items-center justify-center w-32 h-32 rounded-2xl bg-white dark:bg-black shadow-2xl shadow-orange-600/50 dark:shadow-orange-500/60 mb-6 ring-2 ring-orange-500/40 dark:ring-orange-400/50 overflow-hidden group cursor-pointer hover:scale-105 transition-all duration-500">
-            <div className="absolute inset-0 bg-gradient-to-br from-yellow-600/20 via-transparent to-orange-500/20 animate-pulse" />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-500/30 to-transparent animate-[slide-in-right_3s_ease-in-out_infinite]" />
-            <BrandLogo size={80} className="relative z-10 animate-float" />
+        {/* En-tête épuré avec logo et badge */}
+        <div className="text-center mb-10 space-y-6 animate-fade-in">
+          <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white dark:bg-gray-950 shadow-lg mb-6 overflow-hidden hover:scale-105 transition-transform duration-300">
+            <BrandLogo size={72} />
           </div>
           
-          {/* Badge professionnel */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/40 dark:to-orange-900/40 border-2 border-orange-300 dark:border-orange-700/60 mb-4">
-            <Car className="w-5 h-5 text-orange-700 dark:text-orange-400" />
-            <span className="text-sm font-bold text-orange-800 dark:text-orange-300">
-              Espace Professionnel Chauffeur
+          {/* Badge professionnel simplifié */}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+            <Car className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+              Espace Chauffeur
             </span>
           </div>
           
-          <h1 className="text-5xl font-bold animate-gradient bg-gradient-to-r from-yellow-700 via-orange-600 to-amber-600 dark:from-yellow-500 dark:via-orange-400 dark:to-amber-400 bg-clip-text text-transparent mb-2 tracking-tight drop-shadow-lg">
+          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
             Kwenda Driver
           </h1>
           
-          <p className="text-base text-gray-700 dark:text-gray-200 drop-shadow-sm">
-            Gérez vos courses et maximisez vos gains 🚗
+          <p className="text-base text-gray-600 dark:text-gray-400">
+            Gérez vos courses et maximisez vos gains
           </p>
         </div>
 
-        {/* Carte de connexion avec thème jaune/orange */}
-        <Card className="relative shadow-2xl backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-white/10 overflow-hidden animate-scale-in">
-          <div className="absolute inset-0 bg-gradient-to-br from-yellow-600/25 via-orange-500/20 to-amber-500/25 dark:from-yellow-500/35 dark:via-orange-600/30 dark:to-amber-500/35 opacity-50 pointer-events-none" />
+        {/* Carte de connexion professionnelle */}
+        <Card className="shadow-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 animate-scale-in">
           
           <CardContent className="pt-8 pb-6 relative z-10">
             <form onSubmit={handleLogin} className="space-y-5">
               {/* Champ Email */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-bold text-gray-700 dark:text-gray-100">
+                <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-100">
                   Adresse email
                 </Label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-orange-600 dark:group-focus-within:text-orange-500 transition-colors" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-orange-600 transition-colors" />
                   <Input
                     id="email"
                     type="email"
@@ -169,18 +156,18 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="h-14 pl-12 pr-4 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-700 rounded-xl text-base font-medium text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-orange-600 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-600/25 dark:focus:ring-orange-500/25 transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-600"
+                    className="h-12 pl-10 pr-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:border-orange-600 focus:ring-2 focus:ring-orange-600/20 transition-all"
                   />
                 </div>
               </div>
 
               {/* Champ Mot de passe */}
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-bold text-gray-700 dark:text-gray-100">
+                <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-100">
                   Mot de passe
                 </Label>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-orange-600 dark:group-focus-within:text-orange-500 transition-colors" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-orange-600 transition-colors" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
@@ -188,19 +175,19 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-14 pl-12 pr-14 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-700 rounded-xl text-base font-medium text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-orange-600 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-600/25 dark:focus:ring-orange-500/25 transition-all duration-300 hover:border-gray-300 dark:hover:border-gray-600"
+                    className="h-12 pl-10 pr-12 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:border-orange-600 focus:ring-2 focus:ring-orange-600/20 transition-all"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                      <EyeOff className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                     ) : (
-                      <Eye className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                      <Eye className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                     )}
                   </Button>
                 </div>
@@ -216,17 +203,14 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                 </Alert>
               )}
 
-              {/* Bouton de connexion avec gradient jaune/orange */}
+              {/* Bouton de connexion */}
               <Button 
                 type="submit" 
-                className="relative w-full h-14 bg-gradient-to-r from-yellow-600 via-orange-500 to-amber-500 hover:from-yellow-700 hover:via-orange-600 hover:to-amber-600 dark:from-yellow-600 dark:via-orange-500 dark:to-amber-500 dark:hover:from-yellow-500 dark:hover:via-orange-400 dark:hover:to-amber-400 text-white text-base font-bold rounded-xl shadow-xl shadow-orange-600/50 dark:shadow-orange-500/50 hover:shadow-2xl hover:shadow-orange-600/60 dark:hover:shadow-orange-500/60 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] overflow-hidden group" 
+                className="w-full h-12 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
                 disabled={loading}
               >
-                <span className="relative z-10 flex items-center justify-center">
-                  {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                  {loading ? 'Connexion...' : 'Se connecter'}
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {loading ? 'Connexion...' : 'Se connecter'}
               </Button>
 
               {/* Lien mot de passe oublié */}
@@ -234,7 +218,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                 <Button
                   type="button"
                   variant="link"
-                  className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-semibold underline-offset-4 hover:underline transition-all"
+                  className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-medium underline-offset-4 hover:underline"
                   onClick={() => setShowForgotPassword(true)}
                 >
                   Mot de passe oublié ?
