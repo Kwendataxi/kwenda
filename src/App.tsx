@@ -70,6 +70,8 @@ import { ChatProvider } from "@/components/chat/ChatProvider";
 import Onboarding from "./pages/Onboarding";
 import Install from "./pages/Install";
 import { InstallBanner } from "@/components/pwa/InstallBanner";
+import { UpdateNotification } from "@/components/pwa/UpdateNotification";
+import { UpdateProgress } from "@/components/pwa/UpdateProgress";
 import MesAdresses from "./pages/address/MesAdresses";
 import ResetPassword from "./pages/ResetPassword";
 import RoleSelection from "./pages/RoleSelection";
@@ -123,6 +125,8 @@ const AppContent = () => {
   
   return (
     <>
+      <UpdateNotification />
+      <UpdateProgress />
       <DynamicTheme>
         <ParticleBackground />
         <ThemeNotification />

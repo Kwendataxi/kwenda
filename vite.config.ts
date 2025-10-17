@@ -3,11 +3,17 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from 'vite-plugin-pwa';
+import fs from 'fs';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Charger les variables d'environnement selon le mode
   const env = loadEnv(mode, process.cwd(), '');
+  
+  // Lire la version depuis package.json
+  const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
+  const appVersion = packageJson.version || '1.0.0';
+  const buildDate = new Date().toISOString();
   
   // Déterminer le manifest selon le type d'app
   const getManifestPath = () => {
@@ -27,7 +33,7 @@ export default defineConfig(({ mode }) => {
       react(),
       mode === 'development' && componentTagger(),
       VitePWA({
-        registerType: 'autoUpdate',
+        registerType: 'prompt',
         includeAssets: ['app-icon-1024.png', 'android-chrome-192x192.png', 'android-chrome-512x512.png', 'splash-screen.png'],
         manifest: {
           name: 'Kwenda Taxi',
@@ -110,6 +116,9 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_PRIMARY_COLOR': JSON.stringify(env.VITE_PRIMARY_COLOR),
       'import.meta.env.VITE_DEFAULT_ROUTE': JSON.stringify(env.VITE_DEFAULT_ROUTE),
       'import.meta.env.VITE_AUTH_ROUTE': JSON.stringify(env.VITE_AUTH_ROUTE),
+      // Injecter la version de l'app dans le Service Worker
+      '__APP_VERSION__': JSON.stringify(appVersion),
+      '__BUILD_DATE__': JSON.stringify(buildDate),
     }
   };
 });

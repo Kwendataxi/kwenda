@@ -3,7 +3,9 @@
  * Cache les ressources essentielles pour le fonctionnement offline
  */
 
-const CACHE_NAME = 'kwenda-taxi-v1.0.0';
+const APP_VERSION = self.__APP_VERSION__ || '1.0.0';
+const BUILD_DATE = self.__BUILD_DATE__ || new Date().toISOString();
+const CACHE_NAME = `kwenda-v${APP_VERSION}`;
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
@@ -98,6 +100,10 @@ self.addEventListener('message', (event) => {
 // Notification de mise à jour disponible
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'GET_VERSION') {
-    event.ports[0].postMessage({ version: CACHE_NAME });
+    event.ports[0].postMessage({ 
+      version: APP_VERSION,
+      buildDate: BUILD_DATE,
+      cacheSize: '~2.5MB'
+    });
   }
 });
