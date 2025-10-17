@@ -29,7 +29,8 @@ export const MoreServicesSheet = ({
       icon: Ticket,
       gradient: 'hsl(262, 83%, 58%), hsl(330, 81%, 60%), hsl(350, 89%, 60%)',
       iconColor: 'hsl(262, 83%, 58%)',
-      comingSoon: false
+      comingSoon: false,
+      popular: true
     },
     {
       id: 'gift_cards',
@@ -101,23 +102,57 @@ export const MoreServicesSheet = ({
                     : 'cursor-pointer hover:border-primary/50 hover:shadow-xl'
                 }`}
               >
+                {/* Badge "Populaire" */}
+                {!service.comingSoon && service.popular && (
+                  <motion.div
+                    initial={{ scale: 0, y: -10 }}
+                    animate={{ scale: 1, y: 0 }}
+                    transition={{ 
+                      type: "spring", 
+                      stiffness: 300, 
+                      damping: 18,
+                      delay: index * 0.1 + 0.2
+                    }}
+                    className="absolute top-3 left-3 z-10"
+                  >
+                    <div className="relative bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg overflow-hidden">
+                      <span className="relative z-10 flex items-center gap-1">
+                        <span>⭐</span>
+                        Populaire
+                      </span>
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                        animate={{ x: ['-100%', '200%'] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                      />
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* Badge "Bientôt disponible" */}
                 {service.comingSoon && (
                   <motion.div
-                    initial={{ scale: 0, rotate: -12 }}
+                    initial={{ scale: 0, rotate: -8 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ 
                       type: "spring", 
-                      stiffness: 260, 
-                      damping: 15,
-                      delay: index * 0.1 + 0.3 
+                      stiffness: 280, 
+                      damping: 18,
+                      delay: index * 0.1 + 0.25
                     }}
-                    className="absolute top-2 right-2 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10"
+                    className="absolute top-3 right-3 z-10"
                   >
-                    <span className="flex items-center gap-1">
-                      <span className="animate-pulse">⏳</span>
-                      Bientôt
-                    </span>
+                    <div className="bg-gradient-to-br from-amber-400 via-orange-400 to-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg backdrop-blur-sm">
+                      <span className="flex items-center gap-1">
+                        <motion.span
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                          ⏳
+                        </motion.span>
+                        Bientôt
+                      </span>
+                    </div>
                   </motion.div>
                 )}
 
