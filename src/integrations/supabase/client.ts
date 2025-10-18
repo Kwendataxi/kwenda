@@ -18,39 +18,9 @@ const baseClient = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
   }
 });
 
-// ✅ PHASE 9: Wrapper avec Circuit Breaker pour protection
-export const supabase = new Proxy(baseClient, {
-  get(target, prop) {
-    const original = (target as any)[prop];
-    
-    // Protéger les appels critiques avec circuit breaker
-    if (prop === 'from' || prop === 'rpc') {
-      return (...args: any[]) => {
-        const builder = original.apply(target, args);
-        
-        // Wrapper les méthodes de query
-        return new Proxy(builder, {
-          get(builderTarget, builderProp) {
-            const builderOriginal = (builderTarget as any)[builderProp];
-            
-            if (typeof builderOriginal === 'function' && 
-                ['select', 'insert', 'update', 'delete', 'upsert'].includes(builderProp as string)) {
-              return async (...queryArgs: any[]) => {
-                return supabaseCircuitBreaker.execute(() => 
-                  builderOriginal.apply(builderTarget, queryArgs)
-                );
-              };
-            }
-            
-            return builderOriginal;
-          }
-        });
-      };
-    }
-    
-    return original;
-  }
-});
+// ✅ PHASE 9: Export direct du client sans circuit breaker pour éviter les conflits
+// Le circuit breaker interfère avec le query builder pattern de Supabase
+export const supabase = baseClient;
 
 // Attach to window for legacy components referencing window.supabase
 if (typeof window !== 'undefined') {

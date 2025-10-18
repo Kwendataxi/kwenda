@@ -86,22 +86,34 @@ export const useLotteryTickets = () => {
   };
 
   const awardDailyLoginTickets = async () => {
-    // Vérifier si l'utilisateur a déjà reçu ses tickets aujourd'hui
-    const today = new Date().toDateString();
-    const { data: existingTickets } = await supabase
-      .from('lottery_tickets')
-      .select('id')
-      .eq('user_id', user?.id)
-      .eq('source_type', 'daily_login')
-      .gte('earned_date', new Date(today).toISOString())
-      .limit(1);
+    if (!user) return null;
 
-    if (existingTickets && existingTickets.length > 0) {
-      console.log('Tickets de connexion quotidienne déjà attribués');
+    try {
+      // Vérifier si l'utilisateur a déjà reçu ses tickets aujourd'hui
+      const today = new Date().toDateString();
+      const { data: existingTickets, error } = await supabase
+        .from('lottery_tickets')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('source_type', 'daily_login')
+        .gte('earned_date', new Date(today).toISOString())
+        .limit(1);
+
+      if (error) {
+        console.error('Erreur vérification tickets quotidiens:', error);
+        return null;
+      }
+
+      if (existingTickets && existingTickets.length > 0) {
+        console.log('Tickets de connexion quotidienne déjà attribués');
+        return null;
+      }
+
+      return await awardTickets('daily_login', undefined, 1);
+    } catch (error) {
+      console.error('Erreur awardDailyLoginTickets:', error);
       return null;
     }
-
-    return await awardTickets('daily_login', undefined, 1);
   };
 
   const awardChallengeTickets = async (challengeId: string, bonusCount: number = 2) => {
