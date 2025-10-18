@@ -4,13 +4,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { UtensilsCrossed, ChefHat, ArrowLeft } from 'lucide-react';
+import { UtensilsCrossed, ChefHat, ArrowLeft, Phone, CheckCircle2, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export default function RestaurantAuth() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [phoneValid, setPhoneValid] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -18,16 +20,38 @@ export default function RestaurantAuth() {
     phone: ''
   });
 
+  const validatePhoneNumber = (phone: string): boolean => {
+    const phoneRegex = /^0[0-9]{9}$/;
+    return phoneRegex.test(phone.replace(/[\s\-]/g, ''));
+  };
+
   const handleAuth = async () => {
     try {
       setLoading(true);
       
       if (isSignUp) {
-        // Inscription
-        const { data, error } = await supabase.auth.signUp({
+        // Validation téléphone
+        if (!validatePhoneNumber(formData.phone)) {
+          toast.error('Erreur', {
+            description: 'Le numéro de téléphone doit être au format : 0991234567 (10 chiffres)'
+          });
+          return;
+        }
+
+        // Validation nom restaurant
+        if (!formData.restaurantName.trim()) {
+          toast.error('Erreur', {
+            description: 'Le nom du restaurant est obligatoire'
+          });
+          return;
+        }
+
+        // Inscription - Le trigger gère automatiquement la création du profil et du rôle
+        const { error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
           options: {
+            emailRedirectTo: `${window.location.origin}/restaurant`,
             data: {
               restaurant_name: formData.restaurantName,
               phone: formData.phone,
@@ -37,29 +61,6 @@ export default function RestaurantAuth() {
         });
 
         if (error) throw error;
-
-        if (!data.user) throw new Error('Erreur lors de la création du compte');
-
-        // Créer profil restaurant
-        const { error: profileError } = await supabase.from('restaurant_profiles').insert({
-          user_id: data.user.id,
-          restaurant_name: formData.restaurantName,
-          phone_number: formData.phone,
-          email: formData.email,
-          city: 'Kinshasa', // Par défaut
-          address: formData.restaurantName // Temporaire, à compléter plus tard
-        });
-
-        if (profileError) throw profileError;
-
-        // Attribuer rôle restaurant
-        const { error: roleError } = await supabase.from('user_roles').insert({
-          user_id: data.user.id,
-          role: 'restaurant',
-          is_active: true
-        });
-
-        if (roleError) throw roleError;
 
         toast.success('Compte créé avec succès !', {
           description: 'Vérifiez votre email pour confirmer votre compte'
@@ -120,16 +121,43 @@ export default function RestaurantAuth() {
           <CardContent className="space-y-4">
             {isSignUp && (
               <>
-                <Input
-                  placeholder="Nom du restaurant"
-                  value={formData.restaurantName}
-                  onChange={(e) => setFormData({ ...formData, restaurantName: e.target.value })}
-                />
-                <Input
-                  placeholder="Téléphone (ex: +243...)"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                />
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Nom du restaurant"
+                    value={formData.restaurantName}
+                    onChange={(e) => setFormData({ ...formData, restaurantName: e.target.value })}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="tel"
+                      inputMode="tel"
+                      placeholder="0991234567"
+                      value={formData.phone}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setFormData({ ...formData, phone: value });
+                        setPhoneValid(validatePhoneNumber(value));
+                      }}
+                      className={cn(
+                        "pl-10 pr-10",
+                        phoneValid && "border-green-500 focus-visible:ring-green-500"
+                      )}
+                      required
+                    />
+                    {phoneValid && (
+                      <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Info className="w-3 h-3" />
+                    Format: 0XXXXXXXXX (10 chiffres)
+                  </p>
+                </div>
               </>
             )}
 

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Play, Star, MapPin, Clock, Car, ArrowRight, Zap, Users } from "lucide-react";
+import { Play, Star, MapPin, Clock, Car, ArrowRight, Zap, Users, UtensilsCrossed } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { useAuth } from "@/hooks/useAuth";
@@ -101,6 +101,17 @@ const ModernHero = () => {
                 <div className="text-heading-sm">{t('hero.customer_service')}</div>
                 <div className="text-caption text-muted-foreground">{t('features.stats_support')}</div>
               </div>
+            </div>
+
+            {/* Restaurant Partner Link */}
+            <div className="stagger-6">
+              <Link to="/restaurant/auth">
+                <Button variant="outline" className="w-full lg:w-auto gap-2 group">
+                  <UtensilsCrossed className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  Devenir Restaurant Partenaire
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
             </div>
 
 
