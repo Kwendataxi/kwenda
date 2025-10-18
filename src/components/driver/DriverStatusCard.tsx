@@ -13,11 +13,11 @@ import {
   WifiOff,
   Activity
 } from 'lucide-react';
-import { useSimplifiedDriverStatus } from '@/hooks/useSimplifiedDriverStatus';
+import { useDriverStatus } from '@/hooks/useDriverStatus';
 import { useDriverData } from '@/hooks/useDriverData';
 
 export const DriverStatusCard = () => {
-  const { status, loading, goOnline, goOffline, setAvailable } = useSimplifiedDriverStatus();
+  const { status, loading, goOnline, goOffline, setAvailable } = useDriverStatus();
   const { stats, recentRides } = useDriverData();
 
   const handleOnlineToggle = async (checked: boolean) => {

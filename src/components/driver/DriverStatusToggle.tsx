@@ -5,7 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useDriverDispatch } from '@/hooks/useDriverDispatch';
 import { useDriverStatus } from '@/hooks/useDriverStatus';
-import { useSimplifiedGeolocation } from '@/hooks/useSimplifiedGeolocation';
+import { useDriverGeolocation } from '@/hooks/useDriverGeolocation';
 import { 
   Power, 
   MapPin, 
@@ -33,9 +33,8 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
     location, 
     loading: locationLoading,
     error: locationError,
-    getCurrentPosition,
-    useDefaultPosition
-  } = useSimplifiedGeolocation();
+    getCurrentPosition
+  } = useDriverGeolocation({ autoSync: false });
   
   const {
     status: driverStatus,
@@ -60,8 +59,13 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
           try {
             currentLocation = await getCurrentPosition();
           } catch (err) {
-            // Si échec GPS, utiliser position par défaut
-            currentLocation = await useDefaultPosition();
+            // Si échec GPS, utiliser position par défaut (Kinshasa)
+            currentLocation = {
+              latitude: -4.3217,
+              longitude: 15.3069,
+              accuracy: 0,
+              timestamp: Date.now()
+            };
           }
         }
         

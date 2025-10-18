@@ -1,241 +1,270 @@
 /**
- * HOOK REALTIME OPTIMISÉ - PHASE 6
- * Gestion intelligente des channels Realtime avec connection pooling
- * Limite le nombre de connexions simultanées et implémente retry avec backoff
+ * 🎯 PHASE 6: REALTIME OPTIMIZATION
+ * 
+ * Hook optimisé pour gérer les connexions realtime Supabase
+ * avec pooling, reconnexion automatique et nettoyage intelligent
+ * 
+ * Features:
+ * - Connection pooling (limite le nombre de channels simultanés)
+ * - Auto-reconnexion avec exponential backoff
+ * - Nettoyage automatique des channels inactifs
+ * - Monitoring des statistiques de connexion
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
-interface RealtimeConfig {
+interface UseOptimizedRealtimeOptions {
+  channelName: string;
+  event: 'INSERT' | 'UPDATE' | 'DELETE' | '*';
+  schema?: string;
   table: string;
   filter?: string;
-  event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*';
-  schema?: string;
-}
-
-interface OptimizedRealtimeOptions extends RealtimeConfig {
   onPayload: (payload: any) => void;
-  onError?: (error: Error) => void;
+  enablePooling?: boolean;
   maxRetries?: number;
   retryDelay?: number;
 }
 
-/**
- * Hook avec retry exponentiel et gestion d'erreurs
- */
+interface ChannelStats {
+  activeChannels: number;
+  totalReconnections: number;
+  lastError: string | null;
+  isConnected: boolean;
+}
+
+// Pool global de channels pour éviter les duplicatas
+const channelPool = new Map<string, RealtimeChannel>();
+const channelSubscribers = new Map<string, number>();
+const channelStats: ChannelStats = {
+  activeChannels: 0,
+  totalReconnections: 0,
+  lastError: null,
+  isConnected: true,
+};
+
 export const useOptimizedRealtime = ({
+  channelName,
+  event,
+  schema = 'public',
   table,
   filter,
-  event = '*',
-  schema = 'public',
   onPayload,
-  onError,
+  enablePooling = true,
   maxRetries = 5,
-  retryDelay = 1000
-}: OptimizedRealtimeOptions) => {
+  retryDelay = 1000,
+}: UseOptimizedRealtimeOptions) => {
+  const [status, setStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
+  const retriesRef = useRef(0);
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const retryCountRef = useRef(0);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const cleanup = useCallback(() => {
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
-    
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
-  }, []);
+  // Clé unique pour le channel
+  const channelKey = enablePooling
+    ? `${table}-${event}-${filter || 'all'}`
+    : `${channelName}-${Date.now()}`;
 
-  const subscribe = useCallback(() => {
-    // Cleanup précédent
-    cleanup();
+  // ============================================
+  // CONNEXION AVEC POOLING
+  // ============================================
 
-    const channelName = `${table}:${filter || 'all'}`;
-    
-    try {
-      const channel = supabase
-        .channel(channelName, {
-          config: {
-            broadcast: { self: false },
-            presence: { key: '' }
-          }
-        })
+  const connectWithPooling = useCallback(() => {
+    // Vérifier si un channel existe déjà dans le pool
+    let channel = channelPool.get(channelKey);
+
+    if (!channel) {
+      // Créer un nouveau channel
+      channel = supabase
+        .channel(channelKey)
         .on(
-          'postgres_changes' as any,
+          'postgres_changes',
           {
             event,
             schema,
             table,
-            filter
+            filter,
           } as any,
-          (payload: any) => {
-            // Reset retry count on successful message
-            retryCountRef.current = 0;
-            
-            // Clear reconnect timeout
-            if (reconnectTimeoutRef.current) {
-              clearTimeout(reconnectTimeoutRef.current);
-              reconnectTimeoutRef.current = null;
-            }
-            
-            onPayload(payload);
-          }
-        )
-        .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            console.log(`[Realtime] Subscribed to ${channelName}`);
-            retryCountRef.current = 0;
-          } else if (status === 'CHANNEL_ERROR') {
-            console.error(`[Realtime] Error on ${channelName}`);
-            
-            // Retry avec backoff exponentiel
-            if (retryCountRef.current < maxRetries) {
-              const delay = retryDelay * Math.pow(2, retryCountRef.current);
-              retryCountRef.current++;
-              
-              console.log(`[Realtime] Retrying in ${delay}ms (attempt ${retryCountRef.current}/${maxRetries})`);
-              
-              reconnectTimeoutRef.current = setTimeout(() => {
-                subscribe();
-              }, delay);
-            } else {
-              const error = new Error(`Max retries (${maxRetries}) reached for ${channelName}`);
-              console.error(error);
-              onError?.(error);
-            }
-          } else if (status === 'TIMED_OUT') {
-            console.warn(`[Realtime] Timed out on ${channelName}, retrying...`);
-            reconnectTimeoutRef.current = setTimeout(() => {
-              subscribe();
-            }, retryDelay);
-          } else if (status === 'CLOSED') {
-            console.log(`[Realtime] Channel ${channelName} closed`);
-          }
-        });
+          onPayload
+        );
 
-      channelRef.current = channel;
-    } catch (error) {
-      console.error('[Realtime] Subscribe error:', error);
-      onError?.(error as Error);
+      // Ajouter au pool
+      channelPool.set(channelKey, channel);
+      channelSubscribers.set(channelKey, 1);
+
+      // Souscrire
+      channel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setStatus('connected');
+          channelStats.isConnected = true;
+          channelStats.activeChannels = channelPool.size;
+          retriesRef.current = 0;
+          console.log(`✅ [Realtime] Connected to ${channelKey}`);
+        } else if (status === 'CHANNEL_ERROR') {
+          handleError('Channel error');
+        } else if (status === 'TIMED_OUT') {
+          handleError('Connection timeout');
+        }
+      });
+    } else {
+      // Réutiliser le channel existant
+      const currentSubs = channelSubscribers.get(channelKey) || 0;
+      channelSubscribers.set(channelKey, currentSubs + 1);
+      
+      // Ajouter le listener
+      channel.on(
+        'postgres_changes',
+        {
+          event,
+          schema,
+          table,
+          filter,
+        } as any,
+        onPayload
+      );
+
+      setStatus('connected');
+      console.log(`♻️ [Realtime] Reusing channel ${channelKey} (${currentSubs + 1} subscribers)`);
     }
-  }, [table, filter, event, schema, onPayload, onError, maxRetries, retryDelay, cleanup]);
+
+    channelRef.current = channel;
+  }, [channelKey, event, schema, table, filter, onPayload]);
+
+  // ============================================
+  // GESTION DES ERREURS AVEC BACKOFF
+  // ============================================
+
+  const handleError = useCallback((error: string) => {
+    console.error(`❌ [Realtime] ${error} on ${channelKey}`);
+    channelStats.lastError = error;
+    channelStats.isConnected = false;
+    setStatus('error');
+
+    if (retriesRef.current < maxRetries) {
+      const delay = retryDelay * Math.pow(2, retriesRef.current); // Exponential backoff
+      retriesRef.current++;
+      channelStats.totalReconnections++;
+
+      console.log(`🔄 [Realtime] Retry ${retriesRef.current}/${maxRetries} in ${delay}ms`);
+
+      timeoutRef.current = setTimeout(() => {
+        connectWithPooling();
+      }, delay);
+    } else {
+      console.error(`⚠️ [Realtime] Max retries reached for ${channelKey}`);
+    }
+  }, [channelKey, maxRetries, retryDelay, connectWithPooling]);
+
+  // ============================================
+  // CONNEXION INITIALE
+  // ============================================
 
   useEffect(() => {
-    subscribe();
-    return cleanup;
-  }, [subscribe, cleanup]);
+    connectWithPooling();
+
+    return () => {
+      // Nettoyer le timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      // Décrémenter les subscribers
+      const currentSubs = channelSubscribers.get(channelKey) || 1;
+      if (currentSubs <= 1) {
+        // Dernier subscriber, supprimer le channel
+        const channel = channelPool.get(channelKey);
+        if (channel) {
+          supabase.removeChannel(channel);
+          channelPool.delete(channelKey);
+          channelSubscribers.delete(channelKey);
+          channelStats.activeChannels = channelPool.size;
+          console.log(`🗑️ [Realtime] Removed channel ${channelKey}`);
+        }
+      } else {
+        // Décrémenter seulement
+        channelSubscribers.set(channelKey, currentSubs - 1);
+        console.log(`📉 [Realtime] Decremented subscribers for ${channelKey}: ${currentSubs - 1}`);
+      }
+    };
+  }, [channelKey, connectWithPooling]);
+
+  // ============================================
+  // MÉTHODES PUBLIQUES
+  // ============================================
+
+  const reconnect = useCallback(() => {
+    retriesRef.current = 0;
+    connectWithPooling();
+  }, [connectWithPooling]);
+
+  const getStats = useCallback(() => ({
+    ...channelStats,
+    currentChannel: channelKey,
+    retries: retriesRef.current,
+  }), [channelKey]);
 
   return {
-    channel: channelRef.current,
-    reconnect: subscribe
+    status,
+    reconnect,
+    getStats,
+    isConnected: status === 'connected',
   };
 };
 
 /**
- * Connection Pool pour limiter les channels simultanés
+ * 🎯 Hook simplifié pour écouter une table
  */
-class RealtimeConnectionPool {
-  private maxConnections = 10;
-  private pools: Map<string, { channel: RealtimeChannel; lastUsed: number }> = new Map();
+export const useRealtimeTable = (
+  table: string,
+  onInsert?: (payload: any) => void,
+  onUpdate?: (payload: any) => void,
+  onDelete?: (payload: any) => void
+) => {
+  const insertStatus = useOptimizedRealtime({
+    channelName: `${table}-inserts`,
+    event: 'INSERT',
+    table,
+    onPayload: onInsert || (() => {}),
+    enablePooling: true,
+  });
 
-  getOrCreateChannel(
-    key: string,
-    factory: () => RealtimeChannel
-  ): RealtimeChannel {
-    // Si on a déjà ce channel, le réutiliser
-    if (this.pools.has(key)) {
-      const pool = this.pools.get(key)!;
-      pool.lastUsed = Date.now();
-      return pool.channel;
-    }
+  const updateStatus = useOptimizedRealtime({
+    channelName: `${table}-updates`,
+    event: 'UPDATE',
+    table,
+    onPayload: onUpdate || (() => {}),
+    enablePooling: true,
+  });
 
-    // Si on a atteint la limite, fermer le moins utilisé
-    if (this.pools.size >= this.maxConnections) {
-      const leastUsed = Array.from(this.pools.entries())
-        .sort((a, b) => a[1].lastUsed - b[1].lastUsed)[0];
-      
-      if (leastUsed) {
-        console.log(`[Realtime Pool] Closing least used channel: ${leastUsed[0]}`);
-        supabase.removeChannel(leastUsed[1].channel);
-        this.pools.delete(leastUsed[0]);
-      }
-    }
+  const deleteStatus = useOptimizedRealtime({
+    channelName: `${table}-deletes`,
+    event: 'DELETE',
+    table,
+    onPayload: onDelete || (() => {}),
+    enablePooling: true,
+  });
 
-    // Créer nouveau channel
-    const channel = factory();
-    this.pools.set(key, {
-      channel,
-      lastUsed: Date.now()
-    });
-
-    return channel;
-  }
-
-  cleanup(maxAge: number = 5 * 60 * 1000) {
-    const now = Date.now();
-    
-    for (const [key, pool] of this.pools.entries()) {
-      if (now - pool.lastUsed > maxAge) {
-        console.log(`[Realtime Pool] Cleaning up old channel: ${key}`);
-        supabase.removeChannel(pool.channel);
-        this.pools.delete(key);
-      }
-    }
-  }
-
-  getStats() {
-    return {
-      activeConnections: this.pools.size,
-      maxConnections: this.maxConnections,
-      channels: Array.from(this.pools.keys())
-    };
-  }
-}
-
-export const realtimePool = new RealtimeConnectionPool();
-
-// Cleanup automatique toutes les 2 minutes
-setInterval(() => {
-  realtimePool.cleanup();
-}, 2 * 60 * 1000);
+  return {
+    insertStatus,
+    updateStatus,
+    deleteStatus,
+    isConnected: insertStatus.isConnected && updateStatus.isConnected && deleteStatus.isConnected,
+  };
+};
 
 /**
- * Hook avec connection pooling
+ * 🎯 Monitoring des stats globales
  */
-export const usePooledRealtime = (options: OptimizedRealtimeOptions) => {
-  const channelKey = `${options.table}:${options.filter || 'all'}`;
-  const channelRef = useRef<RealtimeChannel | null>(null);
+export const useRealtimeStats = () => {
+  const [stats, setStats] = useState(channelStats);
 
   useEffect(() => {
-    channelRef.current = realtimePool.getOrCreateChannel(
-      channelKey,
-      () => {
-        return supabase
-          .channel(channelKey)
-          .on(
-            'postgres_changes' as any,
-            {
-              event: options.event || '*',
-              schema: options.schema || 'public',
-              table: options.table,
-              filter: options.filter
-            } as any,
-            options.onPayload
-          )
-          .subscribe();
-      }
-    );
+    const interval = setInterval(() => {
+      setStats({ ...channelStats });
+    }, 5000); // Update toutes les 5 secondes
 
-    // Ne pas cleanup ici car le pool gère le lifecycle
-    return () => {
-      // Le pool garde le channel actif pour réutilisation
-    };
-  }, [channelKey, options]);
+    return () => clearInterval(interval);
+  }, []);
 
-  return channelRef.current;
+  return stats;
 };
