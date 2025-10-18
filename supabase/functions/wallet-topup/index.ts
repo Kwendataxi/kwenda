@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { withRateLimit, ENDPOINT_LIMITS } from "../_shared/ratelimit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,6 +19,9 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // ✅ Apply strict rate limiting (3 req/5min for wallet top-up)
+  return withRateLimit(req, ENDPOINT_LIMITS.WALLET_TOPUP, async (req) => {
 
   try {
     // Initialize Supabase client
@@ -265,4 +269,5 @@ serve(async (req) => {
       }
     );
   }
+  }); // withRateLimit
 });
