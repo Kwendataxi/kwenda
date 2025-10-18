@@ -13,6 +13,8 @@ export const useRestaurants = () => {
   }) => {
     setLoading(true);
     try {
+      console.log('🍽️ Fetching restaurants for city:', city);
+      
       let query = supabase
         .from('restaurant_profiles')
         .select('*')
@@ -26,12 +28,14 @@ export const useRestaurants = () => {
 
       const { data, error } = await query.order('rating_average', { ascending: false });
       
+      console.log('🍽️ Restaurants data:', { data, error, count: data?.length });
+      
       if (error) throw error;
 
       setRestaurants((data || []) as Restaurant[]);
       return (data || []) as Restaurant[];
     } catch (error) {
-      console.error('Error fetching restaurants:', error);
+      console.error('❌ Error fetching restaurants:', error);
       setRestaurants([]);
       return [];
     } finally {
