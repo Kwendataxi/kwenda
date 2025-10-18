@@ -74,24 +74,26 @@ export const CompactRentalSlide: React.FC<CompactRentalSlideProps> = ({
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex items-center gap-3"
+              className="flex items-start gap-3"
             >
               {/* "À partir de" vertical */}
-              <div className="flex flex-col text-white/80 text-[10px] font-medium leading-tight">
+              <div className="flex flex-col text-white/80 text-[10px] font-medium leading-tight mt-1">
                 <span>À</span>
                 <span>partir</span>
                 <span>de</span>
               </div>
 
-              {/* Montant principal */}
-              <span className="text-5xl md:text-6xl font-black text-white drop-shadow-2xl tracking-tighter">
-                {startingPrice.toLocaleString()}
-              </span>
-
-              {/* Devise et /jour */}
-              <div className="flex flex-col justify-center gap-0.5">
-                <span className="text-xl md:text-2xl font-bold text-white/95 leading-none">CDF</span>
-                <span className="text-xs text-white/70 font-medium leading-none">/jour</span>
+              {/* Montant principal avec CDF en superscript */}
+              <div className="flex items-start gap-1">
+                <span className="text-5xl md:text-6xl font-black text-white drop-shadow-2xl tracking-tighter leading-none">
+                  {startingPrice.toLocaleString()}
+                </span>
+                
+                {/* CDF en haut + /jour en bas */}
+                <div className="flex flex-col items-start -mt-1">
+                  <span className="text-base md:text-lg font-bold text-white/95 leading-none">CDF</span>
+                  <span className="text-[10px] text-white/70 font-medium leading-none mt-auto pt-8">/jour</span>
+                </div>
               </div>
             </motion.div>
           </div>
