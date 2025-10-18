@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 import { useAuth } from './useAuth';
+import { useReferralRewards } from './useReferralRewards';
 
 interface ReferralData {
   id: string;
@@ -19,6 +20,7 @@ export const useReferralSystem = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { creditReferralRewards } = useReferralRewards();
 
   // Récupérer le code de parrainage de l'utilisateur
   useEffect(() => {
@@ -121,7 +123,7 @@ export const useReferralSystem = () => {
       }
 
       // Créer un nouvel enregistrement pour ce parrainage
-      const { error } = await supabase
+      const { data: newReferral, error } = await supabase
         .from('referral_system')
         .insert({
           referrer_id: existingReferral.referrer_id,
@@ -133,11 +135,31 @@ export const useReferralSystem = () => {
           currency: 'CDF',
           completed_at: new Date().toISOString(),
           rewarded_at: new Date().toISOString()
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error('Erreur lors de l\'utilisation du code:', error);
         return { success: false, message: 'Erreur lors de l\'application du code' };
+      }
+
+      // ✅ Créditer automatiquement les portefeuilles
+      try {
+        await creditReferralRewards(
+          existingReferral.referrer_id,
+          user.user.id,
+          newReferral.id
+        );
+        
+        console.log('✅ Récompenses de parrainage créditées avec succès');
+      } catch (walletError) {
+        console.error('❌ Erreur lors du crédit des récompenses:', walletError);
+        toast({
+          title: "Attention",
+          description: "Parrainage enregistré mais erreur de crédit. Contactez le support.",
+          variant: "destructive"
+        });
       }
 
       // Actualiser la liste des parrainages

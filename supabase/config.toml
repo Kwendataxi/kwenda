@@ -148,3 +148,6 @@ verify_jwt = true  # ✅ PHASE 2: JWT requis pour vérification vendeur
 
 [functions.food-order-processor]
 verify_jwt = true  # ✅ JWT requis pour création de commandes food
+
+[functions.validate-promo-and-referral]
+verify_jwt = true  # ✅ Validation sécurisée codes promo et parrainage

@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePromoCodeValidation } from '@/hooks/usePromoCodeValidation';
 import DriverSearchDialog from './DriverSearchDialog';
 import ModernMapView from './map/ModernMapView';
 import { useSmartGeolocation } from '@/hooks/useSmartGeolocation';
@@ -75,6 +76,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { recordPromoUsage } = usePromoCodeValidation();
   
   // 📍 Géolocalisation intelligente
   const { 
@@ -363,6 +365,38 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       // 🔥 Activer l'écoute temps réel
       if (result?.id) {
         setCurrentBookingId(result.id);
+        
+        // ✅ Enregistrer l'usage du code promo si actif
+        const activePromo = localStorage.getItem('activePromoCode');
+        const promoId = localStorage.getItem('activePromoId');
+        
+        if (activePromo === 'BIENVENUE30' && promoId && user) {
+          try {
+            const discountAmount = Math.round(estimatedPrice * 0.3);
+            
+            await recordPromoUsage({
+              userId: user.id,
+              promoId: promoId,
+              orderId: result.id,
+              orderType: 'transport',
+              discountAmount: discountAmount
+            });
+            
+            // Nettoyer le localStorage après enregistrement
+            localStorage.removeItem('activePromoCode');
+            localStorage.removeItem('promoDiscount');
+            localStorage.removeItem('activePromoId');
+            
+            console.log('✅ Code promo BIENVENUE30 enregistré avec succès');
+            
+            toast({
+              title: "Code promo appliqué !",
+              description: `Réduction de ${discountAmount} CDF appliquée sur cette course`,
+            });
+          } catch (promoError) {
+            console.error('❌ Erreur enregistrement promo:', promoError);
+          }
+        }
       }
 
       clearInterval(timeCounter);

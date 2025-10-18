@@ -46,17 +46,18 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
       }
 
       // Vérifier si le code a déjà été utilisé
-      const { canUse, reason } = await checkPromoUsage(user.id, 'BIENVENUE30');
+      const result = await checkPromoUsage(user.id, 'BIENVENUE30');
 
-      if (!canUse) {
-        toast.error(reason || 'Code promo déjà utilisé');
+      if (!result.canUse) {
+        toast.error(result.reason || 'Code promo déjà utilisé');
         return;
       }
 
-      // Si OK, stocker le code
-      localStorage.setItem('activePromoCode', 'BIENVENUE30');
-      localStorage.setItem('promoDiscount', '30');
-      toast.success('Code promo BIENVENUE30 appliqué ! Valable une seule fois.');
+    // Si OK, stocker le code et son ID
+    localStorage.setItem('activePromoCode', 'BIENVENUE30');
+    localStorage.setItem('promoDiscount', '30');
+    localStorage.setItem('activePromoId', result.promoId || '');
+    toast.success('Code promo BIENVENUE30 appliqué ! Valable une seule fois.');
     }
 
     // Redirection vers le service
