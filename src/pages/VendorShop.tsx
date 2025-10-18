@@ -76,7 +76,7 @@ const VendorShop: React.FC = () => {
       const { data: profileData, error: profileError } = await supabase
         .from('vendor_stats_cache')
         .select('*')
-        .eq('user_id', vendorId)
+        .eq('vendor_id', vendorId)
         .maybeSingle();
 
       if (profileError || !profileData) {
