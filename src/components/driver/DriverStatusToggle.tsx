@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { useUnifiedDispatcher } from '@/hooks/useUnifiedDispatcher';
+import { useDriverDispatch } from '@/hooks/useDriverDispatch';
+import { useDriverStatus } from '@/hooks/useDriverStatus';
 import { useSimplifiedGeolocation } from '@/hooks/useSimplifiedGeolocation';
-import { useSimplifiedDriverStatus } from '@/hooks/useSimplifiedDriverStatus';
 import { 
   Power, 
   MapPin, 
@@ -26,8 +26,8 @@ interface DriverStatusToggleProps {
 const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) => {
   const { 
     activeOrders,
-    loading: unifiedLoading 
-  } = useUnifiedDispatcher();
+    loading: dispatchLoading 
+  } = useDriverDispatch();
   
   const { 
     location, 
@@ -44,10 +44,10 @@ const DriverStatusToggle: React.FC<DriverStatusToggleProps> = ({ className }) =>
     goOffline,
     setAvailable,
     updateServiceTypes
-  } = useSimplifiedDriverStatus();
+  } = useDriverStatus();
 
   const [updating, setUpdating] = useState(false);
-  const loading = unifiedLoading || locationLoading || statusLoading;
+  const loading = dispatchLoading || locationLoading || statusLoading;
 
   const handleOnlineToggle = async (isOnline: boolean) => {
     setUpdating(true);

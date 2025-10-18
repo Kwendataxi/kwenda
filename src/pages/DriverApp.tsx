@@ -4,13 +4,12 @@ import { useDriverServiceType } from '@/hooks/useDriverServiceType';
 import DriverHeader from '@/components/driver/DriverHeader';
 import { UniversalBottomNavigation } from '@/components/navigation/UniversalBottomNavigation';
 import DriverMoreSheet from '@/components/driver/DriverMoreSheet';
-import MobileDriverInterface from '@/components/mobile/MobileDriverInterface';
+import UnifiedDriverInterface from '@/components/driver/UnifiedDriverInterface';
 import { DriverWalletPanel } from '@/components/driver/DriverWalletPanel';
 import { DriverChallenges } from '@/components/driver/DriverChallenges';
 import { SubscriptionPlans } from '@/components/driver/SubscriptionPlans';
 import { DriverCodeManager } from '@/components/driver/DriverCodeManager';
 import { DriverReferrals } from '@/components/driver/DriverReferrals';
-import ProductionDriverInterface from '@/components/driver/ProductionDriverInterface';
 import { VehicleManagementPanel } from '@/components/driver/management/VehicleManagementPanel';
 import { ServiceChangeRequestPanel } from '@/components/driver/management/ServiceChangeRequestPanel';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,7 +17,7 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 
 const DriverApp = () => {
   const { loading } = useDriverServiceType();
-  const [tab, setTab] = useState('deliveries');
+  const [tab, setTab] = useState('orders');
   const [moreOpen, setMoreOpen] = useState(false);
 
   // Sécurité : Vérifier que l'utilisateur est un chauffeur
@@ -48,8 +47,8 @@ const DriverApp = () => {
       
       <main className="flex-1 overflow-y-auto content-scrollable responsive-padding">
         <div className="container-fluid space-y-6">
-          {tab === 'rides' && <MobileDriverInterface onNavigateToEarnings={() => setTab('earnings')} onNavigateToCredits={() => setTab('subscription')} onNavigateToNavigation={() => {}} />}
-          {tab === 'deliveries' && <ProductionDriverInterface />}
+          {/* ✅ Interface unifiée pour TOUTES les commandes */}
+          {tab === 'orders' && <UnifiedDriverInterface />}
           {tab === 'earnings' && <DriverWalletPanel />}
           {tab === 'subscription' && <SubscriptionPlans />}
           {tab === 'challenges' && <DriverChallenges />}
