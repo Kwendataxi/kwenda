@@ -45,15 +45,15 @@ export const onboardingContent: Record<OnboardingContext, OnboardingSlideContent
     },
     {
       icon: UtensilsCrossed,
-      title: "Commandez vos repas préférés",
-      tagline: "Restaurants locaux, livraison rapide",
+      title: "Kwenda Food",
+      tagline: "Vos restaurants préférés, livrés en 30 min",
       benefits: [
-        "Large choix de restaurants à Kinshasa",
-        "Menu varié : Congolais, Italien, Français...",
-        "Suivi de commande en temps réel",
-        "Livraison express par nos coursiers"
+        "100+ restaurants partenaires",
+        "Cuisine locale & internationale",
+        "Tracking en temps réel",
+        "Paiement KwendaPay sécurisé"
       ],
-      gradient: "from-green-500/10 via-background to-background"
+      gradient: "from-amber-500/10 via-orange-500/5 to-background"
     },
     {
       icon: ShoppingBag,
