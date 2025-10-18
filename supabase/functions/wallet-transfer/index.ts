@@ -70,17 +70,17 @@ serve(async (req) => {
       recipientId = recipient_phone_or_id;
     } else {
       // Recherche par numéro de téléphone ou email
-      const { data: profiles, error: searchError } = await supabaseClient
-        .from('profiles')
-        .select('user_id')
+      const { data: client, error: searchError } = await supabaseClient
+        .from('clients')
+        .select('user_id, display_name, phone_number')
         .or(`phone_number.eq.${recipient_phone_or_id},email.eq.${recipient_phone_or_id}`)
-        .single();
+        .maybeSingle();
       
-      if (searchError || !profiles) {
+      if (searchError || !client) {
         throw new Error('Destinataire introuvable. Vérifiez le numéro ou l\'email.');
       }
       
-      recipientId = profiles.user_id;
+      recipientId = client.user_id;
     }
 
     // 5. Vérifier auto-transfert
@@ -89,11 +89,11 @@ serve(async (req) => {
     }
 
     // 6. Récupérer info destinataire pour notification
-    const { data: recipientProfile } = await supabaseClient
-      .from('profiles')
+    const { data: recipientClient } = await supabaseClient
+      .from('clients')
       .select('display_name, phone_number')
       .eq('user_id', recipientId)
-      .single();
+      .maybeSingle();
 
     // 7. Transaction atomique via RPC
     console.log('🔄 Exécution du transfert atomique...');
@@ -135,7 +135,7 @@ serve(async (req) => {
         success: true, 
         transfer_id: result.transfer_id,
         new_balance: result.sender_new_balance,
-        recipient_name: recipientProfile?.display_name || 'Utilisateur'
+        recipient_name: recipientClient?.display_name || 'Utilisateur'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

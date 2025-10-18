@@ -151,3 +151,6 @@ verify_jwt = true  # ✅ JWT requis pour création de commandes food
 
 [functions.validate-promo-and-referral]
 verify_jwt = true  # ✅ Validation sécurisée codes promo et parrainage
+
+[functions.validate-transfer-recipient]
+verify_jwt = true  # ✅ Validation temps réel du destinataire de transfert
