@@ -37,6 +37,7 @@ export const DriverSubscriptionAdmin = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [ridesFilter, setRidesFilter] = useState("all");
   const [actionModal, setActionModal] = useState<{
     isOpen: boolean;
     subscription: any;
@@ -58,7 +59,14 @@ export const DriverSubscriptionAdmin = () => {
     
     const matchesStatus = statusFilter === "all" || sub.status === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    // Filtre par rides_remaining
+    const matchesRides = 
+      ridesFilter === "all" || 
+      (ridesFilter === "depleted" && (sub.rides_remaining || 0) === 0) ||
+      (ridesFilter === "low" && (sub.rides_remaining || 0) > 0 && (sub.rides_remaining || 0) <= 5) ||
+      (ridesFilter === "normal" && (sub.rides_remaining || 0) > 5);
+    
+    return matchesSearch && matchesStatus && matchesRides;
   });
 
   // Calculate stats
@@ -155,18 +163,17 @@ export const DriverSubscriptionAdmin = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Expirant bientôt</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Courses Épuisées</CardTitle>
+            <Ticket className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {driverSubscriptions.filter(sub => {
-                const days = getDaysUntilExpiry(sub.end_date);
-                return sub.status === 'active' && days <= 7 && days > 0;
-              }).length}
+            <div className="text-2xl font-bold text-destructive">
+              {driverSubscriptions.filter(sub => 
+                sub.status === 'active' && (sub.rides_remaining || 0) === 0
+              ).length}
             </div>
             <p className="text-xs text-muted-foreground">
-              Dans les 7 prochains jours
+              Abonnements actifs sans courses
             </p>
           </CardContent>
         </Card>
@@ -181,8 +188,8 @@ export const DriverSubscriptionAdmin = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 mb-4">
-            <div className="flex-1">
+          <div className="flex gap-4 mb-4 flex-wrap">
+            <div className="flex-1 min-w-[200px]">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -203,6 +210,18 @@ export const DriverSubscriptionAdmin = () => {
                 <SelectItem value="active">Actif</SelectItem>
                 <SelectItem value="expired">Expiré</SelectItem>
                 <SelectItem value="cancelled">Annulé</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={ridesFilter} onValueChange={setRidesFilter}>
+              <SelectTrigger className="w-[200px]">
+                <Ticket className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Courses restantes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les courses</SelectItem>
+                <SelectItem value="depleted">Épuisées (0)</SelectItem>
+                <SelectItem value="low">Bientôt épuisées (≤5)</SelectItem>
+                <SelectItem value="normal">Normales (&gt;5)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -329,6 +348,7 @@ export const DriverSubscriptionAdmin = () => {
                   onClick={() => {
                     setSearchTerm('');
                     setStatusFilter('all');
+                    setRidesFilter('all');
                   }}
                 >
                   Réinitialiser les filtres

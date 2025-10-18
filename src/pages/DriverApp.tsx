@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDriverServiceType } from '@/hooks/useDriverServiceType';
+import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 import DriverHeader from '@/components/driver/DriverHeader';
 import { UniversalBottomNavigation } from '@/components/navigation/UniversalBottomNavigation';
 import DriverMoreSheet from '@/components/driver/DriverMoreSheet';
@@ -19,6 +20,9 @@ const DriverApp = () => {
   const { loading } = useDriverServiceType();
   const [tab, setTab] = useState('orders');
   const [moreOpen, setMoreOpen] = useState(false);
+
+  // 🔔 Activer les notifications système temps réel
+  useSystemNotifications();
 
   // Sécurité : Vérifier que l'utilisateur est un chauffeur
   const { user } = useAuth();
