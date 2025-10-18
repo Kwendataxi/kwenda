@@ -2,6 +2,9 @@ project_id = "wddlktajnhwhyquwcdgf"
 
 # Configuration optimisée Kwenda - Fonctions actives uniquement
 
+[functions.unified-dispatcher]
+verify_jwt = true  # ✅ PHASE 4: Dispatcher unifié (remplace ride/delivery/smart-ride)
+
 [functions.google-maps-proxy]
 verify_jwt = true  # ✅ SÉCURITÉ CRITIQUE: Proxy sécurisé pour API Google Maps
 

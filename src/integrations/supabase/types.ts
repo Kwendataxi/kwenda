@@ -1721,6 +1721,13 @@ export type Database = {
             referencedRelation: "chauffeurs"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "dispatcher_rejections_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "driver_service_preferences_legacy"
+            referencedColumns: ["driver_id"]
+          },
         ]
       }
       driver_bonus_rides: {
@@ -1990,6 +1997,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "chauffeurs"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "driver_locations_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: true
+            referencedRelation: "driver_service_preferences_legacy"
+            referencedColumns: ["driver_id"]
           },
         ]
       }
@@ -2297,6 +2311,9 @@ export type Database = {
       driver_service_preferences: {
         Row: {
           created_at: string
+          deprecated: boolean | null
+          deprecated_at: string | null
+          deprecation_reason: string | null
           driver_id: string
           id: string
           is_active: boolean
@@ -2312,6 +2329,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deprecated?: boolean | null
+          deprecated_at?: string | null
+          deprecation_reason?: string | null
           driver_id: string
           id?: string
           is_active?: boolean
@@ -2327,6 +2347,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deprecated?: boolean | null
+          deprecated_at?: string | null
+          deprecation_reason?: string | null
           driver_id?: string
           id?: string
           is_active?: boolean
@@ -2347,6 +2370,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chauffeurs"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "driver_service_preferences_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "driver_service_preferences_legacy"
+            referencedColumns: ["driver_id"]
           },
         ]
       }
@@ -2486,6 +2516,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chauffeurs"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "driver_vehicle_associations_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "driver_service_preferences_legacy"
+            referencedColumns: ["driver_id"]
           },
           {
             foreignKeyName: "driver_vehicle_associations_partner_id_fkey"
@@ -3134,6 +3171,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chauffeurs"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "food_orders_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "driver_service_preferences_legacy"
+            referencedColumns: ["driver_id"]
           },
           {
             foreignKeyName: "food_orders_restaurant_id_fkey"
@@ -3856,6 +3900,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chauffeurs"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "lottery_prize_deliveries_delivery_person_id_fkey"
+            columns: ["delivery_person_id"]
+            isOneToOne: false
+            referencedRelation: "driver_service_preferences_legacy"
+            referencedColumns: ["driver_id"]
           },
           {
             foreignKeyName: "lottery_prize_deliveries_win_id_fkey"
@@ -5440,6 +5491,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chauffeurs"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "partner_driver_requests_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "driver_service_preferences_legacy"
+            referencedColumns: ["driver_id"]
           },
           {
             foreignKeyName: "partner_driver_requests_partner_id_fkey"
@@ -9642,6 +9700,7 @@ export type Database = {
           booking_time: string
           cancellation_reason: string | null
           cancellation_type: string | null
+          cancelled_at: string | null
           cancelled_by: string | null
           city: string | null
           completed_at: string | null
@@ -9685,6 +9744,7 @@ export type Database = {
           booking_time?: string
           cancellation_reason?: string | null
           cancellation_type?: string | null
+          cancelled_at?: string | null
           cancelled_by?: string | null
           city?: string | null
           completed_at?: string | null
@@ -9728,6 +9788,7 @@ export type Database = {
           booking_time?: string
           cancellation_reason?: string | null
           cancellation_type?: string | null
+          cancelled_at?: string | null
           cancelled_by?: string | null
           city?: string | null
           completed_at?: string | null
@@ -11848,6 +11909,39 @@ export type Database = {
           order_id: string | null
           order_type: string | null
           reason: string | null
+        }
+        Relationships: []
+      }
+      driver_service_preferences_legacy: {
+        Row: {
+          created_at: string | null
+          driver_id: string | null
+          id: string | null
+          is_active: boolean | null
+          preferred_zones: string[] | null
+          service_types: string[] | null
+          updated_at: string | null
+          vehicle_classes: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          driver_id?: string | null
+          id?: never
+          is_active?: boolean | null
+          preferred_zones?: string[] | null
+          service_types?: never
+          updated_at?: string | null
+          vehicle_classes?: never
+        }
+        Update: {
+          created_at?: string | null
+          driver_id?: string | null
+          id?: never
+          is_active?: boolean | null
+          preferred_zones?: string[] | null
+          service_types?: never
+          updated_at?: string | null
+          vehicle_classes?: never
         }
         Relationships: []
       }
