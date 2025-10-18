@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Package, Share2, Edit, Eye } from "lucide-react";
+import { Loader2, ArrowLeft, Package, Edit, Eye } from "lucide-react";
 import { ProductShareButtons } from "@/components/marketplace/ProductShareButtons";
+import { usePaginatedQueryAdvanced } from "@/hooks/usePaginatedQuery";
+import { PaginationControls } from "@/components/common/PaginationControls";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Product {
   id: string;
@@ -31,34 +33,46 @@ export default function MyProducts() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
+  // Custom fetch function for pagination
+  const fetchMyProducts = async (page: number, pageSize: number) => {
+    if (!user) return { data: [], count: 0 };
+
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await supabase
+      .from('marketplace_products')
+      .select('*', { count: 'exact' })
+      .eq('seller_id', user.id)
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error) throw error;
+    return { data: data || [], count: count || 0 };
+  };
+
+  // Pagination avec usePaginatedQueryAdvanced
+  const {
+    data: paginatedProducts,
+    loading: paginationLoading,
+    currentPage,
+    totalPages,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage,
+    goToPage,
+    nextPage,
+    previousPage,
+  } = usePaginatedQueryAdvanced<Product>('marketplace_products', fetchMyProducts, {
+    pageSize: 12,
+  });
+
   useEffect(() => {
-    loadMyProducts();
-  }, [user]);
-
-  const loadMyProducts = async () => {
-    if (!user) return;
-
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('marketplace_products')
-        .select('*')
-        .eq('seller_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProducts(data || []);
-    } catch (error: any) {
-      console.error('Erreur chargement produits:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger vos produits",
-        variant: "destructive",
-      });
-    } finally {
+    if (paginatedProducts) {
+      setProducts(paginatedProducts);
       setLoading(false);
     }
-  };
+  }, [paginatedProducts]);
 
   const filteredProducts = products.filter(product => {
     if (filter === 'all') return true;
@@ -100,7 +114,7 @@ export default function MyProducts() {
               <div>
                 <h1 className="text-2xl font-bold">Mes Produits</h1>
                 <p className="text-sm text-muted-foreground">
-                  {products.length} produit(s) au total
+                  {totalCount} produit(s) au total • Page {currentPage}/{totalPages}
                 </p>
               </div>
             </div>
@@ -223,6 +237,19 @@ export default function MyProducts() {
             ))}
           </div>
         )}
+
+        {/* Pagination Controls */}
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          hasNextPage={hasNextPage}
+          hasPreviousPage={hasPreviousPage}
+          onPageChange={goToPage}
+          onNextPage={nextPage}
+          onPreviousPage={previousPage}
+          itemName="produit(s)"
+        />
       </div>
     </div>
   );

@@ -64,13 +64,16 @@ export const useMarketplaceOrders = () => {
   const [orders, setOrders] = useState<MarketplaceOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch orders avec JOIN optimisé (PHASE 1.3)
-  const fetchOrders = async () => {
+  // Fetch orders avec JOIN optimisé et PAGINATION (PHASE 1.3)
+  const fetchOrders = async (page: number = 1, pageSize: number = 20) => {
     if (!user) return;
 
     try {
-      // ✅ CORRECTION : Utiliser foreign keys pour LEFT JOIN automatique
-      const { data, error } = await supabase
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      // ✅ CORRECTION : Utiliser foreign keys pour LEFT JOIN automatique + pagination
+      const { data, error, count } = await supabase
         .from('marketplace_orders')
         .select(`
           *,
@@ -78,9 +81,10 @@ export const useMarketplaceOrders = () => {
           buyer:profiles!fk_marketplace_orders_buyer(display_name, phone_number),
           seller:profiles!fk_marketplace_orders_seller(display_name, phone_number),
           escrow_payments(id, status, amount)
-        `)
+        `, { count: 'exact' })
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
 
@@ -108,8 +112,15 @@ export const useMarketplaceOrders = () => {
       })) || [];
 
       setOrders(formattedOrders);
+
+      return {
+        data: formattedOrders,
+        totalCount: count || 0,
+        totalPages: Math.ceil((count || 0) / pageSize)
+      };
     } catch (error) {
       console.error('Error fetching orders:', error);
+      return { data: [], totalCount: 0, totalPages: 0 };
     }
   };
 

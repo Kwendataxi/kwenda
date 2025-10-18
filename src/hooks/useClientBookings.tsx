@@ -101,18 +101,21 @@ export const useClientBookings = () => {
     }
   };
 
-  // Load booking history
-  const loadBookingHistory = async () => {
+  // Load booking history with pagination support
+  const loadBookingHistory = async (page: number = 1, pageSize: number = 20) => {
     if (!user) return;
 
     try {
-      const { data: bookings, error } = await supabase
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data: bookings, error, count } = await supabase
         .from('transport_bookings')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('user_id', user.id)
         .eq('status', 'completed')
         .order('completion_time', { ascending: false })
-        .limit(20);
+        .range(from, to);
 
       if (error) throw error;
 
@@ -131,8 +134,16 @@ export const useClientBookings = () => {
 
       setBookingHistory(formattedHistory);
 
+      // Return pagination info for UI
+      return {
+        data: formattedHistory,
+        totalCount: count || 0,
+        totalPages: Math.ceil((count || 0) / pageSize)
+      };
+
     } catch (error: any) {
       console.error('Error loading booking history:', error);
+      return { data: [], totalCount: 0, totalPages: 0 };
     }
   };
 
