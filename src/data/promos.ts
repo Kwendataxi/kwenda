@@ -3,7 +3,7 @@ import { Promo } from '@/types/promo';
 export const defaultPromos: Promo[] = [
   {
     id: '1',
-    title: '30% sur votre 1ère course',
+    title: '30% de réduction',
     description: 'Code: BIENVENUE30',
     image: '',
     gradient: 'from-pink-500 via-rose-500 to-pink-600',

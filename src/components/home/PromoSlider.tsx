@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { ShoppingBag, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
+import { usePromoCodeValidation } from '@/hooks/usePromoCodeValidation';
 
 interface PromoSliderProps {
   onServiceSelect: (service: string) => void;
@@ -14,6 +16,9 @@ interface PromoSliderProps {
 export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
+  const { user } = useAuth();
+  const { checkPromoUsage } = usePromoCodeValidation();
+  
   const autoplayRef = useRef(
     Autoplay({
       delay: 5000,
@@ -31,12 +36,27 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
     });
   }, [api]);
 
-  const handlePromoClick = (promo: typeof defaultPromos[0]) => {
+  const handlePromoClick = async (promo: typeof defaultPromos[0]) => {
     // Gestion code promo BIENVENUE30
     if (promo.id === '1') {
+      // Vérifier si l'utilisateur est connecté
+      if (!user) {
+        toast.error('Connectez-vous pour utiliser ce code promo');
+        return;
+      }
+
+      // Vérifier si le code a déjà été utilisé
+      const { canUse, reason } = await checkPromoUsage(user.id, 'BIENVENUE30');
+
+      if (!canUse) {
+        toast.error(reason || 'Code promo déjà utilisé');
+        return;
+      }
+
+      // Si OK, stocker le code
       localStorage.setItem('activePromoCode', 'BIENVENUE30');
       localStorage.setItem('promoDiscount', '30');
-      toast.success('Code promo BIENVENUE30 appliqué automatiquement!');
+      toast.success('Code promo BIENVENUE30 appliqué ! Valable une seule fois.');
     }
 
     // Redirection vers le service
@@ -69,31 +89,54 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                 <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.25),transparent_60%)]" />
                 
-                {/* Slide 1: 30% Discount */}
+                {/* Slide 1: 30% Discount - MODERNISÉ */}
                 {promo.id === '1' && (
-                  <div className="absolute inset-0 p-4 flex items-center justify-between text-white">
-                    {/* Contenu gauche */}
-                    <div className="flex-1">
-                      <h3 className="text-3xl font-black drop-shadow-2xl leading-none mb-1.5 -rotate-1">
-                        30% OFF
-                      </h3>
-                      <p className="text-sm font-bold opacity-95 drop-shadow-lg mb-2">
-                        sur ta 1ère course 🎉
-                      </p>
-                      
-                      {/* CTA Button */}
-                      <div className="inline-block bg-white text-primary px-5 py-2 rounded-xl font-black text-xs shadow-xl hover:scale-105 active:scale-95 transition-all duration-200">
-                        {promo.cta} →
+                  <div className="absolute inset-0 p-4 flex flex-col justify-between text-white">
+                    {/* Badge FIRST TIME en haut */}
+                    <div className="flex justify-end">
+                      <div className="bg-yellow-400 text-pink-600 px-3 py-1.5 rounded-full font-black text-xs shadow-xl animate-pulse">
+                        1ère COURSE SEULEMENT
                       </div>
                     </div>
 
-                    {/* Badge promo à droite */}
-                    <div className="bg-yellow-400 text-black px-3 py-1 rounded-full font-black text-xs shadow-xl rotate-3 animate-pulse">
-                      {promo.description}
+                    {/* Zone centrale : Offre principale */}
+                    <div className="flex-1 flex flex-col justify-center">
+                      <div className="space-y-2">
+                        {/* Titre principal */}
+                        <motion.h3 
+                          className="text-5xl font-black drop-shadow-2xl leading-none tracking-tighter"
+                          initial={{ scale: 0.9 }}
+                          animate={{ scale: 1 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          30% OFF
+                        </motion.h3>
+                        
+                        {/* Emoji + texte accrocheur */}
+                        <p className="text-sm font-bold opacity-95 drop-shadow-lg flex items-center gap-1">
+                          <span className="text-xl">🎉</span>
+                          Première course à -30%
+                        </p>
+                      </div>
                     </div>
 
-                    {/* Déco circles */}
-                    <div className="absolute bottom-4 right-4 w-16 h-16 bg-white/20 rounded-full blur-2xl" />
+                    {/* Zone inférieure : Code + CTA */}
+                    <div className="space-y-3">
+                      {/* Badge code promo */}
+                      <div className="bg-black/30 backdrop-blur-md px-4 py-2 rounded-xl text-center border border-white/20">
+                        <span className="text-xs opacity-75">Code promo</span>
+                        <p className="text-base font-black">BIENVENUE30</p>
+                      </div>
+                      
+                      {/* Bouton CTA */}
+                      <button className="w-full bg-white text-pink-600 px-6 py-3 rounded-xl font-black text-sm shadow-xl hover:scale-105 transition-all duration-200">
+                        {promo.cta} maintenant →
+                      </button>
+                    </div>
+
+                    {/* Glow effects */}
+                    <div className="absolute bottom-4 right-4 w-24 h-24 bg-yellow-400/30 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute top-1/4 left-1/4 w-20 h-20 bg-white/20 rounded-full blur-2xl pointer-events-none" />
                   </div>
                 )}
 
