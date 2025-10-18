@@ -13,7 +13,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDriverDispatch } from '@/hooks/useDriverDispatch';
 import { useDriverStatus } from '@/hooks/useDriverStatus';
+import { useDriverSubscriptions } from '@/hooks/useDriverSubscriptions';
 import DriverStatusToggle from './DriverStatusToggle';
+import SubscriptionDepletedAlert from './SubscriptionDepletedAlert';
 import { NavigationModal } from './NavigationModal';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -47,6 +49,9 @@ const UnifiedDriverInterface: React.FC<UnifiedDriverInterfaceProps> = ({ classNa
     rejectOrder,
     completeOrder
   } = useDriverDispatch();
+
+  // 🎯 Récupérer les infos d'abonnement
+  const { currentSubscription } = useDriverSubscriptions();
 
   // États pour la navigation
   const [navigationOpen, setNavigationOpen] = useState(false);
@@ -193,6 +198,15 @@ const UnifiedDriverInterface: React.FC<UnifiedDriverInterfaceProps> = ({ classNa
 
   return (
     <div className={cn("space-y-4", className)}>
+      {/* 🚨 Alerte abonnement épuisé */}
+      {currentSubscription && (
+        <SubscriptionDepletedAlert
+          ridesRemaining={currentSubscription.rides_remaining}
+          subscriptionStatus={currentSubscription.status}
+          planName={currentSubscription.subscription_plans?.name}
+        />
+      )}
+
       {/* Driver Status */}
       <DriverStatusToggle />
 

@@ -25,6 +25,7 @@ interface DriverSubscription {
   end_date: string
   auto_renew: boolean
   payment_method: string
+  rides_remaining: number
   subscription_plans?: SubscriptionPlan
 }
 
