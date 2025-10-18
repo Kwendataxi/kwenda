@@ -207,3 +207,5 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
     </div>
   );
 };
+
+export default FoodOrderInterface;

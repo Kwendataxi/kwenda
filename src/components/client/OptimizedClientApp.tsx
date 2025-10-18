@@ -3,12 +3,13 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Car, Package, ShoppingBag, MapPin } from 'lucide-react';
+import { Loader2, Car, Package, ShoppingBag, MapPin, UtensilsCrossed } from 'lucide-react';
 
 // Lazy loading des composants lourds
 const OptimizedTransportInterface = React.lazy(() => import('@/components/transport/OptimizedTransportInterface'));
 const SimpleDeliveryInterface = React.lazy(() => import('@/components/delivery/SimpleDeliveryInterface'));
 const MarketplaceInterface = React.lazy(() => import('@/components/marketplace/EnhancedMarketplaceInterface'));
+const FoodOrderInterface = React.lazy(() => import('@/components/food/FoodOrderInterface'));
 
 interface OptimizedClientAppProps {
   onNavigate: (path: string) => void;
@@ -60,6 +61,7 @@ export const OptimizedClientApp: React.FC<OptimizedClientAppProps> = ({ onNaviga
   const services = [
     { id: 'transport', icon: Car, title: 'Transport', badge: 'VTC & Taxi' },
     { id: 'delivery', icon: Package, title: 'Livraison', badge: 'Flash & Standard' },
+    { id: 'food', icon: UtensilsCrossed, title: 'Restaurants', badge: 'Commande en ligne' },
     { id: 'marketplace', icon: ShoppingBag, title: 'Marketplace', badge: 'E-commerce' }
   ];
 
@@ -86,6 +88,12 @@ export const OptimizedClientApp: React.FC<OptimizedClientAppProps> = ({ onNaviga
         return (
           <Suspense fallback={<LoadingSpinner />}>
             <SimpleDeliveryInterface onNavigate={onNavigate} />
+          </Suspense>
+        );
+      case 'food':
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <FoodOrderInterface onBack={() => setActiveService('transport')} />
           </Suspense>
         );
       case 'marketplace':
@@ -141,7 +149,7 @@ export const OptimizedClientApp: React.FC<OptimizedClientAppProps> = ({ onNaviga
           onValueChange={handleServiceChange}
           className="hidden md:block"
         >
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
             {services.map((service) => (
               <TabsTrigger 
                 key={service.id} 
