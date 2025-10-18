@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { withRateLimit, RATE_LIMITS } from "../_shared/ratelimit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,6 +11,9 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // ✅ Apply rate limiting (100 req/min for anonymous)
+  return withRateLimit(req, RATE_LIMITS.ANONYMOUS, async (req) => {
 
   try {
     const { query, region = 'cd', language = 'fr' } = await req.json();
@@ -175,4 +179,5 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
+  }); // withRateLimit
 });
