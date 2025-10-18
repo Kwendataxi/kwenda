@@ -23,7 +23,11 @@ export const SmartHome = () => {
 
   // Sur web standard et connecté, redirection intelligente selon le rôle
   if (user && session && !isMobilePlatform && !roleLoading) {
-    switch (userRole) {
+    // ✅ AMÉLIORATION: Utiliser loginIntent en priorité pour respecter le choix de l'utilisateur
+    const loginIntent = localStorage.getItem('kwenda_login_intent') as 'restaurant' | 'driver' | 'partner' | 'admin' | 'client' | null;
+    const targetRole = loginIntent || userRole;
+    
+    switch (targetRole) {
       case 'restaurant':
         return <Navigate to="/restaurant" replace />;
       case 'driver':

@@ -58,8 +58,11 @@ export default function RestaurantAuth() {
 
         if (error) throw error;
 
+        // ✅ Sauvegarder l'intention de connexion pour redirection correcte
+        localStorage.setItem('kwenda_login_intent', 'restaurant');
+        localStorage.setItem('kwenda_selected_role', 'restaurant');
+
         toast.success('Compte créé avec succès ! Vérifiez votre email pour confirmer votre compte.');
-        
         navigate('/restaurant');
       } else {
         // Connexion

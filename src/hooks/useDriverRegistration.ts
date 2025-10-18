@@ -83,6 +83,10 @@ export const useDriverRegistration = () => {
         error: authError
       });
 
+      // ✅ Sauvegarder l'intention de connexion pour redirection correcte
+      localStorage.setItem('kwenda_login_intent', 'driver');
+      localStorage.setItem('kwenda_selected_role', 'driver');
+
       if (authError) {
         console.error('❌ Erreur création compte:', authError);
         await supabase.rpc('log_driver_registration_attempt', {

@@ -179,6 +179,10 @@ const handleSubmit = async (e: React.FormEvent) => {
       throw authError;
     }
 
+    // ✅ Sauvegarder l'intention de connexion pour redirection correcte
+    localStorage.setItem('kwenda_login_intent', 'client');
+    localStorage.setItem('kwenda_selected_role', 'client');
+
     if (authData.user && !authData.session) {
       // Email confirmation requise
       logger.info('Email confirmation required for client');
