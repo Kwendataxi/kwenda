@@ -215,15 +215,86 @@ export function ProductModerationQueue() {
                   )}
                 </div>
 
-                {product.brand && (
-                  <div className="flex items-center space-x-2 text-sm">
-                    <Store className="h-4 w-4" />
-                    <span className="font-medium">{product.brand}</span>
-                  </div>
-                )}
+                {/* Infos vendeur */}
+                <div className="space-y-2">
+                  {product.brand && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Store className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">{product.brand}</span>
+                    </div>
+                  )}
 
-                <div className="text-sm text-muted-foreground">
-                  Stock: {product.stock_count} unités
+                  {/* Stock avec badge coloré */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Stock:</span>
+                    <Badge 
+                      variant="outline" 
+                      className={
+                        product.stock_count === 0 ? "bg-gray-100 text-gray-800" :
+                        product.stock_count <= 4 ? "bg-red-100 text-red-800" :
+                        product.stock_count <= 20 ? "bg-yellow-100 text-yellow-800" :
+                        "bg-green-100 text-green-800"
+                      }
+                    >
+                      {product.stock_count === 0 ? "Rupture" : `${product.stock_count} unités`}
+                    </Badge>
+                  </div>
+
+                  {/* Vérifications automatiques */}
+                  <div className="pt-2 space-y-1">
+                    <div className="text-xs font-semibold text-muted-foreground">Vérifications:</div>
+                    {/* Check images */}
+                    {(() => {
+                      const imgArray = Array.isArray(product.images) ? product.images : [];
+                      return imgArray.length >= 3 ? (
+                        <div className="flex items-center gap-1 text-xs text-green-600">
+                          <CheckCircle className="h-3 w-3" />
+                          <span>Images de qualité ({imgArray.length})</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-xs text-yellow-600">
+                          <AlertCircle className="h-3 w-3" />
+                          <span>Peu d'images ({imgArray.length})</span>
+                        </div>
+                      );
+                    })()}
+                    {/* Check description */}
+                    {product.description && product.description.length > 100 ? (
+                      <div className="flex items-center gap-1 text-xs text-green-600">
+                        <CheckCircle className="h-3 w-3" />
+                        <span>Description détaillée</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 text-xs text-yellow-600">
+                        <AlertCircle className="h-3 w-3" />
+                        <span>Description courte</span>
+                      </div>
+                    )}
+                    {/* Check prix */}
+                    {product.price > 0 && product.price < 10000000 ? (
+                      <div className="flex items-center gap-1 text-xs text-green-600">
+                        <CheckCircle className="h-3 w-3" />
+                        <span>Prix cohérent</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 text-xs text-red-600">
+                        <AlertCircle className="h-3 w-3" />
+                        <span>Prix suspect</span>
+                      </div>
+                    )}
+                    {/* Check stock */}
+                    {product.stock_count > 0 && product.stock_count < 1000 ? (
+                      <div className="flex items-center gap-1 text-xs text-green-600">
+                        <CheckCircle className="h-3 w-3" />
+                        <span>Stock raisonnable</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 text-xs text-yellow-600">
+                        <AlertCircle className="h-3 w-3" />
+                        <span>Stock inhabitueljeu</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
 

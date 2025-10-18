@@ -108,3 +108,21 @@ export const getConditionLabel = (value: string): string => {
   const condition = PRODUCT_CONDITIONS.find(c => c.value === value);
   return condition?.label || value;
 };
+
+export const getConditionIcon = (condition: string) => {
+  const icons = {
+    new: '✨',
+    like_new: '🌟',
+    good: '✅',
+    fair: '⚠️',
+    refurbished: '🔧',
+  };
+  return icons[condition as keyof typeof icons] || '📦';
+};
+
+export const getStockStatus = (stock: number) => {
+  if (stock === 0) return { label: 'Rupture', color: 'gray', icon: '⚫' };
+  if (stock <= 4) return { label: 'Faible', color: 'red', icon: '🔴' };
+  if (stock <= 20) return { label: 'Moyen', color: 'yellow', icon: '🟡' };
+  return { label: 'Élevé', color: 'green', icon: '🟢' };
+};

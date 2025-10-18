@@ -161,13 +161,38 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                     {getCategoryName(product.category)}
                   </Badge>
                   {product.condition && (
-                    <Badge variant="secondary" className="text-[10px] sm:text-xs">
+                    <Badge 
+                      variant="outline" 
+                      className={`text-[10px] sm:text-xs ${
+                        product.condition === 'new' ? 'bg-green-100 text-green-800 border-green-300' :
+                        product.condition === 'like_new' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                        product.condition === 'good' ? 'bg-cyan-100 text-cyan-800 border-cyan-300' :
+                        product.condition === 'fair' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                        'bg-purple-100 text-purple-800 border-purple-300'
+                      }`}
+                    >
+                      {product.condition === 'new' && '✨ '}
+                      {product.condition === 'like_new' && '🌟 '}
+                      {product.condition === 'good' && '✅ '}
+                      {product.condition === 'fair' && '⚠️ '}
+                      {product.condition === 'refurbished' && '🔧 '}
                       {getConditionLabel(product.condition)}
                     </Badge>
                   )}
-                  {product.stockCount !== undefined && product.stockCount > 0 && (
-                    <Badge variant="default" className="text-[10px] sm:text-xs ml-auto">
-                      ✅ En stock ({product.stockCount})
+                  {product.stockCount !== undefined && (
+                    <Badge 
+                      variant="outline" 
+                      className={`text-[10px] sm:text-xs ml-auto ${
+                        product.stockCount === 0 ? 'bg-gray-100 text-gray-800 border-gray-300' :
+                        product.stockCount <= 4 ? 'bg-red-100 text-red-800 border-red-300' :
+                        product.stockCount <= 20 ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                        'bg-green-100 text-green-800 border-green-300'
+                      }`}
+                    >
+                      {product.stockCount === 0 && '⚫ Rupture'}
+                      {product.stockCount > 0 && product.stockCount <= 4 && `🔴 Stock faible (${product.stockCount})`}
+                      {product.stockCount > 4 && product.stockCount <= 20 && `🟡 En stock (${product.stockCount})`}
+                      {product.stockCount > 20 && `🟢 Disponible (${product.stockCount})`}
                     </Badge>
                   )}
                 </div>

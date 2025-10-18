@@ -281,12 +281,22 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
                   <Textarea
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
-                    placeholder="Décrivez votre produit en détail..."
-                    rows={4}
+                    placeholder="Décrivez votre produit en détail (minimum 50 caractères)..."
+                    rows={5}
+                    maxLength={1000}
+                    className={cn(
+                      "border-2 transition-colors",
+                      formData.description.length >= 50 ? "border-green-500" : "border-border"
+                    )}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formData.description.length}/500 caractères
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formData.description.length}/1000 caractères (min. 50)
+                    </p>
+                    {errors.description && (
+                      <p className="text-xs text-destructive mt-1">{errors.description}</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Prix */}
@@ -341,35 +351,124 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
                   </div>
                 </div>
 
-                {/* Stock */}
-                <div>
-                  <Label>Quantité en stock</Label>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-9 w-9 p-0"
-                      onClick={() => handleInputChange('stock_count', String(Math.max(1, formData.stock_count - 1)))}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
+                {/* Stock + Brand */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Quantité en stock *</Label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleInputChange('stock_count', String(Math.max(1, formData.stock_count - 1)))}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <Input
+                        type="number"
+                        value={formData.stock_count}
+                        onChange={(e) => handleInputChange('stock_count', e.target.value)}
+                        min={1}
+                        max={9999}
+                        className="text-center tabular-nums"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleInputChange('stock_count', String(Math.min(9999, formData.stock_count + 1)))}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      1-9999 unités
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label>Marque (optionnel)</Label>
                     <Input
-                      type="number"
-                      value={formData.stock_count}
-                      onChange={(e) => handleInputChange('stock_count', e.target.value)}
-                      min={1}
-                      className="text-center"
+                      value={formData.brand}
+                      onChange={(e) => handleInputChange('brand', e.target.value)}
+                      placeholder="Ex: Samsung, Nike..."
+                      maxLength={50}
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-9 w-9 p-0"
-                      onClick={() => handleInputChange('stock_count', String(formData.stock_count + 1))}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Si applicable
+                    </p>
+                  </div>
+                </div>
+
+                {/* Specifications (optionnel) */}
+                <div>
+                  <Label>Caractéristiques (optionnel)</Label>
+                  <div className="space-y-2">
+                    {Object.entries(formData.specifications).map(([key, value]) => (
+                      <div key={key} className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                        <span className="text-sm flex-1">
+                          <strong>{key}:</strong> {value}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => {
+                            const newSpecs = { ...formData.specifications };
+                            delete newSpecs[key];
+                            setFormData(prev => ({ ...prev, specifications: newSpecs }));
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                    {Object.keys(formData.specifications).length < 10 && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input
+                          id="spec-key"
+                          placeholder="Nom (ex: Couleur)"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const key = (e.target as HTMLInputElement).value.trim();
+                              const value = (document.getElementById('spec-value') as HTMLInputElement)?.value.trim();
+                              if (key && value) {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  specifications: { ...prev.specifications, [key]: value }
+                                }));
+                                (e.target as HTMLInputElement).value = '';
+                                (document.getElementById('spec-value') as HTMLInputElement).value = '';
+                              }
+                            }
+                          }}
+                        />
+                        <Input
+                          id="spec-value"
+                          placeholder="Valeur (ex: Noir)"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const value = (e.target as HTMLInputElement).value.trim();
+                              const key = (document.getElementById('spec-key') as HTMLInputElement)?.value.trim();
+                              if (key && value) {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  specifications: { ...prev.specifications, [key]: value }
+                                }));
+                                (e.target as HTMLInputElement).value = '';
+                                (document.getElementById('spec-key') as HTMLInputElement).value = '';
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Ajoutez des détails techniques (couleur, taille, garantie, etc.)
+                    </p>
                   </div>
                 </div>
               </CardContent>
