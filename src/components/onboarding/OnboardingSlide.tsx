@@ -1,7 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { LucideIcon, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface OnboardingSlideProps {
   icon: LucideIcon;
@@ -21,10 +20,7 @@ export const OnboardingSlide: React.FC<OnboardingSlideProps> = ({
   index
 }) => {
   return (
-    <div className={cn(
-      "relative flex min-h-[65vh] flex-col items-center justify-center px-6 py-10 text-center overflow-hidden",
-      "bg-gradient-to-b", gradient
-    )}>
+    <div className={`relative flex min-h-[65vh] flex-col items-center justify-center px-6 py-10 text-center overflow-hidden bg-gradient-to-b ${gradient}`}>
       {/* Glow Effect Background */}
       <motion.div
         className="absolute inset-0 opacity-20 blur-3xl"
