@@ -1,5 +1,5 @@
 import { 
-  Car, PackageCheck, ShoppingBag, KeyRound, UtensilsCrossed,
+  Car, PackageCheck, ShoppingBag, CarFront, UtensilsCrossed,
   Gauge, CreditCard, Shield,
   Layers, TrendingUp, Wallet,
   Store, ShoppingCart, Lock,
@@ -68,16 +68,16 @@ export const onboardingContent: Record<OnboardingContext, OnboardingSlideContent
       gradient: "from-purple-500/10 via-background to-background"
     },
     {
-      icon: KeyRound,
-      title: "Louez un véhicule premium",
-      tagline: "Courte ou longue durée, avec ou sans chauffeur",
+      icon: CarFront,
+      title: "Louez votre véhicule idéal",
+      tagline: "À partir de 50 000 CDF/jour",
       benefits: [
-        "Flotte moderne et entretenue",
-        "Assurance incluse dans le tarif",
-        "Service disponible 24/7",
-        "Kinshasa, Lubumbashi, Kolwezi"
+        "Véhicules récents et entretenus",
+        "Avec ou sans chauffeur",
+        "Assurance tous risques incluse",
+        "Disponible dans 3 villes"
       ],
-      gradient: "from-blue-500/10 via-background to-background"
+      gradient: "from-blue-600/10 via-background to-background"
     }
   ],
   
