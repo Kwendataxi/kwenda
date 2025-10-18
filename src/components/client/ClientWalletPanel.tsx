@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useWallet } from '@/hooks/useWallet';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useWalletValidation } from '@/hooks/useWalletValidation';
-import { EnhancedWalletCard } from '@/components/wallet/EnhancedWalletCard';
+import { DualBalanceCard } from '@/components/wallet/DualBalanceCard';
 import { QuickAmountSelector } from '@/components/wallet/QuickAmountSelector';
 import { OperatorSelector } from '@/components/wallet/OperatorSelector';
 import { AnimatedTopUpButton } from '@/components/wallet/AnimatedTopUpButton';
@@ -15,7 +15,8 @@ import { EmptyTransactions } from '@/components/wallet/EmptyTransactions';
 import { SuccessConfetti } from '@/components/wallet/SuccessConfetti';
 import { WalletSkeleton } from '@/components/wallet/WalletSkeleton';
 import { TransferMoneyDialog } from '@/components/wallet/TransferMoneyDialog';
-import { Send } from 'lucide-react';
+import { PointsConversionDialog } from '@/components/loyalty/PointsConversionDialog';
+import { Send, Gift } from 'lucide-react';
 
 type Operator = 'airtel' | 'orange' | 'mpesa';
 
@@ -32,6 +33,7 @@ export const ClientWalletPanel: React.FC = () => {
   const [phone, setPhone] = useState<string>('');
   const [showConfetti, setShowConfetti] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [showConversionDialog, setShowConversionDialog] = useState(false);
 
   const handleQuickAmountSelect = (quickAmount: number) => {
     setAmount(quickAmount.toString());
@@ -83,23 +85,35 @@ export const ClientWalletPanel: React.FC = () => {
     <div className="space-y-6 p-6 pb-24">
       <SuccessConfetti show={showConfetti} onComplete={() => setShowConfetti(false)} />
 
-      {/* Enhanced Wallet Balance Card */}
+      {/* Dual Balance Card */}
       <div className="space-y-3">
-        <EnhancedWalletCard
-          balance={wallet?.balance || 0}
+        <DualBalanceCard
+          mainBalance={wallet?.balance || 0}
+          bonusBalance={wallet?.ecosystem_credits || 0}
+          kwendaPoints={wallet?.kwenda_points || 0}
           currency={wallet?.currency || 'CDF'}
           loading={loading}
-          compact={false}
         />
-        
-        <Button 
-          variant="outline" 
-          className="w-full gap-2"
-          onClick={() => setShowTransferDialog(true)}
-        >
-          <Send className="w-4 h-4" />
-          Transférer de l'argent
-        </Button>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Button 
+            variant="default" 
+            className="gap-2"
+            onClick={() => setShowConversionDialog(true)}
+          >
+            <Gift className="w-4 h-4" />
+            Convertir Points
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={() => setShowTransferDialog(true)}
+          >
+            <Send className="w-4 h-4" />
+            Transférer
+          </Button>
+        </div>
       </div>
 
       {/* Modern Top-up Section */}
@@ -193,6 +207,11 @@ export const ClientWalletPanel: React.FC = () => {
       <TransferMoneyDialog 
         open={showTransferDialog} 
         onClose={() => setShowTransferDialog(false)} 
+      />
+
+      <PointsConversionDialog 
+        open={showConversionDialog} 
+        onClose={() => setShowConversionDialog(false)} 
       />
     </div>
   );

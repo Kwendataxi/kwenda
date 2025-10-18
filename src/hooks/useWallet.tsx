@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 interface WalletData {
   id: string;
   balance: number;
+  ecosystem_credits: number;
+  kwenda_points: number;
   currency: string;
   is_active: boolean;
 }
@@ -61,7 +63,7 @@ export const useWallet = () => {
       
       const { data, error } = await supabase
         .from('user_wallets')
-        .select('*')
+        .select('id, balance, ecosystem_credits, kwenda_points, currency, is_active')
         .eq('user_id', user.id)
         .eq('currency', 'CDF')
         .maybeSingle();
@@ -78,10 +80,12 @@ export const useWallet = () => {
           .insert({
             user_id: user.id,
             balance: 0,
+            ecosystem_credits: 0,
+            kwenda_points: 0,
             currency: 'CDF',
             is_active: true
           })
-          .select()
+          .select('id, balance, ecosystem_credits, kwenda_points, currency, is_active')
           .single();
 
         if (createError) {
