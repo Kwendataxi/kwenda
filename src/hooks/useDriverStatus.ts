@@ -12,6 +12,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useDriverGeolocation } from './useDriverGeolocation';
+import { useActiveDriverOrders } from './useActiveDriverOrders';
 
 export type DriverState = 'offline' | 'online_available' | 'online_busy' | 'in_ride';
 
@@ -39,6 +41,22 @@ export const useDriverStatus = () => {
   });
   const [loading, setLoading] = useState(false);
   const [optimisticUpdate, setOptimisticUpdate] = useState<Partial<DriverStatus> | null>(null);
+
+  // 🎯 PHASE 3: Géolocalisation unifiée avec auto-sync
+  const { 
+    location, 
+    getCurrentPosition, 
+    startWatching, 
+    stopWatching,
+    syncing 
+  } = useDriverGeolocation({
+    autoSync: true, // Auto-sync avec DB toutes les 30s
+    syncInterval: 30000,
+    batterySaving: false,
+  });
+
+  // 🎯 PHASE 3: Commandes actives pour déterminer si occupé
+  const { isBusy, hasActiveOrders } = useActiveDriverOrders();
 
   // Charger le statut initial depuis la DB
   useEffect(() => {
@@ -81,7 +99,8 @@ export const useDriverStatus = () => {
     hasActiveOrder: boolean
   ): DriverState => {
     if (!isOnline) return 'offline';
-    if (hasActiveOrder) return 'in_ride';
+    // 🎯 PHASE 3: Utiliser isBusy de useActiveDriverOrders
+    if (hasActiveOrder || isBusy) return 'in_ride';
     if (!isAvailable) return 'online_busy';
     return 'online_available';
   };
@@ -194,21 +213,28 @@ export const useDriverStatus = () => {
 
   // ✅ Passer en ligne
   const goOnline = useCallback(async (latitude?: number, longitude?: number) => {
+    // 🎯 PHASE 3: Démarrer le tracking GPS automatiquement
+    await getCurrentPosition(true); // Force GPS refresh
+    startWatching();
+    
     return updateStatus({
       isOnline: true,
       isAvailable: true,
-      latitude,
-      longitude,
+      latitude: latitude || location?.latitude,
+      longitude: longitude || location?.longitude,
     });
-  }, [updateStatus]);
+  }, [updateStatus, getCurrentPosition, startWatching, location]);
 
   // ✅ Passer hors ligne
   const goOffline = useCallback(async () => {
+    // 🎯 PHASE 3: Arrêter le tracking GPS automatiquement
+    stopWatching();
+    
     return updateStatus({
       isOnline: false,
       isAvailable: false,
     });
-  }, [updateStatus]);
+  }, [updateStatus, stopWatching]);
 
   // ✅ Changer la disponibilité
   const setAvailable = useCallback(async (isAvailable: boolean) => {
@@ -289,5 +315,10 @@ export const useDriverStatus = () => {
     markBusy,
     markAvailable,
     updateServiceTypes,
+    // 🎯 PHASE 3: Exposer états GPS et commandes
+    gpsLocation: location,
+    gpsSyncing: syncing,
+    hasActiveOrders,
+    isBusy,
   };
 };

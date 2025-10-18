@@ -11805,6 +11805,27 @@ export type Database = {
       }
     }
     Views: {
+      active_driver_orders: {
+        Row: {
+          city: string | null
+          created_at: string | null
+          delivery_coordinates: Json | null
+          delivery_location: string | null
+          delivery_type: string | null
+          driver_id: string | null
+          estimated_price: number | null
+          order_id: string | null
+          order_type: string | null
+          package_type: string | null
+          pickup_coordinates: Json | null
+          pickup_location: string | null
+          pickup_time: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       ai_performance_stats_secure: {
         Row: {
           avg_response_time_ms: number | null
@@ -13504,6 +13525,10 @@ export type Database = {
           p_unit?: string
         }
         Returns: string
+      }
+      refresh_active_driver_orders: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       refresh_admin_cache: {
         Args: Record<PropertyKey, never>
