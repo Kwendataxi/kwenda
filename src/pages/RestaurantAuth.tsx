@@ -32,17 +32,13 @@ export default function RestaurantAuth() {
       if (isSignUp) {
         // Validation téléphone
         if (!validatePhoneNumber(formData.phone)) {
-          toast.error('Erreur', {
-            description: 'Le numéro de téléphone doit être au format : 0991234567 (10 chiffres)'
-          });
+          toast.error('Le numéro de téléphone doit être au format : 0991234567 (10 chiffres)');
           return;
         }
 
         // Validation nom restaurant
         if (!formData.restaurantName.trim()) {
-          toast.error('Erreur', {
-            description: 'Le nom du restaurant est obligatoire'
-          });
+          toast.error('Le nom du restaurant est obligatoire');
           return;
         }
 
@@ -62,9 +58,7 @@ export default function RestaurantAuth() {
 
         if (error) throw error;
 
-        toast.success('Compte créé avec succès !', {
-          description: 'Vérifiez votre email pour confirmer votre compte'
-        });
+        toast.success('Compte créé avec succès ! Vérifiez votre email pour confirmer votre compte.');
         
         navigate('/restaurant');
       } else {
@@ -76,15 +70,11 @@ export default function RestaurantAuth() {
 
         if (error) throw error;
 
-        toast.success('Bienvenue !', {
-          description: 'Connexion réussie'
-        });
+        toast.success('Bienvenue ! Connexion réussie.');
         navigate('/restaurant');
       }
     } catch (error: any) {
-      toast.error('Erreur', {
-        description: error.message
-      });
+      toast.error(error.message || "Une erreur est survenue");
     } finally {
       setLoading(false);
     }

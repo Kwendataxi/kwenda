@@ -37,7 +37,7 @@ export const useDriverRegistration = () => {
     setIsRegistering(true);
 
     try {
-      // 1. Valider les données avant l'inscription avec la nouvelle fonction
+      // 1. Validation simple côté client (RPC validation temporairement désactivée)
       console.log('🔍 Validation des données d\'inscription:', {
         email: data.email,
         phone: data.phoneNumber,
@@ -45,37 +45,15 @@ export const useDriverRegistration = () => {
         plate: data.hasOwnVehicle ? data.vehiclePlate : null
       });
 
-      const { data: validation, error: validationError } = await supabase.rpc('validate_driver_registration_data', {
-        p_email: data.email,
-        p_phone_number: data.phoneNumber,
-        p_license_number: data.licenseNumber,
-        p_vehicle_plate: data.hasOwnVehicle ? data.vehiclePlate : null
-      });
-
-      if (validationError) {
-        console.error('❌ Erreur validation RPC:', validationError);
-        await supabase.rpc('log_driver_registration_attempt', {
-          p_email: data.email,
-          p_phone_number: data.phoneNumber,
-          p_license_number: data.licenseNumber,
-          p_success: false,
-          p_error_message: `Validation error: ${validationError.message}`
-        });
-        throw validationError;
+      // Validation téléphone format congolais
+      const phoneRegex = /^0[0-9]{9}$/;
+      if (!phoneRegex.test(data.phoneNumber.replace(/[\s\-]/g, ''))) {
+        throw new Error('Format de téléphone invalide (ex: 0991234567)');
       }
 
-      if (validation && typeof validation === 'object' && 'valid' in validation && !(validation as any).valid) {
-        const errors = (validation as any).errors || [];
-        const errorMessage = Array.isArray(errors) ? errors.join(', ') : 'Erreur de validation';
-        console.warn('⚠️ Validation échouée:', errors);
-        await supabase.rpc('log_driver_registration_attempt', {
-          p_email: data.email,
-          p_phone_number: data.phoneNumber,
-          p_license_number: data.licenseNumber,
-          p_success: false,
-          p_error_message: errorMessage
-        });
-        throw new Error(errorMessage);
+      // Validation champs obligatoires
+      if (!data.email || !data.displayName || !data.licenseNumber) {
+        throw new Error('Veuillez remplir tous les champs obligatoires');
       }
 
       console.log('✅ Validation réussie, création du compte...');
