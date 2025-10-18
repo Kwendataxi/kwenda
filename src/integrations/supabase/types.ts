@@ -11961,6 +11961,66 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_transfers: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string | null
+          currency: string
+          description: string | null
+          failed_at: string | null
+          failure_reason: string | null
+          id: string
+          ip_address: unknown | null
+          recipient_balance_after: number | null
+          recipient_balance_before: number | null
+          recipient_id: string
+          sender_balance_after: number
+          sender_balance_before: number
+          sender_id: string
+          status: string
+          user_agent: string | null
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string
+          description?: string | null
+          failed_at?: string | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown | null
+          recipient_balance_after?: number | null
+          recipient_balance_before?: number | null
+          recipient_id: string
+          sender_balance_after: number
+          sender_balance_before: number
+          sender_id: string
+          status?: string
+          user_agent?: string | null
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string
+          description?: string | null
+          failed_at?: string | null
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown | null
+          recipient_balance_after?: number | null
+          recipient_balance_before?: number | null
+          recipient_id?: string
+          sender_balance_after?: number
+          sender_balance_before?: number
+          sender_id?: string
+          status?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       webhook_audit_logs: {
         Row: {
           correlation_id: string | null
@@ -12974,6 +13034,15 @@ export type Database = {
           user_id: string
           user_type: string | null
         }
+      }
+      execute_wallet_transfer: {
+        Args: {
+          p_amount: number
+          p_description: string
+          p_recipient_id: string
+          p_sender_id: string
+        }
+        Returns: Json
       }
       find_nearby_delivery_drivers: {
         Args: {

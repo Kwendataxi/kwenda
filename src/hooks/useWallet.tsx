@@ -158,55 +158,66 @@ export const useWallet = () => {
     }
   };
 
-  const transferFunds = async (recipientId: string, amount: number, description: string) => {
-    if (!user || !wallet) return false;
+  const transferFunds = async (
+    recipientPhoneOrId: string, 
+    amount: number, 
+    description: string
+  ) => {
+    if (!user) {
+      toast.error('Vous devez être connecté');
+      return false;
+    }
+
+    if (!wallet) {
+      toast.error('Portefeuille non initialisé');
+      return false;
+    }
+
+    // Validations côté client (UX)
+    if (amount < 100) {
+      toast.error('Montant minimum : 100 CDF');
+      return false;
+    }
+
+    if (amount > 500000) {
+      toast.error('Montant maximum : 500,000 CDF par transfert');
+      return false;
+    }
 
     if (wallet.balance < amount) {
-      toast.error('Solde insuffisant');
+      toast.error(`Solde insuffisant (disponible: ${wallet.balance.toLocaleString()} CDF)`);
       return false;
     }
 
     setLoading(true);
     try {
-      // In a real implementation, this would be handled by an edge function
-      // For now, we'll create the transaction records directly
-      const currentBalance = wallet.balance;
-      const newBalance = currentBalance - amount;
+      const { data, error } = await supabase.functions.invoke('wallet-transfer', {
+        body: {
+          recipient_phone_or_id: recipientPhoneOrId,
+          amount,
+          description
+        }
+      });
 
-      // Update sender wallet
-      const { error: updateError } = await supabase
-        .from('user_wallets')
-        .update({ balance: newBalance })
-        .eq('id', wallet.id);
+      if (error) throw error;
 
-      if (updateError) throw updateError;
-
-      // Create transaction record
-      const { error: transactionError } = await supabase
-        .from('wallet_transactions')
-        .insert({
-          user_id: user.id,
-          wallet_id: wallet.id,
-          transaction_type: 'debit',
-          amount: amount,
-          currency: 'CDF',
-          description: description,
-          balance_before: currentBalance,
-          balance_after: newBalance,
-          reference_type: 'transfer',
-          reference_id: recipientId,
-          status: 'completed'
-        });
-
-      if (transactionError) throw transactionError;
-
-      toast.success('Transfert effectué avec succès');
-      await fetchWallet();
-      await fetchTransactions();
-      return true;
+      if (data.success) {
+        toast.success(
+          `Transfert de ${amount.toLocaleString()} CDF effectué avec succès`,
+          {
+            description: `Envoyé à ${data.recipient_name}`
+          }
+        );
+        
+        await fetchWallet();
+        await fetchTransactions();
+        return true;
+      } else {
+        throw new Error(data.error || 'Échec du transfert');
+      }
     } catch (error: any) {
       console.error('Transfer error:', error);
-      toast.error('Erreur lors du transfert');
+      toast.error(`Erreur: ${error.message}`);
       return false;
     } finally {
       setLoading(false);

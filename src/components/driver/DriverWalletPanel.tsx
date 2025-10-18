@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { useWallet } from '@/hooks/useWallet';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useWalletValidation } from '@/hooks/useWalletValidation';
@@ -13,6 +14,8 @@ import { TransactionCard } from '@/components/wallet/TransactionCard';
 import { EmptyTransactions } from '@/components/wallet/EmptyTransactions';
 import { SuccessConfetti } from '@/components/wallet/SuccessConfetti';
 import { WalletSkeleton } from '@/components/wallet/WalletSkeleton';
+import { TransferMoneyDialog } from '@/components/wallet/TransferMoneyDialog';
+import { Send } from 'lucide-react';
 
 type Operator = 'airtel' | 'orange' | 'mpesa';
 
@@ -28,6 +31,7 @@ export const DriverWalletPanel: React.FC = () => {
   const [provider, setProvider] = useState<Operator | ''>('');
   const [phone, setPhone] = useState<string>('');
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
 
   const handleQuickAmountSelect = (quickAmount: number) => {
     setAmount(quickAmount.toString());
@@ -80,12 +84,23 @@ export const DriverWalletPanel: React.FC = () => {
       <SuccessConfetti show={showConfetti} onComplete={() => setShowConfetti(false)} />
 
       {/* Enhanced Wallet Balance Card */}
-      <EnhancedWalletCard
-        balance={wallet?.balance || 0}
-        currency={wallet?.currency || 'CDF'}
-        loading={loading}
-        compact={false}
-      />
+      <div className="space-y-3">
+        <EnhancedWalletCard
+          balance={wallet?.balance || 0}
+          currency={wallet?.currency || 'CDF'}
+          loading={loading}
+          compact={false}
+        />
+        
+        <Button 
+          variant="outline" 
+          className="w-full gap-2"
+          onClick={() => setShowTransferDialog(true)}
+        >
+          <Send className="w-4 h-4" />
+          Transférer de l'argent
+        </Button>
+      </div>
 
       {/* Modern Top-up Section */}
       <Card className="border-border overflow-hidden">
@@ -174,6 +189,11 @@ export const DriverWalletPanel: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      <TransferMoneyDialog 
+        open={showTransferDialog} 
+        onClose={() => setShowTransferDialog(false)} 
+      />
     </div>
   );
 };
