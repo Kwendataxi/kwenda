@@ -12316,6 +12316,26 @@ export type Database = {
           order_type: string | null
           reason: string | null
         }
+        Insert: {
+          created_at?: string | null
+          current_driver_id?: never
+          current_status?: never
+          description?: string | null
+          driver_id?: never
+          order_id?: string | null
+          order_type?: string | null
+          reason?: never
+        }
+        Update: {
+          created_at?: string | null
+          current_driver_id?: never
+          current_status?: never
+          description?: string | null
+          driver_id?: never
+          order_id?: string | null
+          order_type?: string | null
+          reason?: never
+        }
         Relationships: []
       }
       driver_service_preferences_legacy: {
@@ -12442,18 +12462,15 @@ export type Database = {
       }
       vendor_stats_cache: {
         Row: {
-          average_rating: number | null
-          created_at: string | null
+          avg_rating: number | null
           follower_count: number | null
-          shop_banner_url: string | null
-          shop_description: string | null
-          shop_logo_url: string | null
-          shop_name: string | null
+          last_product_date: string | null
+          last_sale_date: string | null
+          last_updated: string | null
+          total_products: number | null
           total_reviews: number | null
           total_sales: number | null
-          updated_at: string | null
-          user_id: string | null
-          vendor_profile_id: string | null
+          vendor_id: string | null
         }
         Relationships: []
       }
