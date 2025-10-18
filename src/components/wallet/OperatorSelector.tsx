@@ -14,23 +14,20 @@ const operators = [
   { 
     id: 'airtel' as Operator, 
     name: 'Airtel Money',
-    color: 'from-red-500 to-red-600',
-    textColor: 'text-red-600',
-    bgColor: 'bg-red-500/10'
+    bgColor: 'bg-red-500',
+    shadowColor: 'shadow-red-500/40'
   },
   { 
     id: 'orange' as Operator, 
     name: 'Orange Money',
-    color: 'from-orange-500 to-orange-600',
-    textColor: 'text-orange-600',
-    bgColor: 'bg-orange-500/10'
+    bgColor: 'bg-orange-500',
+    shadowColor: 'shadow-orange-500/40'
   },
   { 
     id: 'mpesa' as Operator, 
     name: 'M-Pesa',
-    color: 'from-green-600 to-green-700',
-    textColor: 'text-green-600',
-    bgColor: 'bg-green-500/10'
+    bgColor: 'bg-green-500',
+    shadowColor: 'shadow-green-500/40'
   },
 ];
 
@@ -39,8 +36,10 @@ export const OperatorSelector: React.FC<OperatorSelectorProps> = ({
   onSelect
 }) => {
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-foreground/90">Opérateur mobile</label>
+    <div className="space-y-3">
+      <label className="text-sm font-semibold text-zinc-300 uppercase tracking-wide">
+        Opérateur mobile
+      </label>
       <div className="grid grid-cols-3 gap-3">
         {operators.map((operator, index) => (
           <motion.button
@@ -48,53 +47,44 @@ export const OperatorSelector: React.FC<OperatorSelectorProps> = ({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.1 }}
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => onSelect(operator.id)}
             className={cn(
-              "relative p-4 rounded-2xl border-2 transition-all duration-300",
-              "flex flex-col items-center gap-2",
+              "relative flex flex-col items-center justify-center",
+              "aspect-square rounded-2xl p-4",
+              "transition-all duration-200",
               selected === operator.id
-                ? `border-transparent ${operator.bgColor} shadow-lg`
-                : "border-border/50 bg-muted/30 hover:border-border"
+                ? `${operator.bgColor} border-transparent shadow-2xl ${operator.shadowColor} ring-2 ring-${operator.bgColor.split('-')[1]}-500/30`
+                : "bg-zinc-800/50 border-2 border-zinc-700/50 hover:border-zinc-600"
             )}
           >
             {selected === operator.id && (
-              <>
-                <motion.div
-                  layoutId="operatorGlow"
-                  className={cn(
-                    "absolute inset-0 rounded-2xl bg-gradient-to-br opacity-20",
-                    operator.color
-                  )}
-                />
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center"
-                >
-                  <div className="w-2 h-2 bg-white rounded-full" />
-                </motion.div>
-              </>
+              <motion.div
+                layoutId="operatorBadge"
+                className="absolute -top-2 -right-2 w-5 h-5 bg-rose-500 rounded-full border-2 border-zinc-900 shadow-lg"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+              />
             )}
             
-            <motion.div
-              animate={selected === operator.id ? { scale: [1, 1.2, 1] } : {}}
-              transition={{ duration: 0.5 }}
-              className={cn(
-                "w-12 h-12 rounded-xl flex items-center justify-center",
-                selected === operator.id ? operator.bgColor : "bg-muted"
-              )}
-            >
+            <div className={cn(
+              "w-12 h-12 sm:w-16 sm:h-16 rounded-xl mb-2",
+              "flex items-center justify-center",
+              selected === operator.id 
+                ? "bg-white/20" 
+                : "bg-zinc-700/50"
+            )}>
               <Smartphone className={cn(
-                "w-6 h-6",
-                selected === operator.id ? operator.textColor : "text-muted-foreground"
+                "w-6 h-6 sm:w-8 sm:h-8",
+                selected === operator.id ? "text-white" : "text-zinc-400"
               )} />
-            </motion.div>
+            </div>
             
             <span className={cn(
-              "text-xs font-semibold text-center relative z-10",
-              selected === operator.id ? operator.textColor : "text-muted-foreground"
+              "text-xs sm:text-sm font-bold text-center",
+              selected === operator.id ? "text-white" : "text-zinc-400"
             )}>
               {operator.name}
             </span>

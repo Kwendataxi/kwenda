@@ -16,30 +16,35 @@ export const QuickAmountSelector: React.FC<QuickAmountSelectorProps> = ({
   currency = 'CDF'
 }) => {
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-foreground/90">Montants rapides</label>
-      <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+    <div className="space-y-3">
+      <label className="text-sm font-semibold text-zinc-300 uppercase tracking-wide">
+        Montants rapides
+      </label>
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
         {amounts.map((amount, index) => (
           <motion.button
             key={amount}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => onSelect(amount)}
             className={cn(
-              "relative px-3 py-3 rounded-xl font-semibold text-sm transition-all duration-200",
-              "border-2 backdrop-blur-sm",
+              "relative px-4 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg",
+              "transition-all duration-200",
               selectedAmount === amount
-                ? "bg-primary/20 border-primary text-primary shadow-lg shadow-primary/20"
-                : "bg-muted/50 border-border/50 text-foreground/70 hover:border-primary/50 hover:bg-muted"
+                ? "bg-rose-500/20 border-2 border-rose-500/80 text-rose-400 shadow-lg shadow-rose-500/30 ring-2 ring-rose-500/20"
+                : "bg-zinc-800/50 border-2 border-zinc-700/50 text-zinc-300 hover:border-zinc-600"
             )}
           >
             {selectedAmount === amount && (
               <motion.div
-                layoutId="quickAmountHighlight"
-                className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl"
+                layoutId="selectedBadge"
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-500 rounded-full shadow-lg shadow-rose-500/50"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             )}
             <span className="relative z-10">

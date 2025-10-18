@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -99,100 +99,102 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className={cn(
-        "max-w-md p-0 gap-0 overflow-hidden",
-        "bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50",
-        "dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900",
-        "border-2 border-primary/20"
+        "w-[calc(100vw-2rem)] max-w-[480px] p-0 gap-0 overflow-hidden",
+        "max-h-[90vh] overflow-y-auto",
+        "bg-zinc-900/98 dark:bg-zinc-900/98",
+        "backdrop-blur-xl border-zinc-800/50",
+        "data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom-4",
+        "data-[state=open]:duration-300"
       )}>
-        <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.95 }}
-          transition={{ type: "spring", damping: 20, stiffness: 300 }}
-        >
-          {/* Header avec gradient */}
-          <DialogHeader className="relative p-6 pb-4 bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utb3BhY2l0eT0iMC4wNSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-30" />
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent relative z-10">
-              Recharger KwendaPay
-            </DialogTitle>
-            <p className="text-sm text-muted-foreground mt-1 relative z-10">
-              Rechargez votre portefeuille via Mobile Money
-            </p>
-          </DialogHeader>
+        {/* Header simplifié */}
+        <DialogHeader className="relative p-5 sm:p-6 pb-4 border-b border-zinc-800/50">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
+            Rechargez votre portefeuille via Mobile Money
+          </DialogTitle>
+        </DialogHeader>
 
-          {/* Content */}
-          <div className="p-6 space-y-6">
-            {/* Quick Amount Selector */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <QuickAmountSelector
-                amounts={quickAmounts}
-                selectedAmount={selectedQuickAmount}
-                onSelect={handleQuickAmountSelect}
-                currency={currency}
-              />
-            </motion.div>
+        {/* Content avec espacements généreux */}
+        <div className="p-5 sm:p-6 space-y-6 sm:space-y-7">
+          {/* Quick Amount Selector */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <QuickAmountSelector
+              amounts={quickAmounts}
+              selectedAmount={selectedQuickAmount}
+              onSelect={handleQuickAmountSelect}
+              currency={currency}
+            />
+          </motion.div>
 
-            {/* Custom Amount Input */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15 }}
-              className="space-y-2"
-            >
-              <Label className="text-foreground/90">Montant personnalisé</Label>
-              <Input
-                type="number"
-                inputMode="numeric"
-                placeholder="Entrez un montant (500 - 1,000,000 CDF)"
-                value={amount}
-                onChange={(e) => handleAmountChange(e.target.value)}
-                className={cn(
-                  "bg-background/60 backdrop-blur-sm border-2 transition-all",
-                  amountError ? 'border-destructive focus-visible:ring-destructive' : 'border-border/50 focus-visible:border-primary'
-                )}
-              />
-              <AnimatePresence>
-                {amountError && (
-                  <motion.p
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="text-xs text-destructive font-medium"
-                  >
-                    {amountError}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </motion.div>
+          {/* Custom Amount Input - Grande taille */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 30 }}
+            className="space-y-3"
+          >
+            <Label className="text-sm font-semibold text-zinc-300 uppercase tracking-wide">
+              Montant personnalisé
+            </Label>
+            <Input
+              type="number"
+              inputMode="numeric"
+              placeholder="2500"
+              value={amount}
+              onChange={(e) => handleAmountChange(e.target.value)}
+              className={cn(
+                "h-16 sm:h-20 text-2xl sm:text-3xl font-bold text-center",
+                "bg-zinc-800/50 border-2 border-zinc-700/50",
+                "text-white placeholder:text-zinc-600",
+                "rounded-2xl",
+                "focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20",
+                amountError && "border-rose-500 focus-visible:ring-rose-500/20"
+              )}
+            />
+            <AnimatePresence>
+              {amountError && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="text-sm text-rose-400 font-medium text-center"
+                >
+                  {amountError}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
-            {/* Operator Selector */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <OperatorSelector
-                selected={provider}
-                onSelect={(op) => {
-                  setProvider(op);
-                  triggerSuccess();
-                }}
-              />
-            </motion.div>
+          {/* Operator Selector */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <OperatorSelector
+              selected={provider}
+              onSelect={(op) => {
+                setProvider(op);
+                triggerSuccess();
+              }}
+            />
+          </motion.div>
 
-            {/* Phone Input */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.25 }}
-              className="space-y-2"
-            >
-              <Label className="text-foreground/90">Numéro de téléphone</Label>
+          {/* Phone Input - Grande taille */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25, type: "spring", stiffness: 300, damping: 30 }}
+            className="space-y-3"
+          >
+            <Label className="text-sm font-semibold text-zinc-300 uppercase tracking-wide">
+              Numéro de téléphone
+            </Label>
+            <div className="relative">
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
               <Input
                 type="tel"
                 inputMode="tel"
@@ -200,39 +202,42 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
                 value={phone}
                 onChange={(e) => handlePhoneChange(e.target.value)}
                 className={cn(
-                  "bg-background/60 backdrop-blur-sm border-2 transition-all",
-                  phoneError ? 'border-destructive focus-visible:ring-destructive' : 'border-border/50 focus-visible:border-primary'
+                  "h-14 sm:h-16 text-base sm:text-lg pl-12",
+                  "bg-zinc-800/50 border-2 border-zinc-700/50",
+                  "text-white placeholder:text-zinc-600",
+                  "rounded-2xl",
+                  "focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20",
+                  phoneError && "border-rose-500 focus-visible:ring-rose-500/20"
                 )}
               />
-              <AnimatePresence>
-                {phoneError && (
-                  <motion.p
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="text-xs text-destructive font-medium"
-                  >
-                    {phoneError}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </motion.div>
+            </div>
+            <AnimatePresence>
+              {phoneError && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="text-sm text-rose-400 font-medium"
+                >
+                  {phoneError}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
-            {/* Action Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="pt-2"
-            >
-              <AnimatedTopUpButton
-                onClick={handleTopUp}
-                disabled={!amount || !provider || !phone || loading}
-                loading={loading}
-              />
-            </motion.div>
-          </div>
-        </motion.div>
+          {/* Action Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <AnimatedTopUpButton
+              onClick={handleTopUp}
+              disabled={!amount || !provider || !phone || loading}
+              loading={loading}
+            />
+          </motion.div>
+        </div>
       </DialogContent>
     </Dialog>
   );

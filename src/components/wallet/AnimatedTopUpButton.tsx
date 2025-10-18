@@ -40,38 +40,36 @@ export const AnimatedTopUpButton: React.FC<AnimatedTopUpButtonProps> = ({
         onClick={handleClick}
         disabled={isDisabled}
         className={cn(
-          "w-full h-14 rounded-xl font-bold text-base relative overflow-hidden",
-          "bg-gradient-to-r from-primary via-primary-light to-primary",
-          "shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40",
-          "transition-all duration-300",
+          "w-full h-14 sm:h-16 rounded-2xl font-bold text-base sm:text-lg relative overflow-hidden",
+          "bg-gradient-to-r from-primary via-orange-500 to-primary",
+          "shadow-2xl shadow-primary/40",
+          "hover:shadow-primary/60 hover:scale-[1.02]",
+          "active:scale-[0.98]",
+          "transition-all duration-200",
+          "disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100",
           className
         )}
       >
-        {/* Animated background shimmer */}
+        {/* Shimmer effect */}
         {!isDisabled && (
           <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-            animate={{ x: ['-100%', '200%'] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-          />
-        )}
-
-        {/* Progress bar */}
-        {isProcessing && (
-          <motion.div
-            className="absolute bottom-0 left-0 h-1 bg-white/50"
-            initial={{ width: '0%' }}
-            animate={{ width: '100%' }}
-            transition={{ duration: 2 }}
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-2xl"
+            animate={{ x: ['-200%', '200%'] }}
+            transition={{ 
+              duration: 2.5, 
+              repeat: Infinity, 
+              ease: 'linear',
+              repeatDelay: 0.5 
+            }}
           />
         )}
 
         {/* Button content */}
         <span className="relative z-10 flex items-center justify-center gap-2">
-          {isProcessing || loading ? (
+          {loading || isProcessing ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Traitement en cours...</span>
+              <span>Traitement...</span>
             </>
           ) : (
             <>
@@ -80,16 +78,6 @@ export const AnimatedTopUpButton: React.FC<AnimatedTopUpButtonProps> = ({
             </>
           )}
         </span>
-
-        {/* Ripple effect */}
-        {!isDisabled && (
-          <motion.div
-            className="absolute inset-0 rounded-xl"
-            initial={{ scale: 0, opacity: 0.5 }}
-            whileTap={{ scale: 2, opacity: 0 }}
-            transition={{ duration: 0.5 }}
-          />
-        )}
       </Button>
     </motion.div>
   );
