@@ -22,6 +22,15 @@ export interface RentalEquipment {
   is_premium: boolean;
 }
 
+export interface DriverEquipment {
+  id: string;
+  name: string;
+  category: string;
+  icon: string;
+  description: string;
+  is_required: boolean;
+}
+
 export interface ModernRentalVehicle {
   id: string;
   partner_id: string;
@@ -38,6 +47,16 @@ export interface ModernRentalVehicle {
   hourly_rate: number;
   weekly_rate: number;
   security_deposit: number;
+  driver_available: boolean;
+  driver_required: boolean;
+  with_driver_daily_rate: number;
+  with_driver_hourly_rate: number;
+  with_driver_weekly_rate: number;
+  without_driver_daily_rate: number;
+  without_driver_hourly_rate: number;
+  without_driver_weekly_rate: number;
+  driver_equipment: string[];
+  vehicle_equipment: string[];
   features: string[];
   images: string[];
   city: string;
@@ -85,16 +104,29 @@ export function useModernRentals(selectedCity?: string) {
     },
   });
 
-  // Équipements disponibles
+  // Équipements véhicules disponibles
   const equipmentQuery = useQuery<RentalEquipment[]>({
-    queryKey: ["rental-equipment"],
+    queryKey: ["vehicle-equipment"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("rental_equipment_types")
+        .from("vehicle_equipment_types")
         .select("*")
         .order("name");
       if (error) throw error;
       return (data || []) as RentalEquipment[];
+    },
+  });
+
+  // Équipements chauffeurs disponibles
+  const driverEquipmentQuery = useQuery<DriverEquipment[]>({
+    queryKey: ["driver-equipment"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("driver_equipment_types")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return (data || []) as DriverEquipment[];
     },
   });
 
@@ -231,10 +263,11 @@ export function useModernRentals(selectedCity?: string) {
     availableCities,
     categories: categoriesQuery.data || [],
     equipment: equipmentQuery.data || [],
+    driverEquipment: driverEquipmentQuery.data || [],
     vehicles: vehiclesQuery.data || [],
     pricing: pricingQuery.data || [],
-    isLoading: categoriesQuery.isLoading || vehiclesQuery.isLoading || equipmentQuery.isLoading,
-    isError: categoriesQuery.isError || vehiclesQuery.isError || equipmentQuery.isError,
+    isLoading: categoriesQuery.isLoading || vehiclesQuery.isLoading || equipmentQuery.isLoading || driverEquipmentQuery.isLoading,
+    isError: categoriesQuery.isError || vehiclesQuery.isError || equipmentQuery.isError || driverEquipmentQuery.isError,
     calculateCityPrice,
     getVehiclesByCategory,
     createBooking,
@@ -243,14 +276,17 @@ export function useModernRentals(selectedCity?: string) {
     availableCities,
     categoriesQuery.data,
     equipmentQuery.data,
+    driverEquipmentQuery.data,
     vehiclesQuery.data,
     pricingQuery.data,
     categoriesQuery.isLoading,
     vehiclesQuery.isLoading,
     equipmentQuery.isLoading,
+    driverEquipmentQuery.isLoading,
     categoriesQuery.isError,
     vehiclesQuery.isError,
     equipmentQuery.isError,
+    driverEquipmentQuery.isError,
     calculateCityPrice,
     getVehiclesByCategory,
     createBooking,

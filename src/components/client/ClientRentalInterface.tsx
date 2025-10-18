@@ -23,6 +23,14 @@ interface RentalVehicle {
   hourly_rate: number;
   weekly_rate: number;
   security_deposit: number;
+  driver_available?: boolean;
+  driver_required?: boolean;
+  with_driver_daily_rate?: number;
+  with_driver_hourly_rate?: number;
+  without_driver_daily_rate?: number;
+  without_driver_hourly_rate?: number;
+  driver_equipment?: string[];
+  vehicle_equipment?: string[];
   features: string[];
   images: string[];
   location_address: string;
@@ -291,10 +299,24 @@ const ClientRentalInterface = () => {
                       </CardDescription>
                     </div>
                     <div className="text-right">
-                      <p className="text-3xl font-bold bg-gradient-to-r from-congo-primary to-congo-gold bg-clip-text text-transparent">
-                        {formatPrice(vehicle.daily_rate)}
-                      </p>
-                      <p className="text-sm text-muted-foreground font-medium">par jour</p>
+                      {vehicle.driver_available ? (
+                        <div className="space-y-1">
+                          <p className="text-sm text-muted-foreground line-through">
+                            {formatPrice(vehicle.without_driver_daily_rate || vehicle.daily_rate)}
+                          </p>
+                          <p className="text-2xl font-bold bg-gradient-to-r from-congo-primary to-congo-gold bg-clip-text text-transparent">
+                            {formatPrice(vehicle.with_driver_daily_rate || vehicle.daily_rate)}
+                          </p>
+                          <Badge variant="secondary" className="text-xs">👨‍✈️ Avec chauffeur</Badge>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-3xl font-bold bg-gradient-to-r from-congo-primary to-congo-gold bg-clip-text text-transparent">
+                            {formatPrice(vehicle.without_driver_daily_rate || vehicle.daily_rate)}
+                          </p>
+                          <p className="text-sm text-muted-foreground font-medium">par jour</p>
+                        </>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
@@ -315,7 +337,12 @@ const ClientRentalInterface = () => {
                     </div>
                     <div className="flex items-center gap-3 p-2 rounded-lg bg-white/10 backdrop-blur-sm">
                       <DollarSign className="h-4 w-4 text-emerald-500" />
-                      <span className="text-sm font-medium">{formatPrice(vehicle.hourly_rate)}/h</span>
+                      <span className="text-sm font-medium">
+                        {formatPrice(vehicle.driver_available 
+                          ? (vehicle.with_driver_hourly_rate || vehicle.hourly_rate)
+                          : (vehicle.without_driver_hourly_rate || vehicle.hourly_rate)
+                        )}/h
+                      </span>
                     </div>
                   </div>
 

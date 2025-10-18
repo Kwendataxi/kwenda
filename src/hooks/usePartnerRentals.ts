@@ -26,6 +26,16 @@ export interface RentalVehicle {
   hourly_rate: number;
   weekly_rate: number;
   security_deposit: number;
+  driver_available?: boolean;
+  driver_required?: boolean;
+  with_driver_daily_rate?: number;
+  with_driver_hourly_rate?: number;
+  with_driver_weekly_rate?: number;
+  without_driver_daily_rate?: number;
+  without_driver_hourly_rate?: number;
+  without_driver_weekly_rate?: number;
+  driver_equipment?: string[];
+  vehicle_equipment?: string[];
   features: string[];
   images: string[];
   license_plate: string | null;

@@ -19,7 +19,7 @@ const defaultRates = { hourly_rate: 5000, daily_rate: 50000, weekly_rate: 300000
 
 export default function RentalVehicleForm({ categories, initial, onSaved }: Props) {
   const { createVehicle, updateVehicle } = usePartnerRentals();
-  const { equipment } = useModernRentals();
+  const { equipment, driverEquipment } = useModernRentals();
   const { toast } = useToast();
 
   const [values, setValues] = useState<Partial<RentalVehicle>>({
@@ -33,13 +33,23 @@ export default function RentalVehicleForm({ categories, initial, onSaved }: Prop
     seats: initial?.seats || 4,
     category_id: initial?.category_id,
     city: "Kinshasa",
-    available_cities: ["Kinshasa"],
-    comfort_level: "standard",
-    equipment: [],
+    available_cities: initial?.available_cities || ["Kinshasa"],
+    comfort_level: initial?.comfort_level || "standard",
+    equipment: initial?.equipment || [],
+    vehicle_equipment: initial?.vehicle_equipment || [],
+    driver_equipment: initial?.driver_equipment || [],
+    driver_available: initial?.driver_available || false,
+    driver_required: initial?.driver_required || false,
     ...defaultRates,
     daily_rate: initial?.daily_rate ?? defaultRates.daily_rate,
     hourly_rate: initial?.hourly_rate ?? defaultRates.hourly_rate,
     weekly_rate: initial?.weekly_rate ?? defaultRates.weekly_rate,
+    without_driver_daily_rate: initial?.without_driver_daily_rate ?? defaultRates.daily_rate,
+    without_driver_hourly_rate: initial?.without_driver_hourly_rate ?? defaultRates.hourly_rate,
+    without_driver_weekly_rate: initial?.without_driver_weekly_rate ?? defaultRates.weekly_rate,
+    with_driver_daily_rate: initial?.with_driver_daily_rate ?? 0,
+    with_driver_hourly_rate: initial?.with_driver_hourly_rate ?? 0,
+    with_driver_weekly_rate: initial?.with_driver_weekly_rate ?? 0,
     security_deposit: initial?.security_deposit ?? defaultRates.security_deposit,
     features: initial?.features || [],
     images: initial?.images || [],
@@ -257,20 +267,102 @@ export default function RentalVehicleForm({ categories, initial, onSaved }: Prop
             </div>
           </div>
 
+          <div className="md:col-span-3 border-t pt-4">
+            <label className="text-sm font-medium mb-3 block">🚗 Options de location</label>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="driver_available"
+                  checked={values.driver_available || false}
+                  onCheckedChange={(checked) => handleChange("driver_available" as any, checked)}
+                />
+                <label htmlFor="driver_available" className="text-sm font-medium">
+                  Location avec chauffeur disponible
+                </label>
+              </div>
+
+              {!values.driver_available && (
+                <div className="grid grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
+                  <div>
+                    <label className="text-xs font-medium">Par heure (CDF)</label>
+                    <Input type="number" className="mt-1" value={values.without_driver_hourly_rate} 
+                      onChange={(e) => handleChange("without_driver_hourly_rate" as any, Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Par jour (CDF)</label>
+                    <Input type="number" className="mt-1" value={values.without_driver_daily_rate}
+                      onChange={(e) => handleChange("without_driver_daily_rate" as any, Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Par semaine (CDF)</label>
+                    <Input type="number" className="mt-1" value={values.without_driver_weekly_rate}
+                      onChange={(e) => handleChange("without_driver_weekly_rate" as any, Number(e.target.value))} />
+                  </div>
+                </div>
+              )}
+
+              {values.driver_available && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
+                    <div className="col-span-3">
+                      <Badge variant="outline">📦 Tarifs SANS chauffeur</Badge>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Par heure (CDF)</label>
+                      <Input type="number" className="mt-1" value={values.without_driver_hourly_rate} 
+                        onChange={(e) => handleChange("without_driver_hourly_rate" as any, Number(e.target.value))} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Par jour (CDF)</label>
+                      <Input type="number" className="mt-1" value={values.without_driver_daily_rate}
+                        onChange={(e) => handleChange("without_driver_daily_rate" as any, Number(e.target.value))} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Par semaine (CDF)</label>
+                      <Input type="number" className="mt-1" value={values.without_driver_weekly_rate}
+                        onChange={(e) => handleChange("without_driver_weekly_rate" as any, Number(e.target.value))} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4 p-4 bg-primary/10 rounded-lg">
+                    <div className="col-span-3">
+                      <Badge variant="default">👨‍✈️ Tarifs AVEC chauffeur</Badge>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Par heure (CDF)</label>
+                      <Input type="number" className="mt-1" value={values.with_driver_hourly_rate}
+                        onChange={(e) => handleChange("with_driver_hourly_rate" as any, Number(e.target.value))} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Par jour (CDF)</label>
+                      <Input type="number" className="mt-1" value={values.with_driver_daily_rate}
+                        onChange={(e) => handleChange("with_driver_daily_rate" as any, Number(e.target.value))} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Par semaine (CDF)</label>
+                      <Input type="number" className="mt-1" value={values.with_driver_weekly_rate}
+                        onChange={(e) => handleChange("with_driver_weekly_rate" as any, Number(e.target.value))} />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="md:col-span-3">
-            <label className="text-sm font-medium">Équipements modernes</label>
+            <label className="text-sm font-medium">🚗 Équipements du véhicule</label>
             <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
               {equipment.map((eq) => (
                 <div key={eq.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={eq.id}
-                    checked={(values.equipment as string[])?.includes(eq.name) || false}
+                    checked={(values.vehicle_equipment as string[])?.includes(eq.name) || false}
                     onCheckedChange={(checked) => {
-                      const current = (values.equipment as string[]) || [];
+                      const current = (values.vehicle_equipment as string[]) || [];
                       if (checked) {
-                        handleChange("equipment" as any, [...current, eq.name]);
+                        handleChange("vehicle_equipment" as any, [...current, eq.name]);
                       } else {
-                        handleChange("equipment" as any, current.filter(e => e !== eq.name));
+                        handleChange("vehicle_equipment" as any, current.filter(e => e !== eq.name));
                       }
                     }}
                   />
@@ -282,6 +374,34 @@ export default function RentalVehicleForm({ categories, initial, onSaved }: Prop
               ))}
             </div>
           </div>
+
+          {values.driver_available && driverEquipment.length > 0 && (
+            <div className="md:col-span-3">
+              <label className="text-sm font-medium">👨‍✈️ Équipements du chauffeur</label>
+              <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
+                {driverEquipment.map((eq) => (
+                  <div key={eq.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`driver-${eq.id}`}
+                      checked={(values.driver_equipment as string[])?.includes(eq.name) || false}
+                      onCheckedChange={(checked) => {
+                        const current = (values.driver_equipment as string[]) || [];
+                        if (checked) {
+                          handleChange("driver_equipment" as any, [...current, eq.name]);
+                        } else {
+                          handleChange("driver_equipment" as any, current.filter(e => e !== eq.name));
+                        }
+                      }}
+                    />
+                    <label htmlFor={`driver-${eq.id}`} className="text-xs flex items-center gap-1">
+                      {eq.name}
+                      {eq.is_required && <Badge variant="destructive" className="text-xs">Requis</Badge>}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="md:col-span-3">
             <label className="text-sm font-medium">Caractéristiques (séparées par des virgules)</label>

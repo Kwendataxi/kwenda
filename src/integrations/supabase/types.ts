@@ -1901,6 +1901,39 @@ export type Database = {
           },
         ]
       }
+      driver_equipment_types: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_required: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_required?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_required?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       driver_location_access_logs: {
         Row: {
           access_reason: string | null
@@ -7525,36 +7558,6 @@ export type Database = {
           },
         ]
       }
-      rental_equipment_types: {
-        Row: {
-          category: string
-          created_at: string | null
-          description: string | null
-          icon: string | null
-          id: string
-          is_premium: boolean | null
-          name: string
-        }
-        Insert: {
-          category: string
-          created_at?: string | null
-          description?: string | null
-          icon?: string | null
-          id?: string
-          is_premium?: boolean | null
-          name: string
-        }
-        Update: {
-          category?: string
-          created_at?: string | null
-          description?: string | null
-          icon?: string | null
-          id?: string
-          is_premium?: boolean | null
-          name?: string
-        }
-        Relationships: []
-      }
       rental_moderation_logs: {
         Row: {
           action: string
@@ -7793,6 +7796,9 @@ export type Database = {
           created_at: string
           currency: string
           daily_rate: number
+          driver_available: boolean | null
+          driver_equipment: Json | null
+          driver_required: boolean | null
           equipment: Json | null
           features: Json | null
           fuel_type: string
@@ -7816,8 +7822,15 @@ export type Database = {
           security_deposit: number
           transmission: string
           updated_at: string
+          vehicle_equipment: Json | null
           vehicle_type: string
           weekly_rate: number
+          with_driver_daily_rate: number | null
+          with_driver_hourly_rate: number | null
+          with_driver_weekly_rate: number | null
+          without_driver_daily_rate: number | null
+          without_driver_hourly_rate: number | null
+          without_driver_weekly_rate: number | null
           year: number
         }
         Insert: {
@@ -7829,6 +7842,9 @@ export type Database = {
           created_at?: string
           currency?: string
           daily_rate?: number
+          driver_available?: boolean | null
+          driver_equipment?: Json | null
+          driver_required?: boolean | null
           equipment?: Json | null
           features?: Json | null
           fuel_type?: string
@@ -7852,8 +7868,15 @@ export type Database = {
           security_deposit?: number
           transmission?: string
           updated_at?: string
+          vehicle_equipment?: Json | null
           vehicle_type: string
           weekly_rate?: number
+          with_driver_daily_rate?: number | null
+          with_driver_hourly_rate?: number | null
+          with_driver_weekly_rate?: number | null
+          without_driver_daily_rate?: number | null
+          without_driver_hourly_rate?: number | null
+          without_driver_weekly_rate?: number | null
           year: number
         }
         Update: {
@@ -7865,6 +7888,9 @@ export type Database = {
           created_at?: string
           currency?: string
           daily_rate?: number
+          driver_available?: boolean | null
+          driver_equipment?: Json | null
+          driver_required?: boolean | null
           equipment?: Json | null
           features?: Json | null
           fuel_type?: string
@@ -7888,8 +7914,15 @@ export type Database = {
           security_deposit?: number
           transmission?: string
           updated_at?: string
+          vehicle_equipment?: Json | null
           vehicle_type?: string
           weekly_rate?: number
+          with_driver_daily_rate?: number | null
+          with_driver_hourly_rate?: number | null
+          with_driver_weekly_rate?: number | null
+          without_driver_daily_rate?: number | null
+          without_driver_hourly_rate?: number | null
+          without_driver_weekly_rate?: number | null
           year?: number
         }
         Relationships: [
@@ -10890,6 +10923,36 @@ export type Database = {
           request_id?: string
           validation_type?: string
           validator_id?: string
+        }
+        Relationships: []
+      }
+      vehicle_equipment_types: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_premium: boolean | null
+          name: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_premium?: boolean | null
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_premium?: boolean | null
+          name?: string
         }
         Relationships: []
       }
