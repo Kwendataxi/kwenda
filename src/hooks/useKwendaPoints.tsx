@@ -46,6 +46,13 @@ export const useKwendaPoints = () => {
     }
   };
 
+  const calculateConversionBonus = (points: number): number => {
+    if (points >= 500) return 0.15;
+    if (points >= 250) return 0.10;
+    if (points >= 100) return 0.05;
+    return 0;
+  };
+
   const convertToCredits = async (pointsToConvert: number) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -60,21 +67,36 @@ export const useKwendaPoints = () => {
         return false;
       }
 
-      // Conversion : 100 points = 1000 CDF
-      const creditsToAdd = (pointsToConvert / 100) * 1000;
+      // Seuil minimum
+      if (pointsToConvert < 50) {
+        toast({
+          title: 'Minimum requis',
+          description: 'Vous devez convertir au minimum 50 points (500 CDF)',
+          variant: 'destructive',
+        });
+        return false;
+      }
 
-      // Mettre à jour le portefeuille
-      const { error } = await supabase.rpc('convert_points_to_credits', {
+      // Conversion : 100 points = 1000 CDF + bonus progressif
+      const baseCredits = (pointsToConvert / 100) * 1000;
+      const bonusRate = calculateConversionBonus(pointsToConvert);
+      const totalCredits = Math.round(baseCredits * (1 + bonusRate));
+
+      // Mettre à jour le portefeuille avec ecosystem_credits
+      const { data, error } = await supabase.rpc('convert_kwenda_points_to_ecosystem', {
         p_user_id: user.id,
         p_points: pointsToConvert,
-        p_credits: creditsToAdd,
+        p_credits: totalCredits,
+        p_bonus_rate: bonusRate,
       });
 
       if (error) throw error;
 
+      const bonusText = bonusRate > 0 ? ` (bonus +${Math.round(bonusRate * 100)}%)` : '';
+      
       toast({
         title: '✅ Conversion réussie',
-        description: `${pointsToConvert} points convertis en ${creditsToAdd} CDF`,
+        description: `${pointsToConvert} points → ${totalCredits.toLocaleString()} CDF écosystème${bonusText}`,
       });
 
       await loadPoints();
@@ -83,7 +105,7 @@ export const useKwendaPoints = () => {
       console.error('Error converting points:', error);
       toast({
         title: 'Erreur de conversion',
-        description: 'Impossible de convertir vos points',
+        description: error instanceof Error ? error.message : 'Impossible de convertir vos points',
         variant: 'destructive',
       });
       return false;
@@ -151,6 +173,7 @@ export const useKwendaPoints = () => {
     loading,
     refresh: loadPoints,
     convertToCredits,
+    calculateConversionBonus,
     enterSuperLottery,
   };
 };

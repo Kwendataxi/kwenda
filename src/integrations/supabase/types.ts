@@ -6351,6 +6351,36 @@ export type Database = {
           },
         ]
       }
+      points_conversion_history: {
+        Row: {
+          bonus_percentage: number | null
+          conversion_rate: number
+          created_at: string | null
+          credits_received: number
+          id: string
+          points_converted: number
+          user_id: string
+        }
+        Insert: {
+          bonus_percentage?: number | null
+          conversion_rate?: number
+          created_at?: string | null
+          credits_received: number
+          id?: string
+          points_converted: number
+          user_id: string
+        }
+        Update: {
+          bonus_percentage?: number | null
+          conversion_rate?: number
+          created_at?: string | null
+          credits_received?: number
+          id?: string
+          points_converted?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       pricing_configs: {
         Row: {
           active: boolean
@@ -11200,6 +11230,7 @@ export type Database = {
           balance: number
           created_at: string
           currency: string
+          ecosystem_credits: number
           id: string
           is_active: boolean
           kwenda_points: number | null
@@ -11210,6 +11241,7 @@ export type Database = {
           balance?: number
           created_at?: string
           currency?: string
+          ecosystem_credits?: number
           id?: string
           is_active?: boolean
           kwenda_points?: number | null
@@ -11220,6 +11252,7 @@ export type Database = {
           balance?: number
           created_at?: string
           currency?: string
+          ecosystem_credits?: number
           id?: string
           is_active?: boolean
           kwenda_points?: number | null
@@ -12749,6 +12782,15 @@ export type Database = {
       }
       complete_partner_registration_after_email: {
         Args: { p_registration_data: Json; p_user_id: string }
+        Returns: Json
+      }
+      convert_kwenda_points_to_ecosystem: {
+        Args: {
+          p_bonus_rate?: number
+          p_credits: number
+          p_points: number
+          p_user_id: string
+        }
         Returns: Json
       }
       convert_points_to_credits: {
