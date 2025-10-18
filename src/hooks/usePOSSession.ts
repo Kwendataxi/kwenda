@@ -28,6 +28,18 @@ export const usePOSSession = () => {
     try {
       setLoading(true);
 
+      // Récupérer l'utilisateur connecté
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        toast({
+          title: 'Erreur d\'authentification',
+          description: 'Vous devez être connecté pour ouvrir une session',
+          variant: 'destructive',
+        });
+        return null;
+      }
+
       // Vérifier qu'il n'y a pas de session ouverte
       const { data: existingSession } = await supabase
         .from('restaurant_pos_sessions')
@@ -49,6 +61,7 @@ export const usePOSSession = () => {
         .from('restaurant_pos_sessions')
         .insert({
           restaurant_id: restaurantId,
+          opened_by: user.id,
           opening_cash: openingCash,
           status: 'open' as const,
         } as any)
@@ -65,9 +78,10 @@ export const usePOSSession = () => {
 
       return session;
     } catch (error: any) {
+      console.error('Error opening POS session:', error);
       toast({
         title: 'Erreur',
-        description: error.message,
+        description: error.message || 'Impossible d\'ouvrir la session',
         variant: 'destructive',
       });
       return null;
@@ -79,6 +93,17 @@ export const usePOSSession = () => {
   const closeSession = async (sessionId: string, closingCash: number) => {
     try {
       setLoading(true);
+
+      // Récupérer l'utilisateur connecté
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: 'Erreur',
+          description: 'Vous devez être connecté',
+          variant: 'destructive',
+        });
+        return null;
+      }
 
       // Récupérer les transactions de la session
       const { data: transactions } = await supabase
@@ -95,6 +120,7 @@ export const usePOSSession = () => {
         .from('restaurant_pos_sessions')
         .update({
           closed_at: new Date().toISOString(),
+          closed_by: user.id,
           closing_cash: closingCash,
           expected_cash: expectedCash,
           cash_difference: cashDifference,
@@ -118,6 +144,7 @@ export const usePOSSession = () => {
 
       return session;
     } catch (error: any) {
+      console.error('Error closing session:', error);
       toast({
         title: 'Erreur',
         description: error.message,
