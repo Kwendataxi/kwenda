@@ -86,6 +86,7 @@ import CampaignLanding from "./pages/campaign/CampaignLanding";
 import CampaignThankYou from "./pages/campaign/CampaignThankYou";
 import PublicPartnerRegistration from "./pages/partner/PublicPartnerRegistration";
 import PartnerDashboard from "./pages/partner/PartnerDashboard";
+import { PartnerRegistrationForm } from "./components/partner/registration/PartnerRegistrationForm";
 import UnifiedTracking from "./pages/UnifiedTracking";
 import DriverRegistration from "./pages/DriverRegistration";
 import VendorShop from "./pages/VendorShop";
@@ -298,7 +299,7 @@ const AppContent = () => {
                         <PartnerApp />
                       </ProtectedRoute>
                     } />
-                    <Route path="/partner/register" element={<PublicPartnerRegistration />} />
+                    <Route path="/partner/register" element={<PartnerRegistrationForm />} />
                     <Route path="/partner/dashboard" element={
                       <ProtectedRoute>
                         <PartnerDashboard />
