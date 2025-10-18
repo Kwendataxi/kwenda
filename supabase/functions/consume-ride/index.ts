@@ -8,7 +8,7 @@ const corsHeaders = {
 interface ConsumeRideRequest {
   driver_id: string;
   booking_id: string;
-  service_type: 'transport' | 'delivery';
+  service_type: 'transport' | 'delivery' | 'marketplace';
 }
 
 Deno.serve(async (req) => {

@@ -293,6 +293,18 @@ export const useDriverDispatch = () => {
               delivered_at: new Date().toISOString()
             })
             .eq('id', orderId);
+          
+          if (!deliveryError && user) {
+            // Consommer la course de l'abonnement
+            await supabase.functions.invoke('consume-ride', {
+              body: {
+                driver_id: user.id,
+                booking_id: orderId,
+                service_type: 'delivery'
+              }
+            });
+          }
+          
           success = !deliveryError;
           break;
 
@@ -304,6 +316,18 @@ export const useDriverDispatch = () => {
               actual_delivery_time: new Date().toISOString()
             })
             .eq('id', orderId);
+          
+          if (!marketplaceError && user) {
+            // Consommer la course de l'abonnement
+            await supabase.functions.invoke('consume-ride', {
+              body: {
+                driver_id: user.id,
+                booking_id: orderId,
+                service_type: 'marketplace'
+              }
+            });
+          }
+          
           success = !marketplaceError;
           break;
       }

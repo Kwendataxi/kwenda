@@ -267,7 +267,7 @@ serve(async (req) => {
           booking_id: orderId,
           notification_type: 'ride_request',
           title: `Nouvelle course ${serviceType.toUpperCase()}`,
-          message: `Distance: ${selected Driver.distance_km.toFixed(1)}km`,
+          message: `Distance: ${selectedDriver.distance_km.toFixed(1)}km`,
           metadata: { score: selectedDriver.score, priority },
           status: 'pending',
           expires_at: new Date(Date.now() + 2 * 60 * 1000).toISOString()
