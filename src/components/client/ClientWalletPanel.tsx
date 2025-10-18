@@ -16,7 +16,8 @@ import { SuccessConfetti } from '@/components/wallet/SuccessConfetti';
 import { WalletSkeleton } from '@/components/wallet/WalletSkeleton';
 import { TransferMoneyDialog } from '@/components/wallet/TransferMoneyDialog';
 import { PointsConversionDialog } from '@/components/loyalty/PointsConversionDialog';
-import { Send, Gift } from 'lucide-react';
+import { TopUpModal } from '@/components/wallet/TopUpModal';
+import { Send, Gift, Zap } from 'lucide-react';
 
 type Operator = 'airtel' | 'orange' | 'mpesa';
 
@@ -34,6 +35,7 @@ export const ClientWalletPanel: React.FC = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showConversionDialog, setShowConversionDialog] = useState(false);
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
 
   const handleQuickAmountSelect = (quickAmount: number) => {
     setAmount(quickAmount.toString());
@@ -95,14 +97,14 @@ export const ClientWalletPanel: React.FC = () => {
           loading={loading}
         />
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <Button 
             variant="default" 
             className="gap-2"
             onClick={() => setShowConversionDialog(true)}
           >
             <Gift className="w-4 h-4" />
-            Convertir Points
+            Convertir
           </Button>
           
           <Button 
@@ -113,69 +115,17 @@ export const ClientWalletPanel: React.FC = () => {
             <Send className="w-4 h-4" />
             Transférer
           </Button>
+
+          <Button 
+            variant="default" 
+            className="gap-2 bg-gradient-to-r from-primary to-accent hover:opacity-90"
+            onClick={() => setShowTopUpModal(true)}
+          >
+            <Zap className="w-4 h-4" />
+            Recharger
+          </Button>
         </div>
       </div>
-
-      {/* Modern Top-up Section */}
-      <Card className="border-border overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
-          <CardTitle className="text-xl">Recharger mon portefeuille</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6 pt-6">
-          {/* Quick Amount Selector */}
-          <QuickAmountSelector
-            amounts={QUICK_AMOUNTS}
-            selectedAmount={selectedQuickAmount}
-            onSelect={handleQuickAmountSelect}
-            currency={wallet?.currency || 'CDF'}
-          />
-
-          {/* Custom Amount Input */}
-          <div className="space-y-2">
-            <Label>Montant personnalisé</Label>
-            <Input
-              type="number"
-              inputMode="numeric"
-              placeholder="Entrez un montant"
-              value={amount}
-              onChange={(e) => handleAmountChange(e.target.value)}
-              className={amountError ? 'border-destructive' : ''}
-            />
-            {amountError && (
-              <p className="text-xs text-destructive">{amountError}</p>
-            )}
-          </div>
-
-          {/* Operator Selector */}
-          <OperatorSelector
-            selected={provider}
-            onSelect={(op) => setProvider(op)}
-          />
-
-          {/* Phone Input */}
-          <div className="space-y-2">
-            <Label>Numéro de téléphone</Label>
-            <Input
-              type="tel"
-              inputMode="tel"
-              placeholder="0991234567"
-              value={phone}
-              onChange={(e) => handlePhoneChange(e.target.value)}
-              className={phoneError ? 'border-destructive' : ''}
-            />
-            {phoneError && (
-              <p className="text-xs text-destructive">{phoneError}</p>
-            )}
-          </div>
-
-          {/* Animated Top-up Button */}
-          <AnimatedTopUpButton
-            onClick={handleTopUp}
-            disabled={!amount || !provider || !phone || loading}
-            loading={loading}
-          />
-        </CardContent>
-      </Card>
 
       {/* Transaction History */}
       <Card className="border-border">
@@ -212,6 +162,14 @@ export const ClientWalletPanel: React.FC = () => {
       <PointsConversionDialog 
         open={showConversionDialog} 
         onClose={() => setShowConversionDialog(false)} 
+      />
+
+      <TopUpModal
+        open={showTopUpModal}
+        onClose={() => setShowTopUpModal(false)}
+        onSuccess={() => setShowConfetti(true)}
+        currency={wallet?.currency || 'CDF'}
+        quickAmounts={QUICK_AMOUNTS}
       />
     </div>
   );
