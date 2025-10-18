@@ -298,11 +298,11 @@ export default function RestaurantDashboard() {
             <Button 
               variant="outline" 
               className="h-20"
-              onClick={() => navigate('/restaurant/subscription')}
+              onClick={() => navigate('/restaurant/pos')}
             >
               <div className="flex flex-col items-center gap-2">
                 <DollarSign className="h-6 w-6" />
-                <span>Mon abonnement</span>
+                <span>Caisse (POS)</span>
               </div>
             </Button>
           </CardContent>

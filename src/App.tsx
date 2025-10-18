@@ -99,6 +99,7 @@ import RestaurantMenuManager from "./pages/restaurant/RestaurantMenuManager";
 import RestaurantOrders from "./pages/restaurant/RestaurantOrders";
 import RestaurantSubscription from "./pages/restaurant/RestaurantSubscription";
 import RestaurantAuth from "./pages/RestaurantAuth";
+import RestaurantPOS from "./pages/restaurant/RestaurantPOS";
 import DriverVerifyEmail from "./pages/DriverVerifyEmail";
 import PartnerVerifyEmail from "./pages/PartnerVerifyEmail";
 import ClientVerifyEmail from "./pages/ClientVerifyEmail";
@@ -185,6 +186,11 @@ const AppContent = () => {
                 <Route path="/restaurant/subscription" element={
                   <ProtectedRoute>
                     <RestaurantSubscription />
+                  </ProtectedRoute>
+                } />
+                <Route path="/restaurant/pos" element={
+                  <ProtectedRoute>
+                    <RestaurantPOS />
                   </ProtectedRoute>
                 } />
 
