@@ -8,6 +8,7 @@ import { ShoppingBag, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { usePromoCodeValidation } from '@/hooks/usePromoCodeValidation';
+import { CompactRentalSlide } from '@/components/rental/CompactRentalSlide';
 
 interface PromoSliderProps {
   onServiceSelect: (service: string) => void;
@@ -301,40 +302,13 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                   </div>
                 )}
 
-                {/* Slide 4: Car Rental - Modern & Clean */}
+                {/* Slide 4: Car Rental - Modern Compact Version */}
                 {promo.id === '4' && (
-                  <div className="absolute inset-0 p-3 flex items-center justify-between text-white">
-                    {/* Left side - Icon + Content */}
-                    <div className="flex items-center gap-2.5 flex-1">
-                      {/* Car icon - compact */}
-                      <div className="flex-shrink-0 w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center">
-                        <span className="text-xl">🚗</span>
-                      </div>
-
-                      {/* Title + Price - compact */}
-                      <div>
-                        <h3 className="text-base font-black drop-shadow-lg leading-tight tracking-tight mb-0.5">
-                          Location de véhicules
-                        </h3>
-                        
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-lg font-black drop-shadow-lg">50 000 CDF</span>
-                          <span className="text-[9px] font-medium opacity-75">/jour</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* CTA Button - compact */}
-                    <div className="flex-shrink-0">
-                      <div className="px-4 py-1.5 bg-white/20 backdrop-blur-md border border-white/40 rounded-xl font-bold text-[11px] hover:bg-white/30 transition-all duration-200 hover:scale-105 shadow-lg whitespace-nowrap">
-                        {promo.cta} →
-                      </div>
-                    </div>
-
-                    {/* Subtle glow effects */}
-                    <div className="absolute top-1/4 right-1/4 w-20 h-20 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute bottom-1/3 left-1/4 w-16 h-16 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none" />
-                  </div>
+                  <CompactRentalSlide 
+                    onReserve={() => onServiceSelect('rental')}
+                    vehicleCount={25}
+                    startingPrice={50000}
+                  />
                 )}
 
                 {/* Slide 5: Marketplace - Modern & Clean */}
