@@ -1,22 +1,25 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, Briefcase, Car, User as UserIcon, CreditCard, FileCheck } from 'lucide-react';
 import { SpecificServiceSelector } from './SpecificServiceSelector';
 import { VehicleTypeSelector } from './VehicleTypeSelector';
 import { VehicleOwnershipSelector } from '@/components/auth/VehicleOwnershipSelector';
+import { PersonalInfoStep } from './PersonalInfoStep';
+import { LicenseStep } from './LicenseStep';
+import { SubscriptionPlanStep } from './SubscriptionPlanStep';
+import { SummaryStep } from './SummaryStep';
 import { useDriverRegistration } from '@/hooks/useDriverRegistration';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface StreamlinedDriverRegistrationProps {
   onBack: () => void;
   onSuccess: () => void;
 }
 
-type RegistrationStep = 'service' | 'vehicle' | 'details';
+type RegistrationStep = 'service' | 'vehicle' | 'personal' | 'license' | 'subscription' | 'summary';
 
 interface FormData {
   // Personal
@@ -48,6 +51,9 @@ interface FormData {
   emergencyContactName: string;
   emergencyContactPhone: string;
   
+  // Subscription
+  selectedPlanId: string | null;
+  
   // Terms
   acceptTerms: boolean;
 }
@@ -72,29 +78,26 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
     licenseExpiry: '',
     emergencyContactName: '',
     emergencyContactPhone: '',
+    selectedPlanId: null,
     acceptTerms: false
   });
 
   const { registerDriver, isRegistering } = useDriverRegistration();
 
   const handleFieldChange = (field: keyof FormData, value: any) => {
-    console.log(`📝 Field Changed: ${field} =`, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleServiceSelect = (serviceType: string) => {
-    console.log('✅ Service Selected:', serviceType);
     handleFieldChange('serviceType', serviceType);
   };
 
   const handleVehicleModeSelect = (mode: 'own' | 'partner') => {
-    console.log('🚗 Vehicle Mode:', mode);
     setVehicleMode(mode);
     handleFieldChange('hasOwnVehicle', mode === 'own');
   };
 
   const handleVehicleTypeSelect = (type: string) => {
-    console.log('🚙 Vehicle Type:', type);
     handleFieldChange('vehicleType', type);
   };
 
@@ -118,6 +121,22 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
       }
       return true;
     }
+
+    if (currentStep === 'personal') {
+      if (!formData.displayName || !formData.email || !formData.phoneNumber || !formData.password) {
+        toast.error('Veuillez remplir tous les champs obligatoires');
+        return false;
+      }
+      return true;
+    }
+
+    if (currentStep === 'license') {
+      if (!formData.licenseNumber) {
+        toast.error('Le numéro de permis de conduire est requis');
+        return false;
+      }
+      return true;
+    }
     
     return true;
   };
@@ -126,22 +145,22 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
     if (!validateStep(step)) return;
     
     if (step === 'service') setStep('vehicle');
-    else if (step === 'vehicle') setStep('details');
+    else if (step === 'vehicle') setStep('personal');
+    else if (step === 'personal') setStep('license');
+    else if (step === 'license') setStep('subscription');
+    else if (step === 'subscription') setStep('summary');
+  };
+
+  const handleBack = () => {
+    if (step === 'service') onBack();
+    else if (step === 'vehicle') setStep('service');
+    else if (step === 'personal') setStep('vehicle');
+    else if (step === 'license') setStep('personal');
+    else if (step === 'subscription') setStep('license');
+    else if (step === 'summary') setStep('subscription');
   };
 
   const handleSubmit = async () => {
-    console.log('🚀 Submitting Registration:', formData);
-    
-    if (!formData.displayName || !formData.email || !formData.phoneNumber || !formData.password) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
-      return;
-    }
-    
-    if (!formData.licenseNumber) {
-      toast.error('Le numéro de permis de conduire est requis');
-      return;
-    }
-    
     if (!formData.acceptTerms) {
       toast.error('Veuillez accepter les conditions générales');
       return;
@@ -172,7 +191,7 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
       });
 
       if (result.success) {
-        toast.success('Inscription réussie !');
+        toast.success('Inscription réussie ! Bienvenue sur Kwenda 🎉');
         onSuccess();
       }
     } catch (error: any) {
@@ -184,34 +203,88 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
   const getStepTitle = () => {
     if (step === 'service') return 'Choisissez votre Service';
     if (step === 'vehicle') return 'Configuration du Véhicule';
-    return 'Informations Personnelles';
+    if (step === 'personal') return 'Informations Personnelles';
+    if (step === 'license') return 'Permis de Conduire';
+    if (step === 'subscription') return 'Plan d\'Abonnement';
+    return 'Récapitulatif';
   };
 
-  const getStepNumber = () => {
-    if (step === 'service') return '1/3';
-    if (step === 'vehicle') return '2/3';
-    return '3/3';
+  const getStepSubtitle = () => {
+    if (step === 'service') return 'Sélectionnez le service que vous souhaitez offrir';
+    if (step === 'vehicle') return 'Configurez votre véhicule de travail';
+    if (step === 'personal') return 'Complétez vos informations personnelles';
+    if (step === 'license') return 'Ajoutez vos informations de permis';
+    if (step === 'subscription') return 'Découvrez notre modèle sans commission';
+    return 'Vérifiez vos informations avant de soumettre';
+  };
+
+  const getCurrentStepNumber = () => {
+    const stepMap: Record<RegistrationStep, number> = {
+      service: 1,
+      vehicle: 2,
+      personal: 3,
+      license: 4,
+      subscription: 5,
+      summary: 6
+    };
+    return stepMap[step];
   };
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 p-4">
-      {/* Progress Header */}
-      <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          onClick={() => {
-            if (step === 'service') onBack();
-            else if (step === 'vehicle') setStep('service');
-            else setStep('vehicle');
-          }}
-          className="dark:text-foreground dark:hover:bg-muted/50"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Retour
-        </Button>
-        <div className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">
-          Étape {getStepNumber()}
+      {/* Modern Progress Header */}
+      <div className="relative mb-8">
+        {/* Barre de progression visuelle */}
+        <div className="flex items-center justify-between mb-6">
+          {[
+            { step: 1, label: 'Service', icon: Briefcase },
+            { step: 2, label: 'Véhicule', icon: Car },
+            { step: 3, label: 'Infos', icon: UserIcon },
+            { step: 4, label: 'Permis', icon: FileCheck },
+            { step: 5, label: 'Abonnement', icon: CreditCard }
+          ].map((item, idx) => (
+            <div key={item.step} className="flex items-center flex-1">
+              <div className={cn(
+                "w-10 h-10 rounded-full flex items-center justify-center transition-all",
+                getCurrentStepNumber() >= item.step
+                  ? "bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg"
+                  : "bg-zinc-200 dark:bg-zinc-700 text-zinc-500"
+              )}>
+                {getCurrentStepNumber() > item.step ? (
+                  <Check className="w-5 h-5" />
+                ) : (
+                  <item.icon className="w-5 h-5" />
+                )}
+              </div>
+              {idx < 4 && (
+                <div className={cn(
+                  "h-1 flex-1 mx-2 rounded-full transition-all",
+                  getCurrentStepNumber() > item.step
+                    ? "bg-gradient-to-r from-amber-500 to-orange-600"
+                    : "bg-zinc-200 dark:bg-zinc-700"
+                )} />
+              )}
+            </div>
+          ))}
         </div>
+        
+        {/* Titre avec animation */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="text-center"
+          >
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+              {getStepTitle()}
+            </h2>
+            <p className="text-zinc-600 dark:text-zinc-400 mt-2">
+              {getStepSubtitle()}
+            </p>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Service Category Tabs */}
@@ -226,7 +299,7 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
             className={cn(
               "flex-1 py-3 px-4 rounded-md font-medium transition-all",
               serviceCategory === 'taxi'
-                ? "bg-primary text-primary-foreground shadow-sm"
+                ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm"
                 : "text-muted-foreground hover:text-foreground dark:hover:bg-muted/50"
             )}
           >
@@ -241,7 +314,7 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
             className={cn(
               "flex-1 py-3 px-4 rounded-md font-medium transition-all",
               serviceCategory === 'delivery'
-                ? "bg-primary text-primary-foreground shadow-sm"
+                ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm"
                 : "text-muted-foreground hover:text-foreground dark:hover:bg-muted/50"
             )}
           >
@@ -251,279 +324,130 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
       )}
 
       <Card className="dark:bg-card/95 dark:border-border/60">
-        <CardHeader>
-          <CardTitle className="text-2xl dark:text-foreground">{getStepTitle()}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* STEP 1: Service Selection */}
-          {step === 'service' && (
-            <SpecificServiceSelector
-              serviceCategory={serviceCategory}
-              selectedService={formData.serviceType}
-              onServiceSelect={handleServiceSelect}
-            />
-          )}
-
-          {/* STEP 2: Vehicle Configuration */}
-          {step === 'vehicle' && (
-            <div className="space-y-6">
-              {!vehicleMode ? (
-                <VehicleOwnershipSelector
-                  selectedMode={vehicleMode}
-                  onModeSelect={handleVehicleModeSelect}
+        <CardContent className="pt-6">
+          <AnimatePresence mode="wait">
+            {/* STEP 1: Service Selection */}
+            {step === 'service' && (
+              <motion.div
+                key="service"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                <SpecificServiceSelector
                   serviceCategory={serviceCategory}
+                  selectedService={formData.serviceType}
+                  onServiceSelect={handleServiceSelect}
                 />
-              ) : (
-                <>
-                  <div className="flex items-center gap-2 p-4 bg-muted/50 dark:bg-muted/30 rounded-lg">
-                    <Check className="h-5 w-5 text-primary" />
-                    <span className="text-sm dark:text-foreground">
-                      {vehicleMode === 'own' ? 'Vous avez votre propre véhicule' : 'Vous cherchez un partenaire'}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setVehicleMode(null)}
-                      className="ml-auto dark:text-muted-foreground dark:hover:bg-muted/50"
-                    >
-                      Modifier
-                    </Button>
-                  </div>
+              </motion.div>
+            )}
 
-                  {vehicleMode === 'own' && (
-                    <VehicleTypeSelector
-                      serviceCategory={serviceCategory}
-                      selectedType={formData.vehicleType || null}
-                      onTypeSelect={handleVehicleTypeSelect}
-                    />
-                  )}
-                </>
-              )}
-            </div>
-          )}
-
-          {/* STEP 3: Personal Details */}
-          {step === 'details' && (
-            <div className="space-y-6">
-              {/* Personal Information */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg dark:text-foreground">Informations Personnelles</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="displayName" className="dark:text-foreground">Nom complet *</Label>
-                    <Input
-                      id="displayName"
-                      value={formData.displayName}
-                      onChange={(e) => handleFieldChange('displayName', e.target.value)}
-                      placeholder="Jean Dupont"
-                      className="dark:bg-card/95 dark:border-border/60 dark:text-foreground dark:placeholder:text-foreground/50"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email" className="dark:text-foreground">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleFieldChange('email', e.target.value)}
-                      placeholder="jean@example.com"
-                      className="dark:bg-card/95 dark:border-border/60 dark:text-foreground dark:placeholder:text-foreground/50"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phoneNumber" className="dark:text-foreground">Téléphone *</Label>
-                    <Input
-                      id="phoneNumber"
-                      value={formData.phoneNumber}
-                      onChange={(e) => handleFieldChange('phoneNumber', e.target.value)}
-                      placeholder="+243 XX XXX XXXX"
-                      className="dark:bg-card/95 dark:border-border/60 dark:text-foreground dark:placeholder:text-foreground/50"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="password" className="dark:text-foreground">Mot de passe *</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => handleFieldChange('password', e.target.value)}
-                      placeholder="••••••••"
-                      className="dark:bg-card/95 dark:border-border/60 dark:text-foreground dark:placeholder:text-foreground/50"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* License Information */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg dark:text-foreground">Permis de Conduire</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="licenseNumber" className="dark:text-foreground">Numéro de Permis *</Label>
-                    <Input
-                      id="licenseNumber"
-                      value={formData.licenseNumber}
-                      onChange={(e) => handleFieldChange('licenseNumber', e.target.value)}
-                      placeholder="ABC123456"
-                      className="dark:bg-card/95 dark:border-border/60 dark:text-foreground dark:placeholder:text-foreground/50"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="licenseExpiry" className="dark:text-foreground">Date d'Expiration</Label>
-                    <Input
-                      id="licenseExpiry"
-                      type="date"
-                      value={formData.licenseExpiry}
-                      onChange={(e) => handleFieldChange('licenseExpiry', e.target.value)}
-                      className="dark:bg-card/95 dark:border-border/60 dark:text-foreground dark:placeholder:text-foreground/50"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Vehicle Details (if own vehicle) */}
-              {formData.hasOwnVehicle && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg dark:text-foreground">Détails du Véhicule</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="vehicleMake" className="dark:text-foreground">Marque</Label>
-                      <Input
-                        id="vehicleMake"
-                        value={formData.vehicleMake || ''}
-                        onChange={(e) => handleFieldChange('vehicleMake', e.target.value)}
-                        placeholder="Toyota"
-                        className="dark:bg-card/95 dark:border-border/60 dark:text-foreground dark:placeholder:text-foreground/50"
-                      />
+            {/* STEP 2: Vehicle Configuration */}
+            {step === 'vehicle' && (
+              <motion.div
+                key="vehicle"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                {!vehicleMode ? (
+                  <VehicleOwnershipSelector
+                    selectedMode={vehicleMode}
+                    onModeSelect={handleVehicleModeSelect}
+                    serviceCategory={serviceCategory}
+                  />
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 p-4 bg-muted/50 dark:bg-muted/30 rounded-lg">
+                      <Check className="h-5 w-5 text-primary" />
+                      <span className="text-sm dark:text-foreground">
+                        {vehicleMode === 'own' ? 'Vous avez votre propre véhicule' : 'Vous cherchez un partenaire'}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setVehicleMode(null)}
+                        className="ml-auto dark:text-muted-foreground dark:hover:bg-muted/50"
+                      >
+                        Modifier
+                      </Button>
                     </div>
-                    <div>
-                      <Label htmlFor="vehicleModel" className="dark:text-foreground">Modèle</Label>
-                      <Input
-                        id="vehicleModel"
-                        value={formData.vehicleModel || ''}
-                        onChange={(e) => handleFieldChange('vehicleModel', e.target.value)}
-                        placeholder="Corolla"
-                        className="dark:bg-card/95 dark:border-border/60 dark:text-foreground dark:placeholder:text-foreground/50"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="vehicleYear" className="dark:text-foreground">Année</Label>
-                      <Input
-                        id="vehicleYear"
-                        type="number"
-                        value={formData.vehicleYear || ''}
-                        onChange={(e) => handleFieldChange('vehicleYear', parseInt(e.target.value))}
-                        placeholder="2020"
-                        className="dark:bg-card/95 dark:border-border/60 dark:text-foreground dark:placeholder:text-foreground/50"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="vehiclePlate" className="dark:text-foreground">Plaque d'Immatriculation</Label>
-                      <Input
-                        id="vehiclePlate"
-                        value={formData.vehiclePlate || ''}
-                        onChange={(e) => handleFieldChange('vehiclePlate', e.target.value)}
-                        placeholder="KIN-123-AB"
-                        className="dark:bg-card/95 dark:border-border/60 dark:text-foreground dark:placeholder:text-foreground/50"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="vehicleColor" className="dark:text-foreground">Couleur</Label>
-                      <Input
-                        id="vehicleColor"
-                        value={formData.vehicleColor || ''}
-                        onChange={(e) => handleFieldChange('vehicleColor', e.target.value)}
-                        placeholder="Blanc"
-                        className="dark:bg-card/95 dark:border-border/60 dark:text-foreground dark:placeholder:text-foreground/50"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="insuranceNumber" className="dark:text-foreground">Numéro d'Assurance</Label>
-                      <Input
-                        id="insuranceNumber"
-                        value={formData.insuranceNumber || ''}
-                        onChange={(e) => handleFieldChange('insuranceNumber', e.target.value)}
-                        placeholder="ASS123456"
-                        className="dark:bg-card/95 dark:border-border/60 dark:text-foreground dark:placeholder:text-foreground/50"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
 
-              {/* Emergency Contact */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg dark:text-foreground">Contact d'Urgence</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="emergencyContactName" className="dark:text-foreground">Nom</Label>
-                    <Input
-                      id="emergencyContactName"
-                      value={formData.emergencyContactName}
-                      onChange={(e) => handleFieldChange('emergencyContactName', e.target.value)}
-                      placeholder="Marie Dupont"
-                      className="dark:bg-card/95 dark:border-border/60 dark:text-foreground dark:placeholder:text-foreground/50"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="emergencyContactPhone" className="dark:text-foreground">Téléphone</Label>
-                    <Input
-                      id="emergencyContactPhone"
-                      value={formData.emergencyContactPhone}
-                      onChange={(e) => handleFieldChange('emergencyContactPhone', e.target.value)}
-                      placeholder="+243 XX XXX XXXX"
-                      className="dark:bg-card/95 dark:border-border/60 dark:text-foreground dark:placeholder:text-foreground/50"
-                    />
-                  </div>
-                </div>
-              </div>
+                    {vehicleMode === 'own' && (
+                      <VehicleTypeSelector
+                        serviceCategory={serviceCategory}
+                        selectedType={formData.vehicleType || null}
+                        onTypeSelect={handleVehicleTypeSelect}
+                      />
+                    )}
+                  </>
+                )}
+              </motion.div>
+            )}
 
-              {/* Terms */}
-              <div className="flex items-start gap-3 p-4 bg-muted/50 dark:bg-muted/30 rounded-lg">
-                <Checkbox
-                  id="acceptTerms"
-                  checked={formData.acceptTerms}
-                  onCheckedChange={(checked) => handleFieldChange('acceptTerms', checked)}
-                  className="mt-1"
-                />
-                <label htmlFor="acceptTerms" className="text-sm cursor-pointer dark:text-foreground">
-                  J'accepte les <span className="text-primary underline">conditions générales</span> et la{' '}
-                  <span className="text-primary underline">politique de confidentialité</span>
-                </label>
-              </div>
-            </div>
-          )}
+            {/* STEP 3: Personal Info */}
+            {step === 'personal' && (
+              <PersonalInfoStep
+                formData={formData}
+                onFieldChange={handleFieldChange}
+              />
+            )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-4">
-            {step !== 'details' && (
+            {/* STEP 4: License */}
+            {step === 'license' && (
+              <LicenseStep
+                formData={formData}
+                onFieldChange={handleFieldChange}
+              />
+            )}
+
+            {/* STEP 5: Subscription */}
+            {step === 'subscription' && (
+              <SubscriptionPlanStep
+                selectedPlan={formData.selectedPlanId}
+                onPlanSelect={(planId) => handleFieldChange('selectedPlanId', planId)}
+              />
+            )}
+
+            {/* STEP 6: Summary */}
+            {step === 'summary' && (
+              <SummaryStep
+                formData={formData}
+                onFieldChange={handleFieldChange}
+                onBack={handleBack}
+                onSubmit={handleSubmit}
+                isRegistering={isRegistering}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Action Buttons - Only for steps before summary */}
+          {step !== 'summary' && (
+            <div className="flex gap-4 pt-6 mt-6 border-t">
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                className="flex-1 h-12 rounded-xl"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Retour
+              </Button>
+              
               <Button
                 onClick={handleNext}
-                disabled={!formData.serviceType && step === 'service'}
-                className="flex-1 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
-                size="lg"
+                disabled={
+                  (step === 'service' && !formData.serviceType) ||
+                  (step === 'vehicle' && (!vehicleMode || (vehicleMode === 'own' && !formData.vehicleType)))
+                }
+                className="flex-1 h-12 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/30 font-semibold"
               >
                 Continuer
               </Button>
-            )}
-            
-            {step === 'details' && (
-              <Button
-                onClick={handleSubmit}
-                disabled={isRegistering}
-                className="flex-1 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
-                size="lg"
-              >
-                {isRegistering ? 'Inscription en cours...' : 'Finaliser l\'Inscription'}
-              </Button>
-            )}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
   );
 };
-
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(' ');
-}

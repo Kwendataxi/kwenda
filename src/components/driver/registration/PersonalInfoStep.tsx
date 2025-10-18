@@ -1,0 +1,165 @@
+import React from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, Mail, Phone, Lock, CheckCircle2, XCircle, Info, AlertCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { usePhoneValidation } from '@/hooks/usePhoneValidation';
+
+interface PersonalInfoStepProps {
+  formData: {
+    displayName: string;
+    email: string;
+    phoneNumber: string;
+    password: string;
+  };
+  onFieldChange: (field: string, value: string) => void;
+}
+
+export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
+  formData,
+  onFieldChange
+}) => {
+  const { phoneValid, phoneError, validatePhoneNumber } = usePhoneValidation();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="space-y-6"
+    >
+      <div className="flex items-center justify-center mb-6">
+        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center">
+          <User className="w-10 h-10 text-amber-600 dark:text-amber-400" />
+        </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Nom complet */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+            <User className="w-4 h-4" />
+            Nom complet *
+          </Label>
+          <Input
+            value={formData.displayName}
+            onChange={(e) => onFieldChange('displayName', e.target.value)}
+            placeholder="Jean Dupont"
+            className="h-12 rounded-xl text-base transition-all duration-200"
+          />
+        </div>
+
+        {/* Email */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+            <Mail className="w-4 h-4" />
+            Email *
+          </Label>
+          <Input
+            type="email"
+            value={formData.email}
+            onChange={(e) => onFieldChange('email', e.target.value)}
+            placeholder="jean@example.com"
+            className="h-12 rounded-xl text-base transition-all duration-200"
+          />
+        </div>
+
+        {/* Téléphone avec validation */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+            <Phone className="w-4 h-4" />
+            Numéro de téléphone *
+          </Label>
+          
+          <div className="relative">
+            <Input
+              type="tel"
+              inputMode="tel"
+              placeholder="0991234567"
+              value={formData.phoneNumber}
+              onChange={(e) => {
+                const value = e.target.value;
+                onFieldChange('phoneNumber', value);
+                validatePhoneNumber(value);
+              }}
+              className={cn(
+                "h-12 pl-4 pr-10 rounded-xl text-base",
+                "transition-all duration-200",
+                phoneValid && "border-green-500 bg-green-50/50 dark:bg-green-950/20",
+                phoneError && "border-red-500 bg-red-50/50 dark:bg-red-950/20"
+              )}
+            />
+            
+            {/* Indicateur visuel */}
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <AnimatePresence mode="wait">
+                {phoneValid && (
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0, rotate: 180 }}
+                  >
+                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  </motion.div>
+                )}
+                {phoneError && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                  >
+                    <XCircle className="w-5 h-5 text-red-500" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+          
+          {/* Message helper/erreur */}
+          <AnimatePresence>
+            {phoneError ? (
+              <motion.p
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1"
+              >
+                <AlertCircle className="w-4 h-4" />
+                {phoneError}
+              </motion.p>
+            ) : (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1"
+              >
+                <Info className="w-3 h-3" />
+                Format: 0XXXXXXXXX (10 chiffres). Ce numéro servira pour les transferts.
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Mot de passe */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+            <Lock className="w-4 h-4" />
+            Mot de passe *
+          </Label>
+          <Input
+            type="password"
+            value={formData.password}
+            onChange={(e) => onFieldChange('password', e.target.value)}
+            placeholder="••••••••"
+            className="h-12 rounded-xl text-base transition-all duration-200"
+          />
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
+            <Info className="w-3 h-3" />
+            Minimum 8 caractères
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};

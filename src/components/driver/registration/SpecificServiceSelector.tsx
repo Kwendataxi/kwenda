@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Bike, Car, Truck, Zap, Clock, Package2 } from 'lucide-react';
 import { useServiceConfigurations, ServiceCategory } from '@/hooks/useServiceConfigurations';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface SpecificServiceSelectorProps {
   serviceCategory: ServiceCategory;
@@ -77,15 +79,6 @@ export const SpecificServiceSelector: React.FC<SpecificServiceSelectorProps> = (
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">
-          Choisissez votre service {categoryTitle}
-        </h2>
-        <p className="text-muted-foreground">
-          Sélectionnez le type de service spécifique que vous souhaitez offrir
-        </p>
-      </div>
-
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {services.map((service) => {
           const Icon = getServiceIcon(service.service_type);
@@ -93,92 +86,93 @@ export const SpecificServiceSelector: React.FC<SpecificServiceSelectorProps> = (
           const pricing = getServicePricing(service.service_type, service.service_category);
           
           return (
-            <Card
+            <motion.div
               key={service.id}
-              className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                isSelected 
-                  ? 'border-primary bg-primary/5 shadow-md' 
-                  : 'border-border hover:border-primary/50'
-              } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={() => !disabled && onServiceSelect(service.service_type)}
+              whileHover={{ scale: 1.02, y: -4 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <CardHeader>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className={`p-2 rounded-lg ${isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <CardTitle className="text-lg">{service.display_name}</CardTitle>
-                  </div>
-                  {isSelected && (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  )}
-                </div>
-                <CardDescription className="text-sm">
-                  {service.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Tarification */}
-                {pricing && (
-                  <div className="bg-muted/50 p-3 rounded-lg">
-                    <div className="text-sm font-medium text-foreground mb-1">Tarification</div>
-                    <div className="text-xs text-muted-foreground space-y-1">
-                      <div>Base: {formatPrice(pricing.base_price)}</div>
-                      <div>Par km: {formatPrice(pricing.price_per_km)}</div>
-                      <div>Commission: {pricing.commission_rate}%</div>
+              <Card
+                className={cn(
+                  "relative overflow-hidden cursor-pointer transition-all duration-300",
+                  "hover:shadow-2xl hover:shadow-amber-500/20",
+                  "dark:bg-zinc-900/50 dark:border-zinc-800",
+                  isSelected && "border-2 border-amber-500 shadow-xl shadow-amber-500/30",
+                  disabled && "opacity-50 cursor-not-allowed"
+                )}
+                onClick={() => !disabled && onServiceSelect(service.service_type)}
+              >
+                {/* Badge corner */}
+                {isSelected && (
+                  <div className="absolute top-3 right-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-white" />
                     </div>
                   </div>
                 )}
-
-                {/* Caractéristiques */}
-                <div>
-                  <div className="text-sm font-medium text-foreground mb-2">Caractéristiques</div>
-                  <div className="flex flex-wrap gap-1">
-                    {service.features.slice(0, 3).map((feature, index) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className={`text-xs ${getServiceBadgeColor(service.service_type)}`}
-                      >
-                        {feature}
-                      </Badge>
-                    ))}
-                    {service.features.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{service.features.length - 3} autres
-                      </Badge>
-                    )}
+                
+                {/* Icon avec gradient */}
+                <div className="flex items-center justify-center pt-6 pb-4">
+                  <div className={cn(
+                    "w-16 h-16 rounded-2xl flex items-center justify-center",
+                    "bg-gradient-to-br from-amber-100 to-orange-100",
+                    "dark:from-amber-900/30 dark:to-orange-900/30"
+                  )}>
+                    <Icon className="w-8 h-8 text-amber-600 dark:text-amber-400" />
                   </div>
                 </div>
-
-                {/* Exigences */}
-                <div>
-                  <div className="text-sm font-medium text-foreground mb-2">Exigences</div>
-                  <div className="text-xs text-muted-foreground">
-                    {service.requirements.slice(0, 2).map((req, index) => (
-                      <div key={index} className="flex items-center gap-1">
-                        <div className="w-1 h-1 bg-current rounded-full"></div>
-                        {req}
+                
+                <CardHeader className="text-center pb-2">
+                  <CardTitle className="text-xl font-bold">{service.display_name}</CardTitle>
+                  <CardDescription className="text-sm line-clamp-2">
+                    {service.description}
+                  </CardDescription>
+                </CardHeader>
+                
+                <CardContent className="space-y-3">
+                  {/* Tarification */}
+                  {pricing && (
+                    <div className="p-3 bg-gradient-to-br from-zinc-100 to-zinc-50 dark:from-zinc-800 dark:to-zinc-900 rounded-lg">
+                      <p className="text-xs text-zinc-600 dark:text-zinc-400">Tarif de base</p>
+                      <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                        {formatPrice(pricing.base_price)} CDF
+                      </p>
+                      <p className="text-xs text-zinc-500">+ {formatPrice(pricing.price_per_km)} CDF/km</p>
+                    </div>
+                  )}
+                  
+                  {/* Features avec icônes */}
+                  <div className="space-y-2">
+                    {service.features?.slice(0, 3).map((feature, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <span className="line-clamp-1">{feature}</span>
                       </div>
                     ))}
-                    {service.requirements.length > 2 && (
-                      <div className="text-xs text-muted-foreground">
-                        +{service.requirements.length - 2} autres exigences
-                      </div>
-                    )}
                   </div>
-                </div>
-
-                <Button
-                  variant={isSelected ? "default" : "outline"}
-                  className="w-full"
-                  disabled={disabled}
-                >
-                  {isSelected ? 'Service sélectionné' : 'Choisir ce service'}
-                </Button>
-              </CardContent>
-            </Card>
+                  
+                  {/* Bouton */}
+                  <Button
+                    onClick={() => !disabled && onServiceSelect(service.service_type)}
+                    className={cn(
+                      "w-full h-11 rounded-xl font-semibold transition-all",
+                      isSelected
+                        ? "bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/30"
+                        : "bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 border-2 border-zinc-200 dark:border-zinc-700"
+                    )}
+                    disabled={disabled}
+                  >
+                    {isSelected ? (
+                      <>
+                        <CheckCircle className="w-5 h-5 mr-2" />
+                        Sélectionné
+                      </>
+                    ) : (
+                      'Choisir ce service'
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
           );
         })}
       </div>
