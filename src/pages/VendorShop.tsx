@@ -31,7 +31,7 @@ interface Product {
   price: number;
   images: string[];
   category: string;
-  in_stock: boolean;
+  stock_count: number;
   created_at: string;
   seller: {
     id: string;
@@ -133,7 +133,7 @@ const VendorShop: React.FC = () => {
           price,
           images,
           category,
-          in_stock,
+          stock_count,
           created_at,
           seller_id,
           profiles!marketplace_products_seller_id_fkey(display_name)
@@ -151,7 +151,7 @@ const VendorShop: React.FC = () => {
         price: p.price,
         images: p.images || [],
         category: p.category,
-        in_stock: p.in_stock,
+        stock_count: p.stock_count || 0,
         created_at: p.created_at,
         seller: {
           id: p.seller_id,
@@ -237,7 +237,7 @@ const VendorShop: React.FC = () => {
   };
 
   const handleAddToCart = (product: Product) => {
-    if (!product.in_stock) {
+    if (product.stock_count === 0) {
       toast({
         variant: 'destructive',
         title: 'Produit indisponible',
@@ -254,7 +254,7 @@ const VendorShop: React.FC = () => {
       seller: product.seller.display_name,
       seller_id: product.seller.id,
       category: product.category,
-      isAvailable: product.in_stock
+      isAvailable: product.stock_count > 0
     });
 
     toast({
@@ -416,7 +416,7 @@ const VendorShop: React.FC = () => {
                     price: product.price,
                     image: product.images[0] || '/placeholder.svg',
                     isNew: isNewProduct(product.created_at),
-                    inStock: product.in_stock
+                    stockCount: product.stock_count || 0
                   }}
                   isFavorite={isFavorite(product.id)}
                   onAddToCart={() => handleAddToCart(product)}

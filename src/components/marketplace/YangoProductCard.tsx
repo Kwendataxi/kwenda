@@ -10,7 +10,7 @@ interface YangoProductCardProps {
     price: number;
     image: string;
     isNew: boolean;
-    inStock: boolean;
+    stockCount: number;
   };
   isFavorite: boolean;
   onAddToCart: () => void;
@@ -28,7 +28,7 @@ export const YangoProductCard: React.FC<YangoProductCardProps> = ({
   return (
     <Card 
       className="overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 border-0"
-      onClick={product.inStock ? onAddToCart : undefined}
+      onClick={product.stockCount > 0 ? onAddToCart : undefined}
     >
       {/* Image Container */}
       <div className="relative aspect-square w-full overflow-hidden bg-muted">
@@ -77,7 +77,7 @@ export const YangoProductCard: React.FC<YangoProductCardProps> = ({
         </motion.button>
 
         {/* Overlay Rupture de Stock */}
-        {!product.inStock && (
+        {product.stockCount === 0 && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
             <div className="bg-white/95 px-4 py-2 rounded-lg">
               <span className="text-foreground font-bold text-sm">Rupture de stock</span>

@@ -103,6 +103,8 @@ import DriverVerifyEmail from "./pages/DriverVerifyEmail";
 import PartnerVerifyEmail from "./pages/PartnerVerifyEmail";
 import ClientVerifyEmail from "./pages/ClientVerifyEmail";
 import RestaurantVerifyEmail from "./pages/RestaurantVerifyEmail";
+import ClientReferralPage from "./pages/ClientReferralPage";
+import PromosPage from "./pages/PromosPage";
 
 const queryClient = new QueryClient();
 
@@ -225,6 +227,12 @@ const AppContent = () => {
                         <ClientApp />
                       </ProtectedRoute>
                     } />
+                    <Route path="/referral" element={
+                      <ProtectedRoute>
+                        <ClientReferralPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/promos" element={<PromosPage />} />
                   </>
                 )}
                 

@@ -303,9 +303,9 @@ export const SmartLocationPicker: React.FC<SmartLocationPickerProps> = ({
           </div>
         )}
 
-        {/* Suggestions intelligentes avec z-index élevé et fond opaque */}
+        {/* Suggestions intelligentes */}
         {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute z-[99999] w-full mt-2 bg-white dark:bg-gray-900 border-2 border-border rounded-xl shadow-2xl max-h-80 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
+          <div className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-900 border-2 border-border rounded-xl shadow-2xl max-h-80 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
             {suggestions.map((suggestion, index) => (
               <button
                 key={suggestion.id || index}
@@ -359,11 +359,14 @@ export const SmartLocationPicker: React.FC<SmartLocationPickerProps> = ({
         )}
       </div>
 
-      {/* Overlay pour fermer les suggestions avec z-index approprié */}
+      {/* Overlay pour fermer les suggestions */}
       {showSuggestions && (
         <div 
-          className="fixed inset-0 z-[99998]" 
-          onClick={() => setShowSuggestions(false)}
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm" 
+          onClick={() => {
+            setShowSuggestions(false);
+            setIsInputFocused(false);
+          }}
         />
       )}
     </div>
