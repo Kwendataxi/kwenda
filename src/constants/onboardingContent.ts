@@ -1,5 +1,5 @@
 import { 
-  Car, PackageCheck, ShoppingBag, KeyRound, 
+  Car, PackageCheck, ShoppingBag, KeyRound, UtensilsCrossed,
   Gauge, CreditCard, Shield,
   Layers, TrendingUp, Wallet,
   Store, ShoppingCart, Lock,
@@ -42,6 +42,18 @@ export const onboardingContent: Record<OnboardingContext, OnboardingSlideContent
         "Tracking temps réel de votre colis"
       ],
       gradient: "from-orange-500/10 via-background to-background"
+    },
+    {
+      icon: UtensilsCrossed,
+      title: "Commandez vos repas préférés",
+      tagline: "Restaurants locaux, livraison rapide",
+      benefits: [
+        "Large choix de restaurants à Kinshasa",
+        "Menu varié : Congolais, Italien, Français...",
+        "Suivi de commande en temps réel",
+        "Livraison express par nos coursiers"
+      ],
+      gradient: "from-green-500/10 via-background to-background"
     },
     {
       icon: ShoppingBag,
