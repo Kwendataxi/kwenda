@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Save, Store } from 'lucide-react';
+import { Loader2, Save, Store, AlertTriangle, Shield } from 'lucide-react';
 import { VendorShopShareButtons } from './VendorShopShareButtons';
 
 export const VendorShopSettings: React.FC = () => {
@@ -15,6 +16,7 @@ export const VendorShopSettings: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [vendorId, setVendorId] = useState<string>('');
   const [productCount, setProductCount] = useState(0);
+  const [verificationStatus, setVerificationStatus] = useState<'pending' | 'approved' | 'rejected' | null>(null);
   const [profile, setProfile] = useState({
     shop_name: '',
     shop_description: '',
@@ -60,6 +62,19 @@ export const VendorShopSettings: React.FC = () => {
         .eq('moderation_status', 'approved');
       
       setProductCount(count || 0);
+
+      // ✅ Récupérer le statut de vérification
+      const { data: verificationData } = await supabase
+        .from('seller_verification_requests')
+        .select('verification_status')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (verificationData) {
+        setVerificationStatus(verificationData.verification_status as 'pending' | 'approved' | 'rejected');
+      }
     } catch (error) {
       console.error('Error loading profile:', error);
     } finally {

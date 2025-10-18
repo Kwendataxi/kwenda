@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/hooks/useAuth';
 
 interface VendorVerificationFlowProps {
   onSuccess?: () => void;
@@ -14,6 +15,7 @@ interface VendorVerificationFlowProps {
 }
 
 export const VendorVerificationFlow = ({ onSuccess, onCancel }: VendorVerificationFlowProps) => {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -32,16 +34,31 @@ export const VendorVerificationFlow = ({ onSuccess, onCancel }: VendorVerificati
   });
 
   const handleFileUpload = async (file: File, field: string) => {
+    if (!user) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez être connecté pour uploader des documents",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${field}/${fileName}`;
+      // ✅ CORRECTION: Utiliser user.id au lieu de field pour éviter erreur RLS
+      const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('vendor-documents')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          upsert: true // ✅ Permettre le remplacement si le fichier existe
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('vendor-documents')
@@ -54,9 +71,10 @@ export const VendorVerificationFlow = ({ onSuccess, onCancel }: VendorVerificati
         description: "Le fichier a été téléchargé avec succès"
       });
     } catch (error: any) {
+      console.error('File upload error:', error);
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur d'upload",
+        description: error.message || "Impossible de télécharger le fichier",
         variant: "destructive"
       });
     }
