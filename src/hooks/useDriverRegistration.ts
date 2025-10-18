@@ -65,9 +65,12 @@ export const useDriverRegistration = () => {
         options: {
           emailRedirectTo: `${window.location.origin}/driver/verify-email`,
           data: {
-            role: 'driver', // ✅ Rôle normalisé simplifié
+            user_type: 'driver', // ✅ Standardisé : user_type au lieu de role
             display_name: data.displayName,
-            phone_number: data.phoneNumber
+            phone_number: data.phoneNumber,
+            license_number: data.licenseNumber,
+            vehicle_plate: data.hasOwnVehicle ? data.vehiclePlate : null,
+            service_type: data.serviceType
           }
         }
       });

@@ -13755,6 +13755,18 @@ export type Database = {
           surge_multiplier: number
         }[]
       }
+      handle_new_client_user_direct: {
+        Args: { auth_user: unknown }
+        Returns: undefined
+      }
+      handle_new_driver_user_direct: {
+        Args: { auth_user: unknown }
+        Returns: undefined
+      }
+      handle_new_restaurant_user_direct: {
+        Args: { auth_user: unknown }
+        Returns: undefined
+      }
       has_active_subscription: {
         Args: { p_restaurant_id: string }
         Returns: boolean

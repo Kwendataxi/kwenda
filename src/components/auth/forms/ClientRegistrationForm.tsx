@@ -162,9 +162,9 @@ const handleSubmit = async (e: React.FormEvent) => {
       options: {
         emailRedirectTo: redirectUrl,
         data: {
+          user_type: 'client', // ✅ Standardisé : user_type au lieu de role
           display_name: formData.displayName,
           phone_number: formData.phoneNumber,
-          role: 'client', // ✅ Rôle normalisé
           date_of_birth: formData.dateOfBirth,
           gender: formData.gender,
           emergency_contact_name: formData.emergencyContactName,
