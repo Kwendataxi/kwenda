@@ -84,15 +84,15 @@ export const CompactRentalSlide: React.FC<CompactRentalSlideProps> = ({
               </div>
 
               {/* Montant principal avec CDF en superscript */}
-              <div className="flex items-start gap-1">
-                <span className="text-5xl md:text-6xl font-black text-white drop-shadow-2xl tracking-tighter leading-none">
+              <div className="flex items-start gap-1.5">
+                <span className="text-4xl md:text-5xl font-black text-white drop-shadow-2xl tracking-tighter leading-none">
                   {startingPrice.toLocaleString()}
                 </span>
                 
-                {/* CDF en haut + /jour en bas */}
-                <div className="flex flex-col items-start -mt-1">
-                  <span className="text-base md:text-lg font-bold text-white/95 leading-none">CDF</span>
-                  <span className="text-[10px] text-white/70 font-medium leading-none mt-auto pt-8">/jour</span>
+                {/* CDF en haut + /jour en bas - bien espacés */}
+                <div className="flex flex-col justify-between h-full pt-0.5">
+                  <span className="text-lg md:text-xl font-bold text-white leading-none">CDF</span>
+                  <span className="text-[11px] text-white/90 font-medium leading-none">/jour</span>
                 </div>
               </div>
             </motion.div>
