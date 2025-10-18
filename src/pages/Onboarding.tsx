@@ -6,10 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import type { CarouselApi } from "@/components/ui/carousel";
 import BrandLogo from "@/components/brand/BrandLogo";
+import { OnboardingSlide } from "@/components/onboarding/OnboardingSlide";
+import { onboardingContent, type OnboardingContext } from "@/constants/onboardingContent";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
+import confetti from "canvas-confetti";
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
-
-export type OnboardingContext = "client" | "chauffeur" | "partenaire" | "marketplace" | "admin";
 
 const useOnboardingContext = (): OnboardingContext => {
   const [params] = useSearchParams();
@@ -20,52 +22,62 @@ const useOnboardingContext = (): OnboardingContext => {
   return allowed.includes(fromLocal) ? (fromLocal as OnboardingContext) : "client";
 };
 
-const slidesByContext: Record<OnboardingContext, Array<{ title: string; desc: string }>> = {
-  client: [
-    { title: "Réservez un trajet en 2 taps", desc: "Moto, Taxi, Bus – au meilleur prix avec suivi en temps réel." },
-    { title: "Livraison express & cargo", desc: "Envoyez des colis rapidement, avec options d'assistance." },
-    { title: "Marketplace intégrée", desc: "Achetez et vendez avec paiement sécurisé KwendaPay." },
-  ],
-  chauffeur: [
-    { title: "Gérez vos courses facilement", desc: "Acceptez/Refusez, suivez vos gains et défis." },
-    { title: "Abonnements & crédits", desc: "Optimisez vos revenus avec des plans adaptés." },
-    { title: "Validation multi-niveaux", desc: "Un processus clair jusqu'à l'approbation." },
-  ],
-  partenaire: [
-    { title: "Administrez votre flotte", desc: "Suivez performances, commissions et validations." },
-    { title: "Analytics en temps réel", desc: "Visualisez vos KPIs clés instantanément." },
-    { title: "Gestion financière", desc: "Comptes, retraits, partages de revenus." },
-  ],
-  marketplace: [
-    { title: "Vendez sans friction", desc: "Mettez en ligne, discutez, finalisez en escrow." },
-    { title: "Achetez en confiance", desc: "Produits validés, chat intégré, suivi." },
-    { title: "KwendaPay sécurisé", desc: "Paiements rapides, portefeuille CDF." },
-  ],
-  admin: [
-    { title: "Supervision totale", desc: "Opérations, support, finances et zones." },
-    { title: "Alertes & temps réel", desc: "Gardez le contrôle avec des widgets live." },
-    { title: "Modération & sécurité", desc: "RLS, vérifications et conformité." },
-  ],
-};
+const NumberedDots: React.FC<{ total: number; index: number }> = ({ total, index }) => (
+  <div className="mt-8 space-y-4">
+    {/* Progress Bar */}
+    <div className="mx-auto max-w-xs">
+      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+        <motion.div 
+          className="h-full bg-gradient-to-r from-primary to-primary/70"
+          initial={{ width: 0 }}
+          animate={{ width: `${((index + 1) / total) * 100}%` }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        />
+      </div>
+    </div>
 
-const Dots: React.FC<{ total: number; index: number }> = ({ total, index }) => (
-  <div className="mt-6 flex items-center justify-center gap-2">
-    {Array.from({ length: total }).map((_, i) => (
-      <span
-        key={i}
-        className={`h-2 w-2 rounded-full transition-all ${i === index ? "bg-primary w-4" : "bg-muted"}`}
-        aria-label={i === index ? "Étape active" : "Étape"}
-      />
-    ))}
+    {/* Numbered Dots */}
+    <div className="flex items-center justify-center gap-3">
+      {Array.from({ length: total }).map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ 
+            scale: i === index ? 1.2 : 1, 
+            opacity: 1 
+          }}
+          transition={{ duration: 0.3 }}
+          className="relative"
+        >
+          <div className={`
+            flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm transition-all
+            ${i === index 
+              ? "bg-primary text-primary-foreground shadow-lg shadow-primary/50 ring-2 ring-primary/30" 
+              : i < index 
+                ? "bg-primary/20 text-primary" 
+                : "bg-muted text-muted-foreground"
+            }
+          `}>
+            {i + 1}
+          </div>
+        </motion.div>
+      ))}
+    </div>
+
+    {/* Step Label */}
+    <p className="text-center text-sm text-muted-foreground font-medium">
+      Étape {index + 1} sur {total}
+    </p>
   </div>
 );
 
 const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const ctx = useOnboardingContext();
-  const slides = useMemo(() => slidesByContext[ctx], [ctx]);
+  const slides = useMemo(() => onboardingContent[ctx], [ctx]);
   const [index, setIndex] = useState(0);
   const [api, setApi] = useState<CarouselApi | null>(null);
+  const { triggerHaptic, triggerSuccess } = useHapticFeedback();
 
   useEffect(() => {
     document.title = `Onboarding ${ctx} — Kwenda Taxi Congo`;
@@ -73,17 +85,46 @@ const Onboarding: React.FC = () => {
 
   useEffect(() => {
     if (!api) return;
-    const onSelect = () => setIndex(api.selectedScrollSnap());
+    const onSelect = () => {
+      const newIndex = api.selectedScrollSnap();
+      setIndex(newIndex);
+      triggerHaptic('light');
+      
+      // Confetti sur le dernier slide
+      if (newIndex === slides.length - 1) {
+        setTimeout(() => {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--success))']
+          });
+        }, 300);
+      }
+    };
     onSelect();
     api.on("select", onSelect);
     api.on("reInit", onSelect);
     return () => {
       api.off("select", onSelect);
     };
-  }, [api]);
+  }, [api, slides.length, triggerHaptic]);
 
   const finish = () => {
-    try { localStorage.setItem(`onboarding_seen::${ctx}`, "1"); } catch {}
+    triggerSuccess();
+    
+    // Confetti de fin
+    confetti({
+      particleCount: 150,
+      spread: 100,
+      origin: { y: 0.5 },
+      colors: ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--success))']
+    });
+
+    try { 
+      localStorage.setItem(`onboarding_seen::${ctx}`, "1"); 
+      localStorage.setItem(`onboarding_completed_at::${ctx}`, new Date().toISOString());
+    } catch {}
     
     // Redirection intelligente selon le contexte
     const redirectMap: Record<OnboardingContext, string> = {
@@ -94,10 +135,13 @@ const Onboarding: React.FC = () => {
       partenaire: "/partner/auth",
     };
     
-    navigate(redirectMap[ctx] || "/auth", { replace: true });
+    setTimeout(() => {
+      navigate(redirectMap[ctx] || "/auth", { replace: true });
+    }, 600);
   };
 
   const onNext = () => {
+    triggerHaptic('medium');
     if (api) api.scrollNext();
     else setIndex((i) => clamp(i + 1, 0, slides.length - 1));
   };
@@ -122,17 +166,20 @@ const Onboarding: React.FC = () => {
       </header>
 
       <section className="mx-auto max-w-2xl px-6 py-8 animate-fade-in">
-        <Card className="border-border bg-card">
+        <Card className="border-border bg-card overflow-hidden">
           <CardContent className="p-0">
-            <Carousel setApi={setApi}>
+            <Carousel setApi={setApi} opts={{ loop: false, align: "center" }}>
               <CarouselContent className="-ml-0">
-                {slides.map((s, i) => (
+                {slides.map((slide, i) => (
                   <CarouselItem key={i} className="pl-0">
-                    <div className="flex min-h-[60vh] flex-col items-center justify-center px-6 py-10 text-center">
-                      <BrandLogo size={160} className="mb-6" alt={s.title} />
-                      <h2 className="text-2xl font-semibold">{s.title}</h2>
-                      <p className="mt-2 text-muted-foreground">{s.desc}</p>
-                    </div>
+                    <OnboardingSlide
+                      icon={slide.icon}
+                      title={slide.title}
+                      tagline={slide.tagline}
+                      benefits={slide.benefits}
+                      gradient={slide.gradient}
+                      index={i}
+                    />
                   </CarouselItem>
                 ))}
               </CarouselContent>
@@ -140,7 +187,7 @@ const Onboarding: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Dots total={slides.length} index={index} />
+        <NumberedDots total={slides.length} index={index} />
 
         <div className="mx-auto mt-6 flex max-w-2xl items-center justify-end gap-3 px-1">
           {index < slides.length - 1 ? (
