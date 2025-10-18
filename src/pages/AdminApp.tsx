@@ -16,7 +16,7 @@ import { AdminLotteryDashboard } from '@/components/admin/AdminLotteryDashboard'
 import { AdminRentalManager } from '@/components/admin/AdminRentalManager';
 import { AdminTeamManager } from '@/components/admin/teams/AdminTeamManager';
 import { RoleManagement } from '@/components/admin/roles/RoleManagement';
-import { ServiceManagementPanel } from '@/components/admin/ServiceManagementPanel';
+import { ServiceManagementPanel } from '@/components/admin/services/ServiceManagementPanel';
 import { UnifiedSubscriptionManager } from '@/components/admin/subscriptions/UnifiedSubscriptionManager';
 import { SubscriptionPlansConfig } from '@/components/admin/subscriptions/SubscriptionPlansConfig';
 import { FinancialSubscriptionDashboard } from '@/components/admin/subscriptions/FinancialSubscriptionDashboard';
@@ -101,7 +101,7 @@ const AdminApp = () => {
         return (
           <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
-              <ServiceConfigPanel />
+              <ServiceManagementPanel />
             </FlexiblePermissionGuard>
           </Suspense>
         );

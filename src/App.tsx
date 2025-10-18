@@ -105,12 +105,17 @@ import ClientVerifyEmail from "./pages/ClientVerifyEmail";
 import RestaurantVerifyEmail from "./pages/RestaurantVerifyEmail";
 import ClientReferralPage from "./pages/ClientReferralPage";
 import PromosPage from "./pages/PromosPage";
+import { ServiceGuard } from "./components/guards/ServiceGuard";
+import { useServiceRealtime } from "./hooks/useServiceRealtime";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   // Initialiser le nettoyage automatique des commandes
   useOrderCleanup();
+  
+  // Initialiser le système de mise à jour temps réel des services
+  useServiceRealtime();
   
   // Diagnostic de debug en développement
   useEffect(() => {
@@ -199,8 +204,16 @@ const AppContent = () => {
                         <ClientApp />
                       </ProtectedRoute>
                     } />
-                    <Route path="/marketplace" element={<Marketplace />} />
-                    <Route path="/marketplace/shop/:vendorId" element={<VendorShop />} />
+                    <Route path="/marketplace" element={
+                      <ServiceGuard serviceCategory="marketplace">
+                        <Marketplace />
+                      </ServiceGuard>
+                    } />
+                    <Route path="/marketplace/shop/:vendorId" element={
+                      <ServiceGuard serviceCategory="marketplace">
+                        <VendorShop />
+                      </ServiceGuard>
+                    } />
                     <Route path="/marketplace/my-products" element={
                       <ProtectedRoute>
                         <MyProducts />
@@ -218,9 +231,11 @@ const AppContent = () => {
                     } />
                     <Route path="/mes-adresses" element={<MesAdresses />} />
                     <Route path="/transport" element={
-                      <ProtectedRoute>
-                        <TransportPage />
-                      </ProtectedRoute>
+                      <ServiceGuard serviceCategory="taxi">
+                        <ProtectedRoute>
+                          <TransportPage />
+                        </ProtectedRoute>
+                      </ServiceGuard>
                     } />
                     <Route path="/rental-booking/:vehicleId" element={
                       <ProtectedRoute>

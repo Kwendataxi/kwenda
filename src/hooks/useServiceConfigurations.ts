@@ -42,7 +42,6 @@ export const useServiceConfigurations = () => {
       const { data, error } = await supabase
         .from('service_configurations')
         .select('*')
-        .eq('is_active', true)
         .order('service_category', { ascending: true })
         .order('service_type', { ascending: true });
 

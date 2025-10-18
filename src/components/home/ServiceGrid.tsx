@@ -50,16 +50,9 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
 
   // Charger les services dynamiquement depuis la DB
   const mainServices = useMemo(() => {
-    if (loading || !configurations.length) {
-      // Fallback si pas encore chargé
-      return [
-        { id: 'transport', name: 'Taxi', icon: Car, gradient: 'from-primary to-primary-glow', available: true },
-        { id: 'delivery', name: t('home.services.delivery'), icon: Truck, gradient: 'from-secondary to-secondary-light', available: true },
-        { id: 'rental', name: t('home.services.rental'), icon: Car, gradient: 'from-green-500 to-green-600', available: true },
-        { id: 'marketplace', name: t('home.services.shopping'), icon: ShoppingBag, gradient: 'from-accent to-accent-light', available: true },
-        { id: 'food', name: t('home.services.food'), icon: Utensils, gradient: 'from-orange-500 to-red-500', available: true },
-        { id: 'more', name: t('home.services.more'), icon: MoreHorizontal, gradient: 'from-gray-500 to-gray-700', available: true }
-      ];
+    // Si pas encore chargé, ne rien afficher (évite le fallback)
+    if (loading) {
+      return [];
     }
     
     // Grouper par catégorie et prendre le premier service actif de chaque catégorie
