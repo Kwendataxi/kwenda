@@ -1815,6 +1815,7 @@ export type Database = {
           expires_at: string | null
           id: string
           is_active: boolean
+          partner_id: string | null
           updated_at: string
         }
         Insert: {
@@ -1824,6 +1825,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          partner_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -1833,9 +1835,18 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean
+          partner_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "driver_codes_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partenaires"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       driver_codes_enhanced: {
         Row: {
