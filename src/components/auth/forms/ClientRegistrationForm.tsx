@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Phone, CheckCircle2, Info } from 'lucide-react';
 import { logger } from '@/utils/logger';
+import { cn } from '@/lib/utils';
 
 interface ClientRegistrationFormProps {
   onSuccess: () => void;
@@ -17,6 +18,7 @@ interface ClientRegistrationFormProps {
 export const ClientRegistrationForm = ({ onSuccess, onBack }: ClientRegistrationFormProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const [phoneValid, setPhoneValid] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -30,6 +32,12 @@ export const ClientRegistrationForm = ({ onSuccess, onBack }: ClientRegistration
     address: '',
     city: 'Kinshasa'
   });
+
+  // Validation du format téléphone congolais
+  const validatePhoneNumber = (phone: string): boolean => {
+    const phoneRegex = /^0[0-9]{9}$/;
+    return phoneRegex.test(phone.replace(/[\s\-]/g, ''));
+  };
 
   // const handleSubmit = async (e: React.FormEvent) => {
   //   e.preventDefault();
@@ -133,6 +141,16 @@ const handleSubmit = async (e: React.FormEvent) => {
     return;
   }
 
+  // Validation téléphone
+  if (!validatePhoneNumber(formData.phoneNumber)) {
+    toast({
+      title: "Erreur",
+      description: "Le numéro de téléphone doit être au format : 0991234567 (10 chiffres)",
+      variant: "destructive"
+    });
+    return;
+  }
+
   setLoading(true);
 
   try {
@@ -212,14 +230,42 @@ const handleSubmit = async (e: React.FormEvent) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phoneNumber">Téléphone *</Label>
-                <Input
-                  id="phoneNumber"
-                  type="tel"
-                  value={formData.phoneNumber}
-                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                  required
-                />
+                <Label htmlFor="phoneNumber" className="flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
+                  Numéro de téléphone *
+                </Label>
+                
+                <div className="relative">
+                  <Input
+                    id="phoneNumber"
+                    type="tel"
+                    inputMode="tel"
+                    placeholder="0991234567"
+                    value={formData.phoneNumber}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setFormData({ ...formData, phoneNumber: value });
+                      setPhoneValid(validatePhoneNumber(value));
+                    }}
+                    className={cn(
+                      "h-12 pr-10",
+                      phoneValid && "border-green-500 focus:ring-green-500"
+                    )}
+                    required
+                  />
+                  
+                  {/* Indicateur visuel */}
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {phoneValid && (
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    )}
+                  </div>
+                </div>
+                
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Info className="w-3 h-3" />
+                  Ce numéro servira pour les transferts d'argent (format: 0XXXXXXXXX)
+                </p>
               </div>
             </div>
 
