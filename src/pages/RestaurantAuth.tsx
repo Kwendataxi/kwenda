@@ -29,6 +29,12 @@ export default function RestaurantAuth() {
     try {
       setLoading(true);
       
+      console.log('🔐 [RestaurantAuth] Tentative de connexion/inscription', {
+        isSignUp,
+        email: formData.email,
+        restaurantName: formData.restaurantName
+      });
+      
       if (isSignUp) {
         // Validation téléphone
         if (!validatePhoneNumber(formData.phone)) {
@@ -62,6 +68,8 @@ export default function RestaurantAuth() {
         localStorage.setItem('kwenda_login_intent', 'restaurant');
         localStorage.setItem('kwenda_selected_role', 'restaurant');
 
+        console.log('✅ [RestaurantAuth] Inscription réussie, loginIntent défini');
+
         toast.success('Compte créé avec succès ! Vérifiez votre email pour confirmer votre compte.');
         navigate('/restaurant');
       } else {
@@ -73,10 +81,20 @@ export default function RestaurantAuth() {
 
         if (error) throw error;
 
+        // ✅ AJOUT : Définir loginIntent même à la connexion
+        localStorage.setItem('kwenda_login_intent', 'restaurant');
+        localStorage.setItem('kwenda_selected_role', 'restaurant');
+
+        console.log('✅ [RestaurantAuth] Connexion réussie, loginIntent défini:', {
+          loginIntent: localStorage.getItem('kwenda_login_intent'),
+          selectedRole: localStorage.getItem('kwenda_selected_role')
+        });
+
         toast.success('Bienvenue ! Connexion réussie.');
         navigate('/restaurant');
       }
     } catch (error: any) {
+      console.error('❌ [RestaurantAuth] Erreur:', error);
       toast.error(error.message || "Une erreur est survenue");
     } finally {
       setLoading(false);

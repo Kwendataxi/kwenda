@@ -145,7 +145,8 @@ export default function RestaurantMenuManager() {
 
       setIsDialogOpen(false);
       resetForm();
-      loadProducts();
+      // ✅ Forcer le rechargement de la liste des produits
+      await loadProducts();
     } catch (error: any) {
       toast({
         title: 'Erreur',

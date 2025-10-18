@@ -88,9 +88,12 @@ export default function RestaurantProfile() {
 
       if (error) throw error;
 
+      // ✅ FORCER LE RECHARGEMENT
+      await loadProfile();
+
       toast({
         title: '✅ Profil mis à jour',
-        description: 'Vos modifications ont été enregistrées',
+        description: 'Vos modifications ont été enregistrées avec succès',
       });
     } catch (error: any) {
       console.error('Error saving profile:', error);

@@ -23,9 +23,20 @@ export const SmartHome = () => {
 
   // Sur web standard et connecté, redirection intelligente selon le rôle
   if (user && session && !isMobilePlatform && !roleLoading) {
-    // ✅ AMÉLIORATION: Utiliser loginIntent en priorité pour respecter le choix de l'utilisateur
+    // Stratégie de redirection en cascade :
+    // 1. loginIntent (priorité maximale)
+    // 2. userRole de la base de données
+    // 3. Fallback vers client
+    
     const loginIntent = localStorage.getItem('kwenda_login_intent') as 'restaurant' | 'driver' | 'partner' | 'admin' | 'client' | null;
-    const targetRole = loginIntent || userRole;
+    const targetRole = loginIntent || userRole || 'client';
+    
+    console.log('🔍 [SmartHome] Redirection logic:', {
+      loginIntent,
+      userRole,
+      targetRole,
+      userId: user.id
+    });
     
     switch (targetRole) {
       case 'restaurant':
