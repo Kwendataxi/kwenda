@@ -1,151 +1,274 @@
+/**
+ * 🚀 Hook Unifié de Dispatch pour Chauffeurs
+ * PHASE 1: Fusionne useUnifiedDispatcher + useDriverOrderNotifications
+ * 
+ * Gère TOUTES les commandes (taxi, delivery, marketplace) de manière unifiée
+ * avec protection atomique contre les race conditions
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useDriverStatus } from './useDriverStatus';
 import { toast } from 'sonner';
 
-interface DispatchOrder {
+export interface UnifiedOrderNotification {
   id: string;
   type: 'taxi' | 'delivery' | 'marketplace';
-  pickup_location: string;
-  destination_location?: string;
-  delivery_location?: string;
-  estimated_price: number;
-  urgency: 'low' | 'medium' | 'high';
+  orderId: string;
+  title: string;
+  message: string;
+  location: string;
+  estimatedPrice: number;
   distance?: number;
+  urgency: 'low' | 'medium' | 'high';
+  data: any;
   created_at: string;
   expires_at?: string;
-}
-
-interface DriverStatus {
-  isOnline: boolean;
-  isAvailable: boolean;
-  currentLocation?: { lat: number; lng: number };
-  serviceTypes: string[];
+  assignment_version?: number;
 }
 
 export const useDriverDispatch = () => {
   const { user } = useAuth();
+  const { status: driverStatus, markBusy, markAvailable } = useDriverStatus();
   const [loading, setLoading] = useState(false);
-  const [driverStatus, setDriverStatus] = useState<DriverStatus>({
-    isOnline: false,
-    isAvailable: true,
-    serviceTypes: ['taxi', 'delivery', 'marketplace']
-  });
-  const [pendingOrders, setPendingOrders] = useState<DispatchOrder[]>([]);
+  const [pendingNotifications, setPendingNotifications] = useState<UnifiedOrderNotification[]>([]);
   const [activeOrders, setActiveOrders] = useState<any[]>([]);
 
-  // Update driver status
-  const updateStatus = useCallback(async (updates: Partial<DriverStatus>) => {
-    if (!user) return false;
+  // ✅ Charger les commandes actives
+  const loadActiveOrders = useCallback(async () => {
+    if (!user) return;
 
-    setLoading(true);
     try {
-      const newStatus = { ...driverStatus, ...updates };
-      
-      // Update in database
-      const updateData: any = {
-        driver_id: user.id,
-        is_online: newStatus.isOnline,
-        is_available: newStatus.isAvailable,
-        last_ping: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+      // Taxi rides actifs
+      const { data: taxiRides } = await supabase
+        .from('transport_bookings')
+        .select('*')
+        .eq('driver_id', user.id)
+        .in('status', ['accepted', 'driver_assigned', 'driver_arrived', 'in_progress']);
 
-      if (newStatus.currentLocation?.lat && newStatus.currentLocation?.lng) {
-        updateData.latitude = newStatus.currentLocation.lat;
-        updateData.longitude = newStatus.currentLocation.lng;
-      } else {
-        // Default to Kinshasa center if no location
-        updateData.latitude = -4.3217;
-        updateData.longitude = 15.3069;
+      // Livraisons actives
+      const { data: deliveries } = await supabase
+        .from('delivery_orders')
+        .select('*')
+        .eq('driver_id', user.id)
+        .in('status', ['driver_assigned', 'confirmed', 'picked_up', 'in_transit']);
+
+      // Livraisons marketplace actives
+      const { data: marketplaceDeliveries } = await supabase
+        .from('marketplace_delivery_assignments')
+        .select(`
+          *,
+          marketplace_orders(
+            *,
+            marketplace_products(title, price)
+          )
+        `)
+        .eq('driver_id', user.id)
+        .in('assignment_status', ['assigned', 'accepted', 'picked_up']);
+
+      const allActiveOrders = [
+        ...(taxiRides || []).map(r => ({ ...r, type: 'taxi' })),
+        ...(deliveries || []).map(d => ({ ...d, type: 'delivery' })),
+        ...(marketplaceDeliveries || []).map(m => ({ ...m, type: 'marketplace' }))
+      ];
+
+      setActiveOrders(allActiveOrders);
+
+      // Mettre à jour le statut si nécessaire
+      if (allActiveOrders.length > 0 && driverStatus.isAvailable) {
+        const firstOrder = allActiveOrders[0];
+        markBusy(firstOrder.id, firstOrder.type as 'taxi' | 'delivery' | 'marketplace');
+      } else if (allActiveOrders.length === 0 && !driverStatus.isAvailable && driverStatus.isOnline) {
+        markAvailable();
       }
 
-      const { error } = await supabase
-        .from('driver_locations')
-        .upsert(updateData, { onConflict: 'driver_id' });
-
-      if (error) throw error;
-
-      setDriverStatus(newStatus);
-      return true;
-
     } catch (error: any) {
-      console.error('Error updating driver status:', error);
-      toast.error('Erreur lors de la mise à jour du statut');
-      return false;
-    } finally {
-      setLoading(false);
+      console.error('Error loading active orders:', error);
     }
-  }, [user, driverStatus]);
+  }, [user, driverStatus.isAvailable, driverStatus.isOnline, markBusy, markAvailable]);
 
-  // Accept an order
-  const acceptOrder = useCallback(async (order: DispatchOrder) => {
-    if (!user) return false;
+  // ✅ Accepter une commande avec protection atomique
+  const acceptOrder = async (notification: UnifiedOrderNotification): Promise<boolean> => {
+    if (!user) {
+      toast.error('Vous devez être connecté');
+      return false;
+    }
 
     setLoading(true);
     try {
       let success = false;
 
-      switch (order.type) {
+      switch (notification.type) {
         case 'taxi':
+          // Vérifier si déjà assignée
+          const { data: currentBooking } = await supabase
+            .from('transport_bookings')
+            .select('id, driver_id, status')
+            .eq('id', notification.orderId)
+            .single();
+
+          if (currentBooking?.driver_id) {
+            toast.error('⚠️ Course déjà assignée à un autre chauffeur');
+            setPendingNotifications(prev => prev.filter(n => n.id !== notification.id));
+            return false;
+          }
+
+          // Appeler edge function pour assignation atomique
           const { error: taxiError } = await supabase.functions.invoke('ride-dispatcher', {
             body: {
               action: 'assign_driver',
-              rideRequestId: order.id,
+              rideRequestId: notification.orderId,
               driverId: user.id
             }
           });
-          success = !taxiError;
+          
+          if (taxiError) {
+            console.error('Error accepting taxi ride:', taxiError);
+            toast.error('❌ Impossible d\'accepter la course');
+            return false;
+          }
+          
+          success = true;
           break;
 
         case 'delivery':
-          // Use the new status manager edge function
-          const { error: deliveryError } = await supabase.functions.invoke('delivery-status-manager', {
-            body: {
-              orderId: order.id,
-              newStatus: 'driver_assigned',
-              driverId: user.id
-            }
-          });
-          success = !deliveryError;
+          // ✅ Protection atomique avec assignment_version
+          const { data: currentDelivery } = await supabase
+            .from('delivery_orders')
+            .select('id, driver_id, assignment_version, status')
+            .eq('id', notification.orderId)
+            .single();
+
+          if (!currentDelivery) {
+            toast.error('❌ Commande introuvable');
+            return false;
+          }
+
+          if (currentDelivery.driver_id) {
+            await supabase.rpc('log_assignment_conflict', {
+              p_order_type: 'delivery_order',
+              p_order_id: notification.orderId,
+              p_driver_id: user.id,
+              p_conflict_reason: 'Course déjà assignée'
+            });
+
+            toast.error('⚠️ Course déjà assignée à un autre chauffeur');
+            setPendingNotifications(prev => prev.filter(n => n.id !== notification.id));
+            return false;
+          }
+
+          // Assignation atomique avec versioning
+          const { data: updateResult, error: deliveryError } = await supabase
+            .from('delivery_orders')
+            .update({ 
+              driver_id: user.id,
+              status: 'driver_assigned',
+              driver_assigned_at: new Date().toISOString(),
+              assignment_version: (currentDelivery.assignment_version || 0) + 1
+            })
+            .eq('id', notification.orderId)
+            .eq('assignment_version', currentDelivery.assignment_version)
+            .is('driver_id', null)
+            .select();
+
+          if (!updateResult || updateResult.length === 0) {
+            await supabase.rpc('log_assignment_conflict', {
+              p_order_type: 'delivery_order',
+              p_order_id: notification.orderId,
+              p_driver_id: user.id,
+              p_conflict_reason: 'Conflit de version (race condition)'
+            });
+
+            toast.error('⚠️ Un autre chauffeur a accepté en même temps');
+            setPendingNotifications(prev => prev.filter(n => n.id !== notification.id));
+            return false;
+          }
+
+          if (deliveryError) {
+            console.error('Error accepting delivery:', deliveryError);
+            toast.error('❌ Erreur lors de l\'acceptation');
+            return false;
+          }
+
+          success = true;
           break;
 
         case 'marketplace':
+          // ✅ Protection atomique
+          const { data: currentAssignment } = await supabase
+            .from('marketplace_delivery_assignments')
+            .select('id, driver_id, assignment_status')
+            .eq('id', notification.orderId)
+            .single();
+
+          if (!currentAssignment || currentAssignment.driver_id) {
+            toast.error('⚠️ Livraison déjà assignée');
+            setPendingNotifications(prev => prev.filter(n => n.id !== notification.id));
+            return false;
+          }
+
           const { error: marketplaceError } = await supabase
             .from('marketplace_delivery_assignments')
             .update({
               driver_id: user.id,
-              assignment_status: 'assigned'
+              assignment_status: 'accepted'
             })
-            .eq('id', order.id);
-          success = !marketplaceError;
+            .eq('id', notification.orderId)
+            .is('driver_id', null);
+
+          if (marketplaceError) {
+            console.error('Error accepting marketplace delivery:', marketplaceError);
+            toast.error('❌ Impossible d\'accepter la livraison');
+            return false;
+          }
+
+          success = true;
           break;
       }
 
       if (success) {
-        // Remove from pending and add to active
-        setPendingOrders(prev => prev.filter(o => o.id !== order.id));
-        setActiveOrders(prev => [...prev, { ...order, status: 'accepted' }]);
+        // Retirer la notification
+        setPendingNotifications(prev => prev.filter(n => n.id !== notification.id));
         
-        // Update availability
-        await updateStatus({ isAvailable: false });
+        // Ajouter aux commandes actives
+        setActiveOrders(prev => [...prev, { ...notification.data, type: notification.type }]);
         
-        toast.success('Commande acceptée !');
+        // Marquer comme occupé
+        await markBusy(notification.orderId, notification.type);
+        
+        toast.success('✅ Course acceptée !');
+        
+        // Logger le succès
+        await supabase.from('activity_logs').insert({
+          user_id: user.id,
+          activity_type: 'order_accepted',
+          description: `${notification.type} accepté`,
+          reference_type: notification.type,
+          reference_id: notification.orderId
+        });
+
+        return true;
       }
 
-      return success;
-
+      return false;
     } catch (error: any) {
       console.error('Error accepting order:', error);
-      toast.error('Erreur lors de l\'acceptation');
+      toast.error(`❌ Erreur: ${error.message}`);
       return false;
     } finally {
       setLoading(false);
     }
-  }, [user, updateStatus]);
+  };
 
-  // Complete an order
-  const completeOrder = useCallback(async (orderId: string, type: string) => {
+  // ✅ Refuser une commande
+  const rejectOrder = (notificationId: string) => {
+    setPendingNotifications(prev => prev.filter(n => n.id !== notificationId));
+    toast.info('Commande refusée');
+  };
+
+  // ✅ Terminer une commande
+  const completeOrder = async (orderId: string, type: 'taxi' | 'delivery' | 'marketplace'): Promise<boolean> => {
     setLoading(true);
     try {
       let success = false;
@@ -163,14 +286,13 @@ export const useDriverDispatch = () => {
           break;
 
         case 'delivery':
-          // Use the new status manager edge function
-          const { error: deliveryError } = await supabase.functions.invoke('delivery-status-manager', {
-            body: {
-              orderId: orderId,
-              newStatus: 'delivered',
-              driverId: user.id
-            }
-          });
+          const { error: deliveryError } = await supabase
+            .from('delivery_orders')
+            .update({
+              status: 'delivered',
+              delivered_at: new Date().toISOString()
+            })
+            .eq('id', orderId);
           success = !deliveryError;
           break;
 
@@ -188,146 +310,120 @@ export const useDriverDispatch = () => {
 
       if (success) {
         setActiveOrders(prev => prev.filter(o => o.id !== orderId));
-        
-        // Update availability if no more active orders
-        const remainingOrders = activeOrders.filter(o => o.id !== orderId);
-        if (remainingOrders.length === 0) {
-          await updateStatus({ isAvailable: true });
-        }
-        
-        toast.success('Commande terminée !');
+        await markAvailable();
+        toast.success('✅ Commande terminée !');
+        return true;
       }
 
-      return success;
-
+      return false;
     } catch (error: any) {
       console.error('Error completing order:', error);
-      toast.error('Erreur lors de la finalisation');
+      toast.error('❌ Erreur lors de la finalisation');
       return false;
     } finally {
       setLoading(false);
     }
-  }, [activeOrders, updateStatus]);
+  };
 
-  // Load active orders
-  const loadActiveOrders = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      // Load from all relevant tables
-      const [taxiResponse, deliveryResponse, marketplaceResponse] = await Promise.all([
-        supabase
-          .from('transport_bookings')
-          .select('*')
-          .eq('driver_id', user.id)
-          .in('status', ['accepted', 'driver_arrived', 'in_progress']),
-        
-        supabase
-          .from('delivery_orders')
-          .select('*')
-          .eq('driver_id', user.id)
-          .in('status', ['confirmed', 'driver_assigned', 'picked_up', 'in_transit']),
-        
-        supabase
-          .from('marketplace_delivery_assignments')
-          .select(`
-            *,
-            marketplace_orders(*)
-          `)
-          .eq('driver_id', user.id)
-          .in('assignment_status', ['assigned', 'picked_up'])
-      ]);
-
-      const allOrders = [
-        ...(taxiResponse.data || []).map(order => ({ ...order, type: 'taxi' })),
-        ...(deliveryResponse.data || []).map(order => ({ ...order, type: 'delivery' })),
-        ...(marketplaceResponse.data || []).map(order => ({ ...order, type: 'marketplace' }))
-      ];
-
-      setActiveOrders(allOrders);
-      
-      // Update availability based on active orders
-      await updateStatus({ isAvailable: allOrders.length === 0 });
-
-    } catch (error: any) {
-      console.error('Error loading active orders:', error);
-    }
-  }, [user, updateStatus]);
-
-  // Real-time order listening
+  // ✅ Écoute temps réel des nouvelles commandes
   useEffect(() => {
     if (!user || !driverStatus.isOnline) return;
 
-    // Listen for new ride offers
-    const rideChannel = supabase
-      .channel('ride-offers-' + user.id)
+    console.log('🎧 Écoute unifiée des commandes pour:', user.id);
+
+    // Channel unique pour toutes les notifications
+    const driverChannel = supabase
+      .channel(`unified-driver-notifications-${user.id}`)
+      // Taxi bookings
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
-        table: 'ride_offers',
-        filter: `driver_id=eq.${user.id}`
-      }, async (payload) => {
-        // Fetch ride request details
-        const { data: rideRequest } = await supabase
-          .from('ride_requests')
-          .select('*')
-          .eq('id', payload.new.ride_request_id)
-          .single();
-
-        if (rideRequest) {
-          const order: DispatchOrder = {
-            id: rideRequest.id,
-            type: 'taxi',
-            pickup_location: rideRequest.pickup_location,
-            destination_location: rideRequest.destination,
-            estimated_price: rideRequest.surge_price || rideRequest.estimated_price,
-            urgency: 'medium',
-            created_at: payload.new.created_at
-          };
-
-          setPendingOrders(prev => [order, ...prev]);
-          toast.info('Nouvelle course disponible', {
-            description: `${rideRequest.pickup_location} → ${rideRequest.destination}`
-          });
-        }
+        table: 'transport_bookings',
+        filter: 'status=eq.pending'
+      }, (payload) => {
+        const booking = payload.new as any;
+        const notification: UnifiedOrderNotification = {
+          id: booking.id,
+          type: 'taxi',
+          orderId: booking.id,
+          title: 'Nouvelle course taxi',
+          message: `${booking.pickup_location} → ${booking.destination}`,
+          location: booking.pickup_location,
+          estimatedPrice: booking.estimated_price || 0,
+          urgency: 'medium',
+          data: booking,
+          created_at: booking.created_at
+        };
+        
+        setPendingNotifications(prev => [notification, ...prev]);
+        toast.success('🚗 Nouvelle course disponible', {
+          description: notification.message,
+          duration: 60000
+        });
       })
-      .subscribe();
-
-    // Listen for new delivery orders
-    const deliveryChannel = supabase
-      .channel('delivery-pending-' + user.id)
+      // Delivery orders
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'delivery_orders',
         filter: 'status=eq.pending'
       }, (payload) => {
-        if (driverStatus.serviceTypes.includes('delivery')) {
-          const order: DispatchOrder = {
-            id: payload.new.id,
-            type: 'delivery',
-            pickup_location: payload.new.pickup_location,
-            delivery_location: payload.new.delivery_location,
-            estimated_price: payload.new.estimated_price,
-            urgency: payload.new.delivery_type === 'flash' ? 'high' : 'medium',
-            created_at: payload.new.created_at
-          };
-
-          setPendingOrders(prev => [order, ...prev]);
-          toast.info('Nouvelle livraison disponible', {
-            description: `${payload.new.pickup_location} → ${payload.new.delivery_location}`
-          });
-        }
+        const delivery = payload.new as any;
+        const notification: UnifiedOrderNotification = {
+          id: delivery.id,
+          type: 'delivery',
+          orderId: delivery.id,
+          title: 'Nouvelle livraison',
+          message: `${delivery.pickup_location} → ${delivery.delivery_location}`,
+          location: delivery.pickup_location,
+          estimatedPrice: delivery.estimated_price || 0,
+          urgency: delivery.delivery_type === 'flash' ? 'high' : 'medium',
+          data: delivery,
+          created_at: delivery.created_at,
+          assignment_version: delivery.assignment_version
+        };
+        
+        setPendingNotifications(prev => [notification, ...prev]);
+        toast.success('📦 Nouvelle livraison disponible', {
+          description: notification.message,
+          duration: 60000
+        });
+      })
+      // Marketplace assignments
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'marketplace_delivery_assignments',
+        filter: `driver_id=eq.${user.id}`
+      }, (payload) => {
+        const assignment = payload.new as any;
+        const notification: UnifiedOrderNotification = {
+          id: assignment.id,
+          type: 'marketplace',
+          orderId: assignment.id,
+          title: 'Livraison marketplace',
+          message: `Nouvelle commande marketplace`,
+          location: assignment.pickup_location,
+          estimatedPrice: assignment.delivery_fee || 0,
+          urgency: 'high',
+          data: assignment,
+          created_at: assignment.created_at
+        };
+        
+        setPendingNotifications(prev => [notification, ...prev]);
+        toast.success('🛒 Nouvelle livraison marketplace', {
+          description: notification.message,
+          duration: 60000
+        });
       })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(rideChannel);
-      supabase.removeChannel(deliveryChannel);
+      supabase.removeChannel(driverChannel);
     };
-  }, [user, driverStatus.isOnline, driverStatus.serviceTypes]);
+  }, [user, driverStatus.isOnline]);
 
-  // Initial load
+  // Charger les commandes actives au montage
   useEffect(() => {
     if (user) {
       loadActiveOrders();
@@ -336,11 +432,10 @@ export const useDriverDispatch = () => {
 
   return {
     loading,
-    driverStatus,
-    pendingOrders,
+    pendingNotifications,
     activeOrders,
-    updateStatus,
     acceptOrder,
+    rejectOrder,
     completeOrder,
     loadActiveOrders
   };

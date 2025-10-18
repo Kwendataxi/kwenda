@@ -25,9 +25,9 @@ export const useDriverRideOffers = () => {
   const loadActiveRide = async () => {
     if (!driverId) return;
     const { data } = await supabase
-      .from('ride_requests')
+      .from('transport_bookings')
       .select('*')
-      .eq('assigned_driver_id', driverId)
+      .eq('driver_id', driverId)
       .in('status', ['accepted', 'driver_arrived', 'in_progress'])
       .order('created_at', { ascending: false })
       .limit(1)
@@ -39,7 +39,7 @@ export const useDriverRideOffers = () => {
         user_id: data.user_id,
         pickup_location: data.pickup_location,
         destination: data.destination,
-        estimated_price: data.surge_price ?? data.estimated_price,
+        estimated_price: data.estimated_price,
         status: data.status as ActiveBooking['status'],
       });
     } else {
@@ -70,8 +70,8 @@ export const useDriverRideOffers = () => {
     }
 
     const { data: requests } = await supabase
-      .from('ride_requests')
-      .select('id, user_id, pickup_location, destination, estimated_price, surge_price, status')
+      .from('transport_bookings')
+      .select('id, user_id, pickup_location, destination, estimated_price, status')
       .in('id', ids);
 
     const mapped: ActiveBooking[] = (requests || []).map(r => ({
@@ -79,7 +79,7 @@ export const useDriverRideOffers = () => {
       user_id: r.user_id,
       pickup_location: r.pickup_location,
       destination: r.destination,
-      estimated_price: r.surge_price ?? r.estimated_price,
+      estimated_price: r.estimated_price,
       status: r.status as ActiveBooking['status'],
     }));
 
@@ -147,12 +147,12 @@ export const useDriverRideOffers = () => {
       .subscribe();
 
     const rideChannel = supabase
-      .channel('ride_requests_driver_' + driverId)
+      .channel('transport_bookings_driver_' + driverId)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
-        table: 'ride_requests',
-        filter: `assigned_driver_id=eq.${driverId}`,
+        table: 'transport_bookings',
+        filter: `driver_id=eq.${driverId}`,
       }, () => loadActiveRide())
       .subscribe();
 
