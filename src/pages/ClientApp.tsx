@@ -706,18 +706,7 @@ const ClientApp = () => {
             return renderWallet();
           case 'notifications':
             return <NotificationCenter />;
-          case 'referral':
-            return (
-              <div className="min-h-screen bg-background">
-                <ReferralPanel 
-                  open={true} 
-                  onClose={() => {
-                    console.log('Fermeture du panel de parrainage - retour vers home');
-                    setCurrentView('home');
-                  }} 
-                />
-              </div>
-            );
+          // Referral route is handled by /referral page via navigation
           case 'offline':
             return <OfflineMode />;
           case 'security':
