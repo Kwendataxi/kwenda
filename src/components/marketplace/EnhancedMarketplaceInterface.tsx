@@ -26,7 +26,6 @@ import { ProductDetailsDialog } from './ProductDetailsDialog';
 import { VendorStoreView } from './VendorStoreView';
 import { ClientEscrowDashboard } from '../escrow/ClientEscrowDashboard';
 import { SellProductForm } from './SellProductForm';
-import { VendorDashboard } from './VendorDashboard';
 import { HorizontalProductScroll } from './HorizontalProductScroll';
 import { WalletBalance } from './WalletBalance';
 import { DeliveryCalculator } from './DeliveryCalculator';
