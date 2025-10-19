@@ -100,6 +100,18 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
           return;
         }
 
+        // ✅ PHASE 1.1: Stocker le rôle actif dans les metadata Supabase
+        await supabase.auth.updateUser({
+          data: {
+            active_role: 'driver',
+            last_app: 'chauffeur'
+          }
+        });
+
+        // Stocker aussi en localStorage en backup
+        localStorage.setItem('kwenda_login_intent', 'driver');
+        localStorage.setItem('kwenda_selected_role', 'driver');
+
         // Gérer les multi-rôles
         const userRoles = roles || [];
         
@@ -121,9 +133,6 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
             title: "Connexion réussie !",
             description: "Sélectionnez votre espace de travail",
           });
-          
-          // Sauvegarder que l'utilisateur vient de la page driver
-          localStorage.setItem('kwenda_login_intent', 'driver');
           
           // Laisser ProtectedRoute rediriger vers /role-selection
           navigate('/chauffeur'); // Sera intercepté par ProtectedRoute

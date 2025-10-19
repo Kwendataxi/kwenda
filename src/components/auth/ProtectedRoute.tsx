@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useSelectedRole } from '@/hooks/useSelectedRole';
@@ -15,8 +15,9 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: ProtectedRouteProps) => {
   const { user, loading, sessionReady } = useAuth();
   const { userRoles, primaryRole, loading: rolesLoading } = useUserRoles();
-  const { hasSelectedRole, setSelectedRole } = useSelectedRole();
+  const { hasSelectedRole, setSelectedRole, selectedRole } = useSelectedRole();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Afficher un loader pendant la vérification de l'authentification ET de la session
   if (loading || !sessionReady) {
@@ -41,21 +42,25 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
     return <Navigate to={APP_CONFIG.authRoute} state={{ from: location }} replace />;
   }
 
-  // ✅ PHASE 1 : Vérifier le rôle requis (isolation authentification)
+  // ✅ PHASE 1.2: Vérifier le rôle requis EN PREMIER (avant auto-sélection)
   if (requireAuth && user && requiredRole && !rolesLoading) {
     const hasRequiredRole = userRoles.some(ur => ur.role === requiredRole);
     
     if (!hasRequiredRole) {
-      // Rediriger vers la page de connexion appropriée
-      if (requiredRole === 'driver') {
-        return <Navigate to="/driver/auth" replace />;
-      } else if (requiredRole === 'partner') {
-        return <Navigate to="/partner/auth" replace />;
-      } else if (requiredRole === 'admin') {
-        return <Navigate to="/admin/auth" replace />;
-      } else {
-        return <Navigate to="/auth" replace />;
-      }
+      const roleRoutes: Record<string, string> = {
+        'client': '/auth',
+        'driver': '/driver/auth',
+        'partner': '/partner/auth',
+        'admin': '/admin/auth'
+      };
+      
+      navigate(roleRoutes[requiredRole] || '/auth');
+      return null;
+    }
+    
+    // ✅ FORCER la sélection du rôle requis si pas déjà fait
+    if (!hasSelectedRole() || selectedRole !== requiredRole) {
+      setSelectedRole(requiredRole);
     }
   }
 
@@ -64,8 +69,14 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
     // Vérifier s'il y a une intention de connexion (driver/partner/admin)
     const loginIntent = localStorage.getItem('kwenda_login_intent');
     
-    // Si intention spécifique (driver, partner, admin), aller à role-selection
+    // Si intention spécifique (driver, partner, admin), utiliser cette intention
     if (loginIntent && loginIntent !== 'client' && loginIntent !== 'vendor') {
+      const intentRole = loginIntent as 'driver' | 'partner' | 'admin';
+      if (userRoles.some(ur => ur.role === intentRole)) {
+        setSelectedRole(intentRole);
+        localStorage.removeItem('kwenda_login_intent');
+        return null;
+      }
       return <Navigate to="/role-selection" replace />;
     }
     

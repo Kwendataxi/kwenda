@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useDriverDispatch } from '@/hooks/useDriverDispatch';
 import { useDriverStatus } from '@/hooks/useDriverStatus';
@@ -23,7 +24,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const DeliveryDriverInterface: React.FC = () => {
   const { user } = useAuth();
-  const { status: driverStatus } = useDriverStatus();
+  const { status: driverStatus, goOnline } = useDriverStatus();
   const {
     loading,
     pendingNotifications,
@@ -210,16 +211,68 @@ export const DeliveryDriverInterface: React.FC = () => {
           </motion.div>
         )}
 
-        {/* Message quand aucune livraison */}
+        {/* ✅ PHASE 5: Dashboard des canaux actifs */}
+        <Card className="bg-gradient-to-r from-primary/5 to-secondary/5">
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Canaux de Réception Actifs
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-center justify-between p-2 bg-background rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className={`h-2 w-2 rounded-full ${driverStatus.isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+                <span className="text-sm font-medium">Livraisons Flash</span>
+              </div>
+              <Badge variant="secondary">{deliveryNotifications.filter(n => n.type === 'delivery').length} en attente</Badge>
+            </div>
+            
+            <div className="flex items-center justify-between p-2 bg-background rounded-lg opacity-50">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 bg-gray-400 rounded-full" />
+                <span className="text-sm font-medium">Marketplace</span>
+              </div>
+              <Badge variant="outline">Bientôt disponible</Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ✅ PHASE 4: Message amélioré quand aucune livraison */}
         {!loading && deliveryNotifications.length === 0 && deliveryActiveOrders.length === 0 && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {driverStatus.isOnline 
-                ? '📦 Aucune livraison disponible pour le moment. Vous êtes en ligne et prêt !' 
-                : '⏸️ Passez en ligne pour recevoir des livraisons'}
-            </AlertDescription>
-          </Alert>
+          <Card className="border-gray-200">
+            <CardContent className="p-8 text-center">
+              {driverStatus.isOnline ? (
+                <>
+                  <Package className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-xl font-bold mb-2">📦 En attente de livraisons</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Vous êtes en ligne. Les nouvelles livraisons apparaîtront ici automatiquement.
+                  </p>
+                  <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
+                    <p className="text-sm text-blue-700 dark:text-blue-400">
+                      💡 <strong>Astuce:</strong> Les livraisons Flash sont prioritaires et mieux rémunérées !
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="h-16 w-16 mx-auto mb-4 text-orange-400" />
+                  <h3 className="text-xl font-bold mb-2">⏸️ Vous êtes hors ligne</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Passez en ligne pour commencer à recevoir des livraisons
+                  </p>
+                  <Button 
+                    onClick={() => goOnline()}
+                    size="lg"
+                    className="w-full max-w-sm"
+                  >
+                    🟢 Passer en ligne
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
         )}
       </div>
 

@@ -28,23 +28,28 @@ export const useDriverStatus = () => {
     serviceTypes: ['taxi', 'delivery', 'marketplace']
   });
 
-  // ✅ Charger le statut initial depuis la DB
+  // ✅ PHASE 2: Charger le statut depuis chauffeurs (is_active)
   const loadDriverStatus = useCallback(async () => {
     if (!user) return;
 
     try {
-      const { data: driverProfile } = await supabase
-        .from('driver_profiles')
-        .select('is_online, is_available, current_order_id, current_order_type')
+      const { data: driverProfile, error } = await supabase
+        .from('chauffeurs')
+        .select('is_active, verification_status')
         .eq('user_id', user.id)
         .single();
 
+      if (error) {
+        console.error('Error loading driver status:', error);
+        return;
+      }
+
       if (driverProfile) {
         setStatus({
-          isOnline: driverProfile.is_online || false,
-          isAvailable: driverProfile.is_available || false,
-          currentOrderId: driverProfile.current_order_id,
-          currentOrderType: driverProfile.current_order_type as any,
+          isOnline: driverProfile.is_active || false,
+          isAvailable: driverProfile.is_active && driverProfile.verification_status === 'verified',
+          currentOrderId: null, // Géré par useDriverDispatch
+          currentOrderType: null,
           serviceTypes: ['taxi', 'delivery', 'marketplace']
         });
       }
@@ -55,7 +60,7 @@ export const useDriverStatus = () => {
     }
   }, [user]);
 
-  // ✅ Passer en ligne
+  // ✅ PHASE 2: Passer en ligne (utiliser chauffeurs.is_active)
   const goOnline = async (latitude?: number, longitude?: number): Promise<boolean> => {
     if (!user) {
       toast.error('Vous devez être connecté');
@@ -64,20 +69,9 @@ export const useDriverStatus = () => {
 
     setLoading(true);
     try {
-      const updateData: any = {
-        is_online: true,
-        last_online_at: new Date().toISOString()
-      };
-
-      // Si position GPS disponible
-      if (latitude && longitude) {
-        updateData.current_latitude = latitude;
-        updateData.current_longitude = longitude;
-      }
-
       const { error } = await supabase
-        .from('driver_profiles')
-        .update(updateData)
+        .from('chauffeurs')
+        .update({ is_active: true })
         .eq('user_id', user.id);
 
       if (error) {
@@ -86,7 +80,7 @@ export const useDriverStatus = () => {
         return false;
       }
 
-      setStatus(prev => ({ ...prev, isOnline: true }));
+      setStatus(prev => ({ ...prev, isOnline: true, isAvailable: true }));
       toast.success('✅ Vous êtes maintenant en ligne');
       return true;
     } catch (error: any) {
@@ -98,7 +92,7 @@ export const useDriverStatus = () => {
     }
   };
 
-  // ✅ Passer hors ligne
+  // ✅ PHASE 2: Passer hors ligne (utiliser chauffeurs.is_active)
   const goOffline = async (): Promise<boolean> => {
     if (!user) {
       toast.error('Vous devez être connecté');
@@ -108,12 +102,8 @@ export const useDriverStatus = () => {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('driver_profiles')
-        .update({
-          is_online: false,
-          is_available: false,
-          last_offline_at: new Date().toISOString()
-        })
+        .from('chauffeurs')
+        .update({ is_active: false })
         .eq('user_id', user.id);
 
       if (error) {

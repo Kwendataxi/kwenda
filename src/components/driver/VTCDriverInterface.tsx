@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useDriverDispatch } from '@/hooks/useDriverDispatch';
 import { useDriverStatus } from '@/hooks/useDriverStatus';
@@ -15,7 +16,7 @@ import { ModernOrderCard } from './ModernOrderCard';
 import { DriverStatsPanel } from './DriverStatsPanel';
 import DriverStatusToggle from './DriverStatusToggle';
 import { NavigationModal } from './NavigationModal';
-import { Car, AlertCircle, CheckCircle } from 'lucide-react';
+import { Car, AlertCircle, CheckCircle, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -23,7 +24,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const VTCDriverInterface: React.FC = () => {
   const { user } = useAuth();
-  const { status: driverStatus } = useDriverStatus();
+  const { status: driverStatus, goOnline } = useDriverStatus();
   const {
     loading,
     pendingNotifications,
@@ -206,16 +207,68 @@ export const VTCDriverInterface: React.FC = () => {
           </motion.div>
         )}
 
-        {/* Message quand aucune course */}
+        {/* ✅ PHASE 5: Dashboard des canaux actifs */}
+        <Card className="bg-gradient-to-r from-primary/5 to-secondary/5">
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Canaux de Réception Actifs
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-center justify-between p-2 bg-background rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className={`h-2 w-2 rounded-full ${driverStatus.isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+                <span className="text-sm font-medium">Courses VTC Directes</span>
+              </div>
+              <Badge variant="secondary">{vtcNotifications.filter(n => n.type === 'taxi').length} en attente</Badge>
+            </div>
+            
+            <div className="flex items-center justify-between p-2 bg-background rounded-lg opacity-50">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 bg-gray-400 rounded-full" />
+                <span className="text-sm font-medium">Pool de Courses</span>
+              </div>
+              <Badge variant="outline">Bientôt disponible</Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ✅ PHASE 4: Message amélioré quand aucune course */}
         {!loading && vtcNotifications.length === 0 && vtcActiveOrders.length === 0 && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {driverStatus.isOnline 
-                ? '🚗 Aucune course VTC disponible pour le moment. Vous êtes en ligne et prêt !' 
-                : '⏸️ Passez en ligne pour recevoir des courses VTC'}
-            </AlertDescription>
-          </Alert>
+          <Card className="border-gray-200">
+            <CardContent className="p-8 text-center">
+              {driverStatus.isOnline ? (
+                <>
+                  <Car className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-xl font-bold mb-2">🚗 En attente de courses</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Vous êtes en ligne. Les nouvelles courses apparaîtront ici automatiquement.
+                  </p>
+                  <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
+                    <p className="text-sm text-blue-700 dark:text-blue-400">
+                      💡 <strong>Astuce:</strong> Assurez-vous d'activer les notifications pour ne manquer aucune course !
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="h-16 w-16 mx-auto mb-4 text-orange-400" />
+                  <h3 className="text-xl font-bold mb-2">⏸️ Vous êtes hors ligne</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Passez en ligne pour commencer à recevoir des courses VTC
+                  </p>
+                  <Button 
+                    onClick={() => goOnline()}
+                    size="lg"
+                    className="w-full max-w-sm"
+                  >
+                    🟢 Passer en ligne
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
         )}
       </div>
 
