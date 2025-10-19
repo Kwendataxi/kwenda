@@ -10,6 +10,7 @@ import { PartnerDashboard } from '@/components/partner/PartnerDashboard';
 import { PartnerAnalyticsDashboard } from '@/components/partner/PartnerAnalyticsDashboard';
 import { PartnerNotificationCenter } from '@/components/partner/PartnerNotificationCenter';
 import { PartnerSubscriptionEarnings } from '@/components/partner/PartnerSubscriptionEarnings';
+import { User } from 'lucide-react';
 
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 import { Button } from "@/components/ui/button"
@@ -42,7 +43,7 @@ import { Progress } from "@/components/ui/progress"
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const PartnerApp = () => {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'subscriptions' | 'analytics' | 'notifications' | 'subscription-earnings'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'subscriptions' | 'analytics' | 'notifications' | 'subscription-earnings' | 'profile'>('dashboard');
   
   // Use real data hooks
   const { stats, loading: statsLoading } = usePartnerStats();
@@ -453,6 +454,16 @@ const PartnerApp = () => {
         return <PartnerAnalyticsDashboard />;
       case 'notifications':
         return <PartnerNotificationCenter />;
+      case 'profile':
+        return (
+          <div className="p-4">
+            <div className="card-floating p-6 text-center">
+              <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h2 className="text-heading-md mb-2">Page Profil Partenaire</h2>
+              <p className="text-body-sm text-muted-foreground">Cette page sera implémentée dans les prochaines phases</p>
+            </div>
+          </div>
+        );
       default:
         return renderDashboard();
     }
@@ -471,6 +482,8 @@ const PartnerApp = () => {
         return 'Analytiques';
       case 'notifications':
         return 'Notifications';
+      case 'profile':
+        return 'Mon Profil';
       default: 
         return 'Tableau de bord';
     }
