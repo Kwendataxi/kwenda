@@ -36,7 +36,7 @@ export const ResponsiveVendorLayout: React.FC<ResponsiveVendorLayoutProps> = ({
       </header>
 
       {/* Container principal avec sidebar et contenu */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 min-h-0">
         {/* Sidebar Desktop uniquement */}
         {!isMobile && (
           <VendorDesktopSidebar 
@@ -47,8 +47,10 @@ export const ResponsiveVendorLayout: React.FC<ResponsiveVendorLayoutProps> = ({
         )}
 
         {/* Zone de contenu scrollable */}
-        <main className="vendor-content-scrollable container max-w-6xl mx-auto p-4 space-y-4">
-          {children}
+        <main className="vendor-content-scrollable">
+          <div className="container max-w-6xl mx-auto p-4 space-y-4">
+            {children}
+          </div>
         </main>
       </div>
 

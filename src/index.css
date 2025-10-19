@@ -243,13 +243,16 @@ All colors MUST be HSL.
     overflow: hidden;
   }
 
-  .vendor-content-scrollable {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
-  }
+.vendor-content-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  min-height: 0; /* ✅ CRITIQUE pour flex scrolling */
+  display: flex;
+  flex-direction: column;
+}
 
   .vendor-bottom-nav-height {
     height: calc(var(--vendor-bottom-nav-height) + env(safe-area-inset-bottom, 0px));

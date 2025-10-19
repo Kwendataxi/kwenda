@@ -208,7 +208,7 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
                         {getStatusBadge(order.status)}
                       </CardTitle>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Client: {order.buyer_phone || 'Non renseigné'} • Qté: {order.quantity}
+                        Client: {order.buyer_phone || 'Téléphone non disponible'} • Qté: {order.quantity}
                       </p>
                     </div>
                     <div className="text-right">
