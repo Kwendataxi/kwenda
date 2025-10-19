@@ -27,18 +27,8 @@ serve(async (req) => {
   }
 
   try {
-    // FEATURE FLAG: Vérifier si les abonnements vendeurs sont activés
-    const VENDOR_SUBSCRIPTIONS_ENABLED = false // À activer plus tard
-
-    if (!VENDOR_SUBSCRIPTIONS_ENABLED) {
-      return new Response(JSON.stringify({ 
-        error: 'Vendor subscriptions not yet available',
-        message: 'Les abonnements vendeurs seront bientôt disponibles. Restez connecté !'
-      }), {
-        status: 503,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
+    // ✅ FEATURE ACTIVÉE
+    const VENDOR_SUBSCRIPTIONS_ENABLED = true
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -62,25 +52,126 @@ serve(async (req) => {
       })
     }
 
-    const { plan_id, vendor_id, payment_method } = await req.json() as VendorSubscriptionRequest
+    const { plan_id, payment_method } = await req.json() as VendorSubscriptionRequest
 
-    // TODO: Implémenter la logique d'abonnement vendeur
-    // - Vérifier le plan dans vendor_subscription_plans
-    // - Créer l'abonnement
-    // - Traiter le paiement Mobile Money
-    // - Activer les fonctionnalités du plan (max_products, analytics, etc.)
+    // 1. Récupérer le plan
+    const { data: plan, error: planError } = await supabaseClient
+      .from('vendor_subscription_plans')
+      .select('*')
+      .eq('id', plan_id)
+      .single()
+
+    if (planError || !plan) {
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Plan introuvable' 
+      }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // 2. Si plan gratuit, activer directement
+    if (plan.monthly_price === 0) {
+      const { error: subError } = await supabaseClient
+        .from('vendor_active_subscriptions')
+        .upsert({
+          vendor_id: user.id,
+          plan_id: plan_id,
+          status: 'active',
+          payment_method: 'free',
+          start_date: new Date().toISOString(),
+          end_date: null,
+        }, { onConflict: 'vendor_id' })
+
+      if (subError) throw subError
+
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'Abonnement gratuit activé avec succès',
+        subscription: { 
+          plan_name: plan.name, 
+          status: 'active',
+          commission_rate: plan.commission_rate
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // 3. Si plan payant, vérifier wallet
+    const { data: wallet } = await supabaseClient
+      .from('user_wallets')
+      .select('balance')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!wallet || wallet.balance < plan.monthly_price) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Solde insuffisant',
+        required: plan.monthly_price,
+        current: wallet?.balance || 0
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // 4. Débiter le wallet
+    const { error: walletError } = await supabaseClient
+      .from('user_wallets')
+      .update({ balance: wallet.balance - plan.monthly_price })
+      .eq('user_id', user.id)
+
+    if (walletError) throw walletError
+
+    // 5. Créer l'abonnement
+    const end_date = new Date()
+    end_date.setDate(end_date.getDate() + plan.duration_days)
+
+    const { error: subError } = await supabaseClient
+      .from('vendor_active_subscriptions')
+      .upsert({
+        vendor_id: user.id,
+        plan_id: plan_id,
+        status: 'active',
+        payment_method: payment_method,
+        start_date: new Date().toISOString(),
+        end_date: end_date.toISOString(),
+        payment_reference: `VENDOR-${Date.now()}`
+      }, { onConflict: 'vendor_id' })
+
+    if (subError) throw subError
+
+    // 6. Logger la transaction
+    await supabaseClient.from('activity_logs').insert({
+      user_id: user.id,
+      activity_type: 'vendor_subscription',
+      description: `Abonnement ${plan.name} activé`,
+      amount: -plan.monthly_price,
+      currency: plan.currency,
+      metadata: { plan_id, plan_name: plan.name }
+    })
 
     return new Response(JSON.stringify({
-      success: false,
-      message: 'Feature under development'
+      success: true,
+      message: `Abonnement ${plan.name} activé avec succès`,
+      subscription: {
+        plan_name: plan.name,
+        commission_rate: plan.commission_rate,
+        end_date: end_date.toISOString()
+      }
     }), {
-      status: 501,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
 
   } catch (error) {
     console.error('[Vendor Subscription] Error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    return new Response(JSON.stringify({ 
+      success: false,
+      error: error.message || 'Erreur interne du serveur' 
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })

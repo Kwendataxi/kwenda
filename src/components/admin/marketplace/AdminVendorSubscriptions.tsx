@@ -38,46 +38,46 @@ export const AdminVendorSubscriptions = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Charger les plans (avec fallback manuel)
+      // Charger les plans
       const { data: plansData, error: plansError } = await supabase
-        .from('vendor_subscription_plans')
-        .select('id, name, monthly_price, max_products')
+        .from('vendor_subscription_plans' as any)
+        .select('id, name, monthly_price, max_products, commission_rate')
         .order('monthly_price');
 
-      if (plansError) {
-        console.warn('Plans error:', plansError);
-        // Fallback: Plans par défaut
-        setPlans([
-          { id: '1', name: 'Gratuit', price_per_month: 0, max_products: 3 },
-          { id: '2', name: 'Standard', price_per_month: 5000, max_products: 50 },
-          { id: '3', name: 'Premium', price_per_month: 15000, max_products: -1 },
-        ]);
-      } else {
-        setPlans((plansData || []).map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          price_per_month: p.monthly_price || 0,
-          max_products: p.max_products || 0
-        })));
+      if (plansError) throw plansError;
+      
+      setPlans((plansData || []).map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        price_per_month: p.monthly_price || 0,
+        max_products: p.max_products || 0
+      })));
+
+      // Charger les abonnements actifs des vendeurs
+      const { data: subsData, error: subsError } = await supabase
+        .from('vendor_active_subscriptions' as any)
+        .select(`
+          *,
+          vendor_profiles!inner(shop_name),
+          vendor_subscription_plans(name, monthly_price, commission_rate)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (subsError) {
+        console.error('Subscriptions error:', subsError);
+        setVendors([]);
+        return;
       }
 
-      // Charger les abonnements actifs (simulé avec vendor_profiles)
-      const { data: subsData, error: subsError } = await supabase
-        .from('vendor_profiles')
-        .select('user_id, shop_name')
-        .limit(50);
-
-      if (subsError) throw subsError;
-
       const formatted = (subsData || []).map((sub: any) => ({
-        vendor_id: sub.user_id,
-        shop_name: sub.shop_name || 'Boutique sans nom',
-        plan_name: 'Gratuit',
-        monthly_price: 0,
-        commission_rate: 15,
-        start_date: new Date().toISOString(),
-        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        status: 'active',
+        vendor_id: sub.vendor_id,
+        shop_name: sub.vendor_profiles?.shop_name || 'Boutique sans nom',
+        plan_name: sub.vendor_subscription_plans?.name || 'Gratuit',
+        monthly_price: sub.vendor_subscription_plans?.monthly_price || 0,
+        commission_rate: sub.vendor_subscription_plans?.commission_rate || 15,
+        start_date: sub.start_date,
+        end_date: sub.end_date,
+        status: sub.status
       }));
 
       setVendors(formatted);

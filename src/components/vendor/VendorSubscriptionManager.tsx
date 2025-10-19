@@ -101,42 +101,42 @@ export const VendorSubscriptionManager = () => {
     const selectedPlan = plans.find(p => p.id === planId);
     if (!selectedPlan) return;
 
-    // Si plan gratuit, créer directement l'abonnement
-    if (selectedPlan.monthly_price === 0) {
-      try {
-        const { error } = await supabase
-          .from('vendor_active_subscriptions' as any)
-          .upsert({
-            vendor_id: user.id,
-            plan_id: planId,
-            status: 'active',
-            payment_method: 'free',
-            start_date: new Date().toISOString()
-          }, {
-            onConflict: 'vendor_id'
-          });
+    try {
+      // Appeler l'edge function pour tous les plans
+      const { data, error } = await supabase.functions.invoke('vendor-subscription-manager', {
+        body: {
+          plan_id: planId,
+          vendor_id: user.id,
+          payment_method: selectedPlan.monthly_price === 0 ? 'free' : 'wallet'
+        }
+      });
 
-        if (error) throw error;
+      if (error) throw error;
 
+      if (data.success) {
         toast({
           title: "✅ Abonnement activé",
-          description: `Vous êtes maintenant sur le plan ${selectedPlan.name}`,
+          description: data.message,
         });
-
         loadData();
-      } catch (error) {
-        console.error('Error upgrading plan:', error);
-        toast({
-          title: "Erreur",
-          description: "Impossible d'activer l'abonnement",
-          variant: "destructive"
-        });
+      } else {
+        // Gestion des erreurs spécifiques
+        if (data.error === 'Solde insuffisant') {
+          toast({
+            title: "💰 Solde insuffisant",
+            description: `Il vous faut ${data.required} CDF. Solde actuel: ${data.current} CDF`,
+            variant: "destructive"
+          });
+        } else {
+          throw new Error(data.error);
+        }
       }
-    } else {
-      // Pour les plans payants, afficher une modale de paiement
+    } catch (error: any) {
+      console.error('Error upgrading plan:', error);
       toast({
-        title: "Paiement requis",
-        description: `Pour passer au plan ${selectedPlan.name}, veuillez contacter l'administration pour activer le paiement Mobile Money.`,
+        title: "Erreur",
+        description: error.message || "Impossible d'activer l'abonnement",
+        variant: "destructive"
       });
     }
   };
