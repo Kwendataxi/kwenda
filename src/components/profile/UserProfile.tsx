@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Star, Shield, Phone, Mail, User, FileText, Wallet, UserCheck, Edit2, Check, X, ChevronRight, Settings, Car, Users, MapPin, Clock, Gift, Headphones, LogOut, Store } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -264,13 +265,6 @@ export const UserProfile = ({ onWalletAccess }: UserProfileProps = {}) => {
       subtitle: t('activity.title'),
       hasArrow: true
     },
-    ...(isVendor ? [{
-      id: 'vendor',
-      icon: Store,
-      title: 'Mon espace vendeur',
-      subtitle: 'Gérer mes produits',
-      hasArrow: true
-    }] : []),
     {
       id: 'addresses',
       icon: MapPin,
@@ -447,6 +441,59 @@ export const UserProfile = ({ onWalletAccess }: UserProfileProps = {}) => {
       <div className="px-4 py-4">
         <ProfileActionButtons onQuickAction={handleQuickAction} />
       </div>
+
+      {/* Premium Vendor Button - Séparé et Spécial */}
+      {isVendor && (
+        <div className="px-4 py-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <button
+              onClick={() => handleOptionClick('vendor')}
+              className="w-full relative overflow-hidden p-6 rounded-2xl group bg-gradient-to-br from-primary via-congo-red to-congo-yellow hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 border-2 border-congo-yellow/30"
+            >
+              {/* Effet shimmer animé */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              
+              {/* Badge Premium */}
+              <div className="absolute top-3 right-3 bg-congo-yellow text-congo-dark px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                ⭐ PREMIUM
+              </div>
+              
+              <div className="relative flex items-center gap-4">
+                {/* Icône avec animation pulse */}
+                <motion.div 
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl group-hover:bg-white/30 transition-all duration-300"
+                >
+                  <Store className="h-7 w-7 text-white drop-shadow-lg" />
+                </motion.div>
+                
+                {/* Texte */}
+                <div className="flex-1 text-left">
+                  <div className="text-xl font-bold text-white drop-shadow-lg mb-1">
+                    Mon espace vendeur
+                  </div>
+                  <div className="text-sm text-white/90 font-medium">
+                    💰 Vendez et gagnez de l'argent !
+                  </div>
+                </div>
+                
+                {/* Flèche animée */}
+                <motion.div
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ChevronRight className="h-6 w-6 text-white drop-shadow-lg" />
+                </motion.div>
+              </div>
+            </button>
+          </motion.div>
+        </div>
+      )}
 
       {/* Profile Options List */}
       <div className="px-4 py-2 space-y-2">
