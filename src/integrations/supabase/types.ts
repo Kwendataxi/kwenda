@@ -14490,7 +14490,13 @@ export type Database = {
         | "zones_admin"
         | "drivers_admin"
       taxi_service_type: "moto" | "eco" | "confort" | "premium"
-      user_role: "client" | "driver" | "partner" | "admin" | "restaurant"
+      user_role:
+        | "client"
+        | "driver"
+        | "partner"
+        | "admin"
+        | "restaurant"
+        | "vendor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -14673,7 +14679,14 @@ export const Constants = {
         "drivers_admin",
       ],
       taxi_service_type: ["moto", "eco", "confort", "premium"],
-      user_role: ["client", "driver", "partner", "admin", "restaurant"],
+      user_role: [
+        "client",
+        "driver",
+        "partner",
+        "admin",
+        "restaurant",
+        "vendor",
+      ],
     },
   },
 } as const

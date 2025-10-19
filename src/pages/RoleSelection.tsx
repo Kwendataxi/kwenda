@@ -56,7 +56,8 @@ const RoleSelection = () => {
       partner: '/partenaire',
       driver: '/chauffeur',
       client: '/client',
-      restaurant: '/restaurant'
+      restaurant: '/restaurant',
+      vendor: '/vendeur'
     };
     navigate(paths[role] || '/');
   };

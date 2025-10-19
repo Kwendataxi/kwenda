@@ -117,7 +117,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const { startConversation } = useMarketplaceChat();
   
   // State management
-  const [currentTab, setCurrentTab] = useState<'shop' | 'sell' | 'orders' | 'escrow' | 'vendor'>('shop');
+  const [currentTab, setCurrentTab] = useState<'shop' | 'sell' | 'orders' | 'escrow'>('shop');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [imageUploadStatuses, setImageUploadStatuses] = useState<ImageUploadStatus[]>([]);
@@ -790,8 +790,8 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         description: "Votre produit sera modéré sous 24-48h. Vous recevrez une notification.",
       });
 
-      // 5. Redirection vers Vue vendeur
-      setCurrentTab('vendor');
+      // 5. Redirection vers onglet commandes
+      setCurrentTab('orders');
 
       // Reload products
       console.log('🔄 [Marketplace] Reloading products list');
@@ -1068,10 +1068,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
               <Shield className="w-4 h-4" />
               <span className="hidden sm:inline">Escrow</span>
             </TabsTrigger>
-            <TabsTrigger value="vendor" className="flex items-center gap-1 touch-manipulation">
-              <Store className="w-4 h-4" />
-              <span className="hidden sm:inline">Vendeur</span>
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="shop" className="mt-4">
@@ -1100,7 +1096,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
                       
                       // Redirection automatique après 2 secondes
                       setTimeout(() => {
-                        setCurrentTab('vendor');
+                        setCurrentTab('orders');
                       }, 2000);
                     }
                     return success;
@@ -1128,23 +1124,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
             <ClientEscrowDashboard />
           </TabsContent>
 
-          <TabsContent value="vendor" className="mt-4">
-            {editingProduct ? (
-              <EditProductForm
-                product={editingProduct}
-                onBack={() => setEditingProduct(null)}
-                onUpdate={() => {
-                  setEditingProduct(null);
-                  loadProducts();
-                }}
-              />
-            ) : (
-              <VendorDashboard 
-                onProductUpdate={loadProducts}
-                onEditProduct={(product) => setEditingProduct(product)}
-              />
-            )}
-          </TabsContent>
         </Tabs>
       </div>
 

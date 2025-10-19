@@ -1,6 +1,6 @@
 // Types pour le système de rôles et permissions
 
-export type UserRole = 'client' | 'driver' | 'partner' | 'admin' | 'restaurant';
+export type UserRole = 'client' | 'driver' | 'partner' | 'admin' | 'restaurant' | 'vendor';
 
 export type AdminRole = 
   | 'super_admin'
@@ -77,6 +77,7 @@ export interface UserRoleInfo {
 export const ROLE_LABELS: Record<UserRole, string> = {
   client: 'Client',
   driver: 'Chauffeur',
+  vendor: 'Vendeur',
   partner: 'Partenaire', 
   admin: 'Administrateur',
   restaurant: 'Restaurant'

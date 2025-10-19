@@ -112,6 +112,8 @@ import ClientReferralPage from "./pages/ClientReferralPage";
 import PromosPage from "./pages/PromosPage";
 import { ServiceGuard } from "./components/guards/ServiceGuard";
 import { useServiceRealtime } from "./hooks/useServiceRealtime";
+import { VendorGuard } from "./components/guards/VendorGuard";
+import { VendorApp } from "./pages/VendorApp";
 
 const queryClient = new QueryClient();
 
@@ -229,20 +231,12 @@ const AppContent = () => {
                         <VendorShop />
                       </ServiceGuard>
                     } />
-                    <Route path="/marketplace/my-products" element={
-                      <ProtectedRoute>
-                        <MyProducts />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/vendor/dashboard" element={
-                      <ProtectedRoute>
-                        <ModernVendorDashboard />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/vendor/orders" element={
-                      <ProtectedRoute>
-                        <VendorOrders />
-                      </ProtectedRoute>
+                    
+                    {/* Routes VENDEUR */}
+                    <Route path="/vendeur/*" element={
+                      <VendorGuard>
+                        <VendorApp />
+                      </VendorGuard>
                     } />
                     <Route path="/mes-adresses" element={<MesAdresses />} />
                     <Route path="/transport" element={
