@@ -4528,6 +4528,7 @@ export type Database = {
         Row: {
           assigned_to_driver_at: string | null
           buyer_id: string
+          buyer_phone: string | null
           completed_at: string | null
           confirmed_at: string | null
           created_at: string
@@ -4567,6 +4568,7 @@ export type Database = {
         Insert: {
           assigned_to_driver_at?: string | null
           buyer_id: string
+          buyer_phone?: string | null
           completed_at?: string | null
           confirmed_at?: string | null
           created_at?: string
@@ -4606,6 +4608,7 @@ export type Database = {
         Update: {
           assigned_to_driver_at?: string | null
           buyer_id?: string
+          buyer_phone?: string | null
           completed_at?: string | null
           confirmed_at?: string | null
           created_at?: string
@@ -11357,6 +11360,53 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_active_subscriptions: {
+        Row: {
+          auto_renew: boolean
+          created_at: string
+          end_date: string | null
+          id: string
+          payment_method: string
+          plan_id: string
+          start_date: string
+          status: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          auto_renew?: boolean
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          payment_method?: string
+          plan_id: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          auto_renew?: boolean
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          payment_method?: string
+          plan_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_active_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_business_info: {
         Row: {
           additional_documents: Json | null
@@ -11723,6 +11773,8 @@ export type Database = {
       }
       vendor_subscription_plans: {
         Row: {
+          analytics_enabled: boolean | null
+          commission_rate: number | null
           created_at: string
           currency: string
           description: string | null
@@ -11738,9 +11790,13 @@ export type Database = {
           name: string
           name_en: string | null
           price: number
+          priority_support: boolean | null
           updated_at: string
+          verified_badge: boolean | null
         }
         Insert: {
+          analytics_enabled?: boolean | null
+          commission_rate?: number | null
           created_at?: string
           currency?: string
           description?: string | null
@@ -11756,9 +11812,13 @@ export type Database = {
           name: string
           name_en?: string | null
           price: number
+          priority_support?: boolean | null
           updated_at?: string
+          verified_badge?: boolean | null
         }
         Update: {
+          analytics_enabled?: boolean | null
+          commission_rate?: number | null
           created_at?: string
           currency?: string
           description?: string | null
@@ -11774,7 +11834,9 @@ export type Database = {
           name?: string
           name_en?: string | null
           price?: number
+          priority_support?: boolean | null
           updated_at?: string
+          verified_badge?: boolean | null
         }
         Relationships: []
       }
