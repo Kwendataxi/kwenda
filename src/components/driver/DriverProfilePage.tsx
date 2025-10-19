@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,10 +15,16 @@ import {
 } from 'lucide-react';
 import { DriverProfileHeader } from './DriverProfileHeader';
 import { DriverStats } from './DriverStats';
+import { DriverOrderHistory } from './DriverOrderHistory';
+import { DriverDocuments } from './DriverDocuments';
+import { DriverSettings } from './DriverSettings';
+
+type DialogView = 'history' | 'vehicles' | 'zones' | 'notifications' | 'settings' | 'partner-code' | 'support' | 'security' | 'documents' | null;
 
 export const DriverProfilePage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [dialogView, setDialogView] = useState<DialogView>(null);
 
   const handleLogout = async () => {
     try {
@@ -33,25 +40,25 @@ export const DriverProfilePage: React.FC = () => {
     {
       section: 'Activité',
       items: [
-        { icon: History, label: 'Historique des courses', href: '#history', color: 'text-blue-600' },
-        { icon: Car, label: 'Mes véhicules', href: '#vehicles', color: 'text-orange-600' },
-        { icon: MapPin, label: 'Zones de service', href: '#zones', color: 'text-green-600' },
+        { icon: History, label: 'Historique des courses', action: 'history' as DialogView, color: 'text-blue-600' },
+        { icon: Car, label: 'Mes véhicules', action: 'vehicles' as DialogView, color: 'text-orange-600' },
+        { icon: MapPin, label: 'Zones de service', action: 'zones' as DialogView, color: 'text-green-600' },
       ]
     },
     {
       section: 'Gestion',
       items: [
-        { icon: Bell, label: 'Notifications', href: '#notifications', color: 'text-purple-600' },
-        { icon: Settings, label: 'Paramètres', href: '#settings', color: 'text-gray-600' },
-        { icon: QrCode, label: 'Code partenaire', href: '#partner-code', color: 'text-indigo-600' },
+        { icon: Bell, label: 'Notifications', action: 'notifications' as DialogView, color: 'text-purple-600' },
+        { icon: Settings, label: 'Paramètres', action: 'settings' as DialogView, color: 'text-gray-600' },
+        { icon: QrCode, label: 'Code partenaire', action: 'partner-code' as DialogView, color: 'text-indigo-600' },
       ]
     },
     {
       section: 'Support',
       items: [
-        { icon: Phone, label: 'Support client', href: '#support', color: 'text-teal-600' },
-        { icon: Shield, label: 'Sécurité', href: '#security', color: 'text-red-600' },
-        { icon: FileText, label: 'Documents', href: '#documents', color: 'text-amber-600' },
+        { icon: Phone, label: 'Support client', action: 'support' as DialogView, color: 'text-teal-600' },
+        { icon: Shield, label: 'Sécurité', action: 'security' as DialogView, color: 'text-red-600' },
+        { icon: FileText, label: 'Documents', action: 'documents' as DialogView, color: 'text-amber-600' },
       ]
     }
   ];
@@ -113,12 +120,18 @@ export const DriverProfilePage: React.FC = () => {
                       key={item.label}
                       className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left"
                       onClick={() => {
-                        toast.info(`${item.label} - Bientôt disponible`);
+                        if (item.action === 'history' || item.action === 'settings' || item.action === 'documents') {
+                          setDialogView(item.action);
+                        } else {
+                          toast.info(`${item.label} - Bientôt disponible`);
+                        }
                       }}
                     >
                       <Icon className={`h-5 w-5 ${item.color}`} />
                       <span className="flex-1">{item.label}</span>
-                      <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                      {(item.action === 'history' || item.action === 'settings' || item.action === 'documents') && (
+                        <AlertCircle className="h-4 w-4 text-primary" />
+                      )}
                     </button>
                   );
                 })}
@@ -142,6 +155,23 @@ export const DriverProfilePage: React.FC = () => {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Dialogs pour afficher les différentes sections */}
+      <Dialog open={dialogView !== null} onOpenChange={(open) => !open && setDialogView(null)}>
+        <DialogContent className="max-w-screen-sm max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {dialogView === 'history' && 'Historique des courses'}
+              {dialogView === 'settings' && 'Paramètres'}
+              {dialogView === 'documents' && 'Mes documents'}
+            </DialogTitle>
+          </DialogHeader>
+
+          {dialogView === 'history' && <DriverOrderHistory />}
+          {dialogView === 'settings' && <DriverSettings />}
+          {dialogView === 'documents' && <DriverDocuments />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

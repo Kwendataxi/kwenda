@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useWallet } from '@/hooks/useWallet';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
-import { useWalletValidation } from '@/hooks/useWalletValidation';
 import { DualBalanceCard } from '@/components/wallet/DualBalanceCard';
-import { QuickAmountSelector } from '@/components/wallet/QuickAmountSelector';
-import { OperatorSelector } from '@/components/wallet/OperatorSelector';
-import { AnimatedTopUpButton } from '@/components/wallet/AnimatedTopUpButton';
 import { TransactionCard } from '@/components/wallet/TransactionCard';
 import { EmptyTransactions } from '@/components/wallet/EmptyTransactions';
 import { SuccessConfetti } from '@/components/wallet/SuccessConfetti';
@@ -17,66 +11,30 @@ import { WalletSkeleton } from '@/components/wallet/WalletSkeleton';
 import { TransferMoneyDialog } from '@/components/wallet/TransferMoneyDialog';
 import { PointsConversionDialog } from '@/components/loyalty/PointsConversionDialog';
 import { TopUpModal } from '@/components/wallet/TopUpModal';
-import { Send, Gift, Zap } from 'lucide-react';
+import { EarningsChart } from './EarningsChart';
+import { CommissionBreakdown } from './CommissionBreakdown';
+import { Send, Gift, Zap, Download, FileText } from 'lucide-react';
+import { toast } from 'sonner';
 
 type Operator = 'airtel' | 'orange' | 'mpesa';
 
 const QUICK_AMOUNTS = [1000, 5000, 10000, 25000, 50000];
 
 export const DriverWalletPanel: React.FC = () => {
-  const { wallet, transactions, loading, error, topUpWallet } = useWallet();
-  const { triggerSuccess, triggerError } = useHapticFeedback();
-  const { validateAmount, validatePhone, amountError, phoneError } = useWalletValidation();
+  const { wallet, transactions, loading } = useWallet();
+  const { triggerSuccess } = useHapticFeedback();
   
-  const [amount, setAmount] = useState<string>('');
-  const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(null);
-  const [provider, setProvider] = useState<Operator | ''>('');
-  const [phone, setPhone] = useState<string>('');
   const [showConfetti, setShowConfetti] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showConversionDialog, setShowConversionDialog] = useState(false);
   const [showTopUpModal, setShowTopUpModal] = useState(false);
 
-  const handleQuickAmountSelect = (quickAmount: number) => {
-    setAmount(quickAmount.toString());
-    setSelectedQuickAmount(quickAmount);
-    validateAmount(quickAmount.toString());
+  const handleWithdraw = () => {
+    toast.info('Demande de retrait - Bientôt disponible');
   };
 
-  const handleAmountChange = (value: string) => {
-    setAmount(value);
-    setSelectedQuickAmount(null);
-    validateAmount(value);
-  };
-
-  const handlePhoneChange = (value: string) => {
-    setPhone(value);
-    validatePhone(value);
-  };
-
-  const handleTopup = async () => {
-    if (!provider) return;
-
-    const amountValidation = validateAmount(amount);
-    const phoneValidation = validatePhone(phone);
-
-    if (!amountValidation.isValid || !phoneValidation.isValid) {
-      triggerError();
-      return;
-    }
-
-    const success = await topUpWallet(Number(amount), provider, phone);
-    
-    if (success) {
-      triggerSuccess();
-      setShowConfetti(true);
-      setAmount('');
-      setSelectedQuickAmount(null);
-      setProvider('');
-      setPhone('');
-    } else {
-      triggerError();
-    }
+  const handleExportPDF = () => {
+    toast.info('Export PDF - Bientôt disponible');
   };
 
   if (loading) {
@@ -87,7 +45,7 @@ export const DriverWalletPanel: React.FC = () => {
     <div className="space-y-6">
       <SuccessConfetti show={showConfetti} onComplete={() => setShowConfetti(false)} />
 
-      {/* Dual Balance Card */}
+      {/* Boutons d'action */}
       <div className="space-y-3">
         <DualBalanceCard
           mainBalance={wallet?.balance || 0}
@@ -125,7 +83,34 @@ export const DriverWalletPanel: React.FC = () => {
             Recharger
           </Button>
         </div>
+
+        {/* Actions supplémentaires */}
+        <div className="grid grid-cols-2 gap-3">
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={handleWithdraw}
+          >
+            <Download className="w-4 h-4" />
+            Retirer
+          </Button>
+
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={handleExportPDF}
+          >
+            <FileText className="w-4 h-4" />
+            Rapport PDF
+          </Button>
+        </div>
       </div>
+
+      {/* Graphique de gains */}
+      <EarningsChart />
+
+      {/* Répartition des commissions */}
+      <CommissionBreakdown />
 
       {/* Transaction History */}
       <Card className="border-border">
@@ -167,7 +152,10 @@ export const DriverWalletPanel: React.FC = () => {
       <TopUpModal
         open={showTopUpModal}
         onClose={() => setShowTopUpModal(false)}
-        onSuccess={() => setShowConfetti(true)}
+        onSuccess={() => {
+          triggerSuccess();
+          setShowConfetti(true);
+        }}
         currency={wallet?.currency || 'CDF'}
         quickAmounts={QUICK_AMOUNTS}
       />
