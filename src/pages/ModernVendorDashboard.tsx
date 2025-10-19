@@ -6,6 +6,7 @@ import { VendorBottomNav } from '@/components/vendor/modern/VendorBottomNav';
 import { VendorDesktopSidebar } from '@/components/vendor/modern/VendorDesktopSidebar';
 import { ChatVendorModal } from '@/components/vendor/modern/ChatVendorModal';
 import { VendorNotificationCenter } from '@/components/vendor/modern/VendorNotificationCenter';
+import { VendorDashboardOverview } from '@/components/vendor/VendorDashboardOverview';
 import { VendorProductManager } from '@/components/vendor/VendorProductManager';
 import { VendorOrdersList } from '@/components/vendor/VendorOrdersList';
 import { VendorProfileSetup } from '@/components/vendor/VendorProfileSetup';
@@ -13,13 +14,15 @@ import { VendorVerificationDashboard } from '@/components/vendor/modern/VendorVe
 import { VendorShopSettings } from '@/components/marketplace/VendorShopSettings';
 import { VendorSubscriptionManager } from '@/components/vendor/VendorSubscriptionManager';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useVendorStats } from '@/hooks/useVendorStats';
 
 export default function ModernVendorDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { stats } = useVendorStats();
   
-  const [activeTab, setActiveTab] = useState('shop');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [notifCenterOpen, setNotifCenterOpen] = useState(false);
   const [chatModalOpen, setChatModalOpen] = useState(false);
 
@@ -40,6 +43,7 @@ export default function ModernVendorDashboard() {
         {/* Contenu principal */}
         <main className="flex-1 container max-w-6xl mx-auto p-4 space-y-4 pb-24 md:pb-6">
           {/* Contenu dynamique selon activeTab */}
+          {activeTab === 'dashboard' && <VendorDashboardOverview />}
           {activeTab === 'shop' && <VendorProductManager />}
           {activeTab === 'orders' && <VendorOrdersList />}
           {activeTab === 'profile' && <VendorProfileSetup />}
