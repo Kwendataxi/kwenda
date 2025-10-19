@@ -208,6 +208,17 @@ export const PartnerRegistrationForm = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-background dark:to-background py-12 px-4">
       <div className="max-w-3xl mx-auto">
+        {/* Message informatif multi-rôles */}
+        {currentStep === 1 && (
+          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg animate-fade-in">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              💡 <strong>Vous avez déjà un compte Kwenda ?</strong> Pas de problème ! 
+              Vous pouvez utiliser le même email pour devenir partenaire. 
+              Utilisez le même mot de passe que votre compte existant.
+            </p>
+          </div>
+        )}
+        
         {/* Header avec logo */}
         <div className="text-center mb-8 animate-fade-in">
           <div className="relative inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white dark:bg-gray-950 shadow-lg mb-4">

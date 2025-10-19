@@ -12569,6 +12569,16 @@ export type Database = {
       }
     }
     Functions: {
+      add_partner_role_to_existing_user: {
+        Args: {
+          p_business_type: string
+          p_company_name: string
+          p_phone_number: string
+          p_service_areas: string[]
+          p_user_id: string
+        }
+        Returns: Json
+      }
       admin_approve_verification_manual: {
         Args: { p_admin_notes?: string; p_user_id: string }
         Returns: Json
