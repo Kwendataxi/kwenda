@@ -72,8 +72,8 @@ export const MarketplaceRoleSwitcher = ({
         description: "Gérez vos produits et vos ventes",
       });
     } else {
-      // Retour à la marketplace client
-      navigate('/marketplace');
+      // Retour à la marketplace client avec state pour garantir le bon affichage
+      navigate('/marketplace', { state: { returnFromVendor: true } });
       toast({
         title: "Retour à la marketplace",
         description: "Continuez vos achats",

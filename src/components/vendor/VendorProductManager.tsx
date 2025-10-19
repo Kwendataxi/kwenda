@@ -115,7 +115,7 @@ export const VendorProductManager = ({ onUpdate }: VendorProductManagerProps) =>
         <CardContent className="py-12 text-center">
           <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p className="text-muted-foreground mb-4">Vous n'avez pas encore de produits</p>
-          <Button onClick={() => navigate('/marketplace/sell')}>
+          <Button onClick={() => navigate('/vendeur/ajouter-produit')}>
             <Plus className="h-4 w-4 mr-2" />
             Ajouter mon premier produit
           </Button>
@@ -216,7 +216,7 @@ export const VendorProductManager = ({ onUpdate }: VendorProductManagerProps) =>
                   variant="outline"
                   size="sm"
                   className="w-full"
-                  onClick={() => navigate(`/marketplace/edit-product/${product.id}`)}
+                  onClick={() => navigate(`/vendeur/modifier-produit/${product.id}`)}
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Modifier

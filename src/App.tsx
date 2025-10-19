@@ -94,6 +94,8 @@ import VendorShop from "./pages/VendorShop";
 import VendorOrders from "./pages/VendorOrders";
 import ModernVendorDashboard from "./pages/ModernVendorDashboard";
 import VendorRegistration from "./pages/VendorRegistration";
+import VendorAddProduct from "./pages/VendorAddProduct";
+import VendorEditProduct from "./pages/VendorEditProduct";
 import MyProducts from "./pages/marketplace/MyProducts";
 import QRCodeManager from "./pages/admin/QRCodeManager";
 import QRAnalytics from "./pages/admin/QRAnalytics";
@@ -241,6 +243,16 @@ const AppContent = () => {
                     <Route path="/vendeur" element={
                       <VendorGuard>
                         <ModernVendorDashboard />
+                      </VendorGuard>
+                    } />
+                    <Route path="/vendeur/ajouter-produit" element={
+                      <VendorGuard>
+                        <VendorAddProduct />
+                      </VendorGuard>
+                    } />
+                    <Route path="/vendeur/modifier-produit/:id" element={
+                      <VendorGuard>
+                        <VendorEditProduct />
                       </VendorGuard>
                     } />
                     <Route path="/mes-adresses" element={<MesAdresses />} />
