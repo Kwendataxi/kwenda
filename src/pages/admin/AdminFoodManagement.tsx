@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAdminFoodStats } from "@/hooks/admin/useAdminFoodStats";
 import { RestaurantManagement } from "@/components/admin/food/RestaurantManagement";
 import { FoodProductModeration } from "@/components/admin/food/FoodProductModeration";
+import { RestaurantSubscriptionAdmin } from "@/components/admin/food/RestaurantSubscriptionAdmin";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Store, 
@@ -244,20 +245,8 @@ const AdminFoodManagement = () => {
         </TabsContent>
 
         {/* SUBSCRIPTIONS TAB */}
-        <TabsContent value="subscriptions">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestion des Abonnements</CardTitle>
-              <CardDescription>
-                Gérer les abonnements et plans des restaurants
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Cette section sera implémentée dans la Phase 2
-              </p>
-            </CardContent>
-          </Card>
+        <TabsContent value="subscriptions" className="space-y-4">
+          <RestaurantSubscriptionAdmin />
         </TabsContent>
 
         {/* COMMISSIONS TAB */}
