@@ -6,10 +6,9 @@ import { isMobileApp, isPWA } from '@/services/platformDetection';
 import { useUserRole } from '@/hooks/useUserRole';
 
 /**
- * Composant intelligent pour la route "/" qui :
- * - Affiche MobileSplash si mobile/PWA ET pas connecté
- * - Affiche ClientApp si connecté (mobile/PWA)
- * - Affiche Index sinon (web standard)
+ * Composant intelligent pour la route "/app" qui :
+ * - Redirige vers /app/auth si non connecté
+ * - Redirige vers le dashboard approprié si connecté selon le rôle
  */
 export const SmartHome = () => {
   const { user, session, loading, sessionReady } = useAuth();
@@ -21,68 +20,33 @@ export const SmartHome = () => {
     return <MobileSplash />;
   }
 
-  // Sur mobile/PWA ET PAS CONNECTÉ, afficher splash
-  if (!user && isMobilePlatform) {
-    return <MobileSplash />;
+  // NON CONNECTÉ : rediriger vers /app/auth
+  if (!user) {
+    return <Navigate to="/app/auth" replace />;
   }
 
-  // UTILISATEUR CONNECTÉ sur mobile/PWA : redirection directe sans splash
-  if (user && session && isMobilePlatform) {
-    const loginIntent = localStorage.getItem('kwenda_login_intent') as 'restaurant' | 'driver' | 'partner' | 'admin' | 'client' | null;
-    const targetRole = loginIntent || userRole || 'client';
-    
-    console.log('📱 [SmartHome] Mobile redirection:', {
-      loginIntent,
-      userRole,
-      targetRole,
-      userId: user.id
-    });
-    
-    switch (targetRole) {
-      case 'restaurant':
-        return <Navigate to="/restaurant" replace />;
-      case 'driver':
-        return <Navigate to="/chauffeur" replace />;
-      case 'partner':
-        return <Navigate to="/partenaire" replace />;
-      case 'admin':
-        return <Navigate to="/admin" replace />;
-      default:
-        return <Navigate to="/client" replace />;
-    }
+  // CONNECTÉ : redirection selon le rôle
+  const loginIntent = localStorage.getItem('kwenda_login_intent') as 'restaurant' | 'driver' | 'partner' | 'admin' | 'client' | null;
+  const targetRole = loginIntent || userRole || 'client';
+  
+  console.log('🚀 [SmartHome] Redirection utilisateur connecté:', {
+    loginIntent,
+    userRole,
+    targetRole,
+    userId: user.id,
+    isMobilePlatform
+  });
+  
+  switch (targetRole) {
+    case 'restaurant':
+      return <Navigate to="/app/restaurant" replace />;
+    case 'driver':
+      return <Navigate to="/app/chauffeur" replace />;
+    case 'partner':
+      return <Navigate to="/app/partenaire" replace />;
+    case 'admin':
+      return <Navigate to="/app/admin" replace />;
+    default:
+      return <Navigate to="/app/client" replace />;
   }
-
-  // Sur web standard et connecté, redirection intelligente selon le rôle
-  if (user && session && !isMobilePlatform) {
-    const loginIntent = localStorage.getItem('kwenda_login_intent') as 'restaurant' | 'driver' | 'partner' | 'admin' | 'client' | null;
-    const targetRole = loginIntent || userRole || 'client';
-    
-    console.log('💻 [SmartHome] Desktop web redirection:', {
-      loginIntent,
-      userRole,
-      targetRole,
-      userId: user.id
-    });
-    
-    switch (targetRole) {
-      case 'restaurant':
-        return <Navigate to="/restaurant" replace />;
-      case 'driver':
-        return <Navigate to="/chauffeur" replace />;
-      case 'partner':
-        return <Navigate to="/partenaire" replace />;
-      case 'admin':
-        return <Navigate to="/admin" replace />;
-      default:
-        return <Navigate to="/client" replace />;
-    }
-  }
-
-  // Sur web standard et non connecté, afficher Index
-  if (!isMobilePlatform) {
-    return <Index />;
-  }
-
-  // Fallback
-  return <MobileSplash />;
 };

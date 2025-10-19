@@ -48,7 +48,7 @@ const DriverVerifyEmail = () => {
           toast.success('Email confirmé ! En attente de validation...');
           
           setTimeout(() => {
-            navigate('/chauffeur');
+            navigate('/app/chauffeur');
           }, 2000);
         } else {
           console.error('Driver profile not found:', error);

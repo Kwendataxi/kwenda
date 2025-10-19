@@ -45,17 +45,17 @@ export const ClientLogin = () => {
   const getRedirectPath = (role: string): string => {
     switch (role) {
       case 'admin':
-        return '/admin';
+        return '/app/admin';
       case 'partner':
       case 'partenaire':
-        return '/partner';
+        return '/app/partenaire';
       case 'driver':
       case 'chauffeur':
-        return '/chauffeur';
+        return '/app/chauffeur';
       case 'client':
       case 'simple_user_client':
       default:
-        return '/client';
+        return '/app/client';
     }
   };
 
@@ -72,7 +72,7 @@ export const ClientLogin = () => {
     if (user && session && roleLoading) {
       const absoluteTimer = setTimeout(() => {
         logger.warn('🚨 [ClientLogin] roleLoading timeout - forcing redirect');
-        navigate('/client');
+        navigate('/app/client');
       }, 2000);
 
       return () => clearTimeout(absoluteTimer);

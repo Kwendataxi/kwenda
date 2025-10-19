@@ -19,16 +19,16 @@ const ModernHero = () => {
     if (!roleLoading && user && primaryRole) {
       switch (primaryRole) {
         case 'client':
-          navigate("/client");
+          navigate("/app/client");
           break;
         case 'driver':
-          navigate("/chauffeur");
+          navigate("/app/chauffeur");
           break;
         case 'partner':
-          navigate("/partenaire");
+          navigate("/app/partenaire");
           break;
         case 'admin':
-          navigate("/admin");
+          navigate("/app/admin");
           break;
       }
     }

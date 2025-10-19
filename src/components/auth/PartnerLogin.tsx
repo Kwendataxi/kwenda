@@ -80,7 +80,7 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate('/partner');
+        navigate('/app/partenaire');
       }
     } catch (error: any) {
       logger.error('Erreur de connexion partenaire', error);
@@ -198,7 +198,7 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
                 Pas partenaire ?
               </p>
               <div className="flex flex-wrap justify-center gap-2 text-sm">
-                <Link to="/auth" className="text-green-600 dark:text-green-400 hover:underline font-medium">
+                <Link to="/app/auth" className="text-green-600 dark:text-green-400 hover:underline font-medium">
                   Espace Client
                 </Link>
                 <span className="text-muted-foreground">•</span>

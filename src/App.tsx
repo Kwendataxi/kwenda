@@ -157,10 +157,13 @@ const AppContent = () => {
                 {/* Route Splash pour mobile/PWA */}
                 <Route path="/splash" element={<MobileSplash />} />
                 
-                {/* Routes communes à toutes les apps */}
-                {!isSpecificBuild() && <Route path="/" element={<SmartHome />} />}
+                {/* Route publique - Landing page toujours accessible */}
+                {!isSpecificBuild() && <Route path="/" element={<Index />} />}
+                
+                {/* Routes apps sous /app/* */}
+                {!isSpecificBuild() && <Route path="/app" element={<SmartHome />} />}
                 {!isSpecificBuild() && (
-                  <Route path="/client" element={
+                  <Route path="/app/client" element={
                     <ProtectedRoute>
                       <ClientApp />
                     </ProtectedRoute>
@@ -175,6 +178,11 @@ const AppContent = () => {
                 {/* Routes RESTAURANT */}
                 <Route path="/restaurant/auth" element={<RestaurantAuth />} />
                 <Route path="/restaurant/verify-email" element={<RestaurantVerifyEmail />} />
+                <Route path="/app/restaurant" element={
+                  <ProtectedRoute>
+                    <RestaurantDashboard />
+                  </ProtectedRoute>
+                } />
                 <Route path="/restaurant" element={
                   <ProtectedRoute>
                     <RestaurantDashboard />
@@ -211,7 +219,7 @@ const AppContent = () => {
                   <>
                     
                     <Route path="/install" element={<Install />} />
-                    <Route path="/auth" element={
+                    <Route path="/app/auth" element={
                       <OnboardingRedirect>
                         <Auth />
                       </OnboardingRedirect>
@@ -288,6 +296,11 @@ const AppContent = () => {
                     } />
                     <Route path="/driver/register" element={<DriverRegistration />} />
                     <Route path="/driver/verify-email" element={<DriverVerifyEmail />} />
+                    <Route path="/app/chauffeur" element={
+                      <ProtectedRoute requiredRole="driver">
+                        <DriverApp />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/chauffeur" element={
                       <ProtectedRoute requiredRole="driver">
                         <DriverApp />
@@ -312,6 +325,11 @@ const AppContent = () => {
                       </OnboardingRedirect>
                     } />
                     <Route path="/partner/verify-email" element={<PartnerVerifyEmail />} />
+                    <Route path="/app/partenaire" element={
+                      <ProtectedRoute>
+                        <PartnerApp />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/partenaire" element={
                       <ProtectedRoute>
                         <PartnerApp />
@@ -329,10 +347,15 @@ const AppContent = () => {
                 {/* Routes ADMIN (jamais dans les builds mobiles) */}
                 {!isSpecificBuild() && (
                   <>
-                    <Route path="/admin/auth" element={
+                    <Route path="/app/admin/auth" element={
                       <OnboardingRedirect>
                         <AdminAuth />
                       </OnboardingRedirect>
+                    } />
+                    <Route path="/app/admin" element={
+                      <ProtectedRoute>
+                        <AdminApp />
+                      </ProtectedRoute>
                     } />
                     <Route path="/admin" element={
                       <ProtectedRoute>

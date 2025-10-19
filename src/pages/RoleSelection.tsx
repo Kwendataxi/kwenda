@@ -64,11 +64,11 @@ const RoleSelection = () => {
 
   const navigateToRole = (role: UserRole) => {
     const paths: Record<UserRole, string> = {
-      admin: '/admin',
-      partner: '/partenaire',
-      driver: '/chauffeur',
-      client: '/client',
-      restaurant: '/restaurant',
+      admin: '/app/admin',
+      partner: '/app/partenaire',
+      driver: '/app/chauffeur',
+      client: '/app/client',
+      restaurant: '/app/restaurant',
       vendor: '/vendeur'
     };
     navigate(paths[role] || '/');
@@ -84,7 +84,7 @@ const RoleSelection = () => {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      navigate('/auth');
+      navigate('/app/auth');
     } catch (error) {
       toast({
         variant: "destructive",

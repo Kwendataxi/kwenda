@@ -58,7 +58,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate('/admin');
+        navigate('/app/admin');
       }
     } catch (error: any) {
       logger.error('Erreur de connexion admin', error);
@@ -166,7 +166,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
           <div className="text-center space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
             <p className="text-sm text-muted-foreground">Pas admin ?</p>
             <div className="flex flex-wrap justify-center gap-2 text-sm">
-              <Link to="/auth" className="text-primary hover:underline font-medium">Espace Client</Link>
+              <Link to="/app/auth" className="text-primary hover:underline font-medium">Espace Client</Link>
               <span className="text-muted-foreground">•</span>
               <Link to="/driver/auth" className="text-primary hover:underline font-medium">Espace Chauffeur</Link>
               <span className="text-muted-foreground">•</span>

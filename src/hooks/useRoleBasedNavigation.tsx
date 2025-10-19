@@ -14,17 +14,17 @@ export const useRoleBasedNavigation = () => {
    * Retourne le chemin de redirection selon le rôle principal
    */
   const getRedirectPath = (role: UserRole | null): string => {
-    if (!role) return '/auth';
+    if (!role) return '/app/auth';
     
     switch (role) {
       case 'admin':
-        return '/admin';
+        return '/app/admin';
       case 'partner':
-        return '/partenaire';
+        return '/app/partenaire';
       case 'driver':
-        return '/chauffeur';
+        return '/app/chauffeur';
       case 'client':
-        return '/client';
+        return '/app/client';
       default:
         return '/';
     }

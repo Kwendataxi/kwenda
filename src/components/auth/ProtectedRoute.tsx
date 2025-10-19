@@ -48,13 +48,13 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
     
     if (!hasRequiredRole) {
       const roleRoutes: Record<string, string> = {
-        'client': '/auth',
+        'client': '/app/auth',
         'driver': '/driver/auth',
         'partner': '/partner/auth',
-        'admin': '/admin/auth'
+        'admin': '/app/admin/auth'
       };
       
-      navigate(roleRoutes[requiredRole] || '/auth');
+      navigate(roleRoutes[requiredRole] || '/app/auth');
       return null;
     }
     
@@ -99,13 +99,13 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
     
     switch (primaryRole) {
       case 'driver':
-        return <Navigate to="/chauffeur" replace />;
+        return <Navigate to="/app/chauffeur" replace />;
       case 'partner':
-        return <Navigate to="/partenaire" replace />;
+        return <Navigate to="/app/partenaire" replace />;
       case 'admin':
-        return <Navigate to="/admin" replace />;
+        return <Navigate to="/app/admin" replace />;
       case 'client':
-        return <Navigate to="/client" replace />;
+        return <Navigate to="/app/client" replace />;
       default:
         return <Navigate to={APP_CONFIG.defaultRoute} replace />;
     }

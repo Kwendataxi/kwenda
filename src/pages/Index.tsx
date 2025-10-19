@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import ModernHero from '@/components/landing/ModernHero';
 import InteractiveServicesGrid from '@/components/landing/InteractiveServicesGrid';
 import AdvancedFeatures from '@/components/landing/AdvancedFeatures';

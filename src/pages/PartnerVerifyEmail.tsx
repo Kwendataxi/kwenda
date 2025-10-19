@@ -39,7 +39,7 @@ const PartnerVerifyEmail = () => {
           toast.success('Email confirmé ! En attente de validation...');
           
           setTimeout(() => {
-            navigate('/partenaire');
+            navigate('/app/partenaire');
           }, 2000);
         } else {
           console.error('Partner profile not found:', error);

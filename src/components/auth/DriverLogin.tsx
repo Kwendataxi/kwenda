@@ -125,7 +125,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
           if (onSuccess) {
             onSuccess();
           } else {
-            navigate('/chauffeur');
+            navigate('/app/chauffeur');
           }
         } else {
           // Plusieurs rôles → Sauvegarder une "intention" puis laisser ProtectedRoute gérer
@@ -135,7 +135,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
           });
           
           // Laisser ProtectedRoute rediriger vers /role-selection
-          navigate('/chauffeur'); // Sera intercepté par ProtectedRoute
+          navigate('/app/chauffeur'); // Sera intercepté par ProtectedRoute
         }
       }
     } catch (error: any) {
