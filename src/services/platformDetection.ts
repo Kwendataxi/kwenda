@@ -3,16 +3,18 @@
  * Permet de différencier entre web, PWA et Capacitor
  */
 
+// Détection si c'est un appareil mobile (basé sur user agent)
+export const isMobileDevice = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
 export const isMobileApp = (): boolean => {
   if (typeof window === 'undefined') return false;
   
-  // Détection Capacitor
-  return (
-    window.location.protocol === 'capacitor:' ||
-    window.navigator.userAgent.includes('Capacitor') ||
-    // @ts-ignore - Capacitor injecte cette propriété
-    !!(window.Capacitor)
-  );
+  // Détection Capacitor native
+  // @ts-ignore - Capacitor injecte cette propriété
+  return window.Capacitor?.isNativePlatform() ?? false;
 };
 
 export const isPWA = (): boolean => {
@@ -24,6 +26,11 @@ export const isPWA = (): boolean => {
     (window.navigator as any).standalone === true ||
     document.referrer.includes('android-app://')
   );
+};
+
+// Desktop web (pas mobile app, pas PWA, pas mobile device)
+export const isDesktopWeb = (): boolean => {
+  return !isMobileApp() && !isPWA() && !isMobileDevice();
 };
 
 export const isWebBrowser = (): boolean => {

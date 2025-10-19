@@ -12,26 +12,52 @@ import { useUserRole } from '@/hooks/useUserRole';
  * - Affiche Index sinon (web standard)
  */
 export const SmartHome = () => {
-  const { user, session, loading } = useAuth();
+  const { user, session, loading, sessionReady } = useAuth();
   const { userRole, loading: roleLoading } = useUserRole();
   const isMobilePlatform = isMobileApp() || isPWA();
 
-  // Sur mobile/PWA, toujours afficher le splash (il gère la suite)
-  if (loading || isMobilePlatform) {
+  // Attendre que la session ET les rôles soient chargés
+  if (loading || !sessionReady || roleLoading) {
     return <MobileSplash />;
   }
 
-  // Sur web standard et connecté, redirection intelligente selon le rôle
-  if (user && session && !isMobilePlatform && !roleLoading) {
-    // Stratégie de redirection en cascade :
-    // 1. loginIntent (priorité maximale)
-    // 2. userRole de la base de données
-    // 3. Fallback vers client
-    
+  // Sur mobile/PWA ET PAS CONNECTÉ, afficher splash
+  if (!user && isMobilePlatform) {
+    return <MobileSplash />;
+  }
+
+  // UTILISATEUR CONNECTÉ sur mobile/PWA : redirection directe sans splash
+  if (user && session && isMobilePlatform) {
     const loginIntent = localStorage.getItem('kwenda_login_intent') as 'restaurant' | 'driver' | 'partner' | 'admin' | 'client' | null;
     const targetRole = loginIntent || userRole || 'client';
     
-    console.log('🔍 [SmartHome] Redirection logic:', {
+    console.log('📱 [SmartHome] Mobile redirection:', {
+      loginIntent,
+      userRole,
+      targetRole,
+      userId: user.id
+    });
+    
+    switch (targetRole) {
+      case 'restaurant':
+        return <Navigate to="/restaurant" replace />;
+      case 'driver':
+        return <Navigate to="/chauffeur" replace />;
+      case 'partner':
+        return <Navigate to="/partenaire" replace />;
+      case 'admin':
+        return <Navigate to="/admin" replace />;
+      default:
+        return <Navigate to="/client" replace />;
+    }
+  }
+
+  // Sur web standard et connecté, redirection intelligente selon le rôle
+  if (user && session && !isMobilePlatform) {
+    const loginIntent = localStorage.getItem('kwenda_login_intent') as 'restaurant' | 'driver' | 'partner' | 'admin' | 'client' | null;
+    const targetRole = loginIntent || userRole || 'client';
+    
+    console.log('💻 [SmartHome] Desktop web redirection:', {
       loginIntent,
       userRole,
       targetRole,

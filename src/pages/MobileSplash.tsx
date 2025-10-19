@@ -21,27 +21,35 @@ const MobileSplash: React.FC = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
-        // Utilisateur connecté
-        const onboardingSeen = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
+        // ✅ PRIORITÉ 1 : Vérifier loginIntent AVANT get_user_roles
+        const loginIntent = localStorage.getItem('kwenda_login_intent') as 'restaurant' | 'driver' | 'partner' | 'admin' | 'client' | null;
         
-        if (!onboardingSeen) {
-          // Nouveau user → onboarding
-          logger.info('🎓 New user - redirecting to onboarding');
-          navigate(`/onboarding?context=${encodeURIComponent(ctx)}`, { replace: true });
-        } else {
-          // User existant → dashboard
-          const { data: roles } = await supabase.rpc('get_user_roles', {
-            p_user_id: session.user.id
-          });
-          const primaryRole = roles?.[0]?.role || 'client';
-          const redirectPath = primaryRole === 'admin' ? '/admin' 
-            : primaryRole === 'partner' ? '/partenaire'
-            : primaryRole === 'driver' ? '/chauffeur'
+        if (loginIntent) {
+          // Rediriger directement via loginIntent
+          const redirectPath = loginIntent === 'admin' ? '/admin' 
+            : loginIntent === 'partner' ? '/partenaire'
+            : loginIntent === 'driver' ? '/chauffeur'
+            : loginIntent === 'restaurant' ? '/restaurant'
             : '/client';
           
-          logger.info('🚀 Redirecting to dashboard', { primaryRole, redirectPath });
+          logger.info('🎯 [MobileSplash] Redirecting via loginIntent', { loginIntent, redirectPath });
           navigate(redirectPath, { replace: true });
+          return;
         }
+        
+        // ✅ PRIORITÉ 2 : Fallback sur get_user_roles
+        const { data: roles } = await supabase.rpc('get_user_roles', {
+          p_user_id: session.user.id
+        });
+        const primaryRole = roles?.[0]?.role || 'client';
+        const redirectPath = primaryRole === 'admin' ? '/admin' 
+          : primaryRole === 'partner' ? '/partenaire'
+          : primaryRole === 'driver' ? '/chauffeur'
+          : primaryRole === 'restaurant' ? '/restaurant'
+          : '/client';
+        
+        logger.info('🚀 [MobileSplash] Redirecting via get_user_roles', { primaryRole, redirectPath });
+        navigate(redirectPath, { replace: true });
       } else {
         // Pas connecté → onboarding puis auth
         const onboardingSeen = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";

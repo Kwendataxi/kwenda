@@ -68,7 +68,13 @@ export default function RestaurantAuth() {
         localStorage.setItem('kwenda_login_intent', 'restaurant');
         localStorage.setItem('kwenda_selected_role', 'restaurant');
 
-        console.log('✅ [RestaurantAuth] Inscription réussie, loginIntent défini');
+        console.log('✅ [RestaurantAuth] Inscription réussie, loginIntent défini:', {
+          loginIntent: localStorage.getItem('kwenda_login_intent'),
+          selectedRole: localStorage.getItem('kwenda_selected_role')
+        });
+
+        // ✅ Attendre 100ms pour garantir l'écriture localStorage
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         toast.success('Compte créé avec succès ! Vérifiez votre email pour confirmer votre compte.');
         navigate('/restaurant');
@@ -89,6 +95,9 @@ export default function RestaurantAuth() {
           loginIntent: localStorage.getItem('kwenda_login_intent'),
           selectedRole: localStorage.getItem('kwenda_selected_role')
         });
+
+        // ✅ Attendre 100ms pour garantir l'écriture localStorage
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         toast.success('Bienvenue ! Connexion réussie.');
         navigate('/restaurant');
