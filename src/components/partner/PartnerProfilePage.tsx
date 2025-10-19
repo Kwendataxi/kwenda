@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Wallet, Users, Car, Settings, HelpCircle, LogOut, FileText, Gift, TrendingUp } from 'lucide-react';
+import { Wallet, Users, Car, Settings, HelpCircle, LogOut, FileText, Gift, TrendingUp, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -8,6 +8,8 @@ import { PartnerProfileHeader } from './PartnerProfileHeader';
 import { PartnerStats } from './PartnerStats';
 import { PartnerCompanyInfo } from './PartnerCompanyInfo';
 import { PartnerDocuments } from './PartnerDocuments';
+import { PartnerSettings } from './PartnerSettings';
+import { PartnerCommissionHistory } from './PartnerCommissionHistory';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -17,6 +19,8 @@ export const PartnerProfilePage: React.FC = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const [showDocuments, setShowDocuments] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showCommissionHistory, setShowCommissionHistory] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -75,14 +79,15 @@ export const PartnerProfilePage: React.FC = () => {
     {
       title: 'Finances',
       items: [
-        { icon: Wallet, label: 'Mes commissions', onClick: () => toast.info('Fonctionnalité à venir') },
+        { icon: Wallet, label: 'Mes commissions', onClick: () => setShowCommissionHistory(true) },
+        { icon: History, label: 'Historique des paiements', onClick: () => setShowCommissionHistory(true) },
         { icon: TrendingUp, label: 'Gains abonnements', onClick: () => toast.info('Fonctionnalité à venir') },
       ],
     },
     {
       title: 'Paramètres',
       items: [
-        { icon: Settings, label: 'Paramètres du compte', onClick: () => toast.info('Fonctionnalité à venir') },
+        { icon: Settings, label: 'Paramètres du compte', onClick: () => setShowSettings(true) },
       ],
     },
     {
@@ -180,6 +185,26 @@ export const PartnerProfilePage: React.FC = () => {
             <DialogTitle>Documents légaux</DialogTitle>
           </DialogHeader>
           <PartnerDocuments />
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Paramètres */}
+      <Dialog open={showSettings} onOpenChange={setShowSettings}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Paramètres</DialogTitle>
+          </DialogHeader>
+          <PartnerSettings />
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Historique Commissions */}
+      <Dialog open={showCommissionHistory} onOpenChange={setShowCommissionHistory}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Historique des commissions</DialogTitle>
+          </DialogHeader>
+          <PartnerCommissionHistory />
         </DialogContent>
       </Dialog>
     </div>
