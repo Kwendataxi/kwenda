@@ -3,7 +3,6 @@ import { X, Download, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useInstallPrompt } from "@/hooks/useInstallPrompt";
-import { useLocation } from "react-router-dom";
 
 const BANNER_DISMISSED_KEY = 'kwenda-install-banner-dismissed';
 const BANNER_DISMISS_DAYS = 7;
@@ -12,14 +11,13 @@ export const InstallBanner = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [shouldShow, setShouldShow] = useState(false);
   const { canInstall, isInstalled, install } = useInstallPrompt();
-  const location = useLocation();
 
   useEffect(() => {
     // Ne pas afficher si déjà installé
     if (isInstalled) return;
 
     // Afficher uniquement sur la landing page "/"
-    if (location.pathname !== '/') return;
+    if (window.location.pathname !== '/') return;
 
     // Vérifier si le banner a été fermé récemment
     const dismissedUntil = localStorage.getItem(BANNER_DISMISSED_KEY);
@@ -39,7 +37,7 @@ export const InstallBanner = () => {
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [canInstall, isInstalled, location.pathname]);
+  }, [canInstall, isInstalled]);
 
   const handleDismiss = () => {
     setIsVisible(false);
