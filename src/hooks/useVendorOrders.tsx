@@ -51,7 +51,7 @@ export const useVendorOrders = () => {
         .select('*')
         .in('product_id', vendorProductIds)
         .eq('vendor_confirmation_status', 'awaiting_confirmation')
-        .in('status', ['pending', 'pending_payment'])
+        .in('status', ['pending', 'pending_payment', 'confirmed'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -60,21 +60,14 @@ export const useVendorOrders = () => {
       const enrichedOrders: VendorOrder[] = orders?.map((order: any) => {
         const product = vendorProducts.find((p: any) => p.id === order.product_id);
         
-        // Fallback pour buyer_phone si null (migration en cours)
-        let buyerPhone = order.buyer_phone;
-        if (!buyerPhone) {
-          console.warn('⚠️ buyer_phone manquant pour commande:', order.id);
-          buyerPhone = 'Non disponible';
-        }
-        
         return {
           id: order.id,
           product_id: order.product_id,
           quantity: order.quantity,
-          total_price: order.unit_price * order.quantity,
+          total_price: order.total_amount, // ✅ Utiliser total_amount existant
           currency: 'CDF',
           delivery_address: order.delivery_address || 'Non renseignée',
-          buyer_contact: buyerPhone,
+          buyer_contact: order.buyer_phone || '⚠️ Téléphone manquant - Contactez le support',
           vendor_confirmation_status: order.vendor_confirmation_status,
           status: order.status,
           created_at: order.created_at,
