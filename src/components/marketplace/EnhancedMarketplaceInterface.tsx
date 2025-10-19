@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -68,6 +69,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const { user } = useAuth();
   const { toast } = useToast();
   const { t, formatCurrency } = useLanguage();
+  const location = useLocation();
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const geolocation = useGeolocation();
   const locationLoading = geolocation.loading;
@@ -79,6 +81,14 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   
   // State management
   const [currentTab, setCurrentTab] = useState<'shop' | 'sell' | 'orders' | 'escrow'>('shop');
+
+  // Détecter retour depuis l'espace vendeur
+  useEffect(() => {
+    if (location.state?.returnFromVendor) {
+      setCurrentTab('shop');
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [imageUploadStatuses, setImageUploadStatuses] = useState<ImageUploadStatus[]>([]);

@@ -1,7 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { AdminMarketplaceModeration } from '@/components/admin/marketplace/AdminMarketplaceModeration';
-import { LayoutDashboard, Package, Shield } from 'lucide-react';
+import { AdminVendorSubscriptions } from '@/components/admin/marketplace/AdminVendorSubscriptions';
+import { AdminCommissionConfig } from '@/components/admin/marketplace/AdminCommissionConfig';
+import { LayoutDashboard, Package, Shield, Users, DollarSign } from 'lucide-react';
 
 export const AdminMarketplaceManagement = () => {
   return (
@@ -9,23 +11,31 @@ export const AdminMarketplaceManagement = () => {
       <div>
         <h1 className="text-3xl font-bold">Gestion Marketplace</h1>
         <p className="text-muted-foreground">
-          Administration de la marketplace et modération des produits
+          Administration complète : vendeurs, produits, abonnements et commissions
         </p>
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">
             <LayoutDashboard className="h-4 w-4 mr-2" />
             Vue d'ensemble
           </TabsTrigger>
-          <TabsTrigger value="moderation">
+          <TabsTrigger value="products">
             <Package className="h-4 w-4 mr-2" />
-            Modération Produits
+            Modération
+          </TabsTrigger>
+          <TabsTrigger value="subscriptions">
+            <Users className="h-4 w-4 mr-2" />
+            Abonnements
+          </TabsTrigger>
+          <TabsTrigger value="commissions">
+            <DollarSign className="h-4 w-4 mr-2" />
+            Commissions
           </TabsTrigger>
           <TabsTrigger value="escrow">
             <Shield className="h-4 w-4 mr-2" />
-            Revenus Escrow
+            Escrow
           </TabsTrigger>
         </TabsList>
 
@@ -38,8 +48,16 @@ export const AdminMarketplaceManagement = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="moderation" className="mt-6">
+        <TabsContent value="products" className="mt-6">
           <AdminMarketplaceModeration />
+        </TabsContent>
+
+        <TabsContent value="subscriptions" className="mt-6">
+          <AdminVendorSubscriptions />
+        </TabsContent>
+
+        <TabsContent value="commissions" className="mt-6">
+          <AdminCommissionConfig />
         </TabsContent>
 
         <TabsContent value="escrow" className="mt-6">

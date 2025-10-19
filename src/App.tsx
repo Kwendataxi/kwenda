@@ -91,7 +91,6 @@ import { PartnerRegistrationForm } from "./components/partner/registration/Partn
 import UnifiedTracking from "./pages/UnifiedTracking";
 import DriverRegistration from "./pages/DriverRegistration";
 import VendorShop from "./pages/VendorShop";
-import VendorOrders from "./pages/VendorOrders";
 import ModernVendorDashboard from "./pages/ModernVendorDashboard";
 import VendorRegistration from "./pages/VendorRegistration";
 import VendorAddProduct from "./pages/VendorAddProduct";
