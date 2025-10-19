@@ -42,23 +42,22 @@ const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) =
 
   // Si l'utilisateur a plusieurs rôles et n'a pas sélectionné de rôle
   if (user && !rolesLoading && userRoles.length > 1 && !hasSelectedRole() && location.pathname !== '/role-selection') {
-    // Vérifier s'il y a une intention de connexion (driver/partner/client)
+    // Vérifier s'il y a une intention de connexion (driver/partner/admin)
     const loginIntent = localStorage.getItem('kwenda_login_intent');
     
-    // Si intention spécifique (driver, partner, etc.), aller à role-selection
-    if (loginIntent && loginIntent !== 'client') {
+    // Si intention spécifique (driver, partner, admin), aller à role-selection
+    if (loginIntent && loginIntent !== 'client' && loginIntent !== 'vendor') {
       return <Navigate to="/role-selection" replace />;
     }
     
-    // Par défaut, considérer que l'utilisateur est en mode CLIENT
-    // Il pourra basculer vers vendor via le bouton dans son profil
+    // Par défaut, auto-sélectionner le rôle client (pas de choix)
     const hasClientRole = userRoles.some(ur => ur.role === 'client');
     if (hasClientRole) {
-      setSelectedRole('client'); // Auto-sélection du rôle client
-      return null; // Laisser passer
+      setSelectedRole('client');
+      return null;
     }
     
-    // Sinon, aller à la sélection de rôle
+    // Si pas de rôle client, aller à la sélection
     return <Navigate to="/role-selection" replace />;
   }
 

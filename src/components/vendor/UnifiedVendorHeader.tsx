@@ -1,12 +1,9 @@
 import React from 'react';
-import { Store, ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Store } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { EnhancedThemeToggle } from '@/components/theme/EnhancedThemeToggle';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
-import { MarketplaceRoleSwitcher } from '@/components/marketplace/MarketplaceRoleSwitcher';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UnifiedVendorHeaderProps {
@@ -14,7 +11,6 @@ interface UnifiedVendorHeaderProps {
 }
 
 export const UnifiedVendorHeader: React.FC<UnifiedVendorHeaderProps> = ({ className = '' }) => {
-  const navigate = useNavigate();
   const isMobile = useIsMobile();
 
   return (
@@ -26,30 +22,17 @@ export const UnifiedVendorHeader: React.FC<UnifiedVendorHeaderProps> = ({ classN
     >
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between h-[60px] md:h-[68px]">
-          {/* LEFT: Titre + Retour */}
+          {/* LEFT: Titre */}
           <div className="flex items-center gap-2 md:gap-4">
-            {/* Bouton retour marketplace - visible uniquement desktop */}
-            {!isMobile && (
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.1 }}
-              >
-                <MarketplaceRoleSwitcher currentMode="vendor" />
-              </motion.div>
-            )}
-
-            {/* Mobile: Icône simple */}
-            {isMobile && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200 }}
-                className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center"
-              >
-                <Store className="h-5 w-5 text-primary" />
-              </motion.div>
-            )}
+            {/* Icône */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200 }}
+              className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center"
+            >
+              <Store className="h-5 w-5 text-primary" />
+            </motion.div>
 
             {/* Titre */}
             <motion.h1
