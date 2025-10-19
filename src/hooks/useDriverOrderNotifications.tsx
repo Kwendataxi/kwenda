@@ -42,7 +42,7 @@ export const useDriverOrderNotifications = () => {
         .select('*')
         .eq('driver_id', user.id)
         .in('response_status', ['sent', 'seen'])
-        .in('alert_type', ['new_delivery_request', 'marketplace_delivery'])
+        .in('alert_type', ['new_delivery_request', 'marketplace_delivery', 'food_delivery'])
         .order('sent_at', { ascending: false });
 
       if (error) throw error;
@@ -87,9 +87,53 @@ export const useDriverOrderNotifications = () => {
 
     setLoading(true);
     try {
-      // Détecter si c'est une commande marketplace
+      // Détecter le type d'alerte
       const alertData = pendingAlerts.find(a => a.id === alertId);
       const isMarketplace = alertData?.alert_type === 'marketplace_delivery';
+      const isFoodOrder = alertData?.alert_type === 'food_delivery';
+      
+      // 🍔 PHASE 2.1: Gérer les commandes FOOD
+      if (isFoodOrder) {
+        const { error: assignError } = await supabase
+          .from('food_orders')
+          .update({ 
+            driver_id: user.id, 
+            status: 'picked_up',
+            picked_up_at: new Date().toISOString()
+          })
+          .eq('id', orderId)
+          .is('driver_id', null);
+        
+        if (assignError) {
+          console.error('Error accepting food order:', assignError);
+          toast.error('Erreur lors de l\'acceptation de la commande food');
+          return false;
+        }
+        
+        // Marquer alerte acceptée
+        await supabase
+          .from('delivery_driver_alerts')
+          .update({ 
+            response_status: 'accepted',
+            responded_at: new Date().toISOString()
+          })
+          .eq('id', alertId);
+        
+        // Annuler autres alertes pour cette commande
+        await supabase
+          .from('delivery_driver_alerts')
+          .update({ 
+            response_status: 'ignored',
+            responded_at: new Date().toISOString()
+          })
+          .eq('order_id', orderId)
+          .neq('id', alertId)
+          .in('response_status', ['sent', 'seen']);
+        
+        setPendingAlerts(prev => prev.filter(alert => alert.id !== alertId));
+        toast.success('✅ Livraison food acceptée !');
+        return true;
+      }
       
       if (isMarketplace) {
         // Assigner dans marketplace_delivery_assignments

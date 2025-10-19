@@ -174,6 +174,22 @@ serve(async (req) => {
 
     console.log('✅ Commande créée:', order.id);
 
+    // 🚚 PHASE 1: Dispatcher les livreurs disponibles
+    try {
+      const driversNotified = await dispatchFoodDelivery({
+        orderId: order.id,
+        restaurantId: orderData.restaurant_id,
+        restaurantName: restaurant.restaurant_name,
+        deliveryAddress: orderData.delivery_address,
+        deliveryCoords: orderData.delivery_coordinates,
+        estimatedPrice: deliveryFee
+      });
+      
+      console.log(`📡 ${driversNotified} chauffeurs notifiés pour commande ${order.id}`);
+    } catch (dispatchError) {
+      console.error('⚠️ Erreur dispatch livreurs (non bloquant):', dispatchError);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -193,3 +209,177 @@ serve(async (req) => {
     );
   }
 });
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🚚 DISPATCHER INTELLIGENT FOOD DELIVERY
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+interface DispatchParams {
+  orderId: string;
+  restaurantId: string;
+  restaurantName: string;
+  deliveryAddress: string;
+  deliveryCoords?: { lat: number; lng: number };
+  estimatedPrice: number;
+}
+
+async function dispatchFoodDelivery(params: DispatchParams): Promise<number> {
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  );
+
+  // 1. Récupérer les coordonnées du restaurant
+  const { data: restaurant, error: restError } = await supabase
+    .from('restaurant_profiles')
+    .select('latitude, longitude')
+    .eq('id', params.restaurantId)
+    .single();
+
+  if (restError || !restaurant?.latitude || !restaurant?.longitude) {
+    console.error('❌ Restaurant coordinates not found:', restError);
+    return 0;
+  }
+
+  const restaurantCoords = { lat: restaurant.latitude, lng: restaurant.longitude };
+
+  // 2. Trouver chauffeurs éligibles avec service_type contenant 'delivery' ou 'food_delivery'
+  const { data: driverProfiles, error: driverError } = await supabase
+    .from('chauffeurs')
+    .select(`
+      user_id,
+      display_name,
+      rating_average,
+      service_type,
+      vehicle_class
+    `)
+    .eq('is_active', true)
+    .eq('verification_status', 'verified');
+
+  if (driverError || !driverProfiles) {
+    console.error('❌ Error fetching drivers:', driverError);
+    return 0;
+  }
+
+  // Filtrer les chauffeurs qui font de la livraison
+  const eligibleDrivers = driverProfiles.filter(d => 
+    d.service_type?.includes('delivery') || 
+    d.service_type?.includes('food_delivery')
+  );
+
+  if (eligibleDrivers.length === 0) {
+    console.log('⚠️ Aucun chauffeur livraison disponible');
+    return 0;
+  }
+
+  // 3. Récupérer leurs préférences et dernière position
+  const driverIds = eligibleDrivers.map(d => d.user_id);
+  const { data: preferences } = await supabase
+    .from('driver_service_preferences')
+    .select('driver_id, last_known_latitude, last_known_longitude')
+    .in('driver_id', driverIds)
+    .eq('is_active', true);
+
+  // 4. Vérifier abonnements actifs (courses restantes)
+  const { data: subscriptions } = await supabase
+    .from('driver_subscriptions')
+    .select('driver_id, rides_remaining')
+    .in('driver_id', driverIds)
+    .eq('status', 'active')
+    .gte('end_date', new Date().toISOString());
+
+  const driversWithRides = new Set(
+    subscriptions?.filter(s => s.rides_remaining > 0).map(s => s.driver_id) || []
+  );
+
+  // 5. Calculer distances et scorer
+  const rankedDrivers = eligibleDrivers
+    .map(driver => {
+      const pref = preferences?.find(p => p.driver_id === driver.user_id);
+      const lat = pref?.last_known_latitude || restaurantCoords.lat;
+      const lng = pref?.last_known_longitude || restaurantCoords.lng;
+      
+      const distance = haversineDistance(
+        restaurantCoords,
+        { lat, lng }
+      );
+
+      const hasRides = driversWithRides.has(driver.user_id);
+      const rating = driver.rating_average || 0;
+
+      // Score = -distance (plus proche = meilleur) + bonus rating
+      const score = -distance + (rating * 0.1) + (hasRides ? 100 : 0);
+
+      return {
+        driver_id: driver.user_id,
+        driver_name: driver.display_name,
+        distance,
+        rating,
+        hasRides,
+        score
+      };
+    })
+    .filter(d => d.distance <= 15 && d.hasRides) // Max 15km et doit avoir des courses
+    .sort((a, b) => b.score - a.score);
+
+  // 6. Notifier les 5 meilleurs chauffeurs
+  const topDrivers = rankedDrivers.slice(0, 5);
+  const expiresAt = new Date(Date.now() + 3 * 60 * 1000).toISOString(); // 3 min
+
+  const alertsToInsert = topDrivers.map(driver => ({
+    driver_id: driver.driver_id,
+    order_id: params.orderId,
+    alert_type: 'food_delivery',
+    distance_km: driver.distance,
+    order_details: {
+      pickup_location: params.restaurantName,
+      delivery_location: params.deliveryAddress,
+      estimated_price: params.estimatedPrice,
+      delivery_type: 'food'
+    },
+    expires_at: expiresAt
+  }));
+
+  if (alertsToInsert.length > 0) {
+    const { error: alertError } = await supabase
+      .from('delivery_driver_alerts')
+      .insert(alertsToInsert);
+
+    if (alertError) {
+      console.error('❌ Error creating driver alerts:', alertError);
+      return 0;
+    }
+
+    console.log(`✅ ${alertsToInsert.length} chauffeurs notifiés:`, 
+      topDrivers.map(d => `${d.driver_name} (${d.distance.toFixed(1)}km)`).join(', ')
+    );
+  }
+
+  return alertsToInsert.length;
+}
+
+/**
+ * Formule de Haversine pour calculer distance entre 2 points GPS (en km)
+ */
+function haversineDistance(
+  coords1: { lat: number; lng: number },
+  coords2: { lat: number; lng: number }
+): number {
+  const R = 6371; // Rayon de la Terre en km
+  const dLat = toRad(coords2.lat - coords1.lat);
+  const dLng = toRad(coords2.lng - coords1.lng);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(coords1.lat)) *
+      Math.cos(toRad(coords2.lat)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function toRad(deg: number): number {
+  return (deg * Math.PI) / 180;
+}
