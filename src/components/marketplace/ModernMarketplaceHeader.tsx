@@ -2,9 +2,8 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Heart, ShoppingCart, Search, Store } from 'lucide-react';
+import { Heart, ShoppingCart, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useUserRole } from '@/hooks/useUserRole';
 
 interface ModernMarketplaceHeaderProps {
   searchQuery: string;
@@ -22,8 +21,6 @@ export const ModernMarketplaceHeader = ({
   onWishlistClick
 }: ModernMarketplaceHeaderProps) => {
   const navigate = useNavigate();
-  const { userRole } = useUserRole();
-  const isVendor = userRole === 'vendor';
 
   return (
     <header className="sticky top-[60px] z-[140] bg-background/80 backdrop-blur-xl border-b">
@@ -75,18 +72,6 @@ export const ModernMarketplaceHeader = ({
                 </Badge>
               )}
             </Button>
-
-            {isVendor && (
-              <Button 
-                variant="outline"
-                onClick={() => navigate('/vendeur')}
-                className="hidden md:flex items-center gap-2"
-                size="sm"
-              >
-                <Store className="h-4 w-4" />
-                Mon espace vendeur
-              </Button>
-            )}
           </div>
         </div>
       </div>
