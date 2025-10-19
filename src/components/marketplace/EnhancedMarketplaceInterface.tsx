@@ -20,22 +20,18 @@ import { QuickFiltersBar } from './QuickFiltersBar';
 import { ResponsiveGrid } from '../ui/responsive-grid';
 
 // Anciens composants (conservés pour compatibilité)
-import { ImageUploadProgress, ImageUploadStatus } from './ImageUploadProgress';
 import { ProductGrid } from './ProductGrid';
 import { UnifiedShoppingCart } from './cart/UnifiedShoppingCart';
 import { ProductDetailsDialog } from './ProductDetailsDialog';
 import { VendorStoreView } from './VendorStoreView';
 import { ClientEscrowDashboard } from '../escrow/ClientEscrowDashboard';
-import { SellProductForm } from './SellProductForm';
 import { HorizontalProductScroll } from './HorizontalProductScroll';
 import { WalletBalance } from './WalletBalance';
 import { DeliveryCalculator } from './DeliveryCalculator';
 import { OrderTracker } from './OrderTracker';
 import { AdvancedOrderTracker } from './AdvancedOrderTracker';
-import { VerifiedSellerGuard } from './VerifiedSellerGuard';
 import { AdvancedFilters } from './AdvancedFilters';
 import { DeliveryFeeApprovalDialog } from './DeliveryFeeApprovalDialog';
-import { EditProductForm } from './EditProductForm';
 
 // Hooks
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
@@ -80,7 +76,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const { startConversation } = useMarketplaceChat();
   
   // State management
-  const [currentTab, setCurrentTab] = useState<'shop' | 'sell' | 'orders' | 'escrow'>('shop');
+  const [currentTab, setCurrentTab] = useState<'shop' | 'orders' | 'escrow'>('shop');
 
   // Détecter retour depuis l'espace vendeur
   useEffect(() => {
@@ -91,7 +87,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   }, [location]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [imageUploadStatuses, setImageUploadStatuses] = useState<ImageUploadStatus[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -430,364 +425,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     setCartItems(cartItems.filter(item => item.id !== productId));
   };
 
-  const handleProductSubmit = async (productData: any): Promise<boolean> => {
-    console.log('📦 [Marketplace] Starting product submission');
-    
-    // ✅ Vérification authentification STRICTE
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user?.id) {
-      console.error('❌ [Marketplace] User not authenticated');
-      toast({
-        title: '❌ Non authentifié',
-        description: 'Vous devez être connecté pour publier un produit',
-        variant: 'destructive',
-      });
-      return false;
-    }
-    
-    console.log('✅ [Marketplace] User authenticated:', user.id);
-    console.log('📦 [Marketplace] Product data:', {
-      title: productData.title,
-      category: productData.category,
-      price: productData.price,
-      imagesCount: productData.images?.length || 0,
-      sellerId: user.id
-    });
-
-    try {
-      // ✅ Compression et validation d'image
-      const compressImage = async (file: File): Promise<File> => {
-        const MAX_SIZE = 2 * 1024 * 1024; // 2MB
-        if (file.size <= MAX_SIZE) return file;
-
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onload = (e) => {
-            const img = new Image();
-            img.src = e.target?.result as string;
-            img.onload = () => {
-              const canvas = document.createElement('canvas');
-              const ctx = canvas.getContext('2d')!;
-              
-              const maxDim = 1920;
-              let width = img.width;
-              let height = img.height;
-              
-              if (width > height && width > maxDim) {
-                height = (height * maxDim) / width;
-                width = maxDim;
-              } else if (height > maxDim) {
-                width = (width * maxDim) / height;
-                height = maxDim;
-              }
-              
-              canvas.width = width;
-              canvas.height = height;
-              ctx.drawImage(img, 0, 0, width, height);
-              
-              canvas.toBlob(
-                (blob) => {
-                  if (blob) {
-                    resolve(new File([blob], file.name, { type: 'image/jpeg' }));
-                  } else {
-                    reject(new Error('Compression failed'));
-                  }
-                },
-                'image/jpeg',
-                0.85
-              );
-            };
-          };
-        });
-      };
-
-      // ✅ Fonction helper pour retry upload avec timeout
-      const uploadWithRetry = async (file: File, fileName: string, retries = 3) => {
-        for (let attempt = 0; attempt <= retries; attempt++) {
-          try {
-            const uploadPromise = supabase.storage
-              .from('marketplace-products')
-              .upload(fileName, file, {
-                cacheControl: '3600',
-                upsert: false,
-                contentType: file.type
-              });
-
-            const timeoutPromise = new Promise((_, reject) =>
-              setTimeout(() => reject(new Error('Upload timeout')), 30000)
-            );
-
-            const { data, error } = await Promise.race([
-              uploadPromise,
-              timeoutPromise
-            ]) as any;
-          
-            if (!error) {
-              console.log(`✅ Upload réussi (tentative ${attempt + 1}): ${fileName}`);
-              return { data, error: null };
-            }
-          
-            if (attempt < retries) {
-              const delay = 5000 * (attempt + 1);
-              console.warn(`⚠️ Retry ${attempt + 1}/${retries} après ${delay}ms pour ${fileName}`);
-              await new Promise(resolve => setTimeout(resolve, delay));
-              continue;
-            }
-          
-            return { data: null, error };
-          } catch (err: any) {
-            if (attempt < retries) {
-              const delay = 5000 * (attempt + 1);
-              console.warn(`⚠️ Exception retry ${attempt + 1}/${retries} après ${delay}ms`);
-              await new Promise(resolve => setTimeout(resolve, delay));
-              continue;
-            }
-            return { data: null, error: err };
-          }
-        }
-        return { data: null, error: new Error('Max retries reached') };
-      };
-
-      // 1. Upload images to Supabase Storage
-      const imageUrls: string[] = [];
-      
-      if (productData.images && productData.images.length > 0) {
-        console.log(`📤 [Marketplace] Uploading ${productData.images.length} images`);
-        toast({
-          title: '📤 Upload des images...',
-          description: `Upload de ${productData.images.length} image(s) en cours...`,
-        });
-
-        for (let i = 0; i < productData.images.length; i++) {
-          const originalFile = productData.images[i];
-          console.log(`📤 [Marketplace] Processing image ${i + 1}/${productData.images.length}:`, {
-            name: originalFile.name,
-            size: `${(originalFile.size / 1024).toFixed(2)} KB`,
-            type: originalFile.type
-          });
-
-          // ✅ Validation taille
-          if (originalFile.size > 5 * 1024 * 1024) {
-            toast({
-              title: '⚠️ Image trop volumineuse',
-              description: `L'image ${i + 1} dépasse 5MB. Compression en cours...`,
-            });
-          }
-
-          // ✅ Compression si nécessaire
-          let file = originalFile;
-          try {
-            file = await compressImage(originalFile);
-            console.log(`✅ Image ${i + 1} compressée: ${(file.size / 1024).toFixed(2)} KB`);
-          } catch (compressError) {
-            console.warn(`⚠️ Compression échouée pour image ${i + 1}, utilisation de l'original`);
-          }
-          
-          // Generate unique filename avec préfixe products/
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${user.id}/products/${Date.now()}-${i}.${fileExt}`;
-          
-          // ✅ Upload vers bucket marketplace-products avec retry avancé
-          toast({
-            title: `📤 Upload ${i + 1}/${productData.images.length}`,
-            description: 'Upload en cours...',
-          });
-
-          const { data: uploadData, error: uploadError } = await uploadWithRetry(file, fileName);
-
-          if (uploadError) {
-            // Update status to error
-            setImageUploadStatuses(prev => prev.map((status, idx) => 
-              idx === i ? { ...status, status: 'error', error: uploadError.message } : status
-            ));
-            
-            console.error('❌ [Marketplace] Image upload error:', {
-              message: uploadError.message,
-              fileName: fileName,
-              userId: user.id,
-              attempts: 'Max retries reached'
-            });
-
-            await supabase.from('activity_logs').insert({
-              user_id: user.id,
-              activity_type: 'product_image_upload_failed',
-              description: `Échec upload image ${i + 1} pour produit "${productData.title}"`,
-              metadata: {
-                fileName,
-                error: uploadError.message,
-                fileSize: file.size,
-                productTitle: productData.title
-              }
-            });
-
-            console.warn(`⚠️ Continuing without image ${i + 1}`);
-            continue;
-          }
-
-          // Get public URL depuis marketplace-products
-          const { data: { publicUrl } } = supabase.storage
-            .from('marketplace-products')
-            .getPublicUrl(fileName);
-          
-          // Update status to success
-          setImageUploadStatuses(prev => prev.map((status, idx) => 
-            idx === i ? { ...status, status: 'success', progress: 100, url: publicUrl } : status
-          ));
-          
-          console.log(`✅ [Marketplace] Image ${i + 1} uploaded:`, publicUrl);
-          imageUrls.push(publicUrl);
-        }
-        console.log(`✅ [Marketplace] All ${imageUrls.length} images uploaded successfully`);
-      }
-
-      // 2. Create product in Supabase with uploaded image URLs
-      console.log('💾 [Marketplace] Creating product in database');
-      
-      // ✅ Créer le produit même sans images (mode inactive)
-      const hasFailedImages = imageUrls.length === 0 && productData.images && productData.images.length > 0;
-      
-      const productPayload = {
-        title: productData.title,
-        description: productData.description,
-        price: parseFloat(productData.price),
-        category: productData.category,
-        condition: productData.condition || 'new',
-        images: imageUrls,
-        seller_id: user.id,
-        location: productData.location,
-        coordinates: productData.coordinates,
-        stock_count: productData.stock_count || 1,
-        brand: productData.brand || null,
-        specifications: productData.specifications || {},
-        status: hasFailedImages ? 'inactive' : 'active',
-        moderation_status: 'pending'
-      };
-      console.log('💾 [Marketplace] Product payload:', productPayload);
-      
-      if (hasFailedImages) {
-        console.warn('⚠️ [Marketplace] Creating product as INACTIVE (no images uploaded)');
-      }
-
-      const { data, error } = await supabase
-        .from('marketplace_products')
-        .insert(productPayload)
-        .select()
-        .single();
-
-      console.log('🧪 [DEBUG] Product insert result:', { data, error });
-
-      if (error) {
-        console.error('❌ [DEBUG] Product insert error:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        toast({
-          title: '❌ Erreur de création',
-          description: `${error.message} - Vérifiez les logs de la console`,
-          variant: 'destructive',
-        });
-        return false;
-      }
-
-      console.log('✅ [DEBUG] Product created successfully:', {
-        id: data.id,
-        title: data.title,
-        status: data.moderation_status,
-        seller_id: data.seller_id
-      });
-
-      // Clear image upload statuses
-      setImageUploadStatuses([]);
-
-      // ✅ Notifications DIRECTES (sans Edge Function)
-      console.log('📧 [Marketplace] Sending direct notifications');
-      
-      // 1. Log activity
-      await supabase.from('activity_logs').insert({
-        user_id: user.id,
-        activity_type: 'product_created',
-        description: `Produit créé: ${data.title}`,
-        metadata: { product_id: data.id }
-      });
-
-      // 2. Notification admin DIRECTE
-      const { error: adminNotifError } = await supabase
-        .from('admin_notifications')
-        .insert({
-          type: 'product_moderation',
-          severity: 'info',
-          title: '📦 Nouveau produit à modérer',
-          message: `${user.email} a publié "${data.title}" - ${data.price} CDF`,
-          data: {
-            product_id: data.id,
-            seller_id: user.id
-          }
-        });
-      
-      if (adminNotifError) {
-        console.error('❌ [Marketplace] Admin notification error:', adminNotifError);
-      } else {
-        console.log('✅ [Marketplace] Admin notification sent successfully');
-      }
-
-      // 3. Notification vendeur DIRECTE
-      const { error: vendorNotifError } = await supabase
-        .from('vendor_product_notifications')
-        .insert({
-          vendor_id: user.id,
-          product_id: data.id,
-          notification_type: 'product_submitted',
-          title: '✅ Produit soumis',
-          message: `Votre produit "${data.title}" est en cours de modération (24-48h)`,
-          priority: 'normal',
-          metadata: {
-            product_id: data.id,
-            product_title: data.title
-          }
-        });
-      
-      if (vendorNotifError) {
-        console.error('❌ [Marketplace] Vendor notification error:', vendorNotifError);
-      } else {
-        console.log('✅ [Marketplace] Vendor notification sent successfully');
-      }
-
-      // 4. Toast de confirmation et redirection vers vendor
-      toast({
-        title: "✅ Produit soumis avec succès !",
-        description: "Votre produit sera modéré sous 24-48h. Vous recevrez une notification.",
-      });
-
-      // 5. Redirection vers onglet commandes
-      setCurrentTab('orders');
-
-      // Reload products
-      console.log('🔄 [Marketplace] Reloading products list');
-      await loadProducts();
-      
-      console.log('✅ [Marketplace] Product submission completed successfully');
-      return true;
-      
-    } catch (error: any) {
-      console.error('❌ [Marketplace] Product submission failed:', error);
-      console.error('❌ [Marketplace] Error details:', {
-        message: error.message,
-        stack: error.stack,
-        code: error.code
-      });
-      toast({
-        title: '❌ Erreur de création',
-        description: error.message || 'Impossible de créer le produit. Veuillez réessayer.',
-        variant: 'destructive',
-      });
-      return false;
-    }
-  };
-
   const handleCheckout = async () => {
     // Vider le panier local
     setCartItems([]);
@@ -1013,14 +650,10 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       {/* Content */}
       <div className="p-4 content-scrollable">
         <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as any)}>
-          <TabsList className="grid w-full grid-cols-5 bg-muted/50 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-3 bg-muted/50 backdrop-blur-sm">
             <TabsTrigger value="shop" className="flex items-center gap-1 touch-manipulation">
               <ShoppingBag className="w-4 h-4" />
               <span className="hidden sm:inline">Boutique</span>
-            </TabsTrigger>
-            <TabsTrigger value="sell" className="flex items-center gap-1 touch-manipulation">
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Vendre</span>
             </TabsTrigger>
             <TabsTrigger value="orders" className="flex items-center gap-1 touch-manipulation">
               <CartIcon className="w-4 h-4" />
@@ -1034,48 +667,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
           <TabsContent value="shop" className="mt-4">
             {renderShopTab()}
-          </TabsContent>
-
-          <TabsContent value="sell" className="mt-4">
-            <VerifiedSellerGuard>
-              <div className="space-y-6">
-                <SellProductForm
-                  onBack={() => setCurrentTab('shop')}
-                  onSubmit={async (formData) => {
-                    // Handle product creation with auto-location
-                    const success = await handleProductSubmit({
-                      ...formData,
-                      coordinates: coordinates,
-                      location: 'Kinshasa'
-                    });
-                    
-                     if (success) {
-                      toast({
-                        title: '✅ Produit soumis avec succès!',
-                        description: 'Votre produit est en cours de modération. Vous serez notifié dès validation.',
-                        duration: 5000,
-                      });
-                      
-                      // Redirection automatique après 2 secondes
-                      setTimeout(() => {
-                        setCurrentTab('orders');
-                      }, 2000);
-                    }
-                    return success;
-                  }}
-                />
-                
-                {/* Image Upload Progress */}
-                {imageUploadStatuses.length > 0 && (
-                  <ImageUploadProgress
-                    images={imageUploadStatuses}
-                    onRemove={(index) => {
-                      setImageUploadStatuses(prev => prev.filter((_, i) => i !== index));
-                    }}
-                  />
-                )}
-              </div>
-            </VerifiedSellerGuard>
           </TabsContent>
 
           <TabsContent value="orders" className="mt-4">

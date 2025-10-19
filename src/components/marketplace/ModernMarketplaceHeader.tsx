@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Heart, ShoppingCart, Search } from 'lucide-react';
+import { Heart, ShoppingCart, Search, Package, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface ModernMarketplaceHeaderProps {
@@ -23,23 +23,26 @@ export const ModernMarketplaceHeader = ({
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-[60px] z-[140] bg-background/80 backdrop-blur-xl border-b">
+    <header className="sticky top-[60px] z-[140] bg-background/95 backdrop-blur-xl border-b border-primary/20">
       <div className="container max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center gap-4">
-          {/* Logo + Titre avec gradient */}
+          {/* Logo + Titre avec gradient moderne */}
           <div className="flex items-center gap-3">
             <motion.div 
-              className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary via-[hsl(0,80%,50%)] to-[hsl(45,100%,50%)] flex items-center justify-center text-2xl shadow-lg"
-              whileHover={{ rotate: 360 }}
+              className="p-3 bg-gradient-to-br from-primary via-orange-500 to-destructive rounded-2xl shadow-lg shadow-primary/30"
+              whileHover={{ rotate: 360, scale: 1.05 }}
               transition={{ duration: 0.5 }}
             >
-              🛍️
+              <Package className="h-8 w-8 text-white" />
             </motion.div>
             <div className="hidden md:block">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-[hsl(0,80%,50%)] bg-clip-text text-transparent">
-                Kwenda Market
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-orange-500 to-destructive bg-clip-text text-transparent">
+                Kwenda Shop
               </h1>
-              <p className="text-xs text-muted-foreground">Achetez en toute confiance</p>
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 mt-1">
+                <Shield className="h-3 w-3 mr-1" />
+                Marketplace sécurisé
+              </Badge>
             </div>
           </div>
 

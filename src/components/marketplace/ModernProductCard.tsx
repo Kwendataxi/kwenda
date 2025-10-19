@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, ShoppingCart, Heart, Star, Store } from 'lucide-react';
+import { Eye, ShoppingCart, Heart, Star, Store, MessageCircle, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
@@ -68,123 +68,134 @@ export const ModernProductCard = ({
   return (
     <motion.div
       whileHover={{ y: -8, scale: 1.02 }}
-      transition={{ type: "spring", stiffness: 300 }}
+      transition={{ duration: 0.3 }}
       className="group h-full"
     >
-      <Card className="overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-card/50 backdrop-blur-sm h-full flex flex-col">
-        {/* Image avec overlay gradient */}
-        <div className="relative overflow-hidden aspect-square">
-          <img 
+      <Card className="group relative overflow-hidden bg-card/80 backdrop-blur-xl border-0 shadow-2xl hover:shadow-primary/20 transition-all duration-300 h-full flex flex-col">
+        {/* Image Container avec overlay moderne */}
+        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50">
+          <img
             src={mainImage}
             alt={product.title}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
             loading="lazy"
           />
           
-          {/* Gradient overlay au hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          {/* Dark gradient overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
-          {/* Quick actions (visible au hover) */}
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-4 group-hover:translate-y-0">
-            <Button 
-              size="sm" 
-              className="rounded-full bg-white/90 text-foreground hover:bg-white"
-              onClick={() => onViewDetails(product)}
+          {/* Chat icon en overlay (visible au hover) */}
+          <motion.button 
+            className="absolute bottom-4 right-4 bg-destructive text-white rounded-full p-3 opacity-0 group-hover:opacity-100 shadow-lg"
+            whileHover={{ scale: 1.1 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              // TODO: Ouvrir chat vendeur
+            }}
+          >
+            <MessageCircle className="h-5 w-5" />
+          </motion.button>
+          
+          {/* Quick View button (visible on hover) */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <Button
+              size="lg"
+              variant="secondary"
+              className="bg-white/95 hover:bg-white shadow-xl"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetails(product);
+              }}
             >
-              <Eye className="h-4 w-4 mr-1" />
-              Voir
+              <Eye className="h-5 w-5 mr-2" />
+              Voir détails
             </Button>
-            {inStock && (
-              <Button 
-                size="sm"
-                className="rounded-full bg-primary text-white"
-                onClick={() => onAddToCart(product)}
-              >
-                <ShoppingCart className="h-4 w-4 mr-1" />
-                Ajouter
-              </Button>
-            )}
           </div>
           
           {/* Badges */}
-          {discount > 0 && (
-            <Badge className="absolute top-3 left-3 bg-[hsl(0,80%,50%)] text-white font-bold shadow-lg">
-              -{discount}%
-            </Badge>
-          )}
-          {!inStock && (
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
-              <Badge variant="secondary" className="text-lg px-4 py-2">
+          <div className="absolute top-3 left-3 flex flex-col gap-2">
+            {discount > 0 && (
+              <Badge className="bg-gradient-to-r from-destructive to-orange-600 text-white font-bold shadow-lg">
+                -{discount}%
+              </Badge>
+            )}
+            {!inStock && (
+              <Badge variant="secondary" className="bg-black/60 text-white backdrop-blur-sm">
                 Rupture de stock
               </Badge>
-            </div>
-          )}
+            )}
+          </div>
           
-          {/* Wishlist button */}
-          <motion.button
-            whileHover={{ scale: 1.2 }}
-            whileTap={{ scale: 0.9 }}
-            className="absolute top-3 right-3 bg-white/90 backdrop-blur-md rounded-full p-2 shadow-lg"
+          {/* Wishlist Button */}
+          <Button
+            size="icon"
+            variant="ghost"
+            className="absolute top-3 right-3 bg-white/90 hover:bg-white backdrop-blur-sm shadow-lg"
             onClick={handleToggleWishlist}
           >
             <Heart className={cn(
-              "h-5 w-5 transition-colors",
-              isWishlisted ? "fill-red-500 text-red-500" : "text-foreground"
+              "h-5 w-5 transition-all",
+              isWishlisted ? "fill-destructive text-destructive" : "text-muted-foreground"
             )} />
-          </motion.button>
+          </Button>
         </div>
         
-        {/* Content */}
-        <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
+        {/* Product Info - Design moderne conforme à l'image */}
+        <CardContent className="flex-1 flex flex-col p-4 space-y-3">
           {/* Title */}
-          <h3 className="font-bold text-base leading-tight line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-lg line-clamp-2 min-h-[3rem] group-hover:text-primary transition-colors">
             {product.title}
           </h3>
           
-          {/* Rating + Reviews */}
-          {reviewCount > 0 && (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={cn(
-                      "h-3.5 w-3.5",
-                      i < Math.floor(rating)
-                        ? "fill-[hsl(45,100%,50%)] text-[hsl(45,100%,50%)]"
-                        : "text-muted"
-                    )}
-                  />
-                ))}
-              </div>
-              <span className="text-xs text-muted-foreground">
-                ({reviewCount})
-              </span>
+          {/* Rating */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+              <span className="text-sm font-medium">{rating > 0 ? rating.toFixed(1) : '0.0'}</span>
             </div>
-          )}
-          
-          {/* Seller */}
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Store className="h-3 w-3" />
-            <span className="truncate">{product.seller?.display_name || 'Vendeur'}</span>
+            <span className="text-xs text-muted-foreground">
+              ({reviewCount} avis)
+            </span>
           </div>
           
-          {/* Price - pushed to bottom */}
-          <div className="flex items-end justify-between pt-2 border-t mt-auto">
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold text-primary">
-                {formatPrice(product.price)}
-              </span>
-              {originalPrice && (
-                <span className="text-sm text-muted-foreground line-through">
-                  {formatPrice(originalPrice)}
-                </span>
-              )}
-            </div>
-            <Badge variant="outline" className="text-xs">
-              {product.category}
-            </Badge>
+          {/* Prix Badge (style image de référence) */}
+          <Badge className="w-full bg-destructive hover:bg-destructive text-white text-xl font-bold py-2 justify-center shadow-lg">
+            {formatPrice(product.price)}
+          </Badge>
+          
+          {/* Seller & Distance */}
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span className="truncate flex-1 flex items-center gap-1">
+              <Store className="h-3 w-3" />
+              {product.seller?.display_name || 'Vendeur'}
+            </span>
           </div>
+          
+          {/* Bouton Acheter (style moderne orange) */}
+          <Button 
+            className="w-full bg-primary hover:bg-primary/90 font-semibold shadow-lg"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToCart(product);
+            }}
+            disabled={!inStock}
+          >
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            {inStock ? 'Acheter' : 'Rupture de stock'}
+          </Button>
+          
+          {/* Bouton Voir détails (ghost) */}
+          <Button 
+            variant="ghost" 
+            className="w-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails(product);
+            }}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Voir détails
+          </Button>
         </CardContent>
       </Card>
     </motion.div>
