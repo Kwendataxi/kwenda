@@ -31,6 +31,7 @@ import { UserSettings } from './UserSettings';
 
 import { ModernProfileHeader } from './ModernProfileHeader';
 import { ProfileActionButtons } from './ProfileActionButtons';
+import { MarketplaceRoleSwitcher } from '@/components/marketplace/MarketplaceRoleSwitcher';
 
 interface Profile {
   id: string;
@@ -434,6 +435,11 @@ export const UserProfile = ({ onWalletAccess }: UserProfileProps = {}) => {
       {/* Profile Action Buttons */}
       <div className="px-4 py-4">
         <ProfileActionButtons onQuickAction={handleQuickAction} />
+      </div>
+
+      {/* Marketplace Role Switcher */}
+      <div className="px-4 pb-4">
+        <MarketplaceRoleSwitcher currentMode="client" />
       </div>
 
       {/* Profile Options List */}

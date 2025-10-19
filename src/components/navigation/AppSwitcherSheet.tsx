@@ -76,16 +76,6 @@ const APP_CONFIGS: AppConfig[] = [
     requiredRole: 'partner'
   },
   {
-    id: 'vendor',
-    name: 'Vendeur',
-    description: 'Vendre sur la marketplace',
-    route: '/vendeur',
-    icon: Store,
-    gradient: 'from-purple-500 to-pink-600',
-    emoji: '🛍️',
-    requiredRole: 'vendor'
-  },
-  {
     id: 'restaurant',
     name: 'Restaurant',
     description: 'Gérer mon restaurant',

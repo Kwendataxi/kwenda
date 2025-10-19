@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Package, ShoppingCart, DollarSign, Settings, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { MarketplaceRoleSwitcher } from '@/components/marketplace/MarketplaceRoleSwitcher';
 
 export const VendorNavigation = () => {
   const location = useLocation();
@@ -35,6 +36,11 @@ export const VendorNavigation = () => {
               </Link>
             );
           })}
+          
+          {/* Bouton retour marketplace */}
+          <div className="ml-auto">
+            <MarketplaceRoleSwitcher currentMode="vendor" />
+          </div>
         </div>
       </div>
     </nav>
