@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useAnimationControls } from "framer-motion";
-import { Car, Package, ShoppingCart, MapPin, Bike, Truck } from "lucide-react";
-import BrandLogoWhite from "@/components/brand/BrandLogoWhite";
+import { MapPin } from "lucide-react";
+import kwendaLogo from "@/assets/kwenda-logo.png";
 import { APP_CONFIG } from "@/config/appConfig";
 import { logger } from "@/utils/logger";
 import { supabase } from "@/integrations/supabase/client";
@@ -97,42 +97,28 @@ const MobileSplash: React.FC = () => {
 
   return (
     <motion.div 
-      className="min-h-screen relative overflow-hidden flex items-center justify-center bg-[#DC2626]"
+      className="min-h-screen relative overflow-hidden flex items-center justify-center"
+      style={{
+        background: 'linear-gradient(135deg, #DC2626 0%, #B91C1C 100%)'
+      }}
       animate={{ opacity: isExiting ? 0 : 1 }}
-      transition={{ duration: 0.5, ease: [0.43, 0.13, 0.23, 0.96] }}
+      transition={{ duration: 0.6, ease: [0.43, 0.13, 0.23, 0.96] }}
     >
-      {/* Fond rouge dégradé avec vagues animées */}
-      <motion.div 
-        className="absolute inset-0"
-        animate={{
-          background: [
-            'radial-gradient(circle at 30% 50%, #EF4444 0%, #DC2626 50%, #B91C1C 100%)',
-            'radial-gradient(circle at 70% 50%, #EF4444 0%, #DC2626 50%, #B91C1C 100%)',
-            'radial-gradient(circle at 30% 50%, #EF4444 0%, #DC2626 50%, #B91C1C 100%)',
-          ]
-        }}
-        transition={{
-          duration: 6,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-
-      {/* Cercles de géolocalisation qui se propagent */}
+      {/* Cercles de géolocalisation subtils */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        {[...Array(3)].map((_, i) => (
+        {[...Array(2)].map((_, i) => (
           <motion.div
             key={`ring-${i}`}
-            className="absolute border-2 border-white/20 rounded-full"
+            className="absolute border border-white/10 rounded-full"
             initial={{ width: 0, height: 0, opacity: 0 }}
             animate={{
-              width: [0, 400, 600],
-              height: [0, 400, 600],
-              opacity: [0, 0.3, 0],
+              width: [0, 500],
+              height: [0, 500],
+              opacity: [0, 0.15, 0],
             }}
             transition={{
-              duration: 3,
-              delay: i * 1,
+              duration: 4,
+              delay: i * 2,
               repeat: Infinity,
               ease: "easeOut",
             }}
@@ -140,185 +126,103 @@ const MobileSplash: React.FC = () => {
         ))}
       </div>
 
-      {/* Particules-véhicules en orbite */}
+      {/* Particules minimalistes */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         {[
-          { Icon: Car, angle: 0, radius: 180, delay: 0 },
-          { Icon: Bike, angle: 120, radius: 180, delay: 0.5 },
-          { Icon: Truck, angle: 240, radius: 180, delay: 1 },
-          { Icon: Package, angle: 60, radius: 220, delay: 0.25 },
-          { Icon: ShoppingCart, angle: 180, radius: 220, delay: 0.75 },
-          { Icon: MapPin, angle: 300, radius: 220, delay: 1.25 },
-        ].map(({ Icon, angle, radius, delay }, i) => (
+          { angle: 45, radius: 200, delay: 0 },
+          { angle: 225, radius: 200, delay: 1.5 },
+        ].map(({ angle, radius, delay }, i) => (
           <motion.div
-            key={`orbit-${i}`}
+            key={`particle-${i}`}
             className="absolute"
             initial={{ 
               x: Math.cos((angle * Math.PI) / 180) * radius,
               y: Math.sin((angle * Math.PI) / 180) * radius,
               opacity: 0,
-              scale: 0,
             }}
             animate={{
               x: Math.cos(((angle + 360) * Math.PI) / 180) * radius,
               y: Math.sin(((angle + 360) * Math.PI) / 180) * radius,
-              opacity: [0, 0.6, 0.6, 0],
-              scale: [0, 1, 1, 0.8],
-              rotate: [0, 360],
+              opacity: [0, 0.3, 0.3, 0],
             }}
             transition={{
-              duration: 8,
+              duration: 10,
               delay: delay,
               repeat: Infinity,
               ease: "linear",
             }}
           >
-            <Icon className="w-8 h-8 text-white/70" />
+            <MapPin className="w-6 h-6 text-white/40" />
           </motion.div>
         ))}
       </div>
 
-      {/* Ligne de trajet qui se dessine */}
-      <svg 
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        <motion.path
-          d="M 20,50 Q 30,30 50,50 T 80,50"
-          stroke="white"
-          strokeWidth="0.3"
-          fill="none"
-          strokeDasharray="100"
-          initial={{ strokeDashoffset: 100, opacity: 0 }}
-          animate={{ 
-            strokeDashoffset: [100, 0, 0],
-            opacity: [0, 0.3, 0]
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      </svg>
-
       {/* Contenu central */}
       <motion.div
         animate={logoControls}
-        className="relative z-10 flex flex-col items-center gap-6"
+        className="relative z-10 flex flex-col items-center gap-8"
       >
-        {/* Logo blanc avec halo pulsant */}
+        {/* Logo avec halo doux */}
         <div className="relative">
-          {/* Halo externe */}
+          {/* Halo subtil */}
           <motion.div
-            className="absolute -inset-12 rounded-full blur-3xl"
-            style={{ background: 'rgba(255, 255, 255, 0.15)' }}
+            className="absolute -inset-16 rounded-full blur-3xl"
+            style={{ background: 'rgba(255, 255, 255, 0.08)' }}
             animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.2, 0.4, 0.2]
-            }}
-            transition={{ 
-              duration: 2.5, 
-              repeat: Infinity, 
-              ease: 'easeInOut' 
-            }}
-          />
-          
-          {/* Cercle de fond blanc doux */}
-          <motion.div
-            className="absolute -inset-8 rounded-full bg-white/10 backdrop-blur-sm"
-            animate={{ 
-              scale: [1, 1.05, 1],
-              rotate: [0, 360]
-            }}
-            transition={{ 
-              scale: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
-              rotate: { duration: 20, repeat: Infinity, ease: 'linear' }
-            }}
-          />
-
-          {/* Logo */}
-          <motion.div
-            animate={{ 
-              y: [0, -8, 0],
-              rotate: [0, 2, 0, -2, 0]
+              scale: [1, 1.15, 1],
+              opacity: [0.5, 0.8, 0.5]
             }}
             transition={{ 
               duration: 3, 
               repeat: Infinity, 
               ease: 'easeInOut' 
             }}
-          >
-            <BrandLogoWhite size={220} className="relative z-10" />
-          </motion.div>
+          />
 
-          {/* Points lumineux qui tournent autour du logo */}
-          {[...Array(8)].map((_, i) => {
-            const angle = (i * 360) / 8;
-            return (
-              <motion.div
-                key={`dot-${i}`}
-                className="absolute w-2 h-2 rounded-full bg-white"
-                style={{
-                  top: '50%',
-                  left: '50%',
-                  marginTop: '-4px',
-                  marginLeft: '-4px',
-                }}
-                animate={{
-                  x: Math.cos(((angle + 360) * Math.PI) / 180) * 130,
-                  y: Math.sin(((angle + 360) * Math.PI) / 180) * 130,
-                  opacity: [0.2, 1, 0.2],
-                  scale: [0.5, 1, 0.5],
-                }}
-                transition={{
-                  duration: 4,
-                  delay: i * 0.2,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              />
-            );
-          })}
+          {/* Logo */}
+          <motion.img
+            src={kwendaLogo}
+            alt="Kwenda Logo"
+            className="relative z-10 w-48 h-48 object-contain drop-shadow-2xl"
+            animate={{ 
+              scale: [0.95, 1, 0.95],
+            }}
+            transition={{ 
+              duration: 3, 
+              repeat: Infinity, 
+              ease: 'easeInOut' 
+            }}
+          />
         </div>
 
-        {/* Slogan avec animation de typing */}
+        {/* Slogan */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
           className="text-center px-8"
         >
           <motion.h2
-            className="text-white text-2xl font-bold tracking-wide"
+            className="text-white text-xl font-light tracking-wider"
             style={{ 
-              textShadow: '0 2px 20px rgba(0,0,0,0.3), 0 0 40px rgba(255,255,255,0.1)' 
-            }}
-            animate={{
-              opacity: [0.8, 1, 0.8]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
+              textShadow: '0 2px 10px rgba(0,0,0,0.2)' 
             }}
           >
             {getSlogan()}
           </motion.h2>
           
-          {/* Barre de progression stylisée */}
+          {/* Barre de progression douce */}
           <motion.div
-            className="mt-6 h-1 bg-white/20 rounded-full overflow-hidden"
-            style={{ width: '200px', margin: '24px auto 0' }}
+            className="mt-8 h-0.5 bg-white/15 rounded-full overflow-hidden mx-auto"
+            style={{ width: '160px' }}
           >
             <motion.div
-              className="h-full bg-white rounded-full"
+              className="h-full bg-white/60 rounded-full"
               initial={{ width: '0%' }}
               animate={{ width: '100%' }}
               transition={{
                 duration: 2.5,
-                ease: "easeInOut",
+                ease: "easeOut",
               }}
             />
           </motion.div>
@@ -327,21 +231,21 @@ const MobileSplash: React.FC = () => {
         {/* Indicateur de chargement minimaliste */}
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 1, 1] }}
-          transition={{ delay: 1 }}
-          className="flex items-center gap-2 mt-4"
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="flex items-center gap-1.5"
         >
           {[...Array(3)].map((_, i) => (
             <motion.div
-              key={`loader-${i}`}
-              className="w-2 h-2 rounded-full bg-white"
+              key={`dot-${i}`}
+              className="w-1.5 h-1.5 rounded-full bg-white/50"
               animate={{
-                scale: [1, 1.5, 1],
-                opacity: [0.3, 1, 0.3],
+                scale: [1, 1.3, 1],
+                opacity: [0.5, 1, 0.5],
               }}
               transition={{
-                duration: 1,
-                delay: i * 0.2,
+                duration: 1.2,
+                delay: i * 0.15,
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
