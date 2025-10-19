@@ -13,31 +13,31 @@ const ModernFooter = () => {
     {
       title: "Services",
       links: [
-        { name: "Taxi VTC", href: "/services/taxi-vtc", icon: <Car className="w-4 h-4" /> },
-        { name: "Livraison Express", href: "/services/livraison-express", icon: <Package className="w-4 h-4" /> },
-        { name: "Location Véhicules", href: "/services/location-vehicules", icon: <Car className="w-4 h-4" /> },
+        { name: "Taxi VTC", href: "/app/auth?service=transport", icon: <Car className="w-4 h-4" /> },
+        { name: "Livraison Express", href: "/app/auth?service=delivery", icon: <Package className="w-4 h-4" /> },
+        { name: "Location Véhicules", href: "/app/auth?service=rental", icon: <Car className="w-4 h-4" /> },
         { name: "Marketplace", href: "/marketplace", icon: <Store className="w-4 h-4" /> },
-        { name: "Kwenda Tombola", href: "/services/kwenda-tombola", icon: <Heart className="w-4 h-4" /> }
+        { name: "Kwenda Tombola", href: "/app/auth?service=lottery", icon: <Heart className="w-4 h-4" /> }
       ]
     },
     {
       title: "Partenaires",
       links: [
-        { name: "Devenir Chauffeur", href: "/partners/devenir-chauffeur", icon: <Users className="w-4 h-4" /> },
-        { name: "Louer mon Véhicule", href: "/partners/louer-vehicule", icon: <Car className="w-4 h-4" /> },
-        { name: "Devenir Livreur", href: "/partners/devenir-livreur", icon: <Package className="w-4 h-4" /> },
-        { name: "Vendre en ligne", href: "/partners/vendre-en-ligne", icon: <Store className="w-4 h-4" /> },
-        { name: "Programme Partenaire", href: "/partner", icon: <Users className="w-4 h-4" /> }
+        { name: "Devenir Chauffeur", href: "/app/auth?role=driver", icon: <Users className="w-4 h-4" /> },
+        { name: "Louer mon Véhicule", href: "/app/auth?role=partner", icon: <Car className="w-4 h-4" /> },
+        { name: "Devenir Livreur", href: "/app/auth?role=driver", icon: <Package className="w-4 h-4" /> },
+        { name: "Vendre en ligne", href: "/app/auth?role=restaurant", icon: <Store className="w-4 h-4" /> },
+        { name: "Programme Partenaire", href: "/app/auth?role=partner", icon: <Users className="w-4 h-4" /> }
       ]
     },
     {
       title: "Support",
       links: [
-        { name: "Centre d'aide", href: "/support/help-center", icon: <Phone className="w-4 h-4" /> },
-        { name: "Nous contacter", href: "/support/contact", icon: <Mail className="w-4 h-4" /> },
-        { name: "FAQ", href: "/support/faq", icon: <Heart className="w-4 h-4" /> },
-        { name: "Signaler un problème", href: "/support/signaler-probleme", icon: <Phone className="w-4 h-4" /> },
-        { name: "Sécurité", href: "/support/help-center", icon: <Phone className="w-4 h-4" /> }
+        { name: "Centre d'aide", href: "/support", icon: <Phone className="w-4 h-4" /> },
+        { name: "Nous contacter", href: "/support", icon: <Mail className="w-4 h-4" /> },
+        { name: "FAQ", href: "/support", icon: <Heart className="w-4 h-4" /> },
+        { name: "Signaler un problème", href: "/support", icon: <Phone className="w-4 h-4" /> },
+        { name: "Sécurité", href: "/support", icon: <Phone className="w-4 h-4" /> }
       ]
     },
     {

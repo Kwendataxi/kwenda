@@ -112,7 +112,7 @@ const CTASection = () => {
                   ))}
                 </div>
 
-                <Link to="/auth">
+                <Link to="/app/auth">
                   <Button 
                     className={`w-full group-hover:scale-105 transition-all duration-300 bg-gradient-to-r ${userType.gradient} hover:shadow-glow min-h-[48px] text-sm lg:text-base`}
                     size="lg"
@@ -147,7 +147,7 @@ const CTASection = () => {
                   <h4 className="text-base lg:text-heading-sm mb-2">{option.platform}</h4>
                   <p className="text-xs lg:text-sm text-muted-foreground mb-3 lg:mb-4">{option.note}</p>
                   {option.platform === "Web App" ? (
-                    <Link to="/auth">
+                    <Link to="/app/auth">
                       <Button 
                         variant="default"
                         className="w-full min-h-[44px] text-sm lg:text-base"
@@ -200,7 +200,7 @@ const CTASection = () => {
               </p>
 
               <div className="flex flex-col gap-3 lg:gap-4 justify-center">
-                <Link to="/auth">
+                <Link to="/app/auth">
                   <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90 text-base lg:text-lg px-6 lg:px-8 py-3 lg:py-4 min-h-[48px] w-full sm:w-auto">
                     <Zap className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
                     Rejoindre maintenant

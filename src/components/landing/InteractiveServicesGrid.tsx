@@ -8,9 +8,23 @@ import {
   Bike, Bus, UtensilsCrossed
 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const InteractiveServicesGrid = () => {
+  const navigate = useNavigate();
   const [hoveredService, setHoveredService] = useState<string | null>(null);
+
+  const handleServiceClick = (serviceId: string) => {
+    const routes: Record<string, string> = {
+      transport: '/app/auth?service=transport',
+      delivery: '/app/auth?service=delivery',
+      rental: '/app/auth?service=rental',
+      marketplace: '/marketplace',
+      lottery: '/app/auth?service=lottery',
+      food: '/app/auth?service=food'
+    };
+    navigate(routes[serviceId] || '/app/auth');
+  };
 
   const services = [
     {
@@ -210,6 +224,7 @@ const InteractiveServicesGrid = () => {
                 <Button 
                   className={`w-full group-hover:scale-105 transition-all duration-500 bg-gradient-to-r ${service.gradient} hover:shadow-glow min-h-[52px] text-body-md rounded-xl touch-scale`}
                   size="lg"
+                  onClick={() => handleServiceClick(service.id)}
                 >
                   {service.id === 'lottery' ? 'Découvrir' : 'Réserver'}
                   <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5 ml-3 group-hover:translate-x-1 transition-transform" />
