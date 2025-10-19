@@ -9,9 +9,10 @@ import { APP_CONFIG } from '@/config/appConfig';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAuth?: boolean;
+  requiredRole?: 'client' | 'driver' | 'partner' | 'admin';
 }
 
-const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: ProtectedRouteProps) => {
   const { user, loading, sessionReady } = useAuth();
   const { userRoles, primaryRole, loading: rolesLoading } = useUserRoles();
   const { hasSelectedRole, setSelectedRole } = useSelectedRole();
@@ -38,6 +39,24 @@ const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) =
   if (requireAuth && !user) {
     // Rediriger vers la page d'auth appropriée selon l'app
     return <Navigate to={APP_CONFIG.authRoute} state={{ from: location }} replace />;
+  }
+
+  // ✅ PHASE 1 : Vérifier le rôle requis (isolation authentification)
+  if (requireAuth && user && requiredRole && !rolesLoading) {
+    const hasRequiredRole = userRoles.some(ur => ur.role === requiredRole);
+    
+    if (!hasRequiredRole) {
+      // Rediriger vers la page de connexion appropriée
+      if (requiredRole === 'driver') {
+        return <Navigate to="/driver/auth" replace />;
+      } else if (requiredRole === 'partner') {
+        return <Navigate to="/partner/auth" replace />;
+      } else if (requiredRole === 'admin') {
+        return <Navigate to="/admin/auth" replace />;
+      } else {
+        return <Navigate to="/auth" replace />;
+      }
+    }
   }
 
   // Si l'utilisateur a plusieurs rôles et n'a pas sélectionné de rôle

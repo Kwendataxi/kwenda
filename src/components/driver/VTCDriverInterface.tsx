@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useDriverDispatch } from '@/hooks/useDriverDispatch';
 import { useDriverStatus } from '@/hooks/useDriverStatus';
+import { useDriverEarnings } from '@/hooks/useDriverEarnings';
+import { useAuth } from '@/hooks/useAuth';
 import { ModernDriverHeader } from './ModernDriverHeader';
 import { ModernOrderCard } from './ModernOrderCard';
 import { DriverStatsPanel } from './DriverStatsPanel';
@@ -20,6 +22,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 
 export const VTCDriverInterface: React.FC = () => {
+  const { user } = useAuth();
   const { status: driverStatus } = useDriverStatus();
   const {
     loading,
@@ -96,20 +99,14 @@ export const VTCDriverInterface: React.FC = () => {
     }
   };
 
-  // Mock stats (à remplacer par vraies données)
-  const mockStats = {
-    todayEarnings: 45000,
-    todayTrips: 8,
-    averageRating: 4.8,
-    weeklyGoal: 300000,
-    weeklyProgress: 65
-  };
+  // ✅ PHASE 2 : Charger les vraies stats
+  const { stats, loading: statsLoading } = useDriverEarnings();
 
   return (
     <div className="space-y-4 pb-24">
       <ModernDriverHeader
         serviceType="taxi"
-        driverName="Jean Dupont"
+        driverName={user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Chauffeur'}
         notificationCount={vtcNotifications.length}
       />
 
@@ -118,7 +115,7 @@ export const VTCDriverInterface: React.FC = () => {
         <DriverStatusToggle />
 
         {/* Stats Dashboard */}
-        <DriverStatsPanel serviceType="taxi" stats={mockStats} />
+        <DriverStatsPanel serviceType="taxi" stats={stats} />
 
         {/* Nouvelles courses VTC */}
         {vtcNotifications.length > 0 && (

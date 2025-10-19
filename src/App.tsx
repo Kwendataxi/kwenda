@@ -289,7 +289,7 @@ const AppContent = () => {
                     <Route path="/driver/register" element={<DriverRegistration />} />
                     <Route path="/driver/verify-email" element={<DriverVerifyEmail />} />
                     <Route path="/chauffeur" element={
-                      <ProtectedRoute>
+                      <ProtectedRoute requiredRole="driver">
                         <DriverApp />
                       </ProtectedRoute>
                     } />
