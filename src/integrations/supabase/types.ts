@@ -14206,6 +14206,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      safe_auth_uid: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       search_places: {
         Args: {
           max_results?: number

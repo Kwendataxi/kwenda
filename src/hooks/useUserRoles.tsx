@@ -90,6 +90,16 @@ export const useUserRoles = (): UseUserRolesReturn => {
           details: rolesError.details,
           hint: rolesError.hint
         });
+        
+        // ✅ AJOUTER : Si erreur d'authentification, forcer le rechargement de la session
+        if (rolesError.message?.includes('Authentication required') || 
+            rolesError.message?.includes('JWT') ||
+            rolesError.message?.includes('session not initialized')) {
+          console.warn('⚠️ [UserRoles] Session invalide, rechargement...');
+          await supabase.auth.refreshSession();
+          throw rolesError; // Retry via React Query
+        }
+        
         throw rolesError;
       }
 

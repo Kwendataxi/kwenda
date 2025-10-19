@@ -12,6 +12,7 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import DynamicTheme from "@/components/theme/DynamicTheme";
 import ParticleBackground from "@/components/theme/ParticleBackground";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { APP_CONFIG, isClientApp, isDriverApp, isPartnerApp, isSpecificBuild } from "@/config/appConfig";
 import { isMobileApp, isPWA } from "@/services/platformDetection";
 import Index from "./pages/Index";
@@ -412,21 +413,23 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <ThemeProvider>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <FavoritesProvider>
-          <LanguageProvider>
-            <TooltipProvider>
-              <ChatProvider>
-                <AppContent />
-              </ChatProvider>
-            </TooltipProvider>
-          </LanguageProvider>
-        </FavoritesProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
+  <ErrorBoundary>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <FavoritesProvider>
+            <LanguageProvider>
+              <TooltipProvider>
+                <ChatProvider>
+                  <AppContent />
+                </ChatProvider>
+              </TooltipProvider>
+            </LanguageProvider>
+          </FavoritesProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  </ErrorBoundary>
 );
 
 export default App;

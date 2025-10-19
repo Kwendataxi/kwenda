@@ -12,20 +12,22 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) => {
-  const { user, loading } = useAuth();
+  const { user, loading, sessionReady } = useAuth();
   const { userRoles, primaryRole, loading: rolesLoading } = useUserRoles();
   const { hasSelectedRole } = useSelectedRole();
   const location = useLocation();
 
-  // Afficher un loader pendant la vérification de l'authentification
-  if (loading) {
+  // Afficher un loader pendant la vérification de l'authentification ET de la session
+  if (loading || !sessionReady) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
         <div className="text-center space-y-4">
           <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
           <div className="space-y-2">
             <h2 className="text-xl font-bold text-foreground">Chargement...</h2>
-            <p className="text-muted-foreground">Vérification de votre session</p>
+            <p className="text-muted-foreground">
+              {loading ? 'Vérification de votre session' : 'Initialisation de la session'}
+            </p>
           </div>
         </div>
       </div>

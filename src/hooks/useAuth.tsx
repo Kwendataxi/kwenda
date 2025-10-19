@@ -46,7 +46,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // ✅ ÉTAPE 1 : Établir le listener EN PREMIER
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
           if (mounted) {
-            logger.info('🔄 Auth state changed', { event: _event, hasSession: !!session, userId: session?.user?.id });
+            logger.info('🔄 Auth state changed', { 
+              event: _event, 
+              hasSession: !!session, 
+              userId: session?.user?.id,
+              sessionReady, // ✅ AJOUTER pour debug
+              timestamp: new Date().toISOString()
+            });
             setSession(session);
             setUser(session?.user ?? null);
             setLoading(false);
