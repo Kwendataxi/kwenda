@@ -15,37 +15,37 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/icon-192-any.png?v=2",
+      "src": "/app-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-192-maskable.png?v=2",
+      "src": "/app-icon-192-maskable.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon-512-any.png?v=2",
+      "src": "/app-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512-maskable.png?v=2",
+      "src": "/app-icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon-1024-any.png?v=2",
+      "src": "/app-icon-1024.png",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-1024-maskable.png?v=2",
+      "src": "/app-icon-1024-maskable.png",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "maskable"
@@ -57,14 +57,14 @@
       "short_name": "Flotte",
       "description": "Gérer ma flotte de véhicules",
       "url": "/partenaire?tab=fleet",
-      "icons": [{ "src": "/icon-192-any.png?v=2", "sizes": "192x192" }]
+      "icons": [{ "src": "/app-icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Finances",
       "short_name": "Finances",
       "description": "Consulter les finances",
       "url": "/partenaire?tab=finances",
-      "icons": [{ "src": "/icon-192-any.png?v=2", "sizes": "192x192" }]
+      "icons": [{ "src": "/app-icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

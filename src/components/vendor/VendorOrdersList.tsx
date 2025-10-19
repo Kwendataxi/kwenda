@@ -35,8 +35,7 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
         .from('marketplace_orders')
         .select(`
           *,
-          product:marketplace_products(id, title, main_image_url, price),
-          buyer:profiles!marketplace_orders_buyer_id_fkey(display_name, phone_number)
+          product:marketplace_products(id, title, main_image_url, price)
         `)
         .eq('seller_id', user.id)
         .order('created_at', { ascending: false });
@@ -209,7 +208,7 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
                         {getStatusBadge(order.status)}
                       </CardTitle>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {order.buyer?.display_name} • Qté: {order.quantity}
+                        Client: {order.buyer_phone || 'Non renseigné'} • Qté: {order.quantity}
                       </p>
                     </div>
                     <div className="text-right">
@@ -257,7 +256,7 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
                         {getStatusBadge(order.status)}
                       </CardTitle>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {order.buyer?.display_name} • Qté: {order.quantity}
+                        Client: {order.buyer_phone || 'Non renseigné'} • Qté: {order.quantity}
                       </p>
                     </div>
                     <div className="text-right">
