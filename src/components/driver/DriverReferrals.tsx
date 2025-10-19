@@ -24,16 +24,33 @@ import { motion } from 'framer-motion';
 
 export const DriverReferrals: React.FC = () => {
   const {
-    loading,
-    referralCode,
-    stats,
-    rewards,
+    isLoading,
+    userReferralCode,
+    referrals,
     shareReferralCode,
-    copyReferralCode,
-    getTierInfo
+    calculateEarnings
   } = useReferralSystem();
 
-  const tierInfo = getTierInfo();
+  // Calculer les stats à partir des données disponibles
+  const stats = {
+    totalReferred: referrals.length,
+    totalEarned: calculateEarnings(),
+    currentTier: 'bronze',
+    currentReward: 5000,
+    pendingRewards: referrals.filter(r => r.status === 'pending').length,
+    recentReferrals: referrals.slice(0, 5),
+    userType: 'driver' as const
+  };
+
+  const tierInfo = {
+    reward: stats.currentReward,
+    max: 10,
+    color: 'bg-orange-100 text-orange-800'
+  };
+
+  const handleCopyReferralCode = () => {
+    navigator.clipboard.writeText(userReferralCode);
+  };
 
 
   const getStatusIcon = (status: string) => {
@@ -64,7 +81,7 @@ export const DriverReferrals: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <div className="animate-pulse">
@@ -236,21 +253,21 @@ export const DriverReferrals: React.FC = () => {
                       animate={{ scale: [1, 1.05, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
-                      {referralCode}
+                      {userReferralCode}
                     </motion.span>
                     
                     <div className="flex gap-2">
                       <Button 
                         variant="outline" 
                         size="icon" 
-                        onClick={copyReferralCode}
+                        onClick={handleCopyReferralCode}
                         className="hover:scale-105 transition-transform"
                       >
                         <Copy className="w-4 h-4" />
                       </Button>
                       
                       <QuickShareMenu
-                        referralCode={referralCode}
+                        referralCode={userReferralCode}
                         userType={stats.userType}
                         reward={stats.currentReward}
                       >
@@ -268,7 +285,7 @@ export const DriverReferrals: React.FC = () => {
 
                 {/* Boutons de partage améliorés */}
                 <SocialShareButtons 
-                  referralCode={referralCode}
+                  referralCode={userReferralCode}
                   userType={stats.userType}
                   reward={stats.currentReward}
                 />
@@ -336,13 +353,13 @@ export const DriverReferrals: React.FC = () => {
               <CardTitle>Historique des Récompenses</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {rewards.length === 0 ? (
+              {referrals.filter(r => r.status === 'completed').length === 0 ? (
                 <p className="text-muted-foreground text-center py-4">
                   Aucune récompense reçue pour le moment
                 </p>
               ) : (
-                rewards.map((reward) => (
-                  <div key={reward.id} className="flex items-center justify-between p-3 border rounded-lg">
+                referrals.filter(r => r.status === 'completed').map((referral) => (
+                  <div key={referral.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-green-100 rounded-lg">
                         <Gift className="w-4 h-4 text-green-600" />
@@ -350,16 +367,16 @@ export const DriverReferrals: React.FC = () => {
                       <div>
                         <p className="font-medium">Récompense de parrainage</p>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(reward.created_at).toLocaleDateString()}
+                          {new Date(referral.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-green-600">
-                        +{formatCurrency(reward.reward_amount)}
+                        +{formatCurrency(referral.referrer_reward_amount || 5000)}
                       </p>
                       <Badge variant="outline" className="text-xs">
-                        {reward.tier_level}
+                        Bronze
                       </Badge>
                     </div>
                   </div>

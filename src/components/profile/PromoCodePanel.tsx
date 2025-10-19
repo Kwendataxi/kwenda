@@ -17,51 +17,20 @@ interface PromoCodePanelProps {
 
 export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose }) => {
   const { 
-    validatePromoCode, 
-    availableCodes, 
-    userUsage, 
-    getPersonalizedCodes,
+    activeCodes,
+    usedCodes,
+    applyPromoCode,
     isLoading 
   } = usePromoCode();
   
-  const { toast } = useToast();
   const [newCode, setNewCode] = useState('');
-  const [validating, setValidating] = useState(false);
-  const [personalizedCodes, setPersonalizedCodes] = useState<any[]>([]);
 
-  React.useEffect(() => {
-    if (open) {
-      getPersonalizedCodes().then(setPersonalizedCodes).catch(console.error);
-    }
-  }, [open, getPersonalizedCodes]);
-
-  const handleValidateCode = async () => {
+  const handleApplyCode = async () => {
     if (!newCode.trim()) return;
     
-    setValidating(true);
-    try {
-      const result = await validatePromoCode(newCode, 5000, 'transport');
-      
-      if (result.isValid) {
-        toast({
-          title: "Code promo valide !",
-          description: `Réduction de ${result.discountAmount} CDF disponible`,
-        });
-      } else {
-        toast({
-          title: "Code promo invalide",
-          description: "Ce code n'est pas valide ou a expiré",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de valider le code promo",
-        variant: "destructive",
-      });
-    } finally {
-      setValidating(false);
+    const success = await applyPromoCode(newCode.trim());
+    if (success) {
+      setNewCode('');
     }
   };
 
@@ -109,12 +78,12 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
                       className="flex-1 bg-card border border-congo-yellow/40 focus:border-congo-yellow shadow-lg"
                     />
                     <CongoButton 
-                      onClick={handleValidateCode}
-                      disabled={!newCode.trim() || validating}
+                      onClick={handleApplyCode}
+                      disabled={!newCode.trim() || isLoading}
                       variant="warning"
                       className="w-full sm:w-auto"
                     >
-                      {validating ? 'Vérification...' : 'Valider'}
+                      {isLoading ? 'Vérification...' : 'Appliquer'}
                     </CongoButton>
                   </div>
                 </CardContent>
@@ -122,7 +91,7 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
             </CongoGradient>
 
             <div className="space-y-3">
-              {availableCodes.length === 0 ? (
+              {activeCodes.length === 0 ? (
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-center py-8 text-muted-foreground">
@@ -133,7 +102,7 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
                   </CardContent>
                 </Card>
               ) : (
-                availableCodes.map((code) => (
+                activeCodes.map((code) => (
                     <CongoCard key={code.id} variant="warning" className="overflow-hidden">
                       <CardContent className="p-4">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -152,13 +121,8 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
                           <div className="flex items-center gap-4 text-xs text-grey-600">
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              Expire le {new Date(code.valid_until).toLocaleDateString()}
+                              {code.valid_until && `Expire le ${new Date(code.valid_until).toLocaleDateString()}`}
                             </span>
-                            {code.min_order_amount > 0 && (
-                              <span>
-                                Min. {formatCurrency(code.min_order_amount)}
-                              </span>
-                            )}
                           </div>
                         </div>
                         <CongoButton 
@@ -186,39 +150,11 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {personalizedCodes.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Gift className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Aucune offre personnalisée</p>
-                    <p className="text-sm">Utilisez plus souvent l'app pour débloquer des offres exclusives !</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {personalizedCodes.map((code, index) => (
-                      <Card key={index} className="bg-gradient-congo-subtle border-congo-red/20">
-                        <CardContent className="p-4">
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div className="flex-1">
-                              <Badge variant="default" className="mb-2 bg-congo-red text-white">
-                                EXCLUSIF
-                              </Badge>
-                              <p className="font-medium">{code.title}</p>
-                              <p className="text-sm text-muted-foreground">{code.description}</p>
-                            </div>
-                            <div className="text-right w-full sm:w-auto">
-                              <div className="text-lg font-bold text-congo-red">
-                                {code.discount}
-                              </div>
-                              <Button size="sm" className="mt-2 bg-congo-red hover:bg-congo-red/90 text-white w-full sm:w-auto">
-                                Activer
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                <div className="text-center py-8 text-muted-foreground">
+                  <Gift className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Aucune offre personnalisée</p>
+                  <p className="text-sm">Utilisez plus souvent l'app pour débloquer des offres exclusives !</p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -229,7 +165,7 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
                 <CardTitle className="text-lg text-foreground">Historique d'utilisation</CardTitle>
               </CardHeader>
               <CardContent>
-                {userUsage.length === 0 ? (
+                {usedCodes.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>Aucun code utilisé</p>
@@ -237,13 +173,13 @@ export const PromoCodePanel: React.FC<PromoCodePanelProps> = ({ open, onClose })
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {userUsage.map((usage) => (
-                      <div key={usage.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-congo-blue/10 border border-congo-blue/20 rounded-lg">
+                    {usedCodes.map((code) => (
+                      <div key={code.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-congo-blue/10 border border-congo-blue/20 rounded-lg">
                         <div className="flex-1">
-                          <p className="font-medium font-mono text-foreground">{usage.promo_codes?.code}</p>
+                          <p className="font-medium font-mono text-foreground">{code.code}</p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(usage.used_at).toLocaleDateString()} - 
-                            Économisé: {formatCurrency(usage.discount_amount)}
+                            {code.used_at && new Date(code.used_at).toLocaleDateString()} - 
+                            {getDiscountText(code)}
                           </p>
                         </div>
                         <CheckCircle className="h-5 w-5 text-congo-blue" />

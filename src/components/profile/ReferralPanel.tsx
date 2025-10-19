@@ -21,16 +21,33 @@ interface ReferralPanelProps {
 
 export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) => {
   const { 
-    loading, 
-    referralCode, 
-    stats, 
-    rewards,
+    isLoading, 
+    userReferralCode, 
+    referrals,
     shareReferralCode, 
-    copyReferralCode, 
-    getTierInfo 
+    calculateEarnings
   } = useReferralSystem();
 
-  const tierInfo = getTierInfo();
+  // Calculer les stats à partir des données disponibles
+  const stats = {
+    totalReferred: referrals.length,
+    totalEarned: calculateEarnings(),
+    currentTier: 'bronze',
+    currentReward: 5000,
+    pendingRewards: referrals.filter(r => r.status === 'pending').length,
+    recentReferrals: referrals.slice(0, 5),
+    userType: 'client' as const
+  };
+
+  const tierInfo = {
+    reward: stats.currentReward,
+    max: 10,
+    color: 'bg-orange-100 text-orange-800'
+  };
+
+  const handleCopyReferralCode = () => {
+    navigator.clipboard.writeText(userReferralCode);
+  };
 
   const handleClose = () => {
     console.log('Fermeture du ReferralPanel - retour navigation');
@@ -111,27 +128,27 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
                           animate={{ scale: [1, 1.05, 1] }}
                           transition={{ duration: 2, repeat: Infinity }}
                         >
-                          {loading ? '•••••••••' : referralCode}
+                          {isLoading ? '•••••••••' : userReferralCode}
                         </motion.span>
                         
                         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                           <CongoButton
                             variant="success"
-                            onClick={copyReferralCode}
-                            disabled={loading}
+                            onClick={handleCopyReferralCode}
+                            disabled={isLoading}
                             className="flex-1 sm:flex-none h-12 sm:h-9 hover:scale-105 transition-transform text-sm sm:text-base"
                           >
                             <Copy className="h-5 w-5 sm:h-4 sm:w-4" />
                           </CongoButton>
                           
                           <QuickShareMenu
-                            referralCode={referralCode}
+                            referralCode={userReferralCode}
                             userType={stats.userType}
                             reward={stats.currentReward}
                           >
                             <CongoButton
                               variant="default"
-                              disabled={loading}
+                              disabled={isLoading}
                               className="flex-1 sm:flex-none h-12 sm:h-9 bg-gradient-to-r from-congo-red to-congo-red-glow hover:from-congo-red-vibrant hover:to-congo-red-electric hover:scale-105 transition-all duration-300 shadow-glow text-sm sm:text-base"
                             >
                               <Share2 className="h-5 w-5 sm:h-4 sm:w-4 mr-2" />
@@ -296,13 +313,13 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
                       whileHover={{ scale: 1.02 }}
                     >
                       <span className="text-2xl font-bold text-congo-green tracking-wider animate-congo-pulse">
-                        {loading ? '•••••••••' : referralCode}
+                        {isLoading ? '•••••••••' : userReferralCode}
                       </span>
                       <CongoButton
                         variant="success"
                         size="sm"
-                        onClick={copyReferralCode}
-                        disabled={loading}
+                        onClick={handleCopyReferralCode}
+                        disabled={isLoading}
                         className="hover:scale-105 transition-transform"
                       >
                         <Copy className="h-4 w-4" />
@@ -311,7 +328,7 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
 
                     {/* Boutons de partage améliorés */}
                     <SocialShareButtons 
-                      referralCode={referralCode}
+                      referralCode={userReferralCode}
                       userType={stats.userType}
                       reward={stats.currentReward}
                     />

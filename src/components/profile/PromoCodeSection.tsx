@@ -13,13 +13,11 @@ import { useRewards } from '@/hooks/useRewards';
 export const PromoCodeSection = () => {
   const [promoCode, setPromoCode] = useState('');
   const [referralInput, setReferralInput] = useState('');
-  const [personalizedCodes, setPersonalizedCodes] = useState<any[]>([]);
   
   const { 
-    validatePromoCode, 
-    availableCodes, 
-    userUsage, 
-    getPersonalizedCodes,
+    activeCodes, 
+    usedCodes, 
+    applyPromoCode,
     isLoading 
   } = usePromoCode();
   
@@ -39,17 +37,9 @@ export const PromoCodeSection = () => {
     isLoading: rewardsLoading
   } = useRewards();
 
-  useEffect(() => {
-    const loadPersonalizedCodes = async () => {
-      const codes = await getPersonalizedCodes();
-      setPersonalizedCodes(codes);
-    };
-    loadPersonalizedCodes();
-  }, []);
-
   const handleApplyPromo = async () => {
     if (promoCode.trim()) {
-      await validatePromoCode(promoCode.trim(), 5000, 'transport');
+      await applyPromoCode(promoCode.trim());
       setPromoCode('');
     }
   };
@@ -147,7 +137,7 @@ export const PromoCodeSection = () => {
               <h3 className="text-lg font-semibold">Codes promo disponibles</h3>
             </div>
             <div className="grid gap-3">
-              {availableCodes.map((code) => (
+              {activeCodes.map((code) => (
                 <div key={code.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
@@ -165,12 +155,9 @@ export const PromoCodeSection = () => {
                           </Badge>
                         )}
                       </div>
-                      <p className="font-medium">{code.title}</p>
-                      <p className="text-sm text-muted-foreground">{code.description}</p>
+                      <p className="font-medium">{code.description}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Minimum: {code.min_order_amount} CDF • 
-                        Expire le: {formatDate(code.valid_until)} •
-                        Services: {code.applicable_services.join(', ')}
+                        {code.valid_until && `Expire le: ${formatDate(code.valid_until)}`}
                       </p>
                     </div>
                     <Button
@@ -188,42 +175,6 @@ export const PromoCodeSection = () => {
             </div>
           </Card>
 
-          {/* Codes personnalisés */}
-          {personalizedCodes.length > 0 && (
-            <Card className="p-6 border-primary/20 bg-primary/5">
-              <div className="flex items-center gap-2 mb-4">
-                <Star className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold">Offres personnalisées pour vous</h3>
-              </div>
-              <div className="grid gap-3">
-                {personalizedCodes.map((code) => (
-                  <div key={code.id} className="border border-primary/20 rounded-lg p-4 bg-background">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge className="font-mono bg-primary text-primary-foreground">
-                            {code.code}
-                          </Badge>
-                          <Badge variant="outline">
-                            {formatDiscount(code)}
-                          </Badge>
-                          <Badge variant="secondary">Exclusif</Badge>
-                        </div>
-                        <p className="font-medium">{code.title}</p>
-                        <p className="text-sm text-muted-foreground">{code.description}</p>
-                      </div>
-                      <Button
-                        onClick={() => setPromoCode(code.code)}
-                        size="sm"
-                      >
-                        Utiliser
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
         </TabsContent>
 
         <TabsContent value="rewards" className="space-y-4">
@@ -423,26 +374,23 @@ export const PromoCodeSection = () => {
               <h3 className="text-lg font-semibold">Historique d'utilisation</h3>
             </div>
             <div className="space-y-3">
-              {userUsage.map((usage) => (
-                <div key={usage.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+              {usedCodes.map((code) => (
+                <div key={code.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <div>
-                    <p className="font-medium">{usage.promo_codes?.title || 'Code inconnu'}</p>
+                    <p className="font-medium">{code.description || 'Code promo'}</p>
                     <p className="text-sm text-muted-foreground">
-                      Code: {usage.promo_codes?.code} • 
-                      {new Date(usage.used_at).toLocaleDateString('fr-FR')}
+                      Code: {code.code} •
+                      {code.used_at && new Date(code.used_at).toLocaleDateString('fr-FR')}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-green-600">
-                      -{usage.discount_amount} CDF
-                    </p>
-                    <p className="text-xs text-muted-foreground capitalize">
-                      {usage.order_type}
+                      {formatDiscount(code)}
                     </p>
                   </div>
                 </div>
               ))}
-              {userUsage.length === 0 && (
+              {usedCodes.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   <Clock className="h-12 w-12 mx-auto mb-2 opacity-50" />
                   <p>Aucun historique d'utilisation</p>
