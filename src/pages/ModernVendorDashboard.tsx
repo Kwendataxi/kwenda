@@ -6,7 +6,7 @@ import { VendorNotificationCenter } from '@/components/vendor/modern/VendorNotif
 import { VendorDashboardOverview } from '@/components/vendor/VendorDashboardOverview';
 import { VendorProductManager } from '@/components/vendor/VendorProductManager';
 import { VendorOrdersList } from '@/components/vendor/VendorOrdersList';
-import { VendorProfileSettings } from '@/components/vendor/VendorProfileSettings';
+import { VendorProfilePage } from '@/components/vendor/VendorProfilePage';
 import { VendorSubscriptionManager } from '@/components/vendor/VendorSubscriptionManager';
 import { useVendorStats } from '@/hooks/useVendorStats';
 
@@ -28,7 +28,7 @@ export default function ModernVendorDashboard() {
       {activeTab === 'dashboard' && <VendorDashboardOverview />}
       {activeTab === 'shop' && <VendorProductManager />}
       {activeTab === 'orders' && <VendorOrdersList />}
-      {activeTab === 'profile' && <VendorProfileSettings />}
+      {activeTab === 'profile' && <VendorProfilePage />}
       {activeTab === 'subscription' && <VendorSubscriptionManager />}
 
       {/* Modales */}
