@@ -8,10 +8,7 @@ import { DeliveryDriverInterface } from '@/components/driver/DeliveryDriverInter
 import { DriverWalletPanel } from '@/components/driver/DriverWalletPanel';
 import { DriverChallenges } from '@/components/driver/DriverChallenges';
 import { SubscriptionPlans } from '@/components/driver/SubscriptionPlans';
-import { DriverCodeManager } from '@/components/driver/DriverCodeManager';
-import { DriverReferrals } from '@/components/driver/DriverReferrals';
-import { VTCProfileManager } from '@/components/driver/VTCProfileManager';
-import { DeliveryProfileManager } from '@/components/driver/DeliveryProfileManager';
+import { DriverProfilePage } from '@/components/driver/DriverProfilePage';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 
@@ -69,11 +66,7 @@ const DriverApp = () => {
           {tab === 'earnings' && <div className="responsive-padding"><DriverWalletPanel /></div>}
           {tab === 'subscription' && <div className="responsive-padding"><SubscriptionPlans /></div>}
           {tab === 'challenges' && <div className="responsive-padding"><DriverChallenges /></div>}
-          {tab === 'profile' && (
-            <div className="responsive-padding space-y-6">
-              {serviceType === 'taxi' ? <VTCProfileManager /> : <DeliveryProfileManager />}
-            </div>
-          )}
+          {tab === 'profile' && <div className="responsive-padding"><DriverProfilePage /></div>}
         </main>
 
         <UniversalBottomNavigation 
