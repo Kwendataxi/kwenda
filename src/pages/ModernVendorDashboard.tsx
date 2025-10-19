@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { UnifiedVendorHeader } from '@/components/vendor/UnifiedVendorHeader';
-import { VendorBottomNav } from '@/components/vendor/modern/VendorBottomNav';
-import { VendorDesktopSidebar } from '@/components/vendor/modern/VendorDesktopSidebar';
+import { ResponsiveVendorLayout } from '@/components/vendor/ResponsiveVendorLayout';
 import { ChatVendorModal } from '@/components/vendor/modern/ChatVendorModal';
 import { VendorNotificationCenter } from '@/components/vendor/modern/VendorNotificationCenter';
 import { VendorDashboardOverview } from '@/components/vendor/VendorDashboardOverview';
@@ -11,13 +8,10 @@ import { VendorProductManager } from '@/components/vendor/VendorProductManager';
 import { VendorOrdersList } from '@/components/vendor/VendorOrdersList';
 import { VendorProfileSettings } from '@/components/vendor/VendorProfileSettings';
 import { VendorSubscriptionManager } from '@/components/vendor/VendorSubscriptionManager';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { useVendorStats } from '@/hooks/useVendorStats';
 
 export default function ModernVendorDashboard() {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const { stats } = useVendorStats();
   
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -25,43 +19,21 @@ export default function ModernVendorDashboard() {
   const [chatModalOpen, setChatModalOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header fixe */}
-      <UnifiedVendorHeader />
-      
-      <div className="flex pt-[76px]">
-        {/* Sidebar Desktop uniquement */}
-        {!isMobile && (
-          <VendorDesktopSidebar 
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            stats={stats}
-          />
-        )}
-
-        {/* Contenu principal */}
-        <main className="flex-1 container max-w-6xl mx-auto p-4 space-y-4 pb-24 md:pb-6">
-          {/* Contenu dynamique selon activeTab */}
-          {activeTab === 'dashboard' && <VendorDashboardOverview />}
-          {activeTab === 'shop' && <VendorProductManager />}
-          {activeTab === 'orders' && <VendorOrdersList />}
-          {activeTab === 'profile' && <VendorProfileSettings />}
-          {activeTab === 'subscription' && <VendorSubscriptionManager />}
-        </main>
-      </div>
-
-      {/* Bottom Nav Mobile uniquement */}
-      {isMobile && (
-        <VendorBottomNav 
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          stats={stats}
-        />
-      )}
+    <ResponsiveVendorLayout
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      stats={stats}
+    >
+      {/* Contenu dynamique selon activeTab */}
+      {activeTab === 'dashboard' && <VendorDashboardOverview />}
+      {activeTab === 'shop' && <VendorProductManager />}
+      {activeTab === 'orders' && <VendorOrdersList />}
+      {activeTab === 'profile' && <VendorProfileSettings />}
+      {activeTab === 'subscription' && <VendorSubscriptionManager />}
 
       {/* Modales */}
       <ChatVendorModal open={chatModalOpen} onClose={() => setChatModalOpen(false)} />
       <VendorNotificationCenter open={notifCenterOpen} onClose={() => setNotifCenterOpen(false)} />
-    </div>
+    </ResponsiveVendorLayout>
   );
 }

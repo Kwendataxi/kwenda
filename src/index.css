@@ -145,6 +145,9 @@ All colors MUST be HSL.
     /* Layout heights */
     --header-height: 120px;
     --bottom-nav-height: 90px;
+    --vendor-header-height: 76px;
+    --vendor-bottom-nav-height: 72px;
+    --vendor-sidebar-width: 256px;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -229,6 +232,27 @@ All colors MUST be HSL.
     overflow-x: hidden;
     touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Vendor Layout Utilities */
+  .vendor-layout-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh; /* Mobile dynamic viewport */
+    overflow: hidden;
+  }
+
+  .vendor-content-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  .vendor-bottom-nav-height {
+    height: calc(var(--vendor-bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   }
 
   .scrollbar-hide {

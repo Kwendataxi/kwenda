@@ -40,8 +40,8 @@ export const VendorDesktopSidebar: React.FC<VendorDesktopSidebarProps> = ({
   ];
 
   return (
-    <aside className="hidden md:block w-64 border-r bg-card/50 backdrop-blur-sm">
-      <nav className="sticky top-[76px] space-y-2 p-4">
+    <aside className="hidden md:flex md:flex-col w-64 border-r bg-card/50 backdrop-blur-sm overflow-y-auto">
+      <nav className="space-y-2 p-4">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
