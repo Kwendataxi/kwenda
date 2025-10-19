@@ -39,9 +39,13 @@ export const ModernProductCard = ({
 }: ModernProductCardProps) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   
-  const mainImage = product.images?.[0] || '/placeholder.svg';
+  // Normalisation des images
+  const mainImage = Array.isArray(product.images) && product.images.length > 0 
+    ? product.images[0] 
+    : '/placeholder.svg';
+  
   const discount = product.discount_percentage || 0;
-  const inStock = (product.stock_quantity || 0) > 0;
+  const inStock = (product.stock_quantity ?? 1) > 0;
   const rating = product.rating_average || 0;
   const reviewCount = product.review_count || 0;
 

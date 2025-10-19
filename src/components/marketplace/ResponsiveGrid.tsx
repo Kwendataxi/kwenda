@@ -4,15 +4,20 @@ import { Skeleton } from '../ui/skeleton';
 
 interface Product {
   id: string;
-  name: string;
+  title: string;
+  description: string;
   price: number;
-  originalPrice?: number;
-  image: string;
-  rating: number;
-  reviews: number;
-  seller: string;
+  images: string[];
   category: string;
-  inStock: boolean;
+  moderation_status: string;
+  seller_id: string;
+  seller?: {
+    display_name: string;
+  };
+  rating_average?: number;
+  review_count?: number;
+  discount_percentage?: number;
+  stock_quantity?: number;
 }
 
 interface ResponsiveGridProps {
