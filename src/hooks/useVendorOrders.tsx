@@ -90,6 +90,15 @@ export const useVendorOrders = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Non authentifié');
 
+      // Récupérer les détails de la commande
+      const { data: order, error: fetchError } = await supabase
+        .from('marketplace_orders')
+        .select('*, marketplace_products(price)')
+        .eq('id', orderId)
+        .single();
+
+      if (fetchError || !order) throw new Error('Commande introuvable');
+
       // Mettre à jour le statut de confirmation
       const { error: updateError } = await supabase
         .from('marketplace_orders')
@@ -102,6 +111,44 @@ export const useVendorOrders = () => {
         .eq('id', orderId);
 
       if (updateError) throw updateError;
+
+      // ✅ PHASE 2.3: Créer transaction escrow automatique
+      const platformCommission = 0.05; // 5% commission plateforme
+      const platformFee = order.total_amount * platformCommission;
+      const sellerAmount = order.total_amount - platformFee;
+
+      const { error: escrowError } = await supabase
+        .from('escrow_transactions')
+        .insert({
+          order_id: orderId,
+          buyer_id: order.buyer_id,
+          seller_id: order.seller_id,
+          total_amount: order.total_amount,
+          platform_fee: platformFee,
+          seller_amount: sellerAmount,
+          status: 'held',
+          currency: 'CDF'
+        });
+
+      if (escrowError) {
+        console.error('Erreur création escrow:', escrowError);
+        // Ne pas bloquer la confirmation si l'escrow échoue
+      }
+
+      // ✅ PHASE 2.2: Notification au client
+      await supabase.from('delivery_notifications').insert({
+        user_id: order.buyer_id,
+        delivery_order_id: orderId,
+        notification_type: 'vendor_confirmed',
+        title: '✅ Commande confirmée',
+        message: 'Le vendeur a confirmé votre commande. Préparation en cours.',
+        read: false,
+        metadata: {
+          order_id: orderId,
+          vendor_id: user.id,
+          confirmed_at: new Date().toISOString()
+        }
+      });
 
       // Logger l'activité
       await supabase.from('activity_logs').insert({

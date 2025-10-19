@@ -68,7 +68,7 @@ export default function VendorAddProduct() {
           brand: formData.brand || null,
           specifications: formData.specifications || {},
           moderation_status: 'pending',
-          status: 'inactive'
+          status: 'draft' // ✅ PHASE 2.1: Produit en brouillon jusqu'à approbation
         });
 
       if (error) throw error;
