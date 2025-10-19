@@ -51,7 +51,7 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
         'client': '/app/auth',
         'driver': '/driver/auth',
         'partner': '/partner/auth',
-        'admin': '/app/admin/auth'
+        'admin': '/operatorx/admin/auth'
       };
       
       navigate(roleRoutes[requiredRole] || '/app/auth');

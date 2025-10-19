@@ -347,7 +347,7 @@ const AppContent = () => {
                 {/* Routes ADMIN (jamais dans les builds mobiles) */}
                 {!isSpecificBuild() && (
                   <>
-                    <Route path="/app/admin/auth" element={
+                    <Route path="/operatorx/admin/auth" element={
                       <OnboardingRedirect>
                         <AdminAuth />
                       </OnboardingRedirect>

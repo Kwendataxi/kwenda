@@ -128,15 +128,15 @@ const Onboarding: React.FC = () => {
     
     // Redirection intelligente selon le contexte
     const redirectMap: Record<OnboardingContext, string> = {
-      client: "/auth",
-      chauffeur: "/auth",
-      marketplace: "/auth",
-      admin: "/admin/auth",
+      client: "/app/auth",
+      chauffeur: "/app/auth",
+      marketplace: "/app/auth",
+      admin: "/operatorx/admin/auth",
       partenaire: "/partner/auth",
     };
     
     setTimeout(() => {
-      navigate(redirectMap[ctx] || "/auth", { replace: true });
+      navigate(redirectMap[ctx] || "/app/auth", { replace: true });
     }, 600);
   };
 

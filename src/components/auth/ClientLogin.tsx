@@ -181,7 +181,7 @@ export const ClientLogin = () => {
             setTimeout(() => navigate('/partner/auth'), 2000);
           } else if (otherRole === 'admin') {
             setError('Ce compte est un compte admin. Connectez-vous via l\'espace admin.');
-            setTimeout(() => navigate('/admin/auth'), 2000);
+            setTimeout(() => navigate('/operatorx/admin/auth'), 2000);
           } else {
             setError('Aucun rôle client trouvé pour ce compte.');
           }

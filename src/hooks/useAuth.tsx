@@ -116,15 +116,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const selectedRole = localStorage.getItem('kwenda_selected_role');
       
-      // Mapping rôle → page de connexion
-      const roleRedirectMap: Record<string, string> = {
-        'driver': '/driver/auth',
-        'partner': '/partner/auth',
-        'admin': '/admin/auth',
-        'client': '/auth'
-      };
-      
-      redirectPath = roleRedirectMap[selectedRole as string] || '/auth';
+    // Mapping rôle → page de connexion
+    const roleRedirectMap: Record<string, string> = {
+      'driver': '/driver/auth',
+      'partner': '/partner/auth',
+      'restaurant': '/restaurant/auth',
+      'admin': '/operatorx/admin/auth',
+      'client': '/app/auth'
+    };
+    
+    redirectPath = roleRedirectMap[selectedRole as string] || '/app/auth';
     } catch (error) {
       logger.warn('Unable to determine role for redirect:', error);
     }
@@ -141,6 +142,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem('sb-wddlktajnhwhyquwcdgf-auth-token');
     localStorage.removeItem('kwenda_user_roles_cache');
     localStorage.removeItem('kwenda_selected_role');
+    localStorage.removeItem('kwenda_login_intent');
     
     // Redirection intelligente selon le rôle (utiliser setTimeout pour éviter les race conditions)
     setTimeout(() => {

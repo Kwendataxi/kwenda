@@ -150,9 +150,9 @@ export default function AuthSystemTest() {
 
   const testSecureRoutes = () => {
     const routes = [
-      { path: '/admin/auth', description: 'Connexion Admin' },
+      { path: '/operatorx/admin/auth', description: 'Connexion Admin' },
       { path: '/partner/auth', description: 'Connexion Partenaire' },
-      { path: '/auth', description: 'Connexion Publique' }
+      { path: '/app/auth', description: 'Connexion Publique' }
     ];
     
     return routes.map(route => (
@@ -304,7 +304,7 @@ export default function AuthSystemTest() {
               
               <Alert>
                 <AlertDescription>
-                  Les routes /admin/auth et /partner/auth sont maintenant sécurisées et masquées 
+                  Les routes /operatorx/admin/auth et /partner/auth sont maintenant sécurisées et masquées 
                   de l'interface publique. Seuls les utilisateurs autorisés peuvent y accéder.
                 </AlertDescription>
               </Alert>
@@ -332,8 +332,8 @@ export default function AuthSystemTest() {
                 <div>
                   <h4 className="font-medium mb-2">Routes Spécialisées:</h4>
                   <div className="space-y-1 text-sm">
-                    <p>• /auth - Connexion publique</p>
-                    <p>• /admin/auth - Admin uniquement</p>
+                    <p>• /app/auth - Connexion publique</p>
+                    <p>• /operatorx/admin/auth - Admin uniquement</p>
                     <p>• /partner/auth - Partenaires uniquement</p>
                   </div>
                 </div>
