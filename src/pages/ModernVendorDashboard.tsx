@@ -5,7 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useVendorNotifications } from '@/hooks/useVendorNotifications';
 import { useVendorChat } from '@/hooks/useVendorChat';
 import { UnifiedVendorHeader } from '@/components/vendor/UnifiedVendorHeader';
-import { FloatingBottomNav } from '@/components/vendor/modern/FloatingBottomNav';
+import { VendorBottomNav } from '@/components/vendor/modern/VendorBottomNav';
+import { VendorDesktopSidebar } from '@/components/vendor/modern/VendorDesktopSidebar';
 import { ModernStatCard } from '@/components/vendor/modern/ModernStatCard';
 import { QuickActionsBar } from '@/components/vendor/modern/QuickActionsBar';
 import { ContextualAlert } from '@/components/vendor/modern/ContextualAlert';
@@ -71,47 +72,66 @@ export default function ModernVendorDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Header fixe */}
       <UnifiedVendorHeader />
       
-      <FloatingBottomNav 
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        ordersBadge={stats.pendingOrders}
-      />
-
-      <div className={`container max-w-6xl mx-auto p-4 pt-[92px] md:pt-[100px] space-y-4 ${isMobile ? 'pb-24' : 'pb-6'}`}>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <ModernStatCard icon={Package} iconColor="red" label="Produits" value={`${stats.activeProducts}/${stats.totalProducts}`} />
-          <ModernStatCard icon={CheckCircle} iconColor="red" label="Confirmations" value={stats.pendingOrders} />
-          <ModernStatCard icon={DollarSign} iconColor="green" label="Revenus effectifs" value={`${stats.totalEarnings} FC`} />
-          <ModernStatCard icon={Clock} iconColor="orange" label="En attente" value={`${stats.pendingEarnings} FC`} />
-        </div>
-
-        <QuickActionsBar 
-          shopCount={stats.activeProducts}
-          packageCount={stats.pendingOrders}
-          earningsCount={stats.totalEarnings}
-          notificationCount={unreadCount}
-          onNotificationClick={() => setNotifCenterOpen(true)}
-        />
-
-        {stats.pendingProducts > 0 && (
-          <ContextualAlert
-            icon={Clock}
-            iconColor="orange"
-            title="Validation en cours"
-            message={`${stats.pendingProducts} produits en attente de modération.`}
-            description="Ils seront visibles après approbation par un administrateur."
+      <div className="flex pt-[76px]">
+        {/* Sidebar Desktop uniquement */}
+        {!isMobile && (
+          <VendorDesktopSidebar 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            ordersBadge={stats.pendingOrders}
           />
         )}
 
-        {activeTab === 'shop' && <VendorProductManager onUpdate={loadStats} />}
-        {activeTab === 'orders' && <VendorOrdersList onRefresh={loadStats} />}
-        {activeTab === 'profile' && <VendorProfileSetup />}
-        {activeTab === 'verification' && <VendorVerificationDashboard />}
-        {activeTab === 'settings' && <VendorShopSettings />}
+        {/* Contenu principal */}
+        <main className="flex-1 container max-w-6xl mx-auto p-4 space-y-4 pb-24 md:pb-6">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <ModernStatCard icon={Package} iconColor="red" label="Produits" value={`${stats.activeProducts}/${stats.totalProducts}`} />
+            <ModernStatCard icon={CheckCircle} iconColor="red" label="Confirmations" value={stats.pendingOrders} />
+            <ModernStatCard icon={DollarSign} iconColor="green" label="Revenus effectifs" value={`${stats.totalEarnings} FC`} />
+            <ModernStatCard icon={Clock} iconColor="orange" label="En attente" value={`${stats.pendingEarnings} FC`} />
+          </div>
+
+          <QuickActionsBar 
+            shopCount={stats.activeProducts}
+            packageCount={stats.pendingOrders}
+            earningsCount={stats.totalEarnings}
+            notificationCount={unreadCount}
+            onNotificationClick={() => setNotifCenterOpen(true)}
+          />
+
+          {stats.pendingProducts > 0 && (
+            <ContextualAlert
+              icon={Clock}
+              iconColor="orange"
+              title="Validation en cours"
+              message={`${stats.pendingProducts} produits en attente de modération.`}
+              description="Ils seront visibles après approbation par un administrateur."
+            />
+          )}
+
+          {/* Contenu dynamique selon activeTab */}
+          {activeTab === 'shop' && <VendorProductManager onUpdate={loadStats} />}
+          {activeTab === 'orders' && <VendorOrdersList onRefresh={loadStats} />}
+          {activeTab === 'profile' && <VendorProfileSetup />}
+          {activeTab === 'verification' && <VendorVerificationDashboard />}
+          {activeTab === 'settings' && <VendorShopSettings />}
+        </main>
       </div>
 
+      {/* Bottom Nav Mobile uniquement */}
+      {isMobile && (
+        <VendorBottomNav 
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          ordersBadge={stats.pendingOrders}
+        />
+      )}
+
+      {/* Modales */}
       <ChatVendorModal open={chatModalOpen} onClose={() => setChatModalOpen(false)} />
       <VendorNotificationCenter open={notifCenterOpen} onClose={() => setNotifCenterOpen(false)} />
     </div>

@@ -2,7 +2,6 @@ import React from 'react';
 import { Store } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { EnhancedThemeToggle } from '@/components/theme/EnhancedThemeToggle';
-import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -45,39 +44,24 @@ export const UnifiedVendorHeader: React.FC<UnifiedVendorHeaderProps> = ({ classN
             </motion.h1>
           </div>
 
-          {/* RIGHT: Actions groupées dans une capsule moderne */}
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 150 }}
-            className="flex items-center gap-1 md:gap-2 bg-muted/30 hover:bg-muted/50 rounded-full px-2 py-1.5 transition-all duration-300 border border-border/50"
-          >
-            {/* Notifications */}
+          {/* RIGHT: Actions */}
+          <div className="flex items-center gap-2">
             <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.3 }}
             >
               <NotificationBell />
             </motion.div>
-
-            {/* Theme Toggle */}
+            
             <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.4 }}
             >
-              <EnhancedThemeToggle variant="icon" size={isMobile ? "sm" : "default"} />
+              <EnhancedThemeToggle variant="icon" size="sm" />
             </motion.div>
-
-            {/* Language Selector */}
-            {!isMobile && (
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <LanguageSelector />
-              </motion.div>
-            )}
-          </motion.div>
+          </div>
         </div>
       </div>
     </motion.header>

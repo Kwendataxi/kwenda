@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { useProfile } from '@/hooks/useProfile';
 
 import { GooglePlacesService } from '@/services/googlePlacesService';
@@ -125,11 +124,10 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
             )}
           </div>
           
-          {/* Actions à droite - notifications, thème et langue */}
+          {/* Actions à droite - notifications et thème */}
           <div className="flex items-center gap-1.5">
             <NotificationCenter />
             <ThemeToggle variant="icon" size="md" />
-            <LanguageSelector />
           </div>
         </div>
       </div>
