@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, Download, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,9 +57,10 @@ export const InstallBanner = () => {
 
   if (!isVisible || !shouldShow) return null;
 
-  return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 animate-slide-up">
-      <Card className="shadow-2xl border-2 border-primary/20 bg-gradient-to-br from-white to-primary/5 dark:from-gray-900 dark:to-primary/10">
+  // Rendu dans un portal pour isolation complète du DOM
+  return createPortal(
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-[9999] isolate pointer-events-auto animate-slide-up transition-all duration-300 will-change-transform">
+      <Card className="shadow-2xl border-2 border-primary/20 bg-gradient-to-br from-white to-primary/5 dark:from-gray-900 dark:to-primary/10 backdrop-blur-sm">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <div className="bg-primary/10 p-2 rounded-lg">
@@ -99,6 +101,7 @@ export const InstallBanner = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </div>,
+    document.body
   );
 };
