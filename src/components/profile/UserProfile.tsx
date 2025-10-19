@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Star, Shield, Phone, Mail, User, FileText, Wallet, UserCheck, Edit2, Check, X, ChevronRight, Settings, Car, Users, MapPin, Clock, Gift, Headphones, LogOut } from 'lucide-react';
+import { Star, Shield, Phone, Mail, User, FileText, Wallet, UserCheck, Edit2, Check, X, ChevronRight, Settings, Car, Users, MapPin, Clock, Gift, Headphones, LogOut, Store } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -31,6 +31,7 @@ import { UserSettings } from './UserSettings';
 
 import { ModernProfileHeader } from './ModernProfileHeader';
 import { ProfileActionButtons } from './ProfileActionButtons';
+import { useIsVendor } from '@/hooks/useIsVendor';
 
 interface Profile {
   id: string;
@@ -69,6 +70,7 @@ export const UserProfile = ({ onWalletAccess }: UserProfileProps = {}) => {
   const [editedPhone, setEditedPhone] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [activeOption, setActiveOption] = useState('');
+  const { isVendor } = useIsVendor();
 
   useEffect(() => {
     if (user) {
@@ -262,6 +264,13 @@ export const UserProfile = ({ onWalletAccess }: UserProfileProps = {}) => {
       subtitle: t('activity.title'),
       hasArrow: true
     },
+    ...(isVendor ? [{
+      id: 'vendor',
+      icon: Store,
+      title: 'Mon espace vendeur',
+      subtitle: 'Gérer mes produits',
+      hasArrow: true
+    }] : []),
     {
       id: 'addresses',
       icon: MapPin,
@@ -302,6 +311,9 @@ export const UserProfile = ({ onWalletAccess }: UserProfileProps = {}) => {
         case 'addresses':
           // Rediriger vers la page mobile dédiée
           navigate('/mes-adresses');
+          return null;
+        case 'vendor':
+          navigate('/vendeur');
           return null;
         case 'support':
           return <CustomerSupport />;
