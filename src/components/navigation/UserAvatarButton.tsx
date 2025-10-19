@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface UserAvatarButtonProps {
-  onClick: () => void;
+  onClick?: () => void;
   position?: 'top-right' | 'bottom-right';
 }
 

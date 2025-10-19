@@ -15,16 +15,13 @@ import { VehicleManagementPanel } from '@/components/driver/management/VehicleMa
 import { ServiceChangeRequestPanel } from '@/components/driver/management/ServiceChangeRequestPanel';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
-import { AppSwitcherSheet } from '@/components/navigation/AppSwitcherSheet';
 import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
-import { useAppSwitcher } from '@/hooks/useAppSwitcher';
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 
 const DriverApp = () => {
   const { loading } = useDriverServiceType();
   const [tab, setTab] = useState('orders');
   const [moreOpen, setMoreOpen] = useState(false);
-  const appSwitcher = useAppSwitcher();
 
   // 🔔 Activer les notifications système temps réel
   useSystemNotifications();
@@ -53,13 +50,7 @@ const DriverApp = () => {
   return (
     <>
       <UserAvatarButton 
-        onClick={appSwitcher.open} 
         position="top-right" 
-      />
-
-      <AppSwitcherSheet 
-        open={appSwitcher.isOpen}
-        onOpenChange={appSwitcher.toggle}
       />
 
       <UniversalAppHeader title="Espace Chauffeur" />

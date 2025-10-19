@@ -9,9 +9,7 @@ import { Loader2, Plus, Package, DollarSign, Star, Clock, Bell, ChefHat, Store }
 import { useFoodOrders } from '@/hooks/useFoodOrders';
 import { useRestaurantSubscription } from '@/hooks/useRestaurantSubscription';
 import { useFoodNotifications } from '@/hooks/useFoodNotifications';
-import { AppSwitcherSheet } from '@/components/navigation/AppSwitcherSheet';
 import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
-import { useAppSwitcher } from '@/hooks/useAppSwitcher';
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 
 interface RestaurantStats {
@@ -24,7 +22,6 @@ interface RestaurantStats {
 export default function RestaurantDashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const appSwitcher = useAppSwitcher();
   const [loading, setLoading] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [stats, setStats] = useState<RestaurantStats>({
@@ -131,13 +128,7 @@ export default function RestaurantDashboard() {
   return (
     <>
       <UserAvatarButton 
-        onClick={appSwitcher.open} 
         position="top-right" 
-      />
-
-      <AppSwitcherSheet 
-        open={appSwitcher.isOpen}
-        onOpenChange={appSwitcher.toggle}
       />
 
       <UniversalAppHeader title="Espace Restaurant" />
