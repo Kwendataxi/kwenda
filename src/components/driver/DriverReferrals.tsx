@@ -15,7 +15,7 @@ import {
   Star,
   Award
 } from 'lucide-react';
-import { useReferrals } from '@/hooks/useReferrals';
+import { useReferralSystem } from '@/hooks/useReferralSystem';
 import { formatCurrency } from '@/lib/utils';
 import { SocialShareButtons } from '@/components/referral/SocialShareButtons';
 import { ReferralProgress } from '@/components/referral/ReferralProgress';
@@ -31,7 +31,7 @@ export const DriverReferrals: React.FC = () => {
     shareReferralCode,
     copyReferralCode,
     getTierInfo
-  } = useReferrals();
+  } = useReferralSystem();
 
   const tierInfo = getTierInfo();
 

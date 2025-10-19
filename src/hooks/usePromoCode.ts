@@ -83,12 +83,9 @@ export const usePromoCode = () => {
       }
 
       // Enregistrer l'utilisation (simplifié pour l'instant)
-      toast.success(`Code ${code} validé !`);
+      toast.success(`Code ${code} appliqué avec succès !`);
       // TODO: Implémenter l'enregistrement dans promo_code_usage après vérification du schéma
 
-      if (insertError) throw insertError;
-
-      toast.success(`Code ${code} appliqué avec succès !`);
       await fetchPromoCodes();
       return true;
     } catch (error) {

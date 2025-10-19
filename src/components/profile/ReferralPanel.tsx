@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useReferrals } from '@/hooks/useReferrals';
+import { useReferralSystem } from '@/hooks/useReferralSystem';
 import { Gift, Copy, Share2, Users, Coins, Trophy, TrendingUp } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import { CongoButton, CongoCard, CongoBadge, CongoGradient } from '@/components/ui/CongoComponents';
@@ -28,7 +28,7 @@ export const ReferralPanel: React.FC<ReferralPanelProps> = ({ open, onClose }) =
     shareReferralCode, 
     copyReferralCode, 
     getTierInfo 
-  } = useReferrals();
+  } = useReferralSystem();
 
   const tierInfo = getTierInfo();
 
