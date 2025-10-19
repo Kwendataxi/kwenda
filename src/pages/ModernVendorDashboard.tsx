@@ -17,6 +17,7 @@ import { VendorOrdersList } from '@/components/vendor/VendorOrdersList';
 import { VendorProfileSetup } from '@/components/vendor/VendorProfileSetup';
 import { VendorVerificationDashboard } from '@/components/vendor/modern/VendorVerificationDashboard';
 import { VendorShopSettings } from '@/components/marketplace/VendorShopSettings';
+import { VendorSubscriptionManager } from '@/components/vendor/VendorSubscriptionManager';
 import { Package, CheckCircle, DollarSign, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -119,6 +120,7 @@ export default function ModernVendorDashboard() {
           {activeTab === 'profile' && <VendorProfileSetup />}
           {activeTab === 'verification' && <VendorVerificationDashboard />}
           {activeTab === 'settings' && <VendorShopSettings />}
+          {activeTab === 'subscription' && <VendorSubscriptionManager />}
         </main>
       </div>
 

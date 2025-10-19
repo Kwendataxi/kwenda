@@ -1,5 +1,5 @@
 import React from 'react';
-import { Store, ShoppingBag, User, Shield, Settings } from 'lucide-react';
+import { Store, ShoppingBag, User, Shield, Settings, CreditCard } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { MarketplaceRoleSwitcher } from '@/components/marketplace/MarketplaceRoleSwitcher';
@@ -26,6 +26,7 @@ export const VendorDesktopSidebar: React.FC<VendorDesktopSidebarProps> = ({
   const navItems: NavItem[] = [
     { id: 'shop', icon: Store, label: 'Boutique' },
     { id: 'orders', icon: ShoppingBag, label: 'Commandes', badge: ordersBadge },
+    { id: 'subscription', icon: CreditCard, label: 'Abonnement' },
     { id: 'profile', icon: User, label: 'Profil' },
     { id: 'verification', icon: Shield, label: 'Vérification' },
     { id: 'settings', icon: Settings, label: 'Paramètres' },
