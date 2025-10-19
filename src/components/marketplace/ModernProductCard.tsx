@@ -1,236 +1,188 @@
-import React, { useState } from 'react';
-import { Card, CardContent } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Star, ShoppingCart, Heart, Eye, MapPin, Shield, TrendingUp } from 'lucide-react';
-import { Skeleton } from '../ui/skeleton';
-import { ProductShareButtons } from './ProductShareButtons';
+import { motion } from 'framer-motion';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Eye, ShoppingCart, Heart, Star, Store } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 interface Product {
   id: string;
-  name: string;
+  title: string;
+  description: string;
   price: number;
-  originalPrice?: number;
-  image: string;
-  rating: number;
-  reviews: number;
-  seller: string;
+  images: string[];
   category: string;
-  inStock: boolean;
-  coordinates?: { lat: number; lng: number };
-  viewCount?: number;
-  salesCount?: number;
-  popularityScore?: number;
-  discount?: number;
+  moderation_status: string;
+  seller_id: string;
+  seller?: {
+    display_name: string;
+  };
+  rating_average?: number;
+  review_count?: number;
+  discount_percentage?: number;
+  stock_quantity?: number;
 }
 
 interface ModernProductCardProps {
   product: Product;
-  onAddToCart: (product: Product) => void;
   onViewDetails: (product: Product) => void;
-  userCoordinates?: { lat: number; lng: number } | null;
+  onAddToCart: (product: Product) => void;
+  userLocation?: { lat: number; lng: number };
 }
 
-export const ModernProductCard: React.FC<ModernProductCardProps> = ({ 
-  product, 
-  onAddToCart, 
+export const ModernProductCard = ({
+  product,
   onViewDetails,
-  userCoordinates 
-}) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
+  onAddToCart,
+  userLocation
+}: ModernProductCardProps) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
+  
+  const mainImage = product.images?.[0] || '/placeholder.svg';
+  const discount = product.discount_percentage || 0;
+  const inStock = (product.stock_quantity || 0) > 0;
+  const rating = product.rating_average || 0;
+  const reviewCount = product.review_count || 0;
 
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('fr-CD', {
+      style: 'currency',
+      currency: 'CDF',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price);
   };
 
-  const getDistance = () => {
-    if (!userCoordinates || !product.coordinates) return null;
-    return calculateDistance(
-      userCoordinates.lat, userCoordinates.lng,
-      product.coordinates.lat, product.coordinates.lng
-    );
-  };
+  const originalPrice = discount > 0 ? product.price / (1 - discount / 100) : null;
 
-  const distance = getDistance();
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsWishlisted(!isWishlisted);
+  };
 
   return (
-    <Card className="group overflow-hidden transition-all duration-500 hover:shadow-float hover:-translate-y-2 bg-gradient-to-br from-card to-card/50 backdrop-blur-sm border-0 shadow-lg">
-      <div className="relative overflow-hidden">
-        {!imageLoaded && (
-          <Skeleton className="w-full h-48 md:h-52" />
-        )}
-        <img 
-          src={product.image} 
-          alt={product.name}
-          className={`w-full h-48 md:h-52 object-cover transition-all duration-700 group-hover:scale-110 ${
-            imageLoaded ? 'opacity-100' : 'opacity-0 absolute'
-          }`}
-          onLoad={() => setImageLoaded(true)}
-          loading="lazy"
-        />
-        
-        {/* Modern Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
-        
-        {/* Quick Actions Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
-          <Button 
-            size="sm" 
-            variant="secondary"
-            className="h-12 w-12 p-0 rounded-full bg-white/95 hover:bg-white backdrop-blur-md shadow-lg touch-manipulation"
-            onClick={() => onViewDetails(product)}
-          >
-            <Eye className="w-5 h-5" />
-          </Button>
-          <Button 
-            size="sm" 
-            variant="secondary"
-            className={`h-12 w-12 p-0 rounded-full backdrop-blur-md shadow-lg transition-all duration-300 touch-manipulation ${
-              isWishlisted 
-                ? 'bg-primary text-white hover:bg-primary/90 scale-110' 
-                : 'bg-white/95 hover:bg-white'
-            }`}
-            onClick={() => setIsWishlisted(!isWishlisted)}
-          >
-            <Heart className={`w-5 h-5 transition-all duration-300 ${isWishlisted ? 'fill-current scale-110' : ''}`} />
-          </Button>
-        </div>
-
-        {/* Premium Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
-          {product.discount && (
-            <Badge variant="destructive" className="bg-gradient-to-r from-primary to-primary-light text-white font-bold px-3 py-1 text-xs shadow-lg">
-              -{product.discount}%
-            </Badge>
-          )}
-          {product.popularityScore && product.popularityScore > 200 ? (
-            <Badge className="bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium px-2 py-1 text-xs shadow-lg">
-              <TrendingUp className="w-3 h-3 mr-1" />
-              Tendance
-            </Badge>
-          ) : (
-            <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white font-medium px-2 py-1 text-xs shadow-lg">
-              <Shield className="w-3 h-3 mr-1" />
-              Sécurisé
-            </Badge>
-          )}
-        </div>
-
-        {/* Distance Badge */}
-        {distance && (
-          <Badge variant="secondary" className="absolute top-3 right-3 bg-white/90 text-foreground font-medium px-2 py-1 text-xs shadow-lg backdrop-blur-sm">
-            <MapPin className="w-3 h-3 mr-1" />
-            {distance.toFixed(1)}km
-          </Badge>
-        )}
-        
-        {/* Stock Status */}
-        {!product.inStock && (
-          <div className="absolute inset-0 bg-black/80 flex items-center justify-center backdrop-blur-md">
-            <Badge variant="secondary" className="bg-white/95 text-foreground font-medium px-4 py-2">
-              Rupture de stock
-            </Badge>
-          </div>
-        )}
-      </div>
-      
-      <CardContent className="p-5 space-y-4">
-        {/* Product Title */}
-        <h3 className="font-bold text-base md:text-lg leading-tight line-clamp-2 min-h-[3rem] group-hover:text-primary transition-colors duration-300">
-          {product.name}
-        </h3>
-        
-        {/* Rating & Reviews */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 fill-accent text-accent" />
-              <span className="text-sm font-semibold">{product.rating}</span>
-            </div>
-            <span className="text-xs text-muted-foreground">({product.reviews})</span>
-          </div>
-          <Badge variant="outline" className="text-xs bg-muted/30 backdrop-blur-sm">
-            {product.category}
-          </Badge>
-        </div>
-
-        {/* Métriques de popularité */}
-        {(product.viewCount || product.salesCount) && (
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            {product.viewCount !== undefined && product.viewCount > 0 && (
-              <div className="flex items-center gap-1">
-                <Eye className="h-3 w-3" />
-                <span>{product.viewCount.toLocaleString()}</span>
-              </div>
-            )}
-            {product.salesCount !== undefined && product.salesCount > 0 && (
-              <div className="flex items-center gap-1">
-                <ShoppingCart className="h-3 w-3" />
-                <span>{product.salesCount} vendus</span>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {/* Seller */}
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center">
-            <span className="text-xs font-bold text-white">{product.seller.charAt(0).toUpperCase()}</span>
-          </div>
-          <p className="text-sm text-muted-foreground truncate">{product.seller}</p>
-        </div>
-        
-        {/* Price Section */}
-        <div className="space-y-2">
-          <div className="flex items-end gap-2">
-            <span className="font-black text-xl text-foreground bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              {product.price.toLocaleString()} FC
-            </span>
-            {product.originalPrice && (
-              <span className="text-sm text-muted-foreground line-through">
-                {product.originalPrice.toLocaleString()} FC
-              </span>
+    <motion.div
+      whileHover={{ y: -8, scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 300 }}
+      className="group h-full"
+    >
+      <Card className="overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-card/50 backdrop-blur-sm h-full flex flex-col">
+        {/* Image avec overlay gradient */}
+        <div className="relative overflow-hidden aspect-square">
+          <img 
+            src={mainImage}
+            alt={product.title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            loading="lazy"
+          />
+          
+          {/* Gradient overlay au hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          
+          {/* Quick actions (visible au hover) */}
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-4 group-hover:translate-y-0">
+            <Button 
+              size="sm" 
+              className="rounded-full bg-white/90 text-foreground hover:bg-white"
+              onClick={() => onViewDetails(product)}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              Voir
+            </Button>
+            {inStock && (
+              <Button 
+                size="sm"
+                className="rounded-full bg-primary text-white"
+                onClick={() => onAddToCart(product)}
+              >
+                <ShoppingCart className="h-4 w-4 mr-1" />
+                Ajouter
+              </Button>
             )}
           </div>
           
-          {/* Delivery Info */}
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="w-3 h-3" />
-            <span>Livraison rapide • Paiement sécurisé</span>
-          </div>
+          {/* Badges */}
+          {discount > 0 && (
+            <Badge className="absolute top-3 left-3 bg-[hsl(0,80%,50%)] text-white font-bold shadow-lg">
+              -{discount}%
+            </Badge>
+          )}
+          {!inStock && (
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+              <Badge variant="secondary" className="text-lg px-4 py-2">
+                Rupture de stock
+              </Badge>
+            </div>
+          )}
+          
+          {/* Wishlist button */}
+          <motion.button
+            whileHover={{ scale: 1.2 }}
+            whileTap={{ scale: 0.9 }}
+            className="absolute top-3 right-3 bg-white/90 backdrop-blur-md rounded-full p-2 shadow-lg"
+            onClick={handleToggleWishlist}
+          >
+            <Heart className={cn(
+              "h-5 w-5 transition-colors",
+              isWishlisted ? "fill-red-500 text-red-500" : "text-foreground"
+            )} />
+          </motion.button>
         </div>
         
-        {/* Modern Action Button */}
-        <Button 
-          className="w-full h-12 mt-4 bg-gradient-to-r from-primary to-primary-light hover:from-primary/90 hover:to-primary-light/90 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] touch-manipulation"
-          disabled={!product.inStock}
-          onClick={() => onAddToCart(product)}
-        >
-          <ShoppingCart className="w-5 h-5 mr-2" />
-          {product.inStock ? 'J\'achète' : 'Indisponible'}
-        </Button>
-
-        {/* Share Buttons */}
-        <div className="mt-3 pt-3 border-t">
-          <ProductShareButtons
-            productId={product.id}
-            productTitle={product.name}
-            productPrice={product.price}
-            productImage={product.image}
-            sellerName={product.seller}
-            vendorId={product.seller}
-            compact
-          />
-        </div>
-      </CardContent>
-    </Card>
+        {/* Content */}
+        <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
+          {/* Title */}
+          <h3 className="font-bold text-base leading-tight line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">
+            {product.title}
+          </h3>
+          
+          {/* Rating + Reviews */}
+          {reviewCount > 0 && (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={cn(
+                      "h-3.5 w-3.5",
+                      i < Math.floor(rating)
+                        ? "fill-[hsl(45,100%,50%)] text-[hsl(45,100%,50%)]"
+                        : "text-muted"
+                    )}
+                  />
+                ))}
+              </div>
+              <span className="text-xs text-muted-foreground">
+                ({reviewCount})
+              </span>
+            </div>
+          )}
+          
+          {/* Seller */}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Store className="h-3 w-3" />
+            <span className="truncate">{product.seller?.display_name || 'Vendeur'}</span>
+          </div>
+          
+          {/* Price - pushed to bottom */}
+          <div className="flex items-end justify-between pt-2 border-t mt-auto">
+            <div className="flex flex-col">
+              <span className="text-2xl font-bold text-primary">
+                {formatPrice(product.price)}
+              </span>
+              {originalPrice && (
+                <span className="text-sm text-muted-foreground line-through">
+                  {formatPrice(originalPrice)}
+                </span>
+              )}
+            </div>
+            <Badge variant="outline" className="text-xs">
+              {product.category}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
