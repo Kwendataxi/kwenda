@@ -18,6 +18,7 @@ import { useUserRoles } from '@/hooks/useUserRoles';
 import { AppSwitcherSheet } from '@/components/navigation/AppSwitcherSheet';
 import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
 import { useAppSwitcher } from '@/hooks/useAppSwitcher';
+import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 
 const DriverApp = () => {
   const { loading } = useDriverServiceType();
@@ -61,7 +62,9 @@ const DriverApp = () => {
         onOpenChange={appSwitcher.toggle}
       />
 
-      <div className="min-h-screen bg-background mobile-safe-layout">
+      <UniversalAppHeader title="Espace Chauffeur" />
+
+      <div className="min-h-screen bg-background mobile-safe-layout pt-[60px]">
         <DriverHeader serviceType="delivery" />
       
       <main className="flex-1 overflow-y-auto content-scrollable responsive-padding">

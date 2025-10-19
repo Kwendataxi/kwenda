@@ -8,6 +8,7 @@ import { VendorNavigation } from '@/components/vendor/VendorNavigation';
 import { AppSwitcherSheet } from '@/components/navigation/AppSwitcherSheet';
 import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
 import { useAppSwitcher } from '@/hooks/useAppSwitcher';
+import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 
 export const VendorApp = () => {
   const appSwitcher = useAppSwitcher();
@@ -24,7 +25,9 @@ export const VendorApp = () => {
         onOpenChange={appSwitcher.toggle}
       />
 
-      <div className="min-h-screen bg-background">
+      <UniversalAppHeader title="Espace Vendeur" />
+
+      <div className="min-h-screen bg-background pt-[60px]">
         <VendorNavigation />
         <Routes>
           <Route path="/" element={<VendorDashboard />} />

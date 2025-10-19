@@ -12,6 +12,7 @@ import { useFoodNotifications } from '@/hooks/useFoodNotifications';
 import { AppSwitcherSheet } from '@/components/navigation/AppSwitcherSheet';
 import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
 import { useAppSwitcher } from '@/hooks/useAppSwitcher';
+import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 
 interface RestaurantStats {
   todayOrders: number;
@@ -139,7 +140,9 @@ export default function RestaurantDashboard() {
         onOpenChange={appSwitcher.toggle}
       />
 
-      <div className="min-h-screen bg-background p-4 md:p-6">
+      <UniversalAppHeader title="Espace Restaurant" />
+
+      <div className="min-h-screen bg-background p-4 md:p-6 pt-[76px]">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">

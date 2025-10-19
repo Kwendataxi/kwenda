@@ -117,9 +117,11 @@ export const AppSwitcherSheet = ({
   const { displayName } = useProfile();
 
   // Filtrer les apps disponibles selon les rôles de l'utilisateur
-  const availableApps = APP_CONFIGS.filter(app => 
-    userRoles.some(role => role.role === app.requiredRole)
-  );
+  // Masquer l'option Admin pour les utilisateurs non-admins
+  const availableApps = APP_CONFIGS.filter(app => {
+    const hasRole = userRoles.some(role => role.role === app.requiredRole);
+    return hasRole;
+  });
 
   const handleAppSwitch = async (app: AppConfig) => {
     try {

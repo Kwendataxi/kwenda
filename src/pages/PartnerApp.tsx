@@ -13,6 +13,7 @@ import { PartnerSubscriptionEarnings } from '@/components/partner/PartnerSubscri
 import { AppSwitcherSheet } from '@/components/navigation/AppSwitcherSheet';
 import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
 import { useAppSwitcher } from '@/hooks/useAppSwitcher';
+import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, CalendarIcon, Download, Eye, Filter, Plus, Search, Star, TrendingDown, TrendingUp, UserPlus, Users } from "lucide-react"
 import {
@@ -489,15 +490,19 @@ const PartnerApp = () => {
         onOpenChange={appSwitcher.toggle}
       />
 
-      <ResponsivePartnerLayout
-        stats={stats}
-        currentView={currentView}
-        onViewChange={(view: string) => setCurrentView(view as any)}
-        title={getViewTitle()}
-        subtitle="Kwenda Taxi Partner"
-      >
-        {renderContent()}
-      </ResponsivePartnerLayout>
+      <UniversalAppHeader title="Espace Partenaire" />
+
+      <div className="pt-[60px]">
+        <ResponsivePartnerLayout
+          stats={stats}
+          currentView={currentView}
+          onViewChange={(view: string) => setCurrentView(view as any)}
+          title={getViewTitle()}
+          subtitle="Kwenda Taxi Partner"
+        >
+          {renderContent()}
+        </ResponsivePartnerLayout>
+      </div>
     </>
   );
 };
