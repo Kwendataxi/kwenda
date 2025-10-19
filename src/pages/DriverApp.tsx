@@ -5,6 +5,7 @@ import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 import { UniversalBottomNavigation } from '@/components/navigation/UniversalBottomNavigation';
 import { VTCDriverInterface } from '@/components/driver/VTCDriverInterface';
 import { DeliveryDriverInterface } from '@/components/driver/DeliveryDriverInterface';
+import { SimplifiedDriverDashboard } from '@/components/driver/SimplifiedDriverDashboard';
 import { DriverWalletPanel } from '@/components/driver/DriverWalletPanel';
 import { DriverChallenges } from '@/components/driver/DriverChallenges';
 import { SubscriptionPlans } from '@/components/driver/SubscriptionPlans';
@@ -40,15 +41,15 @@ const DriverApp = () => {
     );
   }
 
-  // ✅ PHASE 2: Rendu conditionnel selon le type de service
+  // ✅ NOUVELLE VERSION: Dashboard simplifié
   const renderServiceInterface = () => {
     if (serviceType === 'taxi') {
-      return <VTCDriverInterface />;
+      return <SimplifiedDriverDashboard serviceType="taxi" />;
     } else if (serviceType === 'delivery') {
-      return <DeliveryDriverInterface />;
+      return <SimplifiedDriverDashboard serviceType="delivery" />;
     }
-    // Fallback : afficher VTC par défaut
-    return <VTCDriverInterface />;
+    // Fallback : afficher taxi par défaut
+    return <SimplifiedDriverDashboard serviceType="taxi" />;
   };
 
 
