@@ -42,7 +42,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
       if (error) throw error;
 
       if (data.user) {
-        // Vérifier que l'utilisateur a bien le rôle driver
+        // ✅ PHASE 1.2: Vérifier le rôle ET le statut is_active
         const { data: roles, error: rolesError } = await supabase.rpc('get_user_roles', {
           p_user_id: data.user.id
         });
@@ -70,6 +70,32 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
           }
           
           setError('Ce compte n\'est pas un compte chauffeur.' + suggestion);
+          setLoading(false);
+          return;
+        }
+
+        // ✅ NOUVEAU: Vérifier que le compte chauffeur est actif
+        const { data: driverProfile, error: profileError } = await supabase
+          .from('chauffeurs')
+          .select('is_active, verification_status')
+          .eq('user_id', data.user.id)
+          .maybeSingle();
+
+        if (profileError) {
+          logger.error('Error fetching driver profile', profileError);
+          throw new Error('Erreur lors de la vérification du profil');
+        }
+
+        if (!driverProfile) {
+          await supabase.auth.signOut();
+          setError('Profil chauffeur introuvable. Veuillez contacter le support.');
+          setLoading(false);
+          return;
+        }
+
+        if (!driverProfile.is_active) {
+          await supabase.auth.signOut();
+          setError('⏳ Votre compte est en attente de validation par notre équipe. Vous recevrez un email de confirmation dès l\'activation.');
           setLoading(false);
           return;
         }
