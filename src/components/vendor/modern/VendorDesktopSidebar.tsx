@@ -1,5 +1,5 @@
 import React from 'react';
-import { Store, ShoppingBag, User, Shield, Settings, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Store, ShoppingBag, User, CreditCard } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -11,24 +11,32 @@ interface NavItem {
   badge?: number;
 }
 
+interface VendorStats {
+  activeProducts: number;
+  pendingProducts: number;
+  totalOrders: number;
+  pendingOrders: number;
+  escrowBalance: number;
+  pendingEscrow: number;
+}
+
 interface VendorDesktopSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  ordersBadge?: number;
+  stats: VendorStats;
 }
 
 export const VendorDesktopSidebar: React.FC<VendorDesktopSidebarProps> = ({
   activeTab,
   onTabChange,
-  ordersBadge = 0
+  stats
 }) => {
   const navItems: NavItem[] = [
-    { id: 'shop', icon: Store, label: 'Boutique' },
-    { id: 'orders', icon: ShoppingBag, label: 'Commandes', badge: ordersBadge },
+    { id: 'dashboard', icon: LayoutDashboard, label: 'Accueil' },
+    { id: 'shop', icon: Store, label: 'Mes produits', badge: stats.pendingProducts },
+    { id: 'orders', icon: ShoppingBag, label: 'Commandes', badge: stats.pendingOrders },
     { id: 'subscription', icon: CreditCard, label: 'Abonnement' },
-    { id: 'profile', icon: User, label: 'Profil' },
-    { id: 'verification', icon: Shield, label: 'Vérification' },
-    { id: 'settings', icon: Settings, label: 'Paramètres' },
+    { id: 'profile', icon: User, label: 'Profil & Paramètres' },
   ];
 
   return (

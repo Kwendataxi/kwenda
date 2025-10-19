@@ -9,9 +9,7 @@ import { VendorNotificationCenter } from '@/components/vendor/modern/VendorNotif
 import { VendorDashboardOverview } from '@/components/vendor/VendorDashboardOverview';
 import { VendorProductManager } from '@/components/vendor/VendorProductManager';
 import { VendorOrdersList } from '@/components/vendor/VendorOrdersList';
-import { VendorProfileSetup } from '@/components/vendor/VendorProfileSetup';
-import { VendorVerificationDashboard } from '@/components/vendor/modern/VendorVerificationDashboard';
-import { VendorShopSettings } from '@/components/marketplace/VendorShopSettings';
+import { VendorProfileSettings } from '@/components/vendor/VendorProfileSettings';
 import { VendorSubscriptionManager } from '@/components/vendor/VendorSubscriptionManager';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useVendorStats } from '@/hooks/useVendorStats';
@@ -37,6 +35,7 @@ export default function ModernVendorDashboard() {
           <VendorDesktopSidebar 
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            stats={stats}
           />
         )}
 
@@ -46,9 +45,7 @@ export default function ModernVendorDashboard() {
           {activeTab === 'dashboard' && <VendorDashboardOverview />}
           {activeTab === 'shop' && <VendorProductManager />}
           {activeTab === 'orders' && <VendorOrdersList />}
-          {activeTab === 'profile' && <VendorProfileSetup />}
-          {activeTab === 'verification' && <VendorVerificationDashboard />}
-          {activeTab === 'settings' && <VendorShopSettings />}
+          {activeTab === 'profile' && <VendorProfileSettings />}
           {activeTab === 'subscription' && <VendorSubscriptionManager />}
         </main>
       </div>
@@ -58,6 +55,7 @@ export default function ModernVendorDashboard() {
         <VendorBottomNav 
           activeTab={activeTab}
           onTabChange={setActiveTab}
+          stats={stats}
         />
       )}
 
