@@ -463,23 +463,6 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
             </CarouselItem>
           ))}
         </CarouselContent>
-
-        {/* Pagination dots - style exact de la référence */}
-        <div className="flex justify-center gap-1.5 mt-3">
-          {defaultPromos.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => api?.scrollTo(index)}
-              className={cn(
-                'h-1.5 rounded-full transition-all duration-300',
-                current === index
-                  ? 'w-6 bg-[#E31E24]'
-                  : 'w-1.5 bg-gray-400/60 hover:bg-gray-400'
-              )}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
       </Carousel>
     </div>
   );
