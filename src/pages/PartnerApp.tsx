@@ -10,7 +10,7 @@ import { PartnerDashboard } from '@/components/partner/PartnerDashboard';
 import { PartnerAnalyticsDashboard } from '@/components/partner/PartnerAnalyticsDashboard';
 import { PartnerNotificationCenter } from '@/components/partner/PartnerNotificationCenter';
 import { PartnerSubscriptionEarnings } from '@/components/partner/PartnerSubscriptionEarnings';
-import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
+
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, CalendarIcon, Download, Eye, Filter, Plus, Search, Star, TrendingDown, TrendingUp, UserPlus, Users } from "lucide-react"
@@ -477,10 +477,6 @@ const PartnerApp = () => {
   };
   return (
     <>
-      <UserAvatarButton 
-        position="top-right" 
-      />
-
       <UniversalAppHeader title="Espace Partenaire" />
 
       <div className="pt-[60px]">

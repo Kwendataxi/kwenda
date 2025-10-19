@@ -15,7 +15,7 @@ import { VTCProfileManager } from '@/components/driver/VTCProfileManager';
 import { DeliveryProfileManager } from '@/components/driver/DeliveryProfileManager';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
-import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
+
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 
 const DriverApp = () => {
@@ -60,7 +60,6 @@ const DriverApp = () => {
 
   return (
     <>
-      <UserAvatarButton position="top-right" />
       <UniversalAppHeader title="Espace Chauffeur" />
 
       <div className="min-h-screen bg-background mobile-safe-layout pt-[60px]">

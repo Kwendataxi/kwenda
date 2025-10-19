@@ -9,7 +9,7 @@ import { Loader2, Plus, Package, DollarSign, Star, Clock, Bell, ChefHat, Store }
 import { useFoodOrders } from '@/hooks/useFoodOrders';
 import { useRestaurantSubscription } from '@/hooks/useRestaurantSubscription';
 import { useFoodNotifications } from '@/hooks/useFoodNotifications';
-import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
+
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 
 interface RestaurantStats {
@@ -127,10 +127,6 @@ export default function RestaurantDashboard() {
 
   return (
     <>
-      <UserAvatarButton 
-        position="top-right" 
-      />
-
       <UniversalAppHeader title="Espace Restaurant" />
 
       <div className="min-h-screen bg-background p-4 md:p-6 pt-[76px]">

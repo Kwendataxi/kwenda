@@ -6,7 +6,7 @@ import { FlexiblePermissionGuard } from '@/components/auth/FlexiblePermissionGua
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
 import { useEnhancedRealTimeStats } from '@/hooks/useEnhancedRealTimeStats';
 import { Loader2 } from 'lucide-react';
-import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
+
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import { OverviewDashboard } from '@/components/admin/OverviewDashboard';
 import { AdminNotificationCenter } from '@/components/admin/AdminNotificationCenter';
@@ -327,11 +327,7 @@ const AdminApp = () => {
 
   return (
     <>
-      <UserAvatarButton 
-        position="bottom-right" 
-      />
-
-      <ResponsiveAdminLayout 
+      <ResponsiveAdminLayout
         activeTab={activeTab}
         onTabChange={setActiveTab}
         realTimeStats={stats}

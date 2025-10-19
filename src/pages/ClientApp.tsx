@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
+
 import { ConnectionIndicator, OptimizedImage, ProgressiveLoader, useDataCompression } from '@/components/optimization/SlowConnectionComponents';
 import CongoVehicleSelection from '@/components/transport/CongoVehicleSelection';
 import SimplifiedInterface from '@/components/ui/SimplifiedInterface';
@@ -637,10 +637,6 @@ const ClientApp = () => {
 
   return (
     <>
-      <UserAvatarButton 
-        position="top-right" 
-      />
-
       <ChatProvider>
         <div className="h-screen grid grid-rows-[1fr_auto] bg-background">
           {/* Contenu scrollable */}
