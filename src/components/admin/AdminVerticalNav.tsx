@@ -59,6 +59,9 @@ const NAV_ITEMS: Array<{
   { id: 'subscription-config', label: 'Configuration Plans', icon: Settings, group: 'finance', badge: 'CONFIG' },
   
   // Transport
+  { id: 'transport-management', label: 'Dashboard Transport', icon: Car, group: 'transport', badge: 'NEW' },
+  { id: 'delivery-management', label: 'Dashboard Livraisons', icon: Package, group: 'transport', badge: 'NEW' },
+  { id: 'rental-analytics', label: 'Analytics Location', icon: BarChart3, group: 'transport', badge: 'NEW' },
   { id: 'tarifs', label: 'Tarifs', icon: Tag, group: 'transport' },
   { id: 'zones', label: 'Zones', icon: MapPin, group: 'transport' },
   { id: 'dispatch', label: 'Dispatch NG', icon: Zap, group: 'transport' },

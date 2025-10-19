@@ -40,6 +40,9 @@ import { ProductModeration } from '@/pages/admin/marketplace/ProductModeration';
 import { AdminFoodDashboard } from '@/components/admin/food/AdminFoodDashboard';
 import AdminFoodManagement from '@/pages/admin/AdminFoodManagement';
 import AdminMarketplaceManagement from '@/pages/admin/AdminMarketplaceManagement';
+import AdminTransportManagement from '@/pages/admin/AdminTransportManagement';
+import AdminDeliveryManagement from '@/pages/admin/AdminDeliveryManagement';
+import AdminRentalAnalytics from '@/pages/admin/AdminRentalAnalytics';
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -312,6 +315,33 @@ const AdminApp = () => {
           <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
               <AdminMarketplaceManagement />
+            </FlexiblePermissionGuard>
+          </Suspense>
+        );
+
+      case 'transport-management':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+              <AdminTransportManagement />
+            </FlexiblePermissionGuard>
+          </Suspense>
+        );
+
+      case 'delivery-management':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+              <AdminDeliveryManagement />
+            </FlexiblePermissionGuard>
+          </Suspense>
+        );
+
+      case 'rental-analytics':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+              <AdminRentalAnalytics />
             </FlexiblePermissionGuard>
           </Suspense>
         );
