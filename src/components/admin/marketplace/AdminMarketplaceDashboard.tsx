@@ -1,398 +1,321 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAdminMarketplaceProducts } from '@/hooks/admin/useAdminMarketplaceProducts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { 
-  CheckCircle, 
-  XCircle, 
   Package, 
-  Users, 
-  Shield, 
+  ShoppingCart, 
+  DollarSign, 
   TrendingUp,
-  Eye,
-  UserCheck,
-  UserX,
-  AlertCircle
+  CheckCircle,
+  XCircle,
+  Clock,
+  Search,
+  BarChart
 } from 'lucide-react';
-
-interface Product {
-  id: string;
-  title: string;
-  price: number;
-  images: any;
-  category: string;
-  moderation_status: string;
-  seller_id: string;
-  created_at: string;
-}
-
-interface Vendor {
-  user_id: string;
-  shop_name: string;
-  average_rating: number;
-  total_sales: number;
-  created_at: string;
-}
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export const AdminMarketplaceDashboard: React.FC = () => {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [pendingProducts, setPendingProducts] = useState<Product[]>([]);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    pendingProducts: 0,
-    activeVendors: 0,
-    totalEscrow: 0,
-  });
+  const { pendingProducts, loading, approveProduct, rejectProduct } = useAdminMarketplaceProducts();
+  const [activeTab, setActiveTab] = useState('moderation');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [rejectionReasons, setRejectionReasons] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-
-      // Charger produits en attente
-      const { data: products, error: productsError } = await supabase
-        .from('marketplace_products')
-        .select('*')
-        .eq('moderation_status', 'pending')
-        .order('created_at', { ascending: false });
-
-      if (productsError) throw productsError;
-      setPendingProducts(products || []);
-
-      // Charger vendeurs
-      const { data: vendorsData, error: vendorsError } = await supabase
-        .from('vendor_profiles')
-        .select('user_id, shop_name, average_rating, total_sales, created_at')
-        .order('created_at', { ascending: false });
-
-      if (vendorsError) throw vendorsError;
-      setVendors(vendorsData || []);
-
-      // Calculer statistiques
-      const { count: totalProducts } = await supabase
-        .from('marketplace_products')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: activeVendorsCount } = await supabase
-        .from('vendor_profiles')
-        .select('*', { count: 'exact', head: true });
-
-      // Total escrow (ordres non complétés)
-      const { data: escrowOrders } = await supabase
-        .from('marketplace_orders')
-        .select('total_amount')
-        .in('status', ['pending', 'preparing', 'ready_for_pickup', 'in_transit', 'delivered']);
-
-      const totalEscrow = escrowOrders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;
-
-      setStats({
-        totalProducts: totalProducts || 0,
-        pendingProducts: products?.length || 0,
-        activeVendors: activeVendorsCount || 0,
-        totalEscrow,
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Erreur',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleApprove = async (productId: string) => {
+    approveProduct(productId);
   };
 
-  const handleApproveProduct = async (productId: string) => {
-    try {
-      const { error } = await supabase
-        .from('marketplace_products')
-        .update({ moderation_status: 'approved' })
-        .eq('id', productId);
-
-      if (error) throw error;
-
-      toast({
-        title: '✅ Produit approuvé',
-        description: 'Le produit est maintenant visible sur la marketplace',
-      });
-
-      loadData();
-    } catch (error: any) {
+  const handleReject = async (productId: string) => {
+    const reason = rejectionReasons[productId];
+    if (!reason || reason.trim() === '') {
       toast({
         title: 'Erreur',
-        description: error.message,
-        variant: 'destructive',
+        description: 'Veuillez fournir une raison de rejet',
+        variant: 'destructive'
       });
+      return;
     }
+    rejectProduct(productId, reason);
+    setRejectionReasons(prev => {
+      const updated = { ...prev };
+      delete updated[productId];
+      return updated;
+    });
   };
 
-  const handleRejectProduct = async (productId: string) => {
-    try {
-      const { error } = await supabase
-        .from('marketplace_products')
-        .update({ 
-          moderation_status: 'rejected',
-          rejection_reason: 'Non conforme aux règles de la marketplace'
-        })
-        .eq('id', productId);
-
-      if (error) throw error;
-
-      toast({
-        title: '❌ Produit rejeté',
-        description: 'Le vendeur a été notifié',
-      });
-
-      loadData();
-    } catch (error: any) {
-      toast({
-        title: 'Erreur',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleToggleVendor = async (vendorId: string) => {
-    try {
-      toast({
-        title: '⚠️ Fonctionnalité en développement',
-        description: 'Activation/désactivation des vendeurs bientôt disponible',
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Erreur',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-      </div>
-    );
-  }
+  const filteredProducts = pendingProducts.filter(product =>
+    product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.seller_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Produits
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Package className="h-4 w-4 text-primary" />
-              <span className="text-2xl font-bold">{stats.totalProducts}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              En Modération
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-orange-500" />
-              <span className="text-2xl font-bold">{stats.pendingProducts}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Vendeurs Actifs
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-green-500" />
-              <span className="text-2xl font-bold">{stats.activeVendors}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Escrow Total
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 text-blue-500" />
-              <span className="text-2xl font-bold">
-                {(stats.totalEscrow / 1000).toFixed(0)}K
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Marketplace Admin</h2>
+        <p className="text-muted-foreground">
+          Gérez les produits, commandes et vendeurs de la marketplace
+        </p>
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="moderation" className="space-y-4">
-        <TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="moderation">
-            <Package className="h-4 w-4 mr-2" />
-            Modération Produits
-          </TabsTrigger>
-          <TabsTrigger value="vendors">
-            <Users className="h-4 w-4 mr-2" />
-            Gestion Vendeurs
-          </TabsTrigger>
-          <TabsTrigger value="escrow">
-            <Shield className="h-4 w-4 mr-2" />
-            Escrow Monitoring
+            <Clock className="h-4 w-4 mr-2" />
+            Modération ({pendingProducts.length})
           </TabsTrigger>
           <TabsTrigger value="analytics">
-            <TrendingUp className="h-4 w-4 mr-2" />
+            <BarChart className="h-4 w-4 mr-2" />
             Analytics
+          </TabsTrigger>
+          <TabsTrigger value="overview">
+            <Package className="h-4 w-4 mr-2" />
+            Vue d'ensemble
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="moderation" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Produits en attente de modération ({pendingProducts.length})</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Produits en attente de modération</CardTitle>
+                <div className="relative w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Rechercher un produit..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              {pendingProducts.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  Aucun produit en attente
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {pendingProducts.map((product) => (
-                    <div key={product.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                      <img 
-                        src={Array.isArray(product.images) ? product.images[0] : '/placeholder.svg'} 
-                        alt={product.title}
-                        className="w-20 h-20 object-cover rounded"
-                      />
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{product.title}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {product.price.toLocaleString()} CDF • {product.category}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.open(`/marketplace?product=${product.id}`, '_blank')}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="default"
-                          onClick={() => handleApproveProduct(product.id)}
-                        >
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Approuver
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleRejectProduct(product.id)}
-                        >
-                          <XCircle className="h-4 w-4 mr-2" />
-                          Rejeter
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+              {loading ? (
+                <div className="text-center py-8 text-muted-foreground">Chargement...</div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="text-center py-12">
+                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">
+                    {searchTerm ? 'Aucun produit trouvé' : 'Aucun produit en attente'}
+                  </p>
                 </div>
+              ) : (
+                <ScrollArea className="h-[500px]">
+                  <div className="space-y-4">
+                    {filteredProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex gap-4">
+                          {product.images && product.images.length > 0 && (
+                            <img
+                              src={product.images[0]}
+                              alt={product.title}
+                              className="w-24 h-24 object-cover rounded-lg"
+                            />
+                          )}
+                          
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h4 className="font-semibold text-lg">{product.title}</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  Par {product.seller_name || 'Vendeur inconnu'}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xl font-bold text-red-600">
+                                  {product.price.toLocaleString()} CDF
+                                </p>
+                                <Badge variant="secondary">{product.category}</Badge>
+                              </div>
+                            </div>
+
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {product.description}
+                            </p>
+
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Badge variant="outline">
+                                Stock: {product.stock_quantity}
+                              </Badge>
+                              {product.shipping_available && (
+                                <Badge variant="outline">Livraison disponible</Badge>
+                              )}
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleApprove(product.id)}
+                                className="flex-1"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Approuver
+                              </Button>
+                              <div className="flex-1 space-y-2">
+                                <Textarea
+                                  placeholder="Raison du rejet..."
+                                  value={rejectionReasons[product.id] || ''}
+                                  onChange={(e) =>
+                                    setRejectionReasons(prev => ({
+                                      ...prev,
+                                      [product.id]: e.target.value
+                                    }))
+                                  }
+                                  className="min-h-[60px]"
+                                />
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleReject(product.id)}
+                                  className="w-full"
+                                >
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  Rejeter
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="vendors" className="space-y-4">
+        <TabsContent value="analytics" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Produits Totaux
+                </CardTitle>
+                <Package className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">-</div>
+                <p className="text-xs text-muted-foreground">
+                  Tous statuts confondus
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Commandes du mois
+                </CardTitle>
+                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">-</div>
+                <p className="text-xs text-muted-foreground">
+                  +0% par rapport au mois dernier
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Revenus du mois
+                </CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">- CDF</div>
+                <p className="text-xs text-muted-foreground">
+                  Commissions incluses
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Taux de conversion
+                </CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">-%</div>
+                <p className="text-xs text-muted-foreground">
+                  Vues → Achats
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardHeader>
-              <CardTitle>Gestion des vendeurs ({vendors.length})</CardTitle>
+              <CardTitle>Analytics détaillées</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {vendors.map((vendor) => (
-                  <div key={vendor.user_id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h4 className="font-semibold">{vendor.shop_name}</h4>
-                      <div className="flex gap-2 mt-2">
-                        <Badge variant="outline">
-                          ⭐ {vendor.average_rating.toFixed(1)}
-                        </Badge>
-                        <Badge variant="secondary">
-                          {vendor.total_sales} ventes
-                        </Badge>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleToggleVendor(vendor.user_id)}
-                    >
-                      <UserCheck className="h-4 w-4 mr-2" />
-                      Gérer
-                    </Button>
-                  </div>
-                ))}
+              <div className="text-center py-12 text-muted-foreground">
+                <BarChart className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p>Analytics marketplace en développement</p>
+                <p className="text-sm">Graphiques et statistiques avancées bientôt disponibles</p>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="escrow">
-          <Card>
-            <CardHeader>
-              <CardTitle>Monitoring Escrow</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <Shield className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <p className="text-lg font-semibold mb-2">
-                  {stats.totalEscrow.toLocaleString()} CDF
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Fonds actuellement en protection
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">En modération</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{pendingProducts.length}</div>
+                <Badge variant="secondary" className="mt-2">
+                  <Clock className="h-3 w-3 mr-1" />
+                  En attente
+                </Badge>
+              </CardContent>
+            </Card>
 
-        <TabsContent value="analytics">
-          <Card>
-            <CardHeader>
-              <CardTitle>Analytics Marketplace</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground py-12">
-                Tableau de bord analytics en développement
-              </p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Produits actifs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">-</div>
+                <Badge className="mt-2">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Approuvés
+                </Badge>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Produits rejetés</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">-</div>
+                <Badge variant="destructive" className="mt-2">
+                  <XCircle className="h-3 w-3 mr-1" />
+                  Rejetés
+                </Badge>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
   );
 };
+
+export default AdminMarketplaceDashboard;

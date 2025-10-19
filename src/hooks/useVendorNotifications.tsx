@@ -57,14 +57,25 @@ export function useVendorNotifications(): UseVendorNotificationsReturn {
     if (!user) return;
 
     try {
+      // ✅ FIX: Utiliser vendor_product_notifications (table qui existe réellement)
       const { data, error } = await supabase
-        .from('vendor_notifications')
+        .from('vendor_product_notifications')
         .select('*')
-        .or(`vendor_id.eq.${user.id},user_id.eq.${user.id}`)
+        .eq('vendor_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setNotifications((data || []) as VendorNotification[]);
+      
+      // Transform to VendorNotification format
+      setNotifications((data || []).map(item => ({
+        ...item,
+        type: item.notification_type,
+        data: item.metadata,
+        user_id: item.vendor_id,
+        is_acknowledged: false,
+        sound_played: false,
+        order_id: undefined
+      })) as VendorNotification[]);
     } catch (error) {
       console.error('Error fetching vendor notifications:', error);
     } finally {
@@ -75,7 +86,7 @@ export function useVendorNotifications(): UseVendorNotificationsReturn {
   const markAsRead = async (notificationId: string) => {
     try {
       const { error } = await supabase
-        .from('vendor_notifications')
+        .from('vendor_product_notifications')
         .update({ 
           is_read: true, 
           read_at: new Date().toISOString() 
@@ -98,11 +109,13 @@ export function useVendorNotifications(): UseVendorNotificationsReturn {
 
   const markAsAcknowledged = async (notificationId: string) => {
     try {
+      // Note: vendor_product_notifications doesn't have is_acknowledged
+      // We'll just mark as read instead
       const { error } = await supabase
-        .from('vendor_notifications')
+        .from('vendor_product_notifications')
         .update({ 
-          is_acknowledged: true, 
-          acknowledged_at: new Date().toISOString() 
+          is_read: true, 
+          read_at: new Date().toISOString() 
         })
         .eq('id', notificationId);
 
@@ -125,7 +138,7 @@ export function useVendorNotifications(): UseVendorNotificationsReturn {
 
     try {
       const { error } = await supabase
-        .from('vendor_notifications')
+        .from('vendor_product_notifications')
         .update({ 
           is_read: true, 
           read_at: new Date().toISOString() 
@@ -170,11 +183,8 @@ export function useVendorNotifications(): UseVendorNotificationsReturn {
       const soundType = soundMap[notifType] || 'general';
       await notificationSoundService.playNotificationSound(soundType);
       
-      // Mark sound as played
-      await supabase
-        .from('vendor_notifications')
-        .update({ sound_played: true })
-        .eq('id', notification.id);
+      // Note: vendor_product_notifications doesn't have sound_played field
+      // We'll skip this update
     }
     
     // Show toast notification with variant based on type

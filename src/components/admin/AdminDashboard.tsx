@@ -12,7 +12,7 @@ import { AdminLocationManager } from './AdminLocationManager';
 import { AdminServiceManager } from './AdminServiceManager';
 import { AdminAnalyticsDashboard } from './AdminAnalyticsDashboard';
 import { AdminSecurityManager } from './AdminSecurityManager';
-import { AdminNotificationManager } from './AdminNotificationManager';
+import { AdminNotificationSender } from './AdminNotificationSender';
 import { AdminUserVerificationManager } from './AdminUserVerificationManager';
 import { ClientVerificationPanel } from './users/ClientVerificationPanel';
 import { ProductModerationPanel } from '../marketplace/ProductModerationPanel';
@@ -225,7 +225,7 @@ const AdminDashboard = () => {
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-6">
-          <AdminNotificationManager />
+          <AdminNotificationSender />
         </TabsContent>
       </Tabs>
     </div>

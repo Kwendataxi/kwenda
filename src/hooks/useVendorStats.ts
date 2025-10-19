@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 interface VendorStats {
@@ -10,43 +10,49 @@ interface VendorStats {
   pendingEscrow: number;
 }
 
-export const useVendorStats = () => {
-  const [stats, setStats] = useState<VendorStats>({
-    activeProducts: 0,
-    pendingProducts: 0,
-    totalOrders: 0,
-    pendingOrders: 0,
-    escrowBalance: 0,
-    pendingEscrow: 0
-  });
-  const [loading, setLoading] = useState(true);
+const fetchVendorStats = async (): Promise<VendorStats> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
 
-  useEffect(() => {
-    loadStats();
-  }, []);
+  const [products, orders, escrow, merchantAccount] = await Promise.all([
+    supabase.from('marketplace_products').select('*').eq('seller_id', user.id),
+    supabase.from('marketplace_orders').select('*').eq('seller_id', user.id),
+    supabase.from('escrow_transactions').select('*').eq('seller_id', user.id),
+    supabase.from('merchant_accounts').select('*').eq('vendor_id', user.id).maybeSingle()
+  ]);
 
-  const loadStats = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const [products, orders, escrow, merchantAccount] = await Promise.all([
-      supabase.from('marketplace_products').select('*').eq('seller_id', user.id),
-      supabase.from('marketplace_orders').select('*').eq('seller_id', user.id),
-      supabase.from('escrow_transactions').select('*').eq('seller_id', user.id),
-      supabase.from('merchant_accounts').select('*').eq('vendor_id', user.id).maybeSingle()
-    ]);
-
-    setStats({
-      activeProducts: products.data?.filter(p => p.moderation_status === 'approved').length || 0,
-      pendingProducts: products.data?.filter(p => p.moderation_status === 'pending').length || 0,
-      totalOrders: orders.data?.length || 0,
-      pendingOrders: orders.data?.filter(o => o.status === 'pending_seller_confirmation').length || 0,
-      escrowBalance: merchantAccount.data?.balance || 0,
-      pendingEscrow: escrow.data?.filter(e => e.status === 'held').reduce((sum, e) => sum + (e.seller_amount || 0), 0) || 0
-    });
-
-    setLoading(false);
+  return {
+    activeProducts: products.data?.filter(p => p.moderation_status === 'approved').length || 0,
+    pendingProducts: products.data?.filter(p => p.moderation_status === 'pending').length || 0,
+    totalOrders: orders.data?.length || 0,
+    pendingOrders: orders.data?.filter(o => o.status === 'pending_seller_confirmation').length || 0,
+    escrowBalance: merchantAccount.data?.balance || 0,
+    pendingEscrow: escrow.data?.filter(e => e.status === 'held').reduce((sum, e) => sum + (e.seller_amount || 0), 0) || 0
   };
+};
 
-  return { stats, loading, refetch: loadStats };
+export const useVendorStats = () => {
+  const { data: stats, isLoading: loading, refetch } = useQuery({
+    queryKey: ['vendor-stats'],
+    queryFn: fetchVendorStats,
+    staleTime: 30000, // 30 secondes
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true,
+    retry: 2
+  });
+
+  return { 
+    stats: stats || {
+      activeProducts: 0,
+      pendingProducts: 0,
+      totalOrders: 0,
+      pendingOrders: 0,
+      escrowBalance: 0,
+      pendingEscrow: 0
+    }, 
+    loading, 
+    refetch 
+  };
 };

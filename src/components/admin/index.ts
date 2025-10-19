@@ -1,5 +1,4 @@
-// Export des composants admin
-export { default as AdminNotifications } from './AdminNotifications';
+// Export des composants admin (nettoyage des doublons)
 export { AdminNotificationSender } from './AdminNotificationSender';
 export { DispatchMonitor } from './DispatchMonitor';
 export { NotificationMonitoringDashboard } from './NotificationMonitoringDashboard';
