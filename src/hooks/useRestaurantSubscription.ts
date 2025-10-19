@@ -36,6 +36,7 @@ export const useRestaurantSubscription = () => {
   const [loading, setLoading] = useState(false);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [activeSubscription, setActiveSubscription] = useState<ActiveSubscription | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'idle' | 'checking_balance' | 'processing' | 'success' | 'error'>('idle');
 
   // Récupérer les plans disponibles
   const fetchPlans = async () => {
@@ -118,6 +119,8 @@ export const useRestaurantSubscription = () => {
   ) => {
     try {
       setLoading(true);
+      setSubscriptionStatus('checking_balance');
+      console.log('🔄 Starting subscription process...', { planId, restaurantId, paymentMethod });
 
       // Vérifier le solde si paiement KwendaPay
       if (paymentMethod === 'kwenda_pay') {
@@ -236,6 +239,7 @@ export const useRestaurantSubscription = () => {
     loading,
     plans,
     activeSubscription,
+    subscriptionStatus,
     fetchPlans,
     fetchActiveSubscription,
     checkWalletBalance,

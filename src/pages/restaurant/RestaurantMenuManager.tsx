@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Loader2, Plus, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
+import { ProductImageUpload } from '@/components/restaurant/ProductImageUpload';
 
 const CATEGORIES = ['Entrées', 'Plats', 'Desserts', 'Boissons'];
 
@@ -46,6 +47,7 @@ export default function RestaurantMenuManager() {
     main_image_url: '',
     is_available: true,
   });
+  const [productImages, setProductImages] = useState<string[]>([]);
 
   useEffect(() => {
     loadRestaurantProfile();
@@ -113,7 +115,8 @@ export default function RestaurantMenuManager() {
         category: formData.category,
         price: parseFloat(formData.price),
         preparation_time: parseInt(formData.preparation_time),
-        main_image_url: formData.main_image_url || null,
+        main_image_url: productImages[0] || null,
+        images: productImages,
         is_available: formData.is_available,
         moderation_status: 'pending',
       };
@@ -169,6 +172,8 @@ export default function RestaurantMenuManager() {
       main_image_url: product.main_image_url || '',
       is_available: product.is_available,
     });
+    // Charger les images existantes depuis la base
+    setProductImages(product.main_image_url ? [product.main_image_url] : []);
     setIsDialogOpen(true);
   };
 
@@ -208,6 +213,7 @@ export default function RestaurantMenuManager() {
       main_image_url: '',
       is_available: true,
     });
+    setProductImages([]);
     setEditingProduct(null);
   };
 
@@ -310,11 +316,12 @@ export default function RestaurantMenuManager() {
                 </div>
 
                 <div>
-                  <Label>URL de l'image</Label>
-                  <Input
-                    value={formData.main_image_url}
-                    onChange={(e) => setFormData({ ...formData, main_image_url: e.target.value })}
-                    placeholder="https://..."
+                  <Label>Photos du produit</Label>
+                  <ProductImageUpload
+                    restaurantId={restaurantId || ''}
+                    currentImages={productImages}
+                    onImagesChange={setProductImages}
+                    maxImages={5}
                   />
                 </div>
 

@@ -111,8 +111,25 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 4. Débiter le wallet
-    const { error: debitError } = await supabaseClient
+    // 4. Débiter le wallet (transaction atomique)
+    const newBalance = wallet.balance - plan.monthly_price;
+    
+    const { error: walletUpdateError } = await supabaseClient
+      .from('user_wallets')
+      .update({ balance: newBalance })
+      .eq('id', wallet.id)
+      .eq('balance', wallet.balance); // Optimistic locking
+
+    if (walletUpdateError) {
+      console.error('❌ Wallet update failed:', walletUpdateError);
+      return new Response(
+        JSON.stringify({ error: 'Échec du paiement (conflit de transaction)' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Logger la transaction
+    await supabaseClient
       .from('wallet_transactions')
       .insert({
         user_id: user.id,
@@ -126,15 +143,7 @@ Deno.serve(async (req) => {
         reference_type: 'restaurant_subscription',
       });
 
-    if (debitError) {
-      console.error('❌ Debit failed:', debitError);
-      return new Response(
-        JSON.stringify({ error: 'Échec du paiement' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('✅ Wallet debited successfully');
+    console.log('✅ Wallet debited successfully (new balance:', newBalance, ')');
 
     // 5. Créer l'abonnement
     const startDate = new Date();
@@ -180,18 +189,19 @@ Deno.serve(async (req) => {
 
     console.log('✅ Subscription created:', subscription.id);
 
-    // 6. Activer le restaurant
+    // 6. Activer le restaurant et mettre à jour active_subscription_id
     const { error: updateError } = await supabaseClient
       .from('restaurant_profiles')
       .update({
         is_active: true,
-        subscription_status: 'active',
-        subscription_id: subscription.id,
+        active_subscription_id: subscription.id,
       })
       .eq('id', restaurant_id);
 
     if (updateError) {
       console.error('⚠️ Restaurant activation warning:', updateError);
+    } else {
+      console.log('✅ Restaurant activated with subscription_id:', subscription.id);
     }
 
     // 7. Logger l'action
