@@ -6,6 +6,9 @@ import { FlexiblePermissionGuard } from '@/components/auth/FlexiblePermissionGua
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
 import { useEnhancedRealTimeStats } from '@/hooks/useEnhancedRealTimeStats';
 import { Loader2 } from 'lucide-react';
+import { AppSwitcherSheet } from '@/components/navigation/AppSwitcherSheet';
+import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
+import { useAppSwitcher } from '@/hooks/useAppSwitcher';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import { OverviewDashboard } from '@/components/admin/OverviewDashboard';
 import { AdminNotificationCenter } from '@/components/admin/AdminNotificationCenter';
@@ -50,6 +53,7 @@ const LoadingFallback = () => (
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const appSwitcher = useAppSwitcher();
   
   const { adminRole, loading: rolesLoading } = useUserRoles();
   const { stats, loading: statsLoading } = useEnhancedRealTimeStats();
@@ -325,13 +329,25 @@ const AdminApp = () => {
   };
 
   return (
-    <ResponsiveAdminLayout 
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-      realTimeStats={stats}
-    >
-      {renderContent()}
-    </ResponsiveAdminLayout>
+    <>
+      <UserAvatarButton 
+        onClick={appSwitcher.open} 
+        position="bottom-right" 
+      />
+
+      <AppSwitcherSheet 
+        open={appSwitcher.isOpen}
+        onOpenChange={appSwitcher.toggle}
+      />
+
+      <ResponsiveAdminLayout 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        realTimeStats={stats}
+      >
+        {renderContent()}
+      </ResponsiveAdminLayout>
+    </>
   );
 };
 

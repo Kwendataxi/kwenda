@@ -10,6 +10,9 @@ import { PartnerDashboard } from '@/components/partner/PartnerDashboard';
 import { PartnerAnalyticsDashboard } from '@/components/partner/PartnerAnalyticsDashboard';
 import { PartnerNotificationCenter } from '@/components/partner/PartnerNotificationCenter';
 import { PartnerSubscriptionEarnings } from '@/components/partner/PartnerSubscriptionEarnings';
+import { AppSwitcherSheet } from '@/components/navigation/AppSwitcherSheet';
+import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
+import { useAppSwitcher } from '@/hooks/useAppSwitcher';
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, CalendarIcon, Download, Eye, Filter, Plus, Search, Star, TrendingDown, TrendingUp, UserPlus, Users } from "lucide-react"
 import {
@@ -41,6 +44,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 const PartnerApp = () => {
   const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'subscriptions' | 'analytics' | 'notifications' | 'subscription-earnings'>('dashboard');
+  const appSwitcher = useAppSwitcher();
   
   // Use real data hooks
   const { stats, loading: statsLoading } = usePartnerStats();
@@ -474,15 +478,27 @@ const PartnerApp = () => {
     }
   };
   return (
-    <ResponsivePartnerLayout
-      stats={stats}
-      currentView={currentView}
-      onViewChange={(view: string) => setCurrentView(view as any)}
-      title={getViewTitle()}
-      subtitle="Kwenda Taxi Partner"
-    >
-      {renderContent()}
-    </ResponsivePartnerLayout>
+    <>
+      <UserAvatarButton 
+        onClick={appSwitcher.open} 
+        position="top-right" 
+      />
+
+      <AppSwitcherSheet 
+        open={appSwitcher.isOpen}
+        onOpenChange={appSwitcher.toggle}
+      />
+
+      <ResponsivePartnerLayout
+        stats={stats}
+        currentView={currentView}
+        onViewChange={(view: string) => setCurrentView(view as any)}
+        title={getViewTitle()}
+        subtitle="Kwenda Taxi Partner"
+      >
+        {renderContent()}
+      </ResponsivePartnerLayout>
+    </>
   );
 };
 

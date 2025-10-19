@@ -15,11 +15,15 @@ import { VehicleManagementPanel } from '@/components/driver/management/VehicleMa
 import { ServiceChangeRequestPanel } from '@/components/driver/management/ServiceChangeRequestPanel';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
+import { AppSwitcherSheet } from '@/components/navigation/AppSwitcherSheet';
+import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
+import { useAppSwitcher } from '@/hooks/useAppSwitcher';
 
 const DriverApp = () => {
   const { loading } = useDriverServiceType();
   const [tab, setTab] = useState('orders');
   const [moreOpen, setMoreOpen] = useState(false);
+  const appSwitcher = useAppSwitcher();
 
   // 🔔 Activer les notifications système temps réel
   useSystemNotifications();
@@ -46,8 +50,19 @@ const DriverApp = () => {
 
 
   return (
-    <div className="min-h-screen bg-background mobile-safe-layout">
-      <DriverHeader serviceType="delivery" />
+    <>
+      <UserAvatarButton 
+        onClick={appSwitcher.open} 
+        position="top-right" 
+      />
+
+      <AppSwitcherSheet 
+        open={appSwitcher.isOpen}
+        onOpenChange={appSwitcher.toggle}
+      />
+
+      <div className="min-h-screen bg-background mobile-safe-layout">
+        <DriverHeader serviceType="delivery" />
       
       <main className="flex-1 overflow-y-auto content-scrollable responsive-padding">
         <div className="container-fluid space-y-6">
@@ -74,15 +89,16 @@ const DriverApp = () => {
         onMoreAction={() => setMoreOpen(true)}
       />
       
-      <DriverMoreSheet 
-        open={moreOpen} 
-        onOpenChange={setMoreOpen}
-        onSelect={(selectedTab) => {
-          setTab(selectedTab);
-          setMoreOpen(false);
-        }}
-      />
-    </div>
+        <DriverMoreSheet 
+          open={moreOpen} 
+          onOpenChange={setMoreOpen}
+          onSelect={(selectedTab) => {
+            setTab(selectedTab);
+            setMoreOpen(false);
+          }}
+        />
+      </div>
+    </>
   );
 };
 

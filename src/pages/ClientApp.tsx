@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { AppSwitcherSheet } from '@/components/navigation/AppSwitcherSheet';
+import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
+import { useAppSwitcher } from '@/hooks/useAppSwitcher';
 import { ConnectionIndicator, OptimizedImage, ProgressiveLoader, useDataCompression } from '@/components/optimization/SlowConnectionComponents';
 import CongoVehicleSelection from '@/components/transport/CongoVehicleSelection';
 import SimplifiedInterface from '@/components/ui/SimplifiedInterface';
@@ -140,6 +143,7 @@ const ClientApp = () => {
   const [currentView, setCurrentView] = useState('home');
   const [serviceType, setServiceType] = useState<'transport' | 'delivery' | 'marketplace' | 'rental' | 'food'>('transport');
   const [isLoading, setIsLoading] = useState(false);
+  const appSwitcher = useAppSwitcher();
   
   // Bottom navigation state
   const [activeTab, setActiveTab] = useState('home');
@@ -635,10 +639,21 @@ const ClientApp = () => {
   );
 
   return (
-    <ChatProvider>
-      <div className="h-screen grid grid-rows-[1fr_auto] bg-background">
-        {/* Contenu scrollable */}
-        <main className="overflow-y-auto overflow-x-hidden scrollbar-hide pb-[90px]">
+    <>
+      <UserAvatarButton 
+        onClick={appSwitcher.open} 
+        position="top-right" 
+      />
+
+      <AppSwitcherSheet 
+        open={appSwitcher.isOpen}
+        onOpenChange={appSwitcher.toggle}
+      />
+
+      <ChatProvider>
+        <div className="h-screen grid grid-rows-[1fr_auto] bg-background">
+          {/* Contenu scrollable */}
+          <main className="overflow-y-auto overflow-x-hidden scrollbar-hide pb-[90px]">
         {/* Connection Indicator - Hidden */}
         {/* <ConnectionIndicator /> */}
         
@@ -818,6 +833,7 @@ const ClientApp = () => {
         />
       </div>
     </ChatProvider>
+    </>
   );
 };
 

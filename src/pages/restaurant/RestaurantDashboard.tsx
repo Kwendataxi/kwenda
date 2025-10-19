@@ -9,6 +9,9 @@ import { Loader2, Plus, Package, DollarSign, Star, Clock, Bell, ChefHat, Store }
 import { useFoodOrders } from '@/hooks/useFoodOrders';
 import { useRestaurantSubscription } from '@/hooks/useRestaurantSubscription';
 import { useFoodNotifications } from '@/hooks/useFoodNotifications';
+import { AppSwitcherSheet } from '@/components/navigation/AppSwitcherSheet';
+import { UserAvatarButton } from '@/components/navigation/UserAvatarButton';
+import { useAppSwitcher } from '@/hooks/useAppSwitcher';
 
 interface RestaurantStats {
   todayOrders: number;
@@ -20,6 +23,7 @@ interface RestaurantStats {
 export default function RestaurantDashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const appSwitcher = useAppSwitcher();
   const [loading, setLoading] = useState(true);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [stats, setStats] = useState<RestaurantStats>({
@@ -124,19 +128,30 @@ export default function RestaurantDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Dashboard Restaurant</h1>
-            <p className="text-muted-foreground">Gérez votre restaurant Kwenda Food</p>
+    <>
+      <UserAvatarButton 
+        onClick={appSwitcher.open} 
+        position="top-right" 
+      />
+
+      <AppSwitcherSheet 
+        open={appSwitcher.isOpen}
+        onOpenChange={appSwitcher.toggle}
+      />
+
+      <div className="min-h-screen bg-background p-4 md:p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Dashboard Restaurant</h1>
+              <p className="text-muted-foreground">Gérez votre restaurant Kwenda Food</p>
+            </div>
+            <Button onClick={() => navigate('/restaurant/menu')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Ajouter un plat
+            </Button>
           </div>
-          <Button onClick={() => navigate('/restaurant/menu')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Ajouter un plat
-          </Button>
-        </div>
 
         {/* Message bienvenue nouveaux restaurants */}
         {stats.todayOrders === 0 && (
@@ -318,7 +333,8 @@ export default function RestaurantDashboard() {
             </Button>
           </CardContent>
         </Card>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
