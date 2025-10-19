@@ -10,7 +10,7 @@ import { PartnerDashboard } from '@/components/partner/PartnerDashboard';
 import { PartnerAnalyticsDashboard } from '@/components/partner/PartnerAnalyticsDashboard';
 import { PartnerNotificationCenter } from '@/components/partner/PartnerNotificationCenter';
 import { PartnerSubscriptionEarnings } from '@/components/partner/PartnerSubscriptionEarnings';
-import { User } from 'lucide-react';
+import { PartnerProfilePage } from '@/components/partner/PartnerProfilePage';
 
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 import { Button } from "@/components/ui/button"
@@ -455,15 +455,7 @@ const PartnerApp = () => {
       case 'notifications':
         return <PartnerNotificationCenter />;
       case 'profile':
-        return (
-          <div className="p-4">
-            <div className="card-floating p-6 text-center">
-              <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-heading-md mb-2">Page Profil Partenaire</h2>
-              <p className="text-body-sm text-muted-foreground">Cette page sera implémentée dans les prochaines phases</p>
-            </div>
-          </div>
-        );
+        return <PartnerProfilePage />;
       default:
         return renderDashboard();
     }
