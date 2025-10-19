@@ -51,9 +51,9 @@ export const VendorSubscriptionManager = () => {
     try {
       setLoading(true);
 
-      // Charger les plans disponibles avec requête brute
+      // 1. Charger les plans disponibles
       const { data: plansData, error: plansError } = await supabase
-        .from('vendor_subscription_plans' as any)
+        .from('vendor_subscription_plans')
         .select('*')
         .eq('is_active', true)
         .order('monthly_price', { ascending: true });
@@ -61,16 +61,11 @@ export const VendorSubscriptionManager = () => {
       if (plansError) throw plansError;
       setPlans(plansData as any || []);
 
-      // Charger l'abonnement actif avec requête brute
+      // 2. Charger l'abonnement actif
       const { data: subData, error: subError } = await supabase
         .from('vendor_active_subscriptions' as any)
         .select(`
-          id,
-          plan_id,
-          status,
-          start_date,
-          end_date,
-          payment_method,
+          *,
           vendor_subscription_plans (*)
         `)
         .eq('vendor_id', user.id)
@@ -78,6 +73,15 @@ export const VendorSubscriptionManager = () => {
         .maybeSingle();
 
       if (subError && subError.code !== 'PGRST116') throw subError;
+
+      // 3. Si aucun abonnement, assigner le plan gratuit automatiquement
+      if (!subData) {
+        const freePlan = (plansData as any)?.find((p: any) => p.monthly_price === 0);
+        if (freePlan) {
+          await handleUpgrade(freePlan.id);
+          return; // Recharger après assignation
+        }
+      }
 
       if (subData) {
         setActiveSubscription(subData as any);
@@ -87,7 +91,7 @@ export const VendorSubscriptionManager = () => {
       console.error('Error loading subscription data:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger les données d'abonnement",
+        description: "Impossible de charger les abonnements",
         variant: "destructive"
       });
     } finally {
@@ -102,7 +106,7 @@ export const VendorSubscriptionManager = () => {
     if (!selectedPlan) return;
 
     try {
-      // Appeler l'edge function pour tous les plans
+      // Appeler l'edge function
       const { data, error } = await supabase.functions.invoke('vendor-subscription-manager', {
         body: {
           plan_id: planId,
@@ -120,18 +124,13 @@ export const VendorSubscriptionManager = () => {
         });
         loadData();
       } else {
-        // Gestion des erreurs spécifiques
-        if (data.error === 'Solde insuffisant') {
-          toast({
-            title: "💰 Solde insuffisant",
-            description: `Il vous faut ${data.required} CDF. Solde actuel: ${data.current} CDF`,
-            variant: "destructive"
-          });
-        } else {
-          throw new Error(data.error);
-        }
+        toast({
+          title: "Erreur",
+          description: data.error || "Impossible d'activer l'abonnement",
+          variant: "destructive"
+        });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error upgrading plan:', error);
       toast({
         title: "Erreur",

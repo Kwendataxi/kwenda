@@ -8,7 +8,7 @@ export const useVendorSubscription = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch active subscription avec typage any pour éviter erreurs types
+  // Fetch active subscription
   const { data: subscription, isLoading } = useQuery({
     queryKey: ['vendor-subscription', user?.id],
     queryFn: async () => {
@@ -64,7 +64,7 @@ export const useVendorSubscription = () => {
 
   return {
     subscription,
-    currentPlan: subscription?.vendor_subscription_plans,
+    currentPlan: (subscription as any)?.vendor_subscription_plans,
     isLoading,
     upgradePlan: upgradeMutation.mutate,
     isUpgrading: upgradeMutation.isPending,
