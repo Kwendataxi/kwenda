@@ -3,7 +3,6 @@ import { ChevronDown } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useProfile } from '@/hooks/useProfile';
-
 import { GooglePlacesService } from '@/services/googlePlacesService';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { LocationDetailsSheet } from './LocationDetailsSheet';

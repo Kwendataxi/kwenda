@@ -114,7 +114,6 @@ import PromosPage from "./pages/PromosPage";
 import { ServiceGuard } from "./components/guards/ServiceGuard";
 import { useServiceRealtime } from "./hooks/useServiceRealtime";
 import { VendorGuard } from "./components/guards/VendorGuard";
-import { VendorApp } from "./pages/VendorApp";
 
 const queryClient = new QueryClient();
 
@@ -239,9 +238,9 @@ const AppContent = () => {
                         <VendorRegistration />
                       </ProtectedRoute>
                     } />
-                    <Route path="/vendeur/*" element={
+                    <Route path="/vendeur" element={
                       <VendorGuard>
-                        <VendorApp />
+                        <ModernVendorDashboard />
                       </VendorGuard>
                     } />
                     <Route path="/mes-adresses" element={<MesAdresses />} />
