@@ -93,6 +93,7 @@ import DriverRegistration from "./pages/DriverRegistration";
 import VendorShop from "./pages/VendorShop";
 import VendorOrders from "./pages/VendorOrders";
 import ModernVendorDashboard from "./pages/ModernVendorDashboard";
+import VendorRegistration from "./pages/VendorRegistration";
 import MyProducts from "./pages/marketplace/MyProducts";
 import QRCodeManager from "./pages/admin/QRCodeManager";
 import QRAnalytics from "./pages/admin/QRAnalytics";
@@ -233,6 +234,11 @@ const AppContent = () => {
                     } />
                     
                     {/* Routes VENDEUR */}
+                    <Route path="/vendeur/inscription" element={
+                      <ProtectedRoute>
+                        <VendorRegistration />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/vendeur/*" element={
                       <VendorGuard>
                         <VendorApp />

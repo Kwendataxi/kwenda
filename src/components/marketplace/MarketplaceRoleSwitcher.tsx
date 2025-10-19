@@ -51,6 +51,20 @@ export const MarketplaceRoleSwitcher = ({
 
   const handleSwitch = () => {
     if (currentMode === 'client') {
+      if (!isVendor) {
+        // Afficher une modale "Devenir vendeur"
+        toast({
+          title: "Devenir vendeur",
+          description: "Vous devez d'abord créer votre profil vendeur",
+          action: (
+            <Button onClick={() => navigate('/vendeur/inscription')}>
+              Créer mon profil
+            </Button>
+          )
+        });
+        return;
+      }
+      
       // Basculer vers espace vendeur
       navigate('/vendeur');
       toast({
@@ -66,11 +80,6 @@ export const MarketplaceRoleSwitcher = ({
       });
     }
   };
-
-  // Si en mode client et pas vendeur, ne rien afficher
-  if (currentMode === 'client' && !isVendor) {
-    return null;
-  }
 
   if (loading) {
     return (

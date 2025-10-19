@@ -47,6 +47,18 @@ const RoleSelection = () => {
       const role = userRoles[0].role as UserRole;
       setSelectedRole(role);
       navigateToRole(role);
+      return;
+    }
+
+    // Si utilisateur a plusieurs rôles MAIS un rôle 'client', auto-sélectionner client
+    if (!loading && userRoles.length > 1 && !selectedRole) {
+      const hasClientRole = userRoles.some(ur => ur.role === 'client');
+      if (hasClientRole && !loginIntent) {
+        // Auto-sélection du rôle client par défaut
+        setSelectedRole('client');
+        navigateToRole('client');
+        return;
+      }
     }
   }, [loading, userRoles, loginIntent]);
 

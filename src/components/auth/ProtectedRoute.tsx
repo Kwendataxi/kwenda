@@ -14,7 +14,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) => {
   const { user, loading, sessionReady } = useAuth();
   const { userRoles, primaryRole, loading: rolesLoading } = useUserRoles();
-  const { hasSelectedRole } = useSelectedRole();
+  const { hasSelectedRole, setSelectedRole } = useSelectedRole();
   const location = useLocation();
 
   // Afficher un loader pendant la vérification de l'authentification ET de la session
@@ -45,11 +45,20 @@ const ProtectedRoute = ({ children, requireAuth = true }: ProtectedRouteProps) =
     // Vérifier s'il y a une intention de connexion (driver/partner/client)
     const loginIntent = localStorage.getItem('kwenda_login_intent');
     
-    // Si une intention existe, laisser RoleSelection gérer la redirection automatique
-    if (loginIntent && userRoles.some(r => r.role === loginIntent)) {
+    // Si intention spécifique (driver, partner, etc.), aller à role-selection
+    if (loginIntent && loginIntent !== 'client') {
       return <Navigate to="/role-selection" replace />;
     }
     
+    // Par défaut, considérer que l'utilisateur est en mode CLIENT
+    // Il pourra basculer vers vendor via le bouton dans son profil
+    const hasClientRole = userRoles.some(ur => ur.role === 'client');
+    if (hasClientRole) {
+      setSelectedRole('client'); // Auto-sélection du rôle client
+      return null; // Laisser passer
+    }
+    
+    // Sinon, aller à la sélection de rôle
     return <Navigate to="/role-selection" replace />;
   }
 
