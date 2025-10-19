@@ -13477,6 +13477,16 @@ export type Database = {
           total_revenue: number
         }[]
       }
+      get_partner_stats_optimized: {
+        Args: { partner_user_id: string }
+        Returns: {
+          active_drivers: number
+          monthly_commissions: number
+          partner_id: string
+          subscribed_drivers: number
+          total_commissions: number
+        }[]
+      }
       get_partner_subscription_balance: {
         Args: { p_partner_id: string }
         Returns: number
@@ -13773,6 +13783,18 @@ export type Database = {
       get_vendor_follower_count: {
         Args: { vendor_user_id: string }
         Returns: number
+      }
+      get_vendor_stats_optimized: {
+        Args: { vendor_user_id: string }
+        Returns: {
+          active_products: number
+          escrow_balance: number
+          pending_escrow: number
+          pending_orders: number
+          pending_products: number
+          seller_id: string
+          total_orders: number
+        }[]
       }
       get_vendor_total_reviews: {
         Args: { vendor_user_id: string }

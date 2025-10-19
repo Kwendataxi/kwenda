@@ -13,7 +13,7 @@ interface AdminDashboardProps {
   onBack: () => void;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
+export const MarketplaceAdminView: React.FC<AdminDashboardProps> = ({ onBack }) => {
   const { toast } = useToast();
   const [stats, setStats] = useState({
     totalUsers: 0,
