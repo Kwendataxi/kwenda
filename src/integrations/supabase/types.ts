@@ -10528,6 +10528,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_accounts: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string
+          is_active: boolean | null
+          last_accessed_at: string | null
+          linked_email: string
+          primary_user_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_accessed_at?: string | null
+          linked_email: string
+          primary_user_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_accessed_at?: string | null
+          linked_email?: string
+          primary_user_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_activity_log: {
         Row: {
           activity_type: string
