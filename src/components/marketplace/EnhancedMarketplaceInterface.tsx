@@ -11,11 +11,15 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChatProvider } from '@/components/chat/ChatProvider';
 
-// Components
-import { CategoryFilter } from './CategoryFilter';
-import { SearchBar } from './SearchBar';
+// Components modernes
+import { ModernMarketplaceHeader } from './ModernMarketplaceHeader';
+import { ModernProductCard } from './ModernProductCard';
+import { CategoryScrollBar } from './CategoryScrollBar';
+import { QuickFiltersBar } from './QuickFiltersBar';
+import { ResponsiveGrid } from '../ui/responsive-grid';
+
+// Anciens composants (conservés pour compatibilité)
 import { ImageUploadProgress, ImageUploadStatus } from './ImageUploadProgress';
-import { CompactProductCard } from './CompactProductCard';
 import { ProductGrid } from './ProductGrid';
 import { UnifiedShoppingCart } from './cart/UnifiedShoppingCart';
 import { ProductDetailsDialog } from './ProductDetailsDialog';
@@ -30,7 +34,6 @@ import { OrderTracker } from './OrderTracker';
 import { AdvancedOrderTracker } from './AdvancedOrderTracker';
 import { VerifiedSellerGuard } from './VerifiedSellerGuard';
 import { AdvancedFilters } from './AdvancedFilters';
-
 import { DeliveryFeeApprovalDialog } from './DeliveryFeeApprovalDialog';
 import { EditProductForm } from './EditProductForm';
 
@@ -41,55 +44,14 @@ import { useUserVerification } from '@/hooks/useUserVerification';
 import { useWallet } from '@/hooks/useWallet';
 import { useMarketplaceChat } from '@/hooks/useMarketplaceChat';
 
-interface Product {
-  id: string;
-  title: string;
-  price: number;
-  images: string[];
-  image: string;
-  category: string;
-  condition: string;
-  description: string;
-  seller_id: string;
-  seller: { display_name: string };
-  location: string;
-  coordinates?: { lat: number; lng: number };
-  inStock: boolean;
-  stockCount: number;
-  rating: number;
-  reviews: number;
-  brand?: string;
-  specifications?: Record<string, any>;
-  viewCount?: number;
-  salesCount?: number;
-  popularityScore?: number;
-  created_at?: string;
-}
+// Utiliser les types unifiés de marketplace.ts
+import { MarketplaceProduct, CartItem as MarketplaceCartItem, HorizontalProduct, productToCartItem } from '@/types/marketplace';
 
-interface HorizontalProduct {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  rating: number;
-  reviewCount: number;
-  category: string;
-  seller: string;
-  sellerId: string;
-  isAvailable: boolean;
-  location?: { lat: number; lng: number };
-}
+// Alias pour rétro-compatibilité
+type Product = MarketplaceProduct;
+type CartItem = MarketplaceCartItem;
 
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  quantity: number;
-  seller: string;
-  seller_id: string;
-  coordinates?: { lat: number; lng: number };
-}
+// Interfaces déplacées vers src/types/marketplace.ts
 
 interface EnhancedMarketplaceInterfaceProps {
   onNavigate: (path: string) => void;
@@ -240,6 +202,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
           viewCount: product.view_count || 0,
           salesCount: product.sales_count || 0,
           popularityScore: product.popularity_score || 0,
+          moderation_status: product.moderation_status || 'pending',
         };
       });
 
@@ -878,10 +841,6 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
   const renderShopTab = () => (
     <div className="space-y-4">
-      <CategoryFilter
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-      />
 
       {/* SECTION TENDANCES */}
       {trendingProducts.length > 0 && (
@@ -955,27 +914,19 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
             <MapPin className="h-5 w-5 text-green-500" />
             Près de chez vous
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {nearbyCalculated.slice(0, 4).map(p => {
-              const converted = convertToHorizontalProduct(p);
-              return (
-                <CompactProductCard 
-                  key={converted.id} 
-                  product={converted}
-                  onAddToCart={() => {
-                    const originalProduct = nearbyCalculated.find(pr => pr.id === p.id);
-                    if (originalProduct) addToCart(originalProduct);
-                  }}
-                  onViewDetails={() => {
-                    setSelectedProduct(p);
-                    setIsProductDetailsOpen(true);
-                  }}
-                  onViewSeller={setSelectedVendorId}
-                  userLocation={coordinates}
-                />
-              );
-            })}
-          </div>
+          <ResponsiveGrid cols={{ default: 2, md: 4 }} gap="md">
+            {nearbyCalculated.slice(0, 4).map(p => (
+              <ModernProductCard
+                key={p.id}
+                product={p}
+                onAddToCart={() => addToCart(p)}
+                onViewDetails={() => {
+                  setSelectedProduct(p);
+                  setIsProductDetailsOpen(true);
+                }}
+              />
+            ))}
+          </ResponsiveGrid>
         </section>
       )}
 
@@ -997,23 +948,25 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
             <option value="newest">Plus récents</option>
           </select>
         </div>
-        <ProductGrid
-          products={filteredProducts.map(p => convertToHorizontalProduct(p))}
-          onAddToCart={(product) => {
-            const originalProduct = filteredProducts.find(p => p.id === product.id);
-            if (originalProduct) addToCart(originalProduct);
-          }}
-          onViewDetails={(product) => {
-            const originalProduct = filteredProducts.find(p => p.id === product.id);
-            if (originalProduct) {
-              setSelectedProduct(originalProduct);
-              setIsProductDetailsOpen(true);
-            }
-          }}
-          onViewSeller={setSelectedVendorId}
-          userLocation={coordinates}
-          loading={loading}
-        />
+        <ResponsiveGrid cols={{ default: 1, sm: 2, lg: 3 }} gap="md">
+          {loading ? (
+            <p className="text-center text-muted-foreground col-span-full">Chargement...</p>
+          ) : filteredProducts.length === 0 ? (
+            <p className="text-center text-muted-foreground col-span-full">Aucun produit trouvé</p>
+          ) : (
+            filteredProducts.map(product => (
+              <ModernProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={() => addToCart(product)}
+                onViewDetails={() => {
+                  setSelectedProduct(product);
+                  setIsProductDetailsOpen(true);
+                }}
+              />
+            ))
+          )}
+        </ResponsiveGrid>
       </section>
     </div>
   );
