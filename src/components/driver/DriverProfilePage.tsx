@@ -18,8 +18,18 @@ import { DriverStats } from './DriverStats';
 import { DriverOrderHistory } from './DriverOrderHistory';
 import { DriverDocuments } from './DriverDocuments';
 import { DriverSettings } from './DriverSettings';
+import { WalletPanel } from './modals/WalletPanel';
+import { PromoCodePanel } from './modals/PromoCodePanel';
+import { ReferralPanel } from './modals/ReferralPanel';
+import { BadgesPanel } from './modals/BadgesPanel';
+import { VehiclesModal } from './modals/VehiclesModal';
+import { ServiceZonesModal } from './modals/ServiceZonesModal';
+import { NotificationsPanel } from './modals/NotificationsPanel';
+import { PartnerCodeModal } from './modals/PartnerCodeModal';
+import { SupportPanel } from './modals/SupportPanel';
+import { SecurityPanel } from './modals/SecurityPanel';
 
-type DialogView = 'history' | 'vehicles' | 'zones' | 'notifications' | 'settings' | 'partner-code' | 'support' | 'security' | 'documents' | null;
+type DialogView = 'wallet' | 'promo' | 'referral' | 'badges' | 'history' | 'vehicles' | 'zones' | 'notifications' | 'settings' | 'partner-code' | 'support' | 'security' | 'documents' | null;
 
 export const DriverProfilePage: React.FC = () => {
   const { user } = useAuth();
@@ -64,10 +74,10 @@ export const DriverProfilePage: React.FC = () => {
   ];
 
   const quickActions = [
-    { icon: Wallet, label: 'Wallet', color: 'bg-green-50 text-green-700', href: '#wallet' },
-    { icon: Gift, label: 'Codes promo', color: 'bg-purple-50 text-purple-700', href: '#promo' },
-    { icon: Users, label: 'Parrainage', color: 'bg-blue-50 text-blue-700', href: '#referral' },
-    { icon: Trophy, label: 'Badges', color: 'bg-yellow-50 text-yellow-700', href: '#badges' },
+    { icon: Wallet, label: 'Wallet', color: 'bg-green-50 text-green-700', action: 'wallet' as DialogView },
+    { icon: Gift, label: 'Codes promo', color: 'bg-purple-50 text-purple-700', action: 'promo' as DialogView },
+    { icon: Users, label: 'Parrainage', color: 'bg-blue-50 text-blue-700', action: 'referral' as DialogView },
+    { icon: Trophy, label: 'Badges', color: 'bg-yellow-50 text-yellow-700', action: 'badges' as DialogView },
   ];
 
   return (
@@ -89,9 +99,7 @@ export const DriverProfilePage: React.FC = () => {
                 <button
                   key={action.label}
                   className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-muted transition-colors"
-                  onClick={() => {
-                    toast.info(`${action.label} - Bientôt disponible`);
-                  }}
+                  onClick={() => setDialogView(action.action)}
                 >
                   <div className={`p-3 rounded-full ${action.color}`}>
                     <Icon className="h-5 w-5" />
@@ -119,19 +127,10 @@ export const DriverProfilePage: React.FC = () => {
                     <button
                       key={item.label}
                       className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left"
-                      onClick={() => {
-                        if (item.action === 'history' || item.action === 'settings' || item.action === 'documents') {
-                          setDialogView(item.action);
-                        } else {
-                          toast.info(`${item.label} - Bientôt disponible`);
-                        }
-                      }}
+                      onClick={() => setDialogView(item.action)}
                     >
                       <Icon className={`h-5 w-5 ${item.color}`} />
                       <span className="flex-1">{item.label}</span>
-                      {(item.action === 'history' || item.action === 'settings' || item.action === 'documents') && (
-                        <AlertCircle className="h-4 w-4 text-primary" />
-                      )}
                     </button>
                   );
                 })}
@@ -161,14 +160,34 @@ export const DriverProfilePage: React.FC = () => {
         <DialogContent className="max-w-screen-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
+              {dialogView === 'wallet' && 'Mon Wallet'}
+              {dialogView === 'promo' && 'Codes Promo'}
+              {dialogView === 'referral' && 'Parrainage'}
+              {dialogView === 'badges' && 'Mes Badges'}
               {dialogView === 'history' && 'Historique des courses'}
+              {dialogView === 'vehicles' && 'Mes véhicules'}
+              {dialogView === 'zones' && 'Zones de service'}
+              {dialogView === 'notifications' && 'Notifications'}
               {dialogView === 'settings' && 'Paramètres'}
+              {dialogView === 'partner-code' && 'Code Partenaire'}
+              {dialogView === 'support' && 'Support Client'}
+              {dialogView === 'security' && 'Sécurité'}
               {dialogView === 'documents' && 'Mes documents'}
             </DialogTitle>
           </DialogHeader>
 
+          {dialogView === 'wallet' && <WalletPanel />}
+          {dialogView === 'promo' && <PromoCodePanel />}
+          {dialogView === 'referral' && <ReferralPanel />}
+          {dialogView === 'badges' && <BadgesPanel />}
           {dialogView === 'history' && <DriverOrderHistory />}
+          {dialogView === 'vehicles' && <VehiclesModal />}
+          {dialogView === 'zones' && <ServiceZonesModal />}
+          {dialogView === 'notifications' && <NotificationsPanel />}
           {dialogView === 'settings' && <DriverSettings />}
+          {dialogView === 'partner-code' && <PartnerCodeModal />}
+          {dialogView === 'support' && <SupportPanel />}
+          {dialogView === 'security' && <SecurityPanel />}
           {dialogView === 'documents' && <DriverDocuments />}
         </DialogContent>
       </Dialog>
