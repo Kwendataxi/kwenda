@@ -16,12 +16,38 @@ export const useVendorSubscription = () => {
 
       const { data, error } = await supabase
         .from('vendor_active_subscriptions' as any)
-        .select('*, vendor_subscription_plans (*)')
+        .select(`
+          id,
+          vendor_id,
+          plan_id,
+          status,
+          payment_method,
+          start_date,
+          end_date,
+          auto_renew,
+          vendor_subscription_plans (
+            id,
+            name,
+            description,
+            monthly_price,
+            currency,
+            max_products,
+            commission_rate,
+            priority_support,
+            analytics_enabled,
+            verified_badge,
+            features
+          )
+        `)
         .eq('vendor_id', user.id)
         .eq('status', 'active')
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Subscription query error:', error);
+        throw error;
+      }
+      
       return data as any;
     },
     enabled: !!user,

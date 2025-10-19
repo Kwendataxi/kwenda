@@ -95,7 +95,12 @@ export const VendorShopSettings: React.FC = () => {
         return;
       }
 
-      const { error } = await supabase
+      console.log('💾 Saving vendor profile:', {
+        user_id: user.id,
+        shop_name: profile.shop_name
+      });
+
+      const { data: savedData, error } = await supabase
         .from('vendor_profiles')
         .upsert({
           user_id: user.id,
@@ -105,9 +110,16 @@ export const VendorShopSettings: React.FC = () => {
           shop_logo_url: profile.shop_logo_url
         }, {
           onConflict: 'user_id'
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error saving profile:', error);
+        throw error;
+      }
+
+      console.log('✅ Profile saved successfully:', savedData);
 
       toast({
         title: 'Boutique mise à jour',

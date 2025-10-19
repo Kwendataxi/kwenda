@@ -59,6 +59,14 @@ export const useVendorOrders = () => {
       // Enrichir avec les infos produit
       const enrichedOrders: VendorOrder[] = orders?.map((order: any) => {
         const product = vendorProducts.find((p: any) => p.id === order.product_id);
+        
+        // Fallback pour buyer_phone si null (migration en cours)
+        let buyerPhone = order.buyer_phone;
+        if (!buyerPhone) {
+          console.warn('⚠️ buyer_phone manquant pour commande:', order.id);
+          buyerPhone = 'Non disponible';
+        }
+        
         return {
           id: order.id,
           product_id: order.product_id,
@@ -66,7 +74,7 @@ export const useVendorOrders = () => {
           total_price: order.unit_price * order.quantity,
           currency: 'CDF',
           delivery_address: order.delivery_address || 'Non renseignée',
-          buyer_contact: order.buyer_phone || 'Non renseigné',
+          buyer_contact: buyerPhone,
           vendor_confirmation_status: order.vendor_confirmation_status,
           status: order.status,
           created_at: order.created_at,

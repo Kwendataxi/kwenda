@@ -54,27 +54,77 @@ export const VendorSubscriptionManager = () => {
       // 1. Charger les plans disponibles
       const { data: plansData, error: plansError } = await supabase
         .from('vendor_subscription_plans')
-        .select('*')
+        .select(`
+          id,
+          name,
+          name_en,
+          description,
+          monthly_price,
+          currency,
+          duration_days,
+          duration_type,
+          max_products,
+          commission_rate,
+          priority_support,
+          analytics_enabled,
+          verified_badge,
+          features,
+          is_active,
+          is_popular
+        `)
         .eq('is_active', true)
         .order('monthly_price', { ascending: true });
 
-      if (plansError) throw plansError;
+      if (plansError) {
+        console.error('❌ Error loading plans:', plansError);
+        throw plansError;
+      }
+      
+      console.log('✅ Plans loaded:', plansData);
       setPlans(plansData as any || []);
 
       // 2. Charger l'abonnement actif
       const { data: subData, error: subError } = await supabase
         .from('vendor_active_subscriptions' as any)
-        .select('*, vendor_subscription_plans (*)')
+        .select(`
+          id,
+          vendor_id,
+          plan_id,
+          status,
+          payment_method,
+          start_date,
+          end_date,
+          auto_renew,
+          vendor_subscription_plans (
+            id,
+            name,
+            description,
+            monthly_price,
+            currency,
+            max_products,
+            commission_rate,
+            priority_support,
+            analytics_enabled,
+            verified_badge,
+            features
+          )
+        `)
         .eq('vendor_id', user.id)
         .eq('status', 'active')
         .maybeSingle();
 
-      if (subError && subError.code !== 'PGRST116') throw subError;
+      if (subError && subError.code !== 'PGRST116') {
+        console.error('❌ Error loading subscription:', subError);
+        throw subError;
+      }
+
+      console.log('✅ Current subscription:', subData);
 
       // 3. Si aucun abonnement, assigner le plan gratuit automatiquement
-      if (!subData && plansData) {
+      if (!subData && plansData && plansData.length > 0) {
         const freePlan = (plansData as any).find((p: any) => p.monthly_price === 0);
         if (freePlan) {
+          console.log('🎁 Auto-assigning free plan:', freePlan);
           await handleUpgrade(freePlan.id);
           return; // Recharger après assignation
         }
