@@ -103,6 +103,7 @@ import RestaurantSubscription from "./pages/restaurant/RestaurantSubscription";
 import RestaurantAuth from "./pages/RestaurantAuth";
 import RestaurantPOS from "./pages/restaurant/RestaurantPOS";
 import RestaurantProfile from "./pages/restaurant/RestaurantProfile";
+import AdminFoodManagement from "./pages/admin/AdminFoodManagement";
 import DriverVerifyEmail from "./pages/DriverVerifyEmail";
 import PartnerVerifyEmail from "./pages/PartnerVerifyEmail";
 import ClientVerifyEmail from "./pages/ClientVerifyEmail";
@@ -341,6 +342,11 @@ const AppContent = () => {
                     <Route path="/admin/qr-analytics" element={
                       <ProtectedRoute>
                         <QRAnalytics />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/food" element={
+                      <ProtectedRoute>
+                        <AdminFoodManagement />
                       </ProtectedRoute>
                     } />
                   </>

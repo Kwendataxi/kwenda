@@ -37,6 +37,7 @@ import { PricingManagementPanel } from '@/components/admin/PricingManagementPane
 import { ServiceConfigPanel } from '@/components/admin/ServiceConfigPanel';
 import { ProductModeration } from '@/pages/admin/marketplace/ProductModeration';
 import { AdminFoodDashboard } from '@/components/admin/food/AdminFoodDashboard';
+import AdminFoodManagement from '@/pages/admin/AdminFoodManagement';
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -291,6 +292,15 @@ const AdminApp = () => {
           <Suspense fallback={<LoadingFallback />}>
             <FlexiblePermissionGuard requiredPermissions={['food_admin']}>
               <AdminFoodDashboard />
+            </FlexiblePermissionGuard>
+          </Suspense>
+        );
+
+      case 'food-management':
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <FlexiblePermissionGuard requiredPermissions={['system_admin']}>
+              <AdminFoodManagement />
             </FlexiblePermissionGuard>
           </Suspense>
         );
