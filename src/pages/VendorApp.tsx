@@ -4,7 +4,7 @@ import { VendorProducts } from '@/components/vendor/VendorProducts';
 import { VendorOrders } from '@/components/vendor/VendorOrders';
 import { VendorEscrow } from '@/components/vendor/VendorEscrow';
 import { VendorSettings } from '@/components/vendor/VendorSettings';
-import { VendorNavigation } from '@/components/vendor/VendorNavigation';
+
 import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 
 export const VendorApp = () => {
@@ -13,7 +13,6 @@ export const VendorApp = () => {
       <UniversalAppHeader title="Espace Vendeur" />
 
       <div className="min-h-screen bg-background pt-[60px]">
-        <VendorNavigation />
         <Routes>
           <Route path="/" element={<VendorDashboard />} />
           <Route path="/produits" element={<VendorProducts />} />

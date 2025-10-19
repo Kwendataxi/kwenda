@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useVendorNotifications } from '@/hooks/useVendorNotifications';
 import { useVendorChat } from '@/hooks/useVendorChat';
-import { ModernVendorHeader } from '@/components/vendor/modern/ModernVendorHeader';
+import { UnifiedVendorHeader } from '@/components/vendor/UnifiedVendorHeader';
 import { FloatingBottomNav } from '@/components/vendor/modern/FloatingBottomNav';
 import { ModernStatCard } from '@/components/vendor/modern/ModernStatCard';
 import { QuickActionsBar } from '@/components/vendor/modern/QuickActionsBar';
@@ -70,11 +70,8 @@ export default function ModernVendorDashboard() {
   };
 
   return (
-    <div className={`min-h-screen bg-background ${isMobile ? 'pb-20' : ''}`}>
-      <ModernVendorHeader 
-        notificationCount={unreadCount}
-        onNotificationClick={() => setNotifCenterOpen(true)}
-      />
+    <div className="min-h-screen bg-background">
+      <UnifiedVendorHeader />
       
       <FloatingBottomNav 
         activeTab={activeTab}
@@ -82,7 +79,7 @@ export default function ModernVendorDashboard() {
         ordersBadge={stats.pendingOrders}
       />
 
-      <div className="container max-w-6xl mx-auto p-4 space-y-4">
+      <div className={`container max-w-6xl mx-auto p-4 pt-[92px] md:pt-[100px] space-y-4 ${isMobile ? 'pb-24' : 'pb-6'}`}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <ModernStatCard icon={Package} iconColor="red" label="Produits" value={`${stats.activeProducts}/${stats.totalProducts}`} />
           <ModernStatCard icon={CheckCircle} iconColor="red" label="Confirmations" value={stats.pendingOrders} />
