@@ -251,19 +251,7 @@ const AdminFoodManagement = () => {
 
         {/* COMMISSIONS TAB */}
         <TabsContent value="commissions">
-          <Card>
-            <CardHeader>
-              <CardTitle>Configuration des Commissions</CardTitle>
-              <CardDescription>
-                Gérer les taux de commission pour les restaurants
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Cette section utilisera la table restaurant_commission_config
-              </p>
-            </CardContent>
-          </Card>
+          <RestaurantCommissionConfig />
         </TabsContent>
       </Tabs>
     </div>

@@ -16,6 +16,7 @@ import {
   Navigation
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { DispatchMonitoringPanel } from "@/components/admin/transport/DispatchMonitoringPanel";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -116,9 +117,9 @@ const AdminTransportManagement = () => {
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+          <TabsTrigger value="dispatch">Dispatch</TabsTrigger>
           <TabsTrigger value="bookings">Courses</TabsTrigger>
           <TabsTrigger value="drivers">Chauffeurs</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
         {/* OVERVIEW TAB */}
@@ -308,6 +309,11 @@ const AdminTransportManagement = () => {
               </div>
             </>
           )}
+        </TabsContent>
+
+        {/* DISPATCH TAB */}
+        <TabsContent value="dispatch">
+          <DispatchMonitoringPanel />
         </TabsContent>
 
         {/* BOOKINGS TAB */}

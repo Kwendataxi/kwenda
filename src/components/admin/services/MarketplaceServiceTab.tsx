@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Settings } from 'lucide-react';
+import { EscrowManagementPanel } from '../marketplace/EscrowManagementPanel';
 
 interface MarketplaceServiceTabProps {
   services: any[];
@@ -17,6 +18,7 @@ export const MarketplaceServiceTab = ({ services, pricing, onToggleStatus }: Mar
       <TabsList>
         <TabsTrigger value="overview">Aperçu</TabsTrigger>
         <TabsTrigger value="commission">Commission</TabsTrigger>
+        <TabsTrigger value="escrow">Escrow</TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview">
@@ -82,6 +84,10 @@ export const MarketplaceServiceTab = ({ services, pricing, onToggleStatus }: Mar
             </div>
           </CardContent>
         </Card>
+      </TabsContent>
+
+      <TabsContent value="escrow">
+        <EscrowManagementPanel />
       </TabsContent>
     </Tabs>
   );

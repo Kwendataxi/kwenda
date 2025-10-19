@@ -16,6 +16,7 @@ import {
   Timer
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { DeliveryDriverAnalytics } from "@/components/admin/delivery/DeliveryDriverAnalytics";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -360,16 +361,7 @@ const AdminDeliveryManagement = () => {
 
         {/* DRIVERS TAB */}
         <TabsContent value="drivers">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestion des Livreurs</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Tableau de gestion détaillé des livreurs à implémenter
-              </p>
-            </CardContent>
-          </Card>
+          <DeliveryDriverAnalytics />
         </TabsContent>
 
         {/* ANALYTICS TAB */}
