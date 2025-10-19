@@ -6,14 +6,14 @@ import { motion } from 'framer-motion';
 import { 
   Car, Package, MoreHorizontal, Search, ShoppingBag, 
   Plus, Activity, Heart, BarChart3, Users, Settings,
-  Home, MapPin, Wallet, Star, Bell, Menu
+  Home, MapPin, Wallet, Star, Bell, Menu, CreditCard, Trophy, User
 } from 'lucide-react';
 
 export type UniversalTabType = 
   // Client tabs
   | 'home' | 'services' | 'orders' | 'wallet' | 'profile'
   // Driver tabs  
-  | 'rides' | 'deliveries' | 'earnings' | 'challenges' | 'more'
+  | 'orders' | 'earnings' | 'challenges' | 'subscription' | 'profile'
   // Partner tabs
   | 'dashboard' | 'fleet' | 'drivers' | 'analytics' | 'settings'
   // Admin tabs
@@ -41,11 +41,11 @@ const navigationConfigs = {
     { id: 'profile' as const, label: 'Profil', icon: Settings }
   ],
   driver: [
-    { id: 'rides' as const, label: 'Courses', icon: Car },
-    { id: 'deliveries' as const, label: 'Livraisons', icon: Package },
-    { id: 'earnings' as const, label: 'Gains', icon: BarChart3 },
-    { id: 'challenges' as const, label: 'Défis', icon: Star },
-    { id: 'more' as const, label: 'Plus', icon: MoreHorizontal, isMore: true }
+    { id: 'orders' as const, label: 'Courses', icon: Car },
+    { id: 'earnings' as const, label: 'Gains', icon: Wallet },
+    { id: 'challenges' as const, label: 'Défis', icon: Trophy },
+    { id: 'subscription' as const, label: 'Abonnement', icon: CreditCard },
+    { id: 'profile' as const, label: 'Profil', icon: User }
   ],
   partner: [
     { id: 'dashboard' as const, label: 'Tableau', icon: BarChart3 },

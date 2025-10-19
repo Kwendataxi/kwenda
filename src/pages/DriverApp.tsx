@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useDriverServiceType } from '@/hooks/useDriverServiceType';
 import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 import { UniversalBottomNavigation } from '@/components/navigation/UniversalBottomNavigation';
-import DriverMoreSheet from '@/components/driver/DriverMoreSheet';
 import { VTCDriverInterface } from '@/components/driver/VTCDriverInterface';
 import { DeliveryDriverInterface } from '@/components/driver/DeliveryDriverInterface';
 import { DriverWalletPanel } from '@/components/driver/DriverWalletPanel';
@@ -20,8 +19,7 @@ import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 
 const DriverApp = () => {
   const { loading, serviceType } = useDriverServiceType();
-  const [tab, setTab] = useState('orders');
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [tab, setTab] = useState<'orders' | 'earnings' | 'challenges' | 'subscription' | 'profile'>('orders');
 
   // 🔔 Activer les notifications système temps réel
   useSystemNotifications();
@@ -71,8 +69,6 @@ const DriverApp = () => {
           {tab === 'earnings' && <div className="responsive-padding"><DriverWalletPanel /></div>}
           {tab === 'subscription' && <div className="responsive-padding"><SubscriptionPlans /></div>}
           {tab === 'challenges' && <div className="responsive-padding"><DriverChallenges /></div>}
-          {tab === 'partner' && <div className="responsive-padding"><DriverCodeManager /></div>}
-          {tab === 'referrals' && <div className="responsive-padding"><DriverReferrals /></div>}
           {tab === 'profile' && (
             <div className="responsive-padding space-y-6">
               {serviceType === 'taxi' ? <VTCProfileManager /> : <DeliveryProfileManager />}
@@ -82,17 +78,11 @@ const DriverApp = () => {
 
         <UniversalBottomNavigation 
           userType="driver"
-          activeTab={tab as any} 
-          onTabChange={setTab as any}
-          onMoreAction={() => setMoreOpen(true)}
-        />
-        
-        <DriverMoreSheet 
-          open={moreOpen} 
-          onOpenChange={setMoreOpen}
-          onSelect={(selectedTab) => {
-            setTab(selectedTab);
-            setMoreOpen(false);
+          activeTab={tab} 
+          onTabChange={(newTab) => {
+            if (newTab === 'orders' || newTab === 'earnings' || newTab === 'challenges' || newTab === 'subscription' || newTab === 'profile') {
+              setTab(newTab);
+            }
           }}
         />
       </div>
