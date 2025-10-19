@@ -157,3 +157,6 @@ verify_jwt = true  # ✅ Validation temps réel du destinataire de transfert
 
 [functions.process-marketplace-sale]
 verify_jwt = false  # ✅ PHASE 4: Traitement automatique des commissions marketplace (appelé par trigger)
+
+[functions.smart-driver-dispatch]
+verify_jwt = true  # ✅ PHASE 4: Dispatch intelligent de chauffeurs avec scoring
