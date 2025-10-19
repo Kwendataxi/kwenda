@@ -2,7 +2,6 @@ import React from 'react';
 import { Store, ShoppingBag, User, Shield, Settings, CreditCard } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
-import { MarketplaceRoleSwitcher } from '@/components/marketplace/MarketplaceRoleSwitcher';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -65,11 +64,6 @@ export const VendorDesktopSidebar: React.FC<VendorDesktopSidebarProps> = ({
             </motion.button>
           );
         })}
-
-        {/* Footer avec retour marketplace */}
-        <div className="pt-4 mt-4 border-t">
-          <MarketplaceRoleSwitcher currentMode="vendor" />
-        </div>
       </nav>
     </aside>
   );

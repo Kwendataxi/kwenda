@@ -2,7 +2,6 @@ import React from 'react';
 import { Store } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { EnhancedThemeToggle } from '@/components/theme/EnhancedThemeToggle';
-import { MarketplaceRoleSwitcher } from '@/components/marketplace/MarketplaceRoleSwitcher';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -24,26 +23,15 @@ export const UnifiedVendorHeader: React.FC<UnifiedVendorHeaderProps> = ({ classN
         <div className="flex items-center justify-between h-[60px] md:h-[68px]">
           {/* LEFT: Titre avec bouton retour mobile */}
           <div className="flex items-center gap-2 md:gap-4">
-            {/* Bouton retour client (mobile uniquement) */}
-            {isMobile ? (
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.1 }}
-              >
-                <MarketplaceRoleSwitcher currentMode="vendor" className="scale-90" />
-              </motion.div>
-            ) : (
-              /* Icône Store (desktop uniquement) */
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200 }}
-                className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center"
-              >
-                <Store className="h-5 w-5 text-primary" />
-              </motion.div>
-            )}
+            {/* Icône Store */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200 }}
+              className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center"
+            >
+              <Store className="h-5 w-5 text-primary" />
+            </motion.div>
 
             {/* Titre */}
             <motion.h1
