@@ -12,7 +12,7 @@ interface SubscriptionPlan {
   id: string;
   name: string;
   description: string;
-  monthly_price: number;
+  price: number;
   max_products: number | null;
   commission_rate: number;
   features: string[];
@@ -59,7 +59,7 @@ export const VendorSubscriptionManager = () => {
           name,
           name_en,
           description,
-          monthly_price,
+          price,
           currency,
           duration_days,
           duration_type,
@@ -73,7 +73,7 @@ export const VendorSubscriptionManager = () => {
           is_popular
         `)
         .eq('is_active', true)
-        .order('monthly_price', { ascending: true });
+        .order('price', { ascending: true });
 
       if (plansError) {
         console.error('❌ Error loading plans:', plansError);
@@ -99,7 +99,7 @@ export const VendorSubscriptionManager = () => {
             id,
             name,
             description,
-            monthly_price,
+            price,
             currency,
             max_products,
             commission_rate,
@@ -122,7 +122,7 @@ export const VendorSubscriptionManager = () => {
 
       // 3. Si aucun abonnement, assigner le plan gratuit automatiquement
       if (!subData && plansData && plansData.length > 0) {
-        const freePlan = (plansData as any).find((p: any) => p.monthly_price === 0);
+        const freePlan = (plansData as any).find((p: any) => p.price === 0);
         if (freePlan) {
           console.log('🎁 Auto-assigning free plan:', freePlan);
           await handleUpgrade(freePlan.id);
@@ -158,7 +158,7 @@ export const VendorSubscriptionManager = () => {
         body: {
           plan_id: planId,
           vendor_id: user.id,
-          payment_method: selectedPlan.monthly_price === 0 ? 'free' : 'wallet'
+          payment_method: selectedPlan.price === 0 ? 'free' : 'wallet'
         }
       });
 
@@ -269,7 +269,7 @@ export const VendorSubscriptionManager = () => {
         <div className="grid gap-4 sm:grid-cols-3">
           {plans.map((plan, index) => {
             const isCurrentPlan = currentPlan?.id === plan.id;
-            const canUpgrade = !isCurrentPlan && (!currentPlan || plan.monthly_price > currentPlan.monthly_price);
+            const canUpgrade = !isCurrentPlan && (!currentPlan || plan.price > currentPlan.price);
 
             return (
               <motion.div
@@ -284,10 +284,10 @@ export const VendorSubscriptionManager = () => {
                       <div className="p-2 rounded-full bg-muted">
                         {getPlanIcon(plan.name)}
                       </div>
-                      {plan.monthly_price > 0 && (
-                        <Badge variant="outline">{plan.monthly_price.toLocaleString()} FC/mois</Badge>
+                      {plan.price > 0 && (
+                        <Badge variant="outline">{plan.price.toLocaleString()} FC/mois</Badge>
                       )}
-                      {plan.monthly_price === 0 && (
+                      {plan.price === 0 && (
                         <Badge variant="secondary">Gratuit</Badge>
                       )}
                     </div>

@@ -29,7 +29,7 @@ export const useVendorSubscription = () => {
             id,
             name,
             description,
-            monthly_price,
+            price,
             currency,
             max_products,
             commission_rate,
@@ -48,7 +48,7 @@ export const useVendorSubscription = () => {
         throw error;
       }
       
-      return data as any;
+      return data;
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
