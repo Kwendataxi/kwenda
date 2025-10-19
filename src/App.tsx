@@ -98,6 +98,7 @@ import VendorEditProduct from "./pages/VendorEditProduct";
 import MyProducts from "./pages/marketplace/MyProducts";
 import QRCodeManager from "./pages/admin/QRCodeManager";
 import QRAnalytics from "./pages/admin/QRAnalytics";
+import RestaurantApp from "./pages/RestaurantApp";
 import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
 import RestaurantMenuManager from "./pages/restaurant/RestaurantMenuManager";
 import RestaurantOrders from "./pages/restaurant/RestaurantOrders";
@@ -180,12 +181,12 @@ const AppContent = () => {
                 <Route path="/restaurant/verify-email" element={<RestaurantVerifyEmail />} />
                 <Route path="/app/restaurant" element={
                   <ProtectedRoute>
-                    <RestaurantDashboard />
+                    <RestaurantApp />
                   </ProtectedRoute>
                 } />
                 <Route path="/restaurant" element={
                   <ProtectedRoute>
-                    <RestaurantDashboard />
+                    <RestaurantApp />
                   </ProtectedRoute>
                 } />
                 <Route path="/restaurant/menu" element={
