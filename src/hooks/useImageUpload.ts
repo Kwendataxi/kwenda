@@ -3,6 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface UseImageUploadReturn {
   imagePreviews: string[];
+  uploadedFiles: File[];
   uploadImages: (files: FileList | null) => void;
   removeImage: (index: number) => void;
   isDragging: boolean;
@@ -14,6 +15,7 @@ export const useImageUpload = (
   maxSizeMB: number = 5
 ): UseImageUploadReturn => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
 
@@ -21,6 +23,9 @@ export const useImageUpload = (
     if (!files) return;
 
     const newFiles = Array.from(files).slice(0, maxImages - imagePreviews.length);
+    
+    // ✅ Stocker les Files objects originaux
+    setUploadedFiles(prev => [...prev, ...newFiles]);
     
     newFiles.forEach(file => {
       // Vérifier la taille
@@ -44,10 +49,12 @@ export const useImageUpload = (
 
   const removeImage = (index: number) => {
     setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   return {
     imagePreviews,
+    uploadedFiles,
     uploadImages,
     removeImage,
     isDragging,

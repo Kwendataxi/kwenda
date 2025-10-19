@@ -64,7 +64,7 @@ export default function VendorAddProduct() {
           condition: formData.condition,
           images: imageUrls,
           main_image_url: imageUrls[0] || null,
-          stock_quantity: formData.stock_count || 1,
+          stock_count: formData.stock_count || 1,
           brand: formData.brand || null,
           specifications: formData.specifications || {},
           moderation_status: 'pending',
@@ -81,10 +81,23 @@ export default function VendorAddProduct() {
       navigate('/vendeur');
       return true;
     } catch (error) {
-      console.error('Error adding product:', error);
+      // ✅ CORRECTION 5: Logs détaillés pour déboguer
+      console.error('❌ Error adding product:', error);
+      console.error('📋 Form data:', {
+        title: formData.title,
+        price: formData.price,
+        category: formData.category,
+        images_count: formData.images.length,
+        stock_count: formData.stock_count
+      });
+      
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Une erreur inconnue est survenue";
+      
       toast({
         title: "❌ Erreur",
-        description: "Une erreur est survenue lors de l'ajout du produit",
+        description: `Erreur: ${errorMessage}`,
         variant: "destructive"
       });
       return false;

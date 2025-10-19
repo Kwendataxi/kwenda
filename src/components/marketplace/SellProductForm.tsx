@@ -50,6 +50,7 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
 
   const { 
     imagePreviews, 
+    uploadedFiles,
     uploadImages, 
     removeImage, 
     isDragging, 
@@ -552,7 +553,27 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
         ) : (
           <Button
             onClick={async () => {
-              const success = await onSubmit({ ...formData, images: imagePreviews as any });
+              // ✅ CORRECTION 4: Validation avant submit
+              if (uploadedFiles.length === 0) {
+                toast({
+                  title: "Photos manquantes",
+                  description: "Ajoutez au moins une photo avant de publier",
+                  variant: "destructive"
+                });
+                return;
+              }
+              
+              if (!formData.title || !formData.price || !formData.category) {
+                toast({
+                  title: "Champs incomplets",
+                  description: "Remplissez tous les champs obligatoires",
+                  variant: "destructive"
+                });
+                return;
+              }
+              
+              // ✅ CORRECTION 2: Passer les Files objects au lieu des previews
+              const success = await onSubmit({ ...formData, images: uploadedFiles });
               if (success) {
                 setCurrentStep(1);
                 setFormData({
@@ -568,7 +589,7 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
                 });
               }
             }}
-            disabled={!isValid}
+            disabled={!isValid || uploadedFiles.length === 0}
             className="flex-1 bg-primary hover:bg-primary/90"
           >
             <CheckCircle className="h-4 w-4 mr-2" />
