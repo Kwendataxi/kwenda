@@ -10,6 +10,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { PushNotificationManager } from "@/components/notifications/PushNotificationManager";
 import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
 import { ABTestProvider } from "@/contexts/ABTestContext";
+import { ClickTracker } from "@/components/tracking/ClickTracker";
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import DynamicTheme from "@/components/theme/DynamicTheme";
@@ -453,6 +454,7 @@ const AppContent = () => {
         </PerformanceOptimizer>
       </DynamicTheme>
       <OfflineIndicator />
+      <ClickTracker />
     </>
   );
 };

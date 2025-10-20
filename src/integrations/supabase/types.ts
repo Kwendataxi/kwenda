@@ -3583,6 +3583,63 @@ export type Database = {
         }
         Relationships: []
       }
+      heatmap_clicks: {
+        Row: {
+          created_at: string
+          device_type: string
+          element_class: string | null
+          element_id: string | null
+          element_text: string | null
+          element_type: string | null
+          id: string
+          page: string
+          relative_x: number
+          relative_y: number
+          session_id: string
+          user_id: string | null
+          viewport_height: number
+          viewport_width: number
+          x: number
+          y: number
+        }
+        Insert: {
+          created_at?: string
+          device_type: string
+          element_class?: string | null
+          element_id?: string | null
+          element_text?: string | null
+          element_type?: string | null
+          id?: string
+          page: string
+          relative_x: number
+          relative_y: number
+          session_id: string
+          user_id?: string | null
+          viewport_height: number
+          viewport_width: number
+          x: number
+          y: number
+        }
+        Update: {
+          created_at?: string
+          device_type?: string
+          element_class?: string | null
+          element_id?: string | null
+          element_text?: string | null
+          element_type?: string | null
+          id?: string
+          page?: string
+          relative_x?: number
+          relative_y?: number
+          session_id?: string
+          user_id?: string | null
+          viewport_height?: number
+          viewport_width?: number
+          x?: number
+          y?: number
+        }
+        Relationships: []
+      }
       intelligent_places: {
         Row: {
           avenue: string | null
@@ -12677,6 +12734,33 @@ export type Database = {
         }
         Relationships: []
       }
+      heatmap_grid_density: {
+        Row: {
+          density: number | null
+          device_type: string | null
+          grid_x: number | null
+          grid_y: number | null
+          page: string | null
+          unique_users: number | null
+        }
+        Relationships: []
+      }
+      heatmap_top_elements: {
+        Row: {
+          avg_x: number | null
+          avg_y: number | null
+          click_count: number | null
+          device_type: string | null
+          element_class: string | null
+          element_id: string | null
+          element_text: string | null
+          element_type: string | null
+          page: string | null
+          unique_sessions: number | null
+          unique_users: number | null
+        }
+        Relationships: []
+      }
       partner_registration_monitoring: {
         Row: {
           activity_type: string | null
@@ -13039,6 +13123,10 @@ export type Database = {
       }
       cleanup_old_geocode_data: {
         Args: { days_old?: number }
+        Returns: number
+      }
+      cleanup_old_heatmap_data: {
+        Args: Record<PropertyKey, never>
         Returns: number
       }
       cleanup_old_notifications: {
