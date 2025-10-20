@@ -36,7 +36,7 @@ export const ClientLogin = () => {
   });
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const { user, session } = useAuth();
+  const { user, session, sessionReady } = useAuth();
   const { primaryRole, loading: roleLoading } = useUserRoles();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -61,8 +61,6 @@ export const ClientLogin = () => {
 
   // ✅ CORRIGÉ : Redirection avec sessionReady et loginIntent
   useEffect(() => {
-    const { sessionReady } = useAuth();
-    
     console.log('🔍 [ClientLogin] Auth state', { 
       hasUser: !!user, 
       hasSession: !!session, 
@@ -93,7 +91,7 @@ export const ClientLogin = () => {
       
       navigate(redirectPath, { replace: true });
     }
-  }, [user, session, primaryRole, roleLoading, navigate]);
+  }, [user, session, primaryRole, roleLoading, sessionReady, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
