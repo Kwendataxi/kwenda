@@ -80,26 +80,40 @@ export default function RestaurantAuth() {
         navigate('/restaurant');
       } else {
         // Connexion
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password
         });
 
         if (error) throw error;
 
-        // ✅ AJOUT : Définir loginIntent même à la connexion
+        console.log('✅ [RestaurantAuth] Login successful', { userId: data.user?.id });
+
+        // ✅ CORRECTION : Attendre stabilisation session (augmenter à 1000ms)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // ✅ CORRECTION : Forcer refresh session + attendre confirmation
+        const { data: { session: refreshedSession }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !refreshedSession) {
+          console.error('❌ Session non établie après connexion', sessionError);
+          throw new Error('Session non établie. Veuillez réessayer.');
+        }
+        
+        console.log('📦 Session refreshed', { 
+          hasSession: !!refreshedSession,
+          expiresAt: refreshedSession.expires_at
+        });
+
+        // ✅ CORRECTION : Définir loginIntent
         localStorage.setItem('kwenda_login_intent', 'restaurant');
         localStorage.setItem('kwenda_selected_role', 'restaurant');
 
-        console.log('✅ [RestaurantAuth] Connexion réussie, loginIntent défini:', {
-          loginIntent: localStorage.getItem('kwenda_login_intent'),
-          selectedRole: localStorage.getItem('kwenda_selected_role')
-        });
-
-        // ✅ Attendre 100ms pour garantir l'écriture localStorage
-        await new Promise(resolve => setTimeout(resolve, 100));
-
         toast.success('Bienvenue ! Connexion réussie.');
+        
+        // ✅ CORRECTION : Attendre 300ms pour garantir synchronisation
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         navigate('/restaurant');
       }
     } catch (error: any) {

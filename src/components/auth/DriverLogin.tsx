@@ -41,24 +41,64 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
 
       if (error) throw error;
 
-      if (data.user) {
-        // ✅ PHASE 1.2: Vérifier le rôle ET le statut is_active
-        const { data: roles, error: rolesError } = await supabase.rpc('get_user_roles', {
-          p_user_id: data.user.id
-        });
+      logger.info('✅ Login successful', { userId: data.user?.id });
 
-        if (rolesError) {
-          logger.error('Error fetching user roles', rolesError);
-          throw new Error('Erreur lors de la vérification du rôle');
+      // ✅ CORRECTION : Attendre stabilisation session (augmenter à 1000ms)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // ✅ CORRECTION : Forcer refresh session + attendre confirmation
+      const { data: { session: refreshedSession }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !refreshedSession) {
+        logger.error('❌ Session non établie après connexion', sessionError);
+        throw new Error('Session non établie. Veuillez réessayer.');
+      }
+      
+      logger.info('📦 Session refreshed', { 
+        hasSession: !!refreshedSession,
+        expiresAt: refreshedSession.expires_at,
+        userId: data.user?.id
+      });
+
+      if (data.user) {
+        // ✅ CORRECTION : Vérifier rôle avec retry si échec
+        let roles;
+        let retries = 3;
+        
+        while (retries > 0) {
+          const { data: rolesData, error: rolesError } = await supabase.rpc('get_user_roles', {
+            p_user_id: data.user.id
+          });
+
+          if (!rolesError && rolesData) {
+            roles = rolesData;
+            logger.info('✅ Roles verified:', {
+              roles: roles.map((r: any) => r.role)
+            });
+            break;
+          }
+          
+          if (rolesError?.message?.includes('JWT') || rolesError?.message?.includes('session')) {
+            retries--;
+            await new Promise(resolve => setTimeout(resolve, 500));
+            logger.warn(`⚠️ Retry get_user_roles (${3 - retries}/3)`);
+            continue;
+          }
+          
+          throw rolesError || new Error('Erreur lors de la vérification du rôle');
         }
 
-        const hasDriverRole = roles?.some((r: any) => r.role === 'driver');
+        if (!roles || roles.length === 0) {
+          throw new Error('Aucun rôle trouvé pour ce compte');
+        }
+
+        const hasDriverRole = roles.some((r: any) => r.role === 'driver');
 
         if (!hasDriverRole) {
           await supabase.auth.signOut();
           
           // Suggérer la bonne page selon le rôle
-          const otherRole = roles?.[0]?.role;
+          const otherRole = roles[0]?.role;
           let suggestion = '';
           
           if (otherRole === 'client') {
@@ -112,30 +152,22 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
         localStorage.setItem('kwenda_login_intent', 'driver');
         localStorage.setItem('kwenda_selected_role', 'driver');
 
-        // Gérer les multi-rôles
-        const userRoles = roles || [];
+        // ✅ CORRECTION : Stocker loginIntent pour redirection correcte
+        localStorage.setItem('kwenda_login_intent', 'driver');
+        localStorage.setItem('kwenda_selected_role', 'driver');
+
+        toast({
+          title: "Connexion réussie !",
+          description: "Bienvenue dans votre espace chauffeur",
+        });
+
+        // ✅ CORRECTION : Attendre 300ms pour garantir synchronisation
+        await new Promise(resolve => setTimeout(resolve, 300));
         
-        if (userRoles.length === 1) {
-          // Un seul rôle → Redirection directe
-          toast({
-            title: "Connexion réussie !",
-            description: "Bienvenue dans votre espace chauffeur",
-          });
-          
-          if (onSuccess) {
-            onSuccess();
-          } else {
-            navigate('/app/chauffeur');
-          }
+        if (onSuccess) {
+          onSuccess();
         } else {
-          // Plusieurs rôles → Sauvegarder une "intention" puis laisser ProtectedRoute gérer
-          toast({
-            title: "Connexion réussie !",
-            description: "Sélectionnez votre espace de travail",
-          });
-          
-          // Laisser ProtectedRoute rediriger vers /role-selection
-          navigate('/app/chauffeur'); // Sera intercepté par ProtectedRoute
+          navigate('/app/chauffeur');
         }
       }
     } catch (error: any) {

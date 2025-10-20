@@ -39,23 +39,63 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
 
       if (error) throw error;
 
-      if (data.user) {
-        // Vérifier que l'utilisateur a bien le rôle partner
-        const { data: roles, error: rolesError } = await supabase.rpc('get_user_roles', {
-          p_user_id: data.user.id
-        });
+      logger.info('✅ Login successful', { userId: data.user?.id });
 
-        if (rolesError) {
-          logger.error('Error fetching user roles', rolesError);
-          throw new Error('Erreur lors de la vérification du rôle');
+      // ✅ CORRECTION : Attendre stabilisation session (augmenter à 1000ms)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // ✅ CORRECTION : Forcer refresh session + attendre confirmation
+      const { data: { session: refreshedSession }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !refreshedSession) {
+        logger.error('❌ Session non établie après connexion', sessionError);
+        throw new Error('Session non établie. Veuillez réessayer.');
+      }
+      
+      logger.info('📦 Session refreshed', { 
+        hasSession: !!refreshedSession,
+        expiresAt: refreshedSession.expires_at,
+        userId: data.user?.id
+      });
+
+      if (data.user) {
+        // ✅ CORRECTION : Vérifier rôle avec retry si échec
+        let roles;
+        let retries = 3;
+        
+        while (retries > 0) {
+          const { data: rolesData, error: rolesError } = await supabase.rpc('get_user_roles', {
+            p_user_id: data.user.id
+          });
+
+          if (!rolesError && rolesData) {
+            roles = rolesData;
+            logger.info('✅ Roles verified:', {
+              roles: roles.map((r: any) => r.role)
+            });
+            break;
+          }
+          
+          if (rolesError?.message?.includes('JWT') || rolesError?.message?.includes('session')) {
+            retries--;
+            await new Promise(resolve => setTimeout(resolve, 500));
+            logger.warn(`⚠️ Retry get_user_roles (${3 - retries}/3)`);
+            continue;
+          }
+          
+          throw rolesError || new Error('Erreur lors de la vérification du rôle');
         }
 
-        const hasPartnerRole = roles?.some((r: any) => r.role === 'partner');
+        if (!roles || roles.length === 0) {
+          throw new Error('Aucun rôle trouvé pour ce compte');
+        }
+
+        const hasPartnerRole = roles.some((r: any) => r.role === 'partner');
 
         if (!hasPartnerRole) {
           await supabase.auth.signOut();
           
-          const otherRole = roles?.[0]?.role;
+          const otherRole = roles[0]?.role;
           let suggestion = '';
           
           if (otherRole === 'client') {
@@ -73,10 +113,17 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
         }
       }
 
+      // ✅ CORRECTION : Stocker loginIntent pour redirection correcte
+      localStorage.setItem('kwenda_login_intent', 'partner');
+      localStorage.setItem('kwenda_selected_role', 'partner');
+
       toast.success('Connexion réussie', {
         description: 'Bienvenue dans votre espace partenaire Kwenda'
       });
 
+      // ✅ CORRECTION : Attendre 300ms pour garantir synchronisation
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       if (onSuccess) {
         onSuccess();
       } else {

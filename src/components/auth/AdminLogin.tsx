@@ -39,6 +39,25 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
 
       if (error) throw error;
 
+      logger.info('✅ Login successful', { userId: data.user?.id });
+
+      // ✅ CORRECTION : Attendre stabilisation session (augmenter à 1000ms)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // ✅ CORRECTION : Forcer refresh session + attendre confirmation
+      const { data: { session: refreshedSession }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !refreshedSession) {
+        logger.error('❌ Session non établie après connexion', sessionError);
+        throw new Error('Session non établie. Veuillez réessayer.');
+      }
+      
+      logger.info('📦 Session refreshed', { 
+        hasSession: !!refreshedSession,
+        expiresAt: refreshedSession.expires_at,
+        userId: data.user?.id
+      });
+
       // Vérifier si l'utilisateur est admin via user_roles
       const { data: isAdmin, error: roleError } = await supabase
         .rpc('is_current_user_admin');
@@ -51,10 +70,17 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
         return;
       }
 
+      // ✅ CORRECTION : Stocker loginIntent pour redirection correcte
+      localStorage.setItem('kwenda_login_intent', 'admin');
+      localStorage.setItem('kwenda_selected_role', 'admin');
+
       toast.success('Connexion réussie', {
         description: 'Bienvenue dans l\'administration Kwenda'
       });
 
+      // ✅ CORRECTION : Attendre 300ms pour garantir synchronisation
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       if (onSuccess) {
         onSuccess();
       } else {

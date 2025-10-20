@@ -59,25 +59,38 @@ export const ClientLogin = () => {
     }
   };
 
-  // ✅ SIMPLIFIÉ : Rediriger si l'utilisateur est déjà connecté
+  // ✅ CORRIGÉ : Redirection avec sessionReady et loginIntent
   useEffect(() => {
+    const { sessionReady } = useAuth();
+    
     console.log('🔍 [ClientLogin] Auth state', { 
       hasUser: !!user, 
       hasSession: !!session, 
       primaryRole, 
-      roleLoading 
+      roleLoading,
+      sessionReady
     });
 
-    // Attendre que les rôles soient chargés
-    if (roleLoading) return;
+    // ✅ Attendre que TOUT soit chargé
+    if (roleLoading || !sessionReady) {
+      console.log('⏳ [ClientLogin] Waiting for roles/session...');
+      return;
+    }
     
     // Si pas connecté, ne rien faire
     if (!user || !session) return;
     
-    // Si rôle chargé, rediriger
-    if (primaryRole) {
+    // ✅ Vérifier loginIntent pour éviter redirection prématurée
+    const loginIntent = localStorage.getItem('kwenda_login_intent');
+    
+    // Si rôle chargé ET loginIntent = 'client', rediriger
+    if (primaryRole && loginIntent === 'client') {
       const redirectPath = getRedirectPath(primaryRole);
       console.log('🚀 [ClientLogin] Redirecting to', redirectPath);
+      
+      // Nettoyer loginIntent après usage
+      localStorage.removeItem('kwenda_login_intent');
+      
       navigate(redirectPath, { replace: true });
     }
   }, [user, session, primaryRole, roleLoading, navigate]);
@@ -102,37 +115,63 @@ export const ClientLogin = () => {
 
       logger.info('✅ Login successful', { userId: data.user?.id, hasSession: !!data.session });
 
-      // ✅ CORRECTION : Attendre que la session soit bien établie
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // ✅ CORRECTION : Attendre stabilisation session (augmenter à 1000ms)
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // ✅ CORRECTION : Forcer un refresh de la session
-      const { data: { session: refreshedSession } } = await supabase.auth.getSession();
+      // ✅ CORRECTION : Forcer refresh session + attendre confirmation
+      const { data: { session: refreshedSession }, error: sessionError } = await supabase.auth.getSession();
       
-      if (!refreshedSession) {
-        logger.error('❌ Session non établie après connexion');
-        throw new Error('Session non établie après connexion');
+      if (sessionError || !refreshedSession) {
+        logger.error('❌ Session non établie après connexion', sessionError);
+        throw new Error('Session non établie. Veuillez réessayer.');
       }
       
-      logger.info('📦 Session refreshed', { hasSession: !!refreshedSession });
+      logger.info('📦 Session refreshed', { 
+        hasSession: !!refreshedSession,
+        expiresAt: refreshedSession.expires_at,
+        userId: data.user?.id
+      });
 
       const user = data.user;
 
       if (user) {
-        // Vérifier que l'utilisateur a bien le rôle client
-        const { data: roles, error: rolesError } = await supabase.rpc('get_user_roles', {
-          p_user_id: user.id
-        });
+        // ✅ CORRECTION : Vérifier rôle avec retry si échec
+        let roles;
+        let retries = 3;
+        
+        while (retries > 0) {
+          const { data: rolesData, error: rolesError } = await supabase.rpc('get_user_roles', {
+            p_user_id: user.id
+          });
 
-        if (rolesError) {
-          logger.error('Error fetching user roles', rolesError);
-          throw new Error('Erreur lors de la vérification du rôle');
+          if (!rolesError && rolesData) {
+            roles = rolesData;
+            logger.info('✅ Roles verified:', {
+              roles: roles.map((r: any) => r.role)
+            });
+            break;
+          }
+          
+          if (rolesError?.message?.includes('JWT') || rolesError?.message?.includes('session')) {
+            // Retry si erreur de session
+            retries--;
+            await new Promise(resolve => setTimeout(resolve, 500));
+            logger.warn(`⚠️ Retry get_user_roles (${3 - retries}/3)`);
+            continue;
+          }
+          
+          throw rolesError || new Error('Erreur lors de la vérification du rôle');
         }
 
-        const hasClientRole = roles?.some((r: any) => r.role === 'client');
+        if (!roles || roles.length === 0) {
+          throw new Error('Aucun rôle trouvé pour ce compte');
+        }
+
+        const hasClientRole = roles.some((r: any) => r.role === 'client');
 
         if (!hasClientRole) {
           // Rediriger vers la bonne page selon le rôle
-          const otherRole = roles?.[0]?.role;
+          const otherRole = roles[0]?.role;
           
           await supabase.auth.signOut();
           
@@ -158,11 +197,18 @@ export const ClientLogin = () => {
           return;
         }
 
+        // ✅ CORRECTION : Stocker loginIntent pour redirection correcte
+        localStorage.setItem('kwenda_login_intent', 'client');
+        localStorage.setItem('kwenda_selected_role', 'client');
+
         toast({
           title: "Connexion réussie !",
           description: "Redirection en cours...",
         });
 
+        // ✅ CORRECTION : Attendre 300ms pour garantir synchronisation useAuth/useUserRoles
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         // La redirection sera gérée par useEffect avec useUserRoles
       }
     } catch (error: any) {
