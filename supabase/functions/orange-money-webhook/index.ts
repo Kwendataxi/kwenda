@@ -106,18 +106,32 @@ serve(async (req) => {
     if (newStatus === 'completed') {
       console.log(`💰 Crediting wallet for user ${transaction.user_id}`);
 
-      const { error: walletError } = await supabaseService
+      // Récupérer le wallet actuel
+      const { data: wallet, error: walletFetchError } = await supabaseService
         .from('user_wallets')
-        .update({
-          balance: supabaseService.rpc('increment', { 
-            x: transaction.amount 
-          }),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', transaction.user_id);
+        .select('balance')
+        .eq('user_id', transaction.user_id)
+        .single();
 
-      if (walletError) {
-        console.error("❌ Error updating wallet:", walletError);
+      if (walletFetchError || !wallet) {
+        console.error("❌ Error fetching wallet:", walletFetchError);
+      } else {
+        // Mettre à jour le solde
+        const newBalance = (wallet.balance || 0) + transaction.amount;
+        
+        const { error: walletError } = await supabaseService
+          .from('user_wallets')
+          .update({
+            balance: newBalance,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', transaction.user_id);
+
+        if (walletError) {
+          console.error("❌ Error updating wallet:", walletError);
+        } else {
+          console.log(`✅ Wallet updated: ${wallet.balance} → ${newBalance} CDF`);
+        }
       }
 
       // Logger l'activité

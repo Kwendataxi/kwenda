@@ -40,6 +40,12 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
+    const supabaseService = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       throw new Error("Authorization header is required");
@@ -91,12 +97,6 @@ serve(async (req) => {
     }
 
     const transactionId = `KWENDA_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-
-    const supabaseService = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
 
     const { data: transaction, error: insertError } = await supabaseService
       .from('payment_transactions')
