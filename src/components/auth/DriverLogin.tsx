@@ -276,7 +276,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                 Pas chauffeur ?
               </p>
               <div className="flex flex-wrap justify-center gap-2 text-sm">
-                <Link to="/auth" className="text-orange-600 dark:text-orange-400 hover:underline font-medium">
+                <Link to="/app/auth" className="text-orange-600 dark:text-orange-400 hover:underline font-medium">
                   Espace Client
                 </Link>
                 <span className="text-muted-foreground">•</span>

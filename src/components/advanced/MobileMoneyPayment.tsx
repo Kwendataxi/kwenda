@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CheckCircle, Loader2, Smartphone, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
 interface MobileMoneyPaymentProps {
   amount: number;
@@ -30,19 +31,25 @@ const MobileMoneyPayment = ({ amount, currency = "CDF", orderId, orderType, onSu
       id: 'airtel',
       name: 'Airtel Money',
       color: 'bg-red-500',
-      description: 'Paiement via Airtel Money'
+      description: 'Paiement via Airtel Money',
+      disabled: true,
+      badge: 'Bientôt'
     },
     {
       id: 'orange',
       name: 'Orange Money',
       color: 'bg-orange-500',
-      description: 'Paiement via Orange Money'
+      description: 'Paiement via Orange Money',
+      disabled: false,
+      badge: null
     },
     {
       id: 'mpesa',
       name: 'M-Pesa',
       color: 'bg-green-600',
-      description: 'Paiement via M-Pesa'
+      description: 'Paiement via M-Pesa',
+      disabled: true,
+      badge: 'Bientôt'
     }
   ];
 
@@ -168,11 +175,15 @@ const MobileMoneyPayment = ({ amount, currency = "CDF", orderId, orderType, onSu
                 <RadioGroupItem 
                   value={provider.id} 
                   id={provider.id}
+                  disabled={provider.disabled}
                   className="mt-1"
                 />
                 <Label 
                   htmlFor={provider.id}
-                  className="flex-1 cursor-pointer"
+                  className={cn(
+                    "flex-1",
+                    provider.disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                  )}
                 >
                   <div className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors">
                     <div className={`w-12 h-12 rounded-full ${provider.color} flex items-center justify-center`}>
@@ -182,8 +193,14 @@ const MobileMoneyPayment = ({ amount, currency = "CDF", orderId, orderType, onSu
                       <p className="font-medium text-base">{provider.name}</p>
                       <p className="text-sm text-muted-foreground">{provider.description}</p>
                     </div>
-                    <Badge variant="secondary" className="bg-green-100 text-green-700">
-                      Disponible
+                    <Badge 
+                      variant={provider.disabled ? "secondary" : "default"}
+                      className={provider.disabled 
+                        ? "bg-yellow-500 text-black font-bold" 
+                        : "bg-green-100 text-green-700"
+                      }
+                    >
+                      {provider.disabled ? provider.badge : 'Disponible'}
                     </Badge>
                   </div>
                 </Label>
