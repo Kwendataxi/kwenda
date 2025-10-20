@@ -65,6 +65,9 @@ verify_jwt = true
 [functions.mobile-money-payment]
 verify_jwt = true
 
+[functions.orange-money-webhook]
+verify_jwt = false
+
 [functions.push-notifications]
 verify_jwt = true
 
