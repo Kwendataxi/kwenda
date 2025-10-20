@@ -163,3 +163,6 @@ verify_jwt = false  # ✅ PHASE 4: Traitement automatique des commissions market
 
 [functions.smart-driver-dispatch]
 verify_jwt = true  # ✅ PHASE 4: Dispatch intelligent de chauffeurs avec scoring
+
+[functions.accept-delivery-fee]
+verify_jwt = true  # ✅ JWT requis pour acceptation frais de livraison marketplace
