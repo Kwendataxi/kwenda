@@ -4,6 +4,7 @@ import { useAdminFoodStats } from "@/hooks/admin/useAdminFoodStats";
 import { RestaurantManagement } from "@/components/admin/food/RestaurantManagement";
 import { FoodProductModeration } from "@/components/admin/food/FoodProductModeration";
 import { RestaurantSubscriptionAdmin } from "@/components/admin/food/RestaurantSubscriptionAdmin";
+import { RestaurantCommissionConfig } from "@/components/admin/restaurants/RestaurantCommissionConfig";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Store, 
