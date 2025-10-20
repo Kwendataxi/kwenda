@@ -107,3 +107,130 @@ self.addEventListener('message', (event) => {
     });
   }
 });
+
+// Background Sync API pour synchronisation offline
+self.addEventListener('sync', (event) => {
+  console.log('🔄 Background sync triggered:', event.tag);
+  
+  if (event.tag === 'sync-bookings') {
+    event.waitUntil(syncPendingBookings());
+  } else if (event.tag === 'sync-payments') {
+    event.waitUntil(syncPendingPayments());
+  } else if (event.tag === 'sync-messages') {
+    event.waitUntil(syncPendingMessages());
+  }
+});
+
+// Fonctions de synchronisation
+async function syncPendingBookings() {
+  try {
+    console.log('📥 Syncing pending bookings...');
+    
+    const db = await openIndexedDB();
+    const bookings = await getAllFromStore(db, 'pending_bookings');
+    
+    for (const booking of bookings) {
+      try {
+        const response = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(booking.data)
+        });
+        
+        if (response.ok) {
+          await deleteFromStore(db, 'pending_bookings', booking.id);
+          console.log('✅ Booking synced:', booking.id);
+        }
+      } catch (error) {
+        console.error('❌ Failed to sync booking:', booking.id, error);
+      }
+    }
+  } catch (error) {
+    console.error('Sync error:', error);
+  }
+}
+
+async function syncPendingPayments() {
+  try {
+    console.log('💰 Syncing pending payments...');
+    
+    const db = await openIndexedDB();
+    const payments = await getAllFromStore(db, 'pending_payments');
+    
+    for (const payment of payments) {
+      try {
+        const response = await fetch('/api/payments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payment.data)
+        });
+        
+        if (response.ok) {
+          await deleteFromStore(db, 'pending_payments', payment.id);
+          console.log('✅ Payment synced:', payment.id);
+        }
+      } catch (error) {
+        console.error('❌ Failed to sync payment:', payment.id, error);
+      }
+    }
+  } catch (error) {
+    console.error('Sync error:', error);
+  }
+}
+
+async function syncPendingMessages() {
+  try {
+    console.log('💬 Syncing pending messages...');
+    
+    const db = await openIndexedDB();
+    const messages = await getAllFromStore(db, 'pending_messages');
+    
+    for (const message of messages) {
+      try {
+        const response = await fetch('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(message)
+        });
+        
+        if (response.ok) {
+          await deleteFromStore(db, 'pending_messages', message.id);
+          console.log('✅ Message synced:', message.id);
+        }
+      } catch (error) {
+        console.error('❌ Failed to sync message:', message.id, error);
+      }
+    }
+  } catch (error) {
+    console.error('Sync error:', error);
+  }
+}
+
+// Helpers IndexedDB
+function openIndexedDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('kwenda-offline', 1);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function getAllFromStore(db, storeName) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, 'readonly');
+    const store = transaction.objectStore(storeName);
+    const request = store.getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function deleteFromStore(db, storeName, id) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
+    const request = store.delete(id);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}

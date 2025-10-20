@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/hooks/useAuth";
 import { PushNotificationManager } from "@/components/notifications/PushNotificationManager";
+import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import DynamicTheme from "@/components/theme/DynamicTheme";
@@ -450,6 +451,7 @@ const AppContent = () => {
           </BrowserRouter>
         </PerformanceOptimizer>
       </DynamicTheme>
+      <OfflineIndicator />
     </>
   );
 };
