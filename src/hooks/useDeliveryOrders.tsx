@@ -80,7 +80,14 @@ export const useDeliveryOrders = () => {
       return order;
     } catch (error: any) {
       console.error('Error creating delivery order:', error);
-      toast.error(error.message || 'Erreur lors de la création de la commande');
+      const errorMessage = error.message?.includes('location')
+        ? 'Zone de livraison non desservie. Vérifiez les adresses.'
+        : error.message?.includes('phone')
+        ? 'Numéro de téléphone invalide. Format: +243XXXXXXXXX'
+        : error.message?.includes('price')
+        ? 'Erreur de calcul tarifaire. Contactez le support.'
+        : error.message || 'Erreur lors de la création de la commande';
+      toast.error(errorMessage);
       return null;
     } finally {
       setLoading(false);
@@ -190,7 +197,14 @@ export const useDeliveryOrders = () => {
       return false;
     } catch (error: any) {
       console.error('Payment error:', error);
-      toast.error('Erreur lors du paiement');
+      const errorMessage = error.message?.includes('insufficient')
+        ? 'Solde insuffisant pour cette livraison'
+        : error.message?.includes('escrow')
+        ? 'Erreur de sécurisation des fonds. Réessayez.'
+        : error.message?.includes('mobile money')
+        ? 'Paiement mobile échoué. Vérifiez votre solde.'
+        : 'Erreur lors du paiement de la livraison';
+      toast.error(errorMessage);
       return false;
     }
   };

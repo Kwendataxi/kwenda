@@ -155,7 +155,12 @@ export const useWallet = () => {
       }
     } catch (error: any) {
       console.error('Top-up error:', error);
-      toast.error(error.message || 'Erreur lors de la recharge');
+      const errorMessage = error.message?.includes('insufficient')
+        ? 'Échec du paiement mobile. Vérifiez votre solde.'
+        : error.message?.includes('timeout')
+        ? 'La transaction a expiré. Réessayez dans quelques instants.'
+        : error.message || 'Erreur lors de la recharge du portefeuille';
+      toast.error(errorMessage);
       return false;
     } finally {
       setLoading(false);
@@ -221,7 +226,14 @@ export const useWallet = () => {
       }
     } catch (error: any) {
       console.error('Transfer error:', error);
-      toast.error(`Erreur: ${error.message}`);
+      const errorMessage = error.message?.includes('not found')
+        ? 'Destinataire introuvable. Vérifiez le numéro ou l\'identifiant.'
+        : error.message?.includes('rate limit')
+        ? 'Trop de transferts. Réessayez dans 1 heure (max 10/heure).'
+        : error.message?.includes('insufficient')
+        ? `Solde insuffisant (${wallet?.balance.toLocaleString()} CDF disponible)`
+        : error.message || 'Erreur lors du transfert';
+      toast.error(errorMessage);
       return false;
     } finally {
       setLoading(false);

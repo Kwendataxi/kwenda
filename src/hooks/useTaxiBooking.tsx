@@ -61,9 +61,16 @@ export const useTaxiBooking = () => {
       });
 
       return data.id;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur création réservation:', error);
-      toast.error('Impossible de créer la réservation');
+      const errorMessage = error.message?.includes('location')
+        ? 'Adresse invalide ou hors zone de service. Vérifiez votre localisation.'
+        : error.message?.includes('wallet')
+        ? 'Solde insuffisant. Rechargez votre portefeuille KwendaPay.'
+        : error.message?.includes('no drivers')
+        ? 'Aucun chauffeur disponible dans votre zone. Réessayez dans quelques minutes.'
+        : 'Impossible de créer la réservation. Vérifiez votre connexion.';
+      toast.error(errorMessage);
       return null;
     } finally {
       setLoading(false);

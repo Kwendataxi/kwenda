@@ -31,6 +31,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   return (
     <Card className="group overflow-hidden hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 bg-card/50 backdrop-blur-sm border-0 shadow-sm">
@@ -121,11 +122,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Action Button */}
         <Button 
           className="w-full h-12 mt-3 bg-primary hover:bg-primary/90 text-white font-medium touch-manipulation"
-          disabled={!product.inStock}
-          onClick={() => onAddToCart(product)}
+          disabled={!product.inStock || isAddingToCart}
+          onClick={async () => {
+            setIsAddingToCart(true);
+            try {
+              await onAddToCart(product);
+            } finally {
+              setTimeout(() => setIsAddingToCart(false), 800);
+            }
+          }}
         >
-          <ShoppingCart className="w-4 h-4 mr-2" />
-          {product.inStock ? 'Ajouter au panier' : 'Indisponible'}
+          {isAddingToCart ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+              Ajout en cours...
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              {product.inStock ? 'Ajouter au panier' : 'Indisponible'}
+            </>
+          )}
         </Button>
       </CardContent>
     </Card>
