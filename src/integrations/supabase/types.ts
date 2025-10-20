@@ -14,6 +14,108 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_experiments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          experiment_id: string
+          id: string
+          is_active: boolean
+          name: string
+          start_date: string
+          updated_at: string
+          variants: Json
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          experiment_id: string
+          id?: string
+          is_active?: boolean
+          name: string
+          start_date?: string
+          updated_at?: string
+          variants?: Json
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          experiment_id?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          start_date?: string
+          updated_at?: string
+          variants?: Json
+        }
+        Relationships: []
+      }
+      ab_test_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          experiment_id: string
+          id: string
+          page_path: string | null
+          session_id: string | null
+          user_id: string | null
+          variant: string
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          experiment_id: string
+          id?: string
+          page_path?: string | null
+          session_id?: string | null
+          user_id?: string | null
+          variant: string
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          experiment_id?: string
+          id?: string
+          page_path?: string | null
+          session_id?: string | null
+          user_id?: string | null
+          variant?: string
+        }
+        Relationships: []
+      }
+      ab_user_assignments: {
+        Row: {
+          assigned_at: string
+          experiment_id: string
+          id: string
+          user_id: string | null
+          variant: string
+        }
+        Insert: {
+          assigned_at?: string
+          experiment_id: string
+          id?: string
+          user_id?: string | null
+          variant: string
+        }
+        Update: {
+          assigned_at?: string
+          experiment_id?: string
+          id?: string
+          user_id?: string | null
+          variant?: string
+        }
+        Relationships: []
+      }
       activity_logs: {
         Row: {
           activity_type: string
@@ -12463,6 +12565,19 @@ export type Database = {
       }
     }
     Views: {
+      ab_experiment_metrics: {
+        Row: {
+          clicks: number | null
+          conversion_rate: number | null
+          conversions: number | null
+          ctr: number | null
+          experiment_id: string | null
+          unique_users: number | null
+          variant: string | null
+          views: number | null
+        }
+        Relationships: []
+      }
       active_driver_orders: {
         Row: {
           city: string | null
@@ -12752,6 +12867,16 @@ export type Database = {
       automated_security_maintenance: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      calculate_ab_significance: {
+        Args: { experiment_id_param: string }
+        Returns: {
+          confidence_level: number
+          conversion_rate: number
+          conversions: number
+          variant: string
+          views: number
+        }[]
       }
       calculate_delivery_estimate: {
         Args: { order_id_param: string }

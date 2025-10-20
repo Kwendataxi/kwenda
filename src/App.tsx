@@ -9,6 +9,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/hooks/useAuth";
 import { PushNotificationManager } from "@/components/notifications/PushNotificationManager";
 import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
+import { ABTestProvider } from "@/contexts/ABTestContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import DynamicTheme from "@/components/theme/DynamicTheme";
@@ -463,11 +464,13 @@ const App = () => (
         <AuthProvider>
           <FavoritesProvider>
             <LanguageProvider>
-              <TooltipProvider>
-                <ChatProvider>
-                  <AppContent />
-                </ChatProvider>
-              </TooltipProvider>
+              <ABTestProvider>
+                <TooltipProvider>
+                  <ChatProvider>
+                    <AppContent />
+                  </ChatProvider>
+                </TooltipProvider>
+              </ABTestProvider>
             </LanguageProvider>
           </FavoritesProvider>
         </AuthProvider>
