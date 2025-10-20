@@ -17,12 +17,24 @@ interface OrangeWebhookPayload {
 }
 
 serve(async (req) => {
+  // ✅ Accepter tous les paths pour compatibilité Orange Money (/notifications, /, etc.)
+  const url = new URL(req.url);
+  console.log(`🔔 Orange Money Webhook received on path: ${url.pathname}`);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Valider la méthode HTTP
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "Method not allowed. Use POST." }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 405 }
+    );
+  }
+
   try {
-    console.log("🔔 Orange Money Webhook received");
+    console.log("📦 Processing Orange Money notification...");
 
     const supabaseService = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
