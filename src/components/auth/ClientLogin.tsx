@@ -59,58 +59,26 @@ export const ClientLogin = () => {
     }
   };
 
-  // Rediriger si l'utilisateur est déjà connecté et a un rôle
+  // ✅ SIMPLIFIÉ : Rediriger si l'utilisateur est déjà connecté
   useEffect(() => {
-    logger.debug('🔍 [ClientLogin] State check', { 
+    console.log('🔍 [ClientLogin] Auth state', { 
       hasUser: !!user, 
       hasSession: !!session, 
       primaryRole, 
       roleLoading 
     });
 
-    // ✅ TIMEOUT ABSOLU : Forcer redirection après 2s MAX si roleLoading
-    if (user && session && roleLoading) {
-      const absoluteTimer = setTimeout(() => {
-        logger.warn('🚨 [ClientLogin] roleLoading timeout - forcing redirect');
-        navigate('/app/client');
-      }, 2000);
-
-      return () => clearTimeout(absoluteTimer);
-    }
-
-    // ✅ FALLBACK CRITIQUE : Forcer redirection après 1.5s si primaryRole est null
-    if (user && session && !primaryRole && !roleLoading) {
-      const fallbackTimer = setTimeout(() => {
-        logger.warn('⚠️ No primaryRole after 1.5s, forcing client role');
-        const redirectPath = getRedirectPath('client');
-        navigate(redirectPath);
-      }, 1500);
-
-      return () => clearTimeout(fallbackTimer);
-    }
-
-    if (user && session && primaryRole && !roleLoading) {
-      // ✅ CHECK : Est-ce un nouveau user ?
-      const createdAt = new Date(user.created_at);
-      const now = new Date();
-      const isNewUser = (now.getTime() - createdAt.getTime()) < 5 * 60 * 1000; // < 5 min
-      
-      const ctx = primaryRole === 'admin' ? 'admin'
-        : primaryRole === 'partner' ? 'partenaire'
-        : primaryRole === 'driver' ? 'chauffeur'
-        : 'client';
-      
-      const onboardingSeen = localStorage.getItem(`onboarding_seen::${ctx}`) === "1";
-      
-      if (isNewUser && !onboardingSeen) {
-        logger.info('🎉 New user detected - redirecting to onboarding', { userId: user.id });
-        navigate(`/onboarding?context=${encodeURIComponent(ctx)}`, { replace: true });
-        return;
-      }
-      
+    // Attendre que les rôles soient chargés
+    if (roleLoading) return;
+    
+    // Si pas connecté, ne rien faire
+    if (!user || !session) return;
+    
+    // Si rôle chargé, rediriger
+    if (primaryRole) {
       const redirectPath = getRedirectPath(primaryRole);
-      logger.info('🚀 Redirecting authenticated user', { userId: user.id, primaryRole, redirectPath });
-      navigate(redirectPath);
+      console.log('🚀 [ClientLogin] Redirecting to', redirectPath);
+      navigate(redirectPath, { replace: true });
     }
   }, [user, session, primaryRole, roleLoading, navigate]);
 
@@ -223,17 +191,6 @@ export const ClientLogin = () => {
     setStep('role-selection');
   };
 
-  // ✅ Emergency timeout dans useEffect (évite les timers multiples)
-  useEffect(() => {
-    if (roleLoading && user && session) {
-      const emergencyTimer = setTimeout(() => {
-        logger.error('🚨 roleLoading still true after 3s - emergency redirect');
-        navigate('/');
-      }, 3000);
-
-      return () => clearTimeout(emergencyTimer);
-    }
-  }, [roleLoading, user, session, navigate]);
 
   if (roleLoading) {
     return (

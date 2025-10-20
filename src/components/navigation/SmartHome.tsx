@@ -25,28 +25,18 @@ export const SmartHome = () => {
     return <Navigate to="/app/auth" replace />;
   }
 
-  // CONNECTÉ : redirection selon le rôle
-  const loginIntent = localStorage.getItem('kwenda_login_intent') as 'restaurant' | 'driver' | 'partner' | 'admin' | 'client' | null;
-  const targetRole = loginIntent || userRole || 'client';
+  // ✅ CONNECTÉ : Redirection simple selon userRole
+  const redirectPath = userRole === 'admin' ? '/app/admin'
+    : userRole === 'partner' ? '/app/partenaire'
+    : userRole === 'driver' ? '/app/chauffeur'
+    : userRole === 'restaurant' ? '/app/restaurant'
+    : '/app/client';
   
-  console.log('🚀 [SmartHome] Redirection utilisateur connecté:', {
-    loginIntent,
+  console.log('🚀 [SmartHome] Redirecting user', {
     userRole,
-    targetRole,
-    userId: user.id,
-    isMobilePlatform
+    redirectPath,
+    userId: user.id
   });
   
-  switch (targetRole) {
-    case 'restaurant':
-      return <Navigate to="/app/restaurant" replace />;
-    case 'driver':
-      return <Navigate to="/app/chauffeur" replace />;
-    case 'partner':
-      return <Navigate to="/app/partenaire" replace />;
-    case 'admin':
-      return <Navigate to="/app/admin" replace />;
-    default:
-      return <Navigate to="/app/client" replace />;
-  }
+  return <Navigate to={redirectPath} replace />;
 };

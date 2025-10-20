@@ -42,9 +42,16 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
     return <Navigate to={APP_CONFIG.authRoute} state={{ from: location }} replace />;
   }
 
-  // ✅ PHASE 1.2: Vérifier le rôle requis EN PREMIER (avant auto-sélection)
+  // ✅ Vérifier le rôle requis et rediriger si nécessaire
   if (requireAuth && user && requiredRole && !rolesLoading) {
     const hasRequiredRole = userRoles.some(ur => ur.role === requiredRole);
+    
+    console.log('🔍 [ProtectedRoute] Role check', { 
+      requiredRole, 
+      hasRequiredRole, 
+      userRoles: userRoles.map(r => r.role),
+      path: location.pathname 
+    });
     
     if (!hasRequiredRole) {
       const roleRoutes: Record<string, string> = {
@@ -54,11 +61,10 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
         'admin': '/operatorx/admin/auth'
       };
       
-      navigate(roleRoutes[requiredRole] || '/app/auth');
-      return null;
+      return <Navigate to={roleRoutes[requiredRole] || '/app/auth'} replace />;
     }
     
-    // ✅ FORCER la sélection du rôle requis si pas déjà fait
+    // ✅ Forcer la sélection du rôle requis si pas déjà fait
     if (!hasSelectedRole() || selectedRole !== requiredRole) {
       setSelectedRole(requiredRole);
     }
@@ -68,6 +74,12 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
   if (user && !rolesLoading && userRoles.length > 1 && !hasSelectedRole() && location.pathname !== '/role-selection') {
     // Vérifier s'il y a une intention de connexion (driver/partner/admin)
     const loginIntent = localStorage.getItem('kwenda_login_intent');
+    
+    console.log('🔍 [ProtectedRoute] Multiple roles detected', { 
+      userRoles: userRoles.map(r => r.role), 
+      loginIntent,
+      path: location.pathname
+    });
     
     // Si intention spécifique (driver, partner, admin), utiliser cette intention
     if (loginIntent && loginIntent !== 'client' && loginIntent !== 'vendor') {
