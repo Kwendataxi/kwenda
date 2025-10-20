@@ -18,33 +18,34 @@ interface ServiceSelectorProps {
   onServiceSelect: (serviceId: string) => void;
 }
 
+// ✅ TARIFS 2025 - Synchronisés avec pricing_rules
 const services: Service[] = [
   { 
     id: 'flash', 
     icon: Bike, 
     label: 'Flash', 
     subtitle: 'Livraison express en moto',
-    price: 'À partir de 5 000 CDF',
+    price: 'À partir de 7 000 CDF',
     weightLimit: '1-5 kg',
-    basePrice: 5000
+    basePrice: 7000
   },
   { 
     id: 'flex', 
     icon: Car, 
     label: 'Flex', 
     subtitle: 'Livraison standard en camionnette',
-    price: 'À partir de 7 000 CDF',
+    price: 'À partir de 55 000 CDF',
     weightLimit: '6-50 kg',
-    basePrice: 7000
+    basePrice: 55000
   },
   { 
     id: 'maxicharge', 
     icon: Truck, 
     label: 'MaxiCharge', 
     subtitle: 'Livraison lourde en camion',
-    price: 'À partir de 12 000 CDF',
+    price: 'À partir de 100 000 CDF',
     weightLimit: '50+ kg',
-    basePrice: 12000
+    basePrice: 100000
   }
 ];
 

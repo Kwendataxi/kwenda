@@ -14,7 +14,7 @@ const LivraisonExpress = () => {
       name: "Flash",
       description: "Livraison express en moto",
       time: "30-60 min",
-      price: "5000 FC + 500/km",
+      price: "7000 CDF + 500/km",
       icon: <Package className="w-8 h-8" />,
       features: ["Ultra rapide", "Suivi temps réel", "Notifications SMS"]
     },
@@ -22,7 +22,7 @@ const LivraisonExpress = () => {
       name: "Flex",
       description: "Livraison standard",
       time: "2-4 heures",
-      price: "3000 FC + 300/km",
+      price: "55000 CDF + 2500/km",
       icon: <Truck className="w-8 h-8" />,
       features: ["Économique", "Livraison sûre", "Flexible"]
     },
@@ -30,7 +30,7 @@ const LivraisonExpress = () => {
       name: "Maxicharge",
       description: "Gros colis en camion",
       time: "4-8 heures",
-      price: "8000 FC + 800/km",
+      price: "100000 CDF + 5000/km",
       icon: <Truck className="w-8 h-8" />,
       features: ["Gros volumes", "Équipement spécialisé", "Manutention incluse"]
     }

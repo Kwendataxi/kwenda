@@ -44,20 +44,28 @@ export function PricingManagementPanel() {
             <CardContent>
               <div className="space-y-4">
                 <div className="rounded-lg border p-4">
-                  <h4 className="font-semibold mb-2">Kinshasa</h4>
+                  <h4 className="font-semibold mb-2">Kinshasa - Tarifs 2025</h4>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Flash</p>
-                      <p className="text-lg font-bold">5000 CDF + 500/km</p>
+                      <p className="text-lg font-bold">7000 CDF + 500/km</p>
+                      <p className="text-xs text-muted-foreground">Livraison express moto</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Flex</p>
-                      <p className="text-lg font-bold">3000 CDF + 300/km</p>
+                      <p className="text-lg font-bold">55000 CDF + 2500/km</p>
+                      <p className="text-xs text-muted-foreground">Livraison standard</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Maxicharge</p>
-                      <p className="text-lg font-bold">8000 CDF + 800/km</p>
+                      <p className="text-lg font-bold">100000 CDF + 5000/km</p>
+                      <p className="text-xs text-muted-foreground">Gros colis camion</p>
                     </div>
+                  </div>
+                  <div className="pt-4 border-t border-border/50 mt-4">
+                    <p className="text-xs text-muted-foreground">
+                      * Multiplicateurs: Lubumbashi +20%, Kolwezi +10%
+                    </p>
                   </div>
                 </div>
               </div>

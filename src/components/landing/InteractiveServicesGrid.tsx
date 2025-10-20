@@ -31,13 +31,15 @@ const InteractiveServicesGrid = () => {
       id: "transport",
       icon: <Car className="w-10 h-10" />,
       title: "Transport VTC",
-      description: "Moto-taxi, voiture, bus - Déplacements rapides dans toute la ville",
-      price: "À partir de 500 CDF",
+      description: "Moto-taxi, Éco, Confort, Premium - Déplacements rapides partout",
+      price: "À partir de 1500 CDF",
       popular: true,
       gradient: "from-primary to-primary-glow",
       features: [
-        { icon: <Bike className="w-4 h-4" />, text: "Moto-taxi rapide" },
-        { icon: <Car className="w-4 h-4" />, text: "Taxi confort 4 places" }
+        { icon: <Bike className="w-4 h-4" />, text: "Moto-taxi 1500 CDF + 500/km" },
+        { icon: <Car className="w-4 h-4" />, text: "Éco 2500 CDF + 1500/km" },
+        { icon: <Car className="w-4 h-4" />, text: "Confort 3200 CDF + 1800/km" },
+        { icon: <Car className="w-4 h-4" />, text: "Premium 4300 CDF + 2300/km" }
       ],
       stats: { rides: "10K+", rating: "4.9", drivers: "500+" }
     },
@@ -45,12 +47,13 @@ const InteractiveServicesGrid = () => {
       id: "delivery",
       icon: <Package className="w-10 h-10" />,
       title: "Livraison Express",
-      description: "Livraison Flash en 30min, Cargo pour gros colis",
-      price: "À partir de 300 CDF",
+      description: "Livraison Flash 30min, Flex et MaxiCharge pour gros colis",
+      price: "À partir de 7000 CDF",
       gradient: "from-secondary to-accent",
       features: [
-        { icon: <Zap className="w-4 h-4" />, text: "Flash moto 30min" },
-        { icon: <Truck className="w-4 h-4" />, text: "Cargo camion gros colis" }
+        { icon: <Zap className="w-4 h-4" />, text: "Flash 7000 CDF + 500/km" },
+        { icon: <Truck className="w-4 h-4" />, text: "Flex 55000 CDF + 2500/km" },
+        { icon: <Truck className="w-4 h-4" />, text: "MaxiCharge 100000 CDF + 5000/km" }
       ],
       stats: { deliveries: "5K+", time: "30min", coverage: "100%" }
     },

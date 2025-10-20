@@ -46,8 +46,8 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
     }
 
     const distance = calculateDistance(order.pickup_coordinates, order.delivery_coordinates);
-    // Base: 5000 FC + 500 FC/km
-    const estimatedFee = Math.round(5000 + (distance * 500));
+    // Base Flash 2025: 7000 FC + 500 FC/km
+    const estimatedFee = Math.round(7000 + (distance * 500));
     setDeliveryFees(prev => ({ ...prev, [orderId]: estimatedFee }));
     
     toast({ 

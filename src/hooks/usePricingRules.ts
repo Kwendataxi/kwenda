@@ -139,13 +139,14 @@ export const usePriceEstimator = (service_type: ServiceCategory, vehicle_class: 
     if (rule) {
       return Math.round((rule.base_price || 0) + d * (rule.price_per_km || 0));
     }
-    // Fallbacks if rule missing
+    // Fallbacks if rule missing - TARIFS 2025
     const defaults: Record<string, { base: number; perKm: number }> = {
+      moto: { base: 1500, perKm: 500 },
       eco: { base: 2500, perKm: 1500 },
-      standard: { base: 2500, perKm: 1500 },
-      premium: { base: 3200, perKm: 1800 },
+      standard: { base: 3200, perKm: 1800 },
+      premium: { base: 4300, perKm: 2300 },
       first_class: { base: 4300, perKm: 2300 },
-      flash: { base: 5000, perKm: 1000 },
+      flash: { base: 7000, perKm: 500 },
       flex: { base: 55000, perKm: 2500 },
       maxicharge: { base: 100000, perKm: 5000 }
     };
