@@ -20,6 +20,7 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { useDeliveryTracking } from '@/hooks/useDeliveryTracking';
+import { DeliveryRealtimeMap } from './DeliveryRealtimeMap';
 
 interface DeliveryStatus {
   id: string;
@@ -163,6 +164,17 @@ const DeliveryTracking = ({ orderId, orderData, onBack }: DeliveryTrackingProps)
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Real-time Map Tracking */}
+      {!isDelivered && order.pickup_coordinates && order.delivery_coordinates && (
+        <DeliveryRealtimeMap
+          pickupLocation={order.pickup_coordinates as { lat: number; lng: number }}
+          deliveryLocation={order.delivery_coordinates as { lat: number; lng: number }}
+          driverLocation={driverLocation as { lat: number; lng: number } | undefined}
+          status={order.status}
+          estimatedTime={order.status === 'in_transit' ? 15 : 30}
+        />
       )}
 
       {/* Estimated Time */}

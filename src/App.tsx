@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/hooks/useAuth";
+import { PushNotificationManager } from "@/components/notifications/PushNotificationManager";
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import DynamicTheme from "@/components/theme/DynamicTheme";
@@ -149,6 +150,7 @@ const AppContent = () => {
         <PerformanceOptimizer>
           <Toaster />
           <Sonner />
+          <PushNotificationManager />
           <InstallBanner />
           <BrowserRouter>
             <ScrollToTop />
