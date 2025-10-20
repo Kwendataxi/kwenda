@@ -34,9 +34,9 @@ export default defineConfig(({ mode }) => {
       mode === 'development' && componentTagger(),
       VitePWA({
         registerType: 'prompt',
-        includeAssets: ['app-icon-1024.png', 'android-chrome-192x192.png', 'android-chrome-512x512.png', 'splash-screen.png'],
+        includeAssets: ['kwenda-logo.png', 'app-icon-1024.png', 'android-chrome-192x192.png', 'android-chrome-512x512.png'],
         manifest: {
-          name: 'Kwenda Taxi',
+          name: 'Kwenda - Mobilité Africaine',
           short_name: 'Kwenda',
           description: 'Application VTC multimodale pour l\'Afrique francophone - Transport, Livraison, Marketplace',
           theme_color: '#DC2626',
@@ -47,22 +47,36 @@ export default defineConfig(({ mode }) => {
           orientation: 'portrait',
           icons: [
             {
-              src: '/android-chrome-192x192.png',
-              sizes: '192x192',
-              type: 'image/png',
-              purpose: 'maskable any'
-            },
-            {
-              src: '/android-chrome-512x512.png',
+              src: '/kwenda-logo.png',
               sizes: '512x512',
               type: 'image/png',
-              purpose: 'maskable any'
+              purpose: 'any'
             },
             {
-              src: '/app-icon-1024.png',
+              src: '/kwenda-logo.png',
+              sizes: '192x192',
+              type: 'image/png',
+              purpose: 'maskable'
+            },
+            {
+              src: '/kwenda-logo.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable'
+            },
+            {
+              src: '/kwenda-logo.png',
               sizes: '1024x1024',
               type: 'image/png',
-              purpose: 'maskable any'
+              purpose: 'any'
+            }
+          ],
+          screenshots: [
+            {
+              src: '/kwenda-logo.png',
+              sizes: '540x720',
+              type: 'image/png',
+              form_factor: 'narrow'
             }
           ]
         },

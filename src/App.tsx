@@ -19,6 +19,8 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { APP_CONFIG, isClientApp, isDriverApp, isPartnerApp, isSpecificBuild } from "@/config/appConfig";
 import { isMobileApp, isPWA } from "@/services/platformDetection";
+import { PWASplashScreen } from "@/components/PWASplashScreen";
+import { useState } from "react";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import MobileSplash from "./pages/MobileSplash";
@@ -124,6 +126,8 @@ import { VendorGuard } from "./components/guards/VendorGuard";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
+  const [showSplash, setShowSplash] = useState(isPWA() || isMobileApp());
+  
   // Initialiser le nettoyage automatique des commandes
   useOrderCleanup();
   
@@ -145,17 +149,22 @@ const AppContent = () => {
   
   return (
     <>
-      <UpdateNotification />
-      <UpdateProgress />
-      <DynamicTheme>
-        <ParticleBackground />
-        <ThemeNotification />
-        <PerformanceOptimizer>
-          <Toaster />
-          <Sonner />
-          <PushNotificationManager />
-          <InstallBanner />
-          <BrowserRouter>
+      {showSplash && (
+        <PWASplashScreen onComplete={() => setShowSplash(false)} />
+      )}
+      {!showSplash && (
+        <>
+          <UpdateNotification />
+          <UpdateProgress />
+          <DynamicTheme>
+            <ParticleBackground />
+            <ThemeNotification />
+            <PerformanceOptimizer>
+              <Toaster />
+              <Sonner />
+              <PushNotificationManager />
+              <InstallBanner />
+              <BrowserRouter>
             <ScrollToTop />
             {/* <StartupExperience /> */}
             <OnboardingRedirect>
@@ -441,6 +450,8 @@ const AppContent = () => {
       </DynamicTheme>
       <OfflineIndicator />
       <ClickTracker />
+        </>
+      )}
     </>
   );
 };
