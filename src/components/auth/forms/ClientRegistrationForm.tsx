@@ -33,9 +33,10 @@ export const ClientRegistrationForm = ({ onSuccess, onBack }: ClientRegistration
     city: 'Kinshasa'
   });
 
-  // Validation du format téléphone congolais
+  // Validation du format téléphone congolais (accepte formats locaux et internationaux)
   const validatePhoneNumber = (phone: string): boolean => {
-    const phoneRegex = /^0[0-9]{9}$/;
+    // Accepter: 0991234567 OU +243991234567 OU 00243991234567
+    const phoneRegex = /^(\+243|00243|0)[0-9]{9}$/;
     return phoneRegex.test(phone.replace(/[\s\-]/g, ''));
   };
 
@@ -145,7 +146,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   if (!validatePhoneNumber(formData.phoneNumber)) {
     toast({
       title: "Erreur",
-      description: "Le numéro de téléphone doit être au format : 0991234567 (10 chiffres)",
+      description: "Format invalide. Utilisez: 0991234567, +243991234567 ou 00243991234567",
       variant: "destructive"
     });
     return;
@@ -179,24 +180,52 @@ const handleSubmit = async (e: React.FormEvent) => {
       throw authError;
     }
 
-    // ✅ Sauvegarder l'intention de connexion pour redirection correcte
-    localStorage.setItem('kwenda_login_intent', 'client');
-    localStorage.setItem('kwenda_selected_role', 'client');
+    if (authData.user) {
+      // Appeler RPC pour créer profil client complet
+      const { data: rpcResult, error: rpcError } = await supabase.rpc(
+        'create_client_profile_secure',
+        {
+          p_user_id: authData.user.id,
+          p_email: formData.email,
+          p_display_name: formData.displayName,
+          p_phone_number: formData.phoneNumber,
+          p_date_of_birth: formData.dateOfBirth || null,
+          p_gender: formData.gender || null,
+          p_address: formData.address || null,
+          p_city: formData.city || 'Kinshasa',
+          p_emergency_contact_name: formData.emergencyContactName || null,
+          p_emergency_contact_phone: formData.emergencyContactPhone || null
+        }
+      );
 
-    if (authData.user && !authData.session) {
-      // Email confirmation requise
-      logger.info('Email confirmation required for client');
-      toast({
-        title: "Vérifiez votre email",
-        description: "Un email de confirmation a été envoyé. Cliquez sur le lien pour activer votre compte.",
+      const result = rpcResult as any;
+      if (rpcError || !result?.success) {
+        logger.error('Client profile creation failed', rpcError || result);
+        throw new Error(result?.error || 'Erreur lors de la création du profil');
+      }
+
+      logger.info('Client profile created successfully', { 
+        userId: authData.user.id,
+        profileId: result.profile_id
       });
-      onSuccess();
-    } else if (authData.session) {
-      // Connexion immédiate (email confirmation désactivée)
-      toast({
-        title: "Succès !",
-        description: "Votre compte client a été créé avec succès.",
-      });
+
+      // ✅ Sauvegarder l'intention de connexion pour redirection correcte
+      localStorage.setItem('kwenda_login_intent', 'client');
+      localStorage.setItem('kwenda_selected_role', 'client');
+
+      if (!authData.session) {
+        // Email confirmation requise
+        toast({
+          title: "Vérifiez votre email",
+          description: "Un email de confirmation a été envoyé. Cliquez sur le lien pour activer votre compte.",
+        });
+      } else {
+        // Connexion immédiate
+        toast({
+          title: "Succès !",
+          description: "Votre compte client a été créé avec succès.",
+        });
+      }
       onSuccess();
     }
   } catch (error: any) {

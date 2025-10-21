@@ -115,10 +115,12 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
         toast.error('Veuillez choisir votre mode de véhicule');
         return false;
       }
+      // vehicleType obligatoire SEULEMENT si mode 'own'
       if (vehicleMode === 'own' && !formData.vehicleType) {
         toast.error('Veuillez sélectionner le type de véhicule');
         return false;
       }
+      // Mode 'partner' valide sans vehicleType
       return true;
     }
 
@@ -131,8 +133,12 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
     }
 
     if (currentStep === 'license') {
+      // Permis optionnel pour moto-taxi
+      if (formData.serviceType === 'moto_taxi') {
+        return true; // Toujours valide pour moto-taxi
+      }
       if (!formData.licenseNumber) {
-        toast.error('Le numéro de permis de conduire est requis');
+        toast.error('Le numéro de permis de conduire est requis pour ce type de service');
         return false;
       }
       return true;

@@ -43,7 +43,7 @@ export const useProfile = () => {
         console.log('Profile not found, creating one...');
         
         // Appeler la fonction pour créer un profil
-        const { data: createdProfile, error: createError } = await supabase
+        const { data: profileId, error: createError } = await supabase
           .rpc('ensure_user_profile', { p_user_id: user.id });
 
         if (createError) {
@@ -66,6 +66,17 @@ export const useProfile = () => {
           
           setProfile(manualProfile);
         } else {
+          // Récupérer le profil complet après création
+          const { data: createdProfile, error: fetchError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', profileId)
+            .single();
+          
+          if (fetchError || !createdProfile) {
+            throw fetchError || new Error('Profile not found after creation');
+          }
+          
           setProfile(createdProfile);
         }
       } else {

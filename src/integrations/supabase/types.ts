@@ -13178,6 +13178,21 @@ export type Database = {
         Args: { p_credits: number; p_points: number; p_user_id: string }
         Returns: undefined
       }
+      create_client_profile_secure: {
+        Args: {
+          p_address?: string
+          p_city?: string
+          p_date_of_birth?: string
+          p_display_name: string
+          p_email: string
+          p_emergency_contact_name?: string
+          p_emergency_contact_phone?: string
+          p_gender?: string
+          p_phone_number: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       create_driver_profile_secure: {
         Args: {
           p_delivery_capacity?: string
@@ -13340,21 +13355,7 @@ export type Database = {
       }
       ensure_user_profile: {
         Args: { p_user_id: string }
-        Returns: {
-          avatar_url: string | null
-          bio: string | null
-          cover_url: string | null
-          created_at: string
-          display_name: string | null
-          id: string
-          is_public: boolean | null
-          is_verified_seller: boolean | null
-          last_seen: string | null
-          phone_number: string | null
-          updated_at: string
-          user_id: string
-          user_type: string | null
-        }
+        Returns: string
       }
       execute_wallet_transfer: {
         Args: {
