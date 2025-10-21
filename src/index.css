@@ -578,11 +578,23 @@ All colors MUST be HSL.
     overflow-x: hidden;
     height: 100vh;
     height: 100dvh; /* Dynamic viewport height for mobile */
+    margin: 0;
+    padding: 0;
   }
 
   body {
     min-height: 100vh;
     min-height: 100dvh;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Remove white gap at bottom */
+  #root {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
   }
 
   /* Mobile safe layout - simplified */

@@ -120,7 +120,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
                 Kwenda
               </h1>
               <p className="text-lg sm:text-xl text-white/80 font-light">
-                Votre mobilité réinventée
+                Courses abordables tous les jours !
               </p>
             </motion.div>
 
