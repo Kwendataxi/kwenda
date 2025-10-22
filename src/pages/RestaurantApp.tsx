@@ -100,14 +100,23 @@ export default function RestaurantApp() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <UniversalAppHeader title="Restaurant Kwenda" />
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
+      {/* Header - Fixe en haut */}
+      <header className="flex-shrink-0">
+        <UniversalAppHeader title="Restaurant Kwenda" />
+      </header>
       
-      <div className="pb-20 md:pb-6">
-        {renderContent()}
-      </div>
+      {/* Contenu scrollable - Prend tout l'espace restant */}
+      <main className="flex-1 overflow-y-auto smooth-scroll">
+        <div className="container mx-auto p-4 md:p-6">
+          {renderContent()}
+        </div>
+      </main>
 
-      <RestaurantMobileTabs currentTab={currentTab} onTabChange={handleTabChange} />
+      {/* Footer - Fixe en bas (mobile uniquement) */}
+      <footer className="flex-shrink-0 md:hidden">
+        <RestaurantMobileTabs currentTab={currentTab} onTabChange={handleTabChange} />
+      </footer>
     </div>
   );
 }

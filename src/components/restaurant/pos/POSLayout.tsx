@@ -109,9 +109,9 @@ export const POSLayout = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-card">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
+      {/* Header fixe */}
+      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b bg-card/95 backdrop-blur-xl shadow-sm">
         <Button variant="ghost" size="icon" onClick={() => navigate('/restaurant')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
@@ -121,15 +121,20 @@ export const POSLayout = () => {
         </Button>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Product Grid - 70% */}
-        <div className="flex-1 overflow-auto p-4">
-          {restaurantId && <POSProductGrid restaurantId={restaurantId} onAddToCart={handleAddToCart} />}
+      {/* Main Content - Flex row avec scrolls séparés */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        {/* Product Grid - Scroll indépendant */}
+        <div className="flex-1 overflow-y-auto p-4 smooth-scroll no-overscroll">
+          {restaurantId && (
+            <POSProductGrid
+              restaurantId={restaurantId}
+              onAddToCart={handleAddToCart}
+            />
+          )}
         </div>
 
-        {/* Cart Sidebar - 30% */}
-        <div className="w-full lg:w-[400px] border-l bg-card">
+        {/* Cart Sidebar - Scroll interne géré par POSCart */}
+        <div className="w-full lg:w-[400px] xl:w-[450px] border-l bg-card flex-shrink-0 overflow-hidden">
           <POSCart
             cart={cart}
             onUpdateQuantity={handleUpdateQuantity}

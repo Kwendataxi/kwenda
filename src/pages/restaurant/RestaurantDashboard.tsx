@@ -126,11 +126,7 @@ export default function RestaurantDashboard() {
   }
 
   return (
-    <>
-      <UniversalAppHeader title="Espace Restaurant" />
-
-      <div className="min-h-screen bg-background p-4 md:p-6 pt-[76px]">
-        <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
@@ -323,8 +319,6 @@ export default function RestaurantDashboard() {
             </Button>
           </CardContent>
         </Card>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }

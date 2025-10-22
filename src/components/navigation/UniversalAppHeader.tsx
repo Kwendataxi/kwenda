@@ -14,7 +14,7 @@ export const UniversalAppHeader = ({
   onBackClick 
 }: UniversalAppHeaderProps) => {
   return (
-    <header className="fixed top-0 left-0 right-0 z-[150] bg-background/80 backdrop-blur-md border-b">
+    <header className="sticky top-0 z-[150] bg-background/95 backdrop-blur-xl border-b shadow-sm safe-area-inset-top">
       <div className="px-4 py-3 flex items-center justify-between h-[60px]">
         {/* Left: Back button ou Title */}
         <div className="flex items-center gap-3 flex-1 min-w-0">

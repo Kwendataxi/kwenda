@@ -39,8 +39,8 @@ export const POSCart = ({ cart, onUpdateQuantity, onCheckout, session }: POSCart
         </div>
       </div>
 
-      {/* Cart Items */}
-      <ScrollArea className="flex-1 p-4">
+      {/* Cart Items - CORRECTION: max-h-0 force le scroll */}
+      <ScrollArea className="flex-1 max-h-0 p-4 no-overscroll">
         <div className="space-y-3">
           {cart.map((item) => (
             <div key={item.product_id} className="bg-card border rounded-lg p-3">

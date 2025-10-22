@@ -70,23 +70,23 @@ export const POSProductGrid = ({ restaurantId, onAddToCart }: POSProductGridProp
         ))}
       </div>
 
-      {/* Product Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Product Grid - Responsive optimisé */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
         {filteredProducts.map(product => (
           <Card
             key={product.id}
-            className="cursor-pointer hover:shadow-lg transition-shadow"
+            className="cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
             onClick={() => onAddToCart(product)}
           >
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               {product.main_image_url ? (
                 <img
                   src={product.main_image_url}
                   alt={product.name}
-                  className="w-full h-32 object-cover rounded-lg mb-3"
+                  className="w-full h-24 sm:h-28 md:h-32 object-cover rounded-lg mb-2"
                 />
               ) : (
-                <div className="w-full h-32 bg-muted rounded-lg mb-3 flex items-center justify-center">
+                <div className="w-full h-24 sm:h-28 md:h-32 bg-muted rounded-lg mb-2 flex items-center justify-center">
                   <Package className="h-12 w-12 text-muted-foreground" />
                 </div>
               )}
