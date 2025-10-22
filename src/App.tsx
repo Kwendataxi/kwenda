@@ -120,6 +120,7 @@ import RestaurantVerifyEmail from "./pages/RestaurantVerifyEmail";
 import ClientReferralPage from "./pages/ClientReferralPage";
 import PromosPage from "./pages/PromosPage";
 import { ServiceGuard } from "./components/guards/ServiceGuard";
+import { EmailVerificationPage } from "./pages/EmailVerificationPage";
 import { useServiceRealtime } from "./hooks/useServiceRealtime";
 import { VendorGuard } from "./components/guards/VendorGuard";
 
@@ -175,6 +176,12 @@ const AppContent = () => {
                 <Route path="/partner/auth" element={<PartnerAuth />} />
                 <Route path="/operatorx/admin/auth" element={<AdminAuth />} />
                 <Route path="/restaurant/auth" element={<RestaurantAuth />} />
+                
+                {/* Routes de vérification email */}
+                <Route path="/client/verify-email" element={<EmailVerificationPage type="client" />} />
+                <Route path="/driver/verify-email" element={<EmailVerificationPage type="driver" />} />
+                <Route path="/partner/verify-email" element={<EmailVerificationPage type="partner" />} />
+                <Route path="/restaurant/verify-email" element={<EmailVerificationPage type="restaurant" />} />
                 
                 {/* Route Splash pour mobile/PWA */}
                 <Route path="/splash" element={<MobileSplash />} />

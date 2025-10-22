@@ -176,11 +176,21 @@ const handleSubmit = async (e: React.FormEvent) => {
       }
     });
 
+    console.log('🔐 Auth Response:', {
+      success: !authError,
+      error: authError?.message,
+      hasUser: !!authData?.user,
+      hasSession: !!authData?.session,
+      timestamp: new Date().toISOString()
+    });
+
     if (authError) {
       throw authError;
     }
 
     if (authData.user) {
+      console.log('📞 Calling RPC create_client_profile_secure...');
+      
       // Appeler RPC pour créer profil client complet
       const { data: rpcResult, error: rpcError } = await supabase.rpc(
         'create_client_profile_secure',

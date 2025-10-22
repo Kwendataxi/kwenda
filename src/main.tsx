@@ -3,6 +3,7 @@ import App from './App.tsx'
 import './index.css'
 import { GlobalInitService } from './services/globalInit'
 import { logger } from './utils/logger'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 // Initialize global services
 GlobalInitService.initialize().catch((error) => logger.error('Global init failed', error));
@@ -20,4 +21,8 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);

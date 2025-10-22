@@ -51,9 +51,14 @@ export const useDriverRegistration = () => {
         throw new Error('Format de téléphone invalide (ex: 0991234567)');
       }
 
-      // Validation champs obligatoires
-      if (!data.email || !data.displayName || !data.licenseNumber) {
+      // Validation champs obligatoires (permis optionnel pour moto-taxi)
+      if (!data.email || !data.displayName) {
         throw new Error('Veuillez remplir tous les champs obligatoires');
+      }
+
+      // Permis obligatoire SAUF pour moto-taxi
+      if (data.serviceType !== 'moto_taxi' && !data.licenseNumber) {
+        throw new Error('Le numéro de permis est requis pour ce type de service');
       }
 
       console.log('✅ Validation réussie, création du compte...');
