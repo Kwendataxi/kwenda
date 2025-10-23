@@ -68,9 +68,9 @@ export const HeroCampaignSlider = () => {
   }, [emblaApi, onSelect]);
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto">
+    <div className="relative w-full max-w-6xl mx-auto" style={{ contain: 'layout' }}>
       {/* Carrousel Container */}
-      <div className="overflow-hidden rounded-2xl" ref={emblaRef}>
+      <div className="overflow-hidden rounded-2xl" ref={emblaRef} style={{ contain: 'layout style' }}>
         <div className="flex touch-pan-y">
           {slides.map((slide, index) => (
             <div

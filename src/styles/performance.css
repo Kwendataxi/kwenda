@@ -46,6 +46,30 @@
   image-rendering: crisp-edges;
 }
 
+/* Prevent forced reflows - CSS Containment */
+.animate-float,
+.animate-fade-in,
+.animate-fade-up,
+.animate-scale-fade,
+.animate-glow-pulse,
+.interactive-scale {
+  contain: layout style paint;
+  will-change: transform, opacity;
+}
+
+/* Carousel optimization - prevent reflows */
+[class*="embla"] {
+  contain: layout style;
+}
+
+/* After animation completes, remove will-change */
+.animate-float.animation-complete,
+.animate-fade-in.animation-complete,
+.animate-fade-up.animation-complete,
+.animate-scale-fade.animation-complete {
+  will-change: auto;
+}
+
 /* Low bandwidth mode - DISABLED filters to prevent degradation */
 .low-bandwidth {
   /* Filters disabled - cause visual degradation */
