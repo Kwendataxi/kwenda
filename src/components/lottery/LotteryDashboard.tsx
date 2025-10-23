@@ -1,4 +1,5 @@
 import { Sparkles, Trophy, Gift } from 'lucide-react';
+import '@/styles/lottery.css'; // Lazy-loaded: only when lottery features are accessed
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScratchCardGallery } from './scratch/ScratchCardGallery';

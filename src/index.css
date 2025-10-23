@@ -1,9 +1,23 @@
 /* Import all CSS files BEFORE Tailwind directives */
+/* Base styles - always loaded */
 @import './styles/performance.css';
-@import './styles/lottery.css';
-@import './styles/wallet-theme.css';
 @import './styles/dark-mode-improvements.css';
-@import './styles/marketplace.css';
+
+/* Global utility - scrollbar hide (used across the app) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Feature-specific styles are lazy-loaded in their respective components:
+ * - lottery.css: loaded in lottery components
+ * - marketplace.css: loaded in marketplace components  
+ * - wallet-theme.css: loaded in wallet components
+ */
 
 @tailwind base;
 @tailwind components;
@@ -167,15 +181,5 @@ All colors MUST be HSL.
   .smooth-scroll {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-  }
-
-  /* Hide scrollbar but keep functionality */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
   }
 }

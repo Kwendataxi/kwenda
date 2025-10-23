@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '@/styles/marketplace.css'; // Lazy-loaded: only when marketplace is accessed
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
