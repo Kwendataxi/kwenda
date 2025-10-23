@@ -12,15 +12,28 @@ export const useWindowSize = (): WindowSize => {
   });
 
   useEffect(() => {
-    const handleResize = () => {
+    let ticking = false;
+
+    const updateSize = () => {
+      // Batch DOM reads in requestAnimationFrame to avoid forced reflow
       setWindowSize({
         width: window.innerWidth,
         height: window.innerHeight,
       });
+      ticking = false;
     };
 
-    window.addEventListener('resize', handleResize);
-    handleResize();
+    const handleResize = () => {
+      // Throttle resize events using requestAnimationFrame
+      if (!ticking) {
+        requestAnimationFrame(updateSize);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('resize', handleResize, { passive: true });
+    // Set initial size using batched read
+    requestAnimationFrame(updateSize);
 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
