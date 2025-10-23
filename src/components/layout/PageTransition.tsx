@@ -16,7 +16,7 @@ export const PageTransition = ({ children, className }: PageTransitionProps) => 
       )}
       style={{ 
         animationFillMode: 'forwards',
-        animationDelay: '100ms'
+        animationDelay: '0ms' // Removed delay for faster FCP
       }}
     >
       {children}

@@ -8,17 +8,24 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 // Initialize global services
 GlobalInitService.initialize().catch((error) => logger.error('Global init failed', error));
 
-// Register Service Worker for PWA
+// Register Service Worker for PWA - Deferred for better FCP
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        logger.info('SW registered', registration);
-      })
-      .catch((registrationError) => {
-        logger.error('SW registration failed', registrationError);
-      });
-  });
+  // Defer SW registration until after FCP
+  if (document.readyState === 'complete') {
+    setTimeout(() => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => logger.info('SW registered', registration))
+        .catch((error) => logger.error('SW registration failed', error));
+    }, 2000);
+  } else {
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => logger.info('SW registered', registration))
+          .catch((error) => logger.error('SW registration failed', error));
+      }, 2000);
+    });
+  }
 }
 
 createRoot(document.getElementById("root")!).render(

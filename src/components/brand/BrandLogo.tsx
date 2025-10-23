@@ -17,6 +17,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({ size = 64, className, alt 
       alt={alt || "Kwenda Taxi Congo — logo"}
       className={clsx("rounded-lg object-contain", className)}
       loading="eager"
+      fetchPriority="high"
     />
   );
 };

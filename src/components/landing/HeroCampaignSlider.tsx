@@ -72,7 +72,7 @@ export const HeroCampaignSlider = () => {
       {/* Carrousel Container */}
       <div className="overflow-hidden rounded-2xl" ref={emblaRef}>
         <div className="flex touch-pan-y">
-          {slides.map((slide) => (
+          {slides.map((slide, index) => (
             <div
               key={slide.id}
               className="flex-[0_0_100%] min-w-0 relative"
@@ -87,7 +87,8 @@ export const HeroCampaignSlider = () => {
                     src={slide.image}
                     alt={slide.alt}
                     className="absolute inset-0 w-full h-full object-cover"
-                    loading="lazy"
+                    loading={index === 0 ? "eager" : "lazy"}
+                    fetchPriority={index === 0 ? "high" : "auto"}
                   />
                 </div>
               </div>
