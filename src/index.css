@@ -28,6 +28,11 @@ All colors MUST be HSL.
 */
 
 @layer base {
+  /* Apply Montserrat globally for consistent typography */
+  * {
+    font-family: 'Montserrat', sans-serif;
+  }
+
   :root {
     /* Kwenda Taxi Congo Design System - Couleurs Congo vibrantes */
     --background: 0 0% 100%;

@@ -21,23 +21,17 @@
   background-size: 468px 100%;
 }
 
-/* Reduced animations for low performance mode */
+/* Reduced animations for low performance mode - SOFTENED to preserve UX */
 .reduce-animations * {
-  animation-duration: 0.01ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
+  animation-duration: 0.3s !important;
+  transition-duration: 0.2s !important;
   scroll-behavior: auto !important;
 }
 
-/* Stable mode - NO visual degradation */
+/* Stable mode - Preserve visual effects */
 .stable-mode {
   transform: translateZ(0);
   will-change: auto;
-}
-
-.stable-mode * {
-  filter: none !important;
-  backdrop-filter: none !important;
 }
 
 /* Optimized images */
@@ -70,13 +64,9 @@
   will-change: auto;
 }
 
-/* Low bandwidth mode - DISABLED filters to prevent degradation */
+/* Low bandwidth mode - Preserve visual quality */
 .low-bandwidth {
-  /* Filters disabled - cause visual degradation */
-}
-
-.low-bandwidth img {
-  /* Blur disabled - cause visual degradation */
+  /* No visual degradation - only optimize loading */
 }
 
 /* Touch optimizations for mobile */
@@ -85,11 +75,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Battery saving mode - DISABLED filters */
-.battery-saving {
-  /* Filter disabled - cause visual degradation */
-}
-
+/* Battery saving mode - Preserve visual quality */
 .battery-saving * {
   will-change: auto !important;
   transform: translateZ(0);

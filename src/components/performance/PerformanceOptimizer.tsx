@@ -33,19 +33,23 @@ export const PerformanceOptimizer: React.FC<PerformanceOptimizerProps> = ({ chil
       'compressed-layout'
     );
 
-    // Appliquer les optimisations activées
-    if (optimizations.reducedAnimations) {
+    // Appliquer les optimisations UNIQUEMENT en cas de conditions extrêmes
+    // Ne pas appliquer reduce-animations par défaut pour préserver le dynamisme
+    if (optimizations.reducedAnimations && (isLowMemory || isLowBattery)) {
       body.classList.add('reduce-animations');
     }
 
-    if (isSlowConnection || optimizations.compressedImages) {
+    // Low bandwidth seulement si vraiment nécessaire
+    if (isSlowConnection && optimizations.compressedImages) {
       body.classList.add('low-bandwidth', 'compressed-layout');
     }
 
+    // Battery saving uniquement si batterie critique
     if (isLowBattery) {
       body.classList.add('battery-saving');
     }
 
+    // Memory efficient uniquement si mémoire critique
     if (isLowMemory) {
       body.classList.add('memory-efficient');
     }
