@@ -28,12 +28,15 @@ export const useScrollToTop = () => {
   const scrollToElement = useCallback((elementId: string, offset: number = 0) => {
     const element = document.getElementById(elementId);
     if (element) {
-      const elementPosition = element.offsetTop - offset;
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      
-      window.scrollTo({
-        top: elementPosition,
-        behavior: prefersReducedMotion ? 'auto' : 'smooth'
+      // Batch DOM read in requestAnimationFrame to avoid forced reflow
+      requestAnimationFrame(() => {
+        const elementPosition = element.offsetTop - offset;
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        
+        window.scrollTo({
+          top: elementPosition,
+          behavior: prefersReducedMotion ? 'auto' : 'smooth'
+        });
       });
     }
   }, []);
