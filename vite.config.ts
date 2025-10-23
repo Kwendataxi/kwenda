@@ -35,6 +35,7 @@ export default defineConfig(({ mode }) => {
       mode === 'development' && componentTagger(),
       VitePWA({
         registerType: 'prompt',
+        injectRegister: 'script-defer', // Defer SW registration to avoid render blocking
         includeAssets: ['kwenda-logo.png', 'app-icon-1024.png', 'android-chrome-192x192.png', 'android-chrome-512x512.png'],
         manifest: {
           name: 'Kwenda - Mobilité Africaine',
@@ -132,6 +133,16 @@ export default defineConfig(({ mode }) => {
         webp: { quality: 85 } // Convert images to WebP
       })
     ].filter(Boolean),
+    build: {
+      cssCodeSplit: true, // Split CSS for better caching
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom', 'react-router-dom'],
+          },
+        },
+      },
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
