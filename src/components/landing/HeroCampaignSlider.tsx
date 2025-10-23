@@ -87,8 +87,8 @@ export const HeroCampaignSlider = () => {
                     src={slide.image}
                     alt={slide.alt}
                     className="absolute inset-0 w-full h-full object-cover"
-                    loading={index === 0 ? "eager" : "lazy"}
-                    fetchPriority={index === 0 ? "high" : "auto"}
+                    loading={index <= 1 ? "eager" : "lazy"}
+                    fetchPriority={index <= 1 ? "high" : undefined}
                   />
                 </div>
               </div>
