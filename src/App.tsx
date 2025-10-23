@@ -21,6 +21,9 @@ import { APP_CONFIG, isClientApp, isDriverApp, isPartnerApp, isSpecificBuild } f
 import { isMobileApp, isPWA } from "@/services/platformDetection";
 import { PWASplashScreen } from "@/components/PWASplashScreen";
 import { useState } from "react";
+import { RouteLoadingFallback } from "@/components/loading/RouteLoadingFallback";
+
+// ✅ Critical imports - loaded immediately (auth, landing, core)
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import MobileSplash from "./pages/MobileSplash";
@@ -28,99 +31,104 @@ import { SmartHome } from "./components/navigation/SmartHome";
 import AdminAuth from "./pages/AdminAuth";
 import PartnerAuth from "./pages/PartnerAuth";
 import DriverAuth from "./pages/DriverAuth";
-import ClientApp from "./pages/ClientApp";
-import DriverApp from "./pages/DriverApp";
-import PartnerApp from "./pages/PartnerApp";
-import AdminApp from "./pages/AdminApp";
-import { EscrowPage } from "./pages/EscrowPage";
-
-import NotFound from "./pages/NotFound";
-// Footer Pages
-import HelpCenter from "./pages/support/HelpCenter";
-import Contact from "./pages/support/Contact";
-import FAQ from "./pages/support/FAQ";
-import Terms from "./pages/legal/Terms";
-import Privacy from "./pages/legal/Privacy";
-import Kinshasa from "./pages/locations/Kinshasa";
-import Lubumbashi from "./pages/locations/Lubumbashi";
-import Kolwezi from "./pages/locations/Kolwezi";
-import About from "./pages/about/About";
-import TransportVTC from "./pages/services/TransportVTC";
-import LivraisonExpress from "./pages/services/LivraisonExpress";
-import LocationVehicules from "./pages/services/LocationVehicules";
-import DevenirChauffeur from "./pages/partners/DevenirChauffeur";
-import LouerVehicule from "./pages/partners/LouerVehicule";
-import DevenirLivreur from "./pages/partners/DevenirLivreur";
-import VendreEnLigne from "./pages/partners/VendreEnLigne";
-import SignalerProbleme from "./pages/support/SignalerProbleme";
-import TransportPage from "./pages/Transport";
-import Expansion from "./pages/locations/Expansion";
-import Demo from "./pages/demo/Demo";
-import ProgrammePartenaire from "./pages/partner/ProgrammePartenaire";
-import CarteCouverture from "./pages/locations/CarteCouverture";
-import Marketplace from "./pages/marketplace/Marketplace";
-import AuthSystemTest from "./pages/test/AuthSystemTest";
-import TrackingTest from "./pages/test/TrackingTest";
-import ModernTrackingTest from "./pages/test/ModernTrackingTest";
-import { ModernNavigationTest } from "./pages/test/ModernNavigationTest";
-import SmartLocationTest from "./pages/test/SmartLocationTest";
-import UniversalLocationTest from "./pages/test/UniversalLocationTest";
-import UniversalLocationTestAdvanced from "./pages/test/UniversalLocationTestAdvanced";
-import EdgeFunctionTest from "./pages/test/EdgeFunctionTest";
-import DispatchSystemTest from "./pages/test/DispatchSystemTest";
-import DispatchValidationTest from "./pages/test/DispatchValidationTest";
-import MapValidationTest from "./pages/test/MapValidationTest";
-import { ComponentsDemo } from "./pages/test/ComponentsDemo";
-import ModernMapDemo from "./pages/test/ModernMapDemo";
-import ProductionConfig from "./pages/admin/ProductionConfig";
-import { ChatProvider } from "@/components/chat/ChatProvider";
-import Onboarding from "./pages/Onboarding";
+import RestaurantAuth from "./pages/RestaurantAuth";
+import { EmailVerificationPage } from "./pages/EmailVerificationPage";
 import Install from "./pages/Install";
+import ResetPassword from "./pages/ResetPassword";
+
+// 🔄 Lazy-loaded imports - loaded on demand
+const ClientApp = lazy(() => import("./pages/ClientApp"));
+const DriverApp = lazy(() => import("./pages/DriverApp"));
+const PartnerApp = lazy(() => import("./pages/PartnerApp"));
+const AdminApp = lazy(() => import("./pages/AdminApp"));
+const RestaurantApp = lazy(() => import("./pages/RestaurantApp"));
+
+const NotFound = lazy(() => import("./pages/NotFound"));
+const HelpCenter = lazy(() => import("./pages/support/HelpCenter"));
+const Contact = lazy(() => import("./pages/support/Contact"));
+const FAQ = lazy(() => import("./pages/support/FAQ"));
+const Terms = lazy(() => import("./pages/legal/Terms"));
+const Privacy = lazy(() => import("./pages/legal/Privacy"));
+const Kinshasa = lazy(() => import("./pages/locations/Kinshasa"));
+const Lubumbashi = lazy(() => import("./pages/locations/Lubumbashi"));
+const Kolwezi = lazy(() => import("./pages/locations/Kolwezi"));
+const About = lazy(() => import("./pages/about/About"));
+const TransportVTC = lazy(() => import("./pages/services/TransportVTC"));
+const LivraisonExpress = lazy(() => import("./pages/services/LivraisonExpress"));
+const LocationVehicules = lazy(() => import("./pages/services/LocationVehicules"));
+const DevenirChauffeur = lazy(() => import("./pages/partners/DevenirChauffeur"));
+const LouerVehicule = lazy(() => import("./pages/partners/LouerVehicule"));
+const DevenirLivreur = lazy(() => import("./pages/partners/DevenirLivreur"));
+const VendreEnLigne = lazy(() => import("./pages/partners/VendreEnLigne"));
+const SignalerProbleme = lazy(() => import("./pages/support/SignalerProbleme"));
+const TransportPage = lazy(() => import("./pages/Transport"));
+const Expansion = lazy(() => import("./pages/locations/Expansion"));
+const Demo = lazy(() => import("./pages/demo/Demo"));
+const ProgrammePartenaire = lazy(() => import("./pages/partner/ProgrammePartenaire"));
+const CarteCouverture = lazy(() => import("./pages/locations/CarteCouverture"));
+const Marketplace = lazy(() => import("./pages/marketplace/Marketplace"));
+const VendorShop = lazy(() => import("./pages/VendorShop"));
+const ModernVendorDashboard = lazy(() => import("./pages/ModernVendorDashboard"));
+const VendorRegistration = lazy(() => import("./pages/VendorRegistration"));
+const VendorAddProduct = lazy(() => import("./pages/VendorAddProduct"));
+const VendorEditProduct = lazy(() => import("./pages/VendorEditProduct"));
+const MyProducts = lazy(() => import("./pages/marketplace/MyProducts"));
+const RestaurantDashboard = lazy(() => import("./pages/restaurant/RestaurantDashboard"));
+const RestaurantMenuManager = lazy(() => import("./pages/restaurant/RestaurantMenuManager"));
+const RestaurantOrders = lazy(() => import("./pages/restaurant/RestaurantOrders"));
+const RestaurantSubscription = lazy(() => import("./pages/restaurant/RestaurantSubscription"));
+const RestaurantPOS = lazy(() => import("./pages/restaurant/RestaurantPOS"));
+const RestaurantProfile = lazy(() => import("./pages/restaurant/RestaurantProfile"));
+const QRCodeManager = lazy(() => import("./pages/admin/QRCodeManager"));
+const QRAnalytics = lazy(() => import("./pages/admin/QRAnalytics"));
+const AdminFoodManagement = lazy(() => import("./pages/admin/AdminFoodManagement"));
+const ProductionConfig = lazy(() => import("./pages/admin/ProductionConfig"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const MesAdresses = lazy(() => import("./pages/address/MesAdresses"));
+const RoleSelection = lazy(() => import("./pages/RoleSelection"));
+const DriverFindPartner = lazy(() => import("./pages/DriverFindPartner").then(m => ({ default: m.DriverFindPartner })));
+const CampaignLanding = lazy(() => import("./pages/campaign/CampaignLanding"));
+const CampaignThankYou = lazy(() => import("./pages/campaign/CampaignThankYou"));
+const PublicPartnerRegistration = lazy(() => import("./pages/partner/PublicPartnerRegistration"));
+const PartnerDashboard = lazy(() => import("./pages/partner/PartnerDashboard"));
+const PartnerRegistrationForm = lazy(() => import("./components/partner/registration/PartnerRegistrationForm").then(m => ({ default: m.PartnerRegistrationForm })));
+const UnifiedTracking = lazy(() => import("./pages/UnifiedTracking"));
+const DriverRegistration = lazy(() => import("./pages/DriverRegistration"));
+const DriverVerifyEmail = lazy(() => import("./pages/DriverVerifyEmail"));
+const PartnerVerifyEmail = lazy(() => import("./pages/PartnerVerifyEmail"));
+const ClientVerifyEmail = lazy(() => import("./pages/ClientVerifyEmail"));
+const RestaurantVerifyEmail = lazy(() => import("./pages/RestaurantVerifyEmail"));
+const ClientReferralPage = lazy(() => import("./pages/ClientReferralPage"));
+const PromosPage = lazy(() => import("./pages/PromosPage"));
+const EscrowPage = lazy(() => import("./pages/EscrowPage").then(m => ({ default: m.EscrowPage })));
+
+// Test pages - lazy loaded
+const AuthSystemTest = lazy(() => import("./pages/test/AuthSystemTest"));
+const TrackingTest = lazy(() => import("./pages/test/TrackingTest"));
+const ModernTrackingTest = lazy(() => import("./pages/test/ModernTrackingTest"));
+const ModernNavigationTest = lazy(() => import("./pages/test/ModernNavigationTest").then(m => ({ default: m.ModernNavigationTest })));
+const SmartLocationTest = lazy(() => import("./pages/test/SmartLocationTest"));
+const UniversalLocationTest = lazy(() => import("./pages/test/UniversalLocationTest"));
+const UniversalLocationTestAdvanced = lazy(() => import("./pages/test/UniversalLocationTestAdvanced"));
+const EdgeFunctionTest = lazy(() => import("./pages/test/EdgeFunctionTest"));
+const DispatchSystemTest = lazy(() => import("./pages/test/DispatchSystemTest"));
+const DispatchValidationTest = lazy(() => import("./pages/test/DispatchValidationTest"));
+const MapValidationTest = lazy(() => import("./pages/test/MapValidationTest"));
+const ComponentsDemo = lazy(() => import("./pages/test/ComponentsDemo").then(m => ({ default: m.ComponentsDemo })));
+const ModernMapDemo = lazy(() => import("./pages/test/ModernMapDemo"));
+
+// Guards and other components
+import { ChatProvider } from "@/components/chat/ChatProvider";
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { UpdateNotification } from "@/components/pwa/UpdateNotification";
 import { UpdateProgress } from "@/components/pwa/UpdateProgress";
-import MesAdresses from "./pages/address/MesAdresses";
-import ResetPassword from "./pages/ResetPassword";
-import RoleSelection from "./pages/RoleSelection";
 import { OnboardingRedirect } from "@/components/onboarding/OnboardingRedirect";
 import { StartupExperience } from "@/components/splash/StartupExperience";
 import { ScrollToTop } from "@/components/navigation/ScrollToTop";
 import { ThemeNotification } from "@/components/theme/ThemeNotification";
 import { useOrderCleanup } from "@/hooks/useOrderCleanup";
 import { DebugHelper } from "@/utils/debugHelper";
-import { DriverFindPartner } from "./pages/DriverFindPartner";
-import CampaignLanding from "./pages/campaign/CampaignLanding";
-import CampaignThankYou from "./pages/campaign/CampaignThankYou";
-import PublicPartnerRegistration from "./pages/partner/PublicPartnerRegistration";
-import PartnerDashboard from "./pages/partner/PartnerDashboard";
-import { PartnerRegistrationForm } from "./components/partner/registration/PartnerRegistrationForm";
-import UnifiedTracking from "./pages/UnifiedTracking";
-import DriverRegistration from "./pages/DriverRegistration";
-import VendorShop from "./pages/VendorShop";
-import ModernVendorDashboard from "./pages/ModernVendorDashboard";
-import VendorRegistration from "./pages/VendorRegistration";
-import VendorAddProduct from "./pages/VendorAddProduct";
-import VendorEditProduct from "./pages/VendorEditProduct";
-import MyProducts from "./pages/marketplace/MyProducts";
-import QRCodeManager from "./pages/admin/QRCodeManager";
-import QRAnalytics from "./pages/admin/QRAnalytics";
-import RestaurantApp from "./pages/RestaurantApp";
-import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
-import RestaurantMenuManager from "./pages/restaurant/RestaurantMenuManager";
-import RestaurantOrders from "./pages/restaurant/RestaurantOrders";
-import RestaurantSubscription from "./pages/restaurant/RestaurantSubscription";
-import RestaurantAuth from "./pages/RestaurantAuth";
-import RestaurantPOS from "./pages/restaurant/RestaurantPOS";
-import RestaurantProfile from "./pages/restaurant/RestaurantProfile";
-import AdminFoodManagement from "./pages/admin/AdminFoodManagement";
-import DriverVerifyEmail from "./pages/DriverVerifyEmail";
-import PartnerVerifyEmail from "./pages/PartnerVerifyEmail";
-import ClientVerifyEmail from "./pages/ClientVerifyEmail";
-import RestaurantVerifyEmail from "./pages/RestaurantVerifyEmail";
-import ClientReferralPage from "./pages/ClientReferralPage";
-import PromosPage from "./pages/PromosPage";
 import { ServiceGuard } from "./components/guards/ServiceGuard";
-import { EmailVerificationPage } from "./pages/EmailVerificationPage";
 import { useServiceRealtime } from "./hooks/useServiceRealtime";
 import { VendorGuard } from "./components/guards/VendorGuard";
 
@@ -169,7 +177,8 @@ const AppContent = () => {
             <ScrollToTop />
             {/* <StartupExperience /> */}
             <OnboardingRedirect>
-              <Routes>
+              <Suspense fallback={<RouteLoadingFallback />}>
+                <Routes>
                 {/* ✅ ROUTES AUTH GLOBALES - TOUJOURS ACCESSIBLES */}
                 <Route path="/app/auth" element={<Auth />} />
                 <Route path="/driver/auth" element={<DriverAuth />} />
@@ -450,7 +459,8 @@ const AppContent = () => {
                 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
-              </Routes>
+                </Routes>
+              </Suspense>
             </OnboardingRedirect>
           </BrowserRouter>
         </PerformanceOptimizer>
