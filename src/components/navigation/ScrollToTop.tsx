@@ -5,33 +5,27 @@ export const ScrollToTop = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    // Force immediate scroll to top - no delay, no smooth behavior
-    window.scrollTo(0, 0);
-    
-    // Also try scrolling the document element
-    if (document.documentElement) {
-      document.documentElement.scrollTop = 0;
-    }
-    
-    // And the body element
-    if (document.body) {
-      document.body.scrollTop = 0;
-    }
-    
-    // Then add smooth scroll after content is loaded
-    const timeoutId = setTimeout(() => {
+    // Batch all scroll operations in a single requestAnimationFrame to avoid forced reflow
+    requestAnimationFrame(() => {
+      // Use window.scrollTo which is more performant than direct scrollTop manipulation
+      window.scrollTo(0, 0);
+      
+      // Check user's motion preference once
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       
+      // Add smooth scroll after content is loaded if motion is allowed
       if (!prefersReducedMotion) {
-        window.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: 'smooth'
-        });
+        const timeoutId = setTimeout(() => {
+          window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: 'smooth'
+          });
+        }, 150);
+        
+        return () => clearTimeout(timeoutId);
       }
-    }, 150);
-
-    return () => clearTimeout(timeoutId);
+    });
   }, [pathname]);
 
   return null;

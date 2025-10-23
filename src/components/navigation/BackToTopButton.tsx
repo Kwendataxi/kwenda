@@ -17,15 +17,25 @@ export const BackToTopButton = ({
   const { scrollToTop } = useScrollToTop();
 
   useEffect(() => {
+    let ticking = false;
+    
     const toggleVisibility = () => {
-      setIsVisible(window.pageYOffset > showAfter);
+      // Batch the DOM read to avoid forced reflow
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      setIsVisible(scrollY > showAfter);
+      ticking = false;
     };
 
     const handleScroll = () => {
-      requestAnimationFrame(toggleVisibility);
+      if (!ticking) {
+        requestAnimationFrame(toggleVisibility);
+        ticking = true;
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    // Check initial state
+    toggleVisibility();
     return () => window.removeEventListener('scroll', handleScroll);
   }, [showAfter]);
 
