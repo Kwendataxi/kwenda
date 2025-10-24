@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Star, Package, Loader2, Store, Heart, ThumbsUp, Share2, X, Camera } from 'lucide-react';
+import { ArrowLeft, Star, Package, Loader2, Store, Heart, ThumbsUp, Share2, X, Camera, Home } from 'lucide-react';
 import { YangoProductCard } from '@/components/marketplace/YangoProductCard';
 import { VendorShopShareButtons } from '@/components/marketplace/VendorShopShareButtons';
 import { useToast } from '@/hooks/use-toast';
@@ -306,23 +306,47 @@ const VendorShop: React.FC = () => {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
+              {/* Bouton Accueil Client */}
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/app/client')}
+                className="gap-2 hidden sm:flex"
+              >
+                <Home className="h-4 w-4" />
+                Accueil
+              </Button>
+              
               {/* Avatar Vendeur */}
               {profile.shop_name && (
                 <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg">
                   {profile.shop_name.charAt(0).toUpperCase()}
                 </div>
               )}
+              
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowShareDialog(true)}
+                title="Partager ma boutique"
               >
                 <Share2 className="h-5 w-5" />
               </Button>
+              
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate('/marketplace')}
+                title="Retour Marketplace"
+              >
+                <Store className="h-5 w-5" />
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate(-1)}
+                title="Fermer"
               >
                 <X className="h-5 w-5" />
               </Button>

@@ -1,10 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import ModernHero from '@/components/landing/ModernHero';
-import InteractiveServicesGrid from '@/components/landing/InteractiveServicesGrid';
-import AdvancedFeatures from '@/components/landing/AdvancedFeatures';
-import TestimonialsSection from '@/components/landing/TestimonialsSection';
-import CTASection from '@/components/landing/CTASection';
+import ModernHeroSimplified from '@/components/landing/ModernHeroSimplified';
+import InteractiveServicesGridLite from '@/components/landing/InteractiveServicesGridLite';
+import SocialProofSection from '@/components/landing/SocialProofSection';
 import ModernFooter from '@/components/landing/ModernFooter';
 import CongoColorShowcase from '@/components/demo/CongoColorShowcase';
 import { DarkModeShowcase } from '@/components/demo/DarkModeShowcase';
@@ -52,12 +50,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      
-      <ModernHero />
-      <InteractiveServicesGrid />
-      
-      <AdvancedFeatures />
-      <CTASection />
+      <ModernHeroSimplified />
+      <InteractiveServicesGridLite />
+      <SocialProofSection />
       <ModernFooter />
     </div>
   );

@@ -1,7 +1,7 @@
-import { ClientLogin } from "@/components/auth/ClientLogin";
+import { UnifiedAuthPage } from "@/components/auth/UnifiedAuthPage";
 
 const Auth = () => {
-  return <ClientLogin />;
+  return <UnifiedAuthPage />;
 };
 
 export default Auth;
