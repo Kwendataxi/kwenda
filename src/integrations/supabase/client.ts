@@ -15,6 +15,31 @@ const baseClient = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce' // Plus sécurisé et rapide
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'kwenda-vtc/1.0.0'
+    },
+    fetch: (url, options = {}) => {
+      // Timeout de 10 secondes pour éviter les requêtes bloquées
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      return fetch(url, {
+        ...options,
+        signal: controller.signal
+      }).finally(() => clearTimeout(timeoutId));
+    }
+  },
+  db: {
+    schema: 'public'
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 2 // Throttle realtime updates
+    }
   }
 });
 

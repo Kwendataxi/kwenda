@@ -31,7 +31,14 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-[#DC2626] via-[#EF4444] to-[#F87171] overflow-hidden">
+    <div 
+      className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, #DC2626 0%, #FBBF24 25%, #10B981 50%, #3B82F6 75%, #DC2626 100%)',
+        backgroundSize: '400% 400%',
+        animation: 'congo-gradient 8s ease infinite'
+      }}
+    >
       {/* Lueurs dynamiques */}
       <motion.div 
         className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl"
@@ -55,7 +62,7 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
           return (
             <motion.div
               key={i}
-              className="absolute rounded-full bg-white/30"
+              className="absolute rounded-full bg-white/50"
               style={{
                 width: `${size}px`,
                 height: `${size}px`,
@@ -91,10 +98,18 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           />
           <motion.div
-            animate={{ y: [0, -10, 0], scale: [1, 1.02, 1] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+            animate={{ 
+              y: [0, -15, 0],
+              scale: [1, 1.08, 1],
+              rotateY: [0, 10, 0, -10, 0]
+            }}
+            transition={{ 
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
           >
-            <BrandLogo size={180} className="drop-shadow-2xl relative z-10" alt="Kwenda Logo" />
+            <BrandLogo size={180} className="drop-shadow-2xl relative z-10 filter brightness-110" alt="Kwenda Logo" />
           </motion.div>
         </div>
 
@@ -107,7 +122,10 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
         >
           <h2
             className="text-white text-3xl font-black tracking-tight leading-tight"
-            style={{ textShadow: '0 4px 20px rgba(0,0,0,0.3), 0 0 40px rgba(255,255,255,0.2)' }}
+            style={{ 
+              textShadow: '0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(251,191,36,0.6), 0 0 30px rgba(220,38,38,0.4), 0 4px 20px rgba(0,0,0,0.3)',
+              animation: 'pulse-soft 2s ease-in-out infinite'
+            }}
           >
             {getSloganByContext()}
           </h2>
@@ -131,9 +149,12 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
             <motion.div
               className="w-12 h-12 rounded-full border-4 border-white/30 border-t-white"
               animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+              transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+              style={{
+                filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.6)) drop-shadow(0 0 20px rgba(251,191,36,0.4))'
+              }}
             />
-            <div className="absolute inset-0 rounded-full blur-xl animate-pulse" style={{ background: 'rgba(255, 255, 255, 0.2)' }} />
+            <div className="absolute inset-0 rounded-full blur-xl animate-pulse" style={{ background: 'rgba(255, 255, 255, 0.3)' }} />
           </div>
           <motion.p
             className="text-white/80 text-sm font-medium"

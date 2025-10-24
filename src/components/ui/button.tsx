@@ -9,21 +9,21 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-elegant hover:shadow-glow rounded-lg",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-elegant hover:shadow-glow rounded-xl transition-all duration-300",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md hover:shadow-lg rounded-xl transition-all duration-300",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-lg",
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md rounded-xl transition-all duration-300",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-md rounded-lg",
-        ghost: "hover:bg-accent hover:text-accent-foreground rounded-lg",
-        link: "text-primary underline-offset-4 hover:underline",
-        hero: "bg-gradient-hero text-white hover:scale-105 shadow-glow font-semibold rounded-xl",
-        success: "bg-gradient-success text-white hover:scale-105 shadow-md rounded-xl",
-        soft: "bg-card border border-border shadow-lg hover:scale-[1.02] active:scale-[0.98] rounded-xl",
-        congo: "btn-congo hover:scale-[1.02] active:scale-[0.98] rounded-xl shadow-elegant",
-        "congo-soft": "bg-congo-red/10 text-congo-red border border-congo-red/20 hover:bg-congo-red/20 hover:border-congo-red/30 rounded-xl backdrop-blur-sm",
-        glass: "glass-button text-foreground hover:scale-[1.02] rounded-xl",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-md hover:shadow-lg rounded-xl transition-all duration-300",
+        ghost: "hover:bg-accent hover:text-accent-foreground rounded-xl transition-all duration-200",
+        link: "text-primary underline-offset-4 hover:underline transition-all duration-200",
+        hero: "bg-gradient-hero text-white hover:scale-105 shadow-glow hover:shadow-xl font-semibold rounded-xl transition-all duration-300",
+        success: "bg-gradient-success text-white hover:scale-105 shadow-md hover:shadow-glow rounded-xl transition-all duration-300",
+        soft: "bg-card border border-border shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] rounded-xl transition-all duration-300",
+        congo: "btn-congo hover:scale-[1.02] active:scale-[0.98] rounded-xl shadow-elegant hover:shadow-glow transition-all duration-300",
+        "congo-soft": "bg-congo-red/10 text-congo-red border border-congo-red/20 hover:bg-congo-red/20 hover:border-congo-red/30 rounded-xl backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300",
+        glass: "glass-button text-foreground hover:scale-[1.02] rounded-xl shadow-md hover:shadow-lg transition-all duration-300",
       },
       size: {
         default: "h-10 px-4 py-2",

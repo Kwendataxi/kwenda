@@ -134,14 +134,25 @@ export default defineConfig(({ mode }) => {
       })
     ].filter(Boolean),
     build: {
-      cssCodeSplit: true, // Split CSS for better caching
+      cssCodeSplit: false, // Un seul fichier CSS pour FCP rapide
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true, // Supprimer console.log en prod
+          drop_debugger: true,
+          pure_funcs: ['console.log', 'console.info']
+        }
+      },
       rollupOptions: {
         output: {
           manualChunks: {
             vendor: ['react', 'react-dom', 'react-router-dom'],
+            ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-toast'],
+            maps: ['@googlemaps/react-wrapper', 'mapbox-gl']
           },
         },
       },
+      chunkSizeWarningLimit: 1000, // Accepter des chunks plus gros pour réduire le nombre de requêtes
     },
     resolve: {
       alias: {
