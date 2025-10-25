@@ -1,153 +1,122 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Handshake, Mail, Lock, Building } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, Eye, EyeOff, AlertCircle, Mail, Lock } from 'lucide-react';
+import { useAuthWithRetry } from '@/hooks/useAuthWithRetry';
 import { toast } from 'sonner';
 
 export const PartnerLoginForm = () => {
-  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    companyName: ''
-  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAuth = async () => {
-    try {
-      setLoading(true);
-      
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/app/partenaire`,
-            data: {
-              company_name: formData.companyName,
-              user_type: 'partner'
-            }
-          }
-        });
+  const navigate = useNavigate();
+  const { loginWithRetry } = useAuthWithRetry();
 
-        if (error) throw error;
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
-        localStorage.setItem('kwenda_login_intent', 'partner');
-        localStorage.setItem('kwenda_selected_role', 'partner');
-        
-        await new Promise(resolve => setTimeout(resolve, 100));
+    const result = await loginWithRetry(email, password, 'partner');
 
-        toast.success('Compte créé ! Vérifiez votre email.');
-        navigate('/app/partenaire');
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password
-        });
-
-        if (error) throw error;
-
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const { data: { session: refreshedSession }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError || !refreshedSession) {
-          throw new Error('Session non établie. Veuillez réessayer.');
-        }
-
-        localStorage.setItem('kwenda_login_intent', 'partner');
-        localStorage.setItem('kwenda_selected_role', 'partner');
-
-        toast.success('Connexion réussie !');
-        
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        navigate('/app/partenaire');
-      }
-    } catch (error: any) {
-      console.error('❌ Erreur auth partenaire:', error);
-      toast.error(error.message || "Une erreur est survenue");
-    } finally {
+    if (!result.success) {
+      setError(result.error || 'Erreur lors de la connexion');
       setLoading(false);
+      return;
     }
+
+    localStorage.setItem('kwenda_login_intent', 'partner');
+    localStorage.setItem('kwenda_selected_role', 'partner');
+
+    toast.success('Connexion réussie !', {
+      description: 'Bienvenue dans votre espace partenaire'
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    setLoading(false);
+    navigate('/app/partenaire');
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <div className="mx-auto w-16 h-16 bg-gradient-to-br from-accent to-primary rounded-full flex items-center justify-center mb-4">
-          <Handshake className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-heading-lg">
-          {isSignUp ? 'Devenir Partenaire' : 'Espace Partenaire'}
-        </h2>
-        <p className="text-body-sm text-muted-foreground">
-          {isSignUp 
-            ? 'Rejoignez notre réseau de partenaires'
-            : 'Connectez-vous pour gérer votre flotte'
-          }
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        {isSignUp && (
-          <div className="relative">
-            <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Nom de l'entreprise"
-              value={formData.companyName}
-              onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-              className="pl-10"
-              required
-            />
-          </div>
-        )}
-
-        <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+    <form onSubmit={handleLogin} className="space-y-5">
+      <div className="space-y-2">
+        <Label htmlFor="partner-email" className="text-sm font-semibold text-gray-700 dark:text-gray-100">
+          Adresse email
+        </Label>
+        <div className="relative group">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-green-600 transition-colors" />
           <Input
+            id="partner-email"
             type="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="pl-10"
+            placeholder="partenaire@entreprise.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="h-12 pl-10 pr-4"
           />
         </div>
+      </div>
 
-        <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <div className="space-y-2">
+        <Label htmlFor="partner-password" className="text-sm font-semibold text-gray-700 dark:text-gray-100">
+          Mot de passe
+        </Label>
+        <div className="relative group">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-green-600 transition-colors" />
           <Input
-            type="password"
-            placeholder="Mot de passe"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            className="pl-10"
+            id="partner-password"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="h-12 pl-10 pr-12"
           />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4 text-gray-500" /> : <Eye className="h-4 w-4 text-gray-500" />}
+          </Button>
         </div>
+      </div>
 
-        <Button 
-          className="w-full bg-gradient-to-r from-accent to-primary" 
-          onClick={handleAuth}
-          disabled={loading}
-        >
-          <Handshake className="w-4 h-4 mr-2" />
-          {isSignUp ? 'Créer mon compte' : 'Se connecter'}
-        </Button>
+      {error && (
+        <Alert variant="destructive" className="animate-fade-in">
+          <AlertCircle className="h-5 w-5" />
+          <AlertDescription className="text-sm font-medium">{error}</AlertDescription>
+        </Alert>
+      )}
 
+      <Button 
+        type="submit" 
+        className="w-full h-12 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold"
+        disabled={loading}
+      >
+        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {loading ? 'Connexion...' : 'Se connecter'}
+      </Button>
+
+      <div className="flex items-center justify-center pt-2">
         <Button
-          variant="ghost"
-          className="w-full"
-          onClick={() => setIsSignUp(!isSignUp)}
+          type="button"
+          variant="link"
+          className="text-sm text-green-600 dark:text-green-400 hover:text-green-700"
+          onClick={() => navigate('/forgot-password')}
         >
-          {isSignUp 
-            ? 'Déjà partenaire ? Se connecter' 
-            : 'Nouveau partenaire ? S\'inscrire'
-          }
+          Mot de passe oublié ?
         </Button>
       </div>
-    </div>
+    </form>
   );
 };

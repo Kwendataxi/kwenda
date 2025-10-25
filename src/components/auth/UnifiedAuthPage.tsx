@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { ClientLogin } from "./ClientLogin";
+import { ClientLoginForm } from "./ClientLoginForm";
 import { DriverLoginForm } from "./DriverLoginForm";
 import { PartnerLoginForm } from "./PartnerLoginForm";
 import { RestaurantLoginForm } from "./RestaurantLoginForm";
@@ -78,7 +78,7 @@ export const UnifiedAuthPage = () => {
 
             <div className="p-6">
               <TabsContent value="client" className="mt-0">
-                <ClientLogin />
+                <ClientLoginForm />
               </TabsContent>
 
               <TabsContent value="driver" className="mt-0">

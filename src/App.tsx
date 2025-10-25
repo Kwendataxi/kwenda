@@ -26,6 +26,7 @@ import { RouteLoadingFallback } from "@/components/loading/RouteLoadingFallback"
 // ✅ Critical imports - loaded immediately (auth, landing, core)
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ClientRegister from "./pages/ClientRegister";
 import MobileSplash from "./pages/MobileSplash";
 import { SmartHome } from "./components/navigation/SmartHome";
 import AdminAuth from "./pages/AdminAuth";
@@ -181,6 +182,7 @@ const AppContent = () => {
                 <Routes>
                 {/* ✅ ROUTES AUTH GLOBALES - TOUJOURS ACCESSIBLES */}
                 <Route path="/app/auth" element={<Auth />} />
+                <Route path="/app/register" element={<ClientRegister />} />
                 <Route path="/driver/auth" element={<DriverAuth />} />
                 <Route path="/partner/auth" element={<PartnerAuth />} />
                 <Route path="/operatorx/admin/auth" element={<AdminAuth />} />

@@ -125,7 +125,7 @@ export default function RestaurantAuth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-4">
         <Button
           variant="ghost"
@@ -133,21 +133,30 @@ export default function RestaurantAuth() {
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Retour
+          Retour à l'accueil
         </Button>
         
-        <Card>
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+        <Card className="shadow-xl">
+          <CardHeader className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
               <UtensilsCrossed className="w-8 h-8 text-white" />
             </div>
+            
+            {/* Badge Espace Restaurant */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800">
+              <UtensilsCrossed className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                Espace Restaurant
+              </span>
+            </div>
+            
             <CardTitle className="text-2xl">
-              {isSignUp ? 'Devenir Restaurant Partenaire' : 'Espace Restaurant'}
+              {isSignUp ? 'Devenir Restaurant Partenaire' : 'Kwenda Food'}
             </CardTitle>
             <CardDescription>
               {isSignUp 
-                ? 'Rejoignez Kwenda Food et développez votre activité'
-                : 'Connectez-vous pour gérer votre restaurant'
+                ? 'Rejoignez notre réseau et développez votre activité'
+                : 'Gérez votre restaurant et vos commandes'
               }
             </CardDescription>
           </CardHeader>
@@ -210,7 +219,7 @@ export default function RestaurantAuth() {
             />
 
             <Button 
-              className="w-full" 
+              className="w-full h-12 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold" 
               onClick={handleAuth}
               disabled={loading}
             >
@@ -220,7 +229,7 @@ export default function RestaurantAuth() {
 
             <Button
               variant="ghost"
-              className="w-full"
+              className="w-full h-12"
               onClick={() => setIsSignUp(!isSignUp)}
             >
               {isSignUp 
