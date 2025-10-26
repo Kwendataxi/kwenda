@@ -24,31 +24,32 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
           transition={{ duration: 0.6 }}
           className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
           style={{
-            background: "linear-gradient(135deg, #DC2626 0%, #B91C1C 50%, #991B1B 100%)"
+            background: "linear-gradient(135deg, #DC2626 0%, #B91C1C 30%, #991B1B 60%, #7F1D1D 100%)"
           }}
         >
-          {/* Particules flottantes en arrière-plan */}
+          {/* Particules flottantes minimalistes */}
           <div className="absolute inset-0 overflow-hidden">
-            {[...Array(15)].map((_, i) => (
+            {[...Array(8)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute rounded-full bg-white/8"
+                className="absolute rounded-full bg-white/5"
                 style={{
-                  width: Math.random() * 80 + 40,
-                  height: Math.random() * 80 + 40,
+                  width: Math.random() * 60 + 30,
+                  height: Math.random() * 60 + 30,
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
+                  filter: 'blur(2px)',
                 }}
                 animate={{
-                  y: [0, -25, 0],
-                  x: [0, Math.random() * 15 - 7.5, 0],
-                  opacity: [0.08, 0.15, 0.08],
+                  y: [0, -15, 0],
+                  x: [0, Math.random() * 10 - 5, 0],
+                  opacity: [0.05, 0.1, 0.05],
                 }}
                 transition={{
-                  duration: 4 + Math.random() * 2,
+                  duration: 6 + Math.random() * 3,
                   repeat: Infinity,
                   ease: "easeInOut",
-                  delay: Math.random() * 2,
+                  delay: Math.random() * 3,
                 }}
               />
             ))}
@@ -56,7 +57,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
 
           {/* Contenu central */}
           <div className="relative flex flex-col items-center gap-8 z-10">
-            {/* Logo avec animation douce */}
+            {/* Logo avec animation ultra-douce */}
             <motion.div
               initial={{ scale: 0.85, opacity: 0 }}
               animate={{ 
@@ -71,91 +72,86 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
               className="relative"
               style={{ willChange: 'transform, opacity' }}
             >
-              {/* Glow effect rouge derrière le logo */}
+              {/* Halo doux et subtil */}
               <motion.div
-                className="absolute inset-0 blur-3xl"
+                className="absolute -inset-12 blur-[80px]"
+                initial={{ opacity: 0 }}
                 animate={{
-                  opacity: [0.4, 0.7, 0.4],
-                  scale: [0.95, 1.15, 0.95],
+                  opacity: [0.3, 0.5, 0.3],
                 }}
                 transition={{
-                  duration: 3.5,
+                  duration: 5,
                   repeat: Infinity,
-                  ease: "easeInOut"
+                  ease: "easeInOut",
+                  delay: 0.3
                 }}
                 style={{
-                  background: "radial-gradient(circle, rgba(220, 38, 38, 0.6) 0%, rgba(185, 28, 28, 0.3) 50%, transparent 80%)"
+                  background: "radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(220, 38, 38, 0.2) 40%, transparent 70%)"
                 }}
               />
               
-              {/* Logo principal - Taille responsive */}
+              {/* Logo principal - Animation respiration premium */}
               <motion.img
                 src="/kwenda-splash-logo.png"
                 alt="Kwenda"
-                className="w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 object-contain relative z-10"
+                className="w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 object-contain relative z-10"
                 animate={{
-                  y: [0, -10, 0],
+                  scale: [1, 1.02, 1],
+                  opacity: [0.95, 1, 0.95],
                 }}
                 transition={{
-                  duration: 3.5,
+                  duration: 4,
                   repeat: Infinity,
                   ease: "easeInOut",
-                  delay: 0.5
+                  delay: 0.3
                 }}
                 style={{ 
-                  willChange: 'transform',
-                  transform: 'translate3d(0, 0, 0)'
+                  willChange: 'transform, opacity',
+                  transform: 'translate3d(0, 0, 0)',
+                  filter: 'drop-shadow(0 0 40px rgba(255, 255, 255, 0.3))'
                 }}
               />
             </motion.div>
 
-            {/* Texte avec animation de slide moderne */}
+            {/* Slogan uniquement */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-              className="text-center space-y-3"
+              transition={{ delay: 0.8, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+              className="text-center"
             >
-              <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
-                Kwenda
-              </h1>
-              <p className="text-lg sm:text-xl text-white/80 font-light">
+              <p className="text-xl sm:text-2xl text-white font-light tracking-wide">
                 Courses abordables tous les jours !
               </p>
             </motion.div>
 
-            {/* Indicateur de chargement minimaliste */}
+            {/* Spinner moderne premium */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1, duration: 0.6 }}
-              className="flex gap-2.5 mt-6"
+              transition={{ delay: 1.2, duration: 0.6 }}
+              className="mt-10"
             >
-              {[0, 1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  className="w-2.5 h-2.5 rounded-full bg-white/60"
-                  animate={{
-                    scale: [1, 1.4, 1],
-                    opacity: [0.5, 1, 0.5],
-                  }}
-                  transition={{
-                    duration: 1.4,
-                    repeat: Infinity,
-                    delay: i * 0.15,
-                    ease: "easeInOut"
-                  }}
-                  style={{ willChange: 'transform, opacity' }}
-                />
-              ))}
+              <motion.div
+                className="w-8 h-8 rounded-full border-2 border-white/20 border-t-white/80"
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 1.2,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+                style={{
+                  filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.4))'
+                }}
+              />
             </motion.div>
           </div>
 
-          {/* Gradient overlay rouge en bas */}
+          {/* Vignette subtile en bas */}
           <div 
-            className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
+            className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none"
             style={{
-              background: "linear-gradient(to top, rgba(153, 27, 27, 0.6), transparent)"
+              background: "linear-gradient(to top, rgba(127, 29, 29, 0.4), transparent)"
             }}
           />
         </motion.div>
