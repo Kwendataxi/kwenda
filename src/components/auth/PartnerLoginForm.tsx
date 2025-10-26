@@ -117,6 +117,20 @@ export const PartnerLoginForm = () => {
           Mot de passe oublié ?
         </Button>
       </div>
+
+      <div className="text-center text-sm text-muted-foreground mt-4 pt-4 border-t">
+        <p>
+          Pas encore partenaire ?{' '}
+          <Button
+            type="button"
+            variant="link"
+            className="p-0 h-auto text-accent hover:text-accent/80 font-semibold"
+            onClick={() => navigate('/partner/register')}
+          >
+            Rejoindre le réseau
+          </Button>
+        </p>
+      </div>
     </form>
   );
 };

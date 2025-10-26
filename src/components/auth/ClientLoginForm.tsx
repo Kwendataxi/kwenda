@@ -134,6 +134,21 @@ export const ClientLoginForm = () => {
           Mot de passe oublié ?
         </Button>
       </div>
+
+      {/* Lien inscription */}
+      <div className="text-center text-sm text-muted-foreground mt-4 pt-4 border-t">
+        <p>
+          Pas encore de compte ?{' '}
+          <Button
+            type="button"
+            variant="link"
+            className="p-0 h-auto text-primary hover:text-primary/80 font-semibold"
+            onClick={() => navigate('/app/register')}
+          >
+            Créer un compte client
+          </Button>
+        </p>
+      </div>
     </form>
   );
 };

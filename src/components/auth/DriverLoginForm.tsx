@@ -117,6 +117,20 @@ export const DriverLoginForm = () => {
           Mot de passe oublié ?
         </Button>
       </div>
+
+      <div className="text-center text-sm text-muted-foreground mt-4 pt-4 border-t">
+        <p>
+          Pas encore de compte chauffeur ?{' '}
+          <Button
+            type="button"
+            variant="link"
+            className="p-0 h-auto text-secondary hover:text-secondary/80 font-semibold"
+            onClick={() => navigate('/driver/register')}
+          >
+            Devenir chauffeur Kwenda
+          </Button>
+        </p>
+      </div>
     </form>
   );
 };

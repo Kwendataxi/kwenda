@@ -45,34 +45,34 @@ export const UnifiedAuthPage = () => {
         {/* Auth Tabs */}
         <Card className="glass border-primary/10">
           <Tabs defaultValue={defaultTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-auto p-2 gap-2">
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-auto p-3 gap-3">
               <TabsTrigger 
                 value="client" 
-                className="flex items-center gap-2 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-white"
+                className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-white"
               >
-                <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Client</span>
+                <User className="h-5 w-5" />
+                <span className="text-xs sm:text-sm">Client</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="driver"
-                className="flex items-center gap-2 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-secondary data-[state=active]:to-accent data-[state=active]:text-white"
+                className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-secondary data-[state=active]:to-accent data-[state=active]:text-white"
               >
-                <Car className="h-4 w-4" />
-                <span className="hidden sm:inline">Chauffeur</span>
+                <Car className="h-5 w-5" />
+                <span className="text-xs sm:text-sm">Chauffeur</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="partner"
-                className="flex items-center gap-2 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent data-[state=active]:to-primary data-[state=active]:text-white"
+                className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent data-[state=active]:to-primary data-[state=active]:text-white"
               >
-                <Handshake className="h-4 w-4" />
-                <span className="hidden sm:inline">Partenaire</span>
+                <Handshake className="h-5 w-5" />
+                <span className="text-xs sm:text-sm">Partenaire</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="restaurant"
-                className="flex items-center gap-2 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-white"
+                className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-white"
               >
-                <UtensilsCrossed className="h-4 w-4" />
-                <span className="hidden sm:inline">Restaurant</span>
+                <UtensilsCrossed className="h-5 w-5" />
+                <span className="text-xs sm:text-sm">Restaurant</span>
               </TabsTrigger>
             </TabsList>
 
@@ -97,17 +97,39 @@ export const UnifiedAuthPage = () => {
         </Card>
 
         {/* Quick Links */}
-        <div className="text-center text-sm text-muted-foreground">
-          <p>
-            Vous êtes un restaurant ? 
+        <div className="text-center text-sm text-muted-foreground space-y-3">
+          <p className="font-medium text-foreground text-base">
+            Vous êtes Prestataires ?
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
             <Button 
-              variant="link" 
-              className="text-orange-500 hover:text-orange-600 px-2"
+              variant="outline" 
+              size="sm"
+              className="gap-2 hover:bg-secondary/10"
+              onClick={() => navigate('/driver/auth')}
+            >
+              <Car className="h-4 w-4" />
+              Espace Chauffeur
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="gap-2 hover:bg-accent/10"
+              onClick={() => navigate('/partner/auth')}
+            >
+              <Handshake className="h-4 w-4" />
+              Espace Partenaire
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="gap-2 border-orange-500/50 hover:bg-orange-50 dark:hover:bg-orange-950/30"
               onClick={() => navigate('/restaurant/auth')}
             >
-              Accédez à votre espace dédié
+              <UtensilsCrossed className="h-4 w-4 text-orange-500" />
+              Espace Restaurant
             </Button>
-          </p>
+          </div>
         </div>
       </div>
     </div>
