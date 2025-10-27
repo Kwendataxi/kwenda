@@ -26,6 +26,7 @@ import { RouteLoadingFallback } from "@/components/loading/RouteLoadingFallback"
 // ✅ Critical imports - loaded immediately (auth, landing, core)
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ClientAuth from "./pages/ClientAuth";
 import ClientRegister from "./pages/ClientRegister";
 import MobileSplash from "./pages/MobileSplash";
 import { SmartHome } from "./components/navigation/SmartHome";
@@ -50,6 +51,8 @@ const Contact = lazy(() => import("./pages/support/Contact"));
 const FAQ = lazy(() => import("./pages/support/FAQ"));
 const Terms = lazy(() => import("./pages/legal/Terms"));
 const Privacy = lazy(() => import("./pages/legal/Privacy"));
+const Cookies = lazy(() => import("./pages/legal/Cookies"));
+const LegalNotice = lazy(() => import("./pages/legal/LegalNotice"));
 const Kinshasa = lazy(() => import("./pages/locations/Kinshasa"));
 const Lubumbashi = lazy(() => import("./pages/locations/Lubumbashi"));
 const Kolwezi = lazy(() => import("./pages/locations/Kolwezi"));
@@ -181,7 +184,8 @@ const AppContent = () => {
               <Suspense fallback={<RouteLoadingFallback />}>
                 <Routes>
                 {/* ✅ ROUTES AUTH GLOBALES - TOUJOURS ACCESSIBLES */}
-                <Route path="/app/auth" element={<Auth />} />
+                <Route path="/app/auth" element={<ClientAuth />} />
+                <Route path="/auth" element={<Auth />} />
                 <Route path="/app/register" element={<ClientRegister />} />
                 <Route path="/driver/auth" element={<DriverAuth />} />
                 <Route path="/partner/auth" element={<PartnerAuth />} />
@@ -424,6 +428,9 @@ const AppContent = () => {
                     <Route path="/support/faq" element={<FAQ />} />
                     <Route path="/legal/terms" element={<Terms />} />
                     <Route path="/legal/privacy" element={<Privacy />} />
+                    <Route path="/legal/cookies" element={<Cookies />} />
+                    <Route path="/legal/legal-notice" element={<LegalNotice />} />
+                    <Route path="/support/help-center" element={<HelpCenter />} />
                     <Route path="/locations/kinshasa" element={<Kinshasa />} />
                     <Route path="/locations/lubumbashi" element={<Lubumbashi />} />
                     <Route path="/locations/kolwezi" element={<Kolwezi />} />

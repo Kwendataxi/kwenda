@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff, AlertCircle, Mail, Lock } from 'lucide-react';
 import { useAuthWithRetry } from '@/hooks/useAuthWithRetry';
 import { toast } from 'sonner';
+import { ForgotPasswordModal } from '@/components/auth/ForgotPasswordModal';
 
 /**
  * Formulaire de connexion client léger pour UnifiedAuthPage
@@ -18,6 +19,7 @@ export const ClientLoginForm = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const navigate = useNavigate();
   const { loginWithRetry } = useAuthWithRetry();
@@ -129,11 +131,17 @@ export const ClientLoginForm = () => {
           type="button"
           variant="link"
           className="text-sm text-red-600 dark:text-red-400 hover:text-red-700"
-          onClick={() => navigate('/forgot-password')}
+          onClick={() => setShowForgotPassword(true)}
         >
           Mot de passe oublié ?
         </Button>
       </div>
+
+      {/* Modal mot de passe oublié */}
+      <ForgotPasswordModal 
+        isOpen={showForgotPassword} 
+        onClose={() => setShowForgotPassword(false)} 
+      />
 
       {/* Lien inscription */}
       <div className="text-center text-sm text-muted-foreground mt-4 pt-4 border-t">

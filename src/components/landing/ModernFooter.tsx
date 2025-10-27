@@ -23,21 +23,21 @@ const ModernFooter = () => {
     {
       title: "Partenaires",
       links: [
-        { name: "Devenir Chauffeur", href: "/app/auth?role=driver", icon: <Users className="w-4 h-4" /> },
-        { name: "Louer mon Véhicule", href: "/app/auth?role=partner", icon: <Car className="w-4 h-4" /> },
-        { name: "Devenir Livreur", href: "/app/auth?role=driver", icon: <Package className="w-4 h-4" /> },
-        { name: "Vendre en ligne", href: "/app/auth?role=restaurant", icon: <Store className="w-4 h-4" /> },
-        { name: "Programme Partenaire", href: "/app/auth?role=partner", icon: <Users className="w-4 h-4" /> }
+        { name: "Devenir Chauffeur", href: "/driver/auth", icon: <Users className="w-4 h-4" /> },
+        { name: "Louer mon Véhicule", href: "/partner/auth", icon: <Car className="w-4 h-4" /> },
+        { name: "Devenir Livreur", href: "/driver/auth", icon: <Package className="w-4 h-4" /> },
+        { name: "Vendre en ligne", href: "/restaurant/auth", icon: <Store className="w-4 h-4" /> },
+        { name: "Programme Partenaire", href: "/partner/auth", icon: <Users className="w-4 h-4" /> }
       ]
     },
     {
       title: "Support",
       links: [
-        { name: "Centre d'aide", href: "/support", icon: <Phone className="w-4 h-4" /> },
-        { name: "Nous contacter", href: "/support", icon: <Mail className="w-4 h-4" /> },
-        { name: "FAQ", href: "/support", icon: <Heart className="w-4 h-4" /> },
-        { name: "Signaler un problème", href: "/support", icon: <Phone className="w-4 h-4" /> },
-        { name: "Sécurité", href: "/support", icon: <Phone className="w-4 h-4" /> }
+        { name: "Centre d'aide", href: "/support/help-center", icon: <Phone className="w-4 h-4" /> },
+        { name: "Nous contacter", href: "/support/contact", icon: <Mail className="w-4 h-4" /> },
+        { name: "FAQ", href: "/support/faq", icon: <Heart className="w-4 h-4" /> },
+        { name: "Signaler un problème", href: "/support/signaler-probleme", icon: <Phone className="w-4 h-4" /> },
+        { name: "Sécurité", href: "/support/contact", icon: <Phone className="w-4 h-4" /> }
       ]
     },
     {
