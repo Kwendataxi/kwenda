@@ -41,7 +41,7 @@ serve(async (req) => {
       throw new Error('Accès non autorisé à cette commande');
     }
 
-    // Mettre à jour la commande avec les frais de livraison
+    // ✅ CORRIGÉ: Mettre à jour la commande en attente d'approbation client
     const { error: updateError } = await supabaseClient
       .from('marketplace_orders')
       .update({
@@ -49,12 +49,28 @@ serve(async (req) => {
         vendor_delivery_method: deliveryMethod,
         vendor_confirmation_status: 'confirmed',
         vendor_confirmed_at: new Date().toISOString(),
-        status: 'confirmed',
+        status: 'pending_buyer_approval', // ✅ Client doit approuver les frais
         updated_at: new Date().toISOString()
       })
       .eq('id', orderId);
 
     if (updateError) throw updateError;
+
+    // ✅ AJOUT: Notifier le client des frais de livraison proposés
+    const { error: notifError } = await supabaseClient
+      .from('system_notifications')
+      .insert({
+        user_id: order.buyer_id,
+        title: 'Frais de livraison proposés',
+        message: `Le vendeur propose ${deliveryFee} FC pour la livraison. Consultez votre commande pour accepter ou refuser.`,
+        type: 'delivery_fee_approval',
+        related_id: orderId,
+        related_type: 'marketplace_order'
+      });
+
+    if (notifError) {
+      console.error('Notification error:', notifError);
+    }
 
     // Créer une transaction dans le wallet du vendeur (en attente)
     const { error: walletError } = await supabaseClient
@@ -105,7 +121,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Commande validée avec succès',
+        message: 'Commande validée. Le client va recevoir votre proposition de frais.',
+        orderId,
         deliveryFee 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

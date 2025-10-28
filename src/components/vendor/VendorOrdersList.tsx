@@ -220,13 +220,14 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {order.status === 'in_transit' && (
+                  {/* ✅ CORRIGÉ: Bouton visible pour tous les statuts actifs */}
+                  {['confirmed', 'preparing', 'ready_for_pickup', 'in_transit'].includes(order.status) && (
                     <Button 
                       onClick={() => handleOrderComplete(order.id)}
                       className="w-full"
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Marquer comme livrée
+                      {order.status === 'in_transit' ? 'Marquer comme livrée' : 'Terminer la commande'}
                     </Button>
                   )}
                 </CardContent>
