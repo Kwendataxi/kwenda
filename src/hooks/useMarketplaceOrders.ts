@@ -25,7 +25,7 @@ export const useMarketplaceOrders = () => {
     try {
       setLoading(true);
       
-      // Étape 1: Charger les commandes avec les produits et profils basiques
+      // Charger les commandes avec les produits
       const { data: ordersData, error } = await supabase
         .from('marketplace_orders')
         .select(`
@@ -49,39 +49,41 @@ export const useMarketplaceOrders = () => {
         return;
       }
 
-      // Étape 2: Enrichir avec les profils vendeurs et acheteurs
-      const enrichedOrders = await Promise.all(
-        ordersData.map(async (order) => {
-          // Récupérer infos vendeur
-          const { data: sellerProfile } = await supabase
-            .from('profiles')
-            .select('id, display_name, avatar_url')
-            .eq('id', order.seller_id)
-            .maybeSingle();
+      // Collecter les IDs uniques pour batch fetching
+      const sellerIds = [...new Set(ordersData.map(o => o.seller_id))];
+      const buyerIds = [...new Set(ordersData.map(o => o.buyer_id))];
 
-          // Récupérer infos boutique vendeur
-          const { data: vendorInfo } = await supabase
-            .from('vendor_profiles')
-            .select('shop_name, shop_logo_url, shop_banner_url')
-            .eq('user_id', order.seller_id)
-            .maybeSingle();
+      // Batch fetch des profils vendeurs
+      const { data: sellerProfiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', sellerIds);
 
-          // Récupérer infos acheteur
-          const { data: buyerProfile } = await supabase
-            .from('profiles')
-            .select('id, display_name, avatar_url')
-            .eq('id', order.buyer_id)
-            .maybeSingle();
+      // Batch fetch des infos boutiques
+      const { data: vendorProfiles } = await supabase
+        .from('vendor_profiles')
+        .select('user_id, shop_name, shop_logo_url, shop_banner_url')
+        .in('user_id', sellerIds);
 
-          return {
-            ...order,
-            product: order.marketplace_products,
-            seller: sellerProfile,
-            vendor_info: vendorInfo,
-            buyer: buyerProfile,
-          };
-        })
-      );
+      // Batch fetch des profils acheteurs
+      const { data: buyerProfiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', buyerIds);
+
+      // Créer des maps pour accès rapide
+      const sellersMap = new Map((sellerProfiles || []).map(p => [p.id, p]));
+      const vendorsMap = new Map((vendorProfiles || []).map(v => [v.user_id, v]));
+      const buyersMap = new Map((buyerProfiles || []).map(p => [p.id, p]));
+
+      // Enrichir les commandes avec les données
+      const enrichedOrders = ordersData.map(order => ({
+        ...order,
+        product: order.marketplace_products,
+        seller: sellersMap.get(order.seller_id) || null,
+        vendor_info: vendorsMap.get(order.seller_id) || null,
+        buyer: buyersMap.get(order.buyer_id) || null,
+      }));
 
       setOrders(enrichedOrders);
     } catch (error: any) {
@@ -91,6 +93,7 @@ export const useMarketplaceOrders = () => {
         description: 'Impossible de charger les commandes',
         variant: 'destructive'
       });
+      setOrders([]); // Prevent infinite loop
     } finally {
       setLoading(false);
     }
