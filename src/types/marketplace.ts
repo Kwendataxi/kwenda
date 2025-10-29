@@ -32,6 +32,7 @@ export interface MarketplaceProduct {
 
 export interface CartItem {
   id: string;
+  product_id?: string; // ID du produit dans la DB (optionnel pour rétrocompatibilité)
   name: string;
   price: number;
   image: string;
@@ -39,6 +40,10 @@ export interface CartItem {
   seller: string;
   seller_id: string;
   coordinates?: { lat: number; lng: number };
+  // Propriétés optionnelles pour compatibilité avec différents contextes
+  originalPrice?: number;
+  category?: string;
+  isAvailable?: boolean;
 }
 
 export interface HorizontalProduct {
@@ -58,6 +63,7 @@ export interface HorizontalProduct {
 // Helper pour convertir MarketplaceProduct → CartItem
 export const productToCartItem = (product: MarketplaceProduct, quantity: number = 1): CartItem => ({
   id: product.id,
+  product_id: product.id, // Ajouter product_id explicitement
   name: product.title,
   price: product.price,
   image: product.images[0] || '',

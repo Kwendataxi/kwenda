@@ -2,16 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
-
-interface CartItem {
-  id: string;
-  product_id: string;
-  seller_id: string;
-  quantity: number;
-  price: number;
-  title?: string;
-  image?: string;
-}
+import type { CartItem } from '@/types/marketplace';
 
 interface Coordinates {
   lat: number;
@@ -122,32 +113,38 @@ export const useMarketplaceOrders = () => {
 
           const { data: order, error } = await supabase
             .from('marketplace_orders')
-            .insert({
-              product_id: item.product_id,
+            .insert([{
+              product_id: item.product_id || item.id, // Fallback à item.id si product_id n'existe pas
               buyer_id: user.id,
               seller_id: sellerId,
               quantity: item.quantity,
               unit_price: item.price,
               total_amount: orderTotal,
               status: 'pending',
+              payment_status: 'pending',
+              delivery_method: 'standard',
               delivery_coordinates: userCoordinates,
-              pickup_coordinates: null, // Sera rempli par le vendeur
-            })
+              pickup_coordinates: null,
+            }] as any) // Utiliser 'as any' pour contourner les types générés
             .select()
             .single();
 
           if (error) throw error;
           if (order) orderIds.push(order.id);
 
-          // Notifier le vendeur
-          await supabase.from('system_notifications').insert({
-            user_id: sellerId,
-            title: 'Nouvelle commande',
-            message: `Vous avez reçu une nouvelle commande pour ${item.title || 'un produit'}`,
-            type: 'marketplace_order',
-            related_id: order.id,
-            related_type: 'marketplace_order'
-          });
+          // Notifier le vendeur via system_notifications
+          try {
+            await supabase.from('system_notifications').insert({
+              user_id: sellerId,
+              title: 'Nouvelle commande',
+              message: `Vous avez reçu une nouvelle commande pour ${item.name || 'un produit'}`,
+              notification_type: 'marketplace_order',
+              data: { order_id: order.id }
+            });
+          } catch (notifError) {
+            console.error('Error creating notification:', notifError);
+            // Ne pas bloquer la commande si la notification échoue
+          }
         }
       }
 
@@ -198,7 +195,7 @@ export const useMarketplaceOrders = () => {
     await loadOrders();
   };
 
-  const completeOrder = async (orderId: string) => {
+  const completeOrder = async (orderId: string, rating?: number, feedback?: string) => {
     try {
       // Appeler edge function pour libérer le paiement
       const { error: functionError } = await supabase.functions.invoke('release-escrow-payment', {
@@ -207,14 +204,19 @@ export const useMarketplaceOrders = () => {
 
       if (functionError) throw functionError;
 
-      // Mettre à jour le statut
+      // Mettre à jour le statut avec rating et feedback optionnels
+      const updateData: any = { 
+        status: 'completed', 
+        completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString() 
+      };
+
+      if (rating !== undefined) updateData.customer_rating = rating;
+      if (feedback) updateData.customer_feedback = feedback;
+
       const { error: updateError } = await supabase
         .from('marketplace_orders')
-        .update({ 
-          status: 'completed', 
-          completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString() 
-        })
+        .update(updateData)
         .eq('id', orderId);
 
       if (updateError) throw updateError;
@@ -236,31 +238,36 @@ export const useMarketplaceOrders = () => {
     }
   };
 
-  const createOrder = async (productId: string, quantity: number, deliveryAddress?: string) => {
+  const createOrder = async (
+    productId: string, 
+    sellerId: string,
+    quantity: number, 
+    unitPrice: number,
+    deliveryAddress?: string,
+    coordinates?: Coordinates,
+    deliveryMethod?: string,
+    notes?: string
+  ) => {
     if (!user) throw new Error('User not authenticated');
 
-    const { data: product } = await supabase
-      .from('marketplace_products')
-      .select('price, seller_id')
-      .eq('id', productId)
-      .single();
-
-    if (!product) throw new Error('Product not found');
-
-    const orderTotal = product.price * quantity;
+    const orderTotal = unitPrice * quantity;
 
     const { data, error } = await supabase
       .from('marketplace_orders')
-      .insert({
+      .insert([{
         product_id: productId,
         buyer_id: user.id,
-        seller_id: product.seller_id,
+        seller_id: sellerId,
         quantity,
-        unit_price: product.price,
+        unit_price: unitPrice,
         total_amount: orderTotal,
         status: 'pending',
+        payment_status: 'pending',
         delivery_address: deliveryAddress,
-      })
+        delivery_coordinates: coordinates,
+        delivery_method: deliveryMethod || 'standard',
+        notes: notes,
+      }] as any) // Utiliser 'as any' pour contourner les types générés
       .select()
       .single();
 
@@ -269,10 +276,16 @@ export const useMarketplaceOrders = () => {
     return data;
   };
 
-  const updateOrderStatus = async (orderId: string, status: string) => {
+  const updateOrderStatus = async (orderId: string, status: string, additionalData?: Record<string, any>) => {
+    const updateData = { 
+      status, 
+      updated_at: new Date().toISOString(),
+      ...additionalData 
+    };
+
     const { error } = await supabase
       .from('marketplace_orders')
-      .update({ status, updated_at: new Date().toISOString() })
+      .update(updateData)
       .eq('id', orderId);
 
     if (error) throw error;
@@ -283,8 +296,12 @@ export const useMarketplaceOrders = () => {
     await updateOrderStatus(orderId, 'confirmed');
   };
 
-  const cancelOrder = async (orderId: string) => {
-    await updateOrderStatus(orderId, 'cancelled');
+  const cancelOrder = async (orderId: string, reason?: string, cancellationType?: string) => {
+    const additionalData: Record<string, any> = {};
+    if (reason) additionalData.vendor_rejection_reason = reason;
+    if (cancellationType) additionalData.notes = cancellationType;
+    
+    await updateOrderStatus(orderId, 'cancelled', additionalData);
   };
 
   const refetch = loadOrders;

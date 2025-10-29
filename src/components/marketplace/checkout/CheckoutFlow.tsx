@@ -9,16 +9,7 @@ import { MapPin, Package, CreditCard, CheckCircle, ChevronRight } from 'lucide-r
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useToast } from '@/hooks/use-toast';
 import { useGeolocation } from '@/hooks/useGeolocation';
-
-interface CartItem {
-  id: string;
-  product_id: string;
-  seller_id: string;
-  quantity: number;
-  price: number;
-  title?: string;
-  image?: string;
-}
+import type { CartItem } from '@/types/marketplace';
 
 interface CheckoutFlowProps {
   cartItems: CartItem[];
@@ -166,10 +157,10 @@ export const CheckoutFlow = ({ cartItems, onComplete, onClose }: CheckoutFlowPro
                 <div key={item.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-3">
                     {item.image && (
-                      <img src={item.image} alt={item.title} className="w-12 h-12 object-cover rounded" />
+                      <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded" />
                     )}
                     <div>
-                      <p className="font-medium">{item.title}</p>
+                      <p className="font-medium">{item.name}</p>
                       <p className="text-sm text-muted-foreground">Quantité: {item.quantity}</p>
                     </div>
                   </div>

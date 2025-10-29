@@ -394,11 +394,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     } else {
       setCartItems([...cartItems, {
         id: product.id,
+        product_id: product.id, // Ajouter product_id
         name: product.title,
         price: product.price,
         image: product.image,
         quantity: 1,
-        seller: product.seller.display_name || t('marketplace.unknown_seller'),
+        seller: product.seller?.display_name || 'Vendeur',
         seller_id: product.seller_id,
         coordinates: product.coordinates
       }]);

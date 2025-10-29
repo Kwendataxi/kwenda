@@ -1,18 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  image: string;
-  quantity: number;
-  seller: string;
-  seller_id: string;
-  category: string;
-  isAvailable: boolean;
-}
+import type { CartItem } from '@/types/marketplace';
 
 interface CartContextType {
   cartItems: CartItem[];
@@ -79,6 +67,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       const cartItem: CartItem = {
         id: product.id,
+        product_id: product.id, // Ajouter product_id
         name: product.name,
         price: product.price,
         originalPrice: product.originalPrice,
