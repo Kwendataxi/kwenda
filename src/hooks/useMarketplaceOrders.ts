@@ -24,19 +24,66 @@ export const useMarketplaceOrders = () => {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Étape 1: Charger les commandes avec les produits et profils basiques
+      const { data: ordersData, error } = await supabase
         .from('marketplace_orders')
         .select(`
           *,
-          product:marketplace_products(title, images, price),
-          seller:vendor_profiles!marketplace_orders_seller_id_fkey(shop_name, shop_logo_url),
-          buyer:profiles!marketplace_orders_buyer_id_fkey(display_name, avatar_url)
+          marketplace_products!inner (
+            id,
+            title,
+            images,
+            price,
+            seller_id
+          )
         `)
         .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setOrders(data || []);
+
+      if (!ordersData || ordersData.length === 0) {
+        setOrders([]);
+        setLoading(false);
+        return;
+      }
+
+      // Étape 2: Enrichir avec les profils vendeurs et acheteurs
+      const enrichedOrders = await Promise.all(
+        ordersData.map(async (order) => {
+          // Récupérer infos vendeur
+          const { data: sellerProfile } = await supabase
+            .from('profiles')
+            .select('id, display_name, avatar_url')
+            .eq('id', order.seller_id)
+            .maybeSingle();
+
+          // Récupérer infos boutique vendeur
+          const { data: vendorInfo } = await supabase
+            .from('vendor_profiles')
+            .select('shop_name, shop_logo_url, shop_banner_url')
+            .eq('user_id', order.seller_id)
+            .maybeSingle();
+
+          // Récupérer infos acheteur
+          const { data: buyerProfile } = await supabase
+            .from('profiles')
+            .select('id, display_name, avatar_url')
+            .eq('id', order.buyer_id)
+            .maybeSingle();
+
+          return {
+            ...order,
+            product: order.marketplace_products,
+            seller: sellerProfile,
+            vendor_info: vendorInfo,
+            buyer: buyerProfile,
+          };
+        })
+      );
+
+      setOrders(enrichedOrders);
     } catch (error: any) {
       console.error('Error loading marketplace orders:', error);
       toast({
