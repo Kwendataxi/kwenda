@@ -309,6 +309,9 @@ export const UserProfile = ({ onWalletAccess }: UserProfileProps = {}) => {
         case 'vendor':
           navigate('/vendeur');
           return null;
+        case 'vendor-request':
+          const { VendorVerificationRequest } = require('@/components/vendor/VendorVerificationRequest');
+          return <VendorVerificationRequest />;
         case 'support':
           return <CustomerSupport />;
         case 'security':
@@ -442,58 +445,55 @@ export const UserProfile = ({ onWalletAccess }: UserProfileProps = {}) => {
         <ProfileActionButtons onQuickAction={handleQuickAction} />
       </div>
 
-      {/* Premium Vendor Button - Séparé et Spécial */}
-      {isVendor && (
-        <div className="px-4 py-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
+      {/* Section Vendeur - Afficher pour TOUS les clients */}
+      <div className="px-4 py-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          {isVendor ? (
+            // Utilisateur déjà vendeur → Accès direct
             <button
-              onClick={() => handleOptionClick('vendor')}
-              className="w-full relative overflow-hidden p-6 rounded-2xl group bg-gradient-to-br from-primary via-congo-red to-congo-yellow hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 border-2 border-congo-yellow/30"
+              onClick={() => navigate('/vendeur')}
+              className="w-full relative overflow-hidden p-6 rounded-2xl group bg-gradient-to-br from-primary via-primary to-primary-glow hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all duration-500 hover:scale-[1.02]"
             >
-              {/* Effet shimmer animé */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-              
-              {/* Badge Premium */}
-              <div className="absolute top-3 right-3 bg-congo-yellow text-congo-dark px-2 py-1 rounded-full text-xs font-bold shadow-lg">
-                ⭐ PREMIUM
+              <div className="absolute top-3 right-3 bg-congo-yellow text-congo-dark px-2 py-1 rounded-full text-xs font-bold">
+                ⭐ ACTIF
               </div>
-              
               <div className="relative flex items-center gap-4">
-                {/* Icône avec animation pulse */}
-                <motion.div 
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl group-hover:bg-white/30 transition-all duration-300"
-                >
-                  <Store className="h-7 w-7 text-white drop-shadow-lg" />
-                </motion.div>
-                
-                {/* Texte */}
-                <div className="flex-1 text-left">
-                  <div className="text-xl font-bold text-white drop-shadow-lg mb-1">
-                    Mon espace vendeur
-                  </div>
-                  <div className="text-sm text-white/90 font-medium">
-                    💰 Vendez et gagnez de l'argent !
-                  </div>
+                <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl">
+                  <Store className="h-7 w-7 text-white" />
                 </div>
-                
-                {/* Flèche animée */}
-                <motion.div
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  <ChevronRight className="h-6 w-6 text-white drop-shadow-lg" />
-                </motion.div>
+                <div className="flex-1 text-left">
+                  <div className="text-xl font-bold text-white">Mon espace vendeur</div>
+                  <div className="text-sm text-white/90">Gérer mes produits et commandes</div>
+                </div>
+                <ChevronRight className="h-6 w-6 text-white" />
               </div>
             </button>
-          </motion.div>
-        </div>
-      )}
+          ) : (
+            // Client non-vendeur → Demander vérification
+            <button
+              onClick={() => handleOptionClick('vendor-request')}
+              className="w-full p-6 rounded-2xl border-2 border-dashed border-primary/30 hover:border-primary hover:bg-primary/5 transition-all group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="bg-primary/10 p-4 rounded-2xl group-hover:bg-primary/20 transition-colors">
+                  <Store className="h-7 w-7 text-primary" />
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="text-lg font-bold text-foreground">Devenir vendeur</div>
+                  <div className="text-sm text-muted-foreground">
+                    Vendez vos produits sur Kwenda Marketplace
+                  </div>
+                </div>
+                <ChevronRight className="h-6 w-6 text-primary" />
+              </div>
+            </button>
+          )}
+        </motion.div>
+      </div>
 
       {/* Profile Options List */}
       <div className="px-4 py-2 space-y-2">

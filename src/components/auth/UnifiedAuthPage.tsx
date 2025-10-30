@@ -19,15 +19,6 @@ export const UnifiedAuthPage = () => {
       <div className="w-full max-w-5xl space-y-6">
         {/* Header */}
         <div className="text-center space-y-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/')}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour à l'accueil
-          </Button>
-          
           <div className="flex justify-center">
             <BrandLogo size={64} />
           </div>
@@ -130,6 +121,19 @@ export const UnifiedAuthPage = () => {
               Espace Restaurant
             </Button>
           </div>
+        </div>
+
+        {/* Bouton Retour à l'accueil en bas */}
+        <div className="text-center mt-8 pb-6">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => navigate('/')}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour à l'accueil
+          </Button>
         </div>
       </div>
     </div>

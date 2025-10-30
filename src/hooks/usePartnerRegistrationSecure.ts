@@ -48,65 +48,10 @@ export const usePartnerRegistrationSecure = () => {
           name: error.name
         });
         
-        // ✅ APPROCHE MULTI-RÔLES : Détecter si l'utilisateur existe déjà
+        // ✅ AMÉLIORATION : Afficher message explicite pour utilisateur existant
         if (error.message?.includes('already registered') || error.status === 422) {
-          console.log('⚠️ User already exists, attempting to add partner role...');
-          
-          // Tenter de se connecter avec les credentials fournis
-          const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-            email: data.contact_email,
-            password: data.password,
-          });
-          
-          if (loginError) {
-            console.error('Login failed for existing user:', loginError);
-            throw new Error('Cet email est déjà utilisé. Si c\'est votre compte, veuillez utiliser le bon mot de passe.');
-          }
-          
-          console.log('✅ Login successful, adding partner role to existing user:', loginData.user.id);
-          
-          // Ajouter le rôle partenaire via RPC
-          const { data: rpcResult, error: rpcError } = await supabase.rpc(
-            'add_partner_role_to_existing_user',
-            {
-              p_user_id: loginData.user.id,
-              p_company_name: data.company_name,
-              p_phone_number: data.phone,
-              p_business_type: data.business_type,
-              p_service_areas: data.service_areas
-            }
-          ) as { data: { success: boolean; error?: string; partner_id?: string } | null; error: any };
-          
-          console.log('RPC add_partner_role result:', rpcResult);
-          
-          if (rpcError || !rpcResult?.success) {
-            console.error('❌ Failed to add partner role:', rpcError || rpcResult?.error);
-            throw new Error(rpcResult?.error || 'Erreur lors de l\'ajout du rôle partenaire');
-          }
-          
-          console.log('✅ Partner role added successfully to existing account');
-          toast.success('Rôle partenaire ajouté à votre compte existant !');
-          
-          // Envoyer notification admin (non-bloquant)
-          try {
-            await supabase.functions.invoke('smart-notification-dispatcher', {
-              body: {
-                type: 'partner_registration',
-                data: {
-                  partner_name: data.company_name,
-                  business_type: data.business_type,
-                  service_areas: data.service_areas,
-                  email: data.contact_email,
-                  user_id: loginData.user.id,
-                  is_existing_user: true
-                }
-              }
-            });
-          } catch (notificationError) {
-            console.warn('Admin notification failed:', notificationError);
-          }
-          
-          return { success: true, user: loginData.user };
+          console.log('⚠️ User already exists with this email');
+          throw new Error('EXISTING_USER_DETECTED');
         }
         
         throw new Error(error.message || 'Erreur lors de l\'inscription du partenaire');
@@ -202,6 +147,16 @@ export const usePartnerRegistrationSecure = () => {
     } catch (error: any) {
       console.error('Partner registration error:', error);
       console.error('Error stack:', error.stack);
+      
+      // ✅ Gestion spéciale pour utilisateur existant
+      if (error.message === 'EXISTING_USER_DETECTED') {
+        return { 
+          success: false, 
+          error: 'EXISTING_USER', 
+          email: data.contact_email,
+          registrationData: data
+        };
+      }
       
       let errorMessage = 'Erreur lors de l\'inscription';
       

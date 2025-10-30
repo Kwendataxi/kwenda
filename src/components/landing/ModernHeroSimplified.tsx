@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useEffect } from "react";
 import { HeroCampaignSlider } from "./HeroCampaignSlider";
+import { motion } from "framer-motion";
 
 const ModernHeroSimplified = () => {
   const { user } = useAuth();
@@ -45,14 +46,38 @@ const ModernHeroSimplified = () => {
           <div className="space-y-8 animate-fade-up text-center lg:text-left">
             {/* Brand Header */}
             <div className="flex flex-col items-center lg:items-start gap-4 stagger-1">
-              <div className="interactive-scale">
-                <BrandLogo size={64} className="lg:w-20 lg:h-20" />
-              </div>
-              <div className="space-y-2">
-                <h1 className="text-display-md lg:text-display-lg bg-gradient-to-r from-foreground via-primary to-secondary bg-clip-text text-transparent animate-gradient">
+              <motion.div
+                whileHover={{ scale: 1.05, rotate: 2 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              >
+                <BrandLogo size="lg" animated withGlow />
+              </motion.div>
+              
+              <div className="space-y-3">
+                <h1 className="text-display-md lg:text-display-lg bg-gradient-to-r from-foreground via-primary to-primary bg-clip-text text-transparent animate-gradient">
                   Kwenda Taxi
                 </h1>
-                <p className="text-muted-foreground text-body-md">Fait en RDC 🇨🇩</p>
+                
+                {/* Slogan amélioré avec animation */}
+                <motion.div 
+                  className="flex items-center gap-2 justify-center lg:justify-start"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <span className="text-body-lg font-semibold text-primary">
+                    🇨🇩 Made in Congo
+                  </span>
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="w-2 h-2 bg-congo-yellow rounded-full"
+                  />
+                </motion.div>
+                
+                <p className="text-muted-foreground text-body-sm italic">
+                  La mobilité africaine par excellence
+                </p>
               </div>
             </div>
 

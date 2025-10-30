@@ -254,11 +254,6 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
                 </Link>
               </div>
               
-              <div className="pt-2">
-                <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  ← Retour à l'accueil
-                </Link>
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -267,6 +262,18 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
           isOpen={showForgotPassword}
           onClose={() => setShowForgotPassword(false)}
         />
+
+        {/* Bouton Retour à l'accueil en bas */}
+        <div className="text-center mt-8 pb-6">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => navigate('/')}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← Retour à l'accueil
+          </Button>
+        </div>
       </div>
     </div>
   );
