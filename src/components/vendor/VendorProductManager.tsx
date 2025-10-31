@@ -63,11 +63,31 @@ export const VendorProductManager = ({ onUpdate }: VendorProductManagerProps) =>
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <p className="text-muted-foreground">Chargement des produits...</p>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        {/* Section Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="h-8 w-48 bg-muted/60 rounded animate-pulse" />
+          <div className="h-10 w-32 bg-muted/60 rounded animate-pulse" />
+        </div>
+        
+        {/* Product Grid Skeleton */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <Card key={i} className="overflow-hidden">
+              <div className="h-48 w-full bg-muted/60 animate-pulse" />
+              <CardContent className="p-4 space-y-3">
+                <div className="h-6 w-3/4 bg-muted/60 rounded animate-pulse" />
+                <div className="h-4 w-full bg-muted/60 rounded animate-pulse" />
+                <div className="h-4 w-2/3 bg-muted/60 rounded animate-pulse" />
+                <div className="flex justify-between pt-2">
+                  <div className="h-8 w-24 bg-muted/60 rounded animate-pulse" />
+                  <div className="h-8 w-16 bg-muted/60 rounded animate-pulse" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
     );
   }
 
@@ -91,11 +111,11 @@ export const VendorProductManager = ({ onUpdate }: VendorProductManagerProps) =>
       {/* Section Actifs */}
       {activeProducts.length > 0 && (
         <section>
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <CheckCircle className="h-6 w-6 text-green-500" />
+          <h2 className="text-heading-xl font-bold mb-4 flex items-center gap-2 tracking-tight">
+            <CheckCircle className="h-7 w-7 text-green-500" />
             Actifs ({activeProducts.length})
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {activeProducts.map(product => (
               <ModernVendorProductCard key={product.id} product={product} />
             ))}
@@ -106,11 +126,11 @@ export const VendorProductManager = ({ onUpdate }: VendorProductManagerProps) =>
       {/* Section En attente */}
       {pendingProducts.length > 0 && (
         <section>
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Clock className="h-6 w-6 text-orange-500" />
+          <h2 className="text-heading-xl font-bold mb-4 flex items-center gap-2 tracking-tight">
+            <Clock className="h-7 w-7 text-orange-500" />
             En attente de modération ({pendingProducts.length})
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {pendingProducts.map(product => (
               <ModernVendorProductCard key={product.id} product={product} />
             ))}
@@ -121,11 +141,11 @@ export const VendorProductManager = ({ onUpdate }: VendorProductManagerProps) =>
       {/* Section Rejetés */}
       {rejectedProducts.length > 0 && (
         <section>
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-destructive">
-            <Package className="h-6 w-6" />
+          <h2 className="text-heading-xl font-bold mb-4 flex items-center gap-2 text-destructive tracking-tight">
+            <Package className="h-7 w-7" />
             Rejetés ({rejectedProducts.length})
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {rejectedProducts.map(product => (
               <ModernVendorProductCard key={product.id} product={product} />
             ))}

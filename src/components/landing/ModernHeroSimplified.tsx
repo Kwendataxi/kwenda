@@ -54,28 +54,34 @@ const ModernHeroSimplified = () => {
               </motion.div>
               
               <div className="space-y-3">
-                <h1 className="text-display-md lg:text-display-lg bg-gradient-to-r from-foreground via-primary to-primary bg-clip-text text-transparent animate-gradient">
+                <h1 className="text-display-md lg:text-display-lg bg-gradient-to-r from-foreground via-primary to-congo-red bg-clip-text text-transparent animate-gradient">
                   Kwenda Taxi
                 </h1>
                 
-                {/* Slogan amélioré avec animation */}
+                {/* Slogan principal amélioré */}
                 <motion.div 
-                  className="flex items-center gap-2 justify-center lg:justify-start"
+                  className="space-y-2"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <span className="text-body-lg font-semibold text-primary">
-                    🇨🇩 Made in Congo
-                  </span>
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="w-2 h-2 bg-congo-yellow rounded-full"
-                  />
+                  <p className="text-heading-lg font-bold text-primary tracking-tight">
+                    Courses abordables tous les jours !
+                  </p>
+                  
+                  <div className="flex items-center gap-2 justify-center lg:justify-start">
+                    <span className="text-body-md font-semibold text-congo-red">
+                      🇨🇩 Made in Congo
+                    </span>
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="w-2 h-2 bg-congo-yellow rounded-full"
+                    />
+                  </div>
                 </motion.div>
                 
-                <p className="text-muted-foreground text-body-sm italic">
+                <p className="text-muted-foreground text-body-md">
                   La mobilité africaine par excellence
                 </p>
               </div>

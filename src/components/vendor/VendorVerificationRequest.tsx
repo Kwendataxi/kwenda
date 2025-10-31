@@ -131,7 +131,7 @@ export const VendorVerificationRequest = () => {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <Card className="max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Store className="h-6 w-6 text-primary" />
@@ -201,6 +201,6 @@ export const VendorVerificationRequest = () => {
           </Button>
         </div>
       </CardContent>
-    </div>
+    </Card>
   );
 };

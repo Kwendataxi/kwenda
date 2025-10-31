@@ -2,6 +2,23 @@
    VENDOR MODERN GLASSMORPHISM DESIGN SYSTEM
    ========================================================================== */
 
+/* Layout Container */
+.vendor-layout-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+/* Content Scrollable Zone */
+.vendor-content-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Glassmorphism Cards */
 .vendor-card-glass {
   background: rgba(255, 255, 255, 0.05);

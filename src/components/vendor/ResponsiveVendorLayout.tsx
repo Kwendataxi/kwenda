@@ -3,6 +3,7 @@ import { UnifiedVendorHeader } from './UnifiedVendorHeader';
 import { VendorBottomNav } from './modern/VendorBottomNav';
 import { VendorDesktopSidebar } from './modern/VendorDesktopSidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useSwipeable } from 'react-swipeable';
 import '@/styles/vendor-modern.css';
 
 interface VendorStats {
@@ -29,6 +30,27 @@ export const ResponsiveVendorLayout: React.FC<ResponsiveVendorLayoutProps> = ({
 }) => {
   const isMobile = useIsMobile();
 
+  // Swipe gestures pour navigation mobile
+  const tabs = ['dashboard', 'shop', 'orders', 'profile', 'subscription'];
+  const handlers = useSwipeable({
+    onSwipedLeft: () => {
+      if (!isMobile) return;
+      const currentIndex = tabs.indexOf(activeTab);
+      if (currentIndex < tabs.length - 1) {
+        onTabChange(tabs[currentIndex + 1]);
+      }
+    },
+    onSwipedRight: () => {
+      if (!isMobile) return;
+      const currentIndex = tabs.indexOf(activeTab);
+      if (currentIndex > 0) {
+        onTabChange(tabs[currentIndex - 1]);
+      }
+    },
+    trackMouse: false,
+    preventScrollOnSwipe: false,
+  });
+
   return (
     <div className="vendor-layout-container vendor-gradient-bg">
       {/* Header fixe avec glassmorphism */}
@@ -51,8 +73,11 @@ export const ResponsiveVendorLayout: React.FC<ResponsiveVendorLayoutProps> = ({
           </div>
         )}
 
-        {/* Zone de contenu scrollable */}
-        <main className="vendor-content-scrollable vendor-scrollbar">
+        {/* Zone de contenu scrollable avec swipe support */}
+        <main 
+          {...(isMobile ? handlers : {})}
+          className="vendor-content-scrollable vendor-scrollbar"
+        >
           <div className="container max-w-6xl mx-auto p-4 space-y-4">
             {children}
           </div>
