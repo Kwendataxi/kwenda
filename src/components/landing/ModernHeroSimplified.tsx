@@ -53,36 +53,13 @@ const ModernHeroSimplified = () => {
                 <BrandLogo size="lg" animated withGlow />
               </motion.div>
               
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <h1 className="text-display-md lg:text-display-lg bg-gradient-to-r from-foreground via-primary to-congo-red bg-clip-text text-transparent animate-gradient">
                   Kwenda Taxi
                 </h1>
                 
-                {/* Slogan principal amélioré */}
-                <motion.div 
-                  className="space-y-2"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <p className="text-heading-lg font-bold text-primary tracking-tight">
-                    Courses abordables tous les jours !
-                  </p>
-                  
-                  <div className="flex items-center gap-2 justify-center lg:justify-start">
-                    <span className="text-body-md font-semibold text-congo-red">
-                      🇨🇩 Made in Congo
-                    </span>
-                    <motion.div
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="w-2 h-2 bg-congo-yellow rounded-full"
-                    />
-                  </div>
-                </motion.div>
-                
-                <p className="text-muted-foreground text-body-md">
-                  La mobilité africaine par excellence
+                <p className="text-heading-lg font-bold text-primary tracking-tight">
+                  Courses abordables tous les jours !
                 </p>
               </div>
             </div>
@@ -90,11 +67,11 @@ const ModernHeroSimplified = () => {
             {/* Main Value Proposition */}
             <div className="space-y-4">
               <h2 className="text-display-sm lg:text-display-lg leading-tight stagger-2">
-                Transport, Food et plus à Kinshasa
+                Transport, Food et plus à Kinshasa, Lubumbashi et Kolwezi
               </h2>
               
               <p className="text-body-lg text-muted-foreground leading-relaxed stagger-3">
-                Courses abordables tous les jours. Livraison rapide. Restaurants partenaires.
+                Commandez votre transport en un clic, faites-vous livrer vos repas préférés et bien plus encore.
               </p>
             </div>
 
