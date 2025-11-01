@@ -166,3 +166,6 @@ verify_jwt = true  # ✅ PHASE 4: Dispatch intelligent de chauffeurs avec scorin
 
 [functions.accept-delivery-fee]
 verify_jwt = true  # ✅ JWT requis pour acceptation frais de livraison marketplace
+
+[functions.assign-food-delivery]
+verify_jwt = true  # ✅ JWT requis pour assignation de livreur aux commandes food

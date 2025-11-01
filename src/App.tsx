@@ -86,6 +86,7 @@ const RestaurantProfile = lazy(() => import("./pages/restaurant/RestaurantProfil
 const QRCodeManager = lazy(() => import("./pages/admin/QRCodeManager"));
 const QRAnalytics = lazy(() => import("./pages/admin/QRAnalytics"));
 const AdminFoodManagement = lazy(() => import("./pages/admin/AdminFoodManagement"));
+const FoodOrderInterface = lazy(() => import("./components/food/FoodOrderInterface"));
 const ProductionConfig = lazy(() => import("./pages/admin/ProductionConfig"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const MesAdresses = lazy(() => import("./pages/address/MesAdresses"));
@@ -319,6 +320,11 @@ const AppContent = () => {
                       </ProtectedRoute>
                     } />
                     <Route path="/promos" element={<PromosPage />} />
+                    <Route path="/food" element={
+                      <ServiceGuard serviceCategory="food">
+                        <FoodOrderInterface />
+                      </ServiceGuard>
+                    } />
                   </>
                 )}
                 

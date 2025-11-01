@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Loader2, Clock, CheckCircle, XCircle, Phone, MapPin } from 'lucide-react';
+import { Loader2, Clock, CheckCircle, XCircle, Phone, MapPin, Truck as TruckIcon } from 'lucide-react';
 import { useFoodOrders } from '@/hooks/useFoodOrders';
 
 const STATUS_CONFIG: any = {
@@ -103,6 +103,33 @@ export default function RestaurantOrders() {
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     const success = await updateOrderStatus(orderId, newStatus);
     if (success) loadOrders();
+  };
+
+  const handleAssignDelivery = async (orderId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('assign-food-delivery', {
+        body: { orderId }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast({
+          title: '✅ Livreur assigné',
+          description: `${data.driverName} va livrer la commande`
+        });
+        loadOrders();
+      } else {
+        throw new Error(data.error || 'Erreur lors de l\'assignation');
+      }
+    } catch (error: any) {
+      console.error('Error assigning delivery:', error);
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Aucun livreur disponible',
+        variant: 'destructive'
+      });
+    }
   };
 
   const getNextAction = (status: string) => {
@@ -218,6 +245,18 @@ export default function RestaurantOrders() {
                       >
                         {ActionIcon && <ActionIcon className="h-4 w-4 mr-2" />}
                         {nextAction.label}
+                      </Button>
+                    )}
+
+                    {/* Bouton assignation livreur pour commandes prêtes */}
+                    {order.status === 'ready' && (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => handleAssignDelivery(order.id)}
+                      >
+                        <TruckIcon className="h-4 w-4 mr-2" />
+                        Assigner un livreur
                       </Button>
                     )}
                   </CardContent>

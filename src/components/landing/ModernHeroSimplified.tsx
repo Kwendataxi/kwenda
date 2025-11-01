@@ -83,6 +83,13 @@ const ModernHeroSimplified = () => {
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </Link>
+
+              <Link to="/food">
+                <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 min-h-[56px] text-body-lg rounded-xl px-8 gap-2">
+                  <UtensilsCrossed className="w-5 h-5" />
+                  Commander à manger
+                </Button>
+              </Link>
               
               <Link to="/restaurant/auth">
                 <Button variant="outline" size="lg" className="w-full sm:w-auto border-2 border-orange-500/30 hover:bg-orange-500/5 hover:border-orange-500/50 min-h-[56px] text-body-lg rounded-xl px-8 gap-2 group">

@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Wallet, Banknote, MapPin } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 import type { Restaurant, FoodCartItem } from '@/types/food';
 
 interface FoodCheckoutProps {
@@ -31,9 +32,11 @@ export const FoodCheckout = ({
   onBack,
 }: FoodCheckoutProps) => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [paymentMethod, setPaymentMethod] = useState<'kwenda_pay' | 'cash'>('kwenda_pay');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [deliveryNotes, setDeliveryNotes] = useState('');
+  const [deliveryPhone, setDeliveryPhone] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const formatPrice = (price: number) => {
@@ -42,6 +45,11 @@ export const FoodCheckout = ({
 
   const handleConfirmOrder = async () => {
     if (!deliveryAddress.trim()) {
+      toast({
+        title: 'Adresse requise',
+        description: 'Veuillez entrer votre adresse de livraison',
+        variant: 'destructive'
+      });
       return;
     }
 
