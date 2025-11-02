@@ -58,7 +58,7 @@ export const ModernHomeScreen = ({
   }, [primaryRole, roleLoading, navigate]);
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background" style={{ scrollBehavior: 'smooth' }}>
       {/* Header */}
       <ModernHeader />
       
@@ -67,15 +67,16 @@ export const ModernHomeScreen = ({
         className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
         style={{ 
           touchAction: 'pan-y', 
-          WebkitOverflowScrolling: 'touch'
+          WebkitOverflowScrolling: 'touch',
+          scrollBehavior: 'smooth'
         } as React.CSSProperties}
       >
         {/* Espace pour header fixe + marge visuelle */}
         <div className="pt-[120px]">
-          {/* Subtle Background Elements */}
+          {/* Subtle Background Elements with parallax */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-20 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl" />
-            <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl" />
+            <div className="absolute top-20 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl animate-float" />
+            <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
           </div>
           
           <div className="relative space-y-6 pb-6">

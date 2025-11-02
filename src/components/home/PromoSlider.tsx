@@ -68,12 +68,12 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   };
 
   return (
-    <div className="w-full h-[180px] relative">
+    <div className="w-full relative space-y-3">
       <Carousel
         setApi={setApi}
         opts={{ loop: true, align: 'start' }}
         plugins={[autoplayRef.current]}
-        className="w-full h-full"
+        className="w-full h-[180px]"
       >
         <CarouselContent className="-ml-2 md:-ml-4 h-[180px]">
           {defaultPromos.map((promo) => (
@@ -464,6 +464,23 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
           ))}
         </CarouselContent>
       </Carousel>
+      
+      {/* Pagination dots */}
+      <div className="flex justify-center gap-2 mt-3">
+        {defaultPromos.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => api?.scrollTo(index)}
+            className={cn(
+              'h-2 rounded-full transition-all duration-300',
+              current === index 
+                ? 'w-6 bg-primary shadow-glow' 
+                : 'w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50'
+            )}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
     </div>
   );
 };

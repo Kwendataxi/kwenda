@@ -121,7 +121,7 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
 
   return (
     <div className="px-4">
-      <div className="grid grid-cols-3 gap-x-5 gap-y-6">
+      <div className="grid grid-cols-3 gap-x-6 gap-y-8">
         {mainServices.map((service, index) => {
           const Icon = service.icon;
           const notificationCount = serviceNotifications?.[service.id as keyof typeof serviceNotifications] || 0;
@@ -130,30 +130,30 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
             <button
               key={service.id}
               onClick={() => onServiceSelect(service.id)}
-              className="relative flex flex-col items-center gap-2.5 group transition-all duration-400 ease-out hover:scale-105 active:scale-95 animate-fade-in"
+              className="relative flex flex-col items-center gap-3 group transition-all duration-400 ease-out hover:scale-[1.06] active:scale-95 animate-fade-up"
               style={{
                 animationDelay: `${index * 80}ms`,
               }}
             >
-              {/* Icon container - design doux 2 lignes */}
+              {/* Icon container - design doux amélioré */}
               <div
-                className="relative flex items-center justify-center w-[72px] h-[72px] rounded-[28px] shadow-[0_4px_16px_rgba(0,0,0,0.08)] group-hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] transition-all duration-400 ease-out group-hover:-translate-y-0.5 group-active:translate-y-0"
+                className="relative flex items-center justify-center w-20 h-20 rounded-[32px] shadow-[0_2px_8px_rgba(0,0,0,0.04),0_4px_16px_rgba(0,0,0,0.06)] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] transition-all duration-400 ease-out group-hover:-translate-y-1 group-hover:rotate-3 group-active:translate-y-0 group-active:rotate-0 will-change-transform"
                 style={{
                   background: serviceColors[service.id] || serviceColors.transport
                 }}
               >
-                <Icon className="w-11 h-11 text-white transition-all duration-400 ease-out group-hover:rotate-3 group-hover:scale-105" strokeWidth={2.5} />
+                <Icon className="w-11 h-11 text-white transition-all duration-400 ease-out group-hover:rotate-6 group-hover:scale-110" strokeWidth={2.5} />
                 
                 {/* Notification badge */}
                 {notificationCount > 0 && (
-                  <div className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1.5 bg-[#E31E24] text-white rounded-full flex items-center justify-center text-xs font-black shadow-lg border border-white animate-pulse">
+                  <div className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1.5 bg-congo-red text-white rounded-full flex items-center justify-center text-xs font-black shadow-lg border-2 border-background animate-bounce-subtle">
                     {notificationCount > 9 ? '9+' : notificationCount}
                   </div>
                 )}
               </div>
               
-              {/* Service name - typographie épurée */}
-              <span className="text-sm font-bold text-center leading-tight text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-primary">
+              {/* Service name - typographie améliorée */}
+              <span className="text-[15px] font-extrabold text-center leading-tight text-foreground tracking-[-0.01em] transition-all duration-300 group-hover:text-primary group-hover:scale-105">
                 {service.name}
               </span>
             </button>
