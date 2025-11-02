@@ -35,19 +35,26 @@ serve(async (req) => {
 
       // Créer les tickets
       for (let i = 0; i < ticketCount; i++) {
+        // Générer un numéro de ticket unique
+        const ticketNumber = `TK-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+        
         const { data: ticket, error } = await supabase
           .from('lottery_tickets')
           .insert({
             user_id: userId,
+            ticket_number: ticketNumber,
             source_type: sourceType,
-            source_id: sourceId,
+            source_id: sourceId || null,
             earned_date: new Date().toISOString(),
             status: 'active'
           })
           .select()
           .single();
 
-        if (!error && ticket) {
+        if (error) {
+          console.error(`❌ Erreur insertion ticket ${i+1}:`, error);
+        } else if (ticket) {
+          console.log(`✅ Ticket ${i+1} créé: ${ticket.ticket_number}`);
           tickets.push(ticket);
         }
       }
