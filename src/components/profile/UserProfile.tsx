@@ -33,6 +33,7 @@ import { UserSettings } from './UserSettings';
 import { ModernProfileHeader } from './ModernProfileHeader';
 import { ProfileActionButtons } from './ProfileActionButtons';
 import { useIsVendor } from '@/hooks/useIsVendor';
+import { VendorVerificationRequest } from '@/components/vendor/VendorVerificationRequest';
 
 interface Profile {
   id: string;
@@ -310,7 +311,6 @@ export const UserProfile = ({ onWalletAccess }: UserProfileProps = {}) => {
           navigate('/vendeur');
           return null;
         case 'vendor-request':
-          const { VendorVerificationRequest } = require('@/components/vendor/VendorVerificationRequest');
           return <VendorVerificationRequest />;
         case 'support':
           return <CustomerSupport />;
