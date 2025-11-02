@@ -104,33 +104,14 @@ export class DebugHelper {
     logger.debug('Test connexion Edge Functions');
     
     try {
-      // Test ride-dispatcher
-      const rideTest = await supabase.functions.invoke('ride-dispatcher', {
-        body: {
-          rideRequestId: 'test-ride-id',
-          pickupLat: -4.3217,
-          pickupLng: 15.3069,
-          serviceType: 'taxi'
-        }
-      });
-
-      logger.debug('Test ride-dispatcher', rideTest);
-
-      // Test delivery-dispatcher
-      const deliveryTest = await supabase.functions.invoke('delivery-dispatcher', {
-        body: {
-          orderId: 'test-delivery-id',
-          pickupLat: -4.3217,
-          pickupLng: 15.3069,
-          deliveryType: 'flash'
-        }
-      });
-
-      logger.debug('Test delivery-dispatcher', deliveryTest);
+      // ⚠️ Tests désactivés - utilisent des IDs de test invalides
+      // Pour tester les edge functions, utilisez l'interface utilisateur normale
+      
+      logger.debug('Edge function tests skipped - use real UI flow instead');
 
       return {
-        rideDispatcher: rideTest,
-        deliveryDispatcher: deliveryTest
+        rideDispatcher: { skipped: true },
+        deliveryDispatcher: { skipped: true }
       };
     } catch (error) {
       logger.error('Erreur test Edge Functions', error);
