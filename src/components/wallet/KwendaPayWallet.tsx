@@ -248,11 +248,22 @@ export const KwendaPayWallet = () => {
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center p-8">
-          <div className="text-center">
-            <Wallet className="h-8 w-8 animate-pulse mx-auto mb-2 text-muted-foreground" />
-            <p className="text-foreground/70">Chargement du portefeuille...</p>
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+        <CardContent className="flex items-center justify-center p-12">
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900 dark:to-purple-900 flex items-center justify-center">
+              <Wallet className="h-8 w-8 text-indigo-600 dark:text-indigo-400 animate-pulse" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-slate-700 dark:text-slate-300 font-medium">
+                Chargement de votre portefeuille
+              </p>
+              <div className="flex items-center justify-center gap-1">
+                <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -262,125 +273,205 @@ export const KwendaPayWallet = () => {
   return (
     <div className="space-y-6">
       {/* Wallet Balance Card */}
-      <Card className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            <div>
-              <p className="text-primary-foreground/80 text-sm">Solde disponible</p>
-              <p className="text-3xl font-bold">{formatAmount(wallet?.balance || 0)}</p>
+      <Card className="relative overflow-hidden border-none shadow-lg bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-900 dark:via-indigo-950 dark:to-purple-950">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
+        
+        <CardContent className="relative pt-8 pb-6 px-6">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400 tracking-wide uppercase">
+                Solde disponible
+              </p>
+              <p className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                {formatAmount(wallet?.balance || 0)}
+              </p>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Dialog open={isTopUpOpen} onOpenChange={setIsTopUpOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="secondary" className="flex-1">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Recharger
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Recharger votre Kwenda Pay</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="amount">Montant (CDF)</Label>
-                      <Input
-                        id="amount"
-                        type="number"
-                        placeholder="10000"
-                        value={topUpAmount}
-                        onChange={(e) => setTopUpAmount(e.target.value)}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="provider">Opérateur Mobile Money</Label>
-                      <Select value={topUpProvider} onValueChange={setTopUpProvider}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choisir un opérateur" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {providers.map((provider) => (
-                            <SelectItem key={provider.id} value={provider.id}>
-                              <span className="flex items-center gap-2">
-                                <span>{provider.icon}</span>
-                                {provider.name}
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="phone">Numéro de téléphone</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="+243 XXX XXX XXX"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                      />
-                    </div>
-                    
-                    <Button 
-                      onClick={handleTopUp} 
-                      disabled={isProcessing}
-                      className="w-full"
-                    >
-                      {isProcessing ? 'Traitement...' : 'Confirmer le rechargement'}
-                    </Button>
+            <Dialog open={isTopUpOpen} onOpenChange={setIsTopUpOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="default" 
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Recharger mon compte
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md border-slate-200 dark:border-slate-800">
+                <DialogHeader className="space-y-3">
+                  <DialogTitle className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+                    💳 Recharger votre compte
+                  </DialogTitle>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Ajoutez des fonds via Mobile Money
+                  </p>
+                </DialogHeader>
+                
+                <div className="space-y-5 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="amount" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Montant (CDF)
+                    </Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      placeholder="10000"
+                      value={topUpAmount}
+                      onChange={(e) => setTopUpAmount(e.target.value)}
+                      className="h-12 text-lg border-slate-200 dark:border-slate-700 focus:border-indigo-500 focus:ring-indigo-500"
+                    />
                   </div>
-                </DialogContent>
-              </Dialog>
-            </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="provider" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Opérateur Mobile Money
+                    </Label>
+                    <Select value={topUpProvider} onValueChange={setTopUpProvider}>
+                      <SelectTrigger className="h-12 border-slate-200 dark:border-slate-700">
+                        <SelectValue placeholder="Choisir un opérateur" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {providers.map((provider) => (
+                          <SelectItem key={provider.id} value={provider.id}>
+                            <span className="flex items-center gap-2 text-base">
+                              <span className="text-xl">{provider.icon}</span>
+                              {provider.name}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Numéro de téléphone
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="+243 XXX XXX XXX"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="h-12 text-lg border-slate-200 dark:border-slate-700 focus:border-indigo-500 focus:ring-indigo-500"
+                    />
+                  </div>
+                  
+                  <Button 
+                    onClick={handleTopUp} 
+                    disabled={isProcessing}
+                    className="w-full h-12 text-base bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Traitement en cours...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-5 w-5 mr-2" />
+                        Confirmer le rechargement
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </CardContent>
       </Card>
 
       {/* Transactions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Historique des transactions</CardTitle>
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+        <CardHeader className="border-b border-slate-100 dark:border-slate-800">
+          <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+            Transactions
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="recent">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="recent">Récentes</TabsTrigger>
-              <TabsTrigger value="all">Toutes</TabsTrigger>
+        <CardContent className="pt-6">
+          <Tabs defaultValue="recent" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+              <TabsTrigger 
+                value="recent"
+                className="rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm transition-all"
+              >
+                Récentes
+              </TabsTrigger>
+              <TabsTrigger 
+                value="all"
+                className="rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm transition-all"
+              >
+                Toutes
+              </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="recent" className="space-y-4">
+            <TabsContent value="recent" className="space-y-3 mt-4">
               {transactions.length === 0 ? (
-                <div className="text-center py-8">
-                  <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">Aucune transaction pour le moment</p>
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <Wallet className="h-8 w-8 text-slate-400" />
+                  </div>
+                  <p className="text-slate-500 dark:text-slate-400 font-medium">
+                    Aucune transaction
+                  </p>
+                  <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+                    Vos transactions apparaîtront ici
+                  </p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {transactions.slice(0, 5).map((transaction) => (
-                    <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        {getTransactionIcon(transaction.transaction_type)}
+                    <div 
+                      key={transaction.id} 
+                      className="group flex items-center justify-between p-4 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          transaction.transaction_type === 'credit' 
+                            ? 'bg-green-100 dark:bg-green-900/30' 
+                            : 'bg-red-100 dark:bg-red-900/30'
+                        }`}>
+                          {getTransactionIcon(transaction.transaction_type)}
+                        </div>
+                        
                         <div>
-                          <p className="font-medium text-sm">{transaction.description}</p>
-                          <p className="text-xs text-foreground/60">
-                            {new Date(transaction.created_at).toLocaleString('fr-FR')}
+                          <p className="font-medium text-slate-900 dark:text-slate-100">
+                            {transaction.description}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            {new Date(transaction.created_at).toLocaleString('fr-FR', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
                           </p>
                         </div>
                       </div>
+                      
                       <div className="text-right">
-                        <p className={`font-medium text-sm ${
-                          transaction.transaction_type === 'credit' ? 'text-success' : 'text-destructive'
+                        <p className={`font-semibold ${
+                          transaction.transaction_type === 'credit' 
+                            ? 'text-green-600 dark:text-green-400' 
+                            : 'text-red-600 dark:text-red-400'
                         }`}>
                           {transaction.transaction_type === 'credit' ? '+' : '-'}
                           {formatAmount(transaction.amount)}
                         </p>
-                        <div className="flex items-center gap-1">
+                        
+                        <div className="flex items-center justify-end gap-1.5 mt-1">
                           {getStatusIcon(transaction.status)}
-                          <span className="text-xs text-foreground/60 capitalize">
-                            {transaction.status}
+                          <span className={`text-xs font-medium capitalize ${
+                            transaction.status === 'completed' 
+                              ? 'text-green-600 dark:text-green-400'
+                              : transaction.status === 'failed'
+                              ? 'text-red-600 dark:text-red-400'
+                              : 'text-amber-600 dark:text-amber-400'
+                          }`}>
+                            {transaction.status === 'completed' ? 'Réussi' : 
+                             transaction.status === 'failed' ? 'Échoué' : 'En cours'}
                           </span>
                         </div>
                       </div>
@@ -390,37 +481,79 @@ export const KwendaPayWallet = () => {
               )}
             </TabsContent>
             
-            <TabsContent value="all" className="space-y-4">
-              <div className="space-y-3">
-                {transactions.map((transaction) => (
-                  <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      {getTransactionIcon(transaction.transaction_type)}
-                      <div>
-                        <p className="font-medium text-sm">{transaction.description}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(transaction.created_at).toLocaleString('fr-FR')}
-                          {transaction.payment_method && ` • ${transaction.payment_method}`}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className={`font-medium text-sm ${
-                        transaction.transaction_type === 'credit' ? 'text-success' : 'text-destructive'
-                      }`}>
-                        {transaction.transaction_type === 'credit' ? '+' : '-'}
-                        {formatAmount(transaction.amount)}
-                      </p>
-                      <div className="flex items-center gap-1">
-                        {getStatusIcon(transaction.status)}
-                        <span className="text-xs text-muted-foreground capitalize">
-                          {transaction.status}
-                        </span>
-                      </div>
-                    </div>
+            <TabsContent value="all" className="space-y-2 mt-4">
+              {transactions.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                    <Wallet className="h-8 w-8 text-slate-400" />
                   </div>
-                ))}
-              </div>
+                  <p className="text-slate-500 dark:text-slate-400 font-medium">
+                    Aucune transaction
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {transactions.map((transaction) => (
+                    <div 
+                      key={transaction.id} 
+                      className="group flex items-center justify-between p-4 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          transaction.transaction_type === 'credit' 
+                            ? 'bg-green-100 dark:bg-green-900/30' 
+                            : 'bg-red-100 dark:bg-red-900/30'
+                        }`}>
+                          {getTransactionIcon(transaction.transaction_type)}
+                        </div>
+                        
+                        <div>
+                          <p className="font-medium text-slate-900 dark:text-slate-100">
+                            {transaction.description}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            {new Date(transaction.created_at).toLocaleString('fr-FR', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                            {transaction.payment_method && (
+                              <span className="ml-2 text-slate-400">• {transaction.payment_method}</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <p className={`font-semibold ${
+                          transaction.transaction_type === 'credit' 
+                            ? 'text-green-600 dark:text-green-400' 
+                            : 'text-red-600 dark:text-red-400'
+                        }`}>
+                          {transaction.transaction_type === 'credit' ? '+' : '-'}
+                          {formatAmount(transaction.amount)}
+                        </p>
+                        
+                        <div className="flex items-center justify-end gap-1.5 mt-1">
+                          {getStatusIcon(transaction.status)}
+                          <span className={`text-xs font-medium capitalize ${
+                            transaction.status === 'completed' 
+                              ? 'text-green-600 dark:text-green-400'
+                              : transaction.status === 'failed'
+                              ? 'text-red-600 dark:text-red-400'
+                              : 'text-amber-600 dark:text-amber-400'
+                          }`}>
+                            {transaction.status === 'completed' ? 'Réussi' : 
+                             transaction.status === 'failed' ? 'Échoué' : 'En cours'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
