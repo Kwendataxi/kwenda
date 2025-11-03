@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Navigation, Plus, Minus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import CustomAnimatedMarker from './CustomAnimatedMarker';
+import DriverMarkerAdvanced from './DriverMarkerAdvanced';
 
 interface GoogleMapsKwendaProps {
   onLocationSelect?: (location: { lat: number; lng: number; address: string }) => void;
@@ -47,12 +49,9 @@ const GoogleMapsComponent: React.FC<GoogleMapsKwendaProps & { apiKey: string }> 
   apiKey
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
-const [map, setMap] = useState<google.maps.Map | null>(null);
-const [pickupMarker, setPickupMarker] = useState<google.maps.Marker | null>(null);
-const [destinationMarker, setDestinationMarker] = useState<google.maps.Marker | null>(null);
-const [driverMarker, setDriverMarker] = useState<google.maps.Marker | null>(null);
-const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
-const { toast } = useToast();
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -106,91 +105,6 @@ const { toast } = useToast();
       // Nettoyage
     };
   }, [center, zoom, onLocationSelect]);
-
-  // Gestion du marker de pickup
-  useEffect(() => {
-    if (!map || !pickup) return;
-
-    if (pickupMarker) {
-      pickupMarker.setMap(null);
-    }
-
-    const marker = new google.maps.Marker({
-      position: pickup,
-      map,
-      title: "Point de collecte",
-      icon: {
-        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-          <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 0C7.16 0 0 7.16 0 16C0 28 16 40 16 40S32 28 32 16C32 7.16 24.84 0 16 0Z" fill="#10B981"/>
-            <circle cx="16" cy="16" r="8" fill="white"/>
-            <circle cx="16" cy="16" r="4" fill="#10B981"/>
-          </svg>
-        `)}`,
-        scaledSize: new google.maps.Size(32, 40),
-        anchor: new google.maps.Point(16, 40)
-      }
-    });
-
-    setPickupMarker(marker);
-  }, [map, pickup]);
-
-  // Gestion du marker de destination
-  useEffect(() => {
-    if (!map || !destination) return;
-
-    if (destinationMarker) {
-      destinationMarker.setMap(null);
-    }
-
-    const marker = new google.maps.Marker({
-      position: destination,
-      map,
-      title: "Point de livraison",
-      icon: {
-        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-          <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 0C7.16 0 0 7.16 0 16C0 28 16 40 16 40S32 28 32 16C32 7.16 24.84 0 16 0Z" fill="#EF4444"/>
-            <circle cx="16" cy="16" r="8" fill="white"/>
-            <circle cx="16" cy="16" r="4" fill="#EF4444"/>
-          </svg>
-        `)}`,
-        scaledSize: new google.maps.Size(32, 40),
-        anchor: new google.maps.Point(16, 40)
-      }
-    });
-
-setDestinationMarker(marker);
-  }, [map, destination]);
-
-  // Gestion du marker du livreur en temps réel
-  useEffect(() => {
-    if (!map || !driverLocation) return;
-
-    if (driverMarker) {
-      driverMarker.setMap(null);
-    }
-
-    const symbol: google.maps.Symbol = {
-      path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-      scale: 5,
-      fillColor: '#ec2027',
-      fillOpacity: 1,
-      strokeWeight: 2,
-      strokeColor: '#ffffff',
-      rotation: typeof driverLocation.heading === 'number' ? driverLocation.heading : 0,
-    };
-
-    const marker = new google.maps.Marker({
-      position: { lat: driverLocation.lat, lng: driverLocation.lng },
-      map,
-      title: 'Livreur',
-      icon: symbol,
-      zIndex: 999,
-    });
-
-    setDriverMarker(marker);
-  }, [map, driverLocation]);
 
   // Ajuster la vue pour inclure tous les points lorsque aucun itinéraire n'est affiché
   useEffect(() => {
@@ -289,6 +203,38 @@ setDestinationMarker(marker);
   return (
     <Card className="relative overflow-hidden">
       <div ref={mapRef} style={{ height }} className="w-full" />
+      
+      {/* Markers modernes animés */}
+      {pickup && (
+        <CustomAnimatedMarker
+          map={map}
+          position={pickup}
+          type="pickup"
+          label="Point de départ"
+          animation="drop"
+        />
+      )}
+      
+      {destination && (
+        <CustomAnimatedMarker
+          map={map}
+          position={destination}
+          type="destination"
+          label="Destination"
+          animation="drop"
+        />
+      )}
+      
+      {driverLocation && (
+        <DriverMarkerAdvanced
+          map={map}
+          position={{ lat: driverLocation.lat, lng: driverLocation.lng }}
+          heading={driverLocation.heading || 0}
+          driverName="Chauffeur"
+          smoothTransition={true}
+          speed={0}
+        />
+      )}
       
       {/* Contrôles de zoom */}
       <div className="absolute top-4 right-4 flex flex-col gap-2">

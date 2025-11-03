@@ -72,25 +72,34 @@ class NavigationService {
   }
 
   /**
-   * Calculer l'itinéraire avec Google Directions API
+   * Calculer l'itinéraire avec Google Directions API (SÉCURISÉ via proxy)
    */
   private async calculateRoute(
     origin: { lat: number; lng: number },
     destination: { lat: number; lng: number }
   ): Promise<NavigationRoute | null> {
     try {
-      // Note: En production, appeler via Edge Function pour sécuriser la clé API
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?` +
-        `origin=${origin.lat},${origin.lng}&` +
-        `destination=${destination.lat},${destination.lng}&` +
-        `mode=driving&` +
-        `language=fr&` +
-        `key=YOUR_GOOGLE_MAPS_API_KEY`, // À remplacer par appel Edge Function
-        { method: 'GET' }
-      );
+      // ✅ SÉCURISÉ: Appel via Edge Function proxy
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
+        body: {
+          service: 'directions',
+          params: {
+            origin: `${origin.lat},${origin.lng}`,
+            destination: `${destination.lat},${destination.lng}`,
+            mode: 'driving',
+            language: 'fr',
+            traffic_model: 'best_guess',
+            departure_time: 'now'
+          }
+        }
+      });
 
-      const data = await response.json();
+      if (error) {
+        console.error('❌ Erreur proxy directions:', error);
+        return null;
+      }
 
       if (data.status === 'OK' && data.routes[0]) {
         const route = data.routes[0];

@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 interface ProxyRequest {
-  service: 'geocode' | 'place-details' | 'autocomplete' | 'directions';
+  service: 'geocode' | 'place-details' | 'autocomplete' | 'directions' | 'distancematrix';
   params: Record<string, string>;
 }
 
@@ -98,6 +98,9 @@ serve(async (req) => {
         break;
       case 'directions':
         googleApiUrl = `https://maps.googleapis.com/maps/api/directions/json?${urlParams}`;
+        break;
+      case 'distancematrix':
+        googleApiUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?${urlParams}`;
         break;
       default:
         throw new Error(`Unsupported service: ${service}`);

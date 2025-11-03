@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +22,8 @@ import { logger } from '@/utils/logger';
 import TaxiPaymentModal from '../payment/TaxiPaymentModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useBookingChat } from '@/hooks/useBookingChat';
+import GoogleMapsKwenda from '@/components/maps/GoogleMapsKwenda';
+import { useRealtimeDriverTracking } from '@/hooks/useRealtimeDriverTracking';
 
 interface UniversalTaxiTrackerProps {
   bookingId: string;
@@ -75,6 +77,46 @@ export default function UniversalTaxiTracker({ bookingId, onBack }: UniversalTax
   const [showPayment, setShowPayment] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const { openChatFromBooking } = useBookingChat();
+
+  // Parser les coordonnées
+  const parseCoordinates = (coords: any): { lat: number; lng: number } | undefined => {
+    if (!coords) return undefined;
+    try {
+      if (typeof coords === 'string') {
+        const parsed = JSON.parse(coords);
+        return { lat: parsed.lat, lng: parsed.lng };
+      }
+      if (coords.lat && coords.lng) {
+        return { lat: coords.lat, lng: coords.lng };
+      }
+    } catch (e) {
+      console.error('Erreur parsing coordonnées:', e);
+    }
+    return undefined;
+  };
+
+  // Coordonnées parsées
+  const pickupCoords = useMemo(() => 
+    bookingData ? parseCoordinates(bookingData.pickup_coordinates) : undefined,
+    [bookingData]
+  );
+
+  const destinationCoords = useMemo(() => 
+    bookingData ? parseCoordinates(bookingData.destination_coordinates) : undefined,
+    [bookingData]
+  );
+
+  // Tracking temps réel du chauffeur (seulement si course active et coordonnées valides)
+  const shouldTrack = bookingData?.status && 
+    ['driver_assigned', 'picked_up'].includes(bookingData.status) && 
+    pickupCoords;
+
+  const trackingData = useRealtimeDriverTracking({
+    bookingId,
+    clientPosition: pickupCoords || { lat: -4.4419, lng: 15.2663 },
+    updateInterval: 3000,
+    autoCenter: true
+  });
 
   // Charger les données de réservation
   const fetchBookingData = async () => {
@@ -401,11 +443,68 @@ export default function UniversalTaxiTracker({ bookingId, onBack }: UniversalTax
           </motion.div>
         )}
 
+        {/* Carte Interactive avec Tracking Temps Réel */}
+        {pickupCoords && destinationCoords && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+          >
+            <Card className="shadow-lg overflow-hidden">
+              <CardContent className="p-0 relative">
+                <GoogleMapsKwenda
+                  pickup={pickupCoords}
+                  destination={destinationCoords}
+                  driverLocation={shouldTrack && trackingData.driverLocation ? {
+                    lat: trackingData.driverLocation.lat,
+                    lng: trackingData.driverLocation.lng,
+                    heading: trackingData.driverLocation.heading
+                  } : undefined}
+                  showRoute={true}
+                  height="400px"
+                  zoom={14}
+                />
+                
+                {/* Overlay ETA si chauffeur en route */}
+                {shouldTrack && trackingData.driverLocation && !trackingData.isLoading && (
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <Card className="backdrop-blur-xl bg-background/90 border-primary/20 shadow-lg">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <p className="text-xs text-muted-foreground mb-1">Arrivée estimée</p>
+                            <p className="text-2xl font-bold text-primary">
+                              {trackingData.eta ? `${trackingData.eta} min` : 'Calcul...'}
+                            </p>
+                          </div>
+                          <div className="text-right flex-1">
+                            <p className="text-xs text-muted-foreground mb-1">Distance</p>
+                            <p className="text-lg font-medium">
+                              {trackingData.distance ? `${trackingData.distance.toFixed(1)} km` : '---'}
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10">
+                            {trackingData.isMoving ? (
+                              <Car className="w-6 h-6 text-primary animate-pulse" />
+                            ) : (
+                              <Car className="w-6 h-6 text-muted-foreground" />
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Route Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
         >
           <Card className="shadow-lg">
             <CardContent className="p-6">
