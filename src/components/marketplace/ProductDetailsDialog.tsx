@@ -91,7 +91,7 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 }) => {
   const [quantity, setQuantity] = useState(1);
   const [showTopUpModal, setShowTopUpModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'details'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'details'>('details');
   const { wallet, topUpWallet } = useWallet();
 
   if (!product) return null;
@@ -136,19 +136,19 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
         )}
 
         <Tabs 
-          defaultValue="chat" 
+          defaultValue="details" 
           value={activeTab}
           onValueChange={(value) => setActiveTab(value as 'chat' | 'details')}
           className="flex-1 flex flex-col h-full"
         >
           <TabsList className="mx-2 sm:mx-3 my-1.5 grid grid-cols-2 h-10 sm:h-11 sticky top-0 z-10 bg-background">
-            <TabsTrigger value="chat" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
-              <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Vendeur</span>
-            </TabsTrigger>
             <TabsTrigger value="details" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
               <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Détails</span>
+            </TabsTrigger>
+            <TabsTrigger value="chat" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+              <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span>Vendeur</span>
             </TabsTrigger>
           </TabsList>
 
@@ -162,8 +162,8 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
             />
           </TabsContent>
 
-          <TabsContent value="details" className="flex-1 mt-0">
-            <ScrollArea className="h-[calc(95vh-220px)] sm:h-[calc(95vh-200px)] px-2 sm:px-3">
+          <TabsContent value="details" className="flex-1 mt-0 flex flex-col">
+            <ScrollArea className="flex-1 px-2 sm:px-3 pb-4">
               {/* Product Image - optimized loading */}
               <div className="aspect-square sm:aspect-[4/3] w-full max-h-64 sm:max-h-80 overflow-hidden rounded-lg mb-3">
                 <img
@@ -321,8 +321,8 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 
             </ScrollArea>
 
-            {/* Sticky Footer Actions - compact */}
-            <div className="sticky bottom-0 p-3 border-t bg-background">
+            {/* Sticky Footer Actions - compact - OUTSIDE ScrollArea */}
+            <div className="sticky bottom-0 p-3 border-t bg-background/95 backdrop-blur">
               <div className="flex items-center gap-3">
                 {/* Quantity selector compact */}
                 <div className="flex items-center gap-2 bg-muted rounded-lg px-2 py-1">
