@@ -51,9 +51,11 @@ interface UserRating {
 
 interface UserProfileProps {
   onWalletAccess?: () => void;
+  onViewChange?: (view: string) => void;
+  onClose?: () => void;
 }
 
-export const UserProfile = ({ onWalletAccess }: UserProfileProps = {}) => {
+export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfileProps = {}) => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -359,16 +361,26 @@ export const UserProfile = ({ onWalletAccess }: UserProfileProps = {}) => {
 
   const handleQuickAction = (action: string) => {
     console.log('🔍 [UserProfile] handleQuickAction appelé avec action:', action);
-    console.log('🔍 [UserProfile] onWalletAccess disponible:', !!onWalletAccess);
     
     if (action === 'wallet') {
-      console.log('💰 [UserProfile] Action wallet détectée, appel de onWalletAccess...');
+      console.log('💰 [UserProfile] Action wallet détectée');
       if (onWalletAccess) {
         onWalletAccess();
-        console.log('✅ [UserProfile] onWalletAccess() appelé avec succès');
-      } else {
-        console.log('❌ [UserProfile] onWalletAccess non disponible');
       }
+    } else if (action === 'tombola') {
+      console.log('🎰 [UserProfile] Action tombola détectée');
+      if (onClose) {
+        onClose();
+      }
+      if (onViewChange) {
+        onViewChange('tombola');
+      }
+    } else if (action === 'referral') {
+      console.log('🎁 [UserProfile] Action referral détectée');
+      if (onClose) {
+        onClose();
+      }
+      window.location.href = '/referral';
     } else {
       console.log('🔀 [UserProfile] Autre action, redirection vers handleOptionClick');
       handleOptionClick(action);

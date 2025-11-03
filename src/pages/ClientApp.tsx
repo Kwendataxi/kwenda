@@ -181,7 +181,6 @@ const ClientApp = () => {
   
   // Lottery hooks
   const lotteryTickets = useLotteryTickets();
-  const [isLotteryOpen, setIsLotteryOpen] = useState(false);
 
   // Simplified marketplace data for home preview only
   const [marketplaceProducts, setMarketplaceProducts] = useState<any[]>([]);
@@ -560,11 +559,22 @@ const ClientApp = () => {
         <h1 className="text-heading-lg text-card-foreground">Mon Profil</h1>
       </div>
       <div className="px-4 space-y-4">
-        <ResponsiveUserProfile userType="client" onWalletAccess={() => {
-          console.log('🚀 [ClientApp] onWalletAccess déclenché, changement vers wallet...');
-          setCurrentView('wallet');
-          console.log('✅ [ClientApp] setCurrentView("wallet") exécuté');
-        }} />
+        <ResponsiveUserProfile 
+          userType="client" 
+          onWalletAccess={() => {
+            console.log('🚀 [ClientApp] onWalletAccess déclenché, changement vers wallet...');
+            setCurrentView('wallet');
+            console.log('✅ [ClientApp] setCurrentView("wallet") exécuté');
+          }}
+          onViewChange={(view) => {
+            console.log('🔄 [ClientApp] onViewChange vers:', view);
+            setCurrentView(view);
+          }}
+          onClose={() => {
+            console.log('🚪 [ClientApp] onClose - retour à home');
+            setCurrentView('home');
+          }}
+        />
         
         {/* Section Vérification d'Identité */}
         <div className="pb-safe-area-inset">
@@ -737,20 +747,26 @@ const ClientApp = () => {
           case 'tombola':
             return (
               <div className="min-h-screen bg-background content-with-bottom-nav-scrollable">
-                <div className="p-4">
-                  <div className="flex items-center gap-4 mb-6">
+                {/* Header unique avec retour */}
+                <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
+                  <div className="flex items-center gap-3 p-3">
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="icon"
                       onClick={() => setCurrentView('home')}
-                      className="rounded-xl"
+                      className="rounded-full"
                     >
-                      <ArrowLeft className="h-4 w-4" />
+                      <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <h1 className="text-lg font-semibold text-gray-900">Tombola Kwenda</h1>
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-primary" />
+                      <h1 className="text-lg font-semibold text-gray-900">Tombola Kwenda</h1>
+                    </div>
                   </div>
-                  <LotteryDashboard />
                 </div>
+                
+                {/* Dashboard sans son propre header */}
+                <LotteryDashboard hideHeader={true} />
               </div>
             );
           default:
@@ -765,40 +781,6 @@ const ClientApp = () => {
       })()}
 
       {/* Marketplace components now handled by EnhancedMarketplaceInterface */}
-      
-        
-      {/* Lottery Dashboard Modal */}
-      {isLotteryOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-          {/* Overlay */}
-          <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setIsLotteryOpen(false)}
-          />
-          {/* Modal Content */}
-          <div className="relative w-full h-[85vh] sm:h-[80vh] sm:max-w-md sm:mx-auto bg-background sm:rounded-2xl overflow-hidden shadow-xl sm:mt-0 rounded-t-2xl">
-            <div className="h-full flex flex-col">
-              {/* Header avec bouton fermer */}
-              <div className="flex-shrink-0 flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  <h2 className="text-lg font-semibold">Tombola Kwenda</h2>
-                </div>
-                <button
-                  onClick={() => setIsLotteryOpen(false)}
-                  className="w-8 h-8 rounded-full bg-muted/50 backdrop-blur-sm border border-border flex items-center justify-center hover:bg-muted transition-colors"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </button>
-              </div>
-              {/* Content */}
-              <div className="flex-1 overflow-hidden">
-                <LotteryDashboard />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       
       {/* Lottery Notifications */}
       {/* Notifications gérées par NotificationCenter dans le header */}
