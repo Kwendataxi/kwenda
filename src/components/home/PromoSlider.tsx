@@ -25,6 +25,8 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
       stopOnInteraction: false,
       stopOnMouseEnter: false,
       stopOnFocusIn: false,
+      playOnInit: true,
+      rootNode: (emblaRoot) => emblaRoot.parentElement,
     })
   );
 
@@ -33,9 +35,55 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
 
     setCurrent(api.selectedScrollSnap());
 
+    // Forcer le démarrage de l'autoplay
+    const autoplay = autoplayRef.current;
+    if (autoplay) {
+      autoplay.play();
+    }
+
     api.on('select', () => {
       setCurrent(api.selectedScrollSnap());
     });
+  }, [api]);
+
+  // Watchdog pour garantir que l'autoplay ne s'arrête jamais
+  useEffect(() => {
+    if (!api) return;
+
+    const autoplay = autoplayRef.current;
+    
+    // Fonction de surveillance
+    const checkAutoplay = () => {
+      if (autoplay && !autoplay.isPlaying()) {
+        console.log('🔄 [PromoSlider] Autoplay arrêté, relance...');
+        autoplay.play();
+      }
+    };
+
+    // Vérifier toutes les 5 secondes
+    const watchdogInterval = setInterval(checkAutoplay, 5000);
+
+    // Relancer l'autoplay après chaque changement de slide
+    api.on('select', () => {
+      if (autoplay && !autoplay.isPlaying()) {
+        autoplay.play();
+      }
+    });
+
+    // Relancer l'autoplay si l'utilisateur revient sur l'onglet
+    const handleVisibilityChange = () => {
+      if (!document.hidden && autoplay) {
+        autoplay.play();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup
+    return () => {
+      clearInterval(watchdogInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [api]);
 
   const promos = usePromos();
@@ -81,7 +129,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
     <div className="w-full relative mb-12 mx-auto max-w-7xl">
       <Carousel
         setApi={setApi}
-        opts={{ loop: true, align: 'center' }}
+        opts={{ loop: true, align: 'center', skipSnaps: false, duration: 30 }}
         plugins={[autoplayRef.current]}
         className="w-full min-h-[160px]"
       >
