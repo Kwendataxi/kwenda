@@ -37,6 +37,22 @@ export const AppReadyProvider = ({ children, initialSession }: AppReadyProviderP
   const [user, setUser] = useState<User | null>(initialSession?.user ?? null);
   const [session, setSession] = useState<Session | null>(initialSession ?? null);
 
+  // ✅ Timeout de sécurité pour éviter les blocages infinis
+  useEffect(() => {
+    const safetyTimeout = setTimeout(() => {
+      if (!sessionReady || !contentReady) {
+        console.warn('⚠️ [AppReady] Safety timeout triggered - forcing ready state');
+        setSessionReady(true);
+        setContentReady(true);
+        if (!userRole && user) {
+          setUserRole('client'); // Fallback par défaut
+        }
+      }
+    }, 5000); // 5 secondes max
+
+    return () => clearTimeout(safetyTimeout);
+  }, [sessionReady, contentReady, userRole, user]);
+
   // Charger la session et le rôle en parallèle
   useEffect(() => {
     const initializeApp = async () => {
@@ -48,8 +64,29 @@ export const AppReadyProvider = ({ children, initialSession }: AppReadyProviderP
           setSessionReady(true);
 
           if (initialSession.user) {
-            const { data: roleData } = await supabase.rpc('get_current_user_role');
-            setUserRole(roleData);
+            try {
+              const { data: roleData, error: roleError } = await supabase.rpc('get_current_user_role');
+              
+              if (roleError) {
+                console.error('❌ [AppReady] RPC Error:', roleError);
+                // Fallback sur user_roles
+                const { data: fallbackRoles } = await supabase
+                  .from('user_roles')
+                  .select('role')
+                  .eq('user_id', initialSession.user.id)
+                  .eq('is_active', true)
+                  .order('created_at', { ascending: false })
+                  .limit(1)
+                  .single();
+                
+                setUserRole(fallbackRoles?.role || 'client');
+              } else {
+                setUserRole(roleData || 'client');
+              }
+            } catch (error) {
+              console.error('❌ [AppReady] Error fetching role:', error);
+              setUserRole('client'); // Fallback sécurisé
+            }
           }
           setContentReady(true);
           return;
@@ -63,8 +100,28 @@ export const AppReadyProvider = ({ children, initialSession }: AppReadyProviderP
 
         // Charger le rôle si connecté
         if (currentSession?.user) {
-          const { data: roleData } = await supabase.rpc('get_current_user_role');
-          setUserRole(roleData);
+          try {
+            const { data: roleData, error: roleError } = await supabase.rpc('get_current_user_role');
+            
+            if (roleError) {
+              console.error('❌ [AppReady] RPC Error:', roleError);
+              const { data: fallbackRoles } = await supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', currentSession.user.id)
+                .eq('is_active', true)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+              
+              setUserRole(fallbackRoles?.role || 'client');
+            } else {
+              setUserRole(roleData || 'client');
+            }
+          } catch (error) {
+            console.error('❌ [AppReady] Error fetching role:', error);
+            setUserRole('client');
+          }
         }
 
         setContentReady(true);
@@ -84,8 +141,28 @@ export const AppReadyProvider = ({ children, initialSession }: AppReadyProviderP
       setSessionReady(true);
 
       if (currentSession?.user) {
-        const { data: roleData } = await supabase.rpc('get_current_user_role');
-        setUserRole(roleData);
+        try {
+          const { data: roleData, error: roleError } = await supabase.rpc('get_current_user_role');
+          
+          if (roleError) {
+            console.error('❌ [AppReady] RPC Error:', roleError);
+            const { data: fallbackRoles } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', currentSession.user.id)
+              .eq('is_active', true)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
+            
+            setUserRole(fallbackRoles?.role || 'client');
+          } else {
+            setUserRole(roleData || 'client');
+          }
+        } catch (error) {
+          console.error('❌ [AppReady] Error fetching role:', error);
+          setUserRole('client');
+        }
       } else {
         setUserRole(null);
       }
