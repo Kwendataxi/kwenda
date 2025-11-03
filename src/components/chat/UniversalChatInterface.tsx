@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,7 @@ interface UniversalChatInterfaceProps {
   participantId?: string;
   title?: string;
   quickActions?: { label: string; action: () => void; icon?: any }[];
+  hideHeader?: boolean;
 }
 
 export const UniversalChatInterface = ({
@@ -42,7 +44,8 @@ export const UniversalChatInterface = ({
   contextId,
   participantId,
   title,
-  quickActions = []
+  quickActions = [],
+  hideHeader = false
 }: UniversalChatInterfaceProps) => {
   const { language } = useLanguage();
   const {
@@ -145,55 +148,57 @@ export const UniversalChatInterface = ({
   return (
     <Card className={cn("flex flex-col", containerClass)}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-background/50 sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          {selectedConversation && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedConversation(null)}
-              className="p-1"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          )}
-          <div>
-            <h3 className="font-semibold">
-              {selectedConversation 
-                ? conversations.find(c => c.id === selectedConversation)?.other_participant?.display_name || 'Chat'
-                : 'Messages'
-              }
-            </h3>
+      {!hideHeader && (
+        <div className="flex items-center justify-between p-4 border-b bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-background/50 sticky top-0 z-10">
+          <div className="flex items-center gap-3">
             {selectedConversation && (
-              <p className="text-sm text-muted-foreground">
-                {conversations.find(c => c.id === selectedConversation)?.context_type}
-              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedConversation(null)}
+                className="p-1"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
+            <div>
+              <h3 className="font-semibold">
+                {selectedConversation 
+                  ? conversations.find(c => c.id === selectedConversation)?.other_participant?.display_name || 'Chat'
+                  : 'Messages'
+                }
+              </h3>
+              {selectedConversation && (
+                <p className="text-sm text-muted-foreground">
+                  {conversations.find(c => c.id === selectedConversation)?.context_type}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {isFloating && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMinimized(true)}
+                className="p-1"
+              >
+                <MessageCircle className="h-4 w-4" />
+              </Button>
+            )}
+            {onClose && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="p-1"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {isFloating && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsMinimized(true)}
-              className="p-1"
-            >
-              <MessageCircle className="h-4 w-4" />
-            </Button>
-          )}
-          {onClose && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="p-1"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 flex flex-col min-h-0">
@@ -333,42 +338,58 @@ const ChatView = ({
         </div>
       </ScrollArea>
 
-      {/* Quick Actions */}
+      {/* Quick Actions - Horizontal scroll moderne */}
       {quickActions.length > 0 && (
-        <div className="px-4 py-2 border-t">
-          <div className="flex gap-2 flex-wrap">
-            {quickActions.map((action, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                onClick={action.action}
-                className="text-xs"
-              >
-                {action.icon && <action.icon className="h-3 w-3 mr-1" />}
-                {action.label}
-              </Button>
-            ))}
-          </div>
+        <div className="px-3 py-2 border-t bg-gradient-to-r from-muted/30 to-muted/10 backdrop-blur-sm">
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex gap-2 pb-1">
+              {quickActions.map((action, index) => (
+                <motion.button
+                  key={index}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    action.action();
+                    setNewMessage(action.label.replace(/[👋📦🏷️📍]/g, '').trim());
+                  }}
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 hover:shadow-sm transition-all border border-primary/20"
+                >
+                  {action.icon && <action.icon className="h-3.5 w-3.5" />}
+                  {action.label}
+                </motion.button>
+              ))}
+            </div>
+          </ScrollArea>
         </div>
       )}
 
-      {/* Input */}
-      <div className="p-4 border-t space-y-2 pb-[env(safe-area-inset-bottom)]">
+      {/* Input moderne avec glassmorphism */}
+      <div className="p-3 border-t bg-background/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
         <div className="flex gap-2">
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={onKeyPress}
-            placeholder="Tapez votre message..."
-            className="flex-1"
-          />
-          <Button onClick={onSendLocation} variant="outline" size="icon">
+          <Button 
+            onClick={onSendLocation} 
+            variant="outline" 
+            size="icon"
+            className="h-11 w-11 rounded-xl border-2 hover:bg-primary/10 hover:border-primary"
+          >
             <MapPin className="h-4 w-4" />
           </Button>
-          <Button onClick={onSendMessage} disabled={!newMessage.trim()}>
-            <Send className="h-4 w-4" />
-          </Button>
+          <div className="flex-1 relative">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={onKeyPress}
+              placeholder="Tapez votre message..."
+              className="h-11 rounded-xl border-2 focus:border-primary pr-12 text-sm"
+            />
+            <Button 
+              onClick={onSendMessage} 
+              disabled={!newMessage.trim()}
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-lg p-0 bg-primary hover:bg-primary/90"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </>
@@ -380,39 +401,52 @@ interface MessageBubbleProps {
 }
 
 const MessageBubble = ({ message }: MessageBubbleProps) => {
-  // Get current user from auth context  
   const { user } = useAuth();
   const isOwnMessage = message.sender_id === user?.id;
 
   return (
-    <div className={cn(
-      "flex gap-2 max-w-[80%]",
-      isOwnMessage ? "ml-auto flex-row-reverse" : "mr-auto"
-    )}>
-      <Avatar className="h-8 w-8">
-        <AvatarImage src={message.sender?.avatar_url} />
-        <AvatarFallback>
-          {message.sender?.display_name?.charAt(0) || 'U'}
-        </AvatarFallback>
-      </Avatar>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+      className={cn(
+        "flex gap-2 max-w-[85%] mb-3",
+        isOwnMessage ? "ml-auto flex-row-reverse" : "mr-auto"
+      )}
+    >
+      {/* Avatar visible seulement pour les messages reçus */}
+      {!isOwnMessage && (
+        <Avatar className="h-8 w-8 ring-2 ring-border/20">
+          <AvatarImage src={message.sender?.avatar_url} />
+          <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white text-xs font-semibold">
+            {message.sender?.display_name?.charAt(0) || 'V'}
+          </AvatarFallback>
+        </Avatar>
+      )}
+
+      {/* Bulle message avec glassmorphism */}
       <div className={cn(
-        "rounded-lg p-3 max-w-full",
+        "rounded-2xl px-4 py-2.5 max-w-full shadow-md",
         isOwnMessage 
-          ? "bg-primary text-primary-foreground" 
-          : "bg-muted text-muted-foreground"
+          ? "bg-gradient-to-br from-primary to-primary/90 text-white rounded-tr-sm" 
+          : "bg-white dark:bg-zinc-800 text-foreground border border-border/50 rounded-tl-sm backdrop-blur-sm"
       )}>
         {message.message_type === 'location' ? (
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4" />
-            <span className="text-sm">Position partagée</span>
+            <span className="text-sm font-medium">📍 Position partagée</span>
           </div>
         ) : (
-          <p className="text-sm">{message.content}</p>
+          <p className="text-sm leading-relaxed">{message.content}</p>
         )}
-        <p className="text-xs opacity-70 mt-1">
-          {new Date(message.created_at).toLocaleTimeString()}
+        <p className={cn(
+          "text-xs mt-1 flex items-center gap-1",
+          isOwnMessage ? "text-white/70 justify-end" : "text-muted-foreground"
+        )}>
+          {new Date(message.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+          {isOwnMessage && <span>✓</span>}
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 };
