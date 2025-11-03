@@ -80,7 +80,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
     <div className="w-full relative mb-4">
       <Carousel
         setApi={setApi}
-        opts={{ loop: true, align: 'start' }}
+        opts={{ loop: true, align: 'center' }}
         plugins={[autoplayRef.current]}
         className="w-full min-h-[140px]"
       >
