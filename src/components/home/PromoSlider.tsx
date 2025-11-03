@@ -77,7 +77,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   };
 
   return (
-    <div className="w-full relative mb-4">
+    <div className="w-full px-4 relative mb-4">
       <Carousel
         setApi={setApi}
         opts={{ loop: true, align: 'center' }}
