@@ -5,11 +5,11 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
   const [show, setShow] = useState(true);
 
   useEffect(() => {
-    // Afficher le splash pendant 3 secondes
+    // Afficher le splash pendant 2 secondes (optimisé)
     const timer = setTimeout(() => {
       setShow(false);
-      setTimeout(onComplete, 600);
-    }, 3000);
+      setTimeout(onComplete, 400);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [onComplete]);
@@ -19,131 +19,184 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
       {show && (
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.6 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, #DC2626 0%, #B91C1C 30%, #991B1B 60%, #7F1D1D 100%)"
+          animate={{ 
+            opacity: 1,
+            background: [
+              "linear-gradient(135deg, #DC2626 0%, #F59E0B 100%)",
+              "linear-gradient(135deg, #B91C1C 0%, #FBBF24 100%)",
+              "linear-gradient(135deg, #DC2626 0%, #F59E0B 100%)"
+            ]
           }}
+          exit={{ opacity: 0 }}
+          transition={{ 
+            opacity: { duration: 0.4 },
+            background: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+          }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
         >
-          {/* Particules flottantes minimalistes */}
+          {/* Particules flottantes dynamiques */}
           <div className="absolute inset-0 overflow-hidden">
-            {[...Array(8)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute rounded-full bg-white/5"
-                style={{
-                  width: Math.random() * 60 + 30,
-                  height: Math.random() * 60 + 30,
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  filter: 'blur(2px)',
-                }}
-                animate={{
-                  y: [0, -15, 0],
-                  x: [0, Math.random() * 10 - 5, 0],
-                  opacity: [0.05, 0.1, 0.05],
-                }}
-                transition={{
-                  duration: 6 + Math.random() * 3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: Math.random() * 3,
-                }}
-              />
-            ))}
+            {[...Array(12)].map((_, i) => {
+              const size = Math.random() * 60 + 30;
+              return (
+                <motion.div
+                  key={i}
+                  className="absolute rounded-full bg-white/20"
+                  style={{
+                    width: size,
+                    height: size,
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    filter: `blur(${Math.random() * 3 + 1}px)`,
+                    boxShadow: '0 0 15px rgba(255, 255, 255, 0.3)',
+                  }}
+                  animate={{
+                    y: [0, -20, 0],
+                    x: [0, Math.random() * 15 - 7.5, 0],
+                    opacity: [0.1, 0.3, 0.1],
+                    scale: [0.8, 1.2, 0.8],
+                  }}
+                  transition={{
+                    duration: 3 + Math.random() * 2,
+                    repeat: Infinity,
+                    ease: [0.25, 0.46, 0.45, 0.94],
+                    delay: Math.random() * 2,
+                  }}
+                />
+              );
+            })}
           </div>
 
           {/* Contenu central */}
-          <div className="relative flex flex-col items-center gap-8 z-10">
-            {/* Logo avec animation ultra-douce */}
+          <div className="relative flex flex-col items-center gap-6 z-10">
+            {/* Logo avec animation dynamique */}
             <motion.div
-              initial={{ scale: 0.85, opacity: 0 }}
+              initial={{ 
+                scale: 0.3,
+                opacity: 0,
+                rotate: -15
+              }}
               animate={{ 
                 scale: 1,
                 opacity: 1,
+                rotate: 0
               }}
               transition={{ 
-                duration: 0.8,
-                ease: [0.16, 1, 0.3, 1],
-                delay: 0.2
+                type: "spring",
+                stiffness: 200,
+                damping: 15,
+                delay: 0.1
               }}
               className="relative"
-              style={{ willChange: 'transform, opacity' }}
             >
-              {/* Halo doux et subtil */}
+              {/* Halo énergique concentré */}
               <motion.div
-                className="absolute -inset-12 blur-[80px]"
-                initial={{ opacity: 0 }}
+                className="absolute -inset-8 blur-[40px]"
                 animate={{
-                  opacity: [0.3, 0.5, 0.3],
+                  opacity: [0.4, 0.7, 0.4],
+                  scale: [0.95, 1.1, 0.95]
                 }}
                 transition={{
-                  duration: 5,
+                  duration: 2.5,
                   repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 0.3
+                  ease: "easeInOut"
                 }}
                 style={{
-                  background: "radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(220, 38, 38, 0.2) 40%, transparent 70%)"
+                  background: "radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, rgba(245, 158, 11, 0.3) 40%, transparent 70%)"
                 }}
               />
               
-              {/* Logo principal - Animation respiration premium */}
+              {/* Logo principal - Animation multi-axes */}
               <motion.img
                 src="/kwenda-splash-logo.png"
                 alt="Kwenda"
-                className="w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 object-contain relative z-10"
+                className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 object-contain relative z-10"
                 animate={{
-                  scale: [1, 1.02, 1],
-                  opacity: [0.95, 1, 0.95],
+                  scale: [1, 1.05, 1],
+                  rotate: [0, 2, 0, -2, 0],
+                  y: [0, -8, 0],
                 }}
                 transition={{
-                  duration: 4,
+                  duration: 2,
                   repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 0.3
+                  ease: "easeInOut"
                 }}
                 style={{ 
-                  willChange: 'transform, opacity',
+                  willChange: 'transform',
                   transform: 'translate3d(0, 0, 0)',
-                  filter: 'drop-shadow(0 0 40px rgba(255, 255, 255, 0.3))'
+                  backfaceVisibility: 'hidden',
+                  filter: 'drop-shadow(0 0 25px rgba(255, 255, 255, 0.4))'
                 }}
               />
             </motion.div>
 
-            {/* Slogan uniquement */}
+            {/* Slogan compact */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="text-center"
+              transition={{ delay: 0.5, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="text-center px-6"
             >
-              <p className="text-xl sm:text-2xl text-white font-light tracking-wide">
-                Courses abordables tous les jours !
-              </p>
+              <motion.p 
+                className="text-sm sm:text-base text-white/90 font-medium tracking-wide max-w-xs"
+                animate={{
+                  opacity: [0.9, 1, 0.9],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity
+                }}
+              >
+                Courses abordables tous les jours
+              </motion.p>
             </motion.div>
 
-            {/* Spinner moderne premium */}
+            {/* Spinner double cercle moderne */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1.2, duration: 0.6 }}
-              className="mt-10"
+              transition={{ delay: 0.8, duration: 0.5 }}
+              className="mt-6"
             >
-              <motion.div
-                className="w-8 h-8 rounded-full border-2 border-white/20 border-t-white/80"
-                animate={{ rotate: 360 }}
-                transition={{
-                  duration: 1.2,
-                  repeat: Infinity,
-                  ease: "linear"
-                }}
-                style={{
-                  filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.4))'
-                }}
-              />
+              <div className="relative w-10 h-10">
+                {/* Cercle externe */}
+                <motion.div
+                  className="absolute inset-0 rounded-full border-3 border-white/20 border-t-white"
+                  animate={{ rotate: 360 }}
+                  transition={{
+                    duration: 0.8,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                  style={{
+                    filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))'
+                  }}
+                />
+                
+                {/* Cercle interne (rotation inverse) */}
+                <motion.div
+                  className="absolute inset-2 rounded-full border-2 border-white/30 border-b-yellow-400"
+                  animate={{ rotate: -360 }}
+                  transition={{
+                    duration: 1.2,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                />
+                
+                {/* Glow pulsant */}
+                <motion.div
+                  className="absolute inset-0 rounded-full bg-white/10"
+                  animate={{ 
+                    scale: [1, 1.3, 1],
+                    opacity: [0.3, 0, 0.3]
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity
+                  }}
+                />
+              </div>
             </motion.div>
           </div>
 
