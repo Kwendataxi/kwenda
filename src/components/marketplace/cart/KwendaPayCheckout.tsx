@@ -145,7 +145,7 @@ export const KwendaPayCheckout: React.FC<KwendaPayCheckoutProps> = ({
               Annuler
             </Button>
             
-            {!isSufficient ? (
+            {walletBalance < total ? (
               <Button
                 onClick={handleTopUp}
                 className="flex-1 gap-2 bg-gradient-to-r from-congo-green to-congo-green-electric hover:from-congo-green-electric hover:to-congo-green text-white"

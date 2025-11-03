@@ -282,6 +282,7 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
       </Sheet>
 
       <KwendaPayCheckout
+        key={`${totalPrice}-${wallet?.balance || 0}`}
         isOpen={showPaymentDialog}
         total={totalPrice}
         walletBalance={wallet?.balance || 0}
