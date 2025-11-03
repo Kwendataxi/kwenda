@@ -280,7 +280,7 @@ export const ModernRentalBooking = () => {
                       selected={startDate}
                       onSelect={setStartDate}
                       disabled={(date) => date < new Date()}
-                      className="rounded-lg border-2 border-green-200 dark:border-green-800 w-full pointer-events-auto"
+                      className="w-full pointer-events-auto"
                     />
                   </div>
 
@@ -312,7 +312,7 @@ export const ModernRentalBooking = () => {
                       selected={endDate}
                       onSelect={setEndDate}
                       disabled={(date) => !startDate || date <= startDate}
-                      className="rounded-lg border-2 border-orange-200 dark:border-orange-800 w-full pointer-events-auto"
+                      className="w-full pointer-events-auto"
                     />
                   </div>
 
