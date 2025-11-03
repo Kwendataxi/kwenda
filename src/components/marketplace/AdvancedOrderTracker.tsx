@@ -349,7 +349,7 @@ export const AdvancedOrderTracker: React.FC = () => {
                     Visualisez la position de votre livreur sur la carte et recevez des mises à jour instantanées
                   </p>
                   <Button 
-                    onClick={() => navigate(`/track/marketplace/${selectedOrder.id}`)}
+                    onClick={() => navigate(`/tracking/marketplace/${selectedOrder.id}`)}
                     className="w-full gap-2"
                     size="lg"
                   >
