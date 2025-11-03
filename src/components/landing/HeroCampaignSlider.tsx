@@ -96,6 +96,9 @@ export const HeroCampaignSlider = () => {
                   
                   {/* Overlay soft uniquement en bas pour profondeur */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent pointer-events-none"></div>
+                  
+                  {/* Masque pour badge NOUVEAU en haut */}
+                  <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-background via-background/90 to-transparent pointer-events-none z-10"></div>
                 </div>
               </div>
             </div>
