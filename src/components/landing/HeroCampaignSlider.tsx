@@ -67,27 +67,27 @@ export const HeroCampaignSlider = () => {
   }, [emblaApi, onSelect]);
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto" style={{ contain: 'layout' }}>
+    <div className="relative w-full max-w-6xl mx-auto">
       {/* Carrousel Container */}
-      <div className="overflow-hidden rounded-2xl" ref={emblaRef} style={{ contain: 'layout style' }}>
+      <div className="overflow-hidden rounded-3xl" ref={emblaRef}>
         <div className="flex touch-pan-y">
           {slides.map((slide, index) => (
             <div
               key={slide.id}
               className="flex-[0_0_100%] min-w-0 relative"
             >
-              {/* Glow effect réduit et optimisé */}
-              <div className="absolute -inset-2 bg-gradient-radial from-primary/5 via-primary/3 to-transparent blur-2xl opacity-20"></div>
+              {/* Soft glow effect */}
+              <div className="absolute -inset-1 bg-gradient-radial from-primary/8 via-transparent to-transparent blur-xl opacity-30"></div>
               
-              {/* Image Container avec hauteur fixe responsive */}
-              <div className="relative h-[340px] sm:h-[400px] md:h-[460px] overflow-hidden rounded-2xl">
-                {/* Bordure néomorphique */}
-                <div className="relative h-full w-full overflow-hidden rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
+              {/* Image Container avec aspect ratio 16:9 natif */}
+              <div className="relative w-full aspect-[16/9] overflow-hidden rounded-3xl">
+                {/* Bordure soft */}
+                <div className="relative h-full w-full overflow-hidden rounded-3xl border border-border/30 bg-gradient-to-br from-card/20 to-card/10 backdrop-blur-sm shadow-[0_4px_24px_rgba(0,0,0,0.08)]">
                   <img
                     src={slide.image}
                     alt={slide.alt}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                    style={{ objectPosition: 'center 60%' }}
+                    className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out hover:scale-[1.02]"
+                    style={{ objectPosition: 'center center' }}
                     loading={index === 0 ? "eager" : "lazy"}
                     fetchPriority={index === 0 ? "high" : "low"}
                     decoding={index === 0 ? "sync" : "async"}
@@ -95,11 +95,11 @@ export const HeroCampaignSlider = () => {
                     height={720}
                   />
                   
-                  {/* Gradient Overlay subtil */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+                  {/* Overlay soft pour profondeur */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10 pointer-events-none"></div>
                   
-                  {/* Overlay progressif pour masquer badge NOUVEAU */}
-                  <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-background via-background/90 to-transparent z-10"></div>
+                  {/* Masque soft progressif pour badge NOUVEAU - plus large et plus doux */}
+                  <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/95 to-transparent pointer-events-none z-10"></div>
                 </div>
               </div>
             </div>
@@ -107,34 +107,34 @@ export const HeroCampaignSlider = () => {
         </div>
       </div>
 
-      {/* Navigation Arrows - Design modernisé */}
+      {/* Navigation Arrows - Design soft et moderne */}
       <button
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-card/90 backdrop-blur-md hover:bg-white dark:hover:bg-card text-foreground p-3 rounded-full shadow-xl border border-white/40 dark:border-border/40 transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
+        className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-20 bg-white/95 dark:bg-card/95 backdrop-blur-lg hover:bg-white dark:hover:bg-card text-foreground p-2.5 sm:p-3 rounded-full shadow-lg border border-white/50 dark:border-border/30 transition-all duration-300 ease-out disabled:opacity-0 disabled:cursor-not-allowed hover:scale-110 active:scale-95"
         onClick={scrollPrev}
         disabled={!canScrollPrev}
         aria-label="Slide précédent"
       >
-        <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
+        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
       </button>
       
       <button
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-card/90 backdrop-blur-md hover:bg-white dark:hover:bg-card text-foreground p-3 rounded-full shadow-xl border border-white/40 dark:border-border/40 transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
+        className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-20 bg-white/95 dark:bg-card/95 backdrop-blur-lg hover:bg-white dark:hover:bg-card text-foreground p-2.5 sm:p-3 rounded-full shadow-lg border border-white/50 dark:border-border/30 transition-all duration-300 ease-out disabled:opacity-0 disabled:cursor-not-allowed hover:scale-110 active:scale-95"
         onClick={scrollNext}
         disabled={!canScrollNext}
         aria-label="Slide suivant"
       >
-        <ChevronRight className="w-5 h-5" strokeWidth={2.5} />
+        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={2.5} />
       </button>
 
-      {/* Dots Indicators */}
-      <div className="flex justify-center gap-2 mt-6">
+      {/* Dots Indicators - Design soft */}
+      <div className="flex justify-center gap-2.5 mt-5">
         {slides.map((_, index) => (
           <button
             key={index}
-            className={`h-2.5 rounded-full transition-all duration-300 ${
+            className={`h-2 rounded-full transition-all duration-500 ease-out ${
               index === selectedIndex
-                ? 'w-10 bg-primary shadow-lg shadow-primary/50'
-                : 'w-2.5 bg-muted-foreground/40 hover:bg-muted-foreground/60'
+                ? 'w-8 bg-primary shadow-md shadow-primary/40'
+                : 'w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50 hover:w-4'
             }`}
             onClick={() => emblaApi?.scrollTo(index)}
             aria-label={`Aller au slide ${index + 1}`}
