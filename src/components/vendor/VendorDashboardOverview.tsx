@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Package, Plus, ShoppingBag, DollarSign, Clock, CheckCircle } from 'lucide-react';
 import { useVendorStats } from '@/hooks/useVendorStats';
+import { VendorSetupProgress } from './VendorSetupProgress';
 
 interface VendorDashboardOverviewProps {
   onTabChange?: (tab: string) => void;
@@ -11,6 +12,20 @@ interface VendorDashboardOverviewProps {
 export const VendorDashboardOverview = ({ onTabChange }: VendorDashboardOverviewProps) => {
   const navigate = useNavigate();
   const { stats, loading } = useVendorStats();
+
+  const handleSetupAction = (action: string) => {
+    switch (action) {
+      case 'profile':
+        onTabChange?.('profile');
+        break;
+      case 'add-product':
+        navigate('/vendeur/ajouter-produit');
+        break;
+      case 'subscription':
+        onTabChange?.('subscription');
+        break;
+    }
+  };
 
   if (loading) {
     return (
@@ -51,6 +66,9 @@ export const VendorDashboardOverview = ({ onTabChange }: VendorDashboardOverview
 
   return (
     <div className="space-y-6">
+      {/* Setup Progress */}
+      <VendorSetupProgress onActionClick={handleSetupAction} />
+
       {/* KPI Cards Grid - Responsive optimisé */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {/* Actifs */}

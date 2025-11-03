@@ -82,6 +82,7 @@ const ModernVendorDashboard = lazy(() => import("./pages/ModernVendorDashboard")
 const VendorRegistration = lazy(() => import("./pages/VendorRegistration"));
 const VendorAddProduct = lazy(() => import("./pages/VendorAddProduct"));
 const VendorEditProduct = lazy(() => import("./pages/VendorEditProduct"));
+const VendorChatConversation = lazy(() => import("./pages/VendorChatConversation"));
 const MyProducts = lazy(() => import("./pages/marketplace/MyProducts"));
 const RestaurantDashboard = lazy(() => import("./pages/restaurant/RestaurantDashboard"));
 const RestaurantMenuManager = lazy(() => import("./pages/restaurant/RestaurantMenuManager"));
@@ -305,6 +306,11 @@ const AppContent = () => {
                     <Route path="/vendeur/modifier-produit/:id" element={
                       <VendorGuard>
                         <VendorEditProduct />
+                      </VendorGuard>
+                    } />
+                    <Route path="/marketplace/vendor/chat/:conversationId" element={
+                      <VendorGuard>
+                        <VendorChatConversation />
                       </VendorGuard>
                     } />
                     <Route path="/mes-adresses" element={<MesAdresses />} />
