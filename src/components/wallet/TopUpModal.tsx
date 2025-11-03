@@ -149,28 +149,23 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
             className="space-y-3"
           >
             <Label className="text-sm font-semibold text-zinc-100 drop-shadow-md uppercase tracking-wide">
-              Montant personnalisé
+              Montant personnalisé (CDF)
             </Label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60 text-lg font-semibold pointer-events-none">
-                CDF
-              </span>
-              <Input
-                type="number"
-                inputMode="numeric"
-                placeholder="2500"
-                value={amount}
-                onChange={(e) => handleAmountChange(e.target.value)}
-                className={cn(
-                  "h-16 sm:h-20 text-2xl sm:text-3xl font-bold text-center pl-16",
-                  "bg-white/10 backdrop-blur-md border-3 border-white/40",
-                  "text-white placeholder:text-white/40",
-                  "rounded-2xl shadow-2xl",
-                  "focus-visible:border-white focus-visible:ring-4 focus-visible:ring-white/20 focus-visible:bg-white/15",
-                  amountError && "border-rose-400 focus-visible:ring-rose-400/30"
-                )}
-              />
-            </div>
+            <Input
+              type="number"
+              inputMode="numeric"
+              placeholder="2500"
+              value={amount}
+              onChange={(e) => handleAmountChange(e.target.value)}
+              className={cn(
+                "h-16 sm:h-20 text-2xl sm:text-3xl font-bold text-center",
+                "bg-white/10 backdrop-blur-md border-3 border-white/40",
+                "text-white placeholder:text-white/40",
+                "rounded-2xl shadow-2xl",
+                "focus-visible:border-white focus-visible:ring-4 focus-visible:ring-white/20 focus-visible:bg-white/15",
+                amountError && "border-rose-400 focus-visible:ring-rose-400/30"
+              )}
+            />
             <AnimatePresence>
               {amountError && (
                 <motion.p
