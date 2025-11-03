@@ -174,93 +174,99 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                 />
               </div>
 
-              {/* Info & Price - soft layout */}
-              <div className="mb-4 space-y-2">
-                {/* Category, Condition & Stock - texte simple */}
-                <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                  <span className="flex items-center gap-1">
-                    <Package className="h-3.5 w-3.5" />
-                    {getCategoryName(product.category)}
-                  </span>
-                  {product.condition && (
-                    <span>• {getConditionLabel(product.condition)}</span>
-                  )}
-                  {product.stockCount !== undefined && (
-                    <span className="ml-auto text-orange-600 font-medium">
-                      Stock: {product.stockCount}
-                    </span>
-                  )}
-                </div>
-                
-                {/* Prix et note en ligne plate */}
-                <div className="flex items-baseline justify-between">
-                  <div className="space-y-0.5">
-                    <div className="text-2xl sm:text-3xl font-bold text-foreground">
-                      {formatCurrency(product.price)}
-                    </div>
-                    {product.originalPrice && product.originalPrice > product.price && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground line-through">
-                          {formatCurrency(product.originalPrice)}
-                        </span>
-                        {product.discount && (
-                          <span className="text-xs text-red-600 font-medium">
-                            -{product.discount}%
-                          </span>
-                        )}
-                      </div>
-                    )}
+              {/* Badges catégorie et condition */}
+              <div className="flex items-center gap-2 mb-3">
+                <Badge variant="outline" className="text-xs">
+                  <Package className="h-3 w-3 mr-1" />
+                  {getCategoryName(product.category)}
+                </Badge>
+                {product.condition && (
+                  <Badge variant="secondary" className="text-xs">
+                    {getConditionLabel(product.condition)}
+                  </Badge>
+                )}
+              </div>
+
+              {/* Prix principal */}
+              <div className="mb-4">
+                <div className="flex items-baseline justify-between mb-1">
+                  <div className="text-3xl font-bold text-foreground">
+                    {formatCurrency(product.price)}
                   </div>
-                  
                   {product.rating > 0 && (
-                    <div className="flex items-center gap-1 text-muted-foreground">
+                    <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                       <span className="text-sm font-medium">{product.rating.toFixed(1)}</span>
                       {product.reviewCount > 0 && (
-                        <span className="text-xs">({product.reviewCount})</span>
+                        <span className="text-xs text-muted-foreground">({product.reviewCount})</span>
                       )}
                     </div>
                   )}
                 </div>
+                {product.originalPrice && product.originalPrice > product.price && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground line-through">
+                      {formatCurrency(product.originalPrice)}
+                    </span>
+                    {product.discount && (
+                      <span className="text-xs text-red-600 font-medium">
+                        -{product.discount}%
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* Seller Info - ligne horizontale */}
-              <div className="mb-4 flex items-center justify-between py-2 border-y">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <User className="h-4 w-4" />
-                  <span>{product.seller}</span>
+              {/* Grille d'infos clés */}
+              <div className="grid grid-cols-2 gap-3 mb-4 p-3 bg-muted/30 rounded-lg">
+                {product.brand && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-0.5">Marque</p>
+                    <p className="text-sm font-semibold">{product.brand}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">Stock</p>
+                  <p className="text-sm font-semibold text-green-600">
+                    {product.stockCount || 0} disponible{(product.stockCount || 0) > 1 ? 's' : ''}
+                  </p>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-xs text-primary hover:text-primary/80"
-                  onClick={() => {
-                    onViewSeller(product.sellerId);
-                    onClose();
-                  }}
-                >
-                  Voir boutique →
-                </Button>
+                <div className="col-span-2">
+                  <p className="text-xs text-muted-foreground mb-0.5">Vendeur</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold">{product.seller}</p>
+                    <Button 
+                      variant="link" 
+                      size="sm" 
+                      className="h-auto p-0 text-xs"
+                      onClick={() => {
+                        onViewSeller(product.sellerId);
+                        onClose();
+                      }}
+                    >
+                      Voir boutique →
+                    </Button>
+                  </div>
+                </div>
               </div>
 
-              {/* Description - simple */}
+              {/* Description */}
               {product.description && (
                 <div className="mb-4">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <h4 className="text-sm font-semibold mb-2">Description</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
                     {product.description}
                   </p>
                 </div>
               )}
 
-              {/* Product Specifications - only if exists */}
-              {(product.brand || product.specifications) && (
-                <div className="mb-3">
-                  <ProductSpecifications
-                    brand={product.brand}
-                    condition={product.condition}
-                    stockCount={product.stockCount}
-                    specifications={product.specifications}
-                  />
+              {/* Caractéristiques techniques */}
+              {product.specifications && Object.keys(product.specifications).length > 0 && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-semibold mb-2">Caractéristiques</h4>
+                  <div className="p-3 bg-muted/20 rounded-lg">
+                    <ProductSpecifications specifications={product.specifications} />
+                  </div>
                 </div>
               )}
 
