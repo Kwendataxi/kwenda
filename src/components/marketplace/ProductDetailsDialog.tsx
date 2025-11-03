@@ -91,6 +91,7 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 }) => {
   const [quantity, setQuantity] = useState(1);
   const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'chat' | 'details'>('chat');
   const { wallet, topUpWallet } = useWallet();
 
   if (!product) return null;
@@ -126,13 +127,20 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md sm:max-w-2xl lg:max-w-3xl mx-auto h-[100vh] sm:h-[95vh] sm:max-h-[95vh] p-0 gap-0 sm:rounded-lg">
-        <DialogHeader className="p-2 sm:p-3 pb-2 border-b bg-background/95 backdrop-blur sticky top-0 z-10">
-          <DialogTitle className="text-sm sm:text-base font-semibold line-clamp-1 pr-6">
-            {product.name}
-          </DialogTitle>
-        </DialogHeader>
+        {activeTab === 'details' && (
+          <DialogHeader className="p-2 sm:p-3 pb-2 border-b bg-background/95 backdrop-blur sticky top-0 z-10">
+            <DialogTitle className="text-sm sm:text-base font-semibold line-clamp-1 pr-6">
+              {product.name}
+            </DialogTitle>
+          </DialogHeader>
+        )}
 
-        <Tabs defaultValue="chat" className="flex-1 flex flex-col h-full">
+        <Tabs 
+          defaultValue="chat" 
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as 'chat' | 'details')}
+          className="flex-1 flex flex-col h-full"
+        >
           <TabsList className="mx-2 sm:mx-3 my-1.5 grid grid-cols-2 h-10 sm:h-11 sticky top-0 z-10 bg-background">
             <TabsTrigger value="chat" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
               <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
