@@ -599,7 +599,7 @@ const ClientApp = () => {
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-heading-lg text-card-foreground">Portefeuille KwendaPay</h1>
+        <h1 className="text-heading-lg text-card-foreground">KwendaPay</h1>
       </div>
       <ClientWalletPanel />
     </div>

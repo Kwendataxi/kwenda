@@ -86,7 +86,7 @@ export const ClientWalletPanel: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-congo-blue/5 to-white dark:from-congo-blue/10 dark:to-background pb-24">
       <SuccessConfetti show={showConfetti} onComplete={() => setShowConfetti(false)} />
 
       {/* Hero moderne et épuré */}

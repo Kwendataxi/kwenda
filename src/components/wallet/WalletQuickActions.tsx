@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Send, Gift } from 'lucide-react';
+import { Plus, Send, Gift } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface QuickAction {
@@ -27,7 +27,7 @@ export const WalletQuickActions: React.FC<WalletQuickActionsProps> = ({
     {
       id: 'recharge',
       label: 'Recharger',
-      icon: Zap,
+      icon: Plus,
       color: 'text-congo-green',
       gradient: 'from-congo-green to-congo-green-electric',
       onClick: onRecharge
