@@ -7,7 +7,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { 
   Calendar as CalendarIcon, ArrowLeft, ArrowRight, 
   Check, User, Phone, Mail, CreditCard, Shield, Clock, 
-  MapPin, Car, Users, Settings, Star
+  MapPin, Car, Users, Settings, Star, CalendarCheck, CalendarX, ArrowDown
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useModernRentals } from '@/hooks/useModernRentals';
@@ -259,42 +259,101 @@ export const ModernRentalBooking = () => {
                     Quand souhaitez-vous louer ?
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Date de début</label>
-                      <Calendar
-                        mode="single"
-                        selected={startDate}
-                        onSelect={setStartDate}
-                        disabled={(date) => date < new Date()}
-                        className="rounded-lg border w-full"
-                      />
+                <CardContent className="space-y-6">
+                  {/* Date de début - Card avec bordure verte */}
+                  <div className="border-2 border-green-500/50 rounded-xl p-4 bg-green-50/50 dark:bg-green-950/20">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 rounded-lg bg-green-500">
+                        <CalendarCheck className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-green-700 dark:text-green-400">
+                          📅 Date de début
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          Début de votre location
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Date de fin</label>
-                      <Calendar
-                        mode="single"
-                        selected={endDate}
-                        onSelect={setEndDate}
-                        disabled={(date) => !startDate || date <= startDate}
-                        className="rounded-lg border w-full"
-                      />
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      disabled={(date) => date < new Date()}
+                      className="rounded-lg border-2 border-green-200 dark:border-green-800 w-full pointer-events-auto"
+                    />
+                  </div>
+
+                  {/* Séparateur visuel avec flèche */}
+                  <div className="flex items-center justify-center relative">
+                    <div className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
+                    <div className="relative z-10 p-3 rounded-full bg-background border-2 border-primary">
+                      <ArrowDown className="h-6 w-6 text-primary animate-bounce" />
                     </div>
                   </div>
 
+                  {/* Date de fin - Card avec bordure orange */}
+                  <div className="border-2 border-orange-500/50 rounded-xl p-4 bg-orange-50/50 dark:bg-orange-950/20">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 rounded-lg bg-orange-500">
+                        <CalendarX className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-orange-700 dark:text-orange-400">
+                          🛑 Date de fin
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          Fin de votre location
+                        </p>
+                      </div>
+                    </div>
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      disabled={(date) => !startDate || date <= startDate}
+                      className="rounded-lg border-2 border-orange-200 dark:border-orange-800 w-full pointer-events-auto"
+                    />
+                  </div>
+
+                  {/* Récapitulatif visuel des dates sélectionnées */}
                   {startDate && endDate && (
                     <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl border border-primary/20"
                     >
-                      <p className="text-sm mb-1">
-                        <strong>Durée :</strong> {differenceInDays(endDate, startDate)} jour(s)
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Du {format(startDate, 'dd MMM yyyy', { locale: fr })} au {format(endDate, 'dd MMM yyyy', { locale: fr })}
-                      </p>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
+                            <CalendarCheck className="h-5 w-5 text-green-600" />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-sm font-medium">Début</p>
+                            <p className="text-xs text-muted-foreground">
+                              {format(startDate, 'dd MMM yyyy', { locale: fr })}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10">
+                          <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                          <p className="text-sm font-bold text-primary">{differenceInDays(endDate, startDate)} jour(s)</p>
+                          <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                        </div>
+
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20">
+                            <CalendarX className="h-5 w-5 text-orange-600" />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-sm font-medium">Fin</p>
+                            <p className="text-xs text-muted-foreground">
+                              {format(endDate, 'dd MMM yyyy', { locale: fr })}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </motion.div>
                   )}
 
