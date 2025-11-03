@@ -17,7 +17,7 @@ export const QuickAmountSelector: React.FC<QuickAmountSelectorProps> = ({
 }) => {
   return (
     <div className="space-y-3">
-      <label className="text-sm font-semibold text-zinc-300 uppercase tracking-wide">
+      <label className="text-sm font-semibold text-zinc-100 drop-shadow-md uppercase tracking-wide">
         Montants rapides
       </label>
       <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
@@ -31,11 +31,11 @@ export const QuickAmountSelector: React.FC<QuickAmountSelectorProps> = ({
             whileTap={{ scale: 0.97 }}
             onClick={() => onSelect(amount)}
             className={cn(
-              "relative px-4 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg",
+              "relative px-4 py-4 sm:py-5 rounded-2xl font-extrabold text-base sm:text-lg",
               "transition-all duration-200",
               selectedAmount === amount
-                ? "bg-rose-500/20 border-2 border-rose-500/80 text-rose-400 shadow-lg shadow-rose-500/30 ring-2 ring-rose-500/20"
-                : "bg-zinc-800/50 border-2 border-zinc-700/50 text-zinc-300 hover:border-zinc-600"
+                ? "bg-gradient-to-br from-rose-500 to-orange-500 border-2 border-white text-white shadow-2xl shadow-rose-500/50 ring-4 ring-white/20"
+                : "bg-white/10 backdrop-blur-md border-2 border-white/30 text-white hover:border-white/50 hover:bg-white/15 shadow-xl"
             )}
           >
             {selectedAmount === amount && (
@@ -47,8 +47,9 @@ export const QuickAmountSelector: React.FC<QuickAmountSelectorProps> = ({
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             )}
-            <span className="relative z-10">
-              {amount.toLocaleString('fr-CD')}
+            <span className="relative z-10 flex flex-col items-center gap-0.5">
+              <span className="text-[10px] opacity-70 font-normal">CDF</span>
+              <span>{amount.toLocaleString('fr-CD')}</span>
             </span>
           </motion.button>
         ))}

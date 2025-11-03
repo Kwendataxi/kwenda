@@ -41,9 +41,10 @@ export const AnimatedTopUpButton: React.FC<AnimatedTopUpButtonProps> = ({
         disabled={isDisabled}
         className={cn(
           "w-full h-14 sm:h-16 rounded-2xl font-bold text-base sm:text-lg relative overflow-hidden",
-          "bg-gradient-to-r from-primary via-orange-500 to-primary",
-          "shadow-2xl shadow-primary/40",
-          "hover:shadow-primary/60 hover:scale-[1.02]",
+          "bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500",
+          "hover:from-rose-600 hover:via-orange-600 hover:to-amber-600",
+          "text-white shadow-2xl shadow-orange-500/50 ring-2 ring-white/20",
+          "hover:shadow-orange-500/70 hover:scale-[1.02]",
           "active:scale-[0.98]",
           "transition-all duration-200",
           "disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100",

@@ -101,16 +101,28 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
       <DialogContent className={cn(
         "w-[calc(100vw-2rem)] max-w-[480px] p-0 gap-0 overflow-hidden",
         "max-h-[90vh] overflow-y-auto",
-        "bg-zinc-900/98 dark:bg-zinc-900/98",
-        "backdrop-blur-xl border-zinc-800/50",
+        "bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800",
+        "backdrop-blur-xl border-2 border-zinc-700/50 shadow-2xl",
         "data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom-4",
         "data-[state=open]:duration-300"
       )}>
-        {/* Header simplifié */}
-        <DialogHeader className="relative p-5 sm:p-6 pb-4 border-b border-zinc-800/50">
-          <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
+        {/* Header avec meilleur contraste */}
+        <DialogHeader className="relative p-5 sm:p-6 pb-4 border-b border-zinc-700/50 bg-gradient-to-r from-zinc-800 to-zinc-900">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-white drop-shadow-lg">
             Rechargez votre portefeuille via Mobile Money
           </DialogTitle>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-3 flex items-center gap-2 flex-wrap"
+          >
+            <div className="px-3 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+              <span className="text-xs font-semibold text-white/80">Devise : CDF</span>
+            </div>
+            <div className="px-3 py-1 bg-green-500/20 backdrop-blur-md rounded-full border border-green-500/30">
+              <span className="text-xs font-semibold text-green-400">✓ Mobile Money</span>
+            </div>
+          </motion.div>
         </DialogHeader>
 
         {/* Content avec espacements généreux */}
@@ -136,24 +148,29 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
             transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 30 }}
             className="space-y-3"
           >
-            <Label className="text-sm font-semibold text-zinc-300 uppercase tracking-wide">
+            <Label className="text-sm font-semibold text-zinc-100 drop-shadow-md uppercase tracking-wide">
               Montant personnalisé
             </Label>
-            <Input
-              type="number"
-              inputMode="numeric"
-              placeholder="2500"
-              value={amount}
-              onChange={(e) => handleAmountChange(e.target.value)}
-              className={cn(
-                "h-16 sm:h-20 text-2xl sm:text-3xl font-bold text-center",
-                "bg-zinc-800/50 border-2 border-zinc-700/50",
-                "text-white placeholder:text-zinc-600",
-                "rounded-2xl",
-                "focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20",
-                amountError && "border-rose-500 focus-visible:ring-rose-500/20"
-              )}
-            />
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60 text-lg font-semibold pointer-events-none">
+                CDF
+              </span>
+              <Input
+                type="number"
+                inputMode="numeric"
+                placeholder="2500"
+                value={amount}
+                onChange={(e) => handleAmountChange(e.target.value)}
+                className={cn(
+                  "h-16 sm:h-20 text-2xl sm:text-3xl font-bold text-center pl-16",
+                  "bg-white/10 backdrop-blur-md border-3 border-white/40",
+                  "text-white placeholder:text-white/40",
+                  "rounded-2xl shadow-2xl",
+                  "focus-visible:border-white focus-visible:ring-4 focus-visible:ring-white/20 focus-visible:bg-white/15",
+                  amountError && "border-rose-400 focus-visible:ring-rose-400/30"
+                )}
+              />
+            </div>
             <AnimatePresence>
               {amountError && (
                 <motion.p
@@ -190,11 +207,11 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
             transition={{ delay: 0.25, type: "spring", stiffness: 300, damping: 30 }}
             className="space-y-3"
           >
-            <Label className="text-sm font-semibold text-zinc-300 uppercase tracking-wide">
+            <Label className="text-sm font-semibold text-zinc-100 drop-shadow-md uppercase tracking-wide">
               Numéro de téléphone
             </Label>
             <div className="relative">
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" />
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
               <Input
                 type="tel"
                 inputMode="tel"
@@ -202,12 +219,12 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
                 value={phone}
                 onChange={(e) => handlePhoneChange(e.target.value)}
                 className={cn(
-                  "h-14 sm:h-16 text-base sm:text-lg pl-12",
-                  "bg-zinc-800/50 border-2 border-zinc-700/50",
-                  "text-white placeholder:text-zinc-600",
-                  "rounded-2xl",
-                  "focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20",
-                  phoneError && "border-rose-500 focus-visible:ring-rose-500/20"
+                  "h-14 sm:h-16 text-base sm:text-lg pl-12 font-semibold",
+                  "bg-white/10 backdrop-blur-md border-2 border-white/40",
+                  "text-white placeholder:text-white/40",
+                  "rounded-2xl shadow-xl",
+                  "focus-visible:border-white focus-visible:ring-4 focus-visible:ring-white/20",
+                  phoneError && "border-rose-400 focus-visible:ring-rose-400/30"
                 )}
               />
             </div>

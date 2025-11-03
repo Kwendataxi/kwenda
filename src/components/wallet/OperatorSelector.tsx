@@ -44,7 +44,7 @@ export const OperatorSelector: React.FC<OperatorSelectorProps> = ({
 }) => {
   return (
     <div className="space-y-3">
-      <label className="text-sm font-semibold text-zinc-300 uppercase tracking-wide">
+      <label className="text-sm font-semibold text-zinc-100 drop-shadow-md uppercase tracking-wide">
         Opérateur mobile
       </label>
       <div className="grid grid-cols-3 gap-3">
@@ -64,14 +64,14 @@ export const OperatorSelector: React.FC<OperatorSelectorProps> = ({
               "transition-all duration-200",
               operator.disabled && "opacity-50 cursor-not-allowed",
               selected === operator.id && !operator.disabled
-                ? `${operator.bgColor} border-transparent shadow-2xl ${operator.shadowColor} ring-2 ring-${operator.bgColor.split('-')[1]}-500/30`
-                : "bg-zinc-800/50 border-2 border-zinc-700/50 hover:border-zinc-600"
+                ? `bg-gradient-to-br ${operator.bgColor} to-${operator.bgColor.split('-')[1]}-700 border-2 border-white text-white shadow-2xl ${operator.shadowColor} ring-4 ring-white/30 scale-105`
+                : "bg-white/15 backdrop-blur-md border-2 border-white/30 hover:border-white/50 hover:bg-white/20 shadow-xl"
             )}
           >
             {operator.badge && (
               <Badge 
                 variant="secondary" 
-                className="absolute -top-2 -right-2 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 shadow-lg"
+                className="absolute -top-2 -right-2 bg-zinc-700/90 backdrop-blur-sm text-zinc-300 text-xs font-semibold px-2 py-0.5 shadow-lg border border-zinc-600"
               >
                 {operator.badge}
               </Badge>
@@ -88,21 +88,21 @@ export const OperatorSelector: React.FC<OperatorSelectorProps> = ({
             )}
             
             <div className={cn(
-              "w-12 h-12 sm:w-16 sm:h-16 rounded-xl mb-2",
+              "w-12 h-12 sm:w-16 sm:h-16 rounded-xl mb-2 transition-all duration-200",
               "flex items-center justify-center",
               selected === operator.id 
-                ? "bg-white/20" 
-                : "bg-zinc-700/50"
+                ? "bg-white/30 backdrop-blur-md shadow-inner" 
+                : "bg-white/10 backdrop-blur-sm"
             )}>
               <Smartphone className={cn(
-                "w-6 h-6 sm:w-8 sm:h-8",
-                selected === operator.id ? "text-white" : "text-zinc-400"
+                "w-6 h-6 sm:w-8 sm:h-8 transition-colors",
+                selected === operator.id ? "text-white drop-shadow-lg" : "text-white/60"
               )} />
             </div>
             
             <span className={cn(
-              "text-xs sm:text-sm font-bold text-center",
-              selected === operator.id ? "text-white" : "text-zinc-400"
+              "text-xs sm:text-sm font-bold text-center transition-colors",
+              selected === operator.id ? "text-white drop-shadow-md" : "text-white/80"
             )}>
               {operator.name}
             </span>
