@@ -15,6 +15,11 @@ import { ChatProvider } from '@/components/chat/ChatProvider';
 // Components modernes
 import { ModernMarketplaceHeader } from './ModernMarketplaceHeader';
 import { ModernProductCard } from './ModernProductCard';
+import { OptimizedProductCard } from './OptimizedProductCard';
+import { ProductQuickView } from './ProductQuickView';
+import { ModernProductGrid } from './ModernProductGrid';
+import { FloatingCartIndicator } from './FloatingCartIndicator';
+import { useAddToCartFeedback } from './AddToCartFeedback';
 import { CategoryScrollBar } from './CategoryScrollBar';
 import { QuickFiltersBar } from './QuickFiltersBar';
 import { ResponsiveGrid } from '../ui/responsive-grid';
@@ -96,6 +101,13 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
+  
+  // Quick View state
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  
+  // Feedback visuel
+  const { showFeedback } = useAddToCartFeedback({ onOpenCart: () => setIsCartOpen(true) });
   
   // Delivery fee approval
   const [pendingFeeOrder, setPendingFeeOrder] = useState<any | null>(null);
@@ -383,34 +395,46 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     }
   });
 
-  // Cart functions
-  const addToCart = (product: Product) => {
+  // Cart functions avec feedback visuel
+  const addToCart = (product: Product, quantity: number = 1) => {
     const existingItem = cartItems.find(item => item.id === product.id);
     
     if (existingItem) {
       setCartItems(cartItems.map(item =>
         item.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
+          ? { ...item, quantity: item.quantity + quantity }
           : item
       ));
     } else {
       setCartItems([...cartItems, {
         id: product.id,
-        product_id: product.id, // Ajouter product_id
+        product_id: product.id,
         name: product.title,
         price: product.price,
         image: product.image,
-        quantity: 1,
+        quantity,
         seller: product.seller?.display_name || 'Vendeur',
         seller_id: product.seller_id,
         coordinates: product.coordinates
       }]);
     }
 
-    toast({
-      title: t('marketplace.product_added'),
-      description: t('marketplace.product_added_desc').replace('{0}', product.title),
-    });
+    // Feedback visuel moderne
+    showFeedback(
+      {
+        id: product.id,
+        title: product.title,
+        price: product.price,
+        image: product.image,
+      },
+      quantity,
+      {
+        withAnimation: true,
+        withConfetti: false,
+        productElementSelector: `[data-product-id="${product.id}"]`,
+        cartButtonSelector: '[data-cart-button]'
+      }
+    );
   };
 
   const updateCartQuantity = (productId: string, quantity: number) => {
@@ -600,7 +624,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         </section>
       )}
 
-      {/* TOUS LES PRODUITS */}
+      {/* TOUS LES PRODUITS - Grille moderne avec toggle vue */}
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold">Tous les produits</h2>
@@ -618,25 +642,24 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
             <option value="newest">Plus récents</option>
           </select>
         </div>
-        <ResponsiveGrid cols={{ default: 1, sm: 2, lg: 3 }} gap="md">
-          {loading ? (
-            <p className="text-center text-muted-foreground col-span-full">Chargement...</p>
-          ) : filteredProducts.length === 0 ? (
-            <p className="text-center text-muted-foreground col-span-full">Aucun produit trouvé</p>
-          ) : (
-            filteredProducts.map(product => (
-              <ModernProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={() => addToCart(product)}
-                onViewDetails={() => {
-                  setSelectedProduct(product);
-                  setIsProductDetailsOpen(true);
-                }}
-              />
-            ))
-          )}
-        </ResponsiveGrid>
+        
+        {/* Grille moderne avec toggle vue grille/liste */}
+        <ModernProductGrid
+          products={filteredProducts}
+          onProductClick={(product) => {
+            setSelectedProduct(product);
+            setIsProductDetailsOpen(true);
+          }}
+          onQuickView={(product) => {
+            setQuickViewProduct(product);
+            setIsQuickViewOpen(true);
+          }}
+          onAddToCart={(product) => addToCart(product)}
+          cartItems={cartItems}
+          userLocation={coordinates}
+          loading={loading}
+          emptyMessage="Aucun produit trouvé"
+        />
       </section>
     </div>
   );
@@ -645,10 +668,13 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     <div className="min-h-screen bg-background mobile-safe-layout">
       {/* Kwenda Shop Header moderne */}
       <KwendaShopHeader
-        cartItemsCount={cartItems.length}
+        cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
         onBack={() => onNavigate('/client')}
         onCartClick={() => setIsCartOpen(true)}
       />
+      
+      {/* Data attribute pour animations de feedback */}
+      <div data-cart-button style={{ display: 'none' }} />
 
       {/* Content */}
       <div className="p-4 content-scrollable">
@@ -683,6 +709,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         </Tabs>
       </div>
 
+      {/* Floating Cart Indicator */}
+      <FloatingCartIndicator
+        cartItems={cartItems}
+        onOpenCart={() => setIsCartOpen(true)}
+      />
+
       {/* Unified Shopping Cart (Sprint 1) */}
       <UnifiedShoppingCart
         isOpen={isCartOpen}
@@ -691,6 +723,24 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
         onUpdateQuantity={updateCartQuantity}
         onRemoveItem={removeFromCart}
         userCoordinates={coordinates}
+      />
+
+      {/* Product Quick View Modal */}
+      <ProductQuickView
+        product={quickViewProduct}
+        isOpen={isQuickViewOpen}
+        onClose={() => {
+          setIsQuickViewOpen(false);
+          setQuickViewProduct(null);
+        }}
+        onAddToCart={(product, quantity) => addToCart(product, quantity)}
+        onViewFullDetails={(product) => {
+          setIsQuickViewOpen(false);
+          setQuickViewProduct(null);
+          setSelectedProduct(product);
+          setIsProductDetailsOpen(true);
+        }}
+        cartQuantity={quickViewProduct ? cartItems.find(i => i.id === quickViewProduct.id)?.quantity || 0 : 0}
       />
 
       {/* Product Details Dialog */}
