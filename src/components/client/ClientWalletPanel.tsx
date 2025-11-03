@@ -25,7 +25,15 @@ type Operator = 'airtel' | 'orange' | 'mpesa';
 
 const QUICK_AMOUNTS = [1000, 2500, 5000, 10000, 25000];
 
-export const ClientWalletPanel: React.FC = () => {
+interface ClientWalletPanelProps {
+  initialTopUpOpen?: boolean;
+  onTopUpModalChange?: (open: boolean) => void;
+}
+
+export const ClientWalletPanel: React.FC<ClientWalletPanelProps> = ({ 
+  initialTopUpOpen = false,
+  onTopUpModalChange 
+}) => {
   const { wallet, transactions, loading, error, topUpWallet } = useWallet();
   const { triggerSuccess, triggerError } = useHapticFeedback();
   const { validateAmount, validatePhone, amountError, phoneError } = useWalletValidation();
@@ -37,7 +45,20 @@ export const ClientWalletPanel: React.FC = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showConversionDialog, setShowConversionDialog] = useState(false);
-  const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [showTopUpModal, setShowTopUpModal] = useState(initialTopUpOpen);
+
+  // Ouvrir le modal si demandé depuis l'extérieur
+  React.useEffect(() => {
+    if (initialTopUpOpen) {
+      setShowTopUpModal(true);
+    }
+  }, [initialTopUpOpen]);
+
+  // Notifier le parent du changement d'état du modal
+  const handleTopUpModalChange = (open: boolean) => {
+    setShowTopUpModal(open);
+    onTopUpModalChange?.(open);
+  };
 
   const handleQuickAmountSelect = (quickAmount: number) => {
     setAmount(quickAmount.toString());
@@ -100,7 +121,7 @@ export const ClientWalletPanel: React.FC = () => {
 
       {/* Actions rapides circulaires */}
       <WalletQuickActions 
-        onRecharge={() => setShowTopUpModal(true)}
+        onRecharge={() => handleTopUpModalChange(true)}
         onTransfer={() => setShowTransferDialog(true)}
         onConvert={() => setShowConversionDialog(true)}
       />
@@ -144,7 +165,7 @@ export const ClientWalletPanel: React.FC = () => {
 
       <TopUpModal
         open={showTopUpModal}
-        onClose={() => setShowTopUpModal(false)}
+        onClose={() => handleTopUpModalChange(false)}
         onSuccess={() => setShowConfetti(true)}
         currency={wallet?.currency || 'CDF'}
         quickAmounts={QUICK_AMOUNTS}

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle, XCircle, Loader2, Wallet } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, Wallet, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/utils';
 
@@ -22,6 +23,7 @@ export const KwendaPayCheckout: React.FC<KwendaPayCheckoutProps> = ({
   onConfirm,
   onCancel
 }) => {
+  const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const isSufficient = walletBalance >= total;
 
@@ -36,6 +38,11 @@ export const KwendaPayCheckout: React.FC<KwendaPayCheckoutProps> = ({
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleTopUp = () => {
+    onCancel(); // Fermer le dialogue
+    navigate('/app/client', { state: { openWalletTopUp: true } });
   };
 
   return (
@@ -108,14 +115,21 @@ export const KwendaPayCheckout: React.FC<KwendaPayCheckoutProps> = ({
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                className="bg-red-500/10 border border-red-500/20 rounded-lg p-3"
+                className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3"
               >
-                <p className="text-sm text-red-600">
-                  ⚠️ Solde insuffisant. Veuillez recharger votre compte KwendaPay.
-                </p>
-                <p className="text-xs text-red-600/80 mt-1">
-                  Manquant: {formatCurrency(total - walletBalance, 'CDF')}
-                </p>
+                <div className="flex items-start gap-2">
+                  <div className="p-1.5 rounded-lg bg-amber-500/20 mt-0.5">
+                    <Plus className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-amber-600">
+                      Rechargez pour finaliser votre achat
+                    </p>
+                    <p className="text-xs text-amber-600/80 mt-0.5">
+                      Il vous manque {formatCurrency(total - walletBalance, 'CDF')}
+                    </p>
+                  </div>
+                </div>
               </motion.div>
             )}
           </div>
@@ -130,23 +144,34 @@ export const KwendaPayCheckout: React.FC<KwendaPayCheckoutProps> = ({
             >
               Annuler
             </Button>
-            <Button
-              onClick={handleConfirm}
-              disabled={!isSufficient || isProcessing}
-              className="flex-1 gap-2"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Traitement...
-                </>
-              ) : (
-                <>
-                  <Wallet className="w-4 h-4" />
-                  Payer avec KwendaPay
-                </>
-              )}
-            </Button>
+            
+            {!isSufficient ? (
+              <Button
+                onClick={handleTopUp}
+                className="flex-1 gap-2 bg-gradient-to-r from-congo-green to-congo-green-electric hover:from-congo-green-electric hover:to-congo-green text-white"
+              >
+                <Plus className="w-4 h-4" />
+                Recharger mon compte
+              </Button>
+            ) : (
+              <Button
+                onClick={handleConfirm}
+                disabled={isProcessing}
+                className="flex-1 gap-2"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Traitement...
+                  </>
+                ) : (
+                  <>
+                    <Wallet className="w-4 h-4" />
+                    Payer avec KwendaPay
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>

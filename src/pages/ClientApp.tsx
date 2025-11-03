@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ChatProvider } from '@/components/chat/ChatProvider';
 import { FloatingChatButton as MarketplaceFloatingChatButton } from '@/components/marketplace/FloatingChatButton';
@@ -136,6 +136,7 @@ interface PackageType {
 const ClientApp = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, language, setLanguage, formatCurrency } = useLanguage();
   const { compressData, decompressData } = useDataCompression();
   const { optimizations, measureLoadTime } = usePerformanceMonitor();
@@ -146,6 +147,9 @@ const ClientApp = () => {
   
   // Bottom navigation state
   const [activeTab, setActiveTab] = useState('home');
+  
+  // Wallet top-up modal control
+  const [shouldOpenWalletTopUp, setShouldOpenWalletTopUp] = useState(false);
   
   // Transport states
   const [activeBooking, setActiveBooking] = useState<any>(null);
@@ -192,6 +196,17 @@ const ClientApp = () => {
       lotteryTickets.awardDailyLoginTickets();
     }
   }, [user]);
+
+  // Gérer l'ouverture du modal de rechargement depuis la navigation
+  useEffect(() => {
+    if (location.state?.openWalletTopUp) {
+      setCurrentView('wallet');
+      setActiveTab('wallet');
+      setShouldOpenWalletTopUp(true);
+      // Nettoyer le state pour éviter réouverture
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Fetch products from Supabase
   useEffect(() => {
@@ -601,7 +616,12 @@ const ClientApp = () => {
         </Button>
         <h1 className="text-heading-lg text-card-foreground">KwendaPay</h1>
       </div>
-      <ClientWalletPanel />
+      <ClientWalletPanel 
+        initialTopUpOpen={shouldOpenWalletTopUp}
+        onTopUpModalChange={(open) => {
+          if (!open) setShouldOpenWalletTopUp(false);
+        }}
+      />
     </div>
   );
 
