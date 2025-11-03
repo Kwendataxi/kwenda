@@ -108,73 +108,75 @@ export const ClientRentalInterface = () => {
         <RentalPromoSlider />
       </div>
 
-      {/* Catégories Horizontales Scrollables */}
+      {/* Barre de filtres - Une seule ligne scrollable */}
       <div className="sticky top-[110px] z-40 bg-background/98 backdrop-blur-xl border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-3 py-2">
-          <div className="flex items-center justify-between gap-3 mb-2">
-            <div className="overflow-x-auto scrollbar-hide flex-1">
-              <div className="flex gap-1.5 min-w-max">
+        <div className="max-w-7xl mx-auto px-3 py-2.5">
+          {/* LIGNE UNIQUE - Scroll horizontal */}
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+            {/* Bouton TOUS */}
+            <Button
+              variant={selectedCategory === null ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => {
+                setSelectedCategory(null);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="whitespace-nowrap text-xs font-semibold shrink-0"
+            >
+              🌐 Tous ({vehicles.length})
+            </Button>
+            
+            {/* Filtres de catégories avec scroll */}
+            {categories.map((cat) => {
+              const count = vehicles.filter(v => v.category_id === cat.id).length;
+              const theme = getCategoryTheme(cat.name);
+              
+              if (count === 0) return null;
+              
+              return (
                 <Button
-                  variant={selectedCategory === null ? 'default' : 'outline'}
+                  key={cat.id}
+                  variant={selectedCategory === cat.id ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => {
-                    setSelectedCategory(null);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    setSelectedCategory(cat.id);
+                    document.getElementById(`category-${cat.id}`)?.scrollIntoView({ 
+                      behavior: 'smooth', 
+                      block: 'start',
+                      inline: 'nearest'
+                    });
                   }}
-                  className="whitespace-nowrap text-xs font-semibold"
+                  className={`whitespace-nowrap text-xs font-semibold shrink-0 ${
+                    selectedCategory === cat.id 
+                      ? `bg-gradient-to-r ${theme.gradient} text-white border-0` 
+                      : ''
+                  }`}
                 >
-                  Tous les types ({vehicles.length})
+                  {theme.icon} {cat.name.trim()} ({count})
                 </Button>
-                {categories.map((cat) => {
-                  const count = vehicles.filter(v => v.category_id === cat.id).length;
-                  const theme = getCategoryTheme(cat.name);
-                  
-                  if (count === 0) return null; // Masquer les catégories vides
-                  
-                  return (
-                    <Button
-                      key={cat.id}
-                      variant={selectedCategory === cat.id ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => {
-                        setSelectedCategory(cat.id);
-                        document.getElementById(`category-${cat.id}`)?.scrollIntoView({ 
-                          behavior: 'smooth', 
-                          block: 'start',
-                          inline: 'nearest'
-                        });
-                      }}
-                      className={`whitespace-nowrap text-xs font-semibold ${
-                        selectedCategory === cat.id 
-                          ? `bg-gradient-to-r ${theme.gradient} text-white border-0` 
-                          : ''
-                      }`}
-                    >
-                      <span className="mr-1.5">{theme.icon}</span>
-                      {cat.name.trim()} ({count})
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
+              );
+            })}
             
-            {/* Toggle Vue */}
+            {/* Séparateur vertical */}
+            <div className="h-8 w-px bg-border shrink-0 mx-1" />
+            
+            {/* Toggle Vue (toujours visible à droite) */}
             <div className="flex items-center gap-1 shrink-0">
               <Button
                 variant={viewMode === 'categories' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('categories')}
-                className="text-xs"
+                className="text-xs px-3"
               >
-                Par types
+                📋 Types
               </Button>
               <Button
                 variant={viewMode === 'grid' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setViewMode('grid')}
-                className="text-xs"
+                className="text-xs px-3"
               >
-                Grille
+                ⊞ Grille
               </Button>
             </div>
           </div>
@@ -296,20 +298,8 @@ export const ClientRentalInterface = () => {
                                 </div>
                               )}
                               
-                              {/* Badges - Disposition optimisée */}
+                              {/* Badges - Optimisés */}
                               <div className="absolute inset-0">
-                                {/* Badge TYPE DE VÉHICULE - Haut gauche */}
-                                <div className="absolute top-2 left-2">
-                                  <Badge 
-                                    className={`backdrop-blur-sm text-xs py-1.5 px-3 font-bold shadow-lg border-2 bg-gradient-to-br ${
-                                      categoryTheme?.gradient || 'from-gray-400 to-gray-600'
-                                    } text-white border-white/30`}
-                                  >
-                                    <span className="mr-1">{categoryTheme?.icon || '🚗'}</span>
-                                    {vehicleCategory?.name.trim() || vehicle.comfort_level}
-                                  </Badge>
-                                </div>
-                                
                                 {/* Badge CHAUFFEUR - Haut droite */}
                                 <div className="absolute top-2 right-2">
                                   {vehicle.driver_available ? (
@@ -447,20 +437,8 @@ export const ClientRentalInterface = () => {
                         </div>
                       )}
                       
-                      {/* Badges - Disposition optimisée */}
+                      {/* Badges - Optimisés */}
                       <div className="absolute inset-0">
-                        {/* Badge TYPE DE VÉHICULE - Haut gauche */}
-                        <div className="absolute top-2 left-2">
-                          <Badge 
-                            className={`backdrop-blur-sm text-xs py-1.5 px-3 font-bold shadow-lg border-2 bg-gradient-to-br ${
-                              categoryTheme?.gradient || 'from-gray-400 to-gray-600'
-                            } text-white border-white/30`}
-                          >
-                            <span className="mr-1">{categoryTheme?.icon || '🚗'}</span>
-                            {vehicleCategory?.name.trim() || vehicle.comfort_level}
-                          </Badge>
-                        </div>
-                        
                         {/* Badge CHAUFFEUR - Haut droite */}
                         <div className="absolute top-2 right-2">
                           {vehicle.driver_available ? (
