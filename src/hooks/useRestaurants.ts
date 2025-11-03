@@ -20,7 +20,7 @@ export const useRestaurants = () => {
         .select('*')
         .eq('city', city)
         .eq('is_active', true)
-        .eq('verification_status', 'approved');
+        .in('verification_status', ['approved', 'pending']);
 
       if (filters?.minRating) {
         query = query.gte('rating_average', filters.minRating);
