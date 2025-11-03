@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Smartphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import orangeMoneyLogo from '@/assets/orange-money-logo.webp';
 
 type Operator = 'airtel' | 'orange' | 'mpesa';
 
@@ -89,15 +90,23 @@ export const OperatorSelector: React.FC<OperatorSelectorProps> = ({
             
             <div className={cn(
               "w-12 h-12 sm:w-16 sm:h-16 rounded-xl mb-2 transition-all duration-200",
-              "flex items-center justify-center",
+              "flex items-center justify-center overflow-hidden",
               selected === operator.id 
                 ? "bg-white/30 backdrop-blur-md shadow-inner" 
                 : "bg-white/10 backdrop-blur-sm"
             )}>
-              <Smartphone className={cn(
-                "w-6 h-6 sm:w-8 sm:h-8 transition-colors",
-                selected === operator.id ? "text-white drop-shadow-lg" : "text-white/60"
-              )} />
+              {operator.id === 'orange' ? (
+                <img 
+                  src={orangeMoneyLogo} 
+                  alt="Orange Money"
+                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow-lg"
+                />
+              ) : (
+                <Smartphone className={cn(
+                  "w-6 h-6 sm:w-8 sm:h-8 transition-colors",
+                  selected === operator.id ? "text-white drop-shadow-lg" : "text-white/60"
+                )} />
+              )}
             </div>
             
             <span className={cn(
