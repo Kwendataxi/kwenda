@@ -87,7 +87,6 @@ export const HeroCampaignSlider = () => {
                     src={slide.image}
                     alt={slide.alt}
                     className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out hover:scale-[1.02]"
-                    style={{ objectPosition: 'center center' }}
                     loading={index === 0 ? "eager" : "lazy"}
                     fetchPriority={index === 0 ? "high" : "low"}
                     decoding={index === 0 ? "sync" : "async"}
@@ -95,11 +94,8 @@ export const HeroCampaignSlider = () => {
                     height={720}
                   />
                   
-                  {/* Overlay soft pour profondeur */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10 pointer-events-none"></div>
-                  
-                  {/* Masque soft progressif pour badge NOUVEAU - plus large et plus doux */}
-                  <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/95 to-transparent pointer-events-none z-10"></div>
+                  {/* Overlay soft uniquement en bas pour profondeur */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent pointer-events-none"></div>
                 </div>
               </div>
             </div>
