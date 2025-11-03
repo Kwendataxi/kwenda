@@ -93,7 +93,7 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
   const { predictions, isLoading, error, search, getPlaceDetails, clearPredictions } = useGooglePlacesAutocomplete({
     location: onLocationBias,
     types,
-    debounceMs: 300
+    debounceMs: 500
   });
 
   const { getPopularPlaces } = useSmartGeolocation();
@@ -142,14 +142,25 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
 
   // Handle prediction selection
   const handlePredictionSelect = async (prediction: any) => {
+    console.log('🔍 [Autocomplete] Prédiction sélectionnée:', prediction);
+    
     try {
       setQuery(prediction.description);
       setShowSuggestions(false);
       
       // Get place details
       const placeDetails = await getPlaceDetails(prediction.placeId);
+      console.log('📍 [Autocomplete] Détails reçus:', placeDetails);
       
       if (placeDetails) {
+        console.log('✅ [Autocomplete] Coordonnées:', placeDetails.coordinates);
+        
+        // Validation des coordonnées
+        if (placeDetails.coordinates.lat === 0 && placeDetails.coordinates.lng === 0) {
+          console.error('❌ [Autocomplete] Coordonnées invalides (0,0) - Rejet');
+          return;
+        }
+        
         const location: UnifiedLocation = {
           id: placeDetails.id,
           name: placeDetails.name || prediction.structuredFormatting.mainText,
@@ -164,7 +175,7 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
         saveToRecentSearches(location);
       }
     } catch (error) {
-      console.error('Error selecting prediction:', error);
+      console.error('❌ [Autocomplete] Erreur sélection:', error);
     }
   };
 

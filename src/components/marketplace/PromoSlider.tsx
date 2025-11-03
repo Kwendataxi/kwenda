@@ -85,7 +85,7 @@ export const PromoSlider = ({
 
   return (
     <div 
-      className={cn("relative overflow-hidden rounded-2xl", className)}
+      className={cn("relative overflow-hidden rounded-2xl z-10", className)}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >

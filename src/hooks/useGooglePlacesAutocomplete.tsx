@@ -40,6 +40,9 @@ export const useGooglePlacesAutocomplete = (options: UseGooglePlacesAutocomplete
   const { searchLocations, loading: geoLoading, error: geoError } = useSmartGeolocation();
   const debounceTimerRef = useRef<NodeJS.Timeout>();
   const abortControllerRef = useRef<AbortController>();
+  
+  // 🆕 Stocker les résultats originaux avec coordonnées
+  const resultsMapRef = useRef<Map<string, LocationSearchResult>>(new Map());
 
   // Convertir LocationSearchResult en Prediction
   const convertToPrediction = (result: LocationSearchResult): Prediction => ({
@@ -76,6 +79,13 @@ export const useGooglePlacesAutocomplete = (options: UseGooglePlacesAutocomplete
 
       try {
         const results = await searchLocations(query);
+        
+        // 🆕 Stocker les résultats avec leurs coordonnées
+        results.forEach(r => {
+          resultsMapRef.current.set(r.id, r);
+          if (r.placeId) resultsMapRef.current.set(r.placeId, r);
+        });
+        
         const convertedPredictions = results.map(convertToPrediction);
         setPredictions(convertedPredictions);
       } catch (err: any) {
@@ -85,29 +95,47 @@ export const useGooglePlacesAutocomplete = (options: UseGooglePlacesAutocomplete
       } finally {
         setIsLoading(false);
       }
-    }, options.debounceMs || 300);
+    }, options.debounceMs || 500);
   }, [searchLocations, options.debounceMs]);
 
   const getPlaceDetails = useCallback(async (placeId: string): Promise<PlaceDetails | null> => {
     try {
-      // Rechercher dans les prédictions existantes
+      console.log('📍 [getPlaceDetails] Recherche pour placeId:', placeId);
+      
+      // 🆕 Récupérer depuis la Map (priorité absolue)
+      const storedResult = resultsMapRef.current.get(placeId);
+      
+      if (storedResult && storedResult.lat !== 0 && storedResult.lng !== 0) {
+        console.log('✅ [getPlaceDetails] Coordonnées trouvées dans cache:', storedResult);
+        return {
+          id: placeId,
+          name: storedResult.name || storedResult.address,
+          address: storedResult.address,
+          coordinates: { lat: storedResult.lat, lng: storedResult.lng }, // ✅ VRAIES COORDONNÉES
+          placeId: placeId,
+          types: storedResult.type ? [storedResult.type] : []
+        };
+      }
+      
+      // Fallback : chercher dans predictions
       const prediction = predictions.find(p => p.placeId === placeId);
       
       if (!prediction) {
+        console.warn('⚠️ [getPlaceDetails] Aucune prédiction trouvée pour:', placeId);
         return null;
       }
 
-      // Pour les lieux populaires ou déjà géocodés, retourner directement
+      console.warn('⚠️ [getPlaceDetails] Coordonnées par défaut (0,0) - À éviter');
       return {
         id: placeId,
         name: prediction.structuredFormatting.mainText,
         address: prediction.description,
-        coordinates: { lat: 0, lng: 0 }, // Sera remplacé par les vraies coordonnées
+        coordinates: { lat: 0, lng: 0 },
         placeId: placeId,
         types: prediction.types
       };
     } catch (err) {
-      console.error('Erreur détails lieu:', err);
+      console.error('❌ [getPlaceDetails] Erreur détails lieu:', err);
       return null;
     }
   }, [predictions]);
