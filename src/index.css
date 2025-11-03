@@ -23,6 +23,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import feature-specific styles with @layer support */
+@import './styles/auth-theme.css';
+@import './styles/wallet-theme.css';
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
