@@ -222,7 +222,7 @@ export function useVendorNotifications(): UseVendorNotificationsReturn {
     pushNotificationService.updateFaviconBadge(newUnreadCount);
   };
 
-  // Set up real-time subscription
+  // Set up real-time subscription for vendor notifications AND subscriber notifications
   useEffect(() => {
     if (!user) return;
 
@@ -256,6 +256,27 @@ export function useVendorNotifications(): UseVendorNotificationsReturn {
               n.id === payload.new.id ? payload.new as VendorNotification : n
             )
           );
+        }
+      )
+      // ✅ AJOUT: Écoute des notifications pour les clients abonnés aux boutiques
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'vendor_notifications',
+          filter: `customer_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('New subscriber notification:', payload);
+          const notification = payload.new as any;
+          
+          // Afficher toast pour notification abonné
+          toast({
+            title: notification.title,
+            description: notification.message,
+            duration: 6000,
+          });
         }
       )
       .subscribe();

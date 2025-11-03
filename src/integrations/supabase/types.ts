@@ -14513,6 +14513,10 @@ export type Database = {
       refresh_ai_stats: { Args: never; Returns: undefined }
       refresh_driver_status: { Args: never; Returns: undefined }
       refresh_security_stats: { Args: never; Returns: undefined }
+      refresh_vendor_stats_cache: {
+        Args: { p_vendor_id: string }
+        Returns: undefined
+      }
       reject_client_verification: {
         Args: { p_rejection_reason: string; p_user_id: string }
         Returns: Json
@@ -14620,6 +14624,16 @@ export type Database = {
           sensitive_data_access: number
           suspicious_patterns: number
         }[]
+      }
+      send_notification_to_vendor_subscribers: {
+        Args: {
+          p_message: string
+          p_metadata?: Json
+          p_notification_type: string
+          p_title: string
+          p_vendor_id: string
+        }
+        Returns: undefined
       }
       send_transport_chat_message: {
         Args: {

@@ -16,7 +16,8 @@ import {
   Truck, 
   MessageSquare,
   MapPin,
-  Phone
+  Phone,
+  Star
 } from 'lucide-react';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -24,6 +25,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { formatDistance } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
+import { RatingDialog } from '@/components/rating/RatingDialog';
 
 interface OrderManagementProps {
   isOpen?: boolean;
@@ -51,6 +53,8 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState('');
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showRatingDialog, setShowRatingDialog] = useState(false);
+  const [ratingOrderData, setRatingOrderData] = useState<any>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -284,12 +288,41 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({
 
               {/* Buyer Actions */}
               {!isSeller && order.status === 'delivered' && (
+                <>
+                  <Button
+                    size="sm"
+                    onClick={() => handleCompleteOrder(order.id)}
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    {t('marketplace.confirmReceipt')}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border-amber-500/20"
+                    onClick={() => {
+                      setRatingOrderData(order);
+                      setShowRatingDialog(true);
+                    }}
+                  >
+                    <Star className="h-4 w-4 mr-2" />
+                    {t('marketplace.rateSeller') || 'Noter le vendeur'}
+                  </Button>
+                </>
+              )}
+
+              {!isSeller && order.status === 'completed' && (
                 <Button
                   size="sm"
-                  onClick={() => handleCompleteOrder(order.id)}
+                  variant="secondary"
+                  className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border-amber-500/20"
+                  onClick={() => {
+                    setRatingOrderData(order);
+                    setShowRatingDialog(true);
+                  }}
                 >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  {t('marketplace.confirmReceipt')}
+                  <Star className="h-4 w-4 mr-2" />
+                  {t('marketplace.rateSeller') || 'Noter le vendeur'}
                 </Button>
               )}
 
@@ -417,6 +450,27 @@ export const OrderManagement: React.FC<OrderManagementProps> = ({
           </div>
           </DialogContent>
         </Dialog>
+
+        {/* Rating Dialog */}
+        {ratingOrderData && (
+          <RatingDialog
+            open={showRatingDialog}
+            onOpenChange={setShowRatingDialog}
+            ratedUserId={ratingOrderData.seller_id}
+            ratedUserName={ratingOrderData.seller?.display_name || 'Vendeur'}
+            ratedUserType="seller"
+            orderId={ratingOrderData.id}
+            orderType="marketplace"
+            onSuccess={() => {
+              toast({
+                title: t('marketplace.ratingSuccess') || '⭐ Merci pour votre avis !',
+                description: t('marketplace.ratingSuccessDesc') || 'Votre évaluation a été enregistrée',
+              });
+              setShowRatingDialog(false);
+              setRatingOrderData(null);
+            }}
+          />
+        )}
         </div>
       </DialogContent>
     </Dialog>
