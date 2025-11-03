@@ -7,7 +7,7 @@ import { RestaurantLoginForm } from "./RestaurantLoginForm";
 import { User, Car, Handshake, UtensilsCrossed, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { KwendaPayLogo } from "@/components/brand/KwendaPayLogo";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { AuthLanguageSelector } from './AuthLanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -30,7 +30,7 @@ export const UnifiedAuthPage = () => {
           {/* Header */}
           <div className="text-center space-y-4 animate-fade-in">
             <div className="flex justify-center animate-congo-pulse">
-              <KwendaPayLogo variant="full" size="lg" animated />
+              <BrandLogo size={80} animated withGlow className="mx-auto" />
             </div>
             
             <div>
