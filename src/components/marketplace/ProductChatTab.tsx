@@ -24,13 +24,34 @@ export const ProductChatTab: React.FC<ProductChatTabProps> = ({
   sellerAvatar,
   onClose
 }) => {
-  const { sendMessage } = useMarketplaceChat();
+  const { 
+    sendMessage,
+    startConversation,
+    conversations
+  } = useMarketplaceChat();
+
   const [conversationId, setConversationId] = useState<string | undefined>();
+
+  // Créer ou récupérer la conversation automatiquement
+  useEffect(() => {
+    const initConversation = async () => {
+      try {
+        const convId = await startConversation(productId, sellerId);
+        setConversationId(convId);
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation de la conversation:', error);
+      }
+    };
+    
+    initConversation();
+  }, [productId, sellerId]);
 
   const sendQuickMessage = async (message: string) => {
     if (conversationId) {
       await sendMessage(conversationId, message);
       toast.success('Message envoyé');
+    } else {
+      toast.error('Conversation non initialisée');
     }
   };
 
@@ -97,12 +118,11 @@ export const ProductChatTab: React.FC<ProductChatTabProps> = ({
       <div className="flex-1 overflow-hidden bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950 min-h-0">
         <UniversalChatInterface
           contextType="marketplace"
-          contextId={productId}
+          contextId={conversationId}
           participantId={sellerId}
           title={`Chat - ${productTitle}`}
           isFloating={false}
           hideHeader={true}
-          hideAssistantTab={true}
           quickActions={[
             { 
               label: "Bonjour! 👋", 

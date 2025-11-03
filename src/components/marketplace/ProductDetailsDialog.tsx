@@ -132,17 +132,27 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="details" className="flex-1 flex flex-col h-full">
+        <Tabs defaultValue="chat" className="flex-1 flex flex-col h-full">
           <TabsList className="mx-2 sm:mx-3 my-1.5 grid grid-cols-2 h-10 sm:h-11 sticky top-0 z-10 bg-background">
-            <TabsTrigger value="details" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
-              <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Détails</span>
-            </TabsTrigger>
             <TabsTrigger value="chat" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
               <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Vendeur</span>
             </TabsTrigger>
+            <TabsTrigger value="details" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3">
+              <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span>Détails</span>
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="chat" className="flex-1 mt-0 h-[calc(85vh-120px)]">
+            <ProductChatTab
+              productId={product.id}
+              sellerId={product.sellerId}
+              productTitle={product.name}
+              sellerName={product.seller}
+              onClose={onClose}
+            />
+          </TabsContent>
 
           <TabsContent value="details" className="flex-1 mt-0">
             <ScrollArea className="h-[calc(95vh-220px)] sm:h-[calc(95vh-200px)] px-2 sm:px-3">
@@ -421,14 +431,6 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
                 )}
               </div>
             </div>
-          </TabsContent>
-
-          <TabsContent value="chat" className="flex-1 mt-0 h-[calc(85vh-120px)]">
-            <ProductChatTab
-              productId={product.id}
-              sellerId={product.sellerId}
-              productTitle={product.name}
-            />
           </TabsContent>
         </Tabs>
       </DialogContent>
