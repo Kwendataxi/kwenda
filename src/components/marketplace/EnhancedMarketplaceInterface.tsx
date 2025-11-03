@@ -23,7 +23,7 @@ import { useAddToCartFeedback } from './AddToCartFeedback';
 import { CategoryScrollBar } from './CategoryScrollBar';
 import { QuickFiltersBar } from './QuickFiltersBar';
 import { ResponsiveGrid } from '../ui/responsive-grid';
-import { PromoSlider } from './PromoSlider';
+import { PromoSlider } from './MarketplacePromoSlider';
 import { KwendaShopHeader } from './KwendaShopHeader';
 
 // Anciens composants (conservés pour compatibilité)

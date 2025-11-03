@@ -43,6 +43,10 @@ export const useGooglePlacesAutocomplete = (options: UseGooglePlacesAutocomplete
   
   // 🆕 Stocker les résultats originaux avec coordonnées
   const resultsMapRef = useRef<Map<string, LocationSearchResult>>(new Map());
+  
+  // 🆕 PHASE 2.4: Cache des détails de lieux pour éviter appels répétés
+  const placeDetailsCache = useRef<Map<string, { details: PlaceDetails; timestamp: number }>>(new Map());
+  const DETAILS_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
   // Convertir LocationSearchResult en Prediction
   const convertToPrediction = (result: LocationSearchResult): Prediction => ({
@@ -100,6 +104,13 @@ export const useGooglePlacesAutocomplete = (options: UseGooglePlacesAutocomplete
 
   const getPlaceDetails = useCallback(async (placeId: string): Promise<PlaceDetails | null> => {
     try {
+      // Vérifier le cache d'abord
+      const cached = placeDetailsCache.current.get(placeId);
+      if (cached && Date.now() - cached.timestamp < DETAILS_CACHE_TTL) {
+        console.log('✅ [getPlaceDetails] Coordonnées depuis cache:', cached.details);
+        return cached.details;
+      }
+      
       console.log('📍 [getPlaceDetails] Recherche pour placeId:', placeId);
       
       // 1. Chercher d'abord dans resultsMapRef avec coordonnées valides
@@ -157,6 +168,12 @@ export const useGooglePlacesAutocomplete = (options: UseGooglePlacesAutocomplete
         placeId: placeId,
         types: detailsData.result.types || []
       };
+      
+      // 🆕 Stocker dans le cache
+      placeDetailsCache.current.set(placeId, {
+        details: placeDetails,
+        timestamp: Date.now()
+      });
       
       // 🆕 Mettre à jour le cache avec les nouvelles coordonnées
       resultsMapRef.current.set(placeId, {

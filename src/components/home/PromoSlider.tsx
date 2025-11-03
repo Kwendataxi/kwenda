@@ -39,6 +39,13 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
 
   const promos = usePromos();
   
+  // 🆕 PHASE 1: Logs de debug pour vérifier l'affichage
+  useEffect(() => {
+    console.log('🎨 [PromoSlider] Nombre de promos chargées:', promos.length);
+    console.log('🎨 [PromoSlider] Carousel API:', api ? 'Initialisé' : 'En attente');
+    console.log('🎨 [PromoSlider] Slide actuel:', current);
+  }, [promos, api, current]);
+  
   const handlePromoClick = async (promo: typeof promos[0]) => {
     // Gestion code promo BIENVENUE30
     if (promo.id === '1') {
@@ -70,12 +77,12 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   };
 
   return (
-    <div className="w-full relative">
+    <div className="w-full relative mb-4">
       <Carousel
         setApi={setApi}
         opts={{ loop: true, align: 'start' }}
         plugins={[autoplayRef.current]}
-        className="w-full"
+        className="w-full min-h-[140px]"
       >
         <CarouselContent className="h-[140px]">
           {promos.map((promo) => (

@@ -212,27 +212,74 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
 
       const predictions = googleData?.predictions || [];
       
-      // 🆕 PHASE 1: Retour immédiat sans attendre google-place-details
-      const results: LocationSearchResult[] = predictions.slice(0, 5).map((pred: any, idx: number) => ({
+      // 🆕 PHASE 2.1: Enrichir les 3 premiers résultats immédiatement avec coordonnées réelles
+      const city = await universalGeolocation.detectUserCity();
+      
+      const enrichedResults = await Promise.all(
+        predictions.slice(0, 3).map(async (pred: any, idx: number) => {
+          try {
+            const { data: details } = await supabase.functions.invoke('google-place-details', {
+              body: { placeId: pred.place_id }
+            });
+            
+            if (details?.result?.geometry?.location) {
+              console.log('✅ Coordonnées enrichies pour:', pred.description);
+              return {
+                id: pred.place_id,
+                address: pred.description,
+                lat: details.result.geometry.location.lat,
+                lng: details.result.geometry.location.lng,
+                type: 'google' as const,
+                placeId: pred.place_id,
+                name: pred.structured_formatting?.main_text || pred.description,
+                subtitle: pred.structured_formatting?.secondary_text,
+                title: pred.structured_formatting?.main_text,
+                relevanceScore: 100 - idx * 10
+              };
+            }
+          } catch (err) {
+            console.error('Erreur enrichissement:', err);
+          }
+          
+          // Fallback : coordonnées du centre-ville
+          return {
+            id: pred.place_id,
+            address: pred.description,
+            lat: city.defaultCoordinates.lat,
+            lng: city.defaultCoordinates.lng,
+            type: 'google' as const,
+            placeId: pred.place_id,
+            name: pred.structured_formatting?.main_text || pred.description,
+            subtitle: pred.structured_formatting?.secondary_text,
+            title: pred.structured_formatting?.main_text,
+            relevanceScore: 90 - idx * 10
+          };
+        })
+      );
+
+      // Ajouter résultats 4 et 5 avec fallback centre-ville
+      const remainingResults = predictions.slice(3, 5).map((pred: any, idx: number) => ({
         id: pred.place_id,
         address: pred.description,
-        lat: 0, // Temporaire - sera enrichi après sélection par l'utilisateur
-        lng: 0,
+        lat: city.defaultCoordinates.lat,
+        lng: city.defaultCoordinates.lng,
         type: 'google' as const,
         placeId: pred.place_id,
         name: pred.structured_formatting?.main_text || pred.description,
         subtitle: pred.structured_formatting?.secondary_text,
         title: pred.structured_formatting?.main_text,
-        relevanceScore: 100 - idx * 10
+        relevanceScore: 80 - idx * 10
       }));
+
+      const results = [...enrichedResults, ...remainingResults];
       
-      // Ajouter des lieux populaires pertinents
+      // Ajouter lieux populaires pertinents
       const filteredPopular = popularPlaces
         .filter(p => p.name?.toLowerCase().includes(query.toLowerCase()))
         .slice(0, 3)
         .map((p, idx) => ({
           ...p,
-          relevanceScore: 85 - idx * 5 // Score un peu plus bas que Google
+          relevanceScore: 85 - idx * 5
         }));
       
       const allResults = [...results, ...filteredPopular];

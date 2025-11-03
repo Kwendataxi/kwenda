@@ -157,15 +157,19 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
         console.log('✅ [Autocomplete] Coordonnées:', placeDetails.coordinates);
         
         // Validation des coordonnées
-      // 🆕 PHASE 3: Gestion améliorée des coordonnées invalides
+      // 🆕 PHASE 2.3: Gestion améliorée des coordonnées invalides avec action
       if (placeDetails.coordinates.lat === 0 && placeDetails.coordinates.lng === 0) {
-        console.error('❌ [Autocomplete] Coordonnées invalides (0,0) - Rejet');
+        console.error('❌ [Autocomplete] Coordonnées invalides (0,0) - Proposition fallback');
         
         toast({
           title: "⚠️ Adresse incomplète",
-          description: "Impossible d'obtenir les coordonnées précises. Veuillez réessayer ou choisir un autre lieu.",
+          description: "Nous n'avons pas pu localiser précisément cette adresse. Essayez un lieu populaire ci-dessous.",
           variant: "destructive"
         });
+        
+        // Afficher automatiquement les lieux populaires
+        setShowSuggestions(true);
+        clearPredictions();
         
         return;
       }
@@ -294,12 +298,13 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
         )}
       </div>
 
-      {/* Loading indicator */}
-      {isLoading && (
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-        </div>
-      )}
+        {/* 🆕 PHASE 3.1: Loading indicator amélioré */}
+        {isLoading && (
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Recherche...</span>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+          </div>
+        )}
 
       {/* Error message */}
       {error && (
@@ -374,6 +379,50 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
                       <Search className="h-3 w-3 mr-1" />
                       Google
                     </Badge>
+                  </div>
+                </button>
+              ))}
+            </>
+          )}
+          
+          {/* 🆕 PHASE 2.2: Lieux populaires - TOUJOURS AFFICHÉS en bas si suggestions Google */}
+          {predictions.length > 0 && getPopularPlaces().length > 0 && (
+            <>
+              <div className="border-t border-border my-2" />
+              <div className="px-3 py-2 text-xs font-medium text-muted-foreground bg-muted/30">
+                <Star className="inline h-3 w-3 mr-1" />
+                Ou essayez ces lieux populaires
+              </div>
+              {getPopularPlaces().slice(0, 3).map((place) => (
+                <button
+                  key={place.id}
+                  onClick={() => {
+                    const location: UnifiedLocation = {
+                      id: place.id,
+                      name: place.name || place.address,
+                      address: place.address,
+                      coordinates: { lat: place.lat, lng: place.lng },
+                      type: 'popular',
+                      subtitle: place.subtitle
+                    };
+                    setQuery(place.address);
+                    onChange(location);
+                    setShowSuggestions(false);
+                  }}
+                  className="w-full px-4 py-3 text-left hover:bg-accent/50 transition-colors flex items-start gap-3 group"
+                >
+                  <div className="mt-0.5 text-yellow-500">
+                    <Star className="h-4 w-4 fill-current" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate text-foreground group-hover:text-primary transition-colors">
+                      {place.name || place.address}
+                    </p>
+                    {place.subtitle && (
+                      <p className="text-xs text-muted-foreground truncate mt-0.5">
+                        {place.subtitle}
+                      </p>
+                    )}
                   </div>
                 </button>
               ))}
