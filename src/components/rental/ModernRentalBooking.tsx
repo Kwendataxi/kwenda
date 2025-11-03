@@ -142,7 +142,7 @@ export const ModernRentalBooking = () => {
     if (currentIndex > 0) {
       setCurrentStep(steps[currentIndex - 1]);
     } else {
-      navigate(-1);
+      navigate('/rental');
     }
   };
 
