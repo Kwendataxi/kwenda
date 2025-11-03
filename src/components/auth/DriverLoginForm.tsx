@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff, AlertCircle, Mail, Lock } from 'lucide-react';
 import { useAuthWithRetry } from '@/hooks/useAuthWithRetry';
@@ -14,12 +15,19 @@ export const DriverLoginForm = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const navigate = useNavigate();
   const { loginWithRetry } = useAuthWithRetry();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!acceptTerms) {
+      setError('Vous devez accepter les conditions d\'utilisation pour vous connecter');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
 
@@ -98,10 +106,31 @@ export const DriverLoginForm = () => {
         </Alert>
       )}
 
+      {/* Acceptation CGU */}
+      <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg">
+        <Checkbox
+          id="terms-driver"
+          checked={acceptTerms}
+          onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+          className="mt-0.5"
+        />
+        <Label htmlFor="terms-driver" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
+          J'accepte les{' '}
+          <Link to="/terms" className="text-primary hover:underline font-medium">
+            conditions générales d'utilisation
+          </Link>{' '}
+          et la{' '}
+          <Link to="/privacy" className="text-primary hover:underline font-medium">
+            politique de confidentialité
+          </Link>{' '}
+          de Kwenda.
+        </Label>
+      </div>
+
       <Button 
         type="submit" 
         className="w-full h-12 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-semibold"
-        disabled={loading}
+        disabled={loading || !acceptTerms}
       >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {loading ? 'Connexion...' : 'Se connecter'}

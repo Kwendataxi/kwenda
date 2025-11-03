@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { UtensilsCrossed, Mail, Lock, Phone, CheckCircle2, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -12,6 +14,7 @@ export const RestaurantLoginForm = () => {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [phoneValid, setPhoneValid] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -27,6 +30,12 @@ export const RestaurantLoginForm = () => {
   const handleAuth = async () => {
     try {
       setLoading(true);
+      
+      if (isSignUp && !acceptTerms) {
+        toast.error('Vous devez accepter les conditions d\'utilisation');
+        setLoading(false);
+        return;
+      }
       
       if (isSignUp) {
         if (!validatePhoneNumber(formData.phone)) {
@@ -174,10 +183,31 @@ export const RestaurantLoginForm = () => {
           />
         </div>
 
-        <Button 
+        {isSignUp && (
+          <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg">
+            <Checkbox
+              id="terms-restaurant"
+              checked={acceptTerms}
+              onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+              className="mt-0.5"
+            />
+            <Label htmlFor="terms-restaurant" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
+              J'accepte les{' '}
+              <Link to="/terms" className="text-primary hover:underline font-medium">
+                conditions générales d'utilisation
+              </Link>{' '}
+              et la{' '}
+              <Link to="/privacy" className="text-primary hover:underline font-medium">
+                politique de confidentialité
+              </Link>.
+            </Label>
+          </div>
+        )}
+
+        <Button
           className="w-full bg-gradient-to-r from-orange-500 to-amber-500" 
           onClick={handleAuth}
-          disabled={loading}
+          disabled={loading || (isSignUp && !acceptTerms)}
         >
           <UtensilsCrossed className="w-4 h-4 mr-2" />
           {isSignUp ? 'Créer mon restaurant' : 'Se connecter'}

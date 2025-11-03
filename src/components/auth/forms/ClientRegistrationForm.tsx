@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -30,7 +32,8 @@ export const ClientRegistrationForm = ({ onSuccess, onBack }: ClientRegistration
     emergencyContactName: '',
     emergencyContactPhone: '',
     address: '',
-    city: 'Kinshasa'
+    city: 'Kinshasa',
+    acceptTerms: false
   });
 
   // Validation du format téléphone congolais (accepte formats locaux et internationaux)
@@ -147,6 +150,15 @@ const handleSubmit = async (e: React.FormEvent) => {
     toast({
       title: "Erreur",
       description: "Format invalide. Utilisez: 0991234567, +243991234567 ou 00243991234567",
+      variant: "destructive"
+    });
+    return;
+  }
+
+  if (!formData.acceptTerms) {
+    toast({
+      title: "Erreur",
+      description: "Vous devez accepter les conditions d'utilisation",
       variant: "destructive"
     });
     return;
@@ -399,11 +411,32 @@ const handleSubmit = async (e: React.FormEvent) => {
               </div>
             </div>
 
+            {/* Acceptation CGU */}
+            <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg col-span-full">
+              <Checkbox
+                id="terms-full-register"
+                checked={formData.acceptTerms}
+                onCheckedChange={(checked) => setFormData({ ...formData, acceptTerms: checked as boolean })}
+                className="mt-0.5"
+              />
+              <Label htmlFor="terms-full-register" className="text-sm text-muted-foreground cursor-pointer">
+                J'accepte les{' '}
+                <Link to="/terms" className="text-primary hover:underline font-medium">
+                  conditions générales d'utilisation
+                </Link>{' '}
+                et la{' '}
+                <Link to="/privacy" className="text-primary hover:underline font-medium">
+                  politique de confidentialité
+                </Link>{' '}
+                de Kwenda.
+              </Label>
+            </div>
+
             <div className="flex gap-4 pt-4">
               <Button type="button" variant="outline" onClick={onBack} className="flex-1">
                 Retour
               </Button>
-              <Button type="submit" disabled={loading} className="flex-1">
+              <Button type="submit" disabled={loading || !formData.acceptTerms} className="flex-1">
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Créer mon compte
               </Button>

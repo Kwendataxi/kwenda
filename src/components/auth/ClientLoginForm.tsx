@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff, AlertCircle, Mail, Lock } from 'lucide-react';
 import { useAuthWithRetry } from '@/hooks/useAuthWithRetry';
@@ -21,6 +22,7 @@ export const ClientLoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const navigate = useNavigate();
   const { loginWithRetry } = useAuthWithRetry();
@@ -28,6 +30,12 @@ export const ClientLoginForm = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!acceptTerms) {
+      setError('Vous devez accepter les conditions d\'utilisation pour vous connecter');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
 
@@ -117,11 +125,32 @@ export const ClientLoginForm = () => {
         </Alert>
       )}
 
+      {/* Acceptation CGU */}
+      <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg">
+        <Checkbox
+          id="terms-login"
+          checked={acceptTerms}
+          onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+          className="mt-0.5"
+        />
+        <Label htmlFor="terms-login" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
+          J'accepte les{' '}
+          <Link to="/terms" className="text-congo-red dark:text-congo-red-electric hover:underline font-medium">
+            conditions générales d'utilisation
+          </Link>{' '}
+          et la{' '}
+          <Link to="/privacy" className="text-congo-red dark:text-congo-red-electric hover:underline font-medium">
+            politique de confidentialité
+          </Link>{' '}
+          de Kwenda.
+        </Label>
+      </div>
+
       {/* Bouton de connexion */}
       <Button 
         type="submit" 
         className="w-full h-12 rounded-xl bg-gradient-to-r from-congo-red to-congo-red-vibrant hover:from-congo-red-vibrant hover:to-congo-red text-white font-semibold shadow-lg hover:shadow-[0_6px_30px_hsl(var(--congo-red)/0.4)] dark:hover:shadow-[0_8px_40px_hsl(var(--congo-red)/0.5)] transition-all duration-300"
-        disabled={loading}
+        disabled={loading || !acceptTerms}
       >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {loading ? t('auth.logging_in') : t('auth.login_button')}

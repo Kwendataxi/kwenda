@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,7 @@ const ClientRegister = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const navigate = useNavigate();
 
@@ -30,6 +32,12 @@ const ClientRegister = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    if (!acceptTerms) {
+      setError('Vous devez accepter les conditions d\'utilisation');
+      setLoading(false);
+      return;
+    }
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
@@ -198,11 +206,31 @@ const ClientRegister = () => {
                 </Alert>
               )}
 
+              {/* Acceptation CGU */}
+              <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <Checkbox
+                  id="terms-register"
+                  checked={acceptTerms}
+                  onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="terms-register" className="text-xs text-gray-600 dark:text-gray-400 cursor-pointer leading-relaxed">
+                  J'accepte les{' '}
+                  <Link to="/terms" className="text-red-600 dark:text-red-400 hover:underline font-medium">
+                    conditions générales d'utilisation
+                  </Link>{' '}
+                  et la{' '}
+                  <Link to="/privacy" className="text-red-600 dark:text-red-400 hover:underline font-medium">
+                    politique de confidentialité
+                  </Link>.
+                </Label>
+              </div>
+
               {/* Bouton d'inscription */}
               <Button 
                 type="submit" 
                 className="w-full h-12 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold"
-                disabled={loading}
+                disabled={loading || !acceptTerms}
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {loading ? 'Inscription...' : 'S\'inscrire'}
