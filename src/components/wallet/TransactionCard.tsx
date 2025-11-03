@@ -12,6 +12,7 @@ interface TransactionCardProps {
   date: string;
   status?: 'completed' | 'pending' | 'failed';
   index: number;
+  compact?: boolean;
 }
 
 export const TransactionCard: React.FC<TransactionCardProps> = ({
@@ -21,7 +22,8 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({
   description,
   date,
   status = 'completed',
-  index
+  index,
+  compact = false
 }) => {
   const isCredit = type === 'credit';
 
@@ -33,22 +35,28 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({
       whileHover={{ x: 4, transition: { duration: 0.2 } }}
       className="group relative"
     >
-      <div className="flex items-center gap-4 p-4 rounded-xl bg-card hover:bg-muted/50 border border-border/50 hover:border-border transition-all duration-300">
+      <div className={cn(
+        "flex items-center gap-4 transition-all duration-300",
+        compact 
+          ? "p-3 hover:bg-muted/50" 
+          : "p-4 rounded-xl bg-card hover:bg-muted/50 border border-border/50 hover:border-border"
+      )}>
         {/* Icon */}
         <motion.div
           whileHover={{ scale: 1.1, rotate: 360 }}
           transition={{ duration: 0.5 }}
           className={cn(
-            "w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0",
+            "rounded-xl flex items-center justify-center flex-shrink-0",
+            compact ? "w-10 h-10" : "w-12 h-12",
             isCredit
               ? "bg-green-500/10 text-green-600"
               : "bg-red-500/10 text-red-600"
           )}
         >
           {isCredit ? (
-            <ArrowDownLeft className="w-5 h-5" />
+            <ArrowDownLeft className={compact ? "w-4 h-4" : "w-5 h-5"} />
           ) : (
-            <ArrowUpRight className="w-5 h-5" />
+            <ArrowUpRight className={compact ? "w-4 h-4" : "w-5 h-5"} />
           )}
         </motion.div>
 

@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { useWallet } from '@/hooks/useWallet';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useWalletValidation } from '@/hooks/useWalletValidation';
-import { DualBalanceCard } from '@/components/wallet/DualBalanceCard';
+import { WalletHero } from '@/components/wallet/WalletHero';
+import { WalletQuickActions } from '@/components/wallet/WalletQuickActions';
 import { QuickAmountSelector } from '@/components/wallet/QuickAmountSelector';
 import { OperatorSelector } from '@/components/wallet/OperatorSelector';
 import { AnimatedTopUpButton } from '@/components/wallet/AnimatedTopUpButton';
@@ -85,75 +86,55 @@ export const ClientWalletPanel: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 p-6 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
       <SuccessConfetti show={showConfetti} onComplete={() => setShowConfetti(false)} />
 
-      {/* Dual Balance Card */}
-      <div className="space-y-3">
-        <DualBalanceCard
-          mainBalance={wallet?.balance || 0}
-          bonusBalance={wallet?.ecosystem_credits || 0}
-          kwendaPoints={wallet?.kwenda_points || 0}
-          currency={wallet?.currency || 'CDF'}
-          loading={loading}
-        />
+      {/* Hero moderne et épuré */}
+      <WalletHero
+        balance={wallet?.balance || 0}
+        mainBalance={wallet?.balance || 0}
+        bonusBalance={wallet?.ecosystem_credits || 0}
+        currency={wallet?.currency || 'CDF'}
+        status="active"
+      />
 
-        <div className="grid grid-cols-3 gap-3">
-          <Button 
-            variant="default" 
-            className="gap-2"
-            onClick={() => setShowConversionDialog(true)}
-          >
-            <Gift className="w-4 h-4" />
-            Convertir
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={() => setShowTransferDialog(true)}
-          >
-            <Send className="w-4 h-4" />
-            Transférer
-          </Button>
+      {/* Actions rapides circulaires */}
+      <WalletQuickActions 
+        onRecharge={() => setShowTopUpModal(true)}
+        onTransfer={() => setShowTransferDialog(true)}
+        onConvert={() => setShowConversionDialog(true)}
+        onHistory={() => {
+          const section = document.getElementById('transactions-section');
+          section?.scrollIntoView({ behavior: 'smooth' });
+        }}
+      />
 
-          <Button 
-            variant="default" 
-            className="gap-2 bg-gradient-to-r from-primary to-accent hover:opacity-90"
-            onClick={() => setShowTopUpModal(true)}
-          >
-            <Zap className="w-4 h-4" />
-            Recharger
-          </Button>
-        </div>
+      {/* Transaction History - Liste propre */}
+      <div id="transactions-section" className="px-4 space-y-3">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          Transactions récentes
+        </h3>
+        
+        {transactions.length === 0 ? (
+          <EmptyTransactions />
+        ) : (
+          <div className="bg-white rounded-2xl shadow-sm border border-border/50 divide-y divide-border/30 overflow-hidden">
+            {transactions.slice(0, 8).map((transaction, index) => (
+              <TransactionCard
+                key={transaction.id}
+                id={transaction.id}
+                type={transaction.transaction_type as 'credit' | 'debit'}
+                amount={Number(transaction.amount)}
+                currency={transaction.currency}
+                description={transaction.description}
+                date={transaction.created_at}
+                index={index}
+                compact={true}
+              />
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* Transaction History */}
-      <Card className="border-border">
-        <CardHeader>
-          <CardTitle className="text-xl">Historique des transactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {transactions.length === 0 ? (
-            <EmptyTransactions />
-          ) : (
-            <div className="space-y-3">
-              {transactions.slice(0, 10).map((transaction, index) => (
-                <TransactionCard
-                  key={transaction.id}
-                  id={transaction.id}
-                  type={transaction.transaction_type as 'credit' | 'debit'}
-                  amount={Number(transaction.amount)}
-                  currency={transaction.currency}
-                  description={transaction.description}
-                  date={transaction.created_at}
-                  index={index}
-                />
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       <TransferMoneyDialog 
         open={showTransferDialog} 
