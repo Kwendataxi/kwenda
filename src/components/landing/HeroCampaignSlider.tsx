@@ -77,11 +77,11 @@ export const HeroCampaignSlider = () => {
               key={slide.id}
               className="flex-[0_0_100%] min-w-0 relative"
             >
-              {/* Glow effect */}
-              <div className="absolute -inset-4 bg-gradient-radial from-primary/20 via-red-500/10 to-transparent blur-3xl opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
+              {/* Glow effect réduit */}
+              <div className="absolute -inset-4 bg-gradient-radial from-primary/10 via-red-500/5 to-transparent blur-3xl opacity-40 group-hover:opacity-60 transition-opacity duration-500"></div>
               
               {/* Image avec aspect ratio 16:9 pour format paysage */}
-              <div className="relative rounded-xl overflow-hidden shadow-[0_25px_50px_-12px_rgba(0,0,0,0.35)] hover:shadow-[0_30px_60px_-10px_rgba(239,68,68,0.4)] transition-all duration-500 group">
+              <div className="relative rounded-xl overflow-hidden shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] border-2 border-border/30 bg-card/20 backdrop-blur-sm transition-all duration-500 group">
                 <div className="relative aspect-[16/9] w-full bg-background/5">
                   <img
                     src={slide.image}
@@ -93,8 +93,8 @@ export const HeroCampaignSlider = () => {
                     width={1280}
                     height={720}
                   />
-                  {/* Masque complet du badge NOUVEAU */}
-                  <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/90 to-transparent pointer-events-none z-10"></div>
+                  {/* Masque OPAQUE pour badge NOUVEAU */}
+                  <div className="absolute top-0 left-0 right-0 h-24 bg-background pointer-events-none z-20"></div>
                 </div>
               </div>
             </div>
@@ -106,7 +106,7 @@ export const HeroCampaignSlider = () => {
       <Button
         variant="outline"
         size="icon"
-        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 rounded-full bg-background/90 backdrop-blur-sm hover:bg-background hover:scale-110 transition-all z-10 shadow-lg border-border/60"
+        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 rounded-full bg-white hover:bg-white/90 hover:scale-110 transition-all z-20 shadow-xl border-2 border-border/50"
         onClick={scrollPrev}
         disabled={!canScrollPrev}
         aria-label="Slide précédent"
@@ -117,7 +117,7 @@ export const HeroCampaignSlider = () => {
       <Button
         variant="outline"
         size="icon"
-        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 rounded-full bg-background/90 backdrop-blur-sm hover:bg-background hover:scale-110 transition-all z-10 shadow-lg border-border/60"
+        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 rounded-full bg-white hover:bg-white/90 hover:scale-110 transition-all z-20 shadow-xl border-2 border-border/50"
         onClick={scrollNext}
         disabled={!canScrollNext}
         aria-label="Slide suivant"
@@ -130,10 +130,10 @@ export const HeroCampaignSlider = () => {
         {slides.map((_, index) => (
           <button
             key={index}
-            className={`h-2 rounded-full transition-all duration-300 ${
+            className={`h-2.5 rounded-full transition-all duration-300 ${
               index === selectedIndex
-                ? 'w-8 bg-primary'
-                : 'w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                ? 'w-10 bg-primary shadow-lg shadow-primary/50'
+                : 'w-2.5 bg-muted-foreground/40 hover:bg-muted-foreground/60'
             }`}
             onClick={() => emblaApi?.scrollTo(index)}
             aria-label={`Aller au slide ${index + 1}`}
