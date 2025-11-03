@@ -44,6 +44,8 @@ const DriverApp = lazy(() => import("./pages/DriverApp"));
 const PartnerApp = lazy(() => import("./pages/PartnerApp"));
 const AdminApp = lazy(() => import("./pages/AdminApp"));
 const RestaurantApp = lazy(() => import("./pages/RestaurantApp"));
+const ClientRentalBookings = lazy(() => import("./pages/rental/ClientRentalBookings"));
+const PartnerRentalDashboard = lazy(() => import("./pages/partner/PartnerRentalDashboard"));
 
 const NotFound = lazy(() => import("./pages/NotFound"));
 const HelpCenter = lazy(() => import("./pages/support/HelpCenter"));
@@ -312,6 +314,11 @@ const AppContent = () => {
                     <Route path="/rental-booking/:vehicleId" element={
                       <ProtectedRoute>
                         <ClientApp />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/rental/bookings" element={
+                      <ProtectedRoute>
+                        <ClientRentalBookings />
                       </ProtectedRoute>
                     } />
                     <Route path="/referral" element={

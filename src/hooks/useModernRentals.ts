@@ -223,11 +223,22 @@ export function useModernRentals(selectedCity?: string) {
     return ['Kinshasa', 'Lubumbashi', 'Kolwezi'];
   }, []);
 
-  // Mutation pour créer une réservation
+  // Mutation pour créer une réservation avec vérification de disponibilité
   const createBooking = useMutation({
     mutationFn: async (bookingData: any) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error('Utilisateur non connecté');
+
+      // Vérifier la disponibilité avant de créer
+      const { data: isAvailable } = await supabase.rpc('check_vehicle_availability' as any, {
+        p_vehicle_id: bookingData.vehicle_id,
+        p_start_date: bookingData.start_date,
+        p_end_date: bookingData.end_date
+      } as any);
+
+      if (!isAvailable) {
+        throw new Error('Ce véhicule n\'est pas disponible pour ces dates');
+      }
 
       const { data, error } = await supabase
         .from("rental_bookings")
@@ -243,6 +254,7 @@ export function useModernRentals(selectedCity?: string) {
       return data;
     },
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['modern-rental-vehicles'] });
       toast({
         title: "Réservation créée",
         description: "Votre demande de location a été enregistrée avec succès"
