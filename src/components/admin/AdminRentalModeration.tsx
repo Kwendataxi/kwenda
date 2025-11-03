@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { AdminDriverModeration } from './AdminDriverModeration';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ApproveAllRentalsButton } from './ApproveAllRentalsButton';
 
 export const AdminRentalModeration = () => {
   const { toast } = useToast();
@@ -122,6 +123,23 @@ export const AdminRentalModeration = () => {
             <h2 className="text-2xl font-bold">Modération des véhicules de location</h2>
             <Badge variant="secondary">{pending?.length || 0} en attente</Badge>
           </div>
+          
+          {/* Bouton d'approbation rapide */}
+          {pending && pending.length > 0 && (
+            <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">⚡ Approbation rapide</p>
+                    <p className="text-xs text-muted-foreground">
+                      Approuver tous les {pending.length} véhicule(s) en attente
+                    </p>
+                  </div>
+                  <ApproveAllRentalsButton />
+                </div>
+              </CardContent>
+            </Card>
+          )}
           
           {!pending?.length ? (
             <Card>
