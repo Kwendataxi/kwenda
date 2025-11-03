@@ -48,24 +48,35 @@ export const useUniversalUpdate = (): UseUniversalUpdateReturn => {
     }
   }, [isNative]);
 
-  // Vérification initiale et périodique
+  // Vérification optimisée pour mobile (économiser batterie)
   useEffect(() => {
-    if (isNative) {
-      // Vérification initiale après 5 secondes
-      const initialCheck = setTimeout(() => {
-        checkMobileUpdate();
-      }, 5000);
+    if (!isNative) return;
 
-      // Vérification toutes les heures
-      const interval = setInterval(() => {
-        checkMobileUpdate();
-      }, 60 * 60 * 1000);
+    // Vérification initiale après 10 secondes
+    const initialCheck = setTimeout(() => {
+      checkMobileUpdate();
+    }, 10000);
 
-      return () => {
-        clearTimeout(initialCheck);
-        clearInterval(interval);
-      };
-    }
+    // Vérification au retour en foreground uniquement (pas d'interval)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const lastCheck = localStorage.getItem('last_mobile_update_check');
+        const now = Date.now();
+        
+        // Vérifier uniquement si 5+ minutes depuis dernière vérification
+        if (!lastCheck || now - parseInt(lastCheck) > 5 * 60 * 1000) {
+          checkMobileUpdate();
+          localStorage.setItem('last_mobile_update_check', now.toString());
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearTimeout(initialCheck);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [isNative, checkMobileUpdate]);
 
   // Vérifier au focus de la fenêtre
@@ -84,24 +95,38 @@ export const useUniversalUpdate = (): UseUniversalUpdateReturn => {
   }, [isNative, checkMobileUpdate]);
 
   // Installer la mise à jour
+  const [isUpdating, setIsUpdating] = useState(false);
+
   const installUpdate = async () => {
+    if (isUpdating) return;
+
     try {
+      setIsUpdating(true);
+
       if (isNative && mobileUpdateInfo?.updateAvailable) {
-        // Update native
-        if (mobileUpdateInfo.immediateUpdateAllowed) {
-          await mobileUpdateService.performImmediateUpdate();
-        } else if (platform === 'ios') {
-          // Sur iOS, rediriger vers l'App Store
+        if (platform === 'ios') {
+          // iOS : Redirection vers App Store
           mobileUpdateService.openAppStore();
+          logger.info('iOS: Redirecting to App Store');
         } else {
-          await mobileUpdateService.startFlexibleUpdate();
+          // Android : In-app update
+          if (mobileUpdateInfo.immediateUpdateAllowed) {
+            await mobileUpdateService.performImmediateUpdate();
+            logger.info('Android: Immediate update started');
+          } else {
+            await mobileUpdateService.startFlexibleUpdate();
+            logger.info('Android: Flexible update started');
+          }
         }
       } else {
-        // Update PWA/Web
+        // Web/PWA : Utiliser le service de mise à jour web
         await webUpdate.installUpdate();
+        logger.info('Web/PWA: Update installed');
       }
     } catch (error) {
-      logger.error('Update installation failed', error);
+      logger.error('Universal update installation failed', error);
+      setIsUpdating(false);
+      throw error;
     }
   };
 
@@ -118,7 +143,7 @@ export const useUniversalUpdate = (): UseUniversalUpdateReturn => {
   return {
     updateAvailable,
     updateInfo: combinedUpdateInfo,
-    isUpdating: webUpdate.isUpdating || isCheckingMobile,
+    isUpdating: isUpdating || webUpdate.isUpdating || isCheckingMobile,
     shouldShowPrompt: (webUpdate.shouldShowPrompt || (mobileUpdateInfo?.updateAvailable ?? false)) && updateAvailable,
     installUpdate,
     dismissUpdate: webUpdate.dismissUpdate,

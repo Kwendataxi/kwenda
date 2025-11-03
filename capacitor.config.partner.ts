@@ -10,6 +10,9 @@ const config: CapacitorConfig = {
   },
   appUrlScheme: "kwenda",
   plugins: {
+    AppUpdate: {
+      country: 'cd'
+    },
     Camera: {
       permissions: ["camera", "photos"]
     },

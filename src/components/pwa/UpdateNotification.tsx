@@ -1,4 +1,4 @@
-import { useAppUpdate } from '@/hooks/useAppUpdate';
+import { useUniversalUpdate } from '@/hooks/useUniversalUpdate';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -24,7 +24,9 @@ const severityLabels = {
 };
 
 export const UpdateNotification = () => {
-  const { shouldShowPrompt, updateInfo, installUpdate, dismissUpdate } = useAppUpdate();
+  const { shouldShowPrompt, updateInfo, installUpdate, dismissUpdate, isUpdating, platform } = useUniversalUpdate();
+  
+  const isNative = platform === 'ios' || platform === 'android';
 
   if (!shouldShowPrompt || !updateInfo) return null;
 
@@ -130,18 +132,22 @@ export const UpdateNotification = () => {
                   <span className="font-semibold text-sm">Nouveautés</span>
                 </div>
                 <div className="space-y-2">
-                  {updateInfo.changelog.map((item, index) => (
-                    <motion.div 
-                      key={index}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.4 + index * 0.1 }}
-                      className="flex items-start gap-2 text-sm"
-                    >
-                      {getChangeIcon(item)}
-                      <span className="flex-1 text-muted-foreground">{item}</span>
-                    </motion.div>
-                  ))}
+                   {updateInfo.changelog.map((item, index) => {
+                    const changeText = typeof item === 'string' ? item : item.text;
+                    const changeIcon = typeof item === 'string' ? getChangeIcon(item) : (item.icon || getChangeIcon(changeText));
+                    return (
+                      <motion.div 
+                        key={index}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4 + index * 0.1 }}
+                        className="flex items-start gap-2 text-sm"
+                      >
+                        {typeof changeIcon === 'string' ? <span>{changeIcon}</span> : changeIcon}
+                        <span className="flex-1 text-muted-foreground">{changeText}</span>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
@@ -172,6 +178,7 @@ export const UpdateNotification = () => {
             )}
             <Button
               onClick={installUpdate}
+              disabled={isUpdating}
               className="flex-1 bg-gradient-to-r from-primary via-primary to-primary/80 hover:from-primary/90 hover:via-primary/85 hover:to-primary/70 shadow-lg shadow-primary/20"
             >
               <motion.div
@@ -179,8 +186,26 @@ export const UpdateNotification = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Download className="w-4 h-4" />
-                Installer maintenant
+                {isUpdating ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Download className="w-4 h-4" />
+                    </motion.div>
+                    {platform === 'ios' ? 'Ouverture...' : 'Installation...'}
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    {platform === 'ios' 
+                      ? "Ouvrir l'App Store" 
+                      : platform === 'android'
+                      ? 'Installer la mise à jour'
+                      : 'Installer maintenant'}
+                  </>
+                )}
               </motion.div>
             </Button>
           </DialogFooter>

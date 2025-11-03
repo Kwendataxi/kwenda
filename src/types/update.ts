@@ -1,11 +1,17 @@
 export type UpdateSeverity = 'info' | 'minor' | 'major' | 'critical';
 
+export interface ChangelogItem {
+  type?: string;
+  icon?: string;
+  text: string;
+}
+
 export interface UpdateInfo {
   version: string;
   buildDate?: string;
   cacheSize?: string;
   severity?: UpdateSeverity;
-  changelog?: string[];
+  changelog?: (string | ChangelogItem)[];
 }
 
 export interface UpdateConfig {

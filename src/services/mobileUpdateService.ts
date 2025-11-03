@@ -92,12 +92,31 @@ class MobileUpdateService {
   }
 
   openAppStore(): void {
-    if (this.platform === 'ios') {
-      // Ouvrir l'App Store iOS
-      window.open('https://apps.apple.com/app/kwenda-taxi/id-your-app-id', '_blank');
-    } else if (this.platform === 'android') {
-      // Ouvrir Google Play Store
-      window.open('https://play.google.com/store/apps/details?id=cd.kwenda.taxi', '_blank');
+    try {
+      if (this.platform === 'ios') {
+        // Ouvrir l'App Store iOS - TODO: Remplacer par l'ID réel quand publié
+        const iosUrl = 'https://apps.apple.com/cd/app/kwenda-client/id6738154982';
+        window.open(iosUrl, '_system') || window.open(iosUrl, '_blank');
+      } else if (this.platform === 'android') {
+        // Ouvrir Google Play Store - Essayer d'abord le lien market:// puis fallback
+        const appId = 'cd.kwenda.client';
+        const marketUrl = `market://details?id=${appId}`;
+        const playStoreUrl = `https://play.google.com/store/apps/details?id=${appId}`;
+        
+        // Tenter d'ouvrir l'app Google Play directement
+        const opened = window.open(marketUrl, '_system');
+        if (!opened) {
+          // Fallback vers URL web si l'app Play Store n'ouvre pas
+          window.open(playStoreUrl, '_blank');
+        }
+      }
+      logger.info(`App store opened for platform: ${this.platform}`);
+    } catch (error) {
+      logger.error('Failed to open app store', error);
+      // Fallback final vers URL web
+      if (this.platform === 'android') {
+        window.open('https://play.google.com/store/apps/details?id=cd.kwenda.client', '_blank');
+      }
     }
   }
 

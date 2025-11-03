@@ -10,6 +10,9 @@ const config: CapacitorConfig = {
   },
   appUrlScheme: "kwenda",
   plugins: {
+    AppUpdate: {
+      country: 'cd'
+    },
     Geolocation: {
       permissions: ["location", "coarseLocation"],
       accuracy: "high",

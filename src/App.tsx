@@ -137,6 +137,7 @@ import { AppDownloadTopBanner } from "@/components/pwa/AppDownloadTopBanner";
 import { UpdateNotification } from "@/components/pwa/UpdateNotification";
 import { UpdateProgress } from "@/components/pwa/UpdateProgress";
 const Changelog = lazy(() => import("./pages/Changelog"));
+const DebugUpdate = lazy(() => import("./pages/DebugUpdate"));
 import { OnboardingRedirect } from "@/components/onboarding/OnboardingRedirect";
 import { StartupExperience } from "@/components/splash/StartupExperience";
 import { ScrollToTop } from "@/components/navigation/ScrollToTop";
@@ -491,7 +492,8 @@ const AppContent = () => {
                     <Route path="/locations/lubumbashi" element={<Lubumbashi />} />
                     <Route path="/locations/kolwezi" element={<Kolwezi />} />
                     <Route path="/about" element={<About />} />
-                    <Route path="/changelog" element={<Changelog />} />
+            <Route path="/changelog" element={<Changelog />} />
+            <Route path="/debug/update" element={<DebugUpdate />} />
                     <Route path="/services/taxi-vtc" element={<TransportVTC />} />
                     <Route path="/services/livraison-express" element={<LivraisonExpress />} />
                     <Route path="/services/location-vehicules" element={<LocationVehicules />} />
