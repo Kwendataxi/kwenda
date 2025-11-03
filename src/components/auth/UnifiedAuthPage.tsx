@@ -12,9 +12,9 @@ export const UnifiedAuthPage = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen wallet-congo-pattern auth-congo-bg flex flex-col relative">
+    <div className="min-h-screen auth-congo-bg flex flex-col relative">
       {/* Language Selector - Fixed top-right */}
-      <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 animate-fade-in">
+      <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50">
         <AuthLanguageSelector />
       </div>
 
@@ -22,9 +22,9 @@ export const UnifiedAuthPage = () => {
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md flex flex-col space-y-8">
           {/* Header */}
-          <div className="text-center space-y-6 animate-fade-in">
-            <div className="flex justify-center animate-congo-pulse">
-              <BrandLogo size={72} animated withGlow className="mx-auto" />
+          <div className="text-center space-y-6">
+            <div className="flex justify-center">
+              <BrandLogo size={72} className="mx-auto" />
             </div>
             
             <div>
@@ -38,7 +38,7 @@ export const UnifiedAuthPage = () => {
           </div>
 
           {/* Auth Card - Formulaire client unique */}
-          <Card className="auth-glass shadow-lg border border-border/50 animate-fade-up" style={{ animationDelay: '200ms' }}>
+          <Card className="auth-glass shadow-lg border border-border/50">
             <div className="p-8 space-y-6">
               <div className="text-center space-y-2">
                 <h2 className="text-xl font-semibold text-foreground">
@@ -54,7 +54,7 @@ export const UnifiedAuthPage = () => {
           </Card>
 
           {/* Section autres espaces */}
-          <div className="pt-6 border-t border-border/30 animate-fade-up" style={{ animationDelay: '300ms' }}>
+          <div className="pt-6 border-t border-border/30">
             <p className="text-center text-sm text-muted-foreground mb-4">
               {t('auth.professional_question')}
             </p>
@@ -92,7 +92,7 @@ export const UnifiedAuthPage = () => {
       </div>
 
       {/* Footer - Retour à l'accueil */}
-      <div className="mt-auto py-8 flex justify-center animate-fade-up" style={{ animationDelay: '500ms' }}>
+      <div className="mt-auto py-8 flex justify-center">
         <Button 
           onClick={() => navigate('/')}
           variant="ghost"
