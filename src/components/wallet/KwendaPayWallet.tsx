@@ -263,18 +263,7 @@ export const KwendaPayWallet = () => {
     <div className="space-y-6">
       {/* Wallet Balance Card */}
       <Card className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl flex items-center gap-2">
-              <Wallet className="h-6 w-6" />
-              Kwenda Pay
-            </CardTitle>
-            <Badge variant="secondary" className="bg-white/20 text-white">
-              {wallet?.is_active ? 'Actif' : 'Inactif'}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="space-y-4">
             <div>
               <p className="text-primary-foreground/80 text-sm">Solde disponible</p>
