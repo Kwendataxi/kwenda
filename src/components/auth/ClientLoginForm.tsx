@@ -8,6 +8,7 @@ import { Loader2, Eye, EyeOff, AlertCircle, Mail, Lock } from 'lucide-react';
 import { useAuthWithRetry } from '@/hooks/useAuthWithRetry';
 import { toast } from 'sonner';
 import { ForgotPasswordModal } from '@/components/auth/ForgotPasswordModal';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 /**
  * Formulaire de connexion client léger pour UnifiedAuthPage
@@ -23,6 +24,7 @@ export const ClientLoginForm = () => {
 
   const navigate = useNavigate();
   const { loginWithRetry } = useAuthWithRetry();
+  const { t } = useLanguage();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,14 +59,14 @@ export const ClientLoginForm = () => {
       {/* Champ Email */}
       <div className="space-y-2">
         <Label htmlFor="client-email" className="text-sm font-semibold text-foreground/90 dark:text-foreground/85">
-          Adresse email
+          {t('auth.email')}
         </Label>
         <div className="relative group">
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-congo-red dark:group-focus-within:text-congo-red-electric transition-colors" />
           <Input
             id="client-email"
             type="email"
-            placeholder="votre@email.com"
+            placeholder={t('auth.email_placeholder')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -76,14 +78,14 @@ export const ClientLoginForm = () => {
       {/* Champ Mot de passe */}
       <div className="space-y-2">
         <Label htmlFor="client-password" className="text-sm font-semibold text-foreground/90 dark:text-foreground/85">
-          Mot de passe
+          {t('auth.password')}
         </Label>
         <div className="relative group">
           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-congo-red dark:group-focus-within:text-congo-red-electric transition-colors" />
           <Input
             id="client-password"
             type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
+            placeholder={t('auth.password_placeholder')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -122,7 +124,7 @@ export const ClientLoginForm = () => {
         disabled={loading}
       >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {loading ? 'Connexion...' : 'Se connecter'}
+        {loading ? t('auth.logging_in') : t('auth.login_button')}
       </Button>
 
       {/* Lien mot de passe oublié */}
@@ -133,7 +135,7 @@ export const ClientLoginForm = () => {
           className="text-sm text-congo-red dark:text-congo-red-electric hover:text-congo-red-vibrant transition-colors"
           onClick={() => setShowForgotPassword(true)}
         >
-          Mot de passe oublié ?
+          {t('auth.forgot_password')}
         </Button>
       </div>
 
@@ -146,14 +148,14 @@ export const ClientLoginForm = () => {
       {/* Lien inscription */}
       <div className="text-center text-sm text-muted-foreground dark:text-muted-foreground/80 mt-4 pt-4 border-t border-border/50 dark:border-border/30">
         <p>
-          Pas encore de compte ?{' '}
+          {t('auth.no_account')}{' '}
           <Button
             type="button"
             variant="link"
             className="p-0 h-auto text-congo-red dark:text-congo-red-electric hover:text-congo-red-vibrant font-semibold transition-colors"
             onClick={() => navigate('/app/register')}
           >
-            Créer un compte client
+            {t('auth.create_client_account')}
           </Button>
         </p>
       </div>
