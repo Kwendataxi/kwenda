@@ -68,34 +68,34 @@ const ModernHeroSimplified = () => {
               </div>
             </motion.div>
 
-            {/* CTAs Ultra-Minimalistes */}
+            {/* CTAs Compacts */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto lg:mx-0"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-w-md mx-auto lg:mx-0"
             >
-              {/* Card Transport Minimaliste */}
+              {/* Card Transport */}
               <Link to="/app/auth">
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex items-center gap-3 bg-gradient-to-br from-primary/90 to-primary backdrop-blur-xl rounded-xl px-4 py-4 shadow-md hover:shadow-[0_0_20px_rgba(220,38,38,0.4)] transition-all duration-300"
+                  className="flex items-center gap-2.5 bg-gradient-to-br from-primary/90 to-primary backdrop-blur-xl rounded-lg px-5 py-3 shadow-md hover:shadow-[0_0_20px_rgba(220,38,38,0.4)] transition-all duration-300"
                 >
-                  <Car className="w-6 h-6 text-white flex-shrink-0" />
-                  <span className="text-base font-semibold text-white">Transport</span>
+                  <Car className="w-5 h-5 text-white flex-shrink-0" />
+                  <span className="text-sm font-bold text-white">Réserver</span>
                 </motion.div>
               </Link>
 
-              {/* Card Food Minimaliste */}
+              {/* Card Livraison */}
               <Link to="/food">
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex items-center gap-3 bg-gradient-to-br from-orange-500/90 to-amber-500/90 backdrop-blur-xl rounded-xl px-4 py-4 shadow-md hover:shadow-[0_0_20px_rgba(251,146,60,0.4)] transition-all duration-300"
+                  className="flex items-center gap-2.5 bg-gradient-to-br from-orange-500/90 to-amber-500/90 backdrop-blur-xl rounded-lg px-5 py-3 shadow-md hover:shadow-[0_0_20px_rgba(251,146,60,0.4)] transition-all duration-300"
                 >
-                  <UtensilsCrossed className="w-6 h-6 text-white flex-shrink-0" />
-                  <span className="text-base font-semibold text-white">Livraison</span>
+                  <UtensilsCrossed className="w-5 h-5 text-white flex-shrink-0" />
+                  <span className="text-sm font-bold text-white">Commander</span>
                 </motion.div>
               </Link>
             </motion.div>
