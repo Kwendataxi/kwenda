@@ -50,10 +50,41 @@
   border: 1px solid var(--wallet-glass-border);
 }
 
-/* Congo pattern background */
+/* Congo pattern background - Zebra inspired */
 .wallet-pattern-bg {
   background-image: 
-    repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.05) 35px, rgba(255,255,255,.05) 70px);
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      hsl(var(--congo-yellow) / 0.03) 10px,
+      hsl(var(--congo-yellow) / 0.03) 20px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 10px,
+      hsl(var(--congo-red) / 0.02) 10px,
+      hsl(var(--congo-red) / 0.02) 20px
+    );
+}
+
+.dark .wallet-pattern-bg {
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      hsl(var(--congo-yellow) / 0.05) 10px,
+      hsl(var(--congo-yellow) / 0.05) 20px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 10px,
+      hsl(var(--congo-red) / 0.04) 10px,
+      hsl(var(--congo-red) / 0.04) 20px
+    );
 }
 
 /* Animated gradient backgrounds */

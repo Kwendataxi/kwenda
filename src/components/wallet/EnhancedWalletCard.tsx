@@ -28,7 +28,7 @@ export const EnhancedWalletCard: React.FC<EnhancedWalletCardProps> = ({
         animate={{ opacity: 1, scale: 1 }}
         className="relative overflow-hidden rounded-2xl"
       >
-        <div className="relative flex items-center gap-3 px-4 py-3 bg-gradient-to-br from-primary/90 via-primary to-primary-light backdrop-blur-xl border border-white/20 shadow-lg">
+        <div className="relative flex items-center gap-3 px-4 py-3 bg-gradient-to-br from-congo-blue to-congo-red backdrop-blur-xl border border-white/20 shadow-lg">
           <motion.div
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
@@ -67,8 +67,8 @@ export const EnhancedWalletCard: React.FC<EnhancedWalletCardProps> = ({
     >
       <FloatingParticles />
       
-      {/* Gradient background with shine effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary-light opacity-90" />
+      {/* Gradient background with Congo flag colors */}
+      <div className="absolute inset-0 bg-gradient-to-br from-congo-red via-congo-yellow to-congo-green opacity-90" />
       <motion.div
         className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
         animate={{ x: ['-100%', '200%'] }}
@@ -97,10 +97,10 @@ export const EnhancedWalletCard: React.FC<EnhancedWalletCardProps> = ({
           
           <motion.div
             whileHover={{ scale: 1.1 }}
-            className="flex items-center gap-1 px-3 py-1 bg-green-500/20 rounded-full backdrop-blur-sm border border-green-400/30"
+            className="flex items-center gap-1 px-3 py-1 bg-congo-green/30 rounded-full backdrop-blur-sm border border-congo-green/50"
           >
-            <TrendingUp className="w-3 h-3 text-green-300" />
-            <span className="text-xs text-green-300 font-medium">Actif</span>
+            <TrendingUp className="w-3 h-3 text-white" />
+            <span className="text-xs text-white font-medium">Actif</span>
           </motion.div>
         </div>
 
@@ -122,8 +122,8 @@ export const EnhancedWalletCard: React.FC<EnhancedWalletCardProps> = ({
         )}
       </div>
 
-      {/* Bottom accent line */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-red-400 to-yellow-400" />
+      {/* Bottom accent line - Congo gradient animated */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-congo-flag animate-congo-gradient" style={{ backgroundSize: '200% 200%' }} />
     </motion.div>
   );
 };

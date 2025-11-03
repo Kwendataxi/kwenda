@@ -14,7 +14,13 @@ export const SuccessConfetti: React.FC<SuccessConfettiProps> = ({
 
   useEffect(() => {
     if (show) {
-      const colors = ['#3b82f6', '#f59e0b', '#ef4444', '#10b981', '#8b5cf6'];
+      // Congo flag colors
+      const colors = [
+        'hsl(357, 85%, 50%)',  // Congo red
+        'hsl(42, 100%, 60%)',  // Congo yellow
+        'hsl(142, 85%, 45%)',  // Congo green
+        'hsl(220, 100%, 50%)'  // Congo blue
+      ];
       const newParticles = Array.from({ length: 30 }, (_, i) => ({
         id: i,
         x: Math.random() * 100,

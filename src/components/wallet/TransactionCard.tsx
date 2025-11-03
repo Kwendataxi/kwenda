@@ -38,8 +38,8 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({
       <div className={cn(
         "flex items-center gap-4 transition-all duration-300",
         compact 
-          ? "p-3 hover:bg-muted/50" 
-          : "p-4 rounded-xl bg-card hover:bg-muted/50 border border-border/50 hover:border-border"
+          ? "p-3 hover:bg-muted/50 dark:hover:bg-muted/30" 
+          : "p-4 rounded-xl bg-card hover:bg-muted/50 dark:hover:bg-muted/30 border border-border/50 hover:border-border dark:border-border/30"
       )}>
         {/* Icon */}
         <motion.div
@@ -49,8 +49,8 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({
             "rounded-xl flex items-center justify-center flex-shrink-0",
             compact ? "w-10 h-10" : "w-12 h-12",
             isCredit
-              ? "bg-green-500/10 text-green-600"
-              : "bg-red-500/10 text-red-600"
+              ? "bg-congo-green/10 text-congo-green dark:bg-congo-green/20 dark:text-congo-green-electric"
+              : "bg-congo-red/10 text-congo-red dark:bg-congo-red/20 dark:text-congo-red-electric"
           )}
         >
           {isCredit ? (
@@ -62,12 +62,12 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm text-foreground truncate">
+          <p className="font-semibold text-sm text-foreground dark:text-foreground/90 truncate">
             {description}
           </p>
           <div className="flex items-center gap-2 mt-1">
-            <Clock className="w-3 h-3 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">
+            <Clock className="w-3 h-3 text-muted-foreground dark:text-muted-foreground/70" />
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground/70">
               {new Date(date).toLocaleString('fr-FR', {
                 day: '2-digit',
                 month: 'short',
@@ -91,7 +91,9 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({
         >
           <p className={cn(
             "font-bold text-base",
-            isCredit ? "text-green-600" : "text-red-600"
+            isCredit 
+              ? "text-congo-green dark:text-congo-green-electric" 
+              : "text-congo-red dark:text-congo-red-electric"
           )}>
             {isCredit ? '+' : '-'}
             {amount.toLocaleString('fr-CD')} {currency}
@@ -103,7 +105,7 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({
       <motion.div
         className={cn(
           "absolute left-0 top-0 bottom-0 w-1 rounded-l-xl",
-          isCredit ? "bg-green-500" : "bg-red-500"
+          isCredit ? "bg-congo-green" : "bg-congo-red"
         )}
         initial={{ scaleY: 0 }}
         whileHover={{ scaleY: 1 }}

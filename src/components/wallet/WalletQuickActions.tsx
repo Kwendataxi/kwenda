@@ -30,39 +30,39 @@ export const WalletQuickActions: React.FC<WalletQuickActionsProps> = ({
       id: 'recharge',
       label: 'Recharger',
       icon: Zap,
-      color: 'text-green-600',
-      gradient: 'from-green-500 to-emerald-600',
+      color: 'text-congo-green',
+      gradient: 'from-congo-green to-congo-green-electric',
       onClick: onRecharge
     },
     {
       id: 'transfer',
       label: 'Transférer',
       icon: Send,
-      color: 'text-blue-600',
-      gradient: 'from-blue-500 to-cyan-600',
+      color: 'text-congo-blue',
+      gradient: 'from-congo-blue to-congo-blue-electric',
       onClick: onTransfer
     },
     {
       id: 'convert',
       label: 'Convertir',
       icon: Gift,
-      color: 'text-orange-600',
-      gradient: 'from-orange-500 to-amber-600',
+      color: 'text-congo-yellow',
+      gradient: 'from-congo-yellow to-congo-yellow-vibrant',
       onClick: onConvert
     },
     {
       id: 'history',
       label: 'Historique',
       icon: Clock,
-      color: 'text-purple-600',
-      gradient: 'from-purple-500 to-fuchsia-600',
+      color: 'text-congo-red',
+      gradient: 'from-congo-red to-congo-red-vibrant',
       onClick: onHistory
     }
   ];
 
   return (
     <div className="px-4 -mt-6 mb-6">
-      <div className="bg-white rounded-2xl shadow-lg border border-border/50 p-4">
+      <div className="bg-white dark:bg-card/80 rounded-2xl shadow-lg border border-congo-red/10 dark:border-congo-red/20 p-4" style={{ boxShadow: '0 4px 20px hsl(var(--congo-red)/0.1)' }}>
         <div className="grid grid-cols-4 gap-3">
           {actions.map((action, index) => (
             <motion.button
@@ -74,15 +74,20 @@ export const WalletQuickActions: React.FC<WalletQuickActionsProps> = ({
               className="flex flex-col items-center gap-2 group"
             >
               {/* Icône ronde */}
-              <div className={cn(
-                "relative w-16 h-16 rounded-2xl flex items-center justify-center",
-                "bg-gradient-to-br shadow-md",
-                "group-hover:shadow-xl group-hover:scale-105",
-                "transition-all duration-300",
-                action.gradient
-              )}>
+              <motion.div 
+                className={cn(
+                  "relative w-16 h-16 rounded-2xl flex items-center justify-center",
+                  "bg-gradient-to-br shadow-md",
+                  "transition-all duration-300",
+                  action.gradient
+                )}
+                whileHover={{
+                  scale: 1.05,
+                  boxShadow: '0 8px 30px hsl(var(--congo-red) / 0.3)'
+                }}
+              >
                 <action.icon className="h-7 w-7 text-white" />
-              </div>
+              </motion.div>
               
               {/* Label */}
               <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">

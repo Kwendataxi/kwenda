@@ -9,7 +9,17 @@ export const FloatingParticles: React.FC = () => {
       {particles.map((i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 bg-white/30 rounded-full"
+          className="absolute w-1 h-1 rounded-full"
+          style={{
+            background: i % 4 === 0 
+              ? 'hsl(357, 85%, 50%)' 
+              : i % 4 === 1 
+                ? 'hsl(42, 100%, 60%)' 
+                : i % 4 === 2 
+                  ? 'hsl(142, 85%, 45%)'
+                  : 'hsl(220, 100%, 50%)',
+            opacity: 0.3
+          }}
           initial={{
             x: Math.random() * 100 + '%',
             y: Math.random() * 100 + '%',

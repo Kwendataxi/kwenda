@@ -118,7 +118,7 @@ export const ClientWalletPanel: React.FC = () => {
         {transactions.length === 0 ? (
           <EmptyTransactions />
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm border border-border/50 divide-y divide-border/30 overflow-hidden">
+          <div className="bg-white dark:bg-card/50 rounded-2xl shadow-sm border border-border/50 dark:border-border/30 divide-y divide-border/30 overflow-hidden">
             {transactions.slice(0, 8).map((transaction, index) => (
               <TransactionCard
                 key={transaction.id}
