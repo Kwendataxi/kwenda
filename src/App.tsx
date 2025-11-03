@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import PerformanceOptimizer from "@/components/performance/PerformanceOptimizer";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/hooks/useAuth";
 import { PushNotificationManager } from "@/components/notifications/PushNotificationManager";
@@ -26,7 +26,6 @@ import { RouteLoadingFallback } from "@/components/loading/RouteLoadingFallback"
 // ✅ Critical imports - loaded immediately (auth, landing, core)
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import ClientAuth from "./pages/ClientAuth";
 import ClientRegister from "./pages/ClientRegister";
 import MobileSplash from "./pages/MobileSplash";
 import { SmartHome } from "./components/navigation/SmartHome";
@@ -192,7 +191,7 @@ const AppContent = () => {
               <Suspense fallback={<RouteLoadingFallback />}>
                 <Routes>
                 {/* ✅ ROUTES AUTH GLOBALES - TOUJOURS ACCESSIBLES */}
-                <Route path="/app/auth" element={<ClientAuth />} />
+                <Route path="/app/auth" element={<Navigate to="/auth" replace />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/app/register" element={<ClientRegister />} />
                 <Route path="/driver/auth" element={<DriverAuth />} />

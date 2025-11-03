@@ -122,10 +122,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       'partner': '/partner/auth',
       'restaurant': '/restaurant/auth',
       'admin': '/operatorx/admin/auth',
-      'client': '/app/auth'
+      'client': '/auth'
     };
     
-    redirectPath = roleRedirectMap[selectedRole as string] || '/app/auth';
+    redirectPath = roleRedirectMap[selectedRole as string] || '/auth';
     } catch (error) {
       logger.warn('Unable to determine role for redirect:', error);
     }

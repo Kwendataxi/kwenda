@@ -57,6 +57,13 @@ export const translations = {
     'auth.email_placeholder': 'votre@email.com',
     'auth.password_placeholder': '••••••••',
     
+    // Loading messages
+    'loading.preparing': 'Préparation de votre trajet',
+    'loading.on_route': 'En route',
+    'loading.almost_ready': 'Presque prêt',
+    'loading.verifying_session': 'Vérification de votre session',
+    'loading.loading_space': 'Chargement de votre espace',
+    
     // Role Selection
     'role.client': 'Client',
     'role.driver': 'Chauffeur',
@@ -509,6 +516,13 @@ export const translations = {
     'auth.create_client_account': 'Create a Client Account',
     'auth.email_placeholder': 'your@email.com',
     'auth.password_placeholder': '••••••••',
+    
+    // Loading messages
+    'loading.preparing': 'Preparing your ride',
+    'loading.on_route': 'On the way',
+    'loading.almost_ready': 'Almost ready',
+    'loading.verifying_session': 'Verifying your session',
+    'loading.loading_space': 'Loading your space',
     
     // Role Selection
     'role.client': 'Client',

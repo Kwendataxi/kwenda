@@ -1,6 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
-import MobileSplash from '@/pages/MobileSplash';
+import { TaxiLoadingTransition } from '@/components/loading/TaxiLoadingTransition';
 import Index from '@/pages/Index';
 import { isMobileApp, isPWA } from '@/services/platformDetection';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -17,12 +17,12 @@ export const SmartHome = () => {
 
   // Attendre que la session ET les rôles soient chargés
   if (loading || !sessionReady || roleLoading) {
-    return <MobileSplash />;
+    return <TaxiLoadingTransition />;
   }
 
-  // NON CONNECTÉ : rediriger vers /app/auth
+  // NON CONNECTÉ : rediriger vers /auth
   if (!user) {
-    return <Navigate to="/app/auth" replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   // ✅ CONNECTÉ : Redirection simple selon userRole

@@ -3,8 +3,8 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useSelectedRole } from '@/hooks/useSelectedRole';
-import { Loader2 } from 'lucide-react';
 import { APP_CONFIG } from '@/config/appConfig';
+import { TaxiLoadingTransition } from '@/components/loading/TaxiLoadingTransition';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -21,19 +21,7 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
 
   // Afficher un loader pendant la vérification de l'authentification ET de la session
   if (loading || !sessionReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
-          <div className="space-y-2">
-            <h2 className="text-xl font-bold text-foreground">Chargement...</h2>
-            <p className="text-muted-foreground">
-              {loading ? 'Vérification de votre session' : 'Initialisation de la session'}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+    return <TaxiLoadingTransition />;
   }
 
   // Si l'authentification est requise mais l'utilisateur n'est pas connecté
@@ -55,13 +43,13 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
     
     if (!hasRequiredRole) {
       const roleRoutes: Record<string, string> = {
-        'client': '/app/auth',
+        'client': '/auth',
         'driver': '/driver/auth',
         'partner': '/partner/auth',
         'admin': '/operatorx/admin/auth'
       };
       
-      return <Navigate to={roleRoutes[requiredRole] || '/app/auth'} replace />;
+      return <Navigate to={roleRoutes[requiredRole] || '/auth'} replace />;
     }
     
     // ✅ Forcer la sélection du rôle requis si pas déjà fait
@@ -106,7 +94,7 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
   // Si l'utilisateur est connecté mais ne devrait pas accéder à cette page
   if (!requireAuth && user && location.pathname !== '/role-selection') {
     if (!primaryRole) {
-      return <Navigate to={APP_CONFIG.authRoute} replace />;
+      return <Navigate to="/auth" replace />;
     }
     
     switch (primaryRole) {
