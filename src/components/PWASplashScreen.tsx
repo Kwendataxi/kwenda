@@ -20,14 +20,19 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ 
-            opacity: 1
+            opacity: 1,
+            background: [
+              "radial-gradient(circle at 30% 20%, #EF4444 0%, #DC2626 40%, #B91C1C 100%)",
+              "radial-gradient(circle at 70% 80%, #EF4444 0%, #DC2626 40%, #B91C1C 100%)",
+              "radial-gradient(circle at 30% 20%, #EF4444 0%, #DC2626 40%, #B91C1C 100%)"
+            ]
           }}
           exit={{ opacity: 0 }}
           transition={{ 
-            opacity: { duration: 0.4 }
+            opacity: { duration: 0.4 },
+            background: { duration: 8, repeat: Infinity, ease: "easeInOut" }
           }}
           className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
-          style={{ background: "#DC2626" }}
         >
           {/* Particules flottantes dynamiques */}
           <div className="absolute inset-0 overflow-hidden">
@@ -86,7 +91,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
             >
               {/* Halo énergique concentré */}
               <motion.div
-                className="absolute -inset-12 blur-[60px]"
+                className="absolute -inset-16 blur-[80px]"
                 animate={{
                   opacity: [0.4, 0.7, 0.4],
                   scale: [0.95, 1.1, 0.95]
@@ -105,7 +110,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
               <motion.img
                 src="/kwenda-splash-logo.png"
                 alt="Kwenda"
-                className="w-44 h-44 sm:w-48 sm:h-48 md:w-56 md:h-56 object-contain relative z-10"
+                className="w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 object-contain relative z-10"
                 animate={{
                   scale: [1, 1.05, 1],
                   rotate: [0, 2, 0, -2, 0],
@@ -169,8 +174,8 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
                 />
                 
                 {/* Cercle interne (rotation inverse) */}
-                <motion.div
-                  className="absolute inset-2 rounded-full border-2 border-white/40 border-b-yellow-300"
+            <motion.div
+              className="absolute inset-2 rounded-full border-2 border-white/40 border-b-white"
                   animate={{ rotate: -360 }}
                   transition={{
                     duration: 1.2,

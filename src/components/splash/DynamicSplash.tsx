@@ -33,7 +33,18 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
   return (
     <motion.div 
       className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
-      style={{ background: "#DC2626" }}
+      animate={{
+        background: [
+          "radial-gradient(circle at 30% 20%, #EF4444 0%, #DC2626 40%, #B91C1C 100%)",
+          "radial-gradient(circle at 70% 80%, #EF4444 0%, #DC2626 40%, #B91C1C 100%)",
+          "radial-gradient(circle at 30% 20%, #EF4444 0%, #DC2626 40%, #B91C1C 100%)"
+        ]
+      }}
+      transition={{
+        duration: 8,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }}
     >
       {/* Lueurs dynamiques concentrées */}
       <motion.div 
@@ -94,7 +105,7 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
         {/* Logo avec halo énergique */}
         <div className="relative">
           <motion.div
-            className="absolute -inset-10 rounded-full blur-[60px]"
+            className="absolute -inset-14 rounded-full blur-[80px]"
             style={{ background: 'rgba(255, 255, 255, 0.3)' }}
             animate={{ 
               scale: [0.95, 1.15, 0.95],
@@ -119,7 +130,7 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
               backfaceVisibility: 'hidden'
             }}
           >
-            <BrandLogo size={200} className="drop-shadow-2xl relative z-10 filter brightness-110" alt="Kwenda Logo" />
+            <BrandLogo size={260} className="drop-shadow-2xl relative z-10 filter brightness-110" alt="Kwenda Logo" />
           </motion.div>
         </div>
 
@@ -167,7 +178,7 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
             
             {/* Cercle interne */}
             <motion.div
-              className="absolute inset-2 rounded-full border-2 border-white/30 border-b-yellow-400"
+              className="absolute inset-2 rounded-full border-2 border-white/30 border-b-white"
               animate={{ rotate: -360 }}
               transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
             />
