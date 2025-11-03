@@ -8,6 +8,7 @@ import type { UnifiedLocation } from '@/types/unifiedLocation';
 import { CurrentLocationButton } from '@/components/ui/CurrentLocationButton';
 import { type LocationData, useSmartGeolocation } from '@/hooks/useSmartGeolocation';
 import { Badge } from '@/components/ui/badge';
+import { toast } from '@/hooks/use-toast';
 
 interface AutocompleteLocationInputProps {
   value?: UnifiedLocation | null;
@@ -156,10 +157,18 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
         console.log('✅ [Autocomplete] Coordonnées:', placeDetails.coordinates);
         
         // Validation des coordonnées
-        if (placeDetails.coordinates.lat === 0 && placeDetails.coordinates.lng === 0) {
-          console.error('❌ [Autocomplete] Coordonnées invalides (0,0) - Rejet');
-          return;
-        }
+      // 🆕 PHASE 3: Gestion améliorée des coordonnées invalides
+      if (placeDetails.coordinates.lat === 0 && placeDetails.coordinates.lng === 0) {
+        console.error('❌ [Autocomplete] Coordonnées invalides (0,0) - Rejet');
+        
+        toast({
+          title: "⚠️ Adresse incomplète",
+          description: "Impossible d'obtenir les coordonnées précises. Veuillez réessayer ou choisir un autre lieu.",
+          variant: "destructive"
+        });
+        
+        return;
+      }
         
         const location: UnifiedLocation = {
           id: placeDetails.id,

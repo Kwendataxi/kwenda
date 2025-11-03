@@ -102,7 +102,7 @@ export const useGooglePlacesAutocomplete = (options: UseGooglePlacesAutocomplete
     try {
       console.log('📍 [getPlaceDetails] Recherche pour placeId:', placeId);
       
-      // 🆕 Récupérer depuis la Map (priorité absolue)
+      // 1. Chercher d'abord dans resultsMapRef avec coordonnées valides
       const storedResult = resultsMapRef.current.get(placeId);
       
       if (storedResult && storedResult.lat !== 0 && storedResult.lng !== 0) {
@@ -111,29 +111,66 @@ export const useGooglePlacesAutocomplete = (options: UseGooglePlacesAutocomplete
           id: placeId,
           name: storedResult.name || storedResult.address,
           address: storedResult.address,
-          coordinates: { lat: storedResult.lat, lng: storedResult.lng }, // ✅ VRAIES COORDONNÉES
+          coordinates: { lat: storedResult.lat, lng: storedResult.lng },
           placeId: placeId,
           types: storedResult.type ? [storedResult.type] : []
         };
       }
       
-      // Fallback : chercher dans predictions
-      const prediction = predictions.find(p => p.placeId === placeId);
+      // 2. 🆕 PHASE 2: Appel API google-place-details si coordonnées manquantes
+      console.log('🔍 [getPlaceDetails] Récupération coordonnées via API pour:', placeId);
       
-      if (!prediction) {
-        console.warn('⚠️ [getPlaceDetails] Aucune prédiction trouvée pour:', placeId);
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data: detailsData, error: detailsError } = await supabase.functions.invoke(
+        'google-place-details',
+        { body: { placeId } }
+      );
+      
+      if (detailsError || !detailsData?.result?.geometry?.location) {
+        console.error('❌ [getPlaceDetails] Échec récupération coordonnées:', detailsError);
+        
+        // Fallback: chercher dans predictions
+        const prediction = predictions.find(p => p.placeId === placeId);
+        if (prediction) {
+          return {
+            id: placeId,
+            name: prediction.structuredFormatting.mainText,
+            address: prediction.description,
+            coordinates: { lat: 0, lng: 0 },
+            placeId: placeId,
+            types: prediction.types
+          };
+        }
         return null;
       }
-
-      console.warn('⚠️ [getPlaceDetails] Coordonnées par défaut (0,0) - À éviter');
-      return {
+      
+      const location = detailsData.result.geometry.location;
+      
+      console.log('✅ [getPlaceDetails] Coordonnées récupérées:', location);
+      
+      const placeDetails: PlaceDetails = {
         id: placeId,
-        name: prediction.structuredFormatting.mainText,
-        address: prediction.description,
-        coordinates: { lat: 0, lng: 0 },
+        name: detailsData.result.name || storedResult?.name || 'Lieu',
+        address: detailsData.result.formatted_address || storedResult?.address || '',
+        coordinates: { lat: location.lat, lng: location.lng },
         placeId: placeId,
-        types: prediction.types
+        types: detailsData.result.types || []
       };
+      
+      // 🆕 Mettre à jour le cache avec les nouvelles coordonnées
+      resultsMapRef.current.set(placeId, {
+        id: placeId,
+        address: placeDetails.address,
+        lat: location.lat,
+        lng: location.lng,
+        type: 'google',
+        placeId: placeId,
+        name: placeDetails.name
+      });
+      
+      return placeDetails;
+      
     } catch (err) {
       console.error('❌ [getPlaceDetails] Erreur détails lieu:', err);
       return null;

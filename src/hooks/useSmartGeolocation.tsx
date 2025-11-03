@@ -60,18 +60,22 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
         const city = await universalGeolocation.detectUserCity();
         setCurrentCity(city.name);
         
-        // Prefetch des lieux populaires
+        // 🆕 PHASE 4: Prefetch et tri intelligent des lieux populaires
         const places = await universalGeolocation.getPopularPlacesForCurrentCity();
-        setPopularPlaces(places.map((p, idx) => ({
-          id: `popular-${idx}`,
-          address: p.name,
-          lat: p.lat,
-          lng: p.lng,
-          type: 'popular' as const,
-          name: p.name,
-          subtitle: p.commune || city.name,
-          isPopular: true
-        })));
+        const sortedPlaces = places
+          .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+          .map((p, idx) => ({
+            id: `popular-${idx}`,
+            address: p.name,
+            lat: p.lat,
+            lng: p.lng,
+            type: 'popular' as const,
+            name: p.name,
+            subtitle: p.commune || city.name,
+            isPopular: true,
+            relevanceScore: 90 - idx * 5
+          }));
+        setPopularPlaces(sortedPlaces);
       } catch (err) {
         console.error('Erreur détection ville:', err);
       }
@@ -208,60 +212,33 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
 
       const predictions = googleData?.predictions || [];
       
-      const results: LocationSearchResult[] = await Promise.all(
-        predictions.slice(0, 5).map(async (pred: any, idx: number) => {
-          // Obtenir les détails du lieu pour avoir les coordonnées
-          try {
-            const { data: detailsData, error: detailsError } = await supabase.functions.invoke(
-              'google-place-details',
-              {
-                body: { placeId: pred.place_id }
-              }
-            );
-
-            if (detailsError) {
-              console.warn('Erreur détails lieu:', detailsError);
-              return null;
-            }
-
-            const location = detailsData?.result?.geometry?.location;
-            
-            if (!location || !location.lat || !location.lng) {
-              console.warn('Pas de coordonnées pour:', pred.description);
-              return null;
-            }
-
-            return {
-              id: pred.place_id,
-              address: pred.description,
-              lat: location.lat,
-              lng: location.lng,
-              type: 'google' as const,
-              placeId: pred.place_id,
-              name: pred.structured_formatting?.main_text || pred.description,
-              subtitle: pred.structured_formatting?.secondary_text,
-              title: pred.structured_formatting?.main_text,
-              relevanceScore: 100 - idx * 10
-            };
-          } catch (err) {
-            console.warn('Erreur détails lieu:', err);
-            return null;
-          }
-        })
-      );
-
-      const validResults = results.filter(r => r !== null && r.lat !== 0 && r.lng !== 0) as LocationSearchResult[];
+      // 🆕 PHASE 1: Retour immédiat sans attendre google-place-details
+      const results: LocationSearchResult[] = predictions.slice(0, 5).map((pred: any, idx: number) => ({
+        id: pred.place_id,
+        address: pred.description,
+        lat: 0, // Temporaire - sera enrichi après sélection par l'utilisateur
+        lng: 0,
+        type: 'google' as const,
+        placeId: pred.place_id,
+        name: pred.structured_formatting?.main_text || pred.description,
+        subtitle: pred.structured_formatting?.secondary_text,
+        title: pred.structured_formatting?.main_text,
+        relevanceScore: 100 - idx * 10
+      }));
       
-      // Ajouter des lieux populaires si peu de résultats
-      if (validResults.length < 3) {
-        const filteredPopular = popularPlaces
-          .filter(p => p.name?.toLowerCase().includes(query.toLowerCase()))
-          .slice(0, 3 - validResults.length);
-        validResults.push(...filteredPopular);
-      }
+      // Ajouter des lieux populaires pertinents
+      const filteredPopular = popularPlaces
+        .filter(p => p.name?.toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 3)
+        .map((p, idx) => ({
+          ...p,
+          relevanceScore: 85 - idx * 5 // Score un peu plus bas que Google
+        }));
+      
+      const allResults = [...results, ...filteredPopular];
 
-      locationCache.set(cacheKey, { data: validResults, timestamp: Date.now() });
-      return validResults;
+      locationCache.set(cacheKey, { data: allResults, timestamp: Date.now() });
+      return allResults;
 
     } catch (err: any) {
       console.error('Erreur recherche:', err);
