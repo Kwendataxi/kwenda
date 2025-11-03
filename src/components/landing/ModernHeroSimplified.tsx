@@ -43,7 +43,7 @@ const ModernHeroSimplified = () => {
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Content Ultra-Épuré */}
           <div className="space-y-6 text-center lg:text-left">
-            {/* Logo + Slogan Simple */}
+            {/* Logo + Slogan Modernisé */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -57,46 +57,65 @@ const ModernHeroSimplified = () => {
                 <BrandLogo size="md" animated withGlow />
               </motion.div>
               
-              {/* Slogan court */}
-              <div className="space-y-1">
-                <h1 className="text-2xl lg:text-3xl font-semibold text-foreground">
+              {/* Slogan avec gradient */}
+              <div className="space-y-3">
+                <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
                   Transport • Livraison • Marketplace
                 </h1>
-                <p className="text-sm text-muted-foreground">
-                  Kinshasa, Lubumbashi, Kolwezi
-                </p>
+                
+                {/* Badge animé avec point vert */}
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                  <span className="text-xs font-medium text-foreground">
+                    Kinshasa • Lubumbashi • Kolwezi
+                  </span>
+                </div>
               </div>
             </motion.div>
 
-            {/* CTAs Compacts */}
+            {/* CTAs Pills Modernes */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-w-md mx-auto lg:mx-0"
+              className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-center lg:justify-start max-w-sm mx-auto lg:mx-0"
             >
-              {/* Card Transport */}
+              {/* Bouton Transport - Pill Design */}
               <Link to="/app/auth">
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex items-center gap-2.5 bg-gradient-to-br from-primary/90 to-primary backdrop-blur-xl rounded-lg px-5 py-3 shadow-md hover:shadow-[0_0_20px_rgba(220,38,38,0.4)] transition-all duration-300"
+                <motion.button
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="group relative overflow-hidden rounded-full bg-gradient-to-r from-red-600 to-red-500 px-6 py-3.5 shadow-lg hover:shadow-red-500/50 transition-all duration-300 w-full sm:w-auto"
                 >
-                  <Car className="w-5 h-5 text-white flex-shrink-0" />
-                  <span className="text-sm font-bold text-white">Réserver</span>
-                </motion.div>
+                  {/* Glassmorphism effect */}
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  
+                  <div className="relative flex items-center justify-center gap-2">
+                    <Car className="w-4 h-4 text-white flex-shrink-0" strokeWidth={2.5} />
+                    <span className="text-[15px] font-semibold text-white tracking-tight">
+                      Réserver
+                    </span>
+                  </div>
+                </motion.button>
               </Link>
 
-              {/* Card Livraison */}
+              {/* Bouton Livraison - Pill Design */}
               <Link to="/food">
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex items-center gap-2.5 bg-gradient-to-br from-orange-500/90 to-amber-500/90 backdrop-blur-xl rounded-lg px-5 py-3 shadow-md hover:shadow-[0_0_20px_rgba(251,146,60,0.4)] transition-all duration-300"
+                <motion.button
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="group relative overflow-hidden rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3.5 shadow-lg hover:shadow-orange-500/50 transition-all duration-300 w-full sm:w-auto"
                 >
-                  <UtensilsCrossed className="w-5 h-5 text-white flex-shrink-0" />
-                  <span className="text-sm font-bold text-white">Commander</span>
-                </motion.div>
+                  {/* Glassmorphism effect */}
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  
+                  <div className="relative flex items-center justify-center gap-2">
+                    <UtensilsCrossed className="w-4 h-4 text-white flex-shrink-0" strokeWidth={2.5} />
+                    <span className="text-[15px] font-semibold text-white tracking-tight">
+                      Commander
+                    </span>
+                  </div>
+                </motion.button>
               </Link>
             </motion.div>
           </div>

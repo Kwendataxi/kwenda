@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 // Images des campagnes publicitaires
 import campaignClient from '@/assets/campaign-client.png';
@@ -77,24 +76,30 @@ export const HeroCampaignSlider = () => {
               key={slide.id}
               className="flex-[0_0_100%] min-w-0 relative"
             >
-              {/* Glow effect réduit */}
-              <div className="absolute -inset-4 bg-gradient-radial from-primary/10 via-red-500/5 to-transparent blur-3xl opacity-40 group-hover:opacity-60 transition-opacity duration-500"></div>
+              {/* Glow effect réduit et optimisé */}
+              <div className="absolute -inset-2 bg-gradient-radial from-primary/5 via-primary/3 to-transparent blur-2xl opacity-20"></div>
               
-              {/* Image avec aspect ratio 16:9 pour format paysage */}
-              <div className="relative rounded-xl overflow-hidden shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] border-2 border-border/30 bg-card/20 backdrop-blur-sm transition-all duration-500 group">
-                <div className="relative aspect-[16/9] w-full bg-background/5">
+              {/* Image Container avec hauteur fixe responsive */}
+              <div className="relative h-[340px] sm:h-[400px] md:h-[460px] overflow-hidden rounded-2xl">
+                {/* Bordure néomorphique */}
+                <div className="relative h-full w-full overflow-hidden rounded-2xl border border-border/40 bg-card/30 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
                   <img
                     src={slide.image}
                     alt={slide.alt}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                    style={{ objectPosition: 'center 60%' }}
                     loading={index === 0 ? "eager" : "lazy"}
                     fetchPriority={index === 0 ? "high" : "low"}
                     decoding={index === 0 ? "sync" : "async"}
                     width={1280}
                     height={720}
                   />
-                  {/* Masque OPAQUE pour badge NOUVEAU */}
-                  <div className="absolute top-0 left-0 right-0 h-24 bg-background pointer-events-none z-20"></div>
+                  
+                  {/* Gradient Overlay subtil */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+                  
+                  {/* Overlay progressif pour masquer badge NOUVEAU */}
+                  <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-background via-background/90 to-transparent z-10"></div>
                 </div>
               </div>
             </div>
@@ -102,28 +107,24 @@ export const HeroCampaignSlider = () => {
         </div>
       </div>
 
-      {/* Navigation Arrows */}
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 rounded-full bg-white hover:bg-white/90 hover:scale-110 transition-all z-20 shadow-xl border-2 border-border/50"
+      {/* Navigation Arrows - Design modernisé */}
+      <button
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-card/90 backdrop-blur-md hover:bg-white dark:hover:bg-card text-foreground p-3 rounded-full shadow-xl border border-white/40 dark:border-border/40 transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
         onClick={scrollPrev}
         disabled={!canScrollPrev}
         aria-label="Slide précédent"
       >
-        <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-      </Button>
-
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 rounded-full bg-white hover:bg-white/90 hover:scale-110 transition-all z-20 shadow-xl border-2 border-border/50"
+        <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
+      </button>
+      
+      <button
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-card/90 backdrop-blur-md hover:bg-white dark:hover:bg-card text-foreground p-3 rounded-full shadow-xl border border-white/40 dark:border-border/40 transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
         onClick={scrollNext}
         disabled={!canScrollNext}
         aria-label="Slide suivant"
       >
-        <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
-      </Button>
+        <ChevronRight className="w-5 h-5" strokeWidth={2.5} />
+      </button>
 
       {/* Dots Indicators */}
       <div className="flex justify-center gap-2 mt-6">
