@@ -97,13 +97,30 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Notification de mise à jour disponible
-self.addEventListener('message', (event) => {
+// Notification de mise à jour disponible avec changelog
+self.addEventListener('message', async (event) => {
   if (event.data && event.data.type === 'GET_VERSION') {
+    // Charger le changelog
+    let changelog = [];
+    try {
+      const changelogResponse = await fetch('/CHANGELOG.json');
+      if (changelogResponse.ok) {
+        const changelogData = await changelogResponse.json();
+        const latestVersion = changelogData.versions[0];
+        if (latestVersion) {
+          changelog = latestVersion.changes.map(c => c.text);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load changelog:', error);
+    }
+
     event.ports[0].postMessage({ 
       version: APP_VERSION,
       buildDate: BUILD_DATE,
-      cacheSize: '~2.5MB'
+      cacheSize: '~2.5MB',
+      changelog: changelog,
+      severity: 'major'
     });
   }
 });

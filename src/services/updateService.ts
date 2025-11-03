@@ -54,11 +54,43 @@ class UpdateService {
 
     try {
       await this.registration.update();
+      logger.info('Update check completed');
       return true;
     } catch (error) {
       logger.error('Check for updates failed', error);
       return false;
     }
+  }
+
+  // Vérification intelligente multi-trigger
+  enableSmartChecking() {
+    // 1. Vérifier au focus de la fenêtre
+    window.addEventListener('focus', () => {
+      const lastCheck = localStorage.getItem('kwenda_last_update_check');
+      const now = Date.now();
+      if (!lastCheck || now - parseInt(lastCheck) > 5 * 60 * 1000) { // 5 minutes
+        this.checkForUpdates();
+        localStorage.setItem('kwenda_last_update_check', now.toString());
+      }
+    });
+
+    // 2. Vérifier après inactivité
+    let inactivityTimer: NodeJS.Timeout;
+    const resetInactivityTimer = () => {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        this.checkForUpdates();
+      }, 5 * 60 * 1000); // 5 minutes
+    };
+    
+    ['mousedown', 'keydown', 'scroll', 'touchstart'].forEach(event => {
+      document.addEventListener(event, resetInactivityTimer, true);
+    });
+
+    // 3. Vérification périodique (30 minutes)
+    setInterval(() => {
+      this.checkForUpdates();
+    }, 30 * 60 * 1000);
   }
 
   async getVersionInfo(): Promise<UpdateInfo> {

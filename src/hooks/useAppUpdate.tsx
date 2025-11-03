@@ -22,6 +22,9 @@ export const useAppUpdate = (): UseAppUpdateReturn => {
     // Initialiser le service
     updateService.initialize();
 
+    // Activer la vérification intelligente
+    updateService.enableSmartChecking();
+
     // Vérifier si on doit afficher le prompt
     setShouldShowPrompt(updateService.shouldShowPrompt());
 
@@ -32,18 +35,12 @@ export const useAppUpdate = (): UseAppUpdateReturn => {
       logger.info('Update detected', info);
     });
 
-    // Vérifier les mises à jour toutes les 30 minutes
-    const interval = setInterval(() => {
-      updateService.checkForUpdates();
-    }, 30 * 60 * 1000);
-
     // Vérification initiale après 10 secondes
     const timeout = setTimeout(() => {
       updateService.checkForUpdates();
     }, 10000);
 
     return () => {
-      clearInterval(interval);
       clearTimeout(timeout);
     };
   }, []);
