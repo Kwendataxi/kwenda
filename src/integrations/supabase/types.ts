@@ -5506,7 +5506,10 @@ export type Database = {
           tax_number: string | null
           updated_at: string | null
           user_id: string
+          verification_level: string | null
           verification_status: string | null
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           address: string
@@ -5533,7 +5536,10 @@ export type Database = {
           tax_number?: string | null
           updated_at?: string | null
           user_id: string
+          verification_level?: string | null
           verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           address?: string
@@ -5560,7 +5566,10 @@ export type Database = {
           tax_number?: string | null
           updated_at?: string | null
           user_id?: string
+          verification_level?: string | null
           verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: []
       }

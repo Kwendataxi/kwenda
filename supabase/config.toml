@@ -169,3 +169,15 @@ verify_jwt = true  # ✅ JWT requis pour acceptation frais de livraison marketpl
 
 [functions.assign-food-delivery]
 verify_jwt = true  # ✅ JWT requis pour assignation de livreur aux commandes food
+
+[functions.admin-approve-all-rentals]
+verify_jwt = true  # ✅ Approbation en masse véhicules location par admin
+
+[functions.partner-vehicle-notification]
+verify_jwt = false  # ✅ Notifications automatiques pour nouveaux véhicules
+
+[functions.admin-approve-vehicle]
+verify_jwt = true  # ✅ Approbation individuelle véhicule par admin
+
+[functions.admin-reject-vehicle]
+verify_jwt = true  # ✅ Rejet individuel véhicule par admin avec raison

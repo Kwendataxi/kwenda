@@ -49,6 +49,7 @@ const RentalVehicleDetails = lazy(() => import("./pages/RentalVehicleDetails"));
 const ModernRentalBooking = lazy(() => import("./components/rental/ModernRentalBooking"));
 const ClientRentalBookings = lazy(() => import("./pages/rental/ClientRentalBookings"));
 const PartnerRentalDashboard = lazy(() => import("./pages/partner/PartnerRentalDashboard"));
+const AdminRentalModerationEnhanced = lazy(() => import("./pages/AdminRentalModerationEnhanced"));
 
 const NotFound = lazy(() => import("./pages/NotFound"));
 const HelpCenter = lazy(() => import("./pages/support/HelpCenter"));
@@ -429,6 +430,11 @@ const AppContent = () => {
                     <Route path="/admin/food" element={
                       <ProtectedRoute>
                         <AdminFoodManagement />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/admin/rental-moderation" element={
+                      <ProtectedRoute>
+                        <AdminRentalModerationEnhanced />
                       </ProtectedRoute>
                     } />
                   </>
