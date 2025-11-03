@@ -1,14 +1,24 @@
 import React from 'react';
-import { Store } from 'lucide-react';
+import { Store, MessageSquare } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface UnifiedVendorHeaderProps {
   className?: string;
+  onOpenChat?: () => void;
+  onOpenNotifications?: () => void;
+  unreadChatCount?: number;
 }
 
-export const UnifiedVendorHeader: React.FC<UnifiedVendorHeaderProps> = ({ className = '' }) => {
+export const UnifiedVendorHeader: React.FC<UnifiedVendorHeaderProps> = ({ 
+  className = '',
+  onOpenChat,
+  onOpenNotifications,
+  unreadChatCount = 0
+}) => {
   const isMobile = useIsMobile();
   
   return (
@@ -40,6 +50,33 @@ export const UnifiedVendorHeader: React.FC<UnifiedVendorHeaderProps> = ({ classN
         </div>
         
         <div className="flex items-center gap-2">
+          {/* Chat Button */}
+          {onOpenChat && (
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative"
+                onClick={onOpenChat}
+              >
+                <MessageSquare className="h-5 w-5" />
+                {unreadChatCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px]"
+                  >
+                    {unreadChatCount > 9 ? '9+' : unreadChatCount}
+                  </Badge>
+                )}
+              </Button>
+            </motion.div>
+          )}
+          
+          {/* Notifications */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

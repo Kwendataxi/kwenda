@@ -20,6 +20,9 @@ interface ResponsiveVendorLayoutProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   stats: VendorStats;
+  onOpenChat?: () => void;
+  onOpenNotifications?: () => void;
+  unreadChatCount?: number;
 }
 
 export const ResponsiveVendorLayout: React.FC<ResponsiveVendorLayoutProps> = ({
@@ -27,6 +30,9 @@ export const ResponsiveVendorLayout: React.FC<ResponsiveVendorLayoutProps> = ({
   activeTab,
   onTabChange,
   stats,
+  onOpenChat,
+  onOpenNotifications,
+  unreadChatCount,
 }) => {
   const isMobile = useIsMobile();
 
@@ -56,7 +62,11 @@ export const ResponsiveVendorLayout: React.FC<ResponsiveVendorLayoutProps> = ({
       {/* Header fixe avec glassmorphism */}
       <header className="flex-shrink-0 sticky top-0 z-40">
         <div className="vendor-card-glass border-b border-border/20">
-          <UnifiedVendorHeader />
+          <UnifiedVendorHeader 
+            onOpenChat={onOpenChat}
+            onOpenNotifications={onOpenNotifications}
+            unreadChatCount={unreadChatCount}
+          />
         </div>
       </header>
 

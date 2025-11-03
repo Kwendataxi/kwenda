@@ -9,10 +9,12 @@ import { VendorOrdersList } from '@/components/vendor/VendorOrdersList';
 import { VendorProfilePage } from '@/components/vendor/VendorProfilePage';
 import { VendorSubscriptionManager } from '@/components/vendor/VendorSubscriptionManager';
 import { useVendorStats } from '@/hooks/useVendorStats';
+import { useVendorChat } from '@/hooks/useVendorChat';
 
 export default function ModernVendorDashboard() {
   const { user } = useAuth();
   const { stats } = useVendorStats();
+  const { totalUnread } = useVendorChat();
   
   const [activeTab, setActiveTab] = useState('dashboard');
   const [notifCenterOpen, setNotifCenterOpen] = useState(false);
@@ -23,12 +25,15 @@ export default function ModernVendorDashboard() {
       activeTab={activeTab}
       onTabChange={setActiveTab}
       stats={stats}
+      onOpenChat={() => setChatModalOpen(true)}
+      onOpenNotifications={() => setNotifCenterOpen(true)}
+      unreadChatCount={totalUnread}
     >
       {/* Contenu dynamique selon activeTab */}
-      {activeTab === 'dashboard' && <VendorDashboardOverview />}
-      {activeTab === 'shop' && <VendorProductManager />}
+      {activeTab === 'dashboard' && <VendorDashboardOverview onTabChange={setActiveTab} />}
+      {activeTab === 'shop' && <VendorProductManager onTabChange={setActiveTab} />}
       {activeTab === 'orders' && <VendorOrdersList />}
-      {activeTab === 'profile' && <VendorProfilePage />}
+      {activeTab === 'profile' && <VendorProfilePage onTabChange={setActiveTab} />}
       {activeTab === 'subscription' && <VendorSubscriptionManager />}
 
       {/* Modales */}

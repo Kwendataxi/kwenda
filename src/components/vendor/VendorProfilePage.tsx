@@ -17,7 +17,11 @@ import { VendorDocuments } from './VendorDocuments';
 import { VendorSettings } from './VendorSettings';
 import { VendorSalesHistory } from './VendorSalesHistory';
 
-export const VendorProfilePage = () => {
+interface VendorProfilePageProps {
+  onTabChange?: (tab: string) => void;
+}
+
+export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -41,14 +45,14 @@ export const VendorProfilePage = () => {
       icon: Package,
       label: "Ajouter un produit",
       description: "Nouveau produit en vente",
-      onClick: () => navigate('/vendor/products/new'),
+      onClick: () => navigate('/vendeur/ajouter-produit'),
       color: "text-purple-600"
     },
     {
       icon: ShoppingBag,
       label: "Voir mes commandes",
       description: "Gérer les commandes",
-      onClick: () => navigate('/vendor/orders'),
+      onClick: () => onTabChange?.('orders'),
       color: "text-blue-600"
     },
     {
@@ -59,10 +63,10 @@ export const VendorProfilePage = () => {
       color: "text-green-600"
     },
     {
-      icon: MessageSquare,
-      label: "Messages clients",
-      description: "Chat marketplace",
-      onClick: () => toast({ title: "Fonctionnalité à venir" }),
+      icon: BarChart3,
+      label: "Analytics",
+      description: "Performances détaillées",
+      onClick: () => onTabChange?.('dashboard'),
       color: "text-orange-600"
     }
   ];
@@ -75,19 +79,19 @@ export const VendorProfilePage = () => {
           icon: Store, 
           label: "Informations de la boutique",
           description: "Nom, description, logo",
-          onClick: () => toast({ title: "Section à venir" })
+          onClick: () => onTabChange?.('profile')
         },
         { 
           icon: Package, 
           label: "Mes produits",
           description: "Gérer mon catalogue",
-          onClick: () => navigate('/vendor/products')
+          onClick: () => onTabChange?.('shop')
         },
         { 
           icon: ShoppingBag, 
           label: "Mes commandes",
           description: "Suivi des ventes",
-          onClick: () => navigate('/vendor/orders')
+          onClick: () => onTabChange?.('orders')
         }
       ]
     },
@@ -104,13 +108,13 @@ export const VendorProfilePage = () => {
           icon: TrendingUp, 
           label: "Compte séquestre",
           description: "Fonds en attente",
-          onClick: () => toast({ title: "Voir escrow" })
+          onClick: () => navigate('/escrow')
         },
         { 
           icon: BarChart3, 
           label: "Analytics détaillées",
           description: "Performances de vente",
-          onClick: () => toast({ title: "Analytics à venir" })
+          onClick: () => onTabChange?.('dashboard')
         }
       ]
     },
@@ -144,19 +148,25 @@ export const VendorProfilePage = () => {
           icon: Users, 
           label: "Mes clients",
           description: "Followers et avis",
-          onClick: () => toast({ title: "Followers à venir" })
+          onClick: () => toast({ 
+            title: "Mes clients", 
+            description: "Fonctionnalité en développement - Disponible prochainement"
+          })
         },
         { 
           icon: Award, 
           label: "Programme fidélité",
           description: "Récompenses vendeur",
-          onClick: () => toast({ title: "Programme à venir" })
+          onClick: () => toast({ 
+            title: "Programme fidélité", 
+            description: "Fonctionnalité en développement - Disponible prochainement"
+          })
         },
         { 
           icon: Shield, 
           label: "Aide & Support",
           description: "Centre d'assistance",
-          onClick: () => toast({ title: "Support à venir" })
+          onClick: () => navigate('/support/help-center')
         }
       ]
     }

@@ -10,9 +10,10 @@ import { ModernVendorProductCard } from './ModernVendorProductCard';
 
 interface VendorProductManagerProps {
   onUpdate?: () => void;
+  onTabChange?: (tab: string) => void;
 }
 
-export const VendorProductManager = ({ onUpdate }: VendorProductManagerProps) => {
+export const VendorProductManager = ({ onUpdate, onTabChange }: VendorProductManagerProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();

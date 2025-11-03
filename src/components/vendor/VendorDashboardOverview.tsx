@@ -4,7 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { Package, Plus, ShoppingBag, DollarSign, Clock, CheckCircle } from 'lucide-react';
 import { useVendorStats } from '@/hooks/useVendorStats';
 
-export const VendorDashboardOverview = () => {
+interface VendorDashboardOverviewProps {
+  onTabChange?: (tab: string) => void;
+}
+
+export const VendorDashboardOverview = ({ onTabChange }: VendorDashboardOverviewProps) => {
   const navigate = useNavigate();
   const { stats, loading } = useVendorStats();
 
@@ -116,7 +120,7 @@ export const VendorDashboardOverview = () => {
           <Plus className="h-4 w-4 mr-2" />
           Ajouter un produit
         </Button>
-        <Button variant="outline" onClick={() => navigate('/vendeur')} size="lg">
+        <Button variant="outline" onClick={() => onTabChange?.('shop')} size="lg">
           <Package className="h-4 w-4 mr-2" />
           Gérer mes produits
         </Button>
