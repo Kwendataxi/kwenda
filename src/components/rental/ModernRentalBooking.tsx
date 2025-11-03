@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { differenceInDays, differenceInHours, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-type BookingStep = 'dates' | 'driver-choice' | 'vehicle-equipment' | 'driver-info' | 'summary';
+type BookingStep = 'dates' | 'driver-choice' | 'pickup-location' | 'vehicle-equipment' | 'driver-info' | 'summary';
 
 export const ModernRentalBooking = () => {
   const { vehicleId } = useParams<{ vehicleId: string }>();
@@ -34,6 +34,8 @@ export const ModernRentalBooking = () => {
     email: '',
     license: ''
   });
+  const [pickupLocation, setPickupLocation] = useState('');
+  const [returnLocation, setReturnLocation] = useState('');
 
   const vehicle = vehicles.find(v => v.id === vehicleId);
 
@@ -112,6 +114,9 @@ export const ModernRentalBooking = () => {
       steps.push('driver-choice');
     }
     
+    // Add pickup location step (REQUIS)
+    steps.push('pickup-location');
+    
     steps.push('vehicle-equipment');
     
     // Add driver info step only if without driver
@@ -149,10 +154,25 @@ export const ModernRentalBooking = () => {
         return total + (price * days);
       }, 0);
 
+      // Calculer rental_duration_type automatiquement
+      const hours = differenceInHours(endDate!, startDate!);
+      const days = Math.max(1, differenceInDays(endDate!, startDate!));
+      let rentalDurationType: 'hourly' | 'daily' | 'weekly';
+      if (hours < 24) {
+        rentalDurationType = 'hourly';
+      } else if (days < 7) {
+        rentalDurationType = 'daily';
+      } else {
+        rentalDurationType = 'weekly';
+      }
+
       await createBooking.mutateAsync({
         vehicle_id: vehicleId,
         start_date: startDate,
         end_date: endDate,
+        pickup_location: pickupLocation,
+        return_location: returnLocation || pickupLocation,
+        rental_duration_type: rentalDurationType,
         driver_choice: driverChoice,
         equipment_ids: selectedEquipment,
         equipment_total: equipmentTotal,
@@ -435,7 +455,72 @@ export const ModernRentalBooking = () => {
             </motion.div>
           )}
 
-          {/* Step 3: Vehicle Equipment */}
+          {/* Step 3: Pickup Location - NOUVEAU */}
+          {currentStep === 'pickup-location' && (
+            <motion.div key="pickup-location" {...fadeInUp}>
+              <Card className="glassmorphism border-primary/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    Lieux de prise en charge
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Où souhaitez-vous récupérer le véhicule ?
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Adresse de récupération *
+                    </label>
+                    <input
+                      type="text"
+                      value={pickupLocation}
+                      onChange={(e) => setPickupLocation(e.target.value)}
+                      className="w-full p-3 border border-border rounded-lg bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                      placeholder="Ex: Avenue Kasa-Vubu, Kinshasa"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Indiquez l'adresse exacte où vous souhaitez prendre le véhicule
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Adresse de retour (optionnel)
+                    </label>
+                    <input
+                      type="text"
+                      value={returnLocation}
+                      onChange={(e) => setReturnLocation(e.target.value)}
+                      className="w-full p-3 border border-border rounded-lg bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                      placeholder="Même adresse si vide"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Laissez vide pour retourner au même endroit
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <p className="text-sm text-blue-900 dark:text-blue-100">
+                      💡 <strong>Astuce :</strong> Vous pouvez modifier ces adresses ultérieurement avant la confirmation finale.
+                    </p>
+                  </div>
+
+                  <Button 
+                    className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                    onClick={handleNext}
+                    disabled={!pickupLocation.trim()}
+                  >
+                    Continuer
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Step 4: Vehicle Equipment */}
           {currentStep === 'vehicle-equipment' && (
             <motion.div key="vehicle-equipment" {...fadeInUp}>
               <Card className="glassmorphism border-primary/20">
@@ -542,7 +627,7 @@ export const ModernRentalBooking = () => {
             </motion.div>
           )}
 
-          {/* Step 4: Driver Info (only if without driver) */}
+          {/* Step 5: Driver Info (only if without driver) */}
           {currentStep === 'driver-info' && (
             <motion.div key="driver-info" {...fadeInUp}>
               <Card className="glassmorphism border-primary/20">
@@ -627,7 +712,7 @@ export const ModernRentalBooking = () => {
             </motion.div>
           )}
 
-          {/* Step 5: Summary */}
+          {/* Step 6: Summary */}
           {currentStep === 'summary' && (
             <motion.div key="summary" {...fadeInUp} className="space-y-4">
               <Card className="glassmorphism border-primary/20">
@@ -667,6 +752,17 @@ export const ModernRentalBooking = () => {
                     <p className="text-sm text-muted-foreground mt-1">
                       {Math.max(1, differenceInDays(endDate!, startDate!))} jour(s)
                     </p>
+                  </div>
+
+                  {/* Pickup Location */}
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium mb-2">Lieux</h4>
+                    <div className="space-y-1 text-sm">
+                      <p><span className="text-muted-foreground">Récupération :</span> {pickupLocation}</p>
+                      {returnLocation && (
+                        <p><span className="text-muted-foreground">Retour :</span> {returnLocation}</p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Equipment */}

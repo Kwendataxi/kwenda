@@ -267,9 +267,24 @@ export function useModernRentals(selectedCity?: string) {
       const { data, error } = await supabase
         .from("rental_bookings")
         .insert({
-          ...bookingData,
           user_id: user.user.id,
-          status: 'pending'
+          vehicle_id: bookingData.vehicle_id,
+          start_date: bookingData.start_date,
+          end_date: bookingData.end_date,
+          pickup_location: bookingData.pickup_location,
+          return_location: bookingData.return_location || bookingData.pickup_location,
+          rental_duration_type: bookingData.rental_duration_type,
+          total_amount: bookingData.total_price,
+          security_deposit: bookingData.security_deposit,
+          driver_choice: bookingData.driver_choice,
+          equipment_ids: bookingData.equipment_ids || [],
+          equipment_total: bookingData.equipment_total || 0,
+          driver_name: bookingData.driver_name,
+          driver_phone: bookingData.driver_phone,
+          driver_email: bookingData.driver_email,
+          driver_license: bookingData.driver_license,
+          status: 'pending',
+          payment_status: 'pending'
         })
         .select()
         .single();

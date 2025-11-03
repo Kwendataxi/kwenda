@@ -45,6 +45,7 @@ const PartnerApp = lazy(() => import("./pages/PartnerApp"));
 const AdminApp = lazy(() => import("./pages/AdminApp"));
 const RestaurantApp = lazy(() => import("./pages/RestaurantApp"));
 const ClientRentalInterface = lazy(() => import("./pages/ClientRentalInterface"));
+const RentalVehicleDetails = lazy(() => import("./pages/RentalVehicleDetails"));
 const ModernRentalBooking = lazy(() => import("./components/rental/ModernRentalBooking"));
 const ClientRentalBookings = lazy(() => import("./pages/rental/ClientRentalBookings"));
 const PartnerRentalDashboard = lazy(() => import("./pages/partner/PartnerRentalDashboard"));
@@ -316,6 +317,11 @@ const AppContent = () => {
                     <Route path="/rental" element={
                       <ServiceGuard serviceCategory="rental">
                         <ClientRentalInterface />
+                      </ServiceGuard>
+                    } />
+                    <Route path="/rental/:vehicleId/details" element={
+                      <ServiceGuard serviceCategory="rental">
+                        <RentalVehicleDetails />
                       </ServiceGuard>
                     } />
                     <Route path="/rental-booking/:vehicleId" element={

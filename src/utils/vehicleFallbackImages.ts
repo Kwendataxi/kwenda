@@ -29,6 +29,29 @@ export const getVehicleImage = (vehicle: any): string => {
   return VEHICLE_FALLBACK_IMAGES[vehicle.comfort_level] || VEHICLE_FALLBACK_IMAGES.default;
 };
 
+// Retourner un array de 5 images pour la galerie
+export const getVehicleImages = (vehicle: any): string[] => {
+  // Si le véhicule a des images réelles
+  if (vehicle.images && vehicle.images.length > 0 && vehicle.images[0] !== '/placeholder.svg') {
+    // Compléter jusqu'à 5 images si nécessaire
+    const realImages = vehicle.images.filter((img: string) => img !== '/placeholder.svg');
+    while (realImages.length < 5) {
+      realImages.push(VEHICLE_FALLBACK_IMAGES[vehicle.comfort_level] || VEHICLE_FALLBACK_IMAGES.default);
+    }
+    return realImages.slice(0, 5);
+  }
+  
+  // Sinon, retourner 5 images génériques variées
+  const baseImage = VEHICLE_FALLBACK_IMAGES[vehicle.comfort_level] || VEHICLE_FALLBACK_IMAGES.default;
+  return [
+    baseImage,
+    'https://images.unsplash.com/photo-1542362567-b07e54358753?w=800&h=600&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=600&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&h=600&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&h=600&fit=crop&q=80'
+  ];
+};
+
 export const getVehicleGradient = (vehicle: any): string => {
   return CATEGORY_GRADIENTS[vehicle.comfort_level] || CATEGORY_GRADIENTS.default;
 };

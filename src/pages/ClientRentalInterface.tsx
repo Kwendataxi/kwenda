@@ -200,7 +200,7 @@ export const ClientRentalInterface = () => {
                 >
                   <Card 
                     className="overflow-hidden hover:shadow-xl transition-all cursor-pointer group border-2 hover:border-primary"
-                    onClick={() => navigate(`/rental-booking/${vehicle.id}`)}
+                    onClick={() => navigate(`/rental/${vehicle.id}/details`)}
                   >
                     {/* Image - Réduite à h-32 */}
                     <div className="relative h-32 overflow-hidden">
