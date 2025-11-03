@@ -56,6 +56,7 @@ export const translations = {
     'auth.create_client_account': 'Créer un compte client',
     'auth.email_placeholder': 'votre@email.com',
     'auth.password_placeholder': '••••••••',
+    'auth.driver_deliverer': 'Chauffeur/Livreur',
     
     // Loading messages
     'loading.preparing': 'Préparation de votre trajet',
@@ -516,6 +517,7 @@ export const translations = {
     'auth.create_client_account': 'Create a Client Account',
     'auth.email_placeholder': 'your@email.com',
     'auth.password_placeholder': '••••••••',
+    'auth.driver_deliverer': 'Driver/Delivery',
     
     // Loading messages
     'loading.preparing': 'Preparing your ride',
