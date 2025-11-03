@@ -29,34 +29,32 @@ export const CompactRentalSlide: React.FC<CompactRentalSlideProps> = ({
           {vehicleCount}+ DISPONIBLES
         </div>
 
-        {/* Icône emoji en haut à gauche */}
-        <div className="absolute top-2 left-2 text-3xl">
-          🚗
-        </div>
-
-        {/* Layout horizontal : Info à gauche, CTA à droite */}
-        <div className="flex items-center justify-between w-full gap-3">
-          {/* Partie gauche : Titre + Prix */}
-          <div className="flex-1 space-y-1">
-            <h3 className="text-2xl font-black text-white leading-tight drop-shadow-lg">
-              Location de<br />
-              <span className="bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
-                Véhicules
-              </span>
-            </h3>
+        {/* Layout horizontal : Info + CTA */}
+        <div className="flex items-center justify-between w-full gap-4">
+          {/* Partie gauche : Emoji + Titre + Prix inline */}
+          <div className="flex-1 flex items-center gap-3">
+            {/* Emoji grand à gauche */}
+            <div className="text-5xl">🚗</div>
             
-            {/* Prix inline compact */}
-            <div className="inline-flex items-baseline gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20">
-              <span className="text-xs text-white/70 font-medium">À partir de</span>
-              <span className="text-xl font-black text-white">{startingPrice.toLocaleString()}</span>
-              <span className="text-xs text-white/90 font-bold">CDF/jour</span>
+            {/* Titre + Prix verticalement */}
+            <div className="flex flex-col gap-1.5">
+              <h3 className="text-2xl font-black text-white leading-tight drop-shadow-lg">
+                Location de véhicules
+              </h3>
+              
+              {/* Prix inline compact */}
+              <div className="inline-flex items-baseline gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20">
+                <span className="text-xs text-white/70 font-medium">À partir de</span>
+                <span className="text-lg font-black text-white">{startingPrice.toLocaleString()}</span>
+                <span className="text-xs text-white/90 font-bold">CDF/jour</span>
+              </div>
             </div>
           </div>
           
           {/* Partie droite : CTA */}
           <button 
             onClick={onReserve}
-            className="bg-white text-emerald-600 px-6 py-2.5 rounded-xl font-bold text-xs shadow-xl hover:scale-105 transition-all"
+            className="bg-white text-emerald-600 px-6 py-3 rounded-xl font-bold text-sm shadow-xl hover:scale-105 transition-all shrink-0"
           >
             Réserver →
           </button>

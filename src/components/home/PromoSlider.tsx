@@ -68,7 +68,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   };
 
   return (
-    <div className="w-full relative space-y-3">
+    <div className="w-full relative">
       <Carousel
         setApi={setApi}
         opts={{ loop: true, align: 'start' }}
@@ -278,24 +278,24 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
             </CarouselItem>
           ))}
         </CarouselContent>
+        
+        {/* Dots indicator - intégrés dans le slider */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+          {defaultPromos.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => api?.scrollTo(index)}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-300",
+                current === index 
+                  ? "w-8 bg-white shadow-lg" 
+                  : "w-1.5 bg-white/40 hover:bg-white/60"
+              )}
+              aria-label={`Slide ${index + 1}`}
+            />
+          ))}
+        </div>
       </Carousel>
-      
-      {/* Pagination dots */}
-      <div className="flex justify-center gap-2 mt-2">
-        {defaultPromos.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => api?.scrollTo(index)}
-            className={cn(
-              'h-2 rounded-full transition-all duration-300',
-              current === index 
-                ? 'w-6 bg-primary shadow-glow' 
-                : 'w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50'
-            )}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
-      </div>
     </div>
   );
 };
