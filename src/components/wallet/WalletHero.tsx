@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, TrendingUp } from 'lucide-react';
+import { Wallet, TrendingUp, Gift } from 'lucide-react';
 import { AnimatedBalance } from './AnimatedBalance';
 
 interface WalletHeroProps {
@@ -55,27 +55,25 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
         />
       </div>
 
-      {/* Soldes secondaires inline */}
-      <div className="flex items-center justify-center gap-6 text-sm">
+      {/* Solde Bonus - Toujours visible avec design distinctif */}
+      <div className="flex items-center justify-center gap-2 mt-4 px-6 py-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl border border-orange-200/50">
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">Principal:</span>
-          <span className="font-semibold text-foreground">
-            {mainBalance.toLocaleString('fr-CD')} {currency}
-          </span>
+          <div className="p-1.5 rounded-lg bg-orange-500/10">
+            <Gift className="h-4 w-4 text-orange-600" />
+          </div>
+          <span className="text-sm text-orange-900/70 font-medium">Solde Bonus:</span>
         </div>
-        
-        {bonusBalance > 0 && (
-          <>
-            <span className="text-muted-foreground">•</span>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Bonus:</span>
-              <span className="font-semibold text-orange-600">
-                {bonusBalance.toLocaleString('fr-CD')} {currency}
-              </span>
-            </div>
-          </>
-        )}
+        <span className="text-base font-bold text-orange-600">
+          {bonusBalance.toLocaleString('fr-CD')} {currency}
+        </span>
       </div>
+
+      {/* Note explicative discrète si bonus = 0 */}
+      {bonusBalance === 0 && (
+        <p className="text-center text-xs text-muted-foreground mt-2">
+          Convertissez vos points pour obtenir des bonus
+        </p>
+      )}
     </motion.div>
   );
 };
