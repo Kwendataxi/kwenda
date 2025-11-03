@@ -210,11 +210,23 @@ export const ClientRentalBookings = () => {
     const Icon = config.icon;
 
     return (
-      <Badge variant={config.variant} className="flex items-center gap-1">
-        <Icon className="h-3 w-3" />
-        {config.label}
-      </Badge>
+      <div className="flex gap-2 flex-wrap">
+        <Badge variant={config.variant} className="flex items-center gap-1">
+          <Icon className="h-3 w-3" />
+          {config.label}
+        </Badge>
+      </div>
     );
+  };
+
+  const getDriverBadge = (driverChoice: string) => {
+    if (driverChoice === 'with_driver') {
+      return <Badge variant="default" className="text-xs">👤 Avec chauffeur</Badge>;
+    }
+    if (driverChoice === 'without_driver') {
+      return <Badge variant="secondary" className="text-xs">🚗 Sans chauffeur</Badge>;
+    }
+    return null;
   };
 
   const renderBookingCard = (booking: RentalBooking) => (
@@ -252,7 +264,10 @@ export const ClientRentalBookings = () => {
                     {booking.vehicle?.brand} {booking.vehicle?.model} ({booking.vehicle?.year})
                   </p>
                 </div>
-                {getStatusBadge(booking.status)}
+                <div className="flex flex-col gap-2">
+                  {getStatusBadge(booking.status)}
+                  {(booking as any).driver_choice && getDriverBadge((booking as any).driver_choice)}
+                </div>
               </div>
 
               {/* Dates */}

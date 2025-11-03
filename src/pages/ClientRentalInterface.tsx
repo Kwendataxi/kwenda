@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Car, MapPin, Clock, DollarSign, Star, Calendar, Users, Fuel, Cog, Search, SlidersHorizontal, GitCompare } from 'lucide-react';
+import { Car, MapPin, Clock, DollarSign, Star, Calendar, Users, Fuel, Cog, Search, SlidersHorizontal, GitCompare, User } from 'lucide-react';
 import { useModernRentals } from '@/hooks/useModernRentals';
 import { useNavigate } from 'react-router-dom';
 import { VehicleGridSkeleton } from '@/components/ui/skeleton-cards';
@@ -284,25 +284,44 @@ export const ClientRentalInterface = () => {
                         )}
                       </div>
 
+                      {/* Driver availability badge */}
+                      {vehicle.driver_available && (
+                        <div className="mb-3">
+                          <Badge variant="secondary" className="text-xs">
+                            <User className="h-3 w-3 mr-1" />
+                            Chauffeur disponible
+                          </Badge>
+                        </div>
+                      )}
+
                       <div className="border-t pt-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Clock className="h-4 w-4" />
-                            <span>Par heure</span>
+                        {/* Show dual pricing if driver available */}
+                        {vehicle.driver_available && vehicle.with_driver_daily_rate && vehicle.without_driver_daily_rate ? (
+                          <>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">Avec chauffeur / jour</span>
+                              <span className="font-semibold text-primary">
+                                {calculateCityPrice(vehicle.with_driver_daily_rate, vehicle.category_id).toLocaleString()} CDF
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">Sans chauffeur / jour</span>
+                              <span className="font-semibold">
+                                {calculateCityPrice(vehicle.without_driver_daily_rate, vehicle.category_id).toLocaleString()} CDF
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Calendar className="h-4 w-4" />
+                              <span>Par jour</span>
+                            </div>
+                            <span className="font-semibold text-primary">
+                              {calculateCityPrice(vehicle.daily_rate, vehicle.category_id).toLocaleString()} CDF
+                            </span>
                           </div>
-                          <span className="font-semibold">
-                            {calculateCityPrice(vehicle.hourly_rate, vehicle.category_id).toLocaleString()} CDF
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Calendar className="h-4 w-4" />
-                            <span>Par jour</span>
-                          </div>
-                          <span className="font-semibold text-primary">
-                            {calculateCityPrice(vehicle.daily_rate, vehicle.category_id).toLocaleString()} CDF
-                          </span>
-                        </div>
+                        )}
                       </div>
 
                       <Button className="w-full" onClick={() => navigate(`/rental-booking/${vehicle.id}`)}>

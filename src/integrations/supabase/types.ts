@@ -7627,8 +7627,11 @@ export type Database = {
           contract_signed: boolean
           created_at: string
           currency: string
+          driver_choice: string | null
           driver_license_verified: boolean
           end_date: string
+          equipment_ids: string[] | null
+          equipment_total: number | null
           id: string
           insurance_type: string | null
           payment_status: string
@@ -7654,8 +7657,11 @@ export type Database = {
           contract_signed?: boolean
           created_at?: string
           currency?: string
+          driver_choice?: string | null
           driver_license_verified?: boolean
           end_date: string
+          equipment_ids?: string[] | null
+          equipment_total?: number | null
           id?: string
           insurance_type?: string | null
           payment_status?: string
@@ -7681,8 +7687,11 @@ export type Database = {
           contract_signed?: boolean
           created_at?: string
           currency?: string
+          driver_choice?: string | null
           driver_license_verified?: boolean
           end_date?: string
+          equipment_ids?: string[] | null
+          equipment_total?: number | null
           id?: string
           insurance_type?: string | null
           payment_status?: string
@@ -7746,6 +7755,53 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "rental_vehicle_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rental_equipment_pricing: {
+        Row: {
+          city: string
+          created_at: string | null
+          currency: string | null
+          daily_rate: number | null
+          equipment_type_id: string | null
+          hourly_rate: number | null
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+          weekly_rate: number | null
+        }
+        Insert: {
+          city: string
+          created_at?: string | null
+          currency?: string | null
+          daily_rate?: number | null
+          equipment_type_id?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          weekly_rate?: number | null
+        }
+        Update: {
+          city?: string
+          created_at?: string | null
+          currency?: string | null
+          daily_rate?: number | null
+          equipment_type_id?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          weekly_rate?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_equipment_pricing_equipment_type_id_fkey"
+            columns: ["equipment_type_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_equipment_types"
             referencedColumns: ["id"]
           },
         ]

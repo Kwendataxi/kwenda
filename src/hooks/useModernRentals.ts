@@ -169,6 +169,28 @@ export function useModernRentals(selectedCity?: string) {
     enabled: !!userLocation,
   });
 
+  // Load equipment pricing
+  const equipmentPricingQuery = useQuery({
+    queryKey: ["equipment-pricing", userLocation],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("rental_equipment_pricing" as any)
+        .select("*")
+        .eq("city", userLocation)
+        .eq("is_active", true);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!userLocation,
+  });
+
+  const getEquipmentPrice = (equipmentId: string, city: string): number => {
+    const pricing: any = equipmentPricingQuery.data?.find(
+      (p: any) => p.equipment_type_id === equipmentId && p.city === city
+    );
+    return pricing?.daily_rate || 5000; // Default 5000 CDF if not found
+  };
+
   // Realtime updates for rentals (categories, vehicles, pricing)
   useEffect(() => {
     const channel = supabase
@@ -275,6 +297,7 @@ export function useModernRentals(selectedCity?: string) {
     availableCities,
     categories: categoriesQuery.data || [],
     equipment: equipmentQuery.data || [],
+    vehicleEquipment: equipmentQuery.data || [],
     driverEquipment: driverEquipmentQuery.data || [],
     vehicles: vehiclesQuery.data || [],
     pricing: pricingQuery.data || [],
@@ -282,6 +305,7 @@ export function useModernRentals(selectedCity?: string) {
     isError: categoriesQuery.isError || vehiclesQuery.isError || equipmentQuery.isError || driverEquipmentQuery.isError,
     calculateCityPrice,
     getVehiclesByCategory,
+    getEquipmentPrice,
     createBooking,
   }), [
     userLocation,
@@ -291,6 +315,7 @@ export function useModernRentals(selectedCity?: string) {
     driverEquipmentQuery.data,
     vehiclesQuery.data,
     pricingQuery.data,
+    equipmentPricingQuery.data,
     categoriesQuery.isLoading,
     vehiclesQuery.isLoading,
     equipmentQuery.isLoading,
@@ -301,6 +326,7 @@ export function useModernRentals(selectedCity?: string) {
     driverEquipmentQuery.isError,
     calculateCityPrice,
     getVehiclesByCategory,
+    getEquipmentPrice,
     createBooking,
   ]);
 }
