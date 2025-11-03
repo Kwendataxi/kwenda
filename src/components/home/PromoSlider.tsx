@@ -87,9 +87,11 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                   'transition-all duration-300 hover:shadow-[0_8px_32px_rgba(0,0,0,0.16)] hover:scale-[1.01]'
                 )}
               >
-                {/* Overlay gradients sophistiqués */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.25),transparent_60%)]" />
+                {/* Base gradient background */}
+                <div className={`absolute inset-0 ${promo.gradient}`} />
+                
+                {/* Subtle overlay */}
+                <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" />
                 
                 {/* Slide 1: 30% Discount - Layout horizontal compact */}
                 {promo.id === '1' && (
@@ -103,14 +105,14 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                     <div className="flex items-center justify-between w-full gap-3">
                       {/* Partie gauche : Offre */}
                       <div className="flex-1 space-y-1">
-                        <motion.h3 
-                          className="text-4xl font-black drop-shadow-2xl leading-none"
-                          initial={{ x: -20, opacity: 0 }}
-                          animate={{ x: 0, opacity: 1 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          30% OFF
-                        </motion.h3>
+              <motion.h3 
+                className="text-4xl font-black drop-shadow-2xl leading-none"
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                🎉 30% OFF
+              </motion.h3>
                         
                         {/* Code promo inline */}
                         <div className="inline-flex items-center gap-2 bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20">
@@ -148,10 +150,10 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
 
                     {/* Contenu principal horizontal */}
                     <div className="flex items-center justify-between w-full">
-                      <div className="flex-1">
-                        <h3 className="text-3xl font-black drop-shadow-lg leading-tight bg-gradient-to-r from-white to-yellow-200 bg-clip-text text-transparent">
-                          Livraison<br />Flash Express
-                        </h3>
+              <div className="flex-1">
+                <h3 className="text-3xl font-black drop-shadow-lg leading-tight bg-gradient-to-r from-white to-yellow-200 bg-clip-text text-transparent">
+                  ⚡ Livraison<br />Flash Express
+                </h3>
                         <span className="text-[10px] font-bold bg-white/10 backdrop-blur px-2 py-0.5 rounded-md mt-1 inline-block">
                           ⚡ 30 min
                         </span>
@@ -179,13 +181,13 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                     {/* Layout horizontal */}
                     <div className="flex items-center justify-between w-full gap-3">
                       {/* Partie gauche */}
-                      <div className="flex-1 space-y-1">
-                        <h3 className="text-2xl font-black leading-tight">
-                          Tombola<br />
-                          <span className="bg-gradient-to-r from-yellow-300 to-yellow-100 bg-clip-text text-transparent">
-                            KwendaPay
-                          </span>
-                        </h3>
+              <div className="flex-1 space-y-1">
+                <h3 className="text-2xl font-black leading-tight">
+                  🎰 Tombola<br />
+                  <span className="bg-gradient-to-r from-yellow-300 to-yellow-100 bg-clip-text text-transparent">
+                    KwendaPay
+                  </span>
+                </h3>
                         
                         {/* Montant bubble inline */}
                         <div className="inline-flex items-center gap-1.5 bg-yellow-400 text-purple-900 px-3 py-1.5 rounded-xl shadow-lg">
@@ -224,11 +226,13 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
                     <ShoppingBag className="absolute bottom-2 right-2 w-16 h-16 text-white/10" strokeWidth={1.5} />
                     
                     <div className="flex items-center justify-between w-full gap-3">
-                      <div className="flex-1">
-                        <h3 className="text-2xl font-black drop-shadow-lg leading-tight tracking-tight">
-                          Achetez, vendez,<br />
-                          <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">on livre !</span>
-                        </h3>
+            <div className="flex-1">
+              <h3 className="text-2xl font-black text-white leading-tight drop-shadow-lg">
+                🛒 Achetez, vendez,<br />
+                <span className="bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-transparent">
+                  on livre !
+                </span>
+              </h3>
                         <p className="text-[10px] font-bold opacity-90 mt-1">100% sécurisé</p>
                       </div>
                       
@@ -251,9 +255,9 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
 
                     <div className="flex items-center justify-between w-full gap-3">
                       <div className="flex-1">
-                        <h3 className="text-2xl font-black leading-tight">
-                          Kwenda<br />
-                          <span className="bg-gradient-to-r from-yellow-300 via-orange-100 to-yellow-300 bg-clip-text text-transparent">
+                        <h3 className="text-2xl font-black text-white leading-tight drop-shadow-lg">
+                          🍕 Kwenda<br />
+                          <span className="bg-gradient-to-r from-yellow-200 to-orange-200 bg-clip-text text-transparent">
                             Food
                           </span>
                         </h3>
