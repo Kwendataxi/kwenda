@@ -323,10 +323,10 @@ export const ModernRentalBooking = () => {
                       animate={{ opacity: 1, scale: 1 }}
                       className="p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl border border-primary/20"
                     >
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
-                            <CalendarCheck className="h-5 w-5 text-green-600" />
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div className="flex items-center gap-3 w-full md:flex-1">
+                          <div className="p-1.5 md:p-2 rounded-lg bg-green-100 dark:bg-green-900/20 flex-shrink-0">
+                            <CalendarCheck className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
                           </div>
                           <div className="text-left">
                             <p className="text-sm font-medium">Début</p>
@@ -336,15 +336,19 @@ export const ModernRentalBooking = () => {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10">
-                          <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                        <div className="md:hidden w-full h-px bg-border"></div>
+
+                        <div className="flex items-center justify-center gap-2 px-2 py-1.5 md:px-3 md:py-2 rounded-lg bg-primary/10 w-full md:w-auto">
+                          <ArrowRight className="h-4 w-4 text-muted-foreground hidden md:inline" />
                           <p className="text-sm font-bold text-primary">{differenceInDays(endDate, startDate)} jour(s)</p>
-                          <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                          <ArrowRight className="h-4 w-4 text-muted-foreground hidden md:inline" />
                         </div>
 
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20">
-                            <CalendarX className="h-5 w-5 text-orange-600" />
+                        <div className="md:hidden w-full h-px bg-border"></div>
+
+                        <div className="flex items-center gap-3 w-full md:flex-1">
+                          <div className="p-1.5 md:p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex-shrink-0">
+                            <CalendarX className="h-4 w-4 md:h-5 md:w-5 text-orange-600" />
                           </div>
                           <div className="text-left">
                             <p className="text-sm font-medium">Fin</p>
