@@ -193,14 +193,23 @@ export const ModernRentalBooking = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
+      {/* Bouton retour fixe visible */}
+      <div className="fixed top-4 left-4 z-50">
+        <Button 
+          variant="outline" 
+          size="icon"
+          onClick={handleBack}
+          className="bg-background/90 backdrop-blur shadow-lg hover:bg-background"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+      </div>
+
       {/* Header */}
       <div className="sticky top-0 z-10 glassmorphism border-b border-border/20 backdrop-blur-xl">
         <div className="max-w-3xl mx-auto p-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={handleBack}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex-1">
+          <div className="flex items-center justify-center">
+            <div className="text-center">
               <h1 className="font-bold text-lg">Réservation</h1>
               <p className="text-sm text-muted-foreground">{vehicle.name}</p>
             </div>
@@ -220,21 +229,18 @@ export const ModernRentalBooking = () => {
 
       <div className="max-w-3xl mx-auto p-4 space-y-6">
         <AnimatePresence mode="wait">
-          {/* Step 1: Dates */}
+          {/* Step 1: Dates - Simplifié */}
           {currentStep === 'dates' && (
             <motion.div key="dates" {...fadeInUp}>
               <Card className="glassmorphism border-primary/20">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <CalendarIcon className="h-5 w-5 text-primary" />
-                    Sélectionnez vos dates
+                    Quand souhaitez-vous louer ?
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Choisissez la période de location pour {vehicle.name}
-                  </p>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid gap-4">
+                  <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium mb-2 block">Date de début</label>
                       <Calendar
@@ -242,7 +248,7 @@ export const ModernRentalBooking = () => {
                         selected={startDate}
                         onSelect={setStartDate}
                         disabled={(date) => date < new Date()}
-                        className="rounded-lg border"
+                        className="rounded-lg border w-full"
                       />
                     </div>
                     <div>
@@ -251,8 +257,8 @@ export const ModernRentalBooking = () => {
                         mode="single"
                         selected={endDate}
                         onSelect={setEndDate}
-                        disabled={(date) => !startDate || date < startDate}
-                        className="rounded-lg border"
+                        disabled={(date) => !startDate || date <= startDate}
+                        className="rounded-lg border w-full"
                       />
                     </div>
                   </div>
@@ -261,20 +267,14 @@ export const ModernRentalBooking = () => {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl border border-primary/20"
+                      className="p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl"
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Durée</p>
-                          <p className="text-lg font-bold">{Math.max(1, differenceInDays(endDate, startDate))} jour(s)</p>
-                        </div>
-                        {driverChoice && (
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-muted-foreground">Prix estimé</p>
-                            <p className="text-2xl font-bold text-primary">{formatCDF(calculateTotal())}</p>
-                          </div>
-                        )}
-                      </div>
+                      <p className="text-sm mb-1">
+                        <strong>Durée :</strong> {differenceInDays(endDate, startDate)} jour(s)
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Du {format(startDate, 'dd MMM yyyy', { locale: fr })} au {format(endDate, 'dd MMM yyyy', { locale: fr })}
+                      </p>
                     </motion.div>
                   )}
 

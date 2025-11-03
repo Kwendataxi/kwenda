@@ -130,7 +130,7 @@ export function useModernRentals(selectedCity?: string) {
     },
   });
 
-  // Véhicules par ville
+  // Véhicules par ville avec optimisations
   const vehiclesQuery = useQuery<ModernRentalVehicle[]>({
     queryKey: ["modern-rental-vehicles", userLocation],
     queryFn: async () => {
@@ -153,6 +153,8 @@ export function useModernRentals(selectedCity?: string) {
       })) as ModernRentalVehicle[];
     },
     enabled: !!userLocation,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 
   // Pricing par ville
