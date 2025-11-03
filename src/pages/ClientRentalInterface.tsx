@@ -129,6 +129,8 @@ export const ClientRentalInterface = () => {
                   const count = vehicles.filter(v => v.category_id === cat.id).length;
                   const theme = getCategoryTheme(cat.name);
                   
+                  if (count === 0) return null; // Masquer les catégories vides
+                  
                   return (
                     <Button
                       key={cat.id}
@@ -143,11 +145,13 @@ export const ClientRentalInterface = () => {
                         });
                       }}
                       className={`whitespace-nowrap text-xs font-semibold ${
-                        selectedCategory === cat.id ? theme.color : ''
+                        selectedCategory === cat.id 
+                          ? `bg-gradient-to-r ${theme.gradient} text-white border-0` 
+                          : ''
                       }`}
                     >
                       <span className="mr-1.5">{theme.icon}</span>
-                      {cat.name} ({count})
+                      {cat.name.trim()} ({count})
                     </Button>
                   );
                 })}
@@ -262,6 +266,10 @@ export const ClientRentalInterface = () => {
                       const hasRealImage = vehicle.images?.[0] && vehicle.images[0] !== '/placeholder.svg';
                       const hasDriverOption = vehicle.driver_available && vehicle.with_driver_daily_rate > 0;
                       
+                      // Récupérer le thème de la catégorie pour le badge
+                      const vehicleCategory = categories.find(cat => cat.id === vehicle.category_id);
+                      const categoryTheme = vehicleCategory ? getCategoryTheme(vehicleCategory.name) : null;
+                      
                       return (
                         <motion.div
                           key={vehicle.id}
@@ -288,22 +296,40 @@ export const ClientRentalInterface = () => {
                                 </div>
                               )}
                               
-                              {/* Badges - Plus visibles */}
-                              <div className="absolute top-2 inset-x-2 flex justify-between items-start">
-                                <Badge className="bg-background/90 backdrop-blur text-xs py-1 px-2 font-semibold shadow-md">
-                                  {vehicle.comfort_level}
-                                </Badge>
+                              {/* Badges - Disposition optimisée */}
+                              <div className="absolute inset-0">
+                                {/* Badge TYPE DE VÉHICULE - Haut gauche */}
+                                <div className="absolute top-2 left-2">
+                                  <Badge 
+                                    className={`backdrop-blur-sm text-xs py-1.5 px-3 font-bold shadow-lg border-2 bg-gradient-to-br ${
+                                      categoryTheme?.gradient || 'from-gray-400 to-gray-600'
+                                    } text-white border-white/30`}
+                                  >
+                                    <span className="mr-1">{categoryTheme?.icon || '🚗'}</span>
+                                    {vehicleCategory?.name.trim() || vehicle.comfort_level}
+                                  </Badge>
+                                </div>
                                 
-                                {vehicle.driver_available ? (
-                                  <Badge className="bg-green-500 text-white text-xs py-1 px-2.5 font-semibold shadow-lg animate-pulse">
-                                    <User className="h-3.5 w-3.5 mr-1" />
-                                    Chauffeur disponible
+                                {/* Badge CHAUFFEUR - Haut droite */}
+                                <div className="absolute top-2 right-2">
+                                  {vehicle.driver_available ? (
+                                    <Badge className="bg-green-500 text-white text-xs py-1.5 px-3 font-semibold shadow-lg animate-pulse border-2 border-white/30">
+                                      <User className="h-3.5 w-3.5 mr-1" />
+                                      Avec chauffeur
+                                    </Badge>
+                                  ) : (
+                                    <Badge className="bg-blue-500/90 backdrop-blur-sm text-white text-xs py-1 px-2.5 font-semibold shadow-lg border border-white/30">
+                                      Sans chauffeur
+                                    </Badge>
+                                  )}
+                                </div>
+                                
+                                {/* Badge CONFORT - Bas gauche (optionnel) */}
+                                <div className="absolute bottom-2 left-2">
+                                  <Badge className="bg-black/60 backdrop-blur-sm text-white text-[10px] py-0.5 px-2">
+                                    {vehicle.comfort_level}
                                   </Badge>
-                                ) : (
-                                  <Badge className="bg-blue-500 text-white text-xs py-1 px-2 font-semibold shadow-lg">
-                                    Sans chauffeur
-                                  </Badge>
-                                )}
+                                </div>
                               </div>
                             </div>
 
@@ -392,6 +418,10 @@ export const ClientRentalInterface = () => {
               const hasRealImage = vehicle.images?.[0] && vehicle.images[0] !== '/placeholder.svg';
               const hasDriverOption = vehicle.driver_available && vehicle.with_driver_daily_rate > 0;
               
+              // Récupérer le thème de la catégorie pour le badge
+              const vehicleCategory = categories.find(cat => cat.id === vehicle.category_id);
+              const categoryTheme = vehicleCategory ? getCategoryTheme(vehicleCategory.name) : null;
+              
               return (
                 <motion.div
                   key={vehicle.id}
@@ -417,21 +447,40 @@ export const ClientRentalInterface = () => {
                         </div>
                       )}
                       
-                      <div className="absolute top-2 inset-x-2 flex justify-between items-start">
-                        <Badge className="bg-background/90 backdrop-blur text-xs py-1 px-2 font-semibold shadow-md">
-                          {vehicle.comfort_level}
-                        </Badge>
+                      {/* Badges - Disposition optimisée */}
+                      <div className="absolute inset-0">
+                        {/* Badge TYPE DE VÉHICULE - Haut gauche */}
+                        <div className="absolute top-2 left-2">
+                          <Badge 
+                            className={`backdrop-blur-sm text-xs py-1.5 px-3 font-bold shadow-lg border-2 bg-gradient-to-br ${
+                              categoryTheme?.gradient || 'from-gray-400 to-gray-600'
+                            } text-white border-white/30`}
+                          >
+                            <span className="mr-1">{categoryTheme?.icon || '🚗'}</span>
+                            {vehicleCategory?.name.trim() || vehicle.comfort_level}
+                          </Badge>
+                        </div>
                         
-                        {vehicle.driver_available ? (
-                          <Badge className="bg-green-500 text-white text-xs py-1 px-2.5 font-semibold shadow-lg animate-pulse">
-                            <User className="h-3.5 w-3.5 mr-1" />
-                            Chauffeur disponible
+                        {/* Badge CHAUFFEUR - Haut droite */}
+                        <div className="absolute top-2 right-2">
+                          {vehicle.driver_available ? (
+                            <Badge className="bg-green-500 text-white text-xs py-1.5 px-3 font-semibold shadow-lg animate-pulse border-2 border-white/30">
+                              <User className="h-3.5 w-3.5 mr-1" />
+                              Avec chauffeur
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-blue-500/90 backdrop-blur-sm text-white text-xs py-1 px-2.5 font-semibold shadow-lg border border-white/30">
+                              Sans chauffeur
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        {/* Badge CONFORT - Bas gauche (optionnel) */}
+                        <div className="absolute bottom-2 left-2">
+                          <Badge className="bg-black/60 backdrop-blur-sm text-white text-[10px] py-0.5 px-2">
+                            {vehicle.comfort_level}
                           </Badge>
-                        ) : (
-                          <Badge className="bg-blue-500 text-white text-xs py-1 px-2 font-semibold shadow-lg">
-                            Sans chauffeur
-                          </Badge>
-                        )}
+                        </div>
                       </div>
                     </div>
 
