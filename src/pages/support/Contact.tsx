@@ -23,7 +23,7 @@ const Contact = () => {
       icon: <Mail className="w-6 h-6" />,
       title: "Email",
       description: "Écrivez-nous vos questions",
-      value: "contact@kwendataxi.com",
+      value: "contact@kwenda.app",
       available: "Réponse sous 2h",
       color: "bg-secondary/10 text-secondary"
     },

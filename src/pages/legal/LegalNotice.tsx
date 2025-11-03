@@ -13,7 +13,7 @@ const LegalNotice = () => {
         { label: "Nom commercial", value: "Kwenda Taxi" },
         { label: "Forme juridique", value: "Société à Responsabilité Limitée (SARL)" },
         { label: "Siège social", value: "Kinshasa, République Démocratique du Congo" },
-        { label: "Email", value: "legal@kwenda.cd" },
+        { label: "Email", value: "legal@kwenda.app" },
         { label: "Téléphone", value: "+243 858 040 400" }
       ]
     },
@@ -106,7 +106,7 @@ const LegalNotice = () => {
               et des services proposés sur la plateforme.
             </p>
             <p className="font-medium text-foreground">
-              Contact : publication@kwenda.cd
+              Contact : publication@kwenda.app
             </p>
           </CardContent>
         </Card>
@@ -216,8 +216,8 @@ const LegalNotice = () => {
                 <Mail className="w-5 h-5 text-primary mt-1" />
                 <div>
                   <p className="font-medium">Email légal</p>
-                  <a href="mailto:legal@kwenda.cd" className="text-sm text-primary hover:underline">
-                    legal@kwenda.cd
+                  <a href="mailto:legal@kwenda.app" className="text-sm text-primary hover:underline">
+                    legal@kwenda.app
                   </a>
                 </div>
               </div>

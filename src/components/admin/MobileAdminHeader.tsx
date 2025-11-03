@@ -115,7 +115,7 @@ export const MobileAdminHeader: React.FC<MobileAdminHeaderProps> = ({
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium">Administrateur</p>
                   <p className="text-xs text-muted-foreground truncate">
-                    {user?.email || 'admin@kwenda.cd'}
+                    {user?.email || 'admin@kwenda.app'}
                   </p>
                 </div>
               </DropdownMenuLabel>

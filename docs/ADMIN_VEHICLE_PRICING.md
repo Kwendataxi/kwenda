@@ -86,7 +86,7 @@ Chaque modification est automatiquement enregistrée dans `activity_logs` avec :
   "new_per_km": 600,
   "old_minimum": 1000,
   "new_minimum": 1200,
-  "changed_by": "admin@kwenda.com",
+  "changed_by": "admin@kwenda.app",
   "timestamp": "2025-10-07T14:30:00Z"
 }
 ```
@@ -158,7 +158,7 @@ Les clients verront immédiatement :
 ## 📞 Support
 
 Pour toute question technique :
-- 📧 Email : support@kwenda.com
+- 📧 Email : support@kwenda.app
 - 💬 Slack : #admin-support
 - 📱 WhatsApp : +243 XX XXX XXXX
 

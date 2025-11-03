@@ -377,7 +377,7 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
                       type="email"
                       value={adminForm.email}
                       onChange={(e) => setAdminForm({ email: e.target.value })}
-                      placeholder="admin@kwenda.com"
+                      placeholder="admin@kwenda.app"
                     />
                   </div>
                   

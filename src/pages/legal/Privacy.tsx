@@ -74,7 +74,7 @@ const Privacy = () => {
             <h2 className="text-xl font-semibold mb-2">6. Vos droits</h2>
             <p className="text-muted-foreground">
               Vous disposez d'un droit d'accès, de rectification et de suppression de vos données 
-              personnelles. Contactez-nous à support@kwenda.cd pour exercer ces droits.
+              personnelles. Contactez-nous à support@kwenda.app pour exercer ces droits.
             </p>
           </section>
 
@@ -90,7 +90,7 @@ const Privacy = () => {
             <h2 className="text-xl font-semibold mb-2">8. Contact</h2>
             <p className="text-muted-foreground">
               Pour toute question relative à la protection de vos données, contactez-nous à 
-              privacy@kwenda.cd
+              privacy@kwenda.app
             </p>
           </section>
 
