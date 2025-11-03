@@ -21,8 +21,10 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   
   const autoplayRef = useRef(
     Autoplay({
-      delay: 5000,
+      delay: 4000,
       stopOnInteraction: false,
+      stopOnMouseEnter: false,
+      stopOnFocusIn: false,
     })
   );
 
