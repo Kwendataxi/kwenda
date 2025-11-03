@@ -1,10 +1,8 @@
 import { motion } from 'framer-motion';
 import { ArrowLeft, MapPin, ShoppingCart } from 'lucide-react';
-import { BrandLogo } from '@/components/brand/BrandLogo';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 interface KwendaFoodHeaderProps {
   step: 'restaurants' | 'menu' | 'checkout';
@@ -23,8 +21,6 @@ export const KwendaFoodHeader = ({
   cartItemsCount,
   onBack
 }: KwendaFoodHeaderProps) => {
-  const isMobile = useIsMobile();
-
   const getHeaderContent = () => {
     switch (step) {
       case 'menu':
@@ -70,19 +66,6 @@ export const KwendaFoodHeader = ({
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: "spring", stiffness: 200, damping: 15 }}
-              className="flex-shrink-0"
-            >
-              <BrandLogo 
-                size={isMobile ? 32 : 40} 
-                className="drop-shadow-lg"
-                alt="Kwenda Food"
-              />
-            </motion.div>
 
             <motion.div
               initial={{ opacity: 0, x: -20 }}
