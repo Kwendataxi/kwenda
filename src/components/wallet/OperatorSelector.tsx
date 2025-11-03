@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import orangeMoneyLogo from '@/assets/orange-money-logo.webp';
 import airtelMoneyLogo from '@/assets/airtel-money-logo.png';
+import mpesaLogo from '@/assets/mpesa-logo.png';
 
 type Operator = 'airtel' | 'orange' | 'mpesa';
 
@@ -107,6 +108,12 @@ export const OperatorSelector: React.FC<OperatorSelectorProps> = ({
                   src={airtelMoneyLogo} 
                   alt="Airtel Money"
                   className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow-lg"
+                />
+              ) : operator.id === 'mpesa' ? (
+                <img 
+                  src={mpesaLogo} 
+                  alt="M-Pesa"
+                  className="w-10 h-10 sm:w-12 sm:h-12 object-contain drop-shadow-lg"
                 />
               ) : (
                 <Smartphone className={cn(
