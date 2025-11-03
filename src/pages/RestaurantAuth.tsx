@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -127,16 +127,8 @@ export default function RestaurantAuth() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-4">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/')}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Retour à l'accueil
-        </Button>
         
-        <Card className="shadow-xl">
+        <Card className="shadow-xl animate-scale-in">
           <CardHeader className="text-center space-y-4">
             <div className="mx-auto w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
               <UtensilsCrossed className="w-8 h-8 text-white" />
@@ -237,8 +229,42 @@ export default function RestaurantAuth() {
                 : 'Nouveau restaurant ? S\'inscrire'
               }
             </Button>
+
+            {/* Liens vers autres espaces */}
+            <div className="text-center pt-4 space-y-2 text-sm">
+              <p className="text-muted-foreground">Pas restaurant ?</p>
+              <div className="flex flex-wrap justify-center items-center gap-2">
+                <Link to="/app/auth" className="text-orange-600 dark:text-orange-400 hover:underline font-medium">
+                  Client
+                </Link>
+                <span className="text-muted-foreground/50">•</span>
+                <Link to="/driver/auth" className="text-orange-600 dark:text-orange-400 hover:underline font-medium">
+                  Chauffeur
+                </Link>
+              </div>
+            </div>
           </CardContent>
         </Card>
+
+        {/* Footer - Bouton Retour à l'accueil */}
+        <div className="mt-8 pt-6 border-t border-border/30 pb-8">
+          <div className="flex flex-col items-center gap-3">
+            <Button 
+              onClick={() => navigate('/')}
+              variant="outline"
+              size="default"
+              className="group relative overflow-hidden w-full sm:w-auto sm:min-w-[200px] border-border/50 hover:border-orange-500/50 hover:shadow-md dark:border-border/30 dark:hover:border-orange-400/40 dark:hover:bg-orange-500/5 transition-all duration-300"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <ArrowLeft className="h-4 w-4 mr-2 relative z-10 group-hover:-translate-x-1 transition-transform duration-300" />
+              <span className="relative z-10 font-medium">Retour à l'accueil</span>
+            </Button>
+            
+            <p className="text-xs text-muted-foreground text-center px-4">
+              Découvrez nos services sans vous connecter
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

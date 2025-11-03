@@ -244,16 +244,15 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
               <p className="text-sm text-muted-foreground">
                 Pas partenaire ?
               </p>
-              <div className="flex flex-wrap justify-center gap-2 text-sm">
+              <div className="flex flex-wrap justify-center items-center gap-2 text-sm">
                 <Link to="/app/auth" className="text-green-600 dark:text-green-400 hover:underline font-medium">
-                  Espace Client
+                  Client
                 </Link>
-                <span className="text-muted-foreground">•</span>
+                <span className="text-muted-foreground/50">•</span>
                 <Link to="/driver/auth" className="text-green-600 dark:text-green-400 hover:underline font-medium">
-                  Espace Chauffeur
+                  Chauffeur
                 </Link>
               </div>
-              
             </div>
           </CardContent>
         </Card>
@@ -263,16 +262,24 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
           onClose={() => setShowForgotPassword(false)}
         />
 
-        {/* Bouton Retour à l'accueil en bas */}
-        <div className="text-center mt-8 pb-6">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => navigate('/')}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            ← Retour à l'accueil
-          </Button>
+        {/* Footer - Bouton Retour à l'accueil */}
+        <div className="mt-8 pt-6 border-t border-border/30 pb-8">
+          <div className="flex flex-col items-center gap-3">
+            <Button 
+              onClick={() => navigate('/')}
+              variant="outline"
+              size="default"
+              className="group relative overflow-hidden w-full sm:w-auto sm:min-w-[200px] border-border/50 hover:border-green-500/50 hover:shadow-md dark:border-border/30 dark:hover:border-green-400/40 dark:hover:bg-green-500/5 transition-all duration-300"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Briefcase className="h-4 w-4 mr-2 relative z-10 group-hover:-translate-x-1 transition-transform duration-300" />
+              <span className="relative z-10 font-medium">Retour à l'accueil</span>
+            </Button>
+            
+            <p className="text-xs text-muted-foreground text-center px-4">
+              Découvrez nos services sans vous connecter
+            </p>
+          </div>
         </div>
       </div>
     </div>
