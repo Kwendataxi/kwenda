@@ -210,10 +210,22 @@ const DriverDeliveryActions: React.FC<DriverDeliveryActionsProps> = ({ order, on
 
       case 'delivered':
         return (
-          <div className="text-center py-4">
-            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-3" />
-            <p className="text-lg font-semibold text-green-700">Livraison terminée !</p>
-            <p className="text-sm text-grey-600">Excellent travail 👏</p>
+          <div className="space-y-3">
+            <div className="text-center py-4">
+              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-3" />
+              <p className="text-lg font-semibold text-green-700">Livraison terminée !</p>
+              <p className="text-sm text-grey-600">Excellent travail 👏</p>
+            </div>
+            
+            {/* Bouton preuve de livraison */}
+            <Button 
+              variant="outline"
+              onClick={() => toast.info('Preuve de livraison disponible dans l\'historique')}
+              className="w-full"
+            >
+              <Camera className="w-4 h-4 mr-2" />
+              Voir la preuve de livraison
+            </Button>
           </div>
         );
 

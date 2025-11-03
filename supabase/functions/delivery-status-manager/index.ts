@@ -127,8 +127,41 @@ serve(async (req) => {
       }
     }
 
-    // If delivered, mark driver as available again
+    // If delivered, consume ride and mark driver as available
     if (newStatus === 'delivered' && driverId) {
+      console.log(`📦 Livraison terminée - Consommation ride pour ${driverId}`)
+      
+      // ✅ Appel explicite à consume-ride
+      try {
+        const { data: consumeResult, error: consumeError } = await supabase.functions.invoke('consume-ride', {
+          body: {
+            driver_id: driverId,
+            booking_id: orderId,
+            service_type: 'delivery'
+          }
+        })
+
+        if (consumeError) {
+          console.error('❌ Erreur consommation ride:', consumeError)
+        } else {
+          console.log(`✅ Ride consommée. Remaining: ${consumeResult?.rides_remaining || 0}`)
+          
+          // Notifier le chauffeur si rides faibles
+          if (consumeResult?.rides_remaining <= 2 && consumeResult?.rides_remaining > 0) {
+            await supabase.from('system_notifications').insert({
+              user_id: driverId,
+              notification_type: 'subscription_low_rides',
+              title: '⚡ Courses Bientôt Épuisées',
+              message: `Plus que ${consumeResult.rides_remaining} course(s) restante(s). Rechargez votre abonnement.`,
+              priority: 'medium'
+            })
+          }
+        }
+      } catch (consumeErr) {
+        console.error('❌ Erreur critique consume-ride:', consumeErr)
+      }
+
+      // Marquer chauffeur disponible
       const { error: availabilityError } = await supabase
         .from('driver_locations')
         .update({ is_available: true })

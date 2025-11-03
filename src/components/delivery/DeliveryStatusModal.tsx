@@ -99,7 +99,7 @@ export default function DeliveryStatusModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <Dialog open={isVisible} onOpenChange={onClose}>
+        <Dialog open={isOpen} onOpenChange={onClose}>
           <DialogContent className="sm:max-w-md mx-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}

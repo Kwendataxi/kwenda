@@ -27,6 +27,7 @@ import RealTimeDeliveryChat from './RealTimeDeliveryChat';
 import { useEnhancedDeliveryTracking } from '@/hooks/useEnhancedDeliveryTracking';
 import { useUserRole } from '@/hooks/useUserRole';
 import DriverDeliveryActions from '@/components/driver/DriverDeliveryActions';
+import { DeliveryDriverChatModal } from './DeliveryDriverChatModal';
 // import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface DeliveryTrackingHubProps {
@@ -409,25 +410,26 @@ export default function DeliveryTrackingHub({ orderId, onBack }: DeliveryTrackin
         </Tabs>
       </div>
 
-      {/* Chat modal */}
-      {showChat && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-          <div className="w-full h-3/4 bg-background rounded-t-xl">
-            <div className="p-4 text-center">
-              <MessageCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">Chat en développement</p>
-              <p className="text-sm text-muted-foreground">
-                Le chat sera disponible prochainement
-              </p>
-              <Button 
-                onClick={() => setShowChat(false)}
-                className="mt-4"
-              >
-                Fermer
-              </Button>
-            </div>
-          </div>
-        </div>
+      {/* Chat modal avec DeliveryDriverChatModal */}
+      {showChat && driverProfile && order && (
+        <DeliveryDriverChatModal
+          isOpen={showChat}
+          onClose={() => setShowChat(false)}
+          driverData={{
+            driver_id: driverProfile.id,
+            driver_profile: {
+              display_name: driverProfile.display_name,
+              phone_number: driverProfile.phone_number || '',
+              rating_average: driverProfile.rating_average || 0,
+              vehicle_type: driverProfile.vehicle_type || 'N/A',
+              vehicle_plate: driverProfile.license_plate || 'N/A'
+            },
+            distance: 0,
+            estimated_arrival: estimatedArrival ? parseInt(estimatedArrival.split(' ')[0]) : 15
+          }}
+          orderId={orderId}
+          deliveryPrice={order.estimated_price || order.actual_price || 0}
+        />
       )}
 
       {/* Actions chauffeur si connecté en tant que chauffeur */}
