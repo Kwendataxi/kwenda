@@ -133,6 +133,7 @@ const ModernMapDemo = lazy(() => import("./pages/test/ModernMapDemo"));
 // Guards and other components
 import { ChatProvider } from "@/components/chat/ChatProvider";
 import { InstallBanner } from "@/components/pwa/InstallBanner";
+import { AppDownloadTopBanner } from "@/components/pwa/AppDownloadTopBanner";
 import { UpdateNotification } from "@/components/pwa/UpdateNotification";
 import { UpdateProgress } from "@/components/pwa/UpdateProgress";
 import { OnboardingRedirect } from "@/components/onboarding/OnboardingRedirect";
@@ -151,6 +152,7 @@ const AppContent = () => {
   const [showSplash, setShowSplash] = useState(isPWA() || isMobileApp());
   const [preloadedSession, setPreloadedSession] = useState<any>(null);
   const [preloadedRole, setPreloadedRole] = useState<string | null>(null);
+  const [isLandingPage, setIsLandingPage] = useState(false);
   
   // Initialiser le nettoyage automatique des commandes
   useOrderCleanup();
@@ -202,6 +204,7 @@ const AppContent = () => {
               <InstallBanner />
               <BrowserRouter>
             <ScrollToTop />
+            <AppDownloadTopBanner />
             <OnboardingRedirect>
               <Suspense fallback={<RouteLoadingFallback />}>
                 <Routes>

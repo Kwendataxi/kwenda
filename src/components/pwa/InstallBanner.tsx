@@ -16,8 +16,8 @@ export const InstallBanner = () => {
     // Ne pas afficher si déjà installé
     if (isInstalled) return;
 
-    // Afficher uniquement sur la landing page "/"
-    if (window.location.pathname !== '/') return;
+    // Ne plus afficher sur la landing page "/" (géré par AppDownloadTopBanner)
+    if (window.location.pathname === '/') return;
 
     // Vérifier si le banner a été fermé récemment
     const dismissedUntil = localStorage.getItem(BANNER_DISMISSED_KEY);
