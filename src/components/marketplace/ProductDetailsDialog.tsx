@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import {
   Dialog,
   DialogContent,
@@ -25,7 +26,9 @@ import {
   Package,
   Eye,
   ShoppingCart as CartIcon,
-  TrendingUp
+  TrendingUp,
+  AlertCircle,
+  Wallet
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
 import { toast } from 'sonner';
@@ -33,6 +36,7 @@ import { cn } from '@/lib/utils';
 import { ProductChatTab } from './ProductChatTab';
 import { ProductSpecifications } from './ProductSpecifications';
 import { HorizontalProductScroll } from './HorizontalProductScroll';
+import { TopUpModal } from '@/components/wallet/TopUpModal';
 
 import { getCategoryName, getConditionLabel } from '@/config/marketplaceCategories';
 
@@ -86,6 +90,7 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
   sellerProducts = []
 }) => {
   const [quantity, setQuantity] = useState(1);
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
   const { wallet, topUpWallet } = useWallet();
 
   if (!product) return null;
@@ -115,8 +120,7 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
   };
 
   const handleRecharge = () => {
-    // This would open recharge dialog
-    toast.info('Fonction de rechargement KwendaPay à implémenter');
+    setShowTopUpModal(true);
   };
 
   return (
@@ -371,19 +375,27 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
 
                 {/* Buy Button - touch-optimized */}
                 {!canAfford ? (
-                  <div className="space-y-1.5">
-                    <p className="text-[10px] sm:text-xs text-center text-muted-foreground">
-                      Solde insuffisant. Rechargez votre wallet.
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-2 p-3 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20"
+                  >
+                    <div className="flex items-center gap-2 text-orange-600">
+                      <AlertCircle className="h-5 w-5" />
+                      <p className="text-sm font-semibold">Solde insuffisant</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Vous avez besoin de {(totalPrice - (wallet?.balance || 0)).toLocaleString()} CDF de plus pour cet achat
                     </p>
                     <Button 
                       onClick={handleRecharge}
-                      className="w-full h-10 sm:h-11 text-xs sm:text-sm min-h-[44px] touch-manipulation"
-                      variant="secondary"
+                      className="w-full h-11 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold shadow-lg"
                       size="sm"
                     >
+                      <Wallet className="h-4 w-4 mr-2" />
                       Recharger KwendaPay
                     </Button>
-                  </div>
+                  </motion.div>
                 ) : (
                   <Button 
                     onClick={handleBuyNow}
@@ -420,6 +432,16 @@ export const ProductDetailsDialog: React.FC<ProductDetailsDialogProps> = ({
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      {/* TopUp Modal intégré */}
+      <TopUpModal
+        open={showTopUpModal}
+        onClose={() => setShowTopUpModal(false)}
+        onSuccess={() => {
+          setShowTopUpModal(false);
+          toast.success('Recharge effectuée ! Vous pouvez maintenant acheter.');
+        }}
+      />
     </Dialog>
   );
 };

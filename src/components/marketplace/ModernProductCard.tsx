@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, ShoppingCart, Heart, Star, Store, MessageCircle, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface Product {
   id: string;
@@ -71,7 +72,7 @@ export const ModernProductCard = ({
       transition={{ duration: 0.3 }}
       className="group h-full"
     >
-      <Card className="group relative overflow-hidden bg-card/80 backdrop-blur-xl border-0 shadow-2xl hover:shadow-primary/20 transition-all duration-300 h-full flex flex-col">
+      <Card className="group relative overflow-hidden bg-card/90 backdrop-blur-xl border-2 border-transparent hover:border-primary/30 shadow-xl hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 h-full flex flex-col">
         {/* Image Container avec overlay moderne */}
         <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/50">
           <img
@@ -84,13 +85,14 @@ export const ModernProductCard = ({
           {/* Dark gradient overlay on hover */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
-          {/* Chat icon en overlay (visible au hover) */}
+          {/* Chat icon en overlay - Plus visible */}
           <motion.button 
-            className="absolute bottom-4 right-4 bg-destructive text-white rounded-full p-3 opacity-0 group-hover:opacity-100 shadow-lg"
-            whileHover={{ scale: 1.1 }}
+            className="absolute bottom-3 right-3 bg-gradient-to-br from-primary to-orange-500 text-white rounded-full p-3 opacity-0 group-hover:opacity-100 shadow-2xl ring-2 ring-white/30"
+            whileHover={{ scale: 1.15, rotate: 10 }}
+            whileTap={{ scale: 0.95 }}
             onClick={(e) => {
               e.stopPropagation();
-              // TODO: Ouvrir chat vendeur
+              toast.info('Chat avec le vendeur à venir');
             }}
           >
             <MessageCircle className="h-5 w-5" />
@@ -159,9 +161,14 @@ export const ModernProductCard = ({
           </div>
           
           {/* Prix Badge (style image de référence) */}
-          <Badge className="w-full bg-destructive hover:bg-destructive text-white text-xl font-bold py-2 justify-center shadow-lg">
-            {formatPrice(product.price)}
-          </Badge>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <Badge className="w-full bg-destructive hover:bg-destructive text-white text-xl font-bold py-2 justify-center shadow-lg">
+              {formatPrice(product.price)}
+            </Badge>
+          </motion.div>
           
           {/* Seller & Distance */}
           <div className="flex items-center justify-between text-sm text-muted-foreground">

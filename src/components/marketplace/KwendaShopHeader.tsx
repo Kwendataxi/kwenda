@@ -1,0 +1,97 @@
+import { motion } from 'framer-motion';
+import { ArrowLeft, ShoppingBag, Package } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+
+interface KwendaShopHeaderProps {
+  cartItemsCount: number;
+  onBack: () => void;
+  onCartClick: () => void;
+}
+
+export const KwendaShopHeader = ({
+  cartItemsCount,
+  onBack,
+  onCartClick
+}: KwendaShopHeaderProps) => {
+  return (
+    <motion.div
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ type: "spring", stiffness: 100 }}
+      className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white shadow-2xl"
+    >
+      <div className="px-4 py-3 md:py-4">
+        <div className="flex items-center justify-between gap-3">
+          {/* Gauche: Retour + Titre */}
+          <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onBack}
+              className="text-white hover:bg-white/20 flex-shrink-0"
+              aria-label="Retour"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="flex items-center gap-2 flex-1 min-w-0"
+            >
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+              >
+                <Package className="h-7 w-7 md:h-8 md:w-8 drop-shadow-lg" />
+              </motion.div>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-base md:text-xl font-bold truncate">
+                  Kwenda Shop
+                </h1>
+                <p className="text-xs md:text-sm opacity-90 truncate">
+                  Marketplace sécurisé
+                </p>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Droite: Badge panier */}
+          {cartItemsCount > 0 && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex-shrink-0"
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onCartClick}
+                className="relative text-white hover:bg-white/20"
+              >
+                <ShoppingBag className="h-5 w-5 md:h-6 md:w-6" />
+                <Badge 
+                  variant="secondary"
+                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-white text-primary p-0 shadow-lg"
+                >
+                  {cartItemsCount > 99 ? '99+' : cartItemsCount}
+                </Badge>
+              </Button>
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* Shine effect animé */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none"
+        initial={{ x: '-100%' }}
+        animate={{ x: '200%' }}
+        transition={{ duration: 3, repeat: Infinity, repeatDelay: 5 }}
+      />
+    </motion.div>
+  );
+};

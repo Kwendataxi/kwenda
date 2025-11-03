@@ -18,6 +18,8 @@ import { ModernProductCard } from './ModernProductCard';
 import { CategoryScrollBar } from './CategoryScrollBar';
 import { QuickFiltersBar } from './QuickFiltersBar';
 import { ResponsiveGrid } from '../ui/responsive-grid';
+import { PromoSlider } from './PromoSlider';
+import { KwendaShopHeader } from './KwendaShopHeader';
 
 // Anciens composants (conservés pour compatibilité)
 import { ProductGrid } from './ProductGrid';
@@ -486,8 +488,29 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
     return (views * 0.3) + (sales * 0.5) + (rating * 20);
   };
 
+  const handlePromoClick = (action: string) => {
+    switch (action) {
+      case 'electronics':
+        setFilters(prev => ({ ...prev, selectedCategory: 'electronics' }));
+        break;
+      case 'free_delivery':
+        toast({ title: "🎉 Livraison gratuite activée !", description: "Sur toutes commandes >50 000 CDF" });
+        break;
+      case 'new_vendors':
+        setFilters(prev => ({ ...prev, sortBy: 'newest' }));
+        break;
+    }
+  };
+
   const renderShopTab = () => (
     <div className="space-y-4">
+      {/* SLIDER PUBLICITAIRE - Non encombrant */}
+      <section className="px-4 pt-2">
+        <PromoSlider 
+          onPromoClick={handlePromoClick}
+          autoplayDelay={5000}
+        />
+      </section>
 
       {/* SECTION TENDANCES */}
       {trendingProducts.length > 0 && (
@@ -620,33 +643,12 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
   return (
     <div className="min-h-screen bg-background mobile-safe-layout">
-      {/* Modern Header */}
-      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
-        <div className="flex items-center justify-between p-4">
-          <Button variant="ghost" size="icon" onClick={() => onNavigate('/client')} className="touch-manipulation">
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="text-center">
-            <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Kwenda Shop
-            </h1>
-            <p className="text-xs text-muted-foreground">Marketplace sécurisé</p>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative touch-manipulation"
-            onClick={() => setIsCartOpen(true)}
-          >
-            <Package className="w-5 h-5" />
-            {cartItems.length > 0 && (
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-primary animate-pulse">
-                {cartItems.length}
-              </Badge>
-            )}
-          </Button>
-        </div>
-      </div>
+      {/* Kwenda Shop Header moderne */}
+      <KwendaShopHeader
+        cartItemsCount={cartItems.length}
+        onBack={() => onNavigate('/client')}
+        onCartClick={() => setIsCartOpen(true)}
+      />
 
       {/* Content */}
       <div className="p-4 content-scrollable">

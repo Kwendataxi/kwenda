@@ -127,19 +127,33 @@ export const UnifiedShoppingCart: React.FC<UnifiedShoppingCartProps> = ({
   const renderCartView = () => (
     <>
       {/* Header - responsive padding */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-secondary p-3 sm:p-4 md:p-6">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2 sm:gap-3 text-white">
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-purple-600 to-pink-600 p-4 sm:p-6">
+        {/* Pattern décoratif animé */}
+        <motion.div
+          className="absolute inset-0 opacity-10"
+          animate={{ 
+            backgroundPosition: ['0% 0%', '100% 100%'],
+          }}
+          transition={{ duration: 20, repeat: Infinity, repeatType: 'reverse' }}
+          style={{
+            backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+        />
+        
+        <SheetHeader className="relative z-10">
+          <SheetTitle className="flex items-center gap-3 text-white">
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 300 }}
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 200 }}
+              className="p-2 bg-white/20 rounded-xl backdrop-blur-sm"
             >
-              <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
+              <ShoppingBag className="w-6 h-6" />
             </motion.div>
-            <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0">
-              <span className="text-base sm:text-lg md:text-xl font-bold truncate">Mon Panier</span>
-              <span className="text-xs sm:text-sm text-white/80 truncate">
+            <div className="flex flex-col gap-1">
+              <span className="text-xl font-bold">Mon Panier</span>
+              <span className="text-sm text-white/90 font-normal">
                 {totalItems} article{totalItems > 1 ? 's' : ''} • {vendorCount} vendeur{vendorCount > 1 ? 's' : ''}
               </span>
             </div>
