@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
-import { User, PhoneIcon } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { User, Phone, Check, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ContactsStepProps {
   senderName: string;
@@ -16,10 +18,18 @@ interface ContactsStepProps {
   userProfile?: {
     display_name?: string;
     phone_number?: string;
-  };
+    full_name?: string;
+    email?: string;
+    phone?: string;
+  } | null;
 }
 
-export default function ContactsStep({
+interface SavedContact {
+  name: string;
+  phone: string;
+}
+
+const ContactsStep: React.FC<ContactsStepProps> = ({
   senderName,
   senderPhone,
   recipientName,
@@ -29,8 +39,22 @@ export default function ContactsStep({
   onRecipientNameChange,
   onRecipientPhoneChange,
   userProfile
-}: ContactsStepProps) {
-  
+}) => {
+  const [recentSenders, setRecentSenders] = useState<SavedContact[]>([]);
+  const [recentRecipients, setRecentRecipients] = useState<SavedContact[]>([]);
+
+  // Charger les contacts récents
+  useEffect(() => {
+    try {
+      const senders = JSON.parse(localStorage.getItem('kwenda-recent-senders') || '[]');
+      const recipients = JSON.parse(localStorage.getItem('kwenda-recent-recipients') || '[]');
+      setRecentSenders(senders.slice(0, 3));
+      setRecentRecipients(recipients.slice(0, 3));
+    } catch (error) {
+      console.error('Erreur chargement contacts récents:', error);
+    }
+  }, []);
+
   // Pré-remplir avec le profil utilisateur
   useEffect(() => {
     if (userProfile && !senderName && !senderPhone) {
@@ -38,11 +62,43 @@ export default function ContactsStep({
         onSenderNameChange(userProfile.display_name);
       }
       if (userProfile.phone_number) {
-        onSenderPhoneChange(userProfile.phone_number);
+        onSenderPhoneChange(formatPhoneNumber(userProfile.phone_number));
       }
     }
   }, [userProfile, senderName, senderPhone]);
 
+  // Validation des champs
+  const validatePhone = (phone: string): boolean => {
+    const cleaned = phone.replace(/\D/g, '');
+    return cleaned.length >= 9 && cleaned.length <= 13;
+  };
+
+  const validateName = (name: string): boolean => {
+    return name.trim().length >= 2;
+  };
+
+  // Utiliser mon profil comme expéditeur
+  const useMyProfile = () => {
+    if (userProfile) {
+      onSenderNameChange(userProfile.full_name || userProfile.email || '');
+      if (userProfile.phone) {
+        onSenderPhoneChange(formatPhoneNumber(userProfile.phone));
+      }
+    }
+  };
+
+  // Sélectionner un contact récent
+  const selectRecentContact = (contact: SavedContact, type: 'sender' | 'recipient') => {
+    if (type === 'sender') {
+      onSenderNameChange(contact.name);
+      onSenderPhoneChange(contact.phone);
+    } else {
+      onRecipientNameChange(contact.name);
+      onRecipientPhoneChange(contact.phone);
+    }
+  };
+
+  // Formater le numéro de téléphone au format +243XXXXXXXXX
   const formatPhoneNumber = (value: string): string => {
     // Nettoyer complètement (enlever TOUS les caractères non-numériques sauf +)
     let cleaned = value.replace(/[^\d+]/g, '');
@@ -74,8 +130,8 @@ export default function ContactsStep({
     return cleaned;
   };
 
-  const handlePhoneChange = (value: string, setter: (v: string) => void) => {
-    const formatted = formatPhoneNumber(value);
+  const handlePhoneChange = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
     setter(formatted);
   };
 
@@ -88,100 +144,187 @@ export default function ContactsStep({
         <h2 className="text-2xl font-bold text-foreground">Informations de contact</h2>
         <p className="text-muted-foreground">Qui envoie et reçoit ce colis ?</p>
       </div>
-      
+
       {/* Expéditeur */}
-      <Card className="p-4 bg-card border border-primary/20 shadow-lg">
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-2 h-2 bg-congo-green rounded-full" />
-            <h3 className="font-semibold text-foreground">Expéditeur (Vous)</h3>
+      <Card className="p-6 space-y-4 bg-card/50 border-primary/20">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
+            <User className="h-5 w-5 text-primary" />
+            <span>Informations de l'expéditeur</span>
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="senderName" className="text-sm font-medium">
-              Nom complet
-            </Label>
-            <div className="relative">
-              <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="senderName"
-                value={senderName}
-                onChange={(e) => onSenderNameChange(e.target.value)}
-                placeholder="Votre nom complet"
-                className="pl-10 h-12 bg-background border-primary/30 focus:border-primary"
-                maxLength={100}
-              />
+          {userProfile && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={useMyProfile}
+              className="text-xs"
+            >
+              Utiliser mon profil
+            </Button>
+          )}
+        </div>
+
+        {/* Contacts récents expéditeur */}
+        {recentSenders.length > 0 && !senderPhone && (
+          <div className="mb-4">
+            <Label className="text-xs text-muted-foreground mb-2 block">Contacts récents</Label>
+            <div className="flex flex-wrap gap-2">
+              {recentSenders.map((contact, idx) => (
+                <Button
+                  key={idx}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => selectRecentContact(contact, 'sender')}
+                  className="text-xs"
+                >
+                  {contact.name}
+                </Button>
+              ))}
             </div>
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="senderPhone" className="text-sm font-medium">
-              Numéro de téléphone
-            </Label>
-            <div className="relative">
-              <PhoneIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="senderPhone"
-                value={senderPhone}
-                onChange={(e) => handlePhoneChange(e.target.value, onSenderPhoneChange)}
-                placeholder="+243 XXX XXX XXX"
-                className="pl-10 h-12 bg-background border-primary/30 focus:border-primary"
-                type="tel"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Format: +243123456789 ou 0123456789
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="senderName" className="text-sm font-medium flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Nom complet
+            {validateName(senderName) && (
+              <Check className="h-4 w-4 text-green-500 ml-auto" />
+            )}
+          </Label>
+          <Input
+            id="senderName"
+            type="text"
+            placeholder="Nom de l'expéditeur"
+            value={senderName}
+            onChange={(e) => onSenderNameChange(e.target.value)}
+            className={cn(
+              "bg-background/50",
+              senderName && !validateName(senderName) && "border-destructive"
+            )}
+            required
+          />
+          {senderName && !validateName(senderName) && (
+            <p className="text-xs text-destructive flex items-center gap-1">
+              <X className="h-3 w-3" />
+              Le nom doit contenir au moins 2 caractères
             </p>
-          </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="senderPhone" className="text-sm font-medium flex items-center gap-2">
+            <Phone className="h-4 w-4" />
+            Numéro de téléphone
+            {validatePhone(senderPhone) && (
+              <Check className="h-4 w-4 text-green-500 ml-auto" />
+            )}
+          </Label>
+          <Input
+            id="senderPhone"
+            type="tel"
+            placeholder="+243 XX XXX XXXX"
+            value={senderPhone}
+            onChange={handlePhoneChange(onSenderPhoneChange)}
+            className={cn(
+              "bg-background/50",
+              senderPhone && !validatePhone(senderPhone) && "border-destructive"
+            )}
+            required
+          />
+          {senderPhone && !validatePhone(senderPhone) && (
+            <p className="text-xs text-destructive flex items-center gap-1">
+              <X className="h-3 w-3" />
+              Format invalide (ex: +243123456789)
+            </p>
+          )}
         </div>
       </Card>
 
       {/* Destinataire */}
-      <Card className="p-4 bg-card border border-secondary/20 shadow-lg">
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-2 h-2 bg-congo-red rounded-full" />
-            <h3 className="font-semibold text-foreground">Destinataire</h3>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="recipientName" className="text-sm font-medium">
-              Nom complet <span className="text-destructive">*</span>
-            </Label>
-            <div className="relative">
-              <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="recipientName"
-                value={recipientName}
-                onChange={(e) => onRecipientNameChange(e.target.value)}
-                placeholder="Nom du destinataire"
-                className="pl-10 h-12 bg-background border-primary/30 focus:border-primary"
-                maxLength={100}
-                required
-              />
+      <Card className="p-6 space-y-4 bg-card/50 border-secondary/20">
+        <div className="flex items-center gap-2 text-lg font-semibold text-foreground mb-4">
+          <User className="h-5 w-5 text-secondary" />
+          <span>Informations du destinataire</span>
+        </div>
+
+        {/* Contacts récents destinataire */}
+        {recentRecipients.length > 0 && !recipientPhone && (
+          <div className="mb-4">
+            <Label className="text-xs text-muted-foreground mb-2 block">Contacts récents</Label>
+            <div className="flex flex-wrap gap-2">
+              {recentRecipients.map((contact, idx) => (
+                <Button
+                  key={idx}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => selectRecentContact(contact, 'recipient')}
+                  className="text-xs"
+                >
+                  {contact.name}
+                </Button>
+              ))}
             </div>
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="recipientPhone" className="text-sm font-medium">
-              Numéro de téléphone <span className="text-destructive">*</span>
-            </Label>
-            <div className="relative">
-              <PhoneIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="recipientPhone"
-                value={recipientPhone}
-                onChange={(e) => handlePhoneChange(e.target.value, onRecipientPhoneChange)}
-                placeholder="+243 XXX XXX XXX"
-                className="pl-10 h-12 bg-background border-primary/30 focus:border-primary"
-                type="tel"
-                required
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Format: +243123456789 ou 0123456789
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="recipientName" className="text-sm font-medium flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Nom complet
+            {validateName(recipientName) && (
+              <Check className="h-4 w-4 text-green-500 ml-auto" />
+            )}
+          </Label>
+          <Input
+            id="recipientName"
+            type="text"
+            placeholder="Nom du destinataire"
+            value={recipientName}
+            onChange={(e) => onRecipientNameChange(e.target.value)}
+            className={cn(
+              "bg-background/50",
+              recipientName && !validateName(recipientName) && "border-destructive"
+            )}
+            required
+          />
+          {recipientName && !validateName(recipientName) && (
+            <p className="text-xs text-destructive flex items-center gap-1">
+              <X className="h-3 w-3" />
+              Le nom doit contenir au moins 2 caractères
             </p>
-          </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="recipientPhone" className="text-sm font-medium flex items-center gap-2">
+            <Phone className="h-4 w-4" />
+            Numéro de téléphone
+            {validatePhone(recipientPhone) && (
+              <Check className="h-4 w-4 text-green-500 ml-auto" />
+            )}
+          </Label>
+          <Input
+            id="recipientPhone"
+            type="tel"
+            placeholder="+243 XX XXX XXXX"
+            value={recipientPhone}
+            onChange={handlePhoneChange(onRecipientPhoneChange)}
+            className={cn(
+              "bg-background/50",
+              recipientPhone && !validatePhone(recipientPhone) && "border-destructive"
+            )}
+            required
+          />
+          {recipientPhone && !validatePhone(recipientPhone) && (
+            <p className="text-xs text-destructive flex items-center gap-1">
+              <X className="h-3 w-3" />
+              Format invalide (ex: +243123456789)
+            </p>
+          )}
         </div>
       </Card>
 
@@ -190,4 +333,6 @@ export default function ContactsStep({
       </div>
     </div>
   );
-}
+};
+
+export default ContactsStep;

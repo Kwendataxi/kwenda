@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Clock, Building2, Car, Utensils, ShoppingBag, X } from 'lucide-react';
+import { Search, MapPin, Clock, Building2, Car, Utensils, ShoppingBag, X, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete';
 import type { UnifiedLocation } from '@/types/unifiedLocation';
 import { CurrentLocationButton } from '@/components/ui/CurrentLocationButton';
-import { type LocationData } from '@/hooks/useSmartGeolocation';
+import { type LocationData, useSmartGeolocation } from '@/hooks/useSmartGeolocation';
+import { Badge } from '@/components/ui/badge';
 
 interface AutocompleteLocationInputProps {
   value?: UnifiedLocation | null;
@@ -94,6 +95,8 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
     types,
     debounceMs: 300
   });
+
+  const { getPopularPlaces } = useSmartGeolocation();
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -333,28 +336,82 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
                   onClick={() => handlePredictionSelect(prediction)}
                   className="w-full px-3 py-2 text-left hover:bg-muted/50 focus:bg-muted/50 focus:outline-none transition-colors"
                 >
-                  <div className="flex items-center space-x-2">
-                    {getPlaceIcon(prediction.types)}
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm">
-                        {highlightMatch(prediction.structuredFormatting.mainText, prediction.matchedSubstrings)}
-                      </div>
-                      {prediction.structuredFormatting.secondaryText && (
-                        <div className="text-xs text-muted-foreground">
-                          {prediction.structuredFormatting.secondaryText}
+                  <div className="flex items-center justify-between space-x-2">
+                    <div className="flex items-center space-x-2 flex-1 min-w-0">
+                      {getPlaceIcon(prediction.types)}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm">
+                          {highlightMatch(prediction.structuredFormatting.mainText, prediction.matchedSubstrings)}
                         </div>
-                      )}
+                        {prediction.structuredFormatting.secondaryText && (
+                          <div className="text-xs text-muted-foreground">
+                            {prediction.structuredFormatting.secondaryText}
+                          </div>
+                        )}
+                      </div>
                     </div>
+                    <Badge variant="secondary" className="text-xs shrink-0">
+                      <Search className="h-3 w-3 mr-1" />
+                      Google
+                    </Badge>
                   </div>
                 </button>
               ))}
             </>
           )}
 
-          {/* No results */}
+          {/* Lieux populaires si aucun résultat Google */}
           {query.length >= 2 && predictions.length === 0 && !isLoading && !error && (
+            <>
+              {getPopularPlaces().length > 0 && (
+                <>
+                  <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b bg-muted/30">
+                    <Star className="inline h-3 w-3 mr-1" />
+                    Lieux populaires
+                  </div>
+                  {getPopularPlaces().slice(0, 3).map((place) => (
+                    <button
+                      key={place.id}
+                      onClick={() => {
+                        const location: UnifiedLocation = {
+                          id: place.id,
+                          name: place.name || place.address,
+                          address: place.address,
+                          coordinates: { lat: place.lat, lng: place.lng },
+                          type: 'popular',
+                          subtitle: place.subtitle
+                        };
+                        setQuery(place.address);
+                        onChange(location);
+                        setShowSuggestions(false);
+                      }}
+                      className="w-full px-3 py-2 text-left hover:bg-muted/50 focus:bg-muted/50 focus:outline-none transition-colors"
+                    >
+                      <div className="flex items-center justify-between space-x-2">
+                        <div className="flex items-center space-x-2 flex-1 min-w-0">
+                          <Star className="h-4 w-4 text-yellow-500" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">{place.name || place.address}</div>
+                            {place.subtitle && (
+                              <div className="text-xs text-muted-foreground truncate">{place.subtitle}</div>
+                            )}
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          Populaire
+                        </Badge>
+                      </div>
+                    </button>
+                  ))}
+                </>
+              )}
+            </>
+          )}
+
+          {/* No results - message simplifié */}
+          {query.length >= 2 && predictions.length === 0 && getPopularPlaces().length === 0 && !isLoading && !error && (
             <div className="px-3 py-4 text-center text-sm text-muted-foreground">
-              Aucun résultat trouvé pour "{query}"
+              Aucun résultat pour "{query}"
             </div>
           )}
         </div>
