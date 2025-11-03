@@ -1,8 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, Gift } from 'lucide-react';
+import { Gift } from 'lucide-react';
 import { AnimatedBalance } from './AnimatedBalance';
-import { KwendaPayLogo } from '@/components/brand/KwendaPayLogo';
 
 interface WalletHeroProps {
   balance: number;
@@ -23,28 +22,10 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-congo-blue/5 via-congo-yellow/10 to-congo-red/5 dark:from-congo-blue/10 dark:via-congo-yellow/15 dark:to-congo-red/10 p-8 pt-12 wallet-congo-pattern"
+      className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-congo-blue/5 via-congo-yellow/10 to-congo-red/5 dark:from-congo-blue/10 dark:via-congo-yellow/15 dark:to-congo-red/10 p-8 pt-8 wallet-congo-pattern"
     >
       {/* Animated gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-congo-red/5 via-congo-yellow/5 to-congo-green/5 dark:from-congo-red/10 dark:via-congo-yellow/10 dark:to-congo-green/10 animate-congo-gradient" style={{ backgroundSize: '200% 200%' }} />
-      {/* Header discret */}
-      <div className="relative flex items-center justify-between mb-8">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-congo-red/10 via-congo-yellow/10 to-congo-green/10 dark:from-congo-red/20 dark:via-congo-yellow/20 dark:to-congo-green/20">
-            <KwendaPayLogo variant="icon" size="sm" animated />
-          </div>
-          <span className="text-sm text-muted-foreground dark:text-foreground/70 font-medium">
-            KwendaPay
-          </span>
-        </div>
-        
-        {status === 'active' && (
-          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-congo-green/20 text-congo-green dark:bg-congo-green/30 dark:text-congo-green-electric flex items-center gap-1 border border-congo-green/30">
-            <TrendingUp className="h-3 w-3" />
-            Actif
-          </span>
-        )}
-      </div>
 
       {/* Solde principal GÉANT */}
       <div className="relative text-center mb-6">

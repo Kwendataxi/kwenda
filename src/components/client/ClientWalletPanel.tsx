@@ -103,10 +103,6 @@ export const ClientWalletPanel: React.FC = () => {
         onRecharge={() => setShowTopUpModal(true)}
         onTransfer={() => setShowTransferDialog(true)}
         onConvert={() => setShowConversionDialog(true)}
-        onHistory={() => {
-          const section = document.getElementById('transactions-section');
-          section?.scrollIntoView({ behavior: 'smooth' });
-        }}
       />
 
       {/* Transaction History - Liste propre */}
