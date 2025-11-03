@@ -68,7 +68,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
           </div>
 
           {/* Contenu central */}
-          <div className="relative flex flex-col items-center gap-8 z-10">
+          <div className="relative flex items-center justify-center z-10">
             {/* Logo avec animation dynamique */}
             <motion.div
               initial={{ 
@@ -130,74 +130,6 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
               />
             </motion.div>
 
-            {/* Slogan compact */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="text-center px-6"
-            >
-              <motion.p 
-                className="text-sm sm:text-base text-white/90 font-medium tracking-wide max-w-xs"
-                animate={{
-                  opacity: [0.9, 1, 0.9],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity
-                }}
-              >
-                Courses abordables tous les jours
-              </motion.p>
-            </motion.div>
-
-            {/* Spinner double cercle moderne */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.5 }}
-              className="mt-6"
-            >
-              <div className="relative w-10 h-10">
-                {/* Cercle externe */}
-                <motion.div
-                  className="absolute inset-0 rounded-full border-3 border-white/30 border-t-white"
-                  animate={{ rotate: 360 }}
-                  transition={{
-                    duration: 0.8,
-                    repeat: Infinity,
-                    ease: "linear"
-                  }}
-                  style={{
-                    filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))'
-                  }}
-                />
-                
-                {/* Cercle interne (rotation inverse) */}
-            <motion.div
-              className="absolute inset-2 rounded-full border-2 border-white/40 border-b-white"
-                  animate={{ rotate: -360 }}
-                  transition={{
-                    duration: 1.2,
-                    repeat: Infinity,
-                    ease: "linear"
-                  }}
-                />
-                
-                {/* Glow pulsant */}
-                <motion.div
-                  className="absolute inset-0 rounded-full bg-white/10"
-                  animate={{ 
-                    scale: [1, 1.3, 1],
-                    opacity: [0.3, 0, 0.3]
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity
-                  }}
-                />
-              </div>
-            </motion.div>
           </div>
 
           {/* Vignette subtile en bas */}

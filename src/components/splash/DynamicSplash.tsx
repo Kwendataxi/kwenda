@@ -100,7 +100,7 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
           damping: 18,
           duration: 0.6
         }}
-        className="relative z-10 flex flex-col items-center px-6 gap-8"
+        className="relative z-10 flex items-center justify-center"
       >
         {/* Logo avec halo énergique */}
         <div className="relative">
@@ -134,66 +134,6 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
           </motion.div>
         </div>
 
-        {/* Slogan dynamique compact */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="text-center px-6"
-        >
-          <motion.h2
-            className="text-white text-base sm:text-lg font-semibold tracking-wide leading-tight max-w-xs"
-            style={{ 
-              textShadow: '0 0 15px rgba(255,255,255,0.6), 0 2px 10px rgba(0,0,0,0.3)'
-            }}
-            animate={{
-              opacity: [0.9, 1, 0.9]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity
-            }}
-          >
-            {getSloganByContext()}
-          </motion.h2>
-        </motion.div>
-
-        {/* Loading indicator moderne */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="flex items-center justify-center"
-        >
-          <div className="relative w-10 h-10">
-            {/* Cercle externe */}
-            <motion.div
-              className="absolute inset-0 rounded-full border-3 border-white/20 border-t-white"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-              style={{
-                filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.5))'
-              }}
-            />
-            
-            {/* Cercle interne */}
-            <motion.div
-              className="absolute inset-2 rounded-full border-2 border-white/30 border-b-white"
-              animate={{ rotate: -360 }}
-              transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
-            />
-            
-            {/* Glow pulsant */}
-            <motion.div
-              className="absolute inset-0 rounded-full bg-white/10"
-              animate={{ 
-                scale: [1, 1.3, 1],
-                opacity: [0.3, 0, 0.3]
-              }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            />
-          </div>
-        </motion.div>
       </motion.div>
     </motion.div>
   );
