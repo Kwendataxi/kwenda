@@ -50,7 +50,8 @@ export const CATEGORY_THEMES: Record<string, {
 };
 
 export const getCategoryTheme = (categoryName: string) => {
-  return CATEGORY_THEMES[categoryName] || {
+  const cleanName = categoryName.trim();
+  return CATEGORY_THEMES[cleanName] || {
     gradient: 'from-gray-400 to-gray-600',
     color: 'text-gray-600',
     icon: '🚗',
