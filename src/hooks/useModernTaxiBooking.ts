@@ -272,7 +272,7 @@ export function useModernTaxiBooking() {
         attempts++;
         
         try {
-          const { data, error } = await supabase.functions.invoke('dynamic-ride-dispatcher', {
+          const { data, error } = await supabase.functions.invoke('ride-dispatcher', {
             body: {
               bookingId: bookingId,
               pickupLat: pickupCoords.lat,

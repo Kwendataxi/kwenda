@@ -252,14 +252,9 @@ serve(async (req) => {
           updated_at: new Date().toISOString()
         }).eq('driver_id', selectedDriver.driver_id);
 
-        // Consommer course
-        await supabase.functions.invoke('consume-ride', {
-          body: {
-            driver_id: selectedDriver.driver_id,
-            booking_id: orderId,
-            service_type: 'transport'
-          }
-        });
+        // ⚠️ SÉCURITÉ: Crédit sera défalqué uniquement lors de l'arrivée confirmée
+        // via driver-arrival-confirmation edge function (distance < 100m)
+        console.log(`🔒 Credit consumption deferred until driver arrival confirmation`);
 
         // Notification
         await supabase.from('driver_ride_notifications').insert([{
