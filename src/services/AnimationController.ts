@@ -103,13 +103,13 @@ export class AnimationController {
   private static getAnimationDuration(): string {
     switch (this.mode) {
       case 'full':
-        return '400ms';
+        return '250ms'; // Réduit de 400ms à 250ms
       case 'reduced':
-        return '200ms';
+        return '150ms';
       case 'none':
         return '0ms';
       default:
-        return '400ms';
+        return '250ms';
     }
   }
 
@@ -119,13 +119,13 @@ export class AnimationController {
   private static getTransitionDuration(): string {
     switch (this.mode) {
       case 'full':
-        return '300ms';
+        return '200ms'; // Réduit de 300ms à 200ms
       case 'reduced':
-        return '150ms';
+        return '100ms'; // Réduit de 150ms à 100ms
       case 'none':
         return '0ms';
       default:
-        return '300ms';
+        return '200ms';
     }
   }
 
@@ -185,15 +185,15 @@ export class AnimationController {
     switch (this.mode) {
       case 'full':
         return {
-          duration: 400,
+          duration: 250, // Réduit de 400ms à 250ms
           easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-          stagger: 50,
+          stagger: 30, // Réduit de 50ms à 30ms
         };
       case 'reduced':
         return {
-          duration: 200,
+          duration: 150,
           easing: 'ease-out',
-          stagger: 20,
+          stagger: 15, // Réduit de 20ms à 15ms
         };
       case 'none':
         return {
@@ -203,9 +203,9 @@ export class AnimationController {
         };
       default:
         return {
-          duration: 400,
+          duration: 250,
           easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-          stagger: 50,
+          stagger: 30,
         };
     }
   }

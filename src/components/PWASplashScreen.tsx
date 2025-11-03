@@ -10,8 +10,8 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
 
   useEffect(() => {
     const startTime = Date.now();
-    const minDuration = 1500;
-    const maxDuration = 3000;
+    const minDuration = 1000; // Réduit de 1500ms à 1000ms
+    const maxDuration = 2500; // Réduit de 3000ms à 2500ms
 
     let progressInterval: NodeJS.Timeout;
 
@@ -35,8 +35,8 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
           setProgress(100);
           setTimeout(() => {
             setShow(false);
-            setTimeout(onComplete, 400);
-          }, 200);
+            setTimeout(onComplete, 250); // Réduit de 400ms à 250ms
+          }, 100); // Réduit de 200ms à 100ms
           clearInterval(progressInterval);
           clearInterval(checkInterval);
         }
@@ -47,7 +47,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
       if (elapsed >= maxDuration) {
         setProgress(100);
         setShow(false);
-        setTimeout(onComplete, 400);
+        setTimeout(onComplete, 250); // Réduit de 400ms à 250ms
         clearInterval(progressInterval);
         clearInterval(checkInterval);
       }
@@ -70,7 +70,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ opacity: { duration: 0.4 } }}
+          transition={{ opacity: { duration: 0.25 } }}
           className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
           style={{
             background: "radial-gradient(circle at 50% 50%, hsl(0 84% 60%) 0%, hsl(0 73% 40%) 50%, hsl(0 45% 25%) 100%)"
@@ -158,17 +158,6 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
                 }}
               />
             </motion.div>
-
-            {/* Barre de progression */}
-            <div className="w-64 space-y-2">
-              <div className="h-1 bg-white/20 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-white rounded-full"
-                  style={{ width: `${progress}%` }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                />
-              </div>
-            </div>
           </div>
         </motion.div>
       )}

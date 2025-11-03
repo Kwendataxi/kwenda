@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AnimationController } from '@/services/AnimationController';
 
@@ -10,8 +10,9 @@ interface SmoothTransitionWrapperProps {
 }
 
 /**
- * Wrapper pour créer une transition fluide entre splash/loading et contenu
- * Utilise un crossfade sans white flash
+ * ⚡ WRAPPER DE TRANSITION INVISIBLE
+ * Crossfade parfait sans délai ni flash blanc
+ * Optimisé pour transitions instantanées
  */
 export const SmoothTransitionWrapper = ({
   children,
@@ -19,58 +20,46 @@ export const SmoothTransitionWrapper = ({
   loadingComponent,
   onTransitionComplete,
 }: SmoothTransitionWrapperProps) => {
-  const [showContent, setShowContent] = useState(!isLoading);
   const animConfig = AnimationController.getRecommendedConfig();
-
-  useEffect(() => {
-    if (!isLoading) {
-      // Petit délai pour éviter le flash
-      const timer = setTimeout(() => {
-        setShowContent(true);
-      }, 50);
-
-      return () => clearTimeout(timer);
-    } else {
-      setShowContent(false);
-    }
-  }, [isLoading]);
 
   return (
     <div className="relative w-full h-full">
-      <AnimatePresence mode="sync">
-        {/* Loading overlay */}
+      <AnimatePresence mode="popLayout" onExitComplete={onTransitionComplete}>
+        {/* Loading overlay - disparaît en fondu */}
         {isLoading && (
           <motion.div
             key="loading"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ 
-              duration: animConfig.duration / 1000,
+              duration: 0.2,
               ease: "easeOut"
             }}
             className="absolute inset-0 z-50"
-            onAnimationComplete={() => {
-              if (!isLoading && onTransitionComplete) {
-                onTransitionComplete();
-              }
+            style={{ 
+              willChange: 'opacity',
+              transform: 'translateZ(0)'
             }}
           >
             {loadingComponent}
           </motion.div>
         )}
 
-        {/* Content */}
-        {showContent && (
+        {/* Content - apparaît immédiatement sans délai */}
+        {!isLoading && (
           <motion.div
             key="content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ 
               duration: animConfig.duration / 1000,
-              ease: "easeOut",
-              delay: 0.1 // Léger délai pour éviter le chevauchement
+              ease: "easeOut"
             }}
             className="w-full h-full"
+            style={{ 
+              willChange: 'opacity',
+              transform: 'translateZ(0)'
+            }}
           >
             {children}
           </motion.div>
