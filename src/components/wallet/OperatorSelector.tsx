@@ -4,6 +4,7 @@ import { Smartphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import orangeMoneyLogo from '@/assets/orange-money-logo.webp';
+import airtelMoneyLogo from '@/assets/airtel-money-logo.png';
 
 type Operator = 'airtel' | 'orange' | 'mpesa';
 
@@ -99,6 +100,12 @@ export const OperatorSelector: React.FC<OperatorSelectorProps> = ({
                 <img 
                   src={orangeMoneyLogo} 
                   alt="Orange Money"
+                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow-lg"
+                />
+              ) : operator.id === 'airtel' ? (
+                <img 
+                  src={airtelMoneyLogo} 
+                  alt="Airtel Money"
                   className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow-lg"
                 />
               ) : (
