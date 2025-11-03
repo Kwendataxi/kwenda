@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +11,7 @@ interface Promo {
   gradient: string;
   cta: string;
   action: string;
+  icon?: React.ComponentType<any>;
 }
 
 const promos: Promo[] = [
@@ -37,6 +38,15 @@ const promos: Promo[] = [
     gradient: 'from-orange-500 via-red-500 to-pink-600',
     cta: 'Explorer',
     action: 'new_vendors'
+  },
+  {
+    id: '4',
+    title: '🏪 Devenez vendeur',
+    subtitle: 'Commencez à vendre dès aujourd\'hui',
+    gradient: 'from-violet-600 via-purple-600 to-fuchsia-600',
+    cta: 'Commencer →',
+    action: 'become_vendor',
+    icon: Store
   }
 ];
 
@@ -118,7 +128,11 @@ export const PromoSlider = ({
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+              className="flex items-center gap-3"
             >
+              {currentPromo.icon && (
+                <currentPromo.icon className="h-10 w-10 text-white/80 hidden sm:block" />
+              )}
               <Button
                 onClick={() => onPromoClick?.(currentPromo.action)}
                 className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border-white/30 shadow-xl"

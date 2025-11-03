@@ -515,14 +515,51 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
   const handlePromoClick = (action: string) => {
     switch (action) {
       case 'electronics':
+        // Filtrer catégorie électronique
         setFilters(prev => ({ ...prev, selectedCategory: 'electronics' }));
+        // Scroll vers les produits
+        setTimeout(() => {
+          document.querySelector('[data-section="all-products"]')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+        toast({
+          title: "🎉 Promo électronique activée",
+          description: "Code TECH30 : -30% sur tous les produits électroniques",
+        });
         break;
+        
       case 'free_delivery':
-        toast({ title: "🎉 Livraison gratuite activée !", description: "Sur toutes commandes >50 000 CDF" });
+        // Afficher un message expliquant la livraison gratuite
+        toast({
+          title: "🚀 Livraison gratuite",
+          description: "Pour toute commande supérieure à 50 000 CDF, profitez de la livraison gratuite !",
+          duration: 5000,
+        });
+        // Filtrer produits >50k
+        setFilters(prev => ({ ...prev, priceRange: [50000, 2000000] }));
+        setTimeout(() => {
+          document.querySelector('[data-section="all-products"]')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
         break;
+        
       case 'new_vendors':
+        // Trier par date de création (nouveaux produits)
         setFilters(prev => ({ ...prev, sortBy: 'newest' }));
+        setTimeout(() => {
+          document.querySelector('[data-section="all-products"]')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+        toast({
+          title: "💎 Nouveaux vendeurs",
+          description: "Découvrez les derniers produits de nos nouveaux partenaires",
+        });
         break;
+        
+      case 'become_vendor':
+        // Rediriger vers l'espace vendeur
+        onNavigate('/app/vendeur-request');
+        break;
+        
+      default:
+        console.log('Action non gérée:', action);
     }
   };
 
@@ -625,7 +662,7 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
       )}
 
       {/* TOUS LES PRODUITS - Grille moderne avec toggle vue */}
-      <section>
+      <section data-section="all-products">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold">Tous les produits</h2>
           
