@@ -16,10 +16,10 @@ export const UnifiedAuthPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background flex items-center justify-center p-4">
-      <div className="w-full max-w-5xl space-y-6">
+      <div className="w-full max-w-5xl space-y-8">
         {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="flex justify-center">
+        <div className="text-center space-y-4 animate-fade-in">
+          <div className="flex justify-center animate-scale-in">
             <BrandLogo size={64} />
           </div>
           
@@ -34,7 +34,7 @@ export const UnifiedAuthPage = () => {
         </div>
 
         {/* Auth Tabs */}
-        <Card className="glass border-primary/10">
+        <Card className="glass border-primary/10 animate-fade-up" style={{ animationDelay: '200ms' }}>
           <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-auto p-3 gap-3">
               <TabsTrigger 
@@ -88,52 +88,61 @@ export const UnifiedAuthPage = () => {
         </Card>
 
         {/* Quick Links */}
-        <div className="text-center text-sm text-muted-foreground space-y-3">
-          <p className="font-medium text-foreground text-base">
-            Vous êtes Prestataires ?
+        <div className="text-center space-y-3 py-4 animate-fade-up" style={{ animationDelay: '300ms' }}>
+          <p className="text-sm font-medium text-muted-foreground">
+            Vous êtes professionnel ?
           </p>
-          <div className="flex flex-wrap justify-center gap-2">
+          <div className="flex flex-wrap justify-center items-center gap-2">
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="sm"
-              className="gap-2 hover:bg-secondary/10"
+              className="gap-1.5 text-xs hover:bg-secondary/10 hover:text-secondary transition-colors"
               onClick={() => navigate('/driver/auth')}
             >
-              <Car className="h-4 w-4" />
-              Espace Chauffeur
+              <Car className="h-3.5 w-3.5" />
+              Chauffeur
             </Button>
+            <span className="text-muted-foreground/50">•</span>
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="sm"
-              className="gap-2 hover:bg-accent/10"
+              className="gap-1.5 text-xs hover:bg-accent/10 hover:text-accent transition-colors"
               onClick={() => navigate('/partner/auth')}
             >
-              <Handshake className="h-4 w-4" />
-              Espace Partenaire
+              <Handshake className="h-3.5 w-3.5" />
+              Partenaire
             </Button>
+            <span className="text-muted-foreground/50">•</span>
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="sm"
-              className="gap-2 border-orange-500/50 hover:bg-orange-50 dark:hover:bg-orange-950/30"
+              className="gap-1.5 text-xs hover:bg-orange-50 hover:text-orange-600 dark:hover:bg-orange-950/30 transition-colors"
               onClick={() => navigate('/restaurant/auth')}
             >
-              <UtensilsCrossed className="h-4 w-4 text-orange-500" />
-              Espace Restaurant
+              <UtensilsCrossed className="h-3.5 w-3.5" />
+              Restaurant
             </Button>
           </div>
         </div>
 
-        {/* Bouton Retour à l'accueil en bas */}
-        <div className="text-center mt-8 pb-6">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => navigate('/')}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour à l'accueil
-          </Button>
+        {/* Footer - Bouton Retour à l'accueil */}
+        <div className="mt-8 pt-6 border-t border-border/30 pb-8 animate-fade-up" style={{ animationDelay: '400ms' }}>
+          <div className="flex flex-col items-center gap-3">
+            <Button 
+              onClick={() => navigate('/')}
+              variant="outline"
+              size="default"
+              className="group relative overflow-hidden w-full sm:w-auto sm:min-w-[200px] border-border/50 hover:border-primary/50 hover:shadow-md dark:border-border/30 dark:hover:border-primary/40 dark:hover:bg-primary/5 transition-all duration-300"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <ArrowLeft className="h-4 w-4 mr-2 relative z-10 group-hover:-translate-x-1 transition-transform duration-300" />
+              <span className="relative z-10 font-medium">Retour à l'accueil</span>
+            </Button>
+            
+            <p className="text-xs text-muted-foreground text-center px-4">
+              Découvrez nos services sans vous connecter
+            </p>
+          </div>
         </div>
       </div>
     </div>
