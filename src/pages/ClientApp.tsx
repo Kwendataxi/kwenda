@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ChatProvider } from '@/components/chat/ChatProvider';
 import { FloatingChatButton as MarketplaceFloatingChatButton } from '@/components/marketplace/FloatingChatButton';
@@ -134,6 +135,7 @@ interface PackageType {
 
 const ClientApp = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { t, language, setLanguage, formatCurrency } = useLanguage();
   const { compressData, decompressData } = useDataCompression();
   const { optimizations, measureLoadTime } = usePerformanceMonitor();
@@ -264,6 +266,11 @@ const ClientApp = () => {
     if (service === 'history' || service === 'activity') {
       setCurrentView('history');
       setActiveTab('activity');
+      return;
+    }
+    
+    if (service === 'rental') {
+      navigate('/rental');
       return;
     }
     if (service === 'lottery' || service === 'tombola') {
