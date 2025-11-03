@@ -7821,7 +7821,7 @@ export type Database = {
           created_at: string
           id: string
           moderated_at: string
-          moderator_id: string
+          moderator_id: string | null
           new_status: string
           previous_status: string | null
           rejection_reason: string | null
@@ -7832,7 +7832,7 @@ export type Database = {
           created_at?: string
           id?: string
           moderated_at?: string
-          moderator_id: string
+          moderator_id?: string | null
           new_status: string
           previous_status?: string | null
           rejection_reason?: string | null
@@ -7843,7 +7843,7 @@ export type Database = {
           created_at?: string
           id?: string
           moderated_at?: string
-          moderator_id?: string
+          moderator_id?: string | null
           new_status?: string
           previous_status?: string | null
           rejection_reason?: string | null
