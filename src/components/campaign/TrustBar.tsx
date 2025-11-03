@@ -1,12 +1,15 @@
 import React from 'react';
 import { Shield, Award, CreditCard, HeadphonesIcon } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const TrustBar = () => {
+  const { t } = useLanguage();
+  
   const trustItems = [
-    { icon: Award, text: 'Leader RDC' },
-    { icon: Shield, text: '100% Sécurisé' },
-    { icon: CreditCard, text: 'Paiement Mobile Money' },
-    { icon: HeadphonesIcon, text: 'Support 24/7' }
+    { icon: Award, text: t('campaign.trust_leader_drc') },
+    { icon: Shield, text: t('campaign.trust_secure') },
+    { icon: CreditCard, text: t('campaign.trust_mobile_money') },
+    { icon: HeadphonesIcon, text: t('campaign.trust_support_24_7') }
   ];
 
   return (

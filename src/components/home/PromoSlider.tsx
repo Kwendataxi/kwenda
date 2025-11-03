@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Autoplay from 'embla-carousel-autoplay';
 import { Carousel, CarouselContent, CarouselItem, CarouselApi } from '@/components/ui/carousel';
-import { defaultPromos } from '@/data/promos';
+import { usePromos } from '@/hooks/usePromos';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { ShoppingBag, Zap } from 'lucide-react';
@@ -37,7 +37,9 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
     });
   }, [api]);
 
-  const handlePromoClick = async (promo: typeof defaultPromos[0]) => {
+  const promos = usePromos();
+  
+  const handlePromoClick = async (promo: typeof promos[0]) => {
     // Gestion code promo BIENVENUE30
     if (promo.id === '1') {
       // Vérifier si l'utilisateur est connecté
@@ -76,7 +78,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
         className="w-full h-[140px]"
       >
         <CarouselContent className="-ml-2 md:-ml-4 h-[140px]">
-          {defaultPromos.map((promo) => (
+          {promos.map((promo) => (
             <CarouselItem key={promo.id} className="pl-2 md:pl-4 h-[140px]">
               <div
                 onClick={() => handlePromoClick(promo)}
@@ -247,7 +249,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
         
         {/* Dots indicator - intégrés dans le slider */}
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-          {defaultPromos.map((_, index) => (
+          {promos.map((_, index) => (
             <button
               key={index}
               onClick={() => api?.scrollTo(index)}

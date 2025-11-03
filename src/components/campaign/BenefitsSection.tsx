@@ -1,28 +1,31 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Car, Wallet, Gift, Shield } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const BenefitsSection = () => {
+  const { t } = useLanguage();
+  
   const benefits = [
     {
       icon: Car,
-      title: 'Transport Immédiat',
-      description: 'Course disponible en moins de 3 minutes, 24h/24 et 7j/7'
+      title: t('campaign.benefit_immediate_transport'),
+      description: t('campaign.benefit_immediate_transport_desc')
     },
     {
       icon: Wallet,
-      title: 'Économies Garanties',
-      description: 'Prix fixes et transparents, pas de surprises à l\'arrivée'
+      title: t('campaign.benefit_guaranteed_savings'),
+      description: t('campaign.benefit_guaranteed_savings_desc')
     },
     {
       icon: Gift,
-      title: 'Tombola Gratuite',
-      description: 'Gagne des crédits et des cadeaux à chaque course'
+      title: t('campaign.benefit_free_lottery'),
+      description: t('campaign.benefit_free_lottery_desc')
     },
     {
       icon: Shield,
-      title: '100% Sécurisé',
-      description: 'Paiement mobile money sécurisé et traçabilité totale'
+      title: t('campaign.benefit_100_secure'),
+      description: t('campaign.benefit_100_secure_desc')
     }
   ];
 

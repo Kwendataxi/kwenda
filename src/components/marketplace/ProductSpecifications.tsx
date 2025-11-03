@@ -1,6 +1,7 @@
 import React from 'react';
 import { Separator } from '@/components/ui/separator';
 import { getConditionLabel } from '@/config/marketplaceCategories';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ProductSpecificationsProps {
   brand?: string;
@@ -15,24 +16,28 @@ export const ProductSpecifications: React.FC<ProductSpecificationsProps> = ({
   stockCount,
   specifications
 }) => {
+  const { t } = useLanguage();
+  
   return (
     <div className="mb-4 space-y-2">
       {brand && (
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Marque</span>
+          <span className="text-muted-foreground">{t('product.brand')}</span>
           <span className="font-medium">{brand}</span>
         </div>
       )}
       {condition && (
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">État</span>
+          <span className="text-muted-foreground">{t('product.condition')}</span>
           <span className="font-medium">{getConditionLabel(condition)}</span>
         </div>
       )}
       {stockCount !== undefined && (
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Stock</span>
-          <span className="font-medium">{stockCount} disponible{stockCount > 1 ? 's' : ''}</span>
+          <span className="text-muted-foreground">{t('product.stock')}</span>
+          <span className="font-medium">
+            {stockCount} {t(stockCount > 1 ? 'product.available_plural' : 'product.available')}
+          </span>
         </div>
       )}
       

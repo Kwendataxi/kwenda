@@ -3,6 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Package, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ProductStockInputProps {
   value: number;
@@ -15,6 +16,7 @@ export const ProductStockInput: React.FC<ProductStockInputProps> = ({
   onChange, 
   error 
 }) => {
+  const { t } = useLanguage();
   const increment = () => onChange(Math.min(9999, value + 1));
   const decrement = () => onChange(Math.max(1, value - 1));
 
@@ -23,7 +25,7 @@ export const ProductStockInput: React.FC<ProductStockInputProps> = ({
       <Label htmlFor="stock">
         <div className="flex items-center gap-2">
           <Package className="h-4 w-4" />
-          <span>Stock disponible <span className="text-destructive">*</span></span>
+          <span>{t('product.stock_available')} <span className="text-destructive">{t('product.stock_required')}</span></span>
         </div>
       </Label>
       <div className="flex items-center gap-2">
@@ -61,7 +63,7 @@ export const ProductStockInput: React.FC<ProductStockInputProps> = ({
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        Combien d'unités avez-vous à vendre ? (1-9999)
+        {t('product.stock_help_text')}
       </p>
       {error && (
         <p className="text-xs text-destructive">{error}</p>
