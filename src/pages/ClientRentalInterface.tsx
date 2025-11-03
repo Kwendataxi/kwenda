@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { RentalPromoSlider } from '@/components/rental/RentalPromoSlider';
 import { getVehicleImage, getVehicleGradient } from '@/utils/vehicleFallbackImages';
+import { getCategoryTheme } from '@/utils/categoryThemes';
 
 export const ClientRentalInterface = () => {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ export const ClientRentalInterface = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'categories' | 'grid'>('categories');
 
   // Filtrage des véhicules
   const filteredVehicles = useMemo(() => {
@@ -108,30 +110,69 @@ export const ClientRentalInterface = () => {
 
       {/* Catégories Horizontales Scrollables */}
       <div className="sticky top-[110px] z-40 bg-background/98 backdrop-blur-xl border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-3 py-2 overflow-x-auto scrollbar-hide">
-          <div className="flex gap-1.5 min-w-max">
-            <Button
-              variant={selectedCategory === null ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedCategory(null)}
-              className="whitespace-nowrap text-xs"
-            >
-              Tous ({vehicles.length})
-            </Button>
-            {categories.map((cat) => {
-              const count = vehicles.filter(v => v.category_id === cat.id).length;
-              return (
+        <div className="max-w-7xl mx-auto px-3 py-2">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="overflow-x-auto scrollbar-hide flex-1">
+              <div className="flex gap-1.5 min-w-max">
                 <Button
-                  key={cat.id}
-                  variant={selectedCategory === cat.id ? 'default' : 'outline'}
+                  variant={selectedCategory === null ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className="whitespace-nowrap text-xs"
+                  onClick={() => {
+                    setSelectedCategory(null);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="whitespace-nowrap text-xs font-semibold"
                 >
-                  {cat.name} ({count})
+                  Tous les types ({vehicles.length})
                 </Button>
-              );
-            })}
+                {categories.map((cat) => {
+                  const count = vehicles.filter(v => v.category_id === cat.id).length;
+                  const theme = getCategoryTheme(cat.name);
+                  
+                  return (
+                    <Button
+                      key={cat.id}
+                      variant={selectedCategory === cat.id ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSelectedCategory(cat.id);
+                        document.getElementById(`category-${cat.id}`)?.scrollIntoView({ 
+                          behavior: 'smooth', 
+                          block: 'start',
+                          inline: 'nearest'
+                        });
+                      }}
+                      className={`whitespace-nowrap text-xs font-semibold ${
+                        selectedCategory === cat.id ? theme.color : ''
+                      }`}
+                    >
+                      <span className="mr-1.5">{theme.icon}</span>
+                      {cat.name} ({count})
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Toggle Vue */}
+            <div className="flex items-center gap-1 shrink-0">
+              <Button
+                variant={viewMode === 'categories' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('categories')}
+                className="text-xs"
+              >
+                Par types
+              </Button>
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className="text-xs"
+              >
+                Grille
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -158,7 +199,7 @@ export const ClientRentalInterface = () => {
         </div>
       </div>
 
-      {/* Liste des véhicules - Design moderne et compact */}
+      {/* Liste des véhicules */}
       <div className="max-w-7xl mx-auto px-3 pb-6">
         {filteredVehicles.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
@@ -181,7 +222,166 @@ export const ClientRentalInterface = () => {
               </Button>
             )}
           </div>
+        ) : viewMode === 'categories' ? (
+          // Vue par catégories
+          <div className="space-y-8">
+            {categories.map((category) => {
+              const categoryVehicles = filteredVehicles.filter(v => v.category_id === category.id);
+              
+              if (categoryVehicles.length === 0) return null;
+              
+              const theme = getCategoryTheme(category.name);
+              
+              return (
+                <section key={category.id} id={`category-${category.id}`} className="scroll-mt-40">
+                  {/* En-tête de catégorie */}
+                  <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-primary/20">
+                    <div className={`p-3 rounded-xl bg-gradient-to-br ${theme.gradient} shadow-lg`}>
+                      <Car className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-xl font-bold flex items-center gap-2">
+                        <span>{theme.icon}</span>
+                        {category.name}
+                        <Badge variant="secondary" className="text-xs">
+                          {categoryVehicles.length} véhicule{categoryVehicles.length > 1 ? 's' : ''}
+                        </Badge>
+                      </h2>
+                      <p className="text-sm text-muted-foreground">{theme.description}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Grille de véhicules de la catégorie */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {categoryVehicles.map((vehicle, index) => {
+                      const dailyRate = vehicle.driver_available && vehicle.without_driver_daily_rate > 0
+                        ? vehicle.without_driver_daily_rate
+                        : vehicle.daily_rate;
+                      
+                      const vehicleImage = getVehicleImage(vehicle);
+                      const hasRealImage = vehicle.images?.[0] && vehicle.images[0] !== '/placeholder.svg';
+                      const hasDriverOption = vehicle.driver_available && vehicle.with_driver_daily_rate > 0;
+                      
+                      return (
+                        <motion.div
+                          key={vehicle.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: index * 0.03 }}
+                        >
+                          <Card 
+                            className="overflow-hidden hover:shadow-xl transition-all cursor-pointer group border-2 hover:border-primary"
+                            onClick={() => navigate(`/rental/${vehicle.id}/details`)}
+                          >
+                            {/* Image */}
+                            <div className="relative h-40 overflow-hidden">
+                              {hasRealImage ? (
+                                <img 
+                                  src={vehicleImage} 
+                                  alt={vehicle.name}
+                                  loading="lazy"
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                />
+                              ) : (
+                                <div className={`flex items-center justify-center h-full bg-gradient-to-br ${getVehicleGradient(vehicle)}`}>
+                                  <Car className="h-16 w-16 text-white/50" />
+                                </div>
+                              )}
+                              
+                              {/* Badges - Plus visibles */}
+                              <div className="absolute top-2 inset-x-2 flex justify-between items-start">
+                                <Badge className="bg-background/90 backdrop-blur text-xs py-1 px-2 font-semibold shadow-md">
+                                  {vehicle.comfort_level}
+                                </Badge>
+                                
+                                {vehicle.driver_available ? (
+                                  <Badge className="bg-green-500 text-white text-xs py-1 px-2.5 font-semibold shadow-lg animate-pulse">
+                                    <User className="h-3.5 w-3.5 mr-1" />
+                                    Chauffeur disponible
+                                  </Badge>
+                                ) : (
+                                  <Badge className="bg-blue-500 text-white text-xs py-1 px-2 font-semibold shadow-lg">
+                                    Sans chauffeur
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+
+                            <CardContent className="p-3 space-y-2">
+                              {/* Nom */}
+                              <div>
+                                <h3 className="font-bold text-base leading-tight line-clamp-1">{vehicle.name}</h3>
+                                <p className="text-xs text-muted-foreground">
+                                  {vehicle.brand} {vehicle.model} · {vehicle.year}
+                                </p>
+                              </div>
+
+                              {/* Infos */}
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-0.5">
+                                  <Users className="h-3 w-3" />
+                                  {vehicle.seats}
+                                </span>
+                                <span>•</span>
+                                <span className="flex items-center gap-0.5">
+                                  <Settings className="h-3 w-3" />
+                                  {vehicle.transmission === 'automatic' ? 'Auto' : 'Man'}
+                                </span>
+                                <span>•</span>
+                                <span className="flex items-center gap-0.5">
+                                  <MapPin className="h-3 w-3" />
+                                  {vehicle.city}
+                                </span>
+                              </div>
+
+                              {/* Prix amélioré - Deux tarifs si chauffeur disponible */}
+                              <div className="pt-2 border-t space-y-1.5">
+                                {hasDriverOption ? (
+                                  <>
+                                    {/* Tarif sans chauffeur */}
+                                    <div className="flex justify-between items-center text-xs">
+                                      <span className="text-muted-foreground">Sans chauffeur</span>
+                                      <span className="font-bold">
+                                        {calculateCityPrice(vehicle.without_driver_daily_rate, vehicle.category_id).toLocaleString()} CDF/j
+                                      </span>
+                                    </div>
+                                    {/* Tarif avec chauffeur - Mis en avant */}
+                                    <div className="flex justify-between items-center bg-primary/10 px-2 py-1.5 rounded-md">
+                                      <span className="text-xs font-medium flex items-center gap-1">
+                                        <User className="h-3 w-3" />
+                                        Avec chauffeur
+                                      </span>
+                                      <span className="font-bold text-base text-primary">
+                                        {calculateCityPrice(vehicle.with_driver_daily_rate, vehicle.category_id).toLocaleString()} CDF/j
+                                      </span>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-muted-foreground">Tarif journalier</span>
+                                    <span className="font-bold text-lg text-primary">
+                                      {calculateCityPrice(dailyRate, vehicle.category_id).toLocaleString()} CDF/j
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Bouton CTA */}
+                              <Button size="sm" className="w-full mt-2">
+                                Voir les détails
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
         ) : (
+          // Vue grille classique
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {filteredVehicles.map((vehicle, index) => {
               const dailyRate = vehicle.driver_available && vehicle.without_driver_daily_rate > 0
@@ -190,6 +390,7 @@ export const ClientRentalInterface = () => {
               
               const vehicleImage = getVehicleImage(vehicle);
               const hasRealImage = vehicle.images?.[0] && vehicle.images[0] !== '/placeholder.svg';
+              const hasDriverOption = vehicle.driver_available && vehicle.with_driver_daily_rate > 0;
               
               return (
                 <motion.div
@@ -202,8 +403,7 @@ export const ClientRentalInterface = () => {
                     className="overflow-hidden hover:shadow-xl transition-all cursor-pointer group border-2 hover:border-primary"
                     onClick={() => navigate(`/rental/${vehicle.id}/details`)}
                   >
-                    {/* Image - Réduite à h-32 */}
-                    <div className="relative h-32 overflow-hidden">
+                    <div className="relative h-40 overflow-hidden">
                       {hasRealImage ? (
                         <img 
                           src={vehicleImage} 
@@ -213,64 +413,85 @@ export const ClientRentalInterface = () => {
                         />
                       ) : (
                         <div className={`flex items-center justify-center h-full bg-gradient-to-br ${getVehicleGradient(vehicle)}`}>
-                          <Car className="h-12 w-12 text-white/50" />
+                          <Car className="h-16 w-16 text-white/50" />
                         </div>
                       )}
                       
-                      {/* Badges - Plus petits et discrets */}
-                      <div className="absolute top-2 left-2 flex gap-1">
-                        <Badge className="bg-background/80 backdrop-blur text-[10px] py-0 px-1.5">
+                      <div className="absolute top-2 inset-x-2 flex justify-between items-start">
+                        <Badge className="bg-background/90 backdrop-blur text-xs py-1 px-2 font-semibold shadow-md">
                           {vehicle.comfort_level}
                         </Badge>
-                        {vehicle.driver_available && (
-                          <Badge className="bg-green-500/80 text-white text-[10px] py-0 px-1.5">
-                            <User className="h-2.5 w-2.5 mr-0.5" />
-                            Chauffeur
+                        
+                        {vehicle.driver_available ? (
+                          <Badge className="bg-green-500 text-white text-xs py-1 px-2.5 font-semibold shadow-lg animate-pulse">
+                            <User className="h-3.5 w-3.5 mr-1" />
+                            Chauffeur disponible
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-blue-500 text-white text-xs py-1 px-2 font-semibold shadow-lg">
+                            Sans chauffeur
                           </Badge>
                         )}
                       </div>
                     </div>
 
                     <CardContent className="p-3 space-y-2">
-                      {/* Nom - Plus compact */}
                       <div>
                         <h3 className="font-bold text-base leading-tight line-clamp-1">{vehicle.name}</h3>
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {vehicle.brand} {vehicle.model} · {vehicle.year}
                         </p>
                       </div>
 
-                      {/* Infos - Une ligne */}
-                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span className="flex items-center gap-0.5">
-                          <Users className="h-2.5 w-2.5" />
+                          <Users className="h-3 w-3" />
                           {vehicle.seats}
                         </span>
                         <span>•</span>
                         <span className="flex items-center gap-0.5">
-                          <Settings className="h-2.5 w-2.5" />
+                          <Settings className="h-3 w-3" />
                           {vehicle.transmission === 'automatic' ? 'Auto' : 'Man'}
                         </span>
                         <span>•</span>
                         <span className="flex items-center gap-0.5">
-                          <MapPin className="h-2.5 w-2.5" />
+                          <MapPin className="h-3 w-3" />
                           {vehicle.city}
                         </span>
                       </div>
 
-                      {/* Prix - Compact et clair */}
-                      <div className="pt-2 border-t flex items-center justify-between">
-                        <div>
-                          <p className="text-xs text-muted-foreground">À partir de</p>
-                          <p className="text-lg font-bold text-primary">
-                            {calculateCityPrice(dailyRate, vehicle.category_id).toLocaleString()} 
-                            <span className="text-xs ml-1">CDF/j</span>
-                          </p>
-                        </div>
-                        <Button size="sm" className="h-8 text-xs">
-                          Réserver
-                        </Button>
+                      <div className="pt-2 border-t space-y-1.5">
+                        {hasDriverOption ? (
+                          <>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-muted-foreground">Sans chauffeur</span>
+                              <span className="font-bold">
+                                {calculateCityPrice(vehicle.without_driver_daily_rate, vehicle.category_id).toLocaleString()} CDF/j
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center bg-primary/10 px-2 py-1.5 rounded-md">
+                              <span className="text-xs font-medium flex items-center gap-1">
+                                <User className="h-3 w-3" />
+                                Avec chauffeur
+                              </span>
+                              <span className="font-bold text-base text-primary">
+                                {calculateCityPrice(vehicle.with_driver_daily_rate, vehicle.category_id).toLocaleString()} CDF/j
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground">Tarif journalier</span>
+                            <span className="font-bold text-lg text-primary">
+                              {calculateCityPrice(dailyRate, vehicle.category_id).toLocaleString()} CDF/j
+                            </span>
+                          </div>
+                        )}
                       </div>
+
+                      <Button size="sm" className="w-full mt-2">
+                        Voir les détails
+                      </Button>
                     </CardContent>
                   </Card>
                 </motion.div>
