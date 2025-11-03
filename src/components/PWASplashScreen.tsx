@@ -1,63 +1,104 @@
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { PreloadManager } from "@/services/PreloadManager";
-import { AppReadySignal } from "@/services/AppReadySignal";
-import { AnimationController } from "@/services/AnimationController";
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { PreloadManager } from '@/services/PreloadManager';
+import { AppReadySignal } from '@/services/AppReadySignal';
+import { AnimationController } from '@/services/AnimationController';
+import { supabase } from '@/integrations/supabase/client';
 
-export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
+interface PWASplashScreenProps {
+  onComplete: (session?: any, userRole?: string | null) => void;
+}
+
+/**
+ * 🚀 PWA SPLASH SCREEN OPTIMISÉ + PRÉCHARGEMENT
+ * Charge session + rôle pendant le splash
+ * Transition fluide sans page blanche
+ */
+export const PWASplashScreen = ({ onComplete }: PWASplashScreenProps) => {
   const [show, setShow] = useState(true);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const startTime = Date.now();
-    const minDuration = 1000; // Réduit de 1500ms à 1000ms
-    const maxDuration = 2500; // Réduit de 3000ms à 2500ms
-
     let progressInterval: NodeJS.Timeout;
+    let completionTimeout: NodeJS.Timeout;
+    const minDuration = 500; // ⚡ Réduit à 500ms
+    const maxDuration = 1500; // ⚡ Réduit à 1.5s
+    const startTime = Date.now();
 
-    const updateProgress = () => {
+    const tryComplete = (session?: any, userRole?: string | null) => {
       const elapsed = Date.now() - startTime;
-      const newProgress = Math.min((elapsed / maxDuration) * 100, 95);
-      setProgress(newProgress);
+      
+      // Respect minDuration
+      if (elapsed < minDuration) {
+        setTimeout(() => tryComplete(session, userRole), minDuration - elapsed);
+        return;
+      }
+
+      setShow(false);
+      setTimeout(() => onComplete(session, userRole), 200); // ⚡ Réduit à 200ms
     };
 
-    progressInterval = setInterval(updateProgress, 50);
+    // Progression simulée
+    progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 95) return prev;
+        return prev + Math.random() * 20; // Plus rapide
+      });
+    }, 100); // Plus fréquent
 
-    const checkComplete = async () => {
-      const elapsed = Date.now() - startTime;
-
-      if (elapsed < minDuration) return;
-
+    // 🚀 PRÉCHARGEMENT PARALLÈLE SESSION + RÔLE
+    const preloadAppData = async () => {
       try {
-        await PreloadManager.waitForCriticalResources();
+        // 1. Charger les ressources critiques en parallèle
+        const [resourcesResult] = await Promise.allSettled([
+          PreloadManager.waitForCriticalResources(),
+        ]);
+
+        // 2. Charger la session Supabase
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (AppReadySignal.getState().dom && AppReadySignal.getState().fonts) {
+        // 3. Si connecté, charger le rôle + précharger la route
+        let userRole: string | null = null;
+        if (session?.user) {
+          const [roleResult] = await Promise.allSettled([
+            supabase.rpc('get_current_user_role'),
+          ]);
+          
+          if (roleResult.status === 'fulfilled' && roleResult.value.data) {
+            userRole = roleResult.value.data;
+            
+            // Précharger la route critique
+            PreloadManager.preloadCriticalRoutes(userRole);
+          }
+        }
+
+        // 4. Vérifier AppReadySignal
+        if (AppReadySignal.getIsReady()) {
           setProgress(100);
-          setTimeout(() => {
-            setShow(false);
-            setTimeout(onComplete, 250); // Réduit de 400ms à 250ms
-          }, 100); // Réduit de 200ms à 100ms
-          clearInterval(progressInterval);
-          clearInterval(checkInterval);
+          tryComplete(session, userRole);
+        } else {
+          AppReadySignal.onReady(() => {
+            setProgress(100);
+            tryComplete(session, userRole);
+          });
         }
       } catch (error) {
-        console.warn("Erreur splash:", error);
-      }
-
-      if (elapsed >= maxDuration) {
-        setProgress(100);
-        setShow(false);
-        setTimeout(onComplete, 250); // Réduit de 400ms à 250ms
-        clearInterval(progressInterval);
-        clearInterval(checkInterval);
+        console.error('Error preloading app data:', error);
+        tryComplete(null, null);
       }
     };
 
-    const checkInterval = setInterval(checkComplete, 100);
+    preloadAppData();
+
+    // Timeout maximum
+    completionTimeout = setTimeout(() => {
+      setProgress(100);
+      tryComplete(null, null);
+    }, maxDuration);
 
     return () => {
       clearInterval(progressInterval);
-      clearInterval(checkInterval);
+      clearTimeout(completionTimeout);
     };
   }, [onComplete]);
 

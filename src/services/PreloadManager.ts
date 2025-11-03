@@ -170,6 +170,29 @@ export class PreloadManager {
 
     return metrics;
   }
+
+  /**
+   * 🚀 PRÉCHARGE LES ROUTES CRITIQUES
+   * Charge les composants lazy en avance pendant le splash
+   */
+  static async preloadCriticalRoutes(userRole: string | null): Promise<void> {
+    const routeImports: Record<string, () => Promise<any>> = {
+      client: () => import('@/pages/ClientApp'),
+      driver: () => import('@/pages/DriverApp'),
+      partner: () => import('@/pages/PartnerApp'),
+      admin: () => import('@/pages/AdminApp'),
+      restaurant: () => import('@/pages/RestaurantApp'),
+    };
+
+    if (userRole && routeImports[userRole]) {
+      try {
+        console.log(`⚡ Préchargement route: ${userRole}`);
+        await routeImports[userRole]();
+      } catch (error) {
+        console.warn(`Erreur préchargement route ${userRole}:`, error);
+      }
+    }
+  }
 }
 
 // Auto-initialisation

@@ -1,10 +1,10 @@
 import React from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAppReady } from '@/contexts/AppReadyContext';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useSelectedRole } from '@/hooks/useSelectedRole';
 import { APP_CONFIG } from '@/config/appConfig';
-import { TaxiLoadingTransition } from '@/components/loading/TaxiLoadingTransition';
+import { InvisibleLoadingBar } from '@/components/loading/InvisibleLoadingBar';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,16 +12,21 @@ interface ProtectedRouteProps {
   requiredRole?: 'client' | 'driver' | 'partner' | 'admin';
 }
 
+/**
+ * 🚀 PROTECTED ROUTE OPTIMISÉ
+ * Utilise AppReadyContext pour éviter vérifications redondantes
+ * Transition invisible avec barre de 2px
+ */
 const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: ProtectedRouteProps) => {
-  const { user, loading, sessionReady } = useAuth();
+  const { user, sessionReady, contentReady } = useAppReady();
   const { userRoles, primaryRole, loading: rolesLoading } = useUserRoles();
   const { hasSelectedRole, setSelectedRole, selectedRole } = useSelectedRole();
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Afficher un loader pendant la vérification de l'authentification ET de la session
-  if (loading || !sessionReady) {
-    return <TaxiLoadingTransition />;
+  // Attendre que tout soit prêt (transition invisible)
+  if (!sessionReady || !contentReady || rolesLoading) {
+    return <InvisibleLoadingBar />;
   }
 
   // Si l'authentification est requise mais l'utilisateur n'est pas connecté

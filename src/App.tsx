@@ -22,6 +22,8 @@ import { isMobileApp, isPWA } from "@/services/platformDetection";
 import { PWASplashScreen } from "@/components/PWASplashScreen";
 import { useState } from "react";
 import { RouteLoadingFallback } from "@/components/loading/RouteLoadingFallback";
+import { AppReadyProvider } from "@/contexts/AppReadyContext";
+import { SmoothTransitionWrapper } from "@/components/loading/SmoothTransitionWrapper";
 
 // ✅ Critical imports - loaded immediately (auth, landing, core)
 import Index from "./pages/Index";
@@ -147,6 +149,8 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   const [showSplash, setShowSplash] = useState(isPWA() || isMobileApp());
+  const [preloadedSession, setPreloadedSession] = useState<any>(null);
+  const [preloadedRole, setPreloadedRole] = useState<string | null>(null);
   
   // Initialiser le nettoyage automatique des commandes
   useOrderCleanup();
@@ -167,13 +171,25 @@ const AppContent = () => {
     }
   }, []);
   
+  const handleSplashComplete = (session?: any, userRole?: string | null) => {
+    setPreloadedSession(session);
+    setPreloadedRole(userRole);
+    setShowSplash(false);
+  };
+
   return (
     <>
+      {/* 🚀 SPLASH AVEC PRÉCHARGEMENT */}
       {showSplash && (
-        <PWASplashScreen onComplete={() => setShowSplash(false)} />
+        <PWASplashScreen onComplete={handleSplashComplete} />
       )}
-      {!showSplash && (
-        <>
+      
+      {/* ⚡ CONTENU AVEC TRANSITION INVISIBLE */}
+      <SmoothTransitionWrapper
+        isLoading={showSplash}
+        loadingComponent={<div />}
+      >
+        <AppReadyProvider initialSession={preloadedSession}>
           <UpdateNotification />
           <UpdateProgress />
           <DynamicTheme>
@@ -186,7 +202,6 @@ const AppContent = () => {
               <InstallBanner />
               <BrowserRouter>
             <ScrollToTop />
-            {/* <StartupExperience /> */}
             <OnboardingRedirect>
               <Suspense fallback={<RouteLoadingFallback />}>
                 <Routes>
@@ -510,11 +525,11 @@ const AppContent = () => {
             </OnboardingRedirect>
           </BrowserRouter>
         </PerformanceOptimizer>
+        <OfflineIndicator />
+        <ClickTracker />
       </DynamicTheme>
-      <OfflineIndicator />
-      <ClickTracker />
-        </>
-      )}
+        </AppReadyProvider>
+      </SmoothTransitionWrapper>
     </>
   );
 };

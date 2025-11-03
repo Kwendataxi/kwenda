@@ -1,23 +1,18 @@
-import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
-import { TaxiLoadingTransition } from '@/components/loading/TaxiLoadingTransition';
-import Index from '@/pages/Index';
-import { isMobileApp, isPWA } from '@/services/platformDetection';
-import { useUserRole } from '@/hooks/useUserRole';
+import { useAppReady } from '@/contexts/AppReadyContext';
+import { InvisibleLoadingBar } from '@/components/loading/InvisibleLoadingBar';
 
 /**
- * Composant intelligent pour la route "/app" qui :
- * - Redirige vers /app/auth si non connecté
- * - Redirige vers le dashboard approprié si connecté selon le rôle
+ * 🚀 COMPOSANT SMART HOME OPTIMISÉ
+ * Utilise le contexte AppReady pour éviter les vérifications redondantes
+ * Transition invisible avec barre de 2px
  */
 export const SmartHome = () => {
-  const { user, session, loading, sessionReady } = useAuth();
-  const { userRole, loading: roleLoading } = useUserRole();
-  const isMobilePlatform = isMobileApp() || isPWA();
+  const { user, sessionReady, userRole, contentReady } = useAppReady();
 
-  // Attendre que la session ET les rôles soient chargés
-  if (loading || !sessionReady || roleLoading) {
-    return <TaxiLoadingTransition />;
+  // Attendre que tout soit prêt (transition invisible)
+  if (!sessionReady || !contentReady) {
+    return <InvisibleLoadingBar />;
   }
 
   // NON CONNECTÉ : rediriger vers /auth
