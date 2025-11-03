@@ -52,15 +52,18 @@ const promos: Promo[] = [
 
 interface PromoSliderProps {
   onPromoClick?: (action: string) => void;
+  onServiceSelect?: (service: string) => void;
   autoplayDelay?: number;
   className?: string;
 }
 
 export const PromoSlider = ({ 
-  onPromoClick, 
+  onPromoClick,
+  onServiceSelect, 
   autoplayDelay = 5000,
   className 
 }: PromoSliderProps) => {
+  console.log('🎨 [PromoSlider] Rendu avec', promos.length, 'promos');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -134,7 +137,11 @@ export const PromoSlider = ({
                 <currentPromo.icon className="h-10 w-10 text-white/80 hidden sm:block" />
               )}
               <Button
-                onClick={() => onPromoClick?.(currentPromo.action)}
+                onClick={() => {
+                  console.log('🎯 Promo clicked:', currentPromo.action);
+                  onPromoClick?.(currentPromo.action);
+                  onServiceSelect?.(currentPromo.action === 'become_vendor' ? 'marketplace' : 'marketplace');
+                }}
                 className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border-white/30 shadow-xl"
                 size="sm"
               >

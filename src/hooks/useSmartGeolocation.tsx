@@ -43,7 +43,7 @@ export interface GeolocationOptions {
 
 // Cache en mémoire pour la session
 const locationCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes (réduit pour fraîcheur des données)
 
 export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
   const [loading, setLoading] = useState(false);
@@ -212,18 +212,30 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
         predictions.slice(0, 5).map(async (pred: any, idx: number) => {
           // Obtenir les détails du lieu pour avoir les coordonnées
           try {
-            const { data: detailsData } = await supabase.functions.invoke(
+            const { data: detailsData, error: detailsError } = await supabase.functions.invoke(
               'google-place-details',
               {
                 body: { placeId: pred.place_id }
               }
             );
 
+            if (detailsError) {
+              console.warn('Erreur détails lieu:', detailsError);
+              return null;
+            }
+
+            const location = detailsData?.result?.geometry?.location;
+            
+            if (!location || !location.lat || !location.lng) {
+              console.warn('Pas de coordonnées pour:', pred.description);
+              return null;
+            }
+
             return {
               id: pred.place_id,
               address: pred.description,
-              lat: detailsData?.result?.geometry?.location?.lat || 0,
-              lng: detailsData?.result?.geometry?.location?.lng || 0,
+              lat: location.lat,
+              lng: location.lng,
               type: 'google' as const,
               placeId: pred.place_id,
               name: pred.structured_formatting?.main_text || pred.description,
@@ -238,7 +250,7 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
         })
       );
 
-      const validResults = results.filter(r => r !== null) as LocationSearchResult[];
+      const validResults = results.filter(r => r !== null && r.lat !== 0 && r.lng !== 0) as LocationSearchResult[];
       
       // Ajouter des lieux populaires si peu de résultats
       if (validResults.length < 3) {
