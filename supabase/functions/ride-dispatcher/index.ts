@@ -147,24 +147,9 @@ serve(async (req) => {
       })
       .eq('driver_id', selectedDriver.driver_id);
 
-    // ✅ NOUVEAU : Consommer une course
-    try {
-      const { data: consumeResult, error: consumeError } = await supabase.functions.invoke('consume-ride', {
-        body: {
-          driver_id: selectedDriver.driver_id,
-          booking_id: bookingId,
-          service_type: 'transport'
-        }
-      });
-
-      if (consumeError) {
-        console.warn('⚠️ Erreur consommation course:', consumeError);
-      } else {
-        console.log(`✅ Course consommée. Courses restantes: ${consumeResult?.rides_remaining || 0}`);
-      }
-    } catch (consumeErr) {
-      console.error('❌ Erreur critique consume-ride:', consumeErr);
-    }
+    // ✅ SÉCURITÉ: Le crédit sera défalqué lors de l'arrivée du chauffeur (driver-arrival-confirmation)
+    console.log(`🔒 [${bookingId}] Credit will be consumed upon driver arrival confirmation`);
+    console.log(`💳 [${selectedDriver.driver_id}] Current rides_remaining: ${selectedDriver.rides_remaining || 0}`);
 
     // Récupérer les détails de la réservation pour la notification
     const { data: bookingDetails, error: bookingError } = await supabase

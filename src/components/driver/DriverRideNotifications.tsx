@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Clock, CheckCircle, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { MapPin, Clock, CheckCircle, X, Zap, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { CancellationDialog } from '@/components/shared/CancellationDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { DriverArrivalButton } from './DriverArrivalButton';
+import { useDriverSubscriptions } from '@/hooks/useDriverSubscriptions';
 
 interface RideNotification {
   id: string;
@@ -15,34 +18,164 @@ interface RideNotification {
   estimatedTime: number;
   expiresIn: number;
   status?: string;
+  pickupAddress?: string;
+  destinationAddress?: string;
+  estimatedPrice?: number;
+  vehicleClass?: string;
+  ridesRemaining?: number;
 }
 
 export default function DriverRideNotifications() {
   const { user } = useAuth();
+  const { currentSubscription, refreshSubscription } = useDriverSubscriptions();
   const [notifications, setNotifications] = useState<RideNotification[]>([]);
+  const [acceptedRides, setAcceptedRides] = useState<Map<string, boolean>>(new Map());
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
 
-  // Simulation pour les tests
+  // Load real-time notifications from Supabase
   useEffect(() => {
-    // Ajouter une notification de test après 3 secondes
-    const timer = setTimeout(() => {
-      setNotifications([{
-        id: 'test-1',
-        title: 'Nouvelle course disponible',
-        message: 'Course taxi standard',
-        distance: 2.3,
-        estimatedTime: 8,
-        expiresIn: 120
-      }]);
-    }, 3000);
+    if (!user) return;
 
-    return () => clearTimeout(timer);
-  }, []);
+    console.log('🔔 Setting up ride notifications for driver:', user.id);
 
-  const handleAccept = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-    toast.success('Course acceptée !');
+    // Load pending notifications
+    const loadNotifications = async () => {
+      const { data, error } = await supabase
+        .from('push_notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('notification_type', 'ride_assignment')
+        .eq('is_sent', false)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error('Error loading notifications:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        console.log(`✅ Loaded ${data.length} pending ride notifications`);
+        
+        const mappedNotifications: RideNotification[] = data.map((notif: any) => ({
+          id: notif.reference_id || notif.id,
+          title: notif.title,
+          message: notif.message,
+          distance: (notif as any).metadata?.distance || 0,
+          estimatedTime: Math.ceil(((notif as any).metadata?.distance || 0) * 3), // 3 min per km
+          expiresIn: 120, // 2 minutes
+          pickupAddress: (notif as any).metadata?.pickupLocation?.address,
+          destinationAddress: (notif as any).metadata?.destinationLocation?.address,
+          estimatedPrice: (notif as any).metadata?.estimatedPrice,
+          vehicleClass: (notif as any).metadata?.vehicleClass,
+          ridesRemaining: (notif as any).metadata?.rides_remaining,
+          status: 'pending'
+        }));
+
+        setNotifications(mappedNotifications);
+      }
+    };
+
+    loadNotifications();
+
+    // Real-time subscription for new ride assignments
+    const channel = supabase
+      .channel('driver-ride-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'push_notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔔 New notification received:', payload);
+          
+          const newNotif = payload.new as any;
+          if (newNotif.notification_type === 'ride_assignment') {
+            const notification: RideNotification = {
+              id: newNotif.reference_id || newNotif.id,
+              title: newNotif.title,
+              message: newNotif.message,
+              distance: newNotif.metadata?.distance || 0,
+              estimatedTime: Math.ceil((newNotif.metadata?.distance || 0) * 3),
+              expiresIn: 120,
+              pickupAddress: newNotif.metadata?.pickupLocation?.address,
+              destinationAddress: newNotif.metadata?.destinationLocation?.address,
+              estimatedPrice: newNotif.metadata?.estimatedPrice,
+              vehicleClass: newNotif.metadata?.vehicleClass,
+              ridesRemaining: newNotif.metadata?.rides_remaining,
+              status: 'pending'
+            };
+
+            setNotifications(prev => [notification, ...prev]);
+            
+            // Play notification sound
+            toast('🚗 Nouvelle course disponible !', {
+              description: `Distance: ${notification.distance.toFixed(1)}km`,
+              duration: 120000 // 2 minutes
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    // Timer for expiration
+    const timerInterval = setInterval(() => {
+      setNotifications(prev => 
+        prev
+          .map(n => ({ ...n, expiresIn: n.expiresIn - 1 }))
+          .filter(n => n.expiresIn > 0)
+      );
+    }, 1000);
+
+    return () => {
+      channel.unsubscribe();
+      clearInterval(timerInterval);
+    };
+  }, [user]);
+
+  const handleAccept = async (id: string) => {
+    if (!user) return;
+
+    try {
+      // Mark as accepted in UI immediately
+      setAcceptedRides(prev => new Map(prev).set(id, true));
+
+      // Update booking status
+      const { error } = await supabase
+        .from('transport_bookings')
+        .update({
+          status: 'driver_assigned',
+          driver_assigned_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .eq('driver_id', user.id);
+
+      if (error) throw error;
+
+      // Mark notification as sent
+      await supabase
+        .from('push_notifications')
+        .update({ is_sent: true, sent_at: new Date().toISOString() })
+        .eq('reference_id', id)
+        .eq('user_id', user.id);
+
+      toast.success('✅ Course acceptée !', {
+        description: 'Dirigez-vous vers le client. Le crédit sera défalqué à votre arrivée.'
+      });
+
+    } catch (error) {
+      console.error('Error accepting ride:', error);
+      toast.error('Erreur lors de l\'acceptation de la course');
+      setAcceptedRides(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(id);
+        return newMap;
+      });
+    }
   };
 
   const handleReject = (id: string) => {
@@ -90,68 +223,171 @@ export default function DriverRideNotifications() {
     }
   };
 
-  if (notifications.length === 0) {
-    return null;
+  const handleArrivalConfirmed = (bookingId: string, ridesRemaining: number) => {
+    // Remove notification after arrival confirmed
+    setNotifications(prev => prev.filter(n => n.id !== bookingId));
+    setAcceptedRides(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(bookingId);
+      return newMap;
+    });
+    
+    // Refresh subscription to show updated credits
+    refreshSubscription();
+    
+    toast.success('✅ Course démarrée !', {
+      description: `Crédits restants: ${ridesRemaining}`
+    });
+  };
+
+  if (notifications.length === 0 && acceptedRides.size === 0) {
+    return (
+      <div className="text-center p-6 text-muted-foreground">
+        <p>Aucune course en attente</p>
+        <p className="text-sm mt-1">Restez disponible pour recevoir des demandes</p>
+      </div>
+    );
   }
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
-      {notifications.map((notification) => (
-        <Card key={notification.id} className="bg-white border-primary shadow-lg animate-in slide-in-from-right">
+    <div className="space-y-4">
+      {/* Display credits badge */}
+      {currentSubscription && (
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <Badge variant="outline" className="flex items-center gap-2 px-4 py-2">
+            <Zap className="w-4 h-4 text-yellow-500" />
+            <span className="font-semibold">{currentSubscription.rides_remaining}</span>
+            <span className="text-muted-foreground">courses restantes</span>
+          </Badge>
+        </div>
+      )}
+
+      {notifications.map((notification) => {
+        const isAccepted = acceptedRides.get(notification.id);
+        return (
+        <Card
+          key={notification.id} 
+          className={`border shadow-lg transition-all ${
+            isAccepted ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-primary'
+          }`}
+        >
           <CardContent className="p-4">
+            {/* Header */}
             <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 bg-primary/10 rounded-full">
-                <MapPin className="h-4 w-4 text-primary" />
+              <div className={`p-2 rounded-full ${
+                isAccepted ? 'bg-green-500/20' : 'bg-primary/10'
+              }`}>
+                <MapPin className={`h-4 w-4 ${isAccepted ? 'text-green-600' : 'text-primary'}`} />
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-sm">{notification.title}</h3>
-                <p className="text-xs text-muted-foreground">{notification.message}</p>
+                <p className="text-xs text-muted-foreground">{notification.vehicleClass || notification.message}</p>
+              </div>
+              {isAccepted && (
+                <Badge variant="default" className="bg-green-500">
+                  Acceptée
+                </Badge>
+              )}
+            </div>
+
+            {/* Route Info */}
+            <div className="space-y-2 mb-4 bg-muted/50 rounded-lg p-3">
+              <div className="flex items-start gap-2 text-xs">
+                <div className="w-2 h-2 bg-green-500 rounded-full mt-1 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium">Départ</p>
+                  <p className="text-muted-foreground truncate">
+                    {notification.pickupAddress || 'Adresse de départ'}
+                  </p>
+                </div>
+              </div>
+              <div className="ml-1 border-l border-dashed h-4" />
+              <div className="flex items-start gap-2 text-xs">
+                <div className="w-2 h-2 bg-red-500 rounded-full mt-1 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium">Arrivée</p>
+                  <p className="text-muted-foreground truncate">
+                    {notification.destinationAddress || 'Adresse d\'arrivée'}
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2 mb-4">
-              <div className="flex items-center gap-2 text-xs">
-                <MapPin className="h-3 w-3" />
-                <span>Distance: {notification.distance} km</span>
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-2 mb-4 text-xs">
+              <div className="bg-background rounded p-2 text-center">
+                <MapPin className="h-3 w-3 mx-auto mb-1 text-muted-foreground" />
+                <p className="font-medium">{notification.distance.toFixed(1)} km</p>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <Clock className="h-3 w-3" />
-                <span>Arrivée: ~{notification.estimatedTime} min</span>
+              <div className="bg-background rounded p-2 text-center">
+                <Clock className="h-3 w-3 mx-auto mb-1 text-muted-foreground" />
+                <p className="font-medium">~{notification.estimatedTime} min</p>
+              </div>
+              <div className="bg-background rounded p-2 text-center">
+                <DollarSign className="h-3 w-3 mx-auto mb-1 text-muted-foreground" />
+                <p className="font-medium">{notification.estimatedPrice?.toLocaleString() || '-'} CDF</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex-1 bg-muted rounded-full h-2">
-                <div 
-                  className="bg-destructive h-2 rounded-full transition-all duration-1000"
-                  style={{ width: `${(notification.expiresIn / 120) * 100}%` }}
+            {!isAccepted ? (
+              <>
+                {/* Timer */}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex-1 bg-muted rounded-full h-2">
+                    <div 
+                      className="bg-destructive h-2 rounded-full transition-all duration-1000"
+                      style={{ width: `${(notification.expiresIn / 120) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-mono">{notification.expiresIn}s</span>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={() => handleReject(notification.id)}
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Refuser
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleAccept(notification.id)}
+                  >
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Accepter
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Info */}
+                <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 mb-3 text-xs">
+                  <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                    ℹ️ Dirigez-vous vers le client
+                  </p>
+                  <p className="text-blue-800 dark:text-blue-200">
+                    Le crédit sera déduit lorsque vous confirmerez votre arrivée à moins de 100m du client.
+                  </p>
+                </div>
+
+                {/* Arrival Button */}
+                <DriverArrivalButton
+                  bookingId={notification.id}
+                  ridesRemaining={notification.ridesRemaining || currentSubscription?.rides_remaining || 0}
+                  onArrivalConfirmed={(remaining) => handleArrivalConfirmed(notification.id, remaining)}
+                  className="w-full"
                 />
-              </div>
-              <span className="text-xs font-mono">{notification.expiresIn}s</span>
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="destructive"
-                className="flex-1"
-                onClick={() => handleReject(notification.id)}
-              >
-                <X className="h-3 w-3 mr-1" />
-                Refuser
-              </Button>
-              <Button
-                size="sm"
-                className="flex-1"
-                onClick={() => handleAccept(notification.id)}
-              >
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Accepter
-              </Button>
-            </div>
+              </>
+            )}
           </CardContent>
         </Card>
-      ))}
+        );
+      })}
 
       <CancellationDialog
         isOpen={showCancelDialog}

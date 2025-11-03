@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DriverRideNotifications from './DriverRideNotifications';
 import DemandHeatmapView from './DemandHeatmapView';
 import { DriverHeartbeatMonitor } from './DriverHeartbeatMonitor';
+import { DriverSubscriptionCard } from './DriverSubscriptionCard';
 import { Car, MapPin, Clock, Star, TrendingUp } from 'lucide-react';
 
 export function DriverDashboard() {
@@ -20,6 +21,9 @@ export function DriverDashboard() {
 
         {/* Heartbeat Monitor - CRITIQUE pour la détection de disponibilité */}
         <DriverHeartbeatMonitor />
+
+        {/* Subscription Card - Shows credits and status */}
+        <DriverSubscriptionCard />
 
         {/* Status Card */}
         <Card>
