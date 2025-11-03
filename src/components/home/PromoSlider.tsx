@@ -75,11 +75,11 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
         setApi={setApi}
         opts={{ loop: true, align: 'start' }}
         plugins={[autoplayRef.current]}
-        className="w-full h-[140px]"
+        className="w-full"
       >
-        <CarouselContent className="-ml-2 md:-ml-4 h-[140px]">
+        <CarouselContent className="h-[140px]">
           {promos.map((promo) => (
-            <CarouselItem key={promo.id} className="pl-2 md:pl-4 h-[140px]">
+            <CarouselItem key={promo.id} className="h-[140px]">
               <div
                 onClick={() => handlePromoClick(promo)}
                 className={cn(
