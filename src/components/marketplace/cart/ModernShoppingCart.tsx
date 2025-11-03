@@ -63,7 +63,19 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
   };
 
   const handleCheckout = async () => {
-    setShowPaymentDialog(true);
+    console.log('🛒 [Checkout] Ouverture dialogue paiement:', {
+      totalPrice,
+      walletBalance: wallet?.balance || 0,
+      shouldShowTopUp: (wallet?.balance || 0) < totalPrice,
+      comparison: `${wallet?.balance || 0} < ${totalPrice}`,
+      timestamp: new Date().toISOString(),
+    });
+    
+    // Forcer fermeture puis réouverture pour éviter cache
+    setShowPaymentDialog(false);
+    setTimeout(() => {
+      setShowPaymentDialog(true);
+    }, 50);
   };
 
   const handleConfirmPayment = async () => {
@@ -281,6 +293,13 @@ export const ModernShoppingCart: React.FC<ModernShoppingCartProps> = ({
         </SheetContent>
       </Sheet>
 
+      {showPaymentDialog && console.log('📊 [Props KwendaPayCheckout]:', {
+        totalPrice,
+        walletBalance: wallet?.balance || 0,
+        key: `${totalPrice}-${wallet?.balance || 0}`,
+        isOpen: showPaymentDialog,
+      })}
+      
       <KwendaPayCheckout
         key={`${totalPrice}-${wallet?.balance || 0}`}
         isOpen={showPaymentDialog}

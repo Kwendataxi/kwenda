@@ -27,6 +27,17 @@ export const KwendaPayCheckout: React.FC<KwendaPayCheckoutProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const isSufficient = walletBalance >= total;
 
+  // 🔍 Debug logs détaillés
+  console.log('🔍 [KwendaPayCheckout] Render détails:', {
+    walletBalance,
+    total,
+    isSufficient,
+    directCondition: walletBalance < total,
+    shouldShowTopUp: walletBalance < total ? 'OUI - Bouton RECHARGER' : 'NON - Bouton PAYER',
+    comparison: `${walletBalance} < ${total} = ${walletBalance < total}`,
+    timestamp: new Date().toISOString(),
+  });
+
   const handleConfirm = async () => {
     if (!isSufficient) return;
     
@@ -145,33 +156,49 @@ export const KwendaPayCheckout: React.FC<KwendaPayCheckoutProps> = ({
               Annuler
             </Button>
             
-            {walletBalance < total ? (
-              <Button
-                onClick={handleTopUp}
-                className="flex-1 gap-2 bg-gradient-to-r from-congo-green to-congo-green-electric hover:from-congo-green-electric hover:to-congo-green text-white"
-              >
-                <Plus className="w-4 h-4" />
-                Recharger mon compte
-              </Button>
-            ) : (
-              <Button
-                onClick={handleConfirm}
-                disabled={isProcessing}
-                className="flex-1 gap-2"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Traitement...
-                  </>
-                ) : (
-                  <>
-                    <Wallet className="w-4 h-4" />
-                    Payer avec KwendaPay
-                  </>
-                )}
-              </Button>
-            )}
+            {/* Debug visuel avec IIFE */}
+            {(() => {
+              const shouldShowTopUp = walletBalance < total;
+              console.log('🎯 [Button Render]', { 
+                shouldShowTopUp, 
+                walletBalance, 
+                total,
+                buttonType: shouldShowTopUp ? 'RECHARGER' : 'PAYER',
+                timestamp: new Date().toISOString()
+              });
+              
+              if (shouldShowTopUp) {
+                return (
+                  <Button
+                    onClick={handleTopUp}
+                    className="flex-1 gap-2 bg-gradient-to-r from-congo-green to-congo-green-electric hover:from-congo-green-electric hover:to-congo-green text-white"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Recharger mon compte
+                  </Button>
+                );
+              }
+              
+              return (
+                <Button
+                  onClick={handleConfirm}
+                  disabled={isProcessing}
+                  className="flex-1 gap-2"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Traitement...
+                    </>
+                  ) : (
+                    <>
+                      <Wallet className="w-4 h-4" />
+                      Payer avec KwendaPay
+                    </>
+                  )}
+                </Button>
+              );
+            })()}
           </div>
         </div>
       </DialogContent>
