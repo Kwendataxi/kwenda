@@ -102,6 +102,7 @@ export const ProductChatTab: React.FC<ProductChatTabProps> = ({
           title={`Chat - ${productTitle}`}
           isFloating={false}
           hideHeader={true}
+          hideAssistantTab={true}
           quickActions={[
             { 
               label: "Bonjour! 👋", 

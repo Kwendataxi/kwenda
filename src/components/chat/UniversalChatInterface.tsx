@@ -35,6 +35,7 @@ interface UniversalChatInterfaceProps {
   title?: string;
   quickActions?: { label: string; action: () => void; icon?: any }[];
   hideHeader?: boolean;
+  hideAssistantTab?: boolean;
 }
 
 export const UniversalChatInterface = ({
@@ -45,7 +46,8 @@ export const UniversalChatInterface = ({
   participantId,
   title,
   quickActions = [],
-  hideHeader = false
+  hideHeader = false,
+  hideAssistantTab = false
 }: UniversalChatInterfaceProps) => {
   const { language } = useLanguage();
   const {
@@ -202,13 +204,9 @@ export const UniversalChatInterface = ({
 
       {/* Content */}
       <div className="flex-1 flex flex-col min-h-0">
-        <Tabs defaultValue="chat" className="flex-1 flex flex-col">
-          <TabsList className="grid w-full grid-cols-2 mx-4 mt-2">
-            <TabsTrigger value="chat">Chat</TabsTrigger>
-            <TabsTrigger value="assistant">Assistant IA</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="chat" className="flex-1 flex flex-col m-0">
+        {hideAssistantTab ? (
+          // Chat direct sans onglets pour le marketplace
+          <div className="flex-1 flex flex-col">
             {!selectedConversation ? (
               <ConversationsList
                 conversations={conversations}
@@ -230,15 +228,47 @@ export const UniversalChatInterface = ({
                 messagesEndRef={messagesEndRef}
               />
             )}
-          </TabsContent>
-          
-          <TabsContent value="assistant" className="flex-1 p-2 m-0">
-            <AIAssistantWidget 
-              context={contextType as any}
-              className="h-full border-0 shadow-none"
-            />
-          </TabsContent>
-        </Tabs>
+          </div>
+        ) : (
+          // Système de Tabs avec Chat + Assistant IA
+          <Tabs defaultValue="chat" className="flex-1 flex flex-col">
+            <TabsList className="grid w-full grid-cols-2 mx-4 mt-2">
+              <TabsTrigger value="chat">Chat</TabsTrigger>
+              <TabsTrigger value="assistant">Assistant IA</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="chat" className="flex-1 flex flex-col m-0">
+              {!selectedConversation ? (
+                <ConversationsList
+                  conversations={conversations}
+                  onSelectConversation={(id) => {
+                    setSelectedConversation(id);
+                    fetchMessages(id);
+                  }}
+                  loading={loading}
+                />
+              ) : (
+                <ChatView
+                  messages={conversationMessages}
+                  onSendMessage={handleSendMessage}
+                  onSendLocation={handleSendLocation}
+                  newMessage={newMessage}
+                  setNewMessage={setNewMessage}
+                  onKeyPress={handleKeyPress}
+                  quickActions={quickActions}
+                  messagesEndRef={messagesEndRef}
+                />
+              )}
+            </TabsContent>
+            
+            <TabsContent value="assistant" className="flex-1 p-2 m-0">
+              <AIAssistantWidget 
+                context={contextType as any}
+                className="h-full border-0 shadow-none"
+              />
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </Card>
   );
