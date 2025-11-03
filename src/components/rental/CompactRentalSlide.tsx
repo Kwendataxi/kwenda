@@ -24,44 +24,39 @@ export const CompactRentalSlide: React.FC<CompactRentalSlideProps> = ({
       <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" />
 
       <div className="relative h-full p-3 flex items-center">
-        {/* Badge en haut à droite */}
-        <div className="absolute top-2 right-2 bg-yellow-400/90 text-emerald-900 px-2.5 py-1 rounded-full font-black text-[10px] shadow-lg">
-          {vehicleCount}+ DISPONIBLES
+        {/* Badge ultra-compact */}
+        <div className="absolute top-2 right-2 bg-yellow-400/90 text-emerald-900 px-2 py-0.5 rounded-full font-black text-[9px] shadow-lg">
+          {vehicleCount}+ DISPOS
         </div>
 
-        {/* Layout horizontal : Info + CTA */}
-        <div className="flex items-center justify-between w-full gap-4">
-          {/* Partie gauche : Emoji + Titre + Prix inline */}
-          <div className="flex-1 flex items-center gap-3">
-            {/* Emoji grand à gauche */}
-            <div className="text-5xl">🚗</div>
+        {/* Layout horizontal simplifié */}
+        <div className="flex items-center justify-between w-full gap-3">
+          {/* Titre avec emoji intégré + Prix inline minuscule */}
+          <div className="flex-1">
+            <h3 className="text-2xl font-black text-white leading-tight drop-shadow-lg">
+              🚗 Location de<br />
+              véhicules
+            </h3>
             
-            {/* Titre + Prix verticalement */}
-            <div className="flex flex-col gap-1.5">
-              <h3 className="text-2xl font-black text-white leading-tight drop-shadow-lg">
-                Location de véhicules
-              </h3>
-              
-              {/* Prix inline compact */}
-              <div className="inline-flex items-baseline gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20">
-                <span className="text-xs text-white/70 font-medium">À partir de</span>
-                <span className="text-lg font-black text-white">{startingPrice.toLocaleString()}</span>
-                <span className="text-xs text-white/90 font-bold">CDF/jour</span>
-              </div>
+            {/* Prix ultra-compact inline */}
+            <div className="flex items-baseline gap-1 mt-1.5">
+              <span className="text-[10px] text-white/70">dès</span>
+              <span className="text-sm font-black text-white">{(startingPrice / 1000).toFixed(0)}K</span>
+              <span className="text-[10px] text-white/80">CDF/j</span>
             </div>
           </div>
           
-          {/* Partie droite : CTA */}
+          {/* CTA compact */}
           <button 
             onClick={onReserve}
-            className="bg-white text-emerald-600 px-6 py-3 rounded-xl font-bold text-sm shadow-xl hover:scale-105 transition-all shrink-0"
+            className="bg-white text-emerald-600 px-5 py-2 rounded-xl font-bold text-xs shadow-xl hover:scale-105 transition-all"
           >
             Réserver →
           </button>
         </div>
 
-        {/* Glow effect subtil */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
+        {/* Glow subtil */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-24 bg-emerald-400/15 rounded-full blur-3xl pointer-events-none" />
       </div>
 
       {/* Bordure brillante */}
