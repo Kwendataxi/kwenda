@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { UtensilsCrossed, ArrowRight, MapPin, Clock, Zap } from "lucide-react";
+import { UtensilsCrossed, ArrowRight, MapPin, Clock, Zap, Car, Store } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { useAuth } from "@/hooks/useAuth";
@@ -40,12 +40,17 @@ const ModernHeroSimplified = () => {
         <div className="absolute bottom-40 right-20 w-24 h-24 bg-accent/4 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
       </div>
       
-      <div className="container-section py-12 lg:py-20 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[85vh]">
+      <div className="container-section py-8 lg:py-16 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[90vh]">
           {/* Content */}
-          <div className="space-y-8 animate-fade-up text-center lg:text-left">
-            {/* Brand Header */}
-            <div className="flex flex-col items-center lg:items-start gap-4 stagger-1">
+          <div className="space-y-6 animate-fade-up text-center lg:text-left">
+            {/* Brand Header - Simplifié */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="flex flex-col items-center lg:items-start gap-6"
+            >
               <motion.div
                 whileHover={{ scale: 1.05, rotate: 2 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
@@ -53,68 +58,123 @@ const ModernHeroSimplified = () => {
                 <BrandLogo size="lg" animated withGlow />
               </motion.div>
               
-              <div className="space-y-4">
-                <h1 className="text-display-md lg:text-display-lg bg-gradient-to-r from-foreground via-primary to-congo-red bg-clip-text text-transparent animate-gradient">
-                  Kwenda Taxi
-                </h1>
-                
-                <p className="text-heading-lg font-bold text-primary tracking-tight">
-                  Courses abordables tous les jours !
-                </p>
-              </div>
-            </div>
+              {/* H1 Principal - Slogan uniquement */}
+              <h1 className="text-4xl lg:text-5xl font-bold">
+                <span className="bg-gradient-to-r from-primary via-congo-red to-primary bg-clip-text text-transparent">
+                  Courses abordables
+                </span>
+                {" "}tous les jours !
+              </h1>
+            </motion.div>
 
-            {/* Main Value Proposition */}
-            <div className="space-y-4">
-              <h2 className="text-display-sm lg:text-display-lg leading-tight stagger-2">
-                Transport, Food et plus à Kinshasa, Lubumbashi et Kolwezi
-              </h2>
-              
-              <p className="text-body-lg text-muted-foreground leading-relaxed stagger-3">
-                Commandez votre transport en un clic, faites-vous livrer vos repas préférés et bien plus encore.
-              </p>
-            </div>
+            {/* Description condensée */}
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-lg text-muted-foreground"
+            >
+              Transport, livraison et marketplace à Kinshasa, Lubumbashi et Kolwezi. Commandez en un clic.
+            </motion.p>
 
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start stagger-4">
+            {/* CTAs en Cards Glassmorphism */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto lg:mx-0 pt-2"
+            >
+              {/* Card Transport */}
               <Link to="/app/auth">
-                <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-primary via-primary-glow to-primary hover:shadow-glow min-h-[56px] text-body-lg rounded-xl px-8 gap-2">
-                  Commander maintenant
-                  <ArrowRight className="w-5 h-5" />
-                </Button>
+                <motion.div
+                  whileHover={{ scale: 1.03, y: -5 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="relative overflow-hidden bg-gradient-to-br from-primary/90 via-primary to-primary/90 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-lg hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all duration-300 group"
+                >
+                  <div className="relative z-10 space-y-3">
+                    <motion.div
+                      whileHover={{ rotate: 5, scale: 1.1 }}
+                      transition={{ type: "spring", stiffness: 400 }}
+                    >
+                      <Car className="w-8 h-8 text-white" />
+                    </motion.div>
+                    <h3 className="text-lg font-semibold text-white">Transport VTC</h3>
+                    <p className="text-sm text-white/90">Réservez votre course</p>
+                    <ArrowRight className="w-5 h-5 text-white group-hover:translate-x-1 transition-transform" />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </motion.div>
               </Link>
 
+              {/* Card Food */}
               <Link to="/food">
-                <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 min-h-[56px] text-body-lg rounded-xl px-8 gap-2">
-                  <UtensilsCrossed className="w-5 h-5" />
-                  Commander à manger
-                </Button>
+                <motion.div
+                  whileHover={{ scale: 1.03, y: -5 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="relative overflow-hidden bg-gradient-to-br from-orange-500/90 to-amber-500/90 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-lg hover:shadow-[0_0_30px_rgba(251,146,60,0.5)] transition-all duration-300 group"
+                >
+                  <div className="relative z-10 space-y-3">
+                    <motion.div
+                      whileHover={{ rotate: -5, scale: 1.1 }}
+                      transition={{ type: "spring", stiffness: 400 }}
+                    >
+                      <UtensilsCrossed className="w-8 h-8 text-white" />
+                    </motion.div>
+                    <h3 className="text-lg font-semibold text-white">Livraison repas</h3>
+                    <p className="text-sm text-white/90">Commandez à manger</p>
+                    <ArrowRight className="w-5 h-5 text-white group-hover:translate-x-1 transition-transform" />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </motion.div>
               </Link>
-              
-              <Link to="/restaurant/auth">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto border-2 border-orange-500/30 hover:bg-orange-500/5 hover:border-orange-500/50 min-h-[56px] text-body-lg rounded-xl px-8 gap-2 group">
-                  <UtensilsCrossed className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  Devenir Restaurant
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-            </div>
+            </motion.div>
 
-            {/* Quick Stats - Simplified */}
-            <div className="grid grid-cols-3 gap-4 pt-6 stagger-5">
-              <div className="text-center lg:text-left">
-                <div className="text-heading-lg text-primary mb-1">3</div>
-                <div className="text-caption text-muted-foreground">Villes</div>
-              </div>
-              <div className="text-center lg:text-left">
-                <div className="text-heading-lg text-primary mb-1">24/7</div>
-                <div className="text-caption text-muted-foreground">Disponible</div>
-              </div>
-              <div className="text-center lg:text-left">
-                <div className="text-heading-lg text-primary mb-1">4.9</div>
-                <div className="text-caption text-muted-foreground">Note</div>
-              </div>
-            </div>
+            {/* Lien secondaire Restaurant */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="pt-2"
+            >
+              <Link to="/restaurant/auth" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group">
+                <Store className="w-4 h-4" />
+                <span>Vous êtes restaurateur ?</span>
+                <span className="underline underline-offset-4 group-hover:text-primary">Rejoignez-nous</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
+
+            {/* Stats modernes avec icônes */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex items-center gap-6 flex-wrap justify-center lg:justify-start pt-4 border-t border-border/50"
+            >
+              <motion.div 
+                whileHover={{ scale: 1.1 }} 
+                className="flex items-center gap-2 text-sm"
+              >
+                <MapPin className="w-5 h-5 text-primary animate-pulse" />
+                <span className="font-medium">3 villes</span>
+              </motion.div>
+
+              <motion.div 
+                whileHover={{ scale: 1.1 }} 
+                className="flex items-center gap-2 text-sm"
+              >
+                <Clock className="w-5 h-5 text-primary" />
+                <span className="font-medium">Service 24/7</span>
+              </motion.div>
+
+              <motion.div 
+                whileHover={{ scale: 1.1 }} 
+                className="flex items-center gap-2 text-sm"
+              >
+                <Zap className="w-5 h-5 text-primary" />
+                <span className="font-medium">Note 4.9★</span>
+              </motion.div>
+            </motion.div>
           </div>
 
           {/* Campaign Slider */}
