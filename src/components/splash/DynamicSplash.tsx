@@ -33,29 +33,18 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
   return (
     <motion.div 
       className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
-      animate={{
-        background: [
-          'linear-gradient(135deg, #DC2626 0%, #F59E0B 100%)',
-          'linear-gradient(135deg, #B91C1C 0%, #FBBF24 100%)',
-          'linear-gradient(135deg, #DC2626 0%, #F59E0B 100%)'
-        ]
-      }}
-      transition={{
-        duration: 4,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }}
+      style={{ background: "#DC2626" }}
     >
       {/* Lueurs dynamiques concentrées */}
       <motion.div 
         className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full blur-[60px]"
-        style={{ background: 'rgba(255, 255, 255, 0.15)' }}
+        style={{ background: 'rgba(255, 255, 255, 0.12)' }}
         animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.6, 0.4] }}
         transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div 
         className="absolute bottom-1/3 right-1/4 w-64 h-64 rounded-full blur-[50px]"
-        style={{ background: 'rgba(245, 158, 11, 0.25)' }}
+        style={{ background: 'rgba(255, 255, 255, 0.1)' }}
         animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
       />
@@ -100,12 +89,12 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
           damping: 18,
           duration: 0.6
         }}
-        className="relative z-10 flex flex-col items-center px-6 gap-6"
+        className="relative z-10 flex flex-col items-center px-6 gap-8"
       >
         {/* Logo avec halo énergique */}
         <div className="relative">
           <motion.div
-            className="absolute -inset-6 rounded-full blur-[40px]"
+            className="absolute -inset-10 rounded-full blur-[60px]"
             style={{ background: 'rgba(255, 255, 255, 0.3)' }}
             animate={{ 
               scale: [0.95, 1.15, 0.95],
@@ -130,7 +119,7 @@ export const DynamicSplash: React.FC<DynamicSplashProps> = ({ context }) => {
               backfaceVisibility: 'hidden'
             }}
           >
-            <BrandLogo size={120} className="drop-shadow-2xl relative z-10 filter brightness-110" alt="Kwenda Logo" />
+            <BrandLogo size={200} className="drop-shadow-2xl relative z-10 filter brightness-110" alt="Kwenda Logo" />
           </motion.div>
         </div>
 

@@ -20,19 +20,14 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ 
-            opacity: 1,
-            background: [
-              "linear-gradient(135deg, #DC2626 0%, #F59E0B 100%)",
-              "linear-gradient(135deg, #B91C1C 0%, #FBBF24 100%)",
-              "linear-gradient(135deg, #DC2626 0%, #F59E0B 100%)"
-            ]
+            opacity: 1
           }}
           exit={{ opacity: 0 }}
           transition={{ 
-            opacity: { duration: 0.4 },
-            background: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+            opacity: { duration: 0.4 }
           }}
           className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
+          style={{ background: "#DC2626" }}
         >
           {/* Particules flottantes dynamiques */}
           <div className="absolute inset-0 overflow-hidden">
@@ -41,14 +36,14 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
               return (
                 <motion.div
                   key={i}
-                  className="absolute rounded-full bg-white/20"
+                  className="absolute rounded-full bg-white/15"
                   style={{
                     width: size,
                     height: size,
                     left: `${Math.random() * 100}%`,
                     top: `${Math.random() * 100}%`,
                     filter: `blur(${Math.random() * 3 + 1}px)`,
-                    boxShadow: '0 0 15px rgba(255, 255, 255, 0.3)',
+                    boxShadow: '0 0 10px rgba(255, 255, 255, 0.2)',
                   }}
                   animate={{
                     y: [0, -20, 0],
@@ -68,7 +63,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
           </div>
 
           {/* Contenu central */}
-          <div className="relative flex flex-col items-center gap-6 z-10">
+          <div className="relative flex flex-col items-center gap-8 z-10">
             {/* Logo avec animation dynamique */}
             <motion.div
               initial={{ 
@@ -91,7 +86,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
             >
               {/* Halo énergique concentré */}
               <motion.div
-                className="absolute -inset-8 blur-[40px]"
+                className="absolute -inset-12 blur-[60px]"
                 animate={{
                   opacity: [0.4, 0.7, 0.4],
                   scale: [0.95, 1.1, 0.95]
@@ -102,7 +97,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
                   ease: "easeInOut"
                 }}
                 style={{
-                  background: "radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, rgba(245, 158, 11, 0.3) 40%, transparent 70%)"
+                  background: "rgba(255, 255, 255, 0.3)"
                 }}
               />
               
@@ -110,7 +105,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
               <motion.img
                 src="/kwenda-splash-logo.png"
                 alt="Kwenda"
-                className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 object-contain relative z-10"
+                className="w-44 h-44 sm:w-48 sm:h-48 md:w-56 md:h-56 object-contain relative z-10"
                 animate={{
                   scale: [1, 1.05, 1],
                   rotate: [0, 2, 0, -2, 0],
@@ -161,7 +156,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
               <div className="relative w-10 h-10">
                 {/* Cercle externe */}
                 <motion.div
-                  className="absolute inset-0 rounded-full border-3 border-white/20 border-t-white"
+                  className="absolute inset-0 rounded-full border-3 border-white/30 border-t-white"
                   animate={{ rotate: 360 }}
                   transition={{
                     duration: 0.8,
@@ -175,7 +170,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
                 
                 {/* Cercle interne (rotation inverse) */}
                 <motion.div
-                  className="absolute inset-2 rounded-full border-2 border-white/30 border-b-yellow-400"
+                  className="absolute inset-2 rounded-full border-2 border-white/40 border-b-yellow-300"
                   animate={{ rotate: -360 }}
                   transition={{
                     duration: 1.2,
@@ -204,7 +199,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
           <div 
             className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none"
             style={{
-              background: "linear-gradient(to top, rgba(127, 29, 29, 0.4), transparent)"
+              background: "linear-gradient(to top, rgba(185, 28, 28, 0.5), transparent)"
             }}
           />
         </motion.div>
