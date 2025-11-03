@@ -13,7 +13,7 @@ export const CompactRentalSlide: React.FC<CompactRentalSlideProps> = ({
   startingPrice = 50000
 }) => {
   return (
-    <div className="relative overflow-visible rounded-2xl h-[140px] bg-gradient-to-br from-emerald-500 via-teal-500 to-green-600 shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer">
+    <div className="relative rounded-2xl h-[160px] bg-gradient-to-br from-emerald-500 via-teal-500 to-green-600 shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer">
       <div className="absolute inset-0 p-4 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between text-white gap-3">
         <div className="flex items-center gap-4 sm:gap-6">
           {/* Icône comme les autres slides */}

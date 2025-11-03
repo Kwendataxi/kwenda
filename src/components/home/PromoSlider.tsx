@@ -75,20 +75,20 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   };
 
   return (
-    <div className="w-full relative mb-8 mx-auto max-w-7xl">
+    <div className="w-full relative mb-12 mx-auto max-w-7xl">
       <Carousel
         setApi={setApi}
         opts={{ loop: true, align: 'center' }}
         plugins={[autoplayRef.current]}
-        className="w-full min-h-[140px]"
+        className="w-full min-h-[160px]"
       >
-        <CarouselContent className="h-[140px]">
+        <CarouselContent className="h-[160px]">
           {promos.map((promo) => (
-            <CarouselItem key={promo.id} className="h-[140px]">
+            <CarouselItem key={promo.id} className="h-[160px]">
               <div
                 onClick={() => handlePromoClick(promo)}
                 className={cn(
-                  'relative h-[140px] rounded-2xl overflow-hidden cursor-pointer',
+                  'relative h-[160px] rounded-2xl cursor-pointer',
                   'bg-gradient-to-br',
                   promo.gradient,
                   'shadow-lg hover:shadow-xl',
