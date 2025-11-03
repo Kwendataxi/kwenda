@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -55,6 +55,51 @@ export const KwendaPayCheckout: React.FC<KwendaPayCheckoutProps> = ({
     onCancel(); // Fermer le dialogue
     navigate('/app/client', { state: { openWalletTopUp: true } });
   };
+
+  // 🎯 useMemo pour forcer le re-render correct du bouton
+  const actionButton = useMemo(() => {
+    const shouldShowTopUp = walletBalance < total;
+    
+    console.log('🎯 [useMemo Button]', { 
+      shouldShowTopUp, 
+      walletBalance, 
+      total,
+      buttonType: shouldShowTopUp ? 'RECHARGER' : 'PAYER',
+      renderTime: new Date().toISOString()
+    });
+    
+    if (shouldShowTopUp) {
+      return (
+        <Button
+          onClick={handleTopUp}
+          className="flex-1 gap-2 bg-gradient-to-r from-congo-green to-congo-green-electric hover:from-congo-green-electric hover:to-congo-green text-white"
+        >
+          <Plus className="w-4 h-4" />
+          Recharger mon compte
+        </Button>
+      );
+    }
+    
+    return (
+      <Button
+        onClick={handleConfirm}
+        disabled={isProcessing}
+        className="flex-1 gap-2"
+      >
+        {isProcessing ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Traitement...
+          </>
+        ) : (
+          <>
+            <Wallet className="w-4 h-4" />
+            Payer avec KwendaPay
+          </>
+        )}
+      </Button>
+    );
+  }, [walletBalance, total, isProcessing, handleTopUp, handleConfirm]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onCancel}>
@@ -156,49 +201,7 @@ export const KwendaPayCheckout: React.FC<KwendaPayCheckoutProps> = ({
               Annuler
             </Button>
             
-            {/* Debug visuel avec IIFE */}
-            {(() => {
-              const shouldShowTopUp = walletBalance < total;
-              console.log('🎯 [Button Render]', { 
-                shouldShowTopUp, 
-                walletBalance, 
-                total,
-                buttonType: shouldShowTopUp ? 'RECHARGER' : 'PAYER',
-                timestamp: new Date().toISOString()
-              });
-              
-              if (shouldShowTopUp) {
-                return (
-                  <Button
-                    onClick={handleTopUp}
-                    className="flex-1 gap-2 bg-gradient-to-r from-congo-green to-congo-green-electric hover:from-congo-green-electric hover:to-congo-green text-white"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Recharger mon compte
-                  </Button>
-                );
-              }
-              
-              return (
-                <Button
-                  onClick={handleConfirm}
-                  disabled={isProcessing}
-                  className="flex-1 gap-2"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Traitement...
-                    </>
-                  ) : (
-                    <>
-                      <Wallet className="w-4 h-4" />
-                      Payer avec KwendaPay
-                    </>
-                  )}
-                </Button>
-              );
-            })()}
+            {actionButton}
           </div>
         </div>
       </DialogContent>
