@@ -13,6 +13,7 @@ import {
 import { RentalPromoSlider } from '@/components/rental/RentalPromoSlider';
 import { getVehicleImage, getVehicleGradient } from '@/utils/vehicleFallbackImages';
 import { getCategoryTheme } from '@/utils/categoryThemes';
+import { UniversalAppHeader } from '@/components/navigation/UniversalAppHeader';
 
 export const ClientRentalInterface = () => {
   const navigate = useNavigate();
@@ -73,12 +74,19 @@ export const ClientRentalInterface = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header Minimaliste */}
-      <div className="sticky top-0 z-50 bg-background/98 backdrop-blur-xl border-b shadow-sm">
+      {/* Header avec bouton retour */}
+      <UniversalAppHeader 
+        title="Kwenda Location" 
+        showBackButton={true}
+        onBackClick={() => navigate('/app/client')}
+      />
+
+      {/* Sélecteur de ville + Recherche - sticky sous le header */}
+      <div className="sticky top-[60px] z-40 bg-background/98 backdrop-blur-xl border-b shadow-sm">
         <div className="max-w-7xl mx-auto p-3">
-          {/* Titre + Ville */}
+          {/* Sélecteur de ville */}
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-xl font-bold">Kwenda Location</h1>
+            <span className="text-sm font-medium">📍 Ville :</span>
             <select
               value={userLocation}
               onChange={(e) => setUserLocation(e.target.value)}
@@ -90,7 +98,7 @@ export const ClientRentalInterface = () => {
             </select>
           </div>
           
-          {/* Recherche unique */}
+          {/* Recherche */}
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -109,11 +117,10 @@ export const ClientRentalInterface = () => {
       </div>
 
       {/* Barre de filtres - Une seule ligne scrollable */}
-      <div className="sticky top-[110px] z-40 bg-background/98 backdrop-blur-xl border-b shadow-sm">
+      <div className="sticky top-[155px] z-40 bg-background/98 backdrop-blur-xl border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-3 py-2.5">
-          {/* LIGNE UNIQUE - Scroll horizontal */}
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-            {/* Bouton TOUS */}
+          <div className="flex items-center gap-2">
+            {/* Bouton TOUS - fixe */}
             <Button
               variant={selectedCategory === null ? 'default' : 'outline'}
               size="sm"
@@ -126,41 +133,47 @@ export const ClientRentalInterface = () => {
               🌐 Tous ({vehicles.length})
             </Button>
             
-            {/* Filtres de catégories avec scroll */}
-            {categories.map((cat) => {
-              const count = vehicles.filter(v => v.category_id === cat.id).length;
-              const theme = getCategoryTheme(cat.name);
-              
-              if (count === 0) return null;
-              
-              return (
-                <Button
-                  key={cat.id}
-                  variant={selectedCategory === cat.id ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => {
-                    setSelectedCategory(cat.id);
-                    document.getElementById(`category-${cat.id}`)?.scrollIntoView({ 
-                      behavior: 'smooth', 
-                      block: 'start',
-                      inline: 'nearest'
-                    });
-                  }}
-                  className={`whitespace-nowrap text-xs font-semibold shrink-0 ${
-                    selectedCategory === cat.id 
-                      ? `bg-gradient-to-r ${theme.gradient} text-white border-0` 
-                      : ''
-                  }`}
-                >
-                  {theme.icon} {cat.name.trim()} ({count})
-                </Button>
-              );
-            })}
+            {/* Conteneur scrollable pour les catégories UNIQUEMENT */}
+            <div className="flex-1 overflow-x-auto scrollbar-hide">
+              <div className="flex gap-1.5">
+                {categories.map((cat) => {
+                  const count = vehicles.filter(v => v.category_id === cat.id).length;
+                  const theme = getCategoryTheme(cat.name);
+                  
+                  if (count === 0) return null;
+                  
+                  return (
+                    <Button
+                      key={cat.id}
+                      variant={selectedCategory === cat.id ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSelectedCategory(cat.id);
+                        setTimeout(() => {
+                          document.getElementById(`category-${cat.id}`)?.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'start',
+                            inline: 'nearest'
+                          });
+                        }, 100);
+                      }}
+                      className={`whitespace-nowrap text-xs font-semibold shrink-0 ${
+                        selectedCategory === cat.id 
+                          ? `bg-gradient-to-r ${theme.gradient} text-white border-0` 
+                          : ''
+                      }`}
+                    >
+                      {theme.icon} {cat.name.trim()} ({count})
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
             
-            {/* Séparateur vertical */}
+            {/* Séparateur vertical - fixe */}
             <div className="h-8 w-px bg-border shrink-0 mx-1" />
             
-            {/* Toggle Vue (toujours visible à droite) */}
+            {/* Toggle Vue - fixe à droite */}
             <div className="flex items-center gap-1 shrink-0">
               <Button
                 variant={viewMode === 'categories' ? 'default' : 'outline'}
