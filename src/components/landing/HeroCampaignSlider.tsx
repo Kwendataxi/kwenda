@@ -93,9 +93,6 @@ export const HeroCampaignSlider = () => {
                     width={1280}
                     height={720}
                   />
-                  
-                  {/* Masque OPAQUE pour badge NOUVEAU - couvre uniquement le haut */}
-                  <div className="absolute top-0 left-0 right-0 h-[15%] bg-background pointer-events-none z-10"></div>
                 </div>
               </div>
             </div>
