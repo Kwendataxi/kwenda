@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { VendorOrderValidationPanel } from '@/components/marketplace/VendorOrderValidationPanel';
-import { Package, CheckCircle, Clock, Truck } from 'lucide-react';
+import { Package, CheckCircle, Clock, Truck, Download } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface VendorOrdersListProps {
@@ -67,9 +67,18 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
           table: 'marketplace_orders',
           filter: `seller_id=eq.${user.id}`
         },
-        () => {
+        (payload) => {
+          console.log('Order updated:', payload);
           loadOrders();
           onRefresh?.();
+          
+          // Toast notification pour nouvelles commandes
+          if (payload.eventType === 'INSERT') {
+            toast({
+              title: "🎉 Nouvelle commande !",
+              description: "Vous avez reçu une nouvelle commande"
+            });
+          }
         }
       )
       .subscribe();
@@ -118,6 +127,44 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
         title: "Erreur", 
         description: "Impossible de terminer la commande", 
         variant: "destructive" 
+      });
+    }
+  };
+
+  const exportToCSV = () => {
+    try {
+      const csvData = orders.map(order => ({
+        'ID Commande': order.id,
+        'Produit': order.product?.title || 'N/A',
+        'Client': order.buyer_phone || 'N/A',
+        'Quantité': order.quantity,
+        'Montant': order.total_amount,
+        'Statut': order.status,
+        'Date': new Date(order.created_at).toLocaleDateString('fr-FR')
+      }));
+
+      const headers = Object.keys(csvData[0]);
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map(row => headers.map(h => row[h as keyof typeof row]).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `commandes_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+
+      toast({
+        title: "✅ Export réussi",
+        description: "Le fichier CSV a été téléchargé"
+      });
+    } catch (error) {
+      console.error('Error exporting:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'exporter les commandes",
+        variant: "destructive"
       });
     }
   };
@@ -192,7 +239,18 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
   }
 
   return (
-    <Tabs defaultValue="pending" className="space-y-4">
+    <div className="space-y-4">
+      {/* Export Button */}
+      {orders.length > 0 && (
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={exportToCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Exporter CSV
+          </Button>
+        </div>
+      )}
+      
+      <Tabs defaultValue="pending" className="space-y-4">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="pending" className="relative">
           À traiter
@@ -299,6 +357,7 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
           )}
         </div>
       </TabsContent>
-    </Tabs>
+      </Tabs>
+    </div>
   );
 };

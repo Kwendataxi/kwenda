@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Package, Plus, CheckCircle, Clock } from 'lucide-react';
+import { Package, Plus, CheckCircle, Clock, Search } from 'lucide-react';
 import { ModernVendorProductCard } from './ModernVendorProductCard';
 
 interface VendorProductManagerProps {
@@ -19,6 +21,8 @@ export const VendorProductManager = ({ onUpdate, onTabChange }: VendorProductMan
   const navigate = useNavigate();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'date' | 'price' | 'stock'>('date');
 
   useEffect(() => {
     if (user) {
@@ -51,14 +55,31 @@ export const VendorProductManager = ({ onUpdate, onTabChange }: VendorProductMan
     }
   };
 
-  // Séparer produits actifs et en attente
-  const activeProducts = products.filter(p => 
+  // Séparer et filtrer produits
+  const filteredProducts = products.filter(p => 
+    p.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Tri des produits
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortBy) {
+      case 'price':
+        return b.price - a.price;
+      case 'stock':
+        return (b.stock_quantity || 0) - (a.stock_quantity || 0);
+      case 'date':
+      default:
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+  });
+
+  const activeProducts = sortedProducts.filter(p => 
     p.moderation_status === 'approved' || p.moderation_status === 'active'
   );
-  const pendingProducts = products.filter(p => 
+  const pendingProducts = sortedProducts.filter(p => 
     p.moderation_status === 'pending'
   );
-  const rejectedProducts = products.filter(p => 
+  const rejectedProducts = sortedProducts.filter(p => 
     p.moderation_status === 'rejected'
   );
 
@@ -108,7 +129,31 @@ export const VendorProductManager = ({ onUpdate, onTabChange }: VendorProductMan
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Search and Sort Bar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Rechercher un produit..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Trier par..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date">Plus récents</SelectItem>
+            <SelectItem value="price">Prix décroissant</SelectItem>
+            <SelectItem value="stock">Stock décroissant</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Section Actifs */}
       {activeProducts.length > 0 && (
         <section>
@@ -118,7 +163,11 @@ export const VendorProductManager = ({ onUpdate, onTabChange }: VendorProductMan
           </h2>
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {activeProducts.map(product => (
-              <ModernVendorProductCard key={product.id} product={product} />
+              <ModernVendorProductCard 
+                key={product.id} 
+                product={product}
+                onDelete={() => loadProducts()}
+              />
             ))}
           </div>
         </section>
@@ -133,7 +182,11 @@ export const VendorProductManager = ({ onUpdate, onTabChange }: VendorProductMan
           </h2>
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {pendingProducts.map(product => (
-              <ModernVendorProductCard key={product.id} product={product} />
+              <ModernVendorProductCard 
+                key={product.id} 
+                product={product}
+                onDelete={() => loadProducts()}
+              />
             ))}
           </div>
         </section>
@@ -148,7 +201,11 @@ export const VendorProductManager = ({ onUpdate, onTabChange }: VendorProductMan
           </h2>
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {rejectedProducts.map(product => (
-              <ModernVendorProductCard key={product.id} product={product} />
+              <ModernVendorProductCard 
+                key={product.id} 
+                product={product}
+                onDelete={() => loadProducts()}
+              />
             ))}
           </div>
         </section>

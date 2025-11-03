@@ -53,8 +53,33 @@ export const ChatVendorModal: React.FC<ChatVendorModalProps> = ({
   useEffect(() => {
     if (open && user) {
       loadConversations();
+      subscribeToMessages();
     }
   }, [open, user]);
+
+  const subscribeToMessages = () => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('vendor-chat-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'marketplace_messages'
+        },
+        (payload) => {
+          console.log('Message update:', payload);
+          loadConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
 
   const loadConversations = async () => {
     if (!user) return;

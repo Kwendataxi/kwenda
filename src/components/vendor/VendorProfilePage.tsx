@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   Store, Settings, FileText, TrendingUp, 
   LogOut, Users, Package, DollarSign, BarChart3,
-  ShoppingBag, MessageSquare, Bell, Shield, Award
+  ShoppingBag, Bell, Shield, Award
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,9 @@ import { VendorInfoCard } from './VendorInfoCard';
 import { VendorDocuments } from './VendorDocuments';
 import { VendorSettings } from './VendorSettings';
 import { VendorSalesHistory } from './VendorSalesHistory';
+import { VendorEscrowManager } from './VendorEscrowManager';
+import { VendorAnalytics } from './VendorAnalytics';
+import { VendorFollowers } from './VendorFollowers';
 
 interface VendorProfilePageProps {
   onTabChange?: (tab: string) => void;
@@ -29,6 +32,9 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
   const [documentsOpen, setDocumentsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [salesHistoryOpen, setSalesHistoryOpen] = useState(false);
+  const [escrowOpen, setEscrowOpen] = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [followersOpen, setFollowersOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -66,7 +72,7 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
       icon: BarChart3,
       label: "Analytics",
       description: "Performances détaillées",
-      onClick: () => onTabChange?.('dashboard'),
+      onClick: () => setAnalyticsOpen(true),
       color: "text-orange-600"
     }
   ];
@@ -108,13 +114,13 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
           icon: TrendingUp, 
           label: "Compte séquestre",
           description: "Fonds en attente",
-          onClick: () => navigate('/escrow')
+          onClick: () => setEscrowOpen(true)
         },
         { 
           icon: BarChart3, 
           label: "Analytics détaillées",
           description: "Performances de vente",
-          onClick: () => onTabChange?.('dashboard')
+          onClick: () => setAnalyticsOpen(true)
         }
       ]
     },
@@ -148,10 +154,7 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
           icon: Users, 
           label: "Mes clients",
           description: "Followers et avis",
-          onClick: () => toast({ 
-            title: "Mes clients", 
-            description: "Fonctionnalité en développement - Disponible prochainement"
-          })
+          onClick: () => setFollowersOpen(true)
         },
         { 
           icon: Award, 
@@ -180,15 +183,15 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
       {/* Quick Actions */}
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">Actions Rapides</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {quickActions.map((action, idx) => (
             <button
               key={idx}
               onClick={action.onClick}
-              className="flex flex-col items-center p-4 rounded-lg border hover:bg-accent transition-colors text-center"
+              className="flex flex-col items-center p-3 rounded-lg border hover:bg-accent transition-colors text-center"
             >
-              <action.icon className={`h-8 w-8 mb-2 ${action.color}`} />
-              <span className="font-medium">{action.label}</span>
+              <action.icon className={`h-6 w-6 mb-2 ${action.color}`} />
+              <span className="font-medium text-sm">{action.label}</span>
               <span className="text-xs text-muted-foreground">{action.description}</span>
             </button>
           ))}
@@ -249,6 +252,24 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
       <Dialog open={salesHistoryOpen} onOpenChange={setSalesHistoryOpen}>
         <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
           <VendorSalesHistory />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={escrowOpen} onOpenChange={setEscrowOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <VendorEscrowManager />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={analyticsOpen} onOpenChange={setAnalyticsOpen}>
+        <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+          <VendorAnalytics />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={followersOpen} onOpenChange={setFollowersOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <VendorFollowers />
         </DialogContent>
       </Dialog>
     </div>

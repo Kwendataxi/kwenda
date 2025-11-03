@@ -1,8 +1,22 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Clock, CheckCircle, XCircle, Package } from 'lucide-react';
+import { Edit, Clock, CheckCircle, XCircle, Package, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useState } from 'react';
 
 interface ModernVendorProductCardProps {
   product: {
@@ -14,10 +28,42 @@ interface ModernVendorProductCardProps {
     moderation_status: string;
     rejection_reason?: string;
   };
+  onDelete?: () => void;
 }
 
-export const ModernVendorProductCard = ({ product }: ModernVendorProductCardProps) => {
+export const ModernVendorProductCard = ({ product, onDelete }: ModernVendorProductCardProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    try {
+      setDeleting(true);
+
+      const { error } = await supabase
+        .from('marketplace_products')
+        .delete()
+        .eq('id', product.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "✅ Produit supprimé",
+        description: "Le produit a été supprimé avec succès"
+      });
+
+      onDelete?.();
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le produit",
+        variant: "destructive"
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const getStatusBadge = () => {
     const isPending = product.moderation_status === 'pending';
@@ -100,15 +146,46 @@ export const ModernVendorProductCard = ({ product }: ModernVendorProductCardProp
           </div>
         )}
         
-        {/* Bouton Modifier */}
-        <Button 
-          variant="default" 
-          className="w-full bg-foreground text-background hover:bg-foreground/90"
-          onClick={() => navigate(`/vendeur/modifier-produit/${product.id}`)}
-        >
-          <Edit className="h-4 w-4 mr-2" />
-          Modifier
-        </Button>
+        {/* Boutons Actions */}
+        <div className="flex gap-2">
+          <Button 
+            variant="default" 
+            className="flex-1 bg-foreground text-background hover:bg-foreground/90"
+            onClick={() => navigate(`/vendeur/modifier-produit/${product.id}`)}
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Modifier
+          </Button>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="destructive" 
+                size="icon"
+                disabled={deleting}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Êtes-vous sûr de vouloir supprimer "{product.title}" ? Cette action est irréversible.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Supprimer
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </CardContent>
     </Card>
   );
