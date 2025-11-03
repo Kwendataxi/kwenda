@@ -93,8 +93,8 @@ export const HeroCampaignSlider = () => {
                     width={1280}
                     height={720}
                   />
-                  {/* Masque le badge NOUVEAU s'il existe dans l'image */}
-                  <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-background/80 to-transparent pointer-events-none opacity-70"></div>
+                  {/* Masque complet du badge NOUVEAU */}
+                  <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-background via-background/50 to-transparent pointer-events-none"></div>
                 </div>
               </div>
             </div>
