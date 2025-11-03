@@ -5,9 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { RestaurantList } from './RestaurantList';
 import { RestaurantMenu } from './RestaurantMenu';
 import { FoodCheckout } from './FoodCheckout';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, MapPin } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { KwendaFoodHeader } from './KwendaFoodHeader';
 import { toast } from 'sonner';
 import type { Restaurant, FoodProduct, FoodCartItem } from '@/types/food';
 
@@ -130,45 +128,14 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
   return (
     <div className="h-full flex flex-col bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-gradient-to-r from-orange-500 to-amber-500 text-white p-4 shadow-lg">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleBack}
-            className="text-white hover:bg-white/20"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold">
-              {step === 'restaurants' && 'Restaurants'}
-              {step === 'menu' && selectedRestaurant?.restaurant_name}
-              {step === 'checkout' && 'Finaliser la commande'}
-            </h1>
-            {step === 'restaurants' && (
-              <div className="flex items-center gap-2 text-sm opacity-90">
-                <MapPin className="h-4 w-4" />
-                <Select value={selectedCity} onValueChange={setSelectedCity}>
-                  <SelectTrigger className="h-7 w-auto border-white/30 bg-white/10 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Kinshasa">Kinshasa</SelectItem>
-                    <SelectItem value="Lubumbashi">Lubumbashi</SelectItem>
-                    <SelectItem value="Kolwezi">Kolwezi</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-          {cart.length > 0 && step !== 'checkout' && (
-            <div className="bg-white/20 rounded-full px-3 py-1 text-sm font-semibold">
-              {cart.length} {cart.length === 1 ? 'article' : 'articles'}
-            </div>
-          )}
-        </div>
-      </div>
+      <KwendaFoodHeader
+        step={step}
+        selectedCity={selectedCity}
+        onCityChange={setSelectedCity}
+        selectedRestaurant={selectedRestaurant}
+        cartItemsCount={cart.length}
+        onBack={handleBack}
+      />
 
       {/* Content */}
       <div className="flex-1 overflow-auto">
