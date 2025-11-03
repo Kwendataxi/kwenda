@@ -4,63 +4,93 @@ import { PreloadManager } from "@/services/PreloadManager";
 import { AppReadySignal } from "@/services/AppReadySignal";
 import { AnimationController } from "@/services/AnimationController";
 
-export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
+interface EnhancedSplashScreenProps {
+  onComplete: () => void;
+  minDuration?: number;
+  maxDuration?: number;
+}
+
+export const EnhancedSplashScreen = ({ 
+  onComplete, 
+  minDuration = 1500,
+  maxDuration = 3000 
+}: EnhancedSplashScreenProps) => {
   const [show, setShow] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState("Initialisation...");
 
   useEffect(() => {
     const startTime = Date.now();
-    const minDuration = 1500;
-    const maxDuration = 3000;
-
     let progressInterval: NodeJS.Timeout;
+    let checkInterval: NodeJS.Timeout;
 
     const updateProgress = () => {
       const elapsed = Date.now() - startTime;
       const newProgress = Math.min((elapsed / maxDuration) * 100, 95);
       setProgress(newProgress);
+
+      // Mettre à jour le texte selon la progression
+      if (newProgress < 30) {
+        setStatusText("Initialisation...");
+      } else if (newProgress < 60) {
+        setStatusText("Préparation...");
+      } else {
+        setStatusText("Prêt !");
+      }
     };
 
+    // Mettre à jour la progression toutes les 50ms
     progressInterval = setInterval(updateProgress, 50);
 
-    const checkComplete = async () => {
+    // Vérifier si tout est prêt
+    const checkReady = async () => {
       const elapsed = Date.now() - startTime;
 
+      // Attendre au minimum minDuration
       if (elapsed < minDuration) return;
 
+      // Vérifier si les ressources critiques sont prêtes
       try {
         await PreloadManager.waitForCriticalResources();
         
+        // Si tout est prêt et durée minimum écoulée
         if (AppReadySignal.getState().dom && AppReadySignal.getState().fonts) {
           setProgress(100);
+          setStatusText("Prêt !");
+          
+          // Attendre un peu pour montrer 100%
           setTimeout(() => {
             setShow(false);
             setTimeout(onComplete, 400);
-          }, 200);
-          clearInterval(progressInterval);
+          }, 300);
+
           clearInterval(checkInterval);
+          clearInterval(progressInterval);
         }
       } catch (error) {
-        console.warn("Erreur splash:", error);
+        console.warn("Erreur lors du chargement:", error);
       }
 
+      // Timeout maximum
       if (elapsed >= maxDuration) {
         setProgress(100);
         setShow(false);
         setTimeout(onComplete, 400);
-        clearInterval(progressInterval);
         clearInterval(checkInterval);
+        clearInterval(progressInterval);
       }
     };
 
-    const checkInterval = setInterval(checkComplete, 100);
+    // Vérifier toutes les 100ms
+    checkInterval = setInterval(checkReady, 100);
 
     return () => {
       clearInterval(progressInterval);
       clearInterval(checkInterval);
     };
-  }, [onComplete]);
+  }, [onComplete, minDuration, maxDuration]);
 
+  const animConfig = AnimationController.getRecommendedConfig();
   const isReduced = AnimationController.isReducedMode();
 
   return (
@@ -70,13 +100,13 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ opacity: { duration: 0.4 } }}
+          transition={{ duration: animConfig.duration / 1000 }}
           className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
           style={{
             background: "radial-gradient(circle at 50% 50%, hsl(0 84% 60%) 0%, hsl(0 73% 40%) 50%, hsl(0 45% 25%) 100%)"
           }}
         >
-          {/* Particules optimisées - Réduites à 6 */}
+          {/* Particules optimisées - seulement 6 */}
           {!isReduced && (
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               {[...Array(6)].map((_, i) => {
@@ -108,7 +138,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
             </div>
           )}
 
-          {/* Contenu central */}
+          {/* Logo avec animation simple */}
           <div className="relative flex flex-col items-center justify-center z-10 gap-8">
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
@@ -140,7 +170,7 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
                 />
               )}
               
-              {/* Logo avec animation simple et douce */}
+              {/* Logo avec animation douce */}
               <motion.img
                 src="/kwenda-splash-logo.png"
                 alt="Kwenda"
@@ -164,10 +194,22 @@ export const PWASplashScreen = ({ onComplete }: { onComplete: () => void }) => {
               <div className="h-1 bg-white/20 rounded-full overflow-hidden">
                 <motion.div
                   className="h-full bg-white rounded-full"
-                  style={{ width: `${progress}%` }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  style={{
+                    width: `${progress}%`,
+                  }}
+                  transition={{
+                    duration: 0.3,
+                    ease: "easeOut"
+                  }}
                 />
               </div>
+              <motion.p
+                className="text-center text-white/90 text-sm font-medium"
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                {statusText}
+              </motion.p>
             </div>
           </div>
         </motion.div>

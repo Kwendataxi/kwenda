@@ -11,12 +11,13 @@ export const PageTransition = ({ children, className }: PageTransitionProps) => 
     <div 
       className={cn(
         "animate-fade-in opacity-0",
-        "transition-all duration-500 ease-out",
+        "transition-all duration-300 ease-out",
         className
       )}
       style={{ 
         animationFillMode: 'forwards',
-        animationDelay: '0ms' // Removed delay for faster FCP
+        willChange: 'opacity, transform',
+        transform: 'translateZ(0)'
       }}
     >
       {children}

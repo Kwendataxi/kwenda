@@ -1,5 +1,40 @@
 /* Performance optimizations styles */
 
+/* Animation modes - Contrôle global des animations */
+.animations-full {
+  --animation-duration: 400ms;
+  --transition-duration: 300ms;
+}
+
+.animations-reduced {
+  --animation-duration: 200ms;
+  --transition-duration: 150ms;
+}
+
+.animations-reduced * {
+  animation-duration: var(--animation-duration) !important;
+  transition-duration: var(--transition-duration) !important;
+}
+
+.animations-none,
+.animations-none * {
+  animation-duration: 0ms !important;
+  transition-duration: 0ms !important;
+  animation: none !important;
+}
+
+/* Optimisations GPU pour transitions fluides */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Remove will-change après animation */
+.animation-complete {
+  will-change: auto !important;
+}
+
 /* Loading shimmer animation */
 @keyframes shimmer {
   0% {

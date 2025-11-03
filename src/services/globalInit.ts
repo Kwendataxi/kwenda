@@ -11,46 +11,109 @@ export class GlobalInitService {
     try {
       console.log('🌍 Initialisation des services globaux...');
 
-      // 1. Initialiser la détection de pays
-      await this.initializeCountryDetection();
+      // 1. Initialiser la détection de pays (critique)
+      this.initializeCountryDetectionSync();
 
-      // 2. Cache IP géolocalisation 
-      await this.preloadIPLocation();
-
-      // 3. Marquer comme initialisé
+      // 2. Marquer comme initialisé immédiatement
       this.initialized = true;
-      console.log('✅ Services globaux initialisés');
+      console.log('✅ Services critiques initialisés');
+
+      // 3. Charger IP géolocalisation en arrière-plan (non-bloquant)
+      this.preloadIPLocationBackground();
 
     } catch (error) {
       console.error('❌ Erreur initialisation services:', error);
+      this.initialized = true; // Continuer quand même
     }
   }
 
-  private static async initializeCountryDetection(): Promise<void> {
-    try {
-      // Essayer de détecter le pays via IP
-      const country = await IPGeolocationService.detectCountryFromIP();
-      
-      if (country) {
-        // Mettre à jour le pays actuel
-        if (country.includes('Congo') || country.includes('RDC')) {
-          CountryService.setCurrentCountry('CD');
-        } else if (country.includes('Ivoire') || country.includes('Côte')) {
-          CountryService.setCurrentCountry('CI');
+  private static initializeCountryDetectionSync(): void {
+    // Utiliser le localStorage en premier pour éviter le réseau
+    const cachedCountry = localStorage.getItem('kwenda_country');
+    if (cachedCountry) {
+      CountryService.setCurrentCountry(cachedCountry as 'CD' | 'CI');
+      console.log(`📍 Pays chargé depuis cache: ${cachedCountry}`);
+    } else {
+      // Défaut RDC
+      CountryService.setCurrentCountry('CD');
+    }
+
+    // Détecter en arrière-plan
+    this.detectCountryBackground();
+  }
+
+  private static detectCountryBackground(): void {
+    if (typeof window === 'undefined') return;
+
+    // Utiliser requestIdleCallback pour ne pas bloquer
+    const callback = async () => {
+      try {
+        const country = await IPGeolocationService.detectCountryFromIP();
+        
+        if (country) {
+          let countryCode: 'CD' | 'CI' = 'CD';
+          if (country.includes('Congo') || country.includes('RDC')) {
+            countryCode = 'CD';
+          } else if (country.includes('Ivoire') || country.includes('Côte')) {
+            countryCode = 'CI';
+          }
+          
+          CountryService.setCurrentCountry(countryCode);
+          localStorage.setItem('kwenda_country', countryCode);
+          console.log(`🌍 Pays détecté: ${countryCode}`);
         }
+      } catch (error) {
+        console.warn('Détection pays en arrière-plan échouée:', error);
       }
-    } catch (error) {
-      console.warn('Détection pays via IP échouée:', error);
-      // Garder RDC par défaut
+    };
+
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(callback, { timeout: 5000 });
+    } else {
+      setTimeout(callback, 2000);
     }
   }
 
-  private static async preloadIPLocation(): Promise<void> {
-    try {
-      // Pré-charger la localisation IP en arrière-plan
-      await IPGeolocationService.getLocationFromIP();
-    } catch (error) {
-      console.warn('Préchargement IP location échoué:', error);
+  private static preloadIPLocationBackground(): void {
+    if (typeof window === 'undefined') return;
+
+    // Cache localStorage (1 heure)
+    const CACHE_KEY = 'kwenda_ip_location';
+    const CACHE_DURATION = 60 * 60 * 1000; // 1 heure
+
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      try {
+        const data = JSON.parse(cached);
+        if (Date.now() - data.timestamp < CACHE_DURATION) {
+          console.log('📍 IP location chargée depuis cache');
+          return;
+        }
+      } catch (e) {
+        // Cache invalide
+      }
+    }
+
+    // Charger en arrière-plan
+    const callback = async () => {
+      try {
+        const location = await IPGeolocationService.getLocationFromIP();
+        if (location) {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({
+            location,
+            timestamp: Date.now()
+          }));
+          console.log('📍 IP location mise en cache');
+        }
+      } catch (error) {
+        console.warn('Préchargement IP location échoué:', error);
+      }
+    };
+
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(callback, { timeout: 10000 });
+    } else {
+      setTimeout(callback, 5000);
     }
   }
 
