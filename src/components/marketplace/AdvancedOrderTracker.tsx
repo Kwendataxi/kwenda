@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useOrderNotifications } from '@/hooks/useOrderNotifications';
@@ -40,6 +41,7 @@ interface OrderStep {
 }
 
 export const AdvancedOrderTracker: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { orders, loading, markAsPreparing, markAsReady, markAsInTransit, markAsDelivered, completeOrder } = useMarketplaceOrders();
   const { notifications, unreadCount, markAsRead } = useOrderNotifications();
@@ -332,6 +334,34 @@ export const AdvancedOrderTracker: React.FC = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Real-time Tracking Button */}
+        {['confirmed', 'preparing', 'ready_for_pickup', 'in_transit', 'delivered'].includes(selectedOrder.status) && (
+          <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-1">Suivre en temps réel</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Visualisez la position de votre livreur sur la carte et recevez des mises à jour instantanées
+                  </p>
+                  <Button 
+                    onClick={() => navigate(`/track/marketplace/${selectedOrder.id}`)}
+                    className="w-full gap-2"
+                    size="lg"
+                  >
+                    <MapPin className="w-5 h-5" />
+                    Ouvrir le suivi en direct
+                    <span className="ml-auto">→</span>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Progress Timeline */}
         <Card>
