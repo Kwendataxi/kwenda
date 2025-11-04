@@ -50,13 +50,11 @@ serve(async (req) => {
 
     console.log('🔍 Validation destinataire:', { input: recipient_input, sender: user.id });
 
-    // Recherche dans la table clients
-    const { data: client, error: searchError } = await supabaseClient
+    // Recherche dans la table clients par email ou téléphone
+    const { data: clients, error: searchError } = await supabaseClient
       .from('clients')
       .select('user_id, display_name, phone_number, email, is_active')
-      .or(`phone_number.eq.${recipient_input},email.eq.${recipient_input}`)
-      .eq('is_active', true)
-      .maybeSingle();
+      .eq('is_active', true);
 
     if (searchError) {
       console.error('❌ Erreur recherche:', searchError);
@@ -65,6 +63,14 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Filtrer côté serveur pour gérer les NULL
+    const client = clients?.find(c => 
+      c.email?.toLowerCase() === recipient_input.toLowerCase() ||
+      c.phone_number === recipient_input
+    );
+
+    console.log('🔎 Résultat recherche:', client ? `Trouvé: ${client.display_name}` : 'Non trouvé');
 
     if (!client) {
       return new Response(
