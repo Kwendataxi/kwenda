@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 import { useAuth } from './useAuth';
-import { useReferralRewards } from './useReferralRewards';
 
 interface ReferralData {
   id: string;
@@ -20,7 +19,6 @@ export const useReferralSystem = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { creditReferralRewards } = useReferralRewards();
 
   // Récupérer le code de parrainage de l'utilisateur
   useEffect(() => {
@@ -94,72 +92,33 @@ export const useReferralSystem = () => {
 
       setIsLoading(true);
 
-      // Vérifier si le code de parrainage existe et est valide
-      const { data: existingReferral } = await supabase
-        .from('referral_system')
-        .select('referrer_id, referee_id')
-        .eq('referral_code', referralCode.toUpperCase())
-        .eq('status', 'active')
-        .single();
-
-      if (!existingReferral) {
-        return { success: false, message: 'Code de parrainage invalide' };
-      }
-
-      if (existingReferral.referrer_id === user.user.id) {
-        return { success: false, message: 'Vous ne pouvez pas utiliser votre propre code' };
-      }
-
-      // Vérifier si l'utilisateur a déjà utilisé un code de parrainage
-      const { data: existingUse } = await supabase
-        .from('referral_system')
-        .select('id')
-        .eq('referee_id', user.user.id)
-        .eq('status', 'completed')
-        .single();
-
-      if (existingUse) {
-        return { success: false, message: 'Vous avez déjà utilisé un code de parrainage' };
-      }
-
-      // Créer un nouvel enregistrement pour ce parrainage
-      const { data: newReferral, error } = await supabase
-        .from('referral_system')
-        .insert({
-          referrer_id: existingReferral.referrer_id,
-          referee_id: user.user.id,
-          referral_code: referralCode.toUpperCase(),
-          status: 'completed',
-          referrer_reward_amount: 500,
-          referee_reward_amount: 500,
-          currency: 'CDF',
-          completed_at: new Date().toISOString(),
-          rewarded_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+      // ✅ Utiliser le RPC sécurisé qui gère tout (validation + crédit automatique)
+      const { data, error } = await supabase.rpc('apply_referral_code', {
+        p_referee_id: user.user.id,
+        p_referral_code: referralCode.toUpperCase()
+      });
 
       if (error) {
-        console.error('Erreur lors de l\'utilisation du code:', error);
-        return { success: false, message: 'Erreur lors de l\'application du code' };
+        console.error('❌ Erreur RPC apply_referral_code:', error);
+        
+        // Messages d'erreur personnalisés selon le code
+        let errorMessage = 'Erreur lors de l\'application du code';
+        if (error.message.includes('Auto-parrainage interdit')) {
+          errorMessage = 'Vous ne pouvez pas utiliser votre propre code';
+        } else if (error.message.includes('Code déjà utilisé')) {
+          errorMessage = 'Vous avez déjà utilisé un code de parrainage';
+        } else if (error.message.includes('Code invalide')) {
+          errorMessage = 'Code de parrainage invalide';
+        }
+        
+        return { success: false, message: errorMessage };
       }
 
-      // ✅ Créditer automatiquement les portefeuilles
-      try {
-        await creditReferralRewards(
-          existingReferral.referrer_id,
-          user.user.id,
-          newReferral.id
-        );
-        
-        console.log('✅ Récompenses de parrainage créditées avec succès');
-      } catch (walletError) {
-        console.error('❌ Erreur lors du crédit des récompenses:', walletError);
-        toast({
-          title: "Attention",
-          description: "Parrainage enregistré mais erreur de crédit. Contactez le support.",
-          variant: "destructive"
-        });
+      // Type casting pour le résultat du RPC
+      const result = data as { success: boolean; message?: string } | null;
+      
+      if (!result || !result.success) {
+        return { success: false, message: result?.message || 'Erreur lors de l\'application du code' };
       }
 
       // Actualiser la liste des parrainages

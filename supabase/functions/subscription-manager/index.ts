@@ -39,7 +39,64 @@ serve(async (req) => {
 
     console.log('✅ Plan trouvé:', plan.name, plan.price, plan.currency)
 
-    // 2. Calculer les dates d'abonnement
+    // 2. Récupérer le portefeuille du chauffeur
+    const { data: wallet, error: walletError } = await supabase
+      .from('user_wallets')
+      .select('balance, bonus_balance')
+      .eq('user_id', driver_id)
+      .single()
+
+    if (walletError || !wallet) {
+      throw new Error('Portefeuille du chauffeur introuvable')
+    }
+
+    console.log('💰 Portefeuille:', { balance: wallet.balance, bonus_balance: wallet.bonus_balance })
+
+    const requiredAmount = plan.price
+    let paidWithBonus = false
+    let bonusUsed = 0
+    let balanceUsed = 0
+
+    // 3. Logique de paiement : Priorité au bonus_balance
+    if (wallet.bonus_balance >= requiredAmount) {
+      // Cas 1 : bonus_balance suffit entièrement
+      bonusUsed = requiredAmount
+      paidWithBonus = true
+      console.log('✅ Paiement intégral avec bonus_balance:', bonusUsed, 'CDF')
+    } else if (wallet.bonus_balance > 0 && (wallet.balance + wallet.bonus_balance) >= requiredAmount) {
+      // Cas 2 : bonus_balance partiel + balance
+      bonusUsed = wallet.bonus_balance
+      balanceUsed = requiredAmount - bonusUsed
+      console.log('✅ Paiement mixte - Bonus:', bonusUsed, 'CDF | Balance:', balanceUsed, 'CDF')
+    } else if (wallet.balance >= requiredAmount) {
+      // Cas 3 : balance uniquement
+      balanceUsed = requiredAmount
+      console.log('✅ Paiement avec balance uniquement:', balanceUsed, 'CDF')
+    } else {
+      throw new Error('Solde insuffisant pour l\'abonnement')
+    }
+
+    // 4. Débiter le portefeuille
+    const newBonusBalance = wallet.bonus_balance - bonusUsed
+    const newBalance = wallet.balance - balanceUsed
+
+    const { error: updateWalletError } = await supabase
+      .from('user_wallets')
+      .update({
+        bonus_balance: newBonusBalance,
+        balance: newBalance,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', driver_id)
+
+    if (updateWalletError) {
+      console.error('❌ Erreur mise à jour portefeuille:', updateWalletError)
+      throw new Error('Erreur lors du débit du portefeuille')
+    }
+
+    console.log('✅ Portefeuille débité - Nouveau solde:', { bonus_balance: newBonusBalance, balance: newBalance })
+
+    // 5. Calculer les dates d'abonnement
     const startDate = new Date()
     const endDate = new Date()
     
@@ -51,7 +108,7 @@ serve(async (req) => {
       endDate.setDate(endDate.getDate() + 7)
     }
 
-    // 3. Créer l'abonnement
+    // 6. Créer l'abonnement
     const { data: subscription, error: subscriptionError } = await supabase
       .from('driver_subscriptions')
       .insert({
@@ -75,7 +132,7 @@ serve(async (req) => {
 
     console.log('✅ Abonnement créé:', subscription.id)
 
-    // 4. Vérifier si le chauffeur a un partenaire
+    // 7. Vérifier si le chauffeur a un partenaire
     const { data: driverCode, error: driverCodeError } = await supabase
       .from('driver_codes')
       .select('partner_id')
@@ -86,7 +143,7 @@ serve(async (req) => {
       console.error('⚠️ Erreur vérification partenaire:', driverCodeError)
     }
 
-    // 5. Si partenaire trouvé, appeler l'Edge Function de commission
+    // 8. Si partenaire trouvé, appeler l'Edge Function de commission
     if (driverCode && driverCode.partner_id) {
       console.log('🎯 Partenaire détecté:', driverCode.partner_id)
       console.log('💰 Invocation Edge Function partner-subscription-commission...')
@@ -116,19 +173,24 @@ serve(async (req) => {
       console.log('ℹ️ Aucun partenaire lié à ce chauffeur')
     }
 
-    // 6. Logger l'activité
+    // 9. Logger l'activité avec détails de paiement
     await supabase
       .from('activity_logs')
       .insert({
         user_id: driver_id,
         activity_type: 'driver_subscription',
         description: `Abonnement ${plan.name} activé`,
+        amount: -requiredAmount,
+        currency: plan.currency,
         metadata: {
           plan_id,
           subscription_id: subscription.id,
           amount: plan.price,
           currency: plan.currency,
-          payment_method
+          payment_method,
+          bonus_used: bonusUsed,
+          balance_used: balanceUsed,
+          paid_with_bonus: paidWithBonus
         }
       })
 
