@@ -39,40 +39,70 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
     try {
       setLoading(true);
       
-      // Commandes actives
+      // ✅ ÉTAPE 1 : Récupérer d'abord les produits du vendeur
+      const { data: vendorProducts, error: productsError } = await supabase
+        .from('marketplace_products')
+        .select('id, title, images, price')
+        .eq('seller_id', user.id);
+
+      if (productsError) throw productsError;
+
+      if (!vendorProducts || vendorProducts.length === 0) {
+        setActiveOrders([]);
+        setCompletedOrders([]);
+        return;
+      }
+
+      const vendorProductIds = vendorProducts.map(p => p.id);
+
+      // ✅ ÉTAPE 2 : Récupérer les commandes actives
       const { data: active, error: activeError } = await supabase
         .from('marketplace_orders')
-        .select(`
-          *,
-          product:marketplace_products(id, title, main_image_url, price)
-        `)
-        .eq('seller_id', user.id)
+        .select('*')
+        .in('product_id', vendorProductIds)
         .in('status', ['confirmed', 'preparing', 'ready_for_pickup', 'in_transit'])
         .order('created_at', { ascending: false });
 
       if (activeError) throw activeError;
 
-      // Commandes terminées
+      // ✅ ÉTAPE 3 : Récupérer les commandes terminées
       const { data: completed, error: completedError } = await supabase
         .from('marketplace_orders')
-        .select(`
-          *,
-          product:marketplace_products(id, title, main_image_url, price)
-        `)
-        .eq('seller_id', user.id)
+        .select('*')
+        .in('product_id', vendorProductIds)
         .in('status', ['completed', 'delivered'])
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (completedError) throw completedError;
 
-      setActiveOrders(active || []);
-      setCompletedOrders(completed || []);
-    } catch (error) {
+      // ✅ ÉTAPE 4 : Enrichir avec les données produits (côté client)
+      const enrichOrders = (orders: any[]) => 
+        orders.map(order => ({
+          ...order,
+          product: vendorProducts.find(p => p.id === order.product_id)
+        }));
+
+      setActiveOrders(enrichOrders(active || []));
+      setCompletedOrders(enrichOrders(completed || []));
+    } catch (error: any) {
       console.error('Error loading orders:', error);
+      console.error('Error details:', {
+        message: error.message,
+        hint: error.hint,
+        details: error.details
+      });
+      
+      // Message d'erreur plus spécifique
+      const errorMessage = error.message?.includes('permission')
+        ? "Vous n'avez pas les permissions nécessaires"
+        : error.message?.includes('network')
+        ? "Problème de connexion réseau"
+        : "Impossible de charger les commandes";
+      
       toast({
         title: "Erreur",
-        description: "Impossible de charger les commandes",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
