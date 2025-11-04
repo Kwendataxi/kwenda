@@ -2,14 +2,19 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Phase6TestingDashboard } from '@/components/testing/Phase6TestingDashboard';
 import { PartnerSystemValidationDashboard } from '@/components/testing/PartnerSystemValidationDashboard';
-import { Users, TestTube, Zap } from 'lucide-react';
+import { Users, TestTube, Zap, ShieldCheck } from 'lucide-react';
 import DispatcherValidation from './test/DispatcherValidation';
+import AdminValidationTest from './test/AdminValidationTest';
 
 const TestingPage = () => {
   return (
     <div className="container mx-auto p-4">
-      <Tabs defaultValue="dispatcher" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
+      <Tabs defaultValue="admin" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsTrigger value="admin" className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4" />
+            Validation Admin
+          </TabsTrigger>
           <TabsTrigger value="dispatcher" className="flex items-center gap-2">
             <Zap className="h-4 w-4" />
             Tests Dispatcher
@@ -23,6 +28,10 @@ const TestingPage = () => {
             Tests Phase 6
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="admin">
+          <AdminValidationTest />
+        </TabsContent>
 
         <TabsContent value="dispatcher">
           <DispatcherValidation />
