@@ -60,7 +60,6 @@ export const PartnerRegistrationForm = () => {
     phone: '',
     business_type: 'company',
     address: '',
-    business_license: '',
     tax_number: '',
     service_areas: ['Kinshasa'],
     password: '',
@@ -104,7 +103,6 @@ export const PartnerRegistrationForm = () => {
         phone: formData.phone,
         business_type: formData.business_type,
         address: formData.address || '',
-        business_license: formData.business_license || '',
         tax_number: formData.tax_number || '',
         service_areas: formData.service_areas || ['Kinshasa'],
         password: formData.password,
@@ -158,7 +156,6 @@ export const PartnerRegistrationForm = () => {
         return (
           <DocumentsStep
             data={{
-              business_license: formData.business_license,
               tax_number: formData.tax_number,
             }}
             onNext={handleNextStep}

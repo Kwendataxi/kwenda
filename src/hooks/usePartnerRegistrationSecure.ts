@@ -9,7 +9,6 @@ export interface PartnerRegistrationData {
   address?: string;
   business_type: 'individual' | 'company' | 'cooperative' | 'association';
   service_areas: string[];
-  business_license?: string;
   tax_number?: string;
   password: string;
 }

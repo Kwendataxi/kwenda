@@ -91,13 +91,13 @@ export const RegistrationSummary = ({
       </Card>
 
       {/* 2. Documents */}
-      {(data.business_license || data.tax_number) && (
+      {data.tax_number && (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-green-600" />
-                <CardTitle className="text-lg">Documents</CardTitle>
+                <CardTitle className="text-lg">Document fiscal</CardTitle>
               </div>
               <Button
                 variant="ghost"
@@ -110,19 +110,11 @@ export const RegistrationSummary = ({
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {data.business_license && (
-              <div>
-                <p className="text-sm text-gray-500">Licence commerciale</p>
-                <p className="font-medium text-gray-900 dark:text-white">{data.business_license}</p>
-              </div>
-            )}
-            {data.tax_number && (
-              <div>
-                <p className="text-sm text-gray-500">Numéro fiscal</p>
-                <p className="font-medium text-gray-900 dark:text-white">{data.tax_number}</p>
-              </div>
-            )}
+          <CardContent>
+            <div>
+              <p className="text-sm text-gray-500">Numéro d'identification fiscale</p>
+              <p className="font-medium text-gray-900 dark:text-white">{data.tax_number}</p>
+            </div>
           </CardContent>
         </Card>
       )}

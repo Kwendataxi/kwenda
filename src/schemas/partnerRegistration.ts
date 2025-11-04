@@ -43,15 +43,8 @@ export const companyInfoSchema = z.object({
     .optional(),
 });
 
-// Étape 2: Documents et licences
+// Étape 2: Documents et licences (optionnels)
 export const documentsSchema = z.object({
-  business_license: z
-    .string()
-    .trim()
-    .max(100, { message: "Le numéro de licence ne peut pas dépasser 100 caractères" })
-    .optional()
-    .or(z.literal('')),
-  
   tax_number: z
     .string()
     .trim()

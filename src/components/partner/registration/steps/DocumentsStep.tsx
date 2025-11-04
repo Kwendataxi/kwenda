@@ -33,49 +33,38 @@ export const DocumentsStep = ({ data, onNext, onPrevious }: DocumentsStepProps) 
       <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
         <Info className="w-4 h-4 text-blue-600" />
         <AlertDescription className="text-sm text-blue-800 dark:text-blue-200">
-          Ces informations sont optionnelles mais recommandées pour accélérer la validation de votre compte.
+          Cette information est optionnelle mais fortement recommandée pour accélérer la validation de votre compte.
         </AlertDescription>
       </Alert>
 
-      {/* Numéro de licence commerciale */}
-      <div className="space-y-2">
-        <Label htmlFor="business_license" className="flex items-center gap-2">
-          <FileText className="w-4 h-4 text-green-600" />
-          Numéro de licence commerciale
-        </Label>
-        <Input
-          id="business_license"
-          {...register('business_license')}
-          placeholder="Ex: LC-2024-KIN-12345"
-          className={errors.business_license ? 'border-red-500' : ''}
-        />
-        {errors.business_license && (
-          <p className="text-sm text-red-500">{errors.business_license.message}</p>
-        )}
-        <p className="text-xs text-gray-500">
-          Numéro de votre licence d'exploitation commerciale
-        </p>
-      </div>
-
-      {/* Numéro fiscal */}
+      {/* Numéro fiscal - Champ unique */}
       <div className="space-y-2">
         <Label htmlFor="tax_number" className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-green-600" />
-          Numéro fiscal (NIF/RCCM)
+          Numéro d'identification fiscale
         </Label>
         <Input
           id="tax_number"
           {...register('tax_number')}
-          placeholder="Ex: A1234567X"
+          placeholder="Ex: NIF A1234567X ou RCCM CD/KIN/12345"
           className={errors.tax_number ? 'border-red-500' : ''}
         />
         {errors.tax_number && (
           <p className="text-sm text-red-500">{errors.tax_number.message}</p>
         )}
-        <p className="text-xs text-gray-500">
-          Numéro d'identification fiscale ou RCCM
+        <p className="text-xs text-muted-foreground">
+          Votre numéro NIF (Numéro d'Identification Fiscale) ou RCCM (Registre de Commerce)
         </p>
       </div>
+
+      {/* Message d'information étendu */}
+      <Alert className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+        <Info className="w-4 h-4 text-green-600" />
+        <AlertDescription className="text-sm text-green-800 dark:text-green-200">
+          📄 Ce champ est optionnel mais fortement recommandé. Vous pourrez ajouter d'autres documents 
+          (licence commerciale, attestations, etc.) après validation de votre compte dans votre espace partenaire.
+        </AlertDescription>
+      </Alert>
 
       {/* Boutons navigation */}
       <div className="flex justify-between pt-4">

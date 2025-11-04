@@ -22,7 +22,6 @@ const PartnerRegistration = () => {
     address: '',
     business_type: 'individual',
     service_areas: ['Kinshasa'],
-    business_license: '',
     tax_number: '',
     password: ''
   });
@@ -153,29 +152,19 @@ const PartnerRegistration = () => {
       </div>
 
       <div>
-        <Label htmlFor="business_license" className="flex items-center gap-2">
-          <FileText className="h-4 w-4" />
-          Numéro de licence d'entreprise
-        </Label>
-        <Input
-          id="business_license"
-          value={formData.business_license}
-          onChange={(e) => handleChange('business_license', e.target.value)}
-          placeholder="Ex: LIC-2024-001"
-        />
-      </div>
-
-      <div>
         <Label htmlFor="tax_number" className="flex items-center gap-2">
           <CreditCard className="h-4 w-4" />
-          Numéro fiscal (NIF)
+          Numéro fiscal (NIF/RCCM)
         </Label>
         <Input
           id="tax_number"
           value={formData.tax_number}
           onChange={(e) => handleChange('tax_number', e.target.value)}
-          placeholder="Ex: A0000000000000X"
+          placeholder="Ex: NIF A1234567X ou RCCM CD/KIN/12345"
         />
+        <p className="text-xs text-muted-foreground mt-1">
+          Optionnel mais recommandé pour accélérer la validation
+        </p>
       </div>
 
       <div className="bg-blue-50 p-4 rounded-lg">
