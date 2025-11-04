@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
 import '@/styles/marketplace.css'; // Lazy-loaded: only when marketplace is accessed
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,19 +24,8 @@ import { useMarketplaceFilters } from '@/hooks/useMarketplaceFilters';
 import { useCart } from '@/context/CartContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useGeolocation } from '@/hooks/useGeolocation';
-import { EnhancedMarketplaceInterface } from '@/components/marketplace/EnhancedMarketplaceInterface';
 
 const MarketplaceContent = () => {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const tab = searchParams.get('tab');
-  
-  // Si un tab est spécifié (orders, shop, escrow), afficher l'interface complète
-  if (tab) {
-    return <EnhancedMarketplaceInterface onNavigate={(path) => navigate(path)} />;
-  }
-  
-  // Sinon, afficher la page publique marketplace
   const [showFilters, setShowFilters] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);

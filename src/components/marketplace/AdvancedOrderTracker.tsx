@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useMarketplaceOrders } from '@/hooks/useMarketplaceOrders';
 import { useOrderNotifications } from '@/hooks/useOrderNotifications';
 import { supabase } from '@/integrations/supabase/client';
+import ModernTracker from '@/components/tracking/ModernTracker';
 import { 
   Package, 
   MapPin, 
@@ -51,6 +52,7 @@ export const AdvancedOrderTracker: React.FC = () => {
   const [rating, setRating] = useState(5);
   const [feedback, setFeedback] = useState('');
   const [realtimeUpdates, setRealtimeUpdates] = useState<any>({});
+  const [showTrackingModal, setShowTrackingModal] = useState(false);
 
   // Real-time order updates
   useEffect(() => {
@@ -349,7 +351,7 @@ export const AdvancedOrderTracker: React.FC = () => {
                     Visualisez la position de votre livreur sur la carte et recevez des mises à jour instantanées
                   </p>
                   <Button 
-                    onClick={() => navigate(`/tracking/marketplace/${selectedOrder.id}`)}
+                    onClick={() => setShowTrackingModal(true)}
                     className="w-full gap-2"
                     size="lg"
                   >
@@ -599,6 +601,20 @@ export const AdvancedOrderTracker: React.FC = () => {
       ) : (
         renderOrdersList()
       )}
+
+      {/* Modal de tracking temps réel */}
+      <Dialog open={showTrackingModal} onOpenChange={setShowTrackingModal}>
+        <DialogContent className="max-w-full h-[90vh] p-0 gap-0">
+          {selectedOrder && (
+            <ModernTracker
+              trackingId={selectedOrder.id}
+              trackingType="marketplace"
+              onBack={() => setShowTrackingModal(false)}
+              enableRealtimeLocation={true}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
