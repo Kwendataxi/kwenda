@@ -12,19 +12,20 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useNotificationPermissions } from '@/hooks/useNotificationPermissions';
+import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 
 export const UserSettings = () => {
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
   const { user, signOut } = useAuth();
+  
+  // 🔔 Hooks de notifications
+  const { requestPermission, isGranted, isDenied } = useNotificationPermissions();
+  const { preferences, loading: prefsLoading, updatePreference, savePreferences } = useNotificationPreferences();
+  
+  // 🔧 État local pour les paramètres (non-notifications)
   const [settings, setSettings] = useState({
-    // Notifications
-    push_notifications: true,
-    email_notifications: true,
-    sms_notifications: false,
-    booking_reminders: true,
-    promotional_offers: false,
-    
     // Privacy
     location_sharing: true,
     ride_history_visible: true,
@@ -46,24 +47,116 @@ export const UserSettings = () => {
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Charger les paramètres depuis Supabase au démarrage
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('user_settings')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+        
+        if (data) {
+          setSettings({
+            location_sharing: data.location_sharing ?? true,
+            ride_history_visible: (data as any).ride_history_visible ?? true,
+            profile_visibility: (data as any).profile_visibility ?? 'public',
+            dark_mode: data.dark_mode ?? false,
+            sound_effects: (data as any).sound_effects ?? true,
+            auto_location: (data as any).auto_location ?? true,
+            offline_maps: (data as any).offline_maps ?? false,
+            two_factor_auth: (data as any).two_factor_auth ?? false,
+            biometric_login: (data as any).biometric_login ?? false,
+            auto_logout: (data as any).auto_logout ?? false
+          });
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    };
+    
+    loadSettings();
+  }, [user?.id]);
+
+  // Appliquer le mode sombre automatiquement
+  useEffect(() => {
+    if (settings.dark_mode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [settings.dark_mode]);
+
   const handleSettingChange = (key: string, value: boolean | string) => {
     setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handlePushNotificationToggle = async (checked: boolean) => {
+    if (checked && !isGranted) {
+      const granted = await requestPermission();
+      if (!granted) {
+        toast({
+          title: t('settings.permission_denied'),
+          description: t('settings.permission_denied_desc'),
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+    
+    await updatePreference('push_enabled', checked);
   };
 
   const saveSettings = async () => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // 1. Sauvegarder les préférences de notifications
+      if (preferences) {
+        await savePreferences(preferences);
+      }
+      
+      // 2. Sauvegarder les autres paramètres dans user_settings
+      const { error } = await supabase
+        .from('user_settings')
+        .upsert({
+          user_id: user?.id,
+          push_notifications: preferences?.push_enabled ?? true,
+          email_notifications: preferences?.payment_alerts ?? true,
+          sms_notifications: false,
+          booking_reminders: preferences?.ride_updates ?? true,
+          promotional_offers: preferences?.promotions ?? false,
+          location_sharing: settings.location_sharing,
+          ride_history_visible: settings.ride_history_visible,
+          profile_visibility: settings.profile_visibility,
+          dark_mode: settings.dark_mode,
+          sound_effects: settings.sound_effects,
+          auto_location: settings.auto_location,
+          offline_maps: settings.offline_maps,
+          two_factor_auth: settings.two_factor_auth,
+          biometric_login: settings.biometric_login,
+          auto_logout: settings.auto_logout
+        }, {
+          onConflict: 'user_id'
+        });
+      
+      if (error) throw error;
       
       toast({
-        title: "Paramètres sauvegardés",
-        description: "Vos préférences ont été mises à jour avec succès.",
+        title: t('settings.saved'),
+        description: t('settings.saved_desc'),
       });
     } catch (error) {
+      console.error('Error saving settings:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de sauvegarder les paramètres.",
+        title: t('common.error'),
+        description: t('settings.save_error'),
         variant: "destructive",
       });
     } finally {
@@ -71,13 +164,8 @@ export const UserSettings = () => {
     }
   };
 
-  const resetSettings = () => {
-    setSettings({
-      push_notifications: true,
-      email_notifications: true,
-      sms_notifications: false,
-      booking_reminders: true,
-      promotional_offers: false,
+  const resetSettings = async () => {
+    const defaultSettings = {
       location_sharing: true,
       ride_history_visible: true,
       profile_visibility: 'public',
@@ -88,11 +176,35 @@ export const UserSettings = () => {
       two_factor_auth: false,
       biometric_login: false,
       auto_logout: false,
+    };
+    
+    setSettings(defaultSettings);
+    
+    // Réinitialiser aussi les préférences de notifications
+    await savePreferences({
+      push_enabled: true,
+      ride_updates: true,
+      delivery_updates: true,
+      payment_alerts: true,
+      promotions: false,
+      driver_updates: true,
+      system_alerts: true,
+      marketplace_updates: true,
+      chat_messages: true,
+      digest_frequency: 'daily',
+      quiet_hours_start: '22:00',
+      quiet_hours_end: '08:00',
+      sound_enabled: true,
+      vibration_enabled: true,
+      priority_only: false
     });
     
+    // Sauvegarder dans la base
+    await saveSettings();
+    
     toast({
-      title: "Paramètres réinitialisés",
-      description: "Tous les paramètres ont été remis aux valeurs par défaut.",
+      title: t('settings.reset'),
+      description: t('settings.reset_desc'),
     });
   };
 
@@ -149,15 +261,15 @@ export const UserSettings = () => {
     <div className="space-y-6 p-4 sm:p-6 max-w-4xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold">Paramètres</h2>
-          <p className="text-muted-foreground">Personnalisez votre expérience Kwenda</p>
+          <h2 className="text-2xl font-bold">{t('settings.title')}</h2>
+          <p className="text-muted-foreground">{t('settings.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={resetSettings}>
-            Réinitialiser
+            {t('settings.reset')}
           </Button>
           <Button onClick={saveSettings} disabled={loading}>
-            {loading ? 'Sauvegarde...' : 'Sauvegarder'}
+            {loading ? t('settings.saving') : t('settings.save')}
           </Button>
         </div>
       </div>
@@ -168,62 +280,51 @@ export const UserSettings = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="w-5 h-5" />
-              Notifications
+              {t('settings.notifications')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm font-medium">Notifications push</Label>
-                <p className="text-xs text-muted-foreground">Recevoir des notifications sur votre appareil</p>
+                <Label className="text-sm font-medium">{t('settings.push_notifications')}</Label>
+                <p className="text-xs text-muted-foreground">{t('settings.push_notifications_desc')}</p>
               </div>
               <Switch
-                checked={settings.push_notifications}
-                onCheckedChange={(checked) => handleSettingChange('push_notifications', checked)}
+                checked={preferences?.push_enabled ?? true}
+                onCheckedChange={handlePushNotificationToggle}
               />
             </div>
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm font-medium">Notifications email</Label>
-                <p className="text-xs text-muted-foreground">Recevoir des emails de confirmation</p>
+                <Label className="text-sm font-medium">{t('settings.email_notifications')}</Label>
+                <p className="text-xs text-muted-foreground">{t('settings.email_notifications_desc')}</p>
               </div>
               <Switch
-                checked={settings.email_notifications}
-                onCheckedChange={(checked) => handleSettingChange('email_notifications', checked)}
+                checked={preferences?.payment_alerts ?? true}
+                onCheckedChange={(checked) => updatePreference('payment_alerts', checked)}
               />
             </div>
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm font-medium">Notifications SMS</Label>
-                <p className="text-xs text-muted-foreground">Recevoir des SMS pour les courses importantes</p>
+                <Label className="text-sm font-medium">{t('settings.booking_reminders')}</Label>
+                <p className="text-xs text-muted-foreground">{t('settings.booking_reminders_desc')}</p>
               </div>
               <Switch
-                checked={settings.sms_notifications}
-                onCheckedChange={(checked) => handleSettingChange('sms_notifications', checked)}
+                checked={preferences?.ride_updates ?? true}
+                onCheckedChange={(checked) => updatePreference('ride_updates', checked)}
               />
             </div>
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm font-medium">Rappels de réservation</Label>
-                <p className="text-xs text-muted-foreground">Rappels avant vos courses programmées</p>
+                <Label className="text-sm font-medium">{t('settings.promotional_offers')}</Label>
+                <p className="text-xs text-muted-foreground">{t('settings.promotional_offers_desc')}</p>
               </div>
               <Switch
-                checked={settings.booking_reminders}
-                onCheckedChange={(checked) => handleSettingChange('booking_reminders', checked)}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-sm font-medium">Offres promotionnelles</Label>
-                <p className="text-xs text-muted-foreground">Recevoir des offres spéciales et réductions</p>
-              </div>
-              <Switch
-                checked={settings.promotional_offers}
-                onCheckedChange={(checked) => handleSettingChange('promotional_offers', checked)}
+                checked={preferences?.promotions ?? false}
+                onCheckedChange={(checked) => updatePreference('promotions', checked)}
               />
             </div>
           </CardContent>
@@ -234,14 +335,14 @@ export const UserSettings = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5" />
-              Confidentialité
+              {t('settings.privacy')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm font-medium">Partage de localisation</Label>
-                <p className="text-xs text-muted-foreground">Partager votre position avec le chauffeur</p>
+                <Label className="text-sm font-medium">{t('settings.location_sharing')}</Label>
+                <p className="text-xs text-muted-foreground">{t('settings.location_sharing_desc')}</p>
               </div>
               <Switch
                 checked={settings.location_sharing}
@@ -251,8 +352,8 @@ export const UserSettings = () => {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm font-medium">Historique visible</Label>
-                <p className="text-xs text-muted-foreground">Permettre aux chauffeurs de voir vos trajets récents</p>
+                <Label className="text-sm font-medium">{t('settings.ride_history')}</Label>
+                <p className="text-xs text-muted-foreground">{t('settings.ride_history_desc')}</p>
               </div>
               <Switch
                 checked={settings.ride_history_visible}
@@ -261,7 +362,7 @@ export const UserSettings = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Visibilité du profil</Label>
+              <Label className="text-sm font-medium">{t('settings.profile_visibility')}</Label>
               <Select
                 value={settings.profile_visibility}
                 onValueChange={(value) => handleSettingChange('profile_visibility', value)}
@@ -270,9 +371,9 @@ export const UserSettings = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="public">Public</SelectItem>
-                  <SelectItem value="friends">Amis seulement</SelectItem>
-                  <SelectItem value="private">Privé</SelectItem>
+                  <SelectItem value="public">{t('settings.visibility_public')}</SelectItem>
+                  <SelectItem value="friends">{t('settings.visibility_friends')}</SelectItem>
+                  <SelectItem value="private">{t('settings.visibility_private')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -284,12 +385,12 @@ export const UserSettings = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Globe className="w-5 h-5" />
-              Langue et région
+              {t('settings.language')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Langue de l'interface</Label>
+              <Label className="text-sm font-medium">{t('settings.language_interface')}</Label>
               <Select
                 value={language}
                 onValueChange={(value) => setLanguage(value as any)}
@@ -309,7 +410,7 @@ export const UserSettings = () => {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Choisissez votre langue préférée pour l'application
+                {t('settings.language_desc')}
               </p>
             </div>
           </CardContent>
@@ -320,14 +421,14 @@ export const UserSettings = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Smartphone className="w-5 h-5" />
-              Préférences d'application
+              {t('settings.app_preferences')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm font-medium">Mode sombre</Label>
-                <p className="text-xs text-muted-foreground">Interface en mode sombre</p>
+                <Label className="text-sm font-medium">{t('settings.dark_mode')}</Label>
+                <p className="text-xs text-muted-foreground">{t('settings.dark_mode_desc')}</p>
               </div>
               <div className="flex items-center gap-2">
                 {settings.dark_mode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
@@ -340,8 +441,8 @@ export const UserSettings = () => {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm font-medium">Effets sonores</Label>
-                <p className="text-xs text-muted-foreground">Sons lors des notifications et interactions</p>
+                <Label className="text-sm font-medium">{t('settings.sound_effects')}</Label>
+                <p className="text-xs text-muted-foreground">{t('settings.sound_effects_desc')}</p>
               </div>
               <div className="flex items-center gap-2">
                 {settings.sound_effects ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -354,8 +455,8 @@ export const UserSettings = () => {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm font-medium">Localisation automatique</Label>
-                <p className="text-xs text-muted-foreground">Détecter automatiquement votre position</p>
+                <Label className="text-sm font-medium">{t('settings.auto_location')}</Label>
+                <p className="text-xs text-muted-foreground">{t('settings.auto_location_desc')}</p>
               </div>
               <Switch
                 checked={settings.auto_location}
@@ -365,8 +466,8 @@ export const UserSettings = () => {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label className="text-sm font-medium">Cartes hors ligne</Label>
-                <p className="text-xs text-muted-foreground">Télécharger les cartes pour utilisation hors ligne</p>
+                <Label className="text-sm font-medium">{t('settings.offline_maps')}</Label>
+                <p className="text-xs text-muted-foreground">{t('settings.offline_maps_desc')}</p>
               </div>
               <Switch
                 checked={settings.offline_maps}
@@ -381,17 +482,17 @@ export const UserSettings = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5" />
-              Sécurité
+              {t('settings.security')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Authentification à deux facteurs</Label>
-                  <p className="text-xs text-muted-foreground">Protection supplémentaire de votre compte</p>
+                  <Label className="text-sm font-medium">{t('settings.two_factor')}</Label>
+                  <p className="text-xs text-muted-foreground">{t('settings.two_factor_desc')}</p>
                   {settings.two_factor_auth && (
-                    <Badge variant="secondary" className="mt-1">Activé</Badge>
+                    <Badge variant="secondary" className="mt-1">{t('settings.enabled')}</Badge>
                   )}
                 </div>
                 <Switch
@@ -402,10 +503,10 @@ export const UserSettings = () => {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Connexion biométrique</Label>
-                  <p className="text-xs text-muted-foreground">Empreinte digitale ou reconnaissance faciale</p>
+                  <Label className="text-sm font-medium">{t('settings.biometric')}</Label>
+                  <p className="text-xs text-muted-foreground">{t('settings.biometric_desc')}</p>
                   {settings.biometric_login && (
-                    <Badge variant="secondary" className="mt-1">Activé</Badge>
+                    <Badge variant="secondary" className="mt-1">{t('settings.enabled')}</Badge>
                   )}
                 </div>
                 <Switch
@@ -416,10 +517,10 @@ export const UserSettings = () => {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label className="text-sm font-medium">Déconnexion automatique</Label>
-                  <p className="text-xs text-muted-foreground">Se déconnecter après une période d'inactivité</p>
+                  <Label className="text-sm font-medium">{t('settings.auto_logout')}</Label>
+                  <p className="text-xs text-muted-foreground">{t('settings.auto_logout_desc')}</p>
                   {settings.auto_logout && (
-                    <Badge variant="secondary" className="mt-1">Activé</Badge>
+                    <Badge variant="secondary" className="mt-1">{t('settings.enabled')}</Badge>
                   )}
                 </div>
                 <Switch
@@ -436,13 +537,13 @@ export const UserSettings = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="w-5 h-5" />
-              Zone dangereuse
+              {t('settings.danger_zone')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="bg-destructive/10 p-4 rounded-lg border border-destructive/20">
-                <h3 className="font-semibold text-destructive mb-2">Supprimer définitivement mon compte</h3>
+                <h3 className="font-semibold text-destructive mb-2">{t('settings.delete_account')}</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Cette action est irréversible. Toutes vos données, trajets, transactions et informations personnelles seront définitivement supprimés.
                 </p>
