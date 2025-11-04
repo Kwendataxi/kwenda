@@ -132,7 +132,13 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({ win, onReveal }) => {
         if (!loyaltyAccount) {
           const { data: newAccount } = await supabase
             .from('user_loyalty_points')
-            .insert({ user_id: currentUser.id, points_balance: 0 })
+            .insert({ 
+              user_id: currentUser.id, 
+              current_points: 0,
+              total_earned_points: 0,
+              total_spent_points: 0,
+              loyalty_level: 'Bronze'
+            })
             .select()
             .single();
           loyaltyAccount = newAccount;
@@ -143,8 +149,8 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({ win, onReveal }) => {
           await supabase
             .from('user_loyalty_points')
             .update({
-              points_balance: ((loyaltyAccount as any).points_balance || 0) + pointsToAward,
-              points_earned_total: ((loyaltyAccount as any).points_earned_total || 0) + pointsToAward
+              current_points: ((loyaltyAccount as any).current_points || 0) + pointsToAward,
+              total_earned_points: ((loyaltyAccount as any).total_earned_points || 0) + pointsToAward
             } as any)
             .eq('user_id', currentUser.id);
 

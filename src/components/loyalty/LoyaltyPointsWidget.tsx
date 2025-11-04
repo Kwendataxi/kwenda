@@ -35,8 +35,8 @@ export const LoyaltyPointsWidget = () => {
   const tierConfig = TIER_CONFIG[currentTier] || TIER_CONFIG.bronze;
   const { nextTier, progress, pointsNeeded } = getNextTierProgress();
   
-  // S'assurer que points_balance est un nombre
-  const pointsBalance = (loyaltyData as any).points_balance || 0;
+  // S'assurer que current_points est un nombre
+  const pointsBalance = (loyaltyData as any).current_points || 0;
   const cdfValue = (pointsBalance / CONVERSION_RATE.points) * CONVERSION_RATE.cdf;
 
   const handleRedeem = async () => {
@@ -179,11 +179,11 @@ export const LoyaltyPointsWidget = () => {
         <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t">
           <div className="text-center">
             <p className="text-xs text-muted-foreground">Gagnés</p>
-            <p className="text-sm font-semibold">{((loyaltyData as any).points_earned_total || 0).toLocaleString()}</p>
+            <p className="text-sm font-semibold">{((loyaltyData as any).total_earned_points || 0).toLocaleString()}</p>
           </div>
           <div className="text-center">
             <p className="text-xs text-muted-foreground">Dépensés</p>
-            <p className="text-sm font-semibold">{((loyaltyData as any).points_spent_total || 0).toLocaleString()}</p>
+            <p className="text-sm font-semibold">{((loyaltyData as any).total_spent_points || 0).toLocaleString()}</p>
           </div>
         </div>
       </CardContent>

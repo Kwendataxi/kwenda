@@ -8,10 +8,11 @@ export type LoyaltyTier = 'bronze' | 'silver' | 'gold' | 'platinum';
 export interface LoyaltyPointsData {
   id: string;
   user_id: string;
-  points_balance: number;
-  points_earned_total: number;
-  points_spent_total: number;
+  current_points: number;
+  total_earned_points: number;
+  total_spent_points: number;
   tier: LoyaltyTier;
+  loyalty_level: string;
   created_at: string;
   updated_at: string;
 }
@@ -92,11 +93,20 @@ export const useLoyaltyPoints = () => {
         // Créer le compte si n'existe pas
         const { data: newData, error: createError } = await supabase
           .from('user_loyalty_points')
-          .insert({ user_id: user.id, points_balance: 0 })
+          .insert({ 
+            user_id: user.id, 
+            current_points: 0,
+            total_earned_points: 0,
+            total_spent_points: 0,
+            loyalty_level: 'Bronze'
+          })
           .select()
           .single();
 
-        if (createError) throw createError;
+        if (createError) {
+          console.error('❌ Erreur création compte loyalty:', createError);
+          throw createError;
+        }
         data = newData;
       } else if (error) {
         throw error;
@@ -118,10 +128,10 @@ export const useLoyaltyPoints = () => {
   const redeemPoints = async (pointsToRedeem: number, redeemType: 'wallet' | 'marketplace') => {
     if (!user || !loyaltyData) return null;
 
-    if (loyaltyData.points_balance < pointsToRedeem) {
+    if (loyaltyData.current_points < pointsToRedeem) {
       toast({
         title: "Solde insuffisant",
-        description: `Vous avez seulement ${loyaltyData.points_balance} points`,
+        description: `Vous avez seulement ${loyaltyData.current_points} points`,
         variant: "destructive"
       });
       return null;
@@ -182,8 +192,8 @@ export const useLoyaltyPoints = () => {
         await supabase
           .from('user_loyalty_points')
           .update({
-            points_balance: (currentData as any).points_balance + points,
-            points_earned_total: ((currentData as any).points_earned_total || 0) + points
+            current_points: (currentData as any).current_points + points,
+            total_earned_points: ((currentData as any).total_earned_points || 0) + points
           } as any)
           .eq('user_id', user.id);
 
@@ -235,7 +245,7 @@ export const useLoyaltyPoints = () => {
 
     const currentTierMin = TIER_CONFIG[currentTier].minPoints;
     const nextTierMin = TIER_CONFIG[nextTier].minPoints;
-    const earnedTotal = (loyaltyData as any).points_earned_total || 0;
+    const earnedTotal = (loyaltyData as any).total_earned_points || 0;
     const progress = ((earnedTotal - currentTierMin) / (nextTierMin - currentTierMin)) * 100;
     const pointsNeeded = nextTierMin - earnedTotal;
 
