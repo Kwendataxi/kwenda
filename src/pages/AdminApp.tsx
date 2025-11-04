@@ -5,10 +5,8 @@ import { AdvancedUserManagement } from '@/components/admin/users/AdvancedUserMan
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { FlexiblePermissionGuard } from '@/components/auth/FlexiblePermissionGuard';
 import { useAdminAnalytics } from '@/hooks/useAdminAnalytics';
-import { useEnhancedRealTimeStats } from '@/hooks/useEnhancedRealTimeStats';
+import { useAdminStats } from '@/hooks/admin/useAdminStats';
 import { Loader2 } from 'lucide-react';
-
-import AdminDashboard from '@/components/admin/AdminDashboard';
 import { OverviewDashboard } from '@/components/admin/OverviewDashboard';
 import { AdminNotificationCenter } from '@/components/admin/AdminNotificationCenter';
 import { AdvancedSupportCenter } from '@/components/admin/AdvancedSupportCenter';
@@ -57,7 +55,7 @@ const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
   
   const { isAdmin, adminRole, loading: rolesLoading } = useUserRoles();
-  const { stats, loading: statsLoading } = useEnhancedRealTimeStats();
+  const { stats, loading: statsLoading } = useAdminStats();
 
   if (rolesLoading) {
     return <LoadingFallback />;
@@ -354,11 +352,7 @@ const AdminApp = () => {
         );
 
       default:
-        return (
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminDashboard />
-          </Suspense>
-        );
+        return <Navigate to="/admin?tab=overview" replace />;
     }
   };
 

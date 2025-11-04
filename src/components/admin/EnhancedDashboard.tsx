@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useEnhancedRealTimeStats } from '@/hooks/useEnhancedRealTimeStats';
+import { useAdminStats } from '@/hooks/admin/useAdminStats';
 import { useTeamStats } from '@/hooks/useTeamStats';
 import { formatCurrency } from '@/lib/utils';
 import { 
@@ -71,7 +71,7 @@ const StatCard: React.FC<StatCardProps> = ({
 );
 
 export const EnhancedDashboard: React.FC = () => {
-  const { stats, loading, error } = useEnhancedRealTimeStats();
+  const { stats, loading, error } = useAdminStats();
 
   if (loading) {
     return (
@@ -101,7 +101,7 @@ export const EnhancedDashboard: React.FC = () => {
         <CardContent className="p-6">
           <div className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" />
-            <span>Erreur lors du chargement: {error}</span>
+            <span>Erreur lors du chargement: {error instanceof Error ? error.message : 'Erreur inconnue'}</span>
           </div>
         </CardContent>
       </Card>

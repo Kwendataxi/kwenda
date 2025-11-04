@@ -1,31 +1,9 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Users, Car, Package, Activity } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useAdminStats } from '@/hooks/admin/useAdminStats';
 
 export const OverviewDashboard = () => {
-  const { data: dashboardData, isLoading } = useQuery({
-    queryKey: ['adminOverview'],
-    queryFn: async () => {
-      const [usersRes, driversRes, bookingsRes] = await Promise.all([
-        supabase.from('clients').select('id', { count: 'exact', head: true }),
-        supabase.from('chauffeurs').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('transport_bookings').select('id, status, actual_price')
-      ]);
-
-      const bookings = bookingsRes.data || [];
-
-      return {
-        totalUsers: usersRes.count || 0,
-        activeDrivers: driversRes.count || 0,
-        totalBookings: bookings.length,
-        totalRevenue: bookings
-          .filter(b => b.status === 'completed')
-          .reduce((sum, b) => sum + (b.actual_price || 0), 0)
-      };
-    },
-    refetchInterval: 30000
-  });
+  const { stats, loading: isLoading } = useAdminStats();
 
   if (isLoading) {
     return <div className="flex items-center justify-center p-8">Chargement des statistiques...</div>;
@@ -48,7 +26,7 @@ export const OverviewDashboard = () => {
                 <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{dashboardData?.totalUsers || 0}</p>
+                <p className="text-2xl font-bold">{stats?.totalUsers || 0}</p>
                 <p className="text-sm text-muted-foreground">Utilisateurs total</p>
               </div>
             </div>
@@ -62,7 +40,7 @@ export const OverviewDashboard = () => {
                 <Car className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{dashboardData?.activeDrivers || 0}</p>
+                <p className="text-2xl font-bold">{stats?.activeDrivers || 0}</p>
                 <p className="text-sm text-muted-foreground">Chauffeurs actifs</p>
               </div>
             </div>
@@ -76,7 +54,7 @@ export const OverviewDashboard = () => {
                 <Package className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{dashboardData?.totalBookings || 0}</p>
+                <p className="text-2xl font-bold">{stats?.totalBookings || 0}</p>
                 <p className="text-sm text-muted-foreground">Courses total</p>
               </div>
             </div>
@@ -90,7 +68,7 @@ export const OverviewDashboard = () => {
                 <Activity className="h-6 w-6 text-orange-600 dark:text-orange-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{(dashboardData?.totalRevenue || 0).toLocaleString()} CDF</p>
+                <p className="text-2xl font-bold">{(stats?.totalRevenue || 0).toLocaleString()} CDF</p>
                 <p className="text-sm text-muted-foreground">Revenus total</p>
               </div>
             </div>
