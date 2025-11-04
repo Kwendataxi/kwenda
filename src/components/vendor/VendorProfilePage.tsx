@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Store, Settings, FileText, TrendingUp, 
   LogOut, Users, Package, DollarSign, BarChart3,
@@ -12,20 +14,23 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { VendorProfileHeader } from './VendorProfileHeader';
 import { VendorStatsCards } from './VendorStatsCards';
-import { VendorInfoCard } from './VendorInfoCard';
+import { VendorShopInfoCard } from './VendorShopInfoCard';
 import { VendorDocuments } from './VendorDocuments';
 import { VendorSettings } from './VendorSettings';
 import { VendorSalesHistory } from './VendorSalesHistory';
 import { VendorEscrowManager } from './VendorEscrowManager';
 import { VendorAnalytics } from './VendorAnalytics';
 import { VendorFollowers } from './VendorFollowers';
+import { VendorShopSettings } from '@/components/marketplace/VendorShopSettings';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface VendorProfilePageProps {
   onTabChange?: (tab: string) => void;
 }
 
 export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -35,6 +40,24 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
   const [escrowOpen, setEscrowOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [followersOpen, setFollowersOpen] = useState(false);
+  const [shopSettingsOpen, setShopSettingsOpen] = useState(false);
+
+  const { data: vendor } = useQuery({
+    queryKey: ['vendor-info', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      
+      const { data, error } = await supabase
+        .from('vendor_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user
+  });
 
   const handleSignOut = async () => {
     try {
@@ -81,12 +104,12 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
     {
       title: "Ma Boutique",
       items: [
-        { 
-          icon: Store, 
-          label: "Informations de la boutique",
-          description: "Nom, description, logo",
-          onClick: () => onTabChange?.('profile')
-        },
+    { 
+      icon: Store, 
+      label: "Informations de la boutique",
+      description: "Nom, description, logo",
+      onClick: () => setShopSettingsOpen(true)
+    },
         { 
           icon: Package, 
           label: "Mes produits",
@@ -180,6 +203,17 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
       <VendorProfileHeader />
       <VendorStatsCards />
 
+      <VendorShopInfoCard
+        shopName={vendor?.shop_name || 'Ma Boutique'}
+        description={vendor?.shop_description || 'Bienvenue dans ma boutique Kwenda Market'}
+        email={user?.email || 'Non renseigné'}
+        totalSales={vendor?.total_sales || 0}
+        rating={vendor?.average_rating || 0.0}
+        memberSince={vendor?.created_at ? format(new Date(vendor.created_at), 'dd MMMM yyyy', { locale: fr }) : 'Non renseigné'}
+        status="active"
+        onEditClick={() => setShopSettingsOpen(true)}
+      />
+
       {/* Quick Actions */}
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">Actions Rapides</h2>
@@ -197,8 +231,6 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
           ))}
         </div>
       </Card>
-
-      <VendorInfoCard />
 
       {/* Menu Sections */}
       <div className="grid gap-6">
@@ -270,6 +302,12 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
       <Dialog open={followersOpen} onOpenChange={setFollowersOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <VendorFollowers />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={shopSettingsOpen} onOpenChange={setShopSettingsOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <VendorShopSettings />
         </DialogContent>
       </Dialog>
     </div>

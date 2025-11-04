@@ -39,7 +39,7 @@ export const VendorBottomNav: React.FC<VendorBottomNavProps> = ({
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-safe">
+    <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-safe shadow-lg">
       <div className="flex items-center justify-around px-2 py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -49,22 +49,33 @@ export const VendorBottomNav: React.FC<VendorBottomNavProps> = ({
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              className="relative flex flex-col items-center gap-1 p-2 min-w-14"
+              className={`relative flex flex-col items-center gap-1 p-2 min-w-14 rounded-lg transition-all ${
+                isActive ? 'bg-primary/10' : 'hover:bg-accent'
+              }`}
+              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
             >
               <motion.div
-                whileTap={{ scale: 0.9 }}
+                whileTap={{ scale: 0.85 }}
+                whileHover={{ scale: 1.05 }}
                 className={`relative transition-colors ${
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
                 <Icon className="h-5 w-5" />
                 {item.badge && item.badge > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-2 -right-2 h-4 w-4 p-0 text-[10px] flex items-center justify-center"
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-2 -right-2"
                   >
-                    {item.badge > 9 ? '9+' : item.badge}
-                  </Badge>
+                    <Badge 
+                      variant="destructive" 
+                      className="h-4 w-4 p-0 text-[10px] flex items-center justify-center"
+                    >
+                      {item.badge > 9 ? '9+' : item.badge}
+                    </Badge>
+                  </motion.div>
                 )}
               </motion.div>
               <span className={`text-[10px] font-medium transition-colors ${
@@ -76,6 +87,7 @@ export const VendorBottomNav: React.FC<VendorBottomNavProps> = ({
                 <motion.div
                   layoutId="activeIndicator"
                   className="absolute bottom-0 left-1/2 -translate-x-1/2 h-1 w-8 bg-primary rounded-full"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
               )}
             </button>

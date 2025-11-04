@@ -1,8 +1,10 @@
 import React from 'react';
-import { Store, MessageSquare } from 'lucide-react';
+import { Store, MessageSquare, Home } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -20,6 +22,10 @@ export const UnifiedVendorHeader: React.FC<UnifiedVendorHeaderProps> = ({
   unreadChatCount = 0
 }) => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const { userRoles } = useUserRoles();
+  
+  const hasClientRole = userRoles.some(r => r.role === 'client');
   
   return (
     <motion.header
@@ -50,6 +56,25 @@ export const UnifiedVendorHeader: React.FC<UnifiedVendorHeaderProps> = ({
         </div>
         
         <div className="flex items-center gap-2">
+          {/* Retour Client Button */}
+          {hasClientRole && (
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.15 }}
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => navigate('/app/client')}
+              >
+                <Home className="h-4 w-4" />
+                {!isMobile && <span>Client</span>}
+              </Button>
+            </motion.div>
+          )}
+          
           {/* Chat Button */}
           {onOpenChat && (
             <motion.div
