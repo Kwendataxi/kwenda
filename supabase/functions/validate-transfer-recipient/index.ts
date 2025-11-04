@@ -100,6 +100,39 @@ serve(async (req) => {
 
     console.log('🔎 [4/6] Résultat recherche clients:', client ? `Trouvé: ${client.display_name}` : 'Non trouvé');
 
+    // ÉTAPE 3 : Recherche backup dans auth.users si pas trouvé dans clients
+    if (!client) {
+      console.log('🔍 [4.5/6] Recherche backup dans auth.users par email...');
+      
+      // Utiliser le service role pour accéder à auth.users
+      const supabaseAdmin = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+
+      const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.listUsers();
+      
+      if (!authError && authUser?.users) {
+        const foundUser = authUser.users.find(u => 
+          u.email?.toLowerCase() === recipient_input.toLowerCase().trim()
+        );
+        
+        if (foundUser) {
+          console.log('✅ [4.5/6] Utilisateur trouvé dans auth.users:', foundUser.email);
+          // Créer un objet client à partir des données auth
+          client = {
+            user_id: foundUser.id,
+            display_name: foundUser.user_metadata?.display_name || foundUser.email?.split('@')[0] || 'Utilisateur',
+            phone_number: foundUser.phone || null,
+            email: foundUser.email,
+            is_active: true
+          };
+        } else {
+          console.log('⚠️ [4.5/6] Utilisateur pas trouvé dans auth.users non plus');
+        }
+      }
+    }
+
     if (!client) {
       return new Response(
         JSON.stringify({ 
