@@ -28,28 +28,51 @@ export default function VendorAddProduct() {
     setIsSubmitting(true);
     
     try {
-      // Upload images to Supabase Storage
+      // ✅ Upload images to Supabase Storage avec timeout et validation
       const imageUrls: string[] = [];
       
-      for (const image of formData.images) {
-        const fileExt = image.name.split('.').pop();
-        const fileName = `${user.id}/${Date.now()}-${Math.random()}.${fileExt}`;
-        const filePath = `product-images/${fileName}`;
+      for (let i = 0; i < formData.images.length; i++) {
+        const image = formData.images[i];
+        
+        // Vérifier la taille du fichier (max 5MB)
+        if (image.size > 5 * 1024 * 1024) {
+          throw new Error(`L'image ${image.name} dépasse 5MB`);
+        }
 
-        const { error: uploadError } = await supabase.storage
-          .from('profile-pictures')
-          .upload(filePath, image);
+        const fileExt = image.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        // ✅ Upload vers le bucket product-images avec timeout
+        const uploadPromise = supabase.storage
+          .from('product-images')
+          .upload(fileName, image, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        // Timeout de 30 secondes
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Upload timeout - Connexion trop lente')), 30000)
+        );
+
+        const { error: uploadError } = await Promise.race([
+          uploadPromise,
+          timeoutPromise
+        ]) as any;
 
         if (uploadError) {
           console.error('Upload error:', uploadError);
-          throw uploadError;
+          throw new Error(`Erreur upload ${image.name}: ${uploadError.message}`);
         }
 
+        // ✅ Obtenir l'URL publique
         const { data: urlData } = supabase.storage
-          .from('profile-pictures')
-          .getPublicUrl(filePath);
+          .from('product-images')
+          .getPublicUrl(fileName);
 
         imageUrls.push(urlData.publicUrl);
+        
+        console.log(`✅ Image ${i+1}/${formData.images.length} uploaded: ${image.name}`);
       }
 
       // Insert product into database
@@ -82,24 +105,38 @@ export default function VendorAddProduct() {
 
       navigate('/vendeur');
       return true;
-    } catch (error) {
-      // ✅ CORRECTION 5: Logs détaillés pour déboguer
+    } catch (error: any) {
+      // ✅ Logs détaillés avec informations images
       console.error('❌ Error adding product:', error);
       console.error('📋 Form data:', {
         title: formData.title,
         price: formData.price,
         category: formData.category,
         images_count: formData.images.length,
+        images_sizes: formData.images.map((img: File) => `${img.name}: ${(img.size / 1024 / 1024).toFixed(2)}MB`),
         stock_count: formData.stock_count
       });
       
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : "Une erreur inconnue est survenue";
+      // ✅ Messages d'erreur spécifiques selon le type d'erreur
+      let errorMessage = "Une erreur inconnue est survenue";
+      
+      if (error.message?.includes('timeout') || error.message?.includes('Connexion')) {
+        errorMessage = "Délai d'attente dépassé. Vérifiez votre connexion internet.";
+      } else if (error.message?.includes('permission') || error.message?.includes('policy')) {
+        errorMessage = "Vous n'avez pas les permissions pour publier un produit.";
+      } else if (error.message?.includes('bucket') || error.message?.includes('storage')) {
+        errorMessage = "Erreur de stockage des images. Contactez le support.";
+      } else if (error.message?.includes('dépasse') || error.message?.includes('5MB')) {
+        errorMessage = error.message; // Afficher le message de taille dépassée
+      } else if (error.message?.includes('network') || error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
+        errorMessage = "Problème de connexion réseau. Réessayez.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
       
       toast({
-        title: "❌ Erreur",
-        description: `Erreur: ${errorMessage}`,
+        title: "❌ Erreur publication",
+        description: errorMessage,
         variant: "destructive"
       });
       return false;
