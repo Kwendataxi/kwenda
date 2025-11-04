@@ -83,6 +83,15 @@ export const CommissionManager = () => {
   };
 
   const validateRates = () => {
+    if (selectedService === 'wallet_topup') {
+      // Pour wallet_topup, seul admin_rate compte (frais de rechargement)
+      if (rates.admin_rate < 0 || rates.admin_rate > 10) {
+        throw new Error('Les frais doivent être entre 0% et 10%');
+      }
+      return;
+    }
+    
+    // Validation classique pour les autres services
     const total = rates.admin_rate + rates.driver_rate + rates.platform_rate;
     if (Math.abs(total - 100) > 0.01) {
       throw new Error('La somme des taux doit être égale à 100%');
@@ -153,12 +162,20 @@ export const CommissionManager = () => {
         platform_rate: existingSetting.platform_rate
       });
     } else {
-      // Default rates
-      setRates({
-        admin_rate: 10,
-        driver_rate: 85,
-        platform_rate: 5
-      });
+      // Default rates based on service type
+      if (service === 'wallet_topup') {
+        setRates({
+          admin_rate: 1,
+          driver_rate: 0,
+          platform_rate: 99
+        });
+      } else {
+        setRates({
+          admin_rate: 10,
+          driver_rate: 85,
+          platform_rate: 5
+        });
+      }
     }
   };
 
@@ -166,8 +183,12 @@ export const CommissionManager = () => {
     loadExistingRates(selectedService);
   }, [selectedService, commissionSettings]);
 
-  const totalRate = rates.admin_rate + rates.driver_rate + rates.platform_rate;
-  const isValidTotal = Math.abs(totalRate - 100) < 0.01;
+  const totalRate = selectedService === 'wallet_topup' 
+    ? rates.admin_rate 
+    : rates.admin_rate + rates.driver_rate + rates.platform_rate;
+  const isValidTotal = selectedService === 'wallet_topup'
+    ? rates.admin_rate >= 0 && rates.admin_rate <= 10
+    : Math.abs(totalRate - 100) < 0.01;
 
   if (loading) {
     return (
@@ -211,71 +232,106 @@ export const CommissionManager = () => {
                   <SelectContent>
                     <SelectItem value="transport">Transport VTC</SelectItem>
                     <SelectItem value="delivery">Livraison</SelectItem>
+                    <SelectItem value="wallet_topup">Rechargement Wallet</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {selectedService === 'wallet_topup' ? (
                 <div className="space-y-2">
-                  <Label htmlFor="admin_rate">Taux Admin (%)</Label>
+                  <Label htmlFor="admin_rate">Frais de rechargement (%)</Label>
                   <Input
                     id="admin_rate"
                     type="number"
                     min="0"
-                    max="100"
-                    step="0.01"
+                    max="10"
+                    step="0.1"
                     value={rates.admin_rate}
                     onChange={(e) => setRates(prev => ({
-                      ...prev,
-                      admin_rate: parseFloat(e.target.value) || 0
+                      admin_rate: parseFloat(e.target.value) || 0,
+                      driver_rate: 0,
+                      platform_rate: 100 - (parseFloat(e.target.value) || 0)
                     }))}
                   />
+                  <p className="text-sm text-muted-foreground">
+                    Frais prélevés sur chaque rechargement de wallet KwendaPay
+                  </p>
                 </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="admin_rate">Taux Admin (%)</Label>
+                    <Input
+                      id="admin_rate"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={rates.admin_rate}
+                      onChange={(e) => setRates(prev => ({
+                        ...prev,
+                        admin_rate: parseFloat(e.target.value) || 0
+                      }))}
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="driver_rate">Taux Chauffeur (%)</Label>
-                  <Input
-                    id="driver_rate"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value={rates.driver_rate}
-                    onChange={(e) => setRates(prev => ({
-                      ...prev,
-                      driver_rate: parseFloat(e.target.value) || 0
-                    }))}
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="driver_rate">Taux Chauffeur (%)</Label>
+                    <Input
+                      id="driver_rate"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={rates.driver_rate}
+                      onChange={(e) => setRates(prev => ({
+                        ...prev,
+                        driver_rate: parseFloat(e.target.value) || 0
+                      }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="platform_rate">Taux Plateforme (%)</Label>
+                    <Input
+                      id="platform_rate"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={rates.platform_rate}
+                      onChange={(e) => setRates(prev => ({
+                        ...prev,
+                        platform_rate: parseFloat(e.target.value) || 0
+                      }))}
+                    />
+                  </div>
                 </div>
+              )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="platform_rate">Taux Plateforme (%)</Label>
-                  <Input
-                    id="platform_rate"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value={rates.platform_rate}
-                    onChange={(e) => setRates(prev => ({
-                      ...prev,
-                      platform_rate: parseFloat(e.target.value) || 0
-                    }))}
-                  />
-                </div>
-              </div>
+              {selectedService !== 'wallet_topup' && (
+                <>
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <span className="font-medium">Total des taux:</span>
+                    <Badge variant={isValidTotal ? "default" : "destructive"}>
+                      {totalRate.toFixed(2)}%
+                    </Badge>
+                  </div>
 
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <span className="font-medium">Total des taux:</span>
-                <Badge variant={isValidTotal ? "default" : "destructive"}>
-                  {totalRate.toFixed(2)}%
-                </Badge>
-              </div>
-
-              {!isValidTotal && (
+                  {!isValidTotal && (
+                    <Alert>
+                      <AlertDescription>
+                        Le total des taux doit être égal à 100%. Actuellement: {totalRate.toFixed(2)}%
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </>
+              )}
+              
+              {selectedService === 'wallet_topup' && !isValidTotal && (
                 <Alert>
                   <AlertDescription>
-                    Le total des taux doit être égal à 100%. Actuellement: {totalRate.toFixed(2)}%
+                    Les frais doivent être entre 0% et 10%. Actuellement: {totalRate.toFixed(2)}%
                   </AlertDescription>
                 </Alert>
               )}
@@ -305,28 +361,40 @@ export const CommissionManager = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span>Admin:</span>
-                        <span className="font-semibold">{setting.admin_rate}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Chauffeur:</span>
-                        <span className="font-semibold">{setting.driver_rate}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Plateforme:</span>
-                        <span className="font-semibold">{setting.platform_rate}%</span>
-                      </div>
-                      <div className="border-t pt-2">
+                    {setting.service_type === 'wallet_topup' ? (
+                      <div className="space-y-3">
                         <div className="flex justify-between">
-                          <span className="font-medium">Total:</span>
-                          <span className="font-bold">
-                            {(setting.admin_rate + setting.driver_rate + setting.platform_rate).toFixed(2)}%
-                          </span>
+                          <span>Frais de rechargement:</span>
+                          <span className="font-semibold text-lg">{setting.admin_rate}%</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Prélevés sur chaque rechargement de wallet
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span>Admin:</span>
+                          <span className="font-semibold">{setting.admin_rate}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Chauffeur:</span>
+                          <span className="font-semibold">{setting.driver_rate}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Plateforme:</span>
+                          <span className="font-semibold">{setting.platform_rate}%</span>
+                        </div>
+                        <div className="border-t pt-2">
+                          <div className="flex justify-between">
+                            <span className="font-medium">Total:</span>
+                            <span className="font-bold">
+                              {(setting.admin_rate + setting.driver_rate + setting.platform_rate).toFixed(2)}%
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}

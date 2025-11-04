@@ -138,7 +138,7 @@ serve(async (req) => {
         console.error('Error fetching commission settings:', commissionError);
       }
 
-      const adminRate = commissionData?.admin_rate || 2.5; // Default 2.5% if not found
+      const adminRate = commissionData?.admin_rate || 1.0; // Default 1% if not found
       const adminCommission = (amount * adminRate) / 100;
       const netAmount = amount - adminCommission;
 
