@@ -71,8 +71,8 @@ export const useSmartGeolocation = () => {
   const getCurrentPosition = useCallback(async (options: GeolocationOptions = {}): Promise<LocationData> => {
     const {
       enableHighAccuracy = true,
-      timeout = 5000, // 5 secondes pour GPS rapide (au lieu de 30s)
-      maximumAge = 30000, // Cache 30 secondes accepté (au lieu de 5s)
+      timeout = 20000, // ✅ CORRECTION: 20 secondes pour GPS fiable en Afrique (optimisé de 5s)
+      maximumAge = 30000, // Cache 30 secondes accepté
       fallbackToIP = true, // Activer IP par défaut (optimisé)
       fallbackToDatabase = true,
       fallbackToDefault = true

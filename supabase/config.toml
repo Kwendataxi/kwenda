@@ -57,7 +57,7 @@ verify_jwt = true
 verify_jwt = true  # ✅ PHASE 2: JWT requis pour autocomplete
 
 [functions.google-place-details]
-verify_jwt = false
+verify_jwt = true  # ✅ SÉCURITÉ: JWT requis pour détails de lieux Google
 
 [functions.wallet-topup]
 verify_jwt = true
@@ -75,7 +75,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.intelligent-driver-matching]
-verify_jwt = false
+verify_jwt = true  # ✅ SÉCURITÉ: JWT requis pour matching intelligent de chauffeurs
 
 [functions.smart-notification-dispatcher]
 verify_jwt = true
@@ -93,7 +93,7 @@ verify_jwt = true  # ✅ SÉCURITÉ CRITIQUE: JWT requis pour empêcher abus
 verify_jwt = true  # ✅ PHASE 2: JWT requis pour dispatcher
 
 [functions.smart-ride-dispatcher]
-verify_jwt = false
+verify_jwt = true  # ✅ SÉCURITÉ: JWT requis pour dispatch intelligent de courses
 
 [functions.auto-renew-subscriptions]
 verify_jwt = false  # Sera appelé par CRON, pas par les utilisateurs
