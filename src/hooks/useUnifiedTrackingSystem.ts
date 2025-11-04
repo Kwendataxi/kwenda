@@ -19,7 +19,7 @@ interface TrackingData {
 
 export const useUnifiedTrackingSystem = (options: {
   trackingId: string;
-  trackingType: 'delivery' | 'taxi' | 'marketplace';
+  trackingType: 'delivery' | 'taxi' | 'marketplace' | 'food';
   autoRefresh?: boolean;
   enableNotifications?: boolean;
   realTimeLocation?: boolean;
@@ -67,6 +67,17 @@ export const useUnifiedTrackingSystem = (options: {
             .select(`
               *,
               driver:driver_id(id, display_name, phone_number, avatar_url, vehicle_plate)
+            `)
+            .eq('id', options.trackingId)
+            .single();
+          break;
+        case 'food':
+          query = supabase
+            .from('food_orders')
+            .select(`
+              *,
+              restaurant:restaurant_profiles(restaurant_name, logo_url, phone_number, address, coordinates),
+              driver:chauffeurs(id, display_name, phone_number, avatar_url)
             `)
             .eq('id', options.trackingId)
             .single();

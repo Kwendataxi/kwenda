@@ -116,7 +116,15 @@ export default function RestaurantOrders() {
       if (data.success) {
         toast({
           title: '✅ Livreur assigné',
-          description: `${data.driverName} va livrer la commande`
+          description: `${data.driverName} va livrer la commande`,
+          action: (
+            <Button
+              size="sm"
+              onClick={() => navigate(`/tracking/food/${orderId}`)}
+            >
+              Suivre
+            </Button>
+          )
         });
         loadOrders();
       } else {
