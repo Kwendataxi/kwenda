@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useVendorOrders } from '@/hooks/useVendorOrders';
 import { VendorOrderValidationPanel } from '@/components/marketplace/VendorOrderValidationPanel';
 import { Package, CheckCircle, Clock, Truck, Download } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,32 +17,57 @@ interface VendorOrdersListProps {
 export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [orders, setOrders] = useState<any[]>([]);
+  
+  // ✅ PHASE 1: Utiliser le hook dédié pour les commandes en attente
+  const { 
+    pendingOrders, 
+    loading: pendingLoading, 
+    confirmOrder, 
+    rejectOrder,
+    loadPendingOrders 
+  } = useVendorOrders();
+
+  // ✅ PHASE 3: État séparé pour les commandes actives et terminées
+  const [activeOrders, setActiveOrders] = useState<any[]>([]);
+  const [completedOrders, setCompletedOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadOrders();
-      subscribeToOrders();
-    }
-  }, [user]);
-
-  const loadOrders = async () => {
+  // ✅ PHASE 3: Fonction pour charger les commandes actives et terminées
+  const loadActiveAndCompletedOrders = async () => {
     if (!user) return;
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Commandes actives
+      const { data: active, error: activeError } = await supabase
         .from('marketplace_orders')
         .select(`
           *,
           product:marketplace_products(id, title, main_image_url, price)
         `)
         .eq('seller_id', user.id)
+        .in('status', ['confirmed', 'preparing', 'ready_for_pickup', 'in_transit'])
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setOrders(data || []);
+      if (activeError) throw activeError;
+
+      // Commandes terminées
+      const { data: completed, error: completedError } = await supabase
+        .from('marketplace_orders')
+        .select(`
+          *,
+          product:marketplace_products(id, title, main_image_url, price)
+        `)
+        .eq('seller_id', user.id)
+        .in('status', ['completed', 'delivered'])
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (completedError) throw completedError;
+
+      setActiveOrders(active || []);
+      setCompletedOrders(completed || []);
     } catch (error) {
       console.error('Error loading orders:', error);
       toast({
@@ -54,11 +80,20 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
     }
   };
 
-  const subscribeToOrders = () => {
+  // ✅ Charger toutes les catégories au montage
+  useEffect(() => {
+    if (user) {
+      loadPendingOrders();
+      loadActiveAndCompletedOrders();
+    }
+  }, [user]);
+
+  // ✅ PHASE 4: Subscription en temps réel améliorée
+  useEffect(() => {
     if (!user) return;
 
     const channel = supabase
-      .channel('vendor-orders')
+      .channel('vendor-orders-all')
       .on(
         'postgres_changes',
         {
@@ -69,15 +104,26 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
         },
         (payload) => {
           console.log('Order updated:', payload);
-          loadOrders();
+          
+          // ✅ Recharger toutes les catégories
+          loadPendingOrders();
+          loadActiveAndCompletedOrders();
           onRefresh?.();
           
-          // Toast notification pour nouvelles commandes
+          // Toast selon l'événement
           if (payload.eventType === 'INSERT') {
             toast({
               title: "🎉 Nouvelle commande !",
               description: "Vous avez reçu une nouvelle commande"
             });
+          } else if (payload.eventType === 'UPDATE') {
+            const newStatus = (payload.new as any).status;
+            if (newStatus === 'confirmed') {
+              toast({
+                title: "✅ Commande confirmée",
+                description: "Votre validation a été enregistrée"
+              });
+            }
           }
         }
       )
@@ -86,7 +132,7 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  };
+  }, [user]);
 
   const handleOrderComplete = async (orderId: string) => {
     try {
@@ -119,7 +165,9 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
         });
       }
 
-      loadOrders();
+      // ✅ Recharger toutes les catégories
+      loadPendingOrders();
+      loadActiveAndCompletedOrders();
       onRefresh?.();
     } catch (error) {
       console.error('Error completing order:', error);
@@ -133,7 +181,8 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
 
   const exportToCSV = () => {
     try {
-      const csvData = orders.map(order => ({
+      const allOrders = [...pendingOrders, ...activeOrders, ...completedOrders];
+      const csvData = allOrders.map(order => ({
         'ID Commande': order.id,
         'Produit': order.product?.title || 'N/A',
         'Client': order.buyer_phone || 'N/A',
@@ -192,17 +241,9 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
     );
   };
 
-  const pendingOrders = orders.filter(o => 
-    o.status === 'pending' || o.status === 'awaiting_vendor_confirmation'
-  );
-  const activeOrders = orders.filter(o => 
-    ['confirmed', 'preparing', 'ready_for_pickup', 'in_transit'].includes(o.status)
-  );
-  const completedOrders = orders.filter(o => 
-    o.status === 'completed' || o.status === 'delivered'
-  );
+  // ✅ Les commandes sont déjà filtrées par catégorie via le hook et les fonctions de chargement
 
-  if (loading) {
+  if (loading || pendingLoading) {
     return (
       <div className="space-y-4">
         {/* Tabs Skeleton */}
@@ -238,10 +279,12 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
     );
   }
 
+  const totalOrders = pendingOrders.length + activeOrders.length + completedOrders.length;
+
   return (
     <div className="space-y-4">
       {/* Export Button */}
-      {orders.length > 0 && (
+      {totalOrders > 0 && (
         <div className="flex justify-end">
           <Button variant="outline" size="sm" onClick={exportToCSV}>
             <Download className="h-4 w-4 mr-2" />
@@ -252,11 +295,15 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
       
       <Tabs defaultValue="pending" className="space-y-4">
       <TabsList className="grid w-full grid-cols-3">
+        {/* ✅ PHASE 6: Badge amélioré avec animation */}
         <TabsTrigger value="pending" className="relative">
           À traiter
           {pendingOrders.length > 0 && (
-            <Badge variant="destructive" className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
-              {pendingOrders.length}
+            <Badge 
+              variant="destructive" 
+              className="ml-2 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center animate-pulse"
+            >
+              {pendingOrders.length > 99 ? '99+' : pendingOrders.length}
             </Badge>
           )}
         </TabsTrigger>
@@ -268,8 +315,16 @@ export const VendorOrdersList = ({ onRefresh }: VendorOrdersListProps) => {
         </TabsTrigger>
       </TabsList>
 
+      {/* ✅ PHASE 5: TabsContent corrigé avec les bonnes fonctions */}
       <TabsContent value="pending">
-        <VendorOrderValidationPanel orders={pendingOrders} onRefresh={loadOrders} />
+        <VendorOrderValidationPanel 
+          orders={pendingOrders} 
+          onRefresh={() => {
+            loadPendingOrders();
+            loadActiveAndCompletedOrders();
+            onRefresh?.();
+          }} 
+        />
       </TabsContent>
 
       <TabsContent value="active">

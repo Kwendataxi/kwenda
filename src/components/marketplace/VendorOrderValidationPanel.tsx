@@ -24,7 +24,12 @@ export const VendorOrderValidationPanel = ({ orders, onRefresh }: VendorOrderVal
   const [deliveryFees, setDeliveryFees] = useState<Record<string, number>>({});
   const [deliveryMethods, setDeliveryMethods] = useState<Record<string, string>>({});
 
-  const pendingOrders = orders.filter(order => order.status === 'pending');
+  // ✅ PHASE 2: Les commandes sont déjà filtrées par le hook useVendorOrders
+  // On garde une sécurité pour filtrer sur vendor_confirmation_status
+  const pendingOrders = orders.filter(order => 
+    order.vendor_confirmation_status === 'awaiting_confirmation' || 
+    order.status === 'pending'
+  );
 
   const calculateDistance = (coords1: any, coords2: any) => {
     if (!coords1 || !coords2) return 0;
