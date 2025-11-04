@@ -10,6 +10,8 @@ import { VendorShopShareButtons } from '@/components/marketplace/VendorShopShare
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/context/CartContext';
 import { useProductFavorites } from '@/hooks/useProductFavorites';
+import { ShareMetaTags } from '@/components/seo/ShareMetaTags';
+import { getVendorShopUrl } from '@/config/appUrl';
 
 interface VendorProfile {
   id: string;
@@ -277,6 +279,16 @@ const VendorShop: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* SEO Meta Tags */}
+      {profile && (
+        <ShareMetaTags
+          title={`Boutique ${profile.shop_name} | Kwenda Shop`}
+          description={`Découvrez ${products.length} produits disponibles - Note ${profile.average_rating?.toFixed(1) || 0}/5`}
+          image={profile.shop_logo_url || 'https://kwenda.app/kwenda-splash-logo.png'}
+          url={getVendorShopUrl(profile.user_id)}
+        />
+      )}
+      
       {/* Header Boutique Style Yango */}
       <header className="bg-card border-b sticky top-0 z-20">
         <div className="container mx-auto px-4 py-4">

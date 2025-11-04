@@ -2,8 +2,10 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Store, Mail, Calendar, CheckCircle2, Edit } from 'lucide-react';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Store, Mail, Calendar, CheckCircle2, Edit, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { VendorSimpleShareButtons } from '@/components/marketplace/VendorSimpleShareButtons';
 
 interface VendorShopInfoCardProps {
   shopName: string;
@@ -13,6 +15,7 @@ interface VendorShopInfoCardProps {
   rating: number;
   memberSince: string;
   status: 'active' | 'inactive';
+  vendorId?: string;
   onEditClick: () => void;
 }
 
@@ -24,6 +27,7 @@ export const VendorShopInfoCard: React.FC<VendorShopInfoCardProps> = ({
   rating,
   memberSince,
   status,
+  vendorId,
   onEditClick
 }) => {
   return (
@@ -58,15 +62,43 @@ export const VendorShopInfoCard: React.FC<VendorShopInfoCardProps> = ({
               </div>
             </div>
             
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={onEditClick}
-            >
-              <Edit className="h-4 w-4" />
-              <span className="hidden sm:inline">Modifier</span>
-            </Button>
+            {/* Actions buttons */}
+            <div className="flex items-center gap-2">
+              {/* Bouton partage avec Popover */}
+              {vendorId && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                    >
+                      <Share2 className="h-4 w-4" />
+                      <span className="hidden sm:inline">Partager</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 p-4" align="end">
+                    <VendorSimpleShareButtons
+                      vendorId={vendorId}
+                      vendorName={shopName}
+                      productCount={totalSales}
+                      rating={rating}
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
+              
+              {/* Bouton modifier */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={onEditClick}
+              >
+                <Edit className="h-4 w-4" />
+                <span className="hidden sm:inline">Modifier</span>
+              </Button>
+            </div>
           </div>
         </CardHeader>
         

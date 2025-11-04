@@ -24,6 +24,7 @@ import { useState } from "react";
 import { RouteLoadingFallback } from "@/components/loading/RouteLoadingFallback";
 import { AppReadyProvider } from "@/contexts/AppReadyContext";
 import { SmoothTransitionWrapper } from "@/components/loading/SmoothTransitionWrapper";
+import { HelmetProvider } from 'react-helmet-async';
 
 // ✅ Critical imports - loaded immediately (auth, landing, core)
 import Index from "./pages/Index";
@@ -195,18 +196,19 @@ const AppContent = () => {
         isLoading={showSplash}
         loadingComponent={<div />}
       >
-        <AppReadyProvider initialSession={preloadedSession}>
-          <UpdateNotification />
-          <UpdateProgress />
-          <DynamicTheme>
-            <ParticleBackground />
-            <ThemeNotification />
-            <PerformanceOptimizer>
-              <Toaster />
-              <Sonner />
-              <PushNotificationManager />
-              <InstallBanner />
-              <BrowserRouter>
+        <HelmetProvider>
+          <AppReadyProvider initialSession={preloadedSession}>
+            <UpdateNotification />
+            <UpdateProgress />
+            <DynamicTheme>
+              <ParticleBackground />
+              <ThemeNotification />
+              <PerformanceOptimizer>
+                <Toaster />
+                <Sonner />
+                <PushNotificationManager />
+                <InstallBanner />
+                <BrowserRouter>
             <ScrollToTop />
             <AppDownloadTopBanner />
             <OnboardingRedirect>
@@ -563,6 +565,7 @@ const AppContent = () => {
         <ClickTracker />
       </DynamicTheme>
         </AppReadyProvider>
+        </HelmetProvider>
       </SmoothTransitionWrapper>
     </>
   );
