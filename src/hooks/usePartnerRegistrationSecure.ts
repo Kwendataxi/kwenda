@@ -91,7 +91,9 @@ export const usePartnerRegistrationSecure = () => {
             p_company_name: data.company_name,
             p_phone_number: data.phone,
             p_business_type: data.business_type,
-            p_service_areas: data.service_areas
+            p_service_areas: data.service_areas,
+            p_display_name: data.company_name,
+            p_address: data.address || 'Kinshasa, RDC'
           }
         ) as { data: { success: boolean; error?: string; partner_id?: string } | null; error: any };
 
@@ -190,7 +192,9 @@ export const usePartnerRegistrationSecure = () => {
               p_company_name: data.company_name,
               p_phone_number: data.phone,
               p_business_type: data.business_type,
-              p_service_areas: data.service_areas
+              p_service_areas: data.service_areas,
+              p_display_name: data.company_name,
+              p_address: data.address || 'Kinshasa, RDC'
             }
           ) as { data: { success: boolean; error?: string; partner_id?: string } | null; error: any };
 
