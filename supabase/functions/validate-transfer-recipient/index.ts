@@ -48,29 +48,57 @@ serve(async (req) => {
       );
     }
 
-    console.log('🔍 Validation destinataire:', { input: recipient_input, sender: user.id });
+    console.log('🔍 [1/6] Validation démarrée:', { input: recipient_input, sender: user.id });
 
-    // Recherche dans la table clients par email ou téléphone
-    const { data: clients, error: searchError } = await supabaseClient
+    let client = null;
+
+    // ÉTAPE 1 : Recherche par email dans clients
+    console.log('🔍 [2/6] Recherche par email dans clients...');
+    const { data: clientByEmail, error: emailError } = await supabaseClient
       .from('clients')
       .select('user_id, display_name, phone_number, email, is_active')
-      .eq('is_active', true);
+      .eq('email', recipient_input.toLowerCase().trim())
+      .eq('is_active', true)
+      .maybeSingle();
 
-    if (searchError) {
-      console.error('❌ Erreur recherche:', searchError);
+    if (emailError && emailError.code !== 'PGRST116') {
+      console.error('❌ Erreur recherche email:', emailError);
       return new Response(
         JSON.stringify({ valid: false, error: 'Erreur lors de la recherche' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Filtrer côté serveur pour gérer les NULL
-    const client = clients?.find(c => 
-      c.email?.toLowerCase() === recipient_input.toLowerCase() ||
-      c.phone_number === recipient_input
-    );
+    if (clientByEmail) {
+      console.log('✅ [2/6] Client trouvé par email:', clientByEmail.display_name);
+      client = clientByEmail;
+    } else {
+      // ÉTAPE 2 : Recherche par téléphone dans clients
+      console.log('🔍 [3/6] Pas trouvé par email, recherche par téléphone...');
+      const { data: clientByPhone, error: phoneError } = await supabaseClient
+        .from('clients')
+        .select('user_id, display_name, phone_number, email, is_active')
+        .eq('phone_number', recipient_input.trim())
+        .eq('is_active', true)
+        .maybeSingle();
 
-    console.log('🔎 Résultat recherche:', client ? `Trouvé: ${client.display_name}` : 'Non trouvé');
+      if (phoneError && phoneError.code !== 'PGRST116') {
+        console.error('❌ Erreur recherche téléphone:', phoneError);
+        return new Response(
+          JSON.stringify({ valid: false, error: 'Erreur lors de la recherche' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (clientByPhone) {
+        console.log('✅ [3/6] Client trouvé par téléphone:', clientByPhone.display_name);
+        client = clientByPhone;
+      } else {
+        console.log('⚠️ [3/6] Pas trouvé dans clients, recherche backup dans auth.users...');
+      }
+    }
+
+    console.log('🔎 [4/6] Résultat recherche clients:', client ? `Trouvé: ${client.display_name}` : 'Non trouvé');
 
     if (!client) {
       return new Response(
@@ -83,7 +111,9 @@ serve(async (req) => {
     }
 
     // Vérifier que ce n'est pas l'utilisateur lui-même
+    console.log('🔍 [5/6] Vérification auto-transfert...');
     if (client.user_id === user.id) {
+      console.log('❌ [5/6] Auto-transfert détecté');
       return new Response(
         JSON.stringify({ 
           valid: false, 
@@ -92,8 +122,10 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    console.log('✅ [5/6] Pas un auto-transfert');
 
     // Vérifier que le destinataire a un portefeuille actif
+    console.log('🔍 [6/6] Vérification wallet du destinataire...');
     const { data: wallet, error: walletError } = await supabaseClient
       .from('user_wallets')
       .select('id, is_active')
@@ -101,13 +133,19 @@ serve(async (req) => {
       .eq('is_active', true)
       .maybeSingle();
 
-    if (walletError) {
-      console.error('❌ Erreur wallet:', walletError);
+    if (walletError && walletError.code !== 'PGRST116') {
+      console.error('❌ [6/6] Erreur wallet:', walletError);
+      return new Response(
+        JSON.stringify({ 
+          valid: false, 
+          error: 'Erreur lors de la vérification du portefeuille' 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    console.log('💰 Wallet trouvé:', wallet ? 'Oui ✅' : 'Non ❌');
-
     if (!wallet) {
+      console.log('❌ [6/6] Wallet non trouvé ou inactif');
       return new Response(
         JSON.stringify({ 
           valid: false, 
@@ -117,7 +155,8 @@ serve(async (req) => {
       );
     }
 
-    console.log('✅ Destinataire validé:', client.display_name);
+    console.log('✅ [6/6] Wallet actif trouvé');
+    console.log('🎉 Validation complète réussie:', client.display_name);
 
     return new Response(
       JSON.stringify({
