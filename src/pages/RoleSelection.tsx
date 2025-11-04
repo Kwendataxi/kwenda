@@ -8,8 +8,10 @@ import { UserRole } from '@/types/roles';
 import { Loader2, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const RoleSelection = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { userRoles, loading } = useUserRoles();
@@ -33,8 +35,14 @@ const RoleSelection = () => {
       if (hasIntendedRole) {
         // Redirection automatique sans attendre le clic
         toast({
-          title: "Redirection automatique",
-          description: `Accès à votre espace ${loginIntent === 'driver' ? 'chauffeur' : loginIntent}`,
+          title: t('auth.auto_redirect'),
+          description: loginIntent === 'driver' 
+            ? t('auth.accessing_space_driver')
+            : loginIntent === 'client'
+            ? t('auth.accessing_space_client')
+            : loginIntent === 'partner'
+            ? t('auth.accessing_space_partner')
+            : t('auth.accessing_space_admin'),
         });
         setSelectedRole(loginIntent);
         navigateToRole(loginIntent);
@@ -109,10 +117,10 @@ const RoleSelection = () => {
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Choisissez votre espace
+            {t('auth.choose_space')}
           </h1>
           <p className="text-muted-foreground dark:text-gray-400">
-            Vous avez plusieurs rôles. Sélectionnez celui que vous souhaitez utiliser maintenant.
+            {t('auth.multiple_roles_info')}
           </p>
         </div>
 
@@ -129,7 +137,7 @@ const RoleSelection = () => {
             size="lg"
             className="px-8"
           >
-            Continuer
+            {t('common.continue')}
           </Button>
           <Button
             onClick={handleLogout}
@@ -137,7 +145,7 @@ const RoleSelection = () => {
             size="lg"
           >
             <LogOut className="h-4 w-4 mr-2" />
-            Se déconnecter
+            {t('auth.logout')}
           </Button>
         </div>
       </div>

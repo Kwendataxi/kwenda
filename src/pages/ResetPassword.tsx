@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Eye, EyeOff, Lock, CheckCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ResetPassword = () => {
+  const { t } = useLanguage();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +28,7 @@ const ResetPassword = () => {
     if (accessToken && type === 'recovery') {
       setValidToken(true);
     } else {
-      toast.error("Lien de récupération invalide ou expiré");
+      toast.error(t('auth.invalid_recovery_link'));
       navigate('/auth');
     }
   }, [location, navigate]);
@@ -35,12 +37,12 @@ const ResetPassword = () => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
-      toast.error("Les mots de passe ne correspondent pas");
+      toast.error(t('auth.passwords_no_match'));
       return;
     }
 
     if (password.length < 6) {
-      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+      toast.error(t('auth.password_min_length'));
       return;
     }
 
@@ -53,11 +55,11 @@ const ResetPassword = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success("Mot de passe mis à jour avec succès !");
+        toast.success(t('auth.password_updated'));
         navigate('/auth');
       }
     } catch (error) {
-      toast.error("Erreur lors de la mise à jour du mot de passe");
+      toast.error(t('auth.password_update_error'));
     } finally {
       setLoading(false);
     }
@@ -71,9 +73,9 @@ const ResetPassword = () => {
             <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <Lock className="h-8 w-8 text-destructive" />
             </div>
-            <h2 className="text-xl font-semibold mb-2">Lien invalide</h2>
+            <h2 className="text-xl font-semibold mb-2">{t('auth.invalid_link')}</h2>
             <p className="text-muted-foreground">
-              Ce lien de récupération est invalide ou a expiré.
+              {t('auth.link_expired')}
             </p>
           </CardContent>
         </Card>
@@ -88,20 +90,20 @@ const ResetPassword = () => {
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Lock className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle>Nouveau mot de passe</CardTitle>
+          <CardTitle>{t('auth.new_password')}</CardTitle>
           <CardDescription>
-            Saisissez votre nouveau mot de passe
+            {t('auth.enter_new_password')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Nouveau mot de passe</Label>
+              <Label htmlFor="password">{t('auth.new_password')}</Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Nouveau mot de passe"
+                  placeholder={t('auth.new_password_placeholder')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pr-10"
@@ -124,11 +126,11 @@ const ResetPassword = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+              <Label htmlFor="confirmPassword">{t('auth.confirm_password')}</Label>
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="Confirmer le mot de passe"
+                placeholder={t('auth.confirm_password_placeholder')}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -140,12 +142,12 @@ const ResetPassword = () => {
                 {password === confirmPassword ? (
                   <>
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-green-600">Les mots de passe correspondent</span>
+                    <span className="text-green-600">{t('auth.passwords_match')}</span>
                   </>
                 ) : (
                   <>
                     <Lock className="h-4 w-4 text-destructive" />
-                    <span className="text-destructive">Les mots de passe ne correspondent pas</span>
+                    <span className="text-destructive">{t('auth.passwords_no_match')}</span>
                   </>
                 )}
               </div>
@@ -156,7 +158,7 @@ const ResetPassword = () => {
               className="w-full" 
               disabled={loading || password !== confirmPassword || password.length < 6}
             >
-              {loading ? "Mise à jour..." : "Mettre à jour le mot de passe"}
+              {loading ? t('auth.updating') : t('auth.update_password')}
             </Button>
           </form>
         </CardContent>

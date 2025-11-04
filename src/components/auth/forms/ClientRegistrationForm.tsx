@@ -45,94 +45,13 @@ export const ClientRegistrationForm = ({ onSuccess, onBack }: ClientRegistration
     return phoneRegex.test(phone.replace(/[\s\-]/g, ''));
   };
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-    
-  //   if (formData.password !== formData.confirmPassword) {
-  //     toast({
-  //       title: "Erreur",
-  //       description: "Les mots de passe ne correspondent pas",
-  //       variant: "destructive"
-  //     });
-  //     return;
-  //   }
-
-  //   if (formData.password.length < 6) {
-  //     toast({
-  //       title: "Erreur",
-  //       description: "Le mot de passe doit contenir au moins 6 caractères",
-  //       variant: "destructive"
-  //     });
-  //     return;
-  //   }
-
-  //   setLoading(true);
-
-  //   try {
-  //     // Créer le compte utilisateur
-  //     const { data: authData, error: authError } = await supabase.auth.signUp({
-  //       email: formData.email,
-  //       password: formData.password,
-  //       options: {
-  //         emailRedirectTo: `${window.location.origin}/`,
-  //         data: {
-  //           display_name: formData.displayName,
-  //           role: 'simple_user_client'
-  //         }
-  //       }
-  //     });
-
-  //     if (authError) {
-  //       throw authError;
-  //     }
-
-  //     if (authData.user) {
-  //       // Créer le profil client
-  //       const { error: profileError } = await supabase
-  //         .from('clients')
-  //         .insert({
-  //           user_id: authData.user.id,
-  //           display_name: formData.displayName,
-  //           phone_number: formData.phoneNumber,
-  //           email: formData.email,
-  //           date_of_birth: formData.dateOfBirth || null,
-  //           gender: formData.gender || null,
-  //           emergency_contact_name: formData.emergencyContactName || null,
-  //           emergency_contact_phone: formData.emergencyContactPhone || null,
-  //           address: formData.address || null,
-  //           city: formData.city
-  //         });
-
-  //       if (profileError) {
-  //         throw profileError;
-  //       }
-  //       console.log("payload",profileError);
-  //       toast({
-  //         title: "Succès !",
-  //         description: "Votre compte client a été créé avec succès. Vérifiez votre email pour confirmer votre compte.",
-  //       });
-
-  //       onSuccess();
-  //     }
-  //   } catch (error: any) {
-  //     console.error('Registration error:', error);
-  //     toast({
-  //       title: "Erreur",
-  //       description: error.message || "Une erreur est survenue lors de l'inscription",
-  //       variant: "destructive"
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
   if (formData.password !== formData.confirmPassword) {
     toast({
-      title: "Erreur",
-      description: "Les mots de passe ne correspondent pas",
+      title: t('common.error'),
+      description: t('auth.passwords_no_match'),
       variant: "destructive"
     });
     return;
@@ -140,8 +59,8 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   if (formData.password.length < 6) {
     toast({
-      title: "Erreur",
-      description: "Le mot de passe doit contenir au moins 6 caractères",
+      title: t('common.error'),
+      description: t('auth.password_min_length'),
       variant: "destructive"
     });
     return;
@@ -150,8 +69,8 @@ const handleSubmit = async (e: React.FormEvent) => {
   // Validation téléphone
   if (!validatePhoneNumber(formData.phoneNumber)) {
     toast({
-      title: "Erreur",
-      description: "Format invalide. Utilisez: 0991234567, +243991234567 ou 00243991234567",
+      title: t('common.error'),
+      description: t('auth.invalid_phone_format'),
       variant: "destructive"
     });
     return;
@@ -159,7 +78,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   if (!formData.acceptTerms) {
     toast({
-      title: "Erreur",
+      title: t('common.error'),
       description: t('auth.must_accept_terms'),
       variant: "destructive"
     });
@@ -225,7 +144,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       const result = rpcResult as any;
       if (rpcError || !result?.success) {
         logger.error('Client profile creation failed', rpcError || result);
-        throw new Error(result?.error || 'Erreur lors de la création du profil');
+        throw new Error(result?.error || t('auth.profile_creation_error'));
       }
 
       logger.info('Client profile created successfully', { 
@@ -240,14 +159,14 @@ const handleSubmit = async (e: React.FormEvent) => {
       if (!authData.session) {
         // Email confirmation requise
         toast({
-          title: "Vérifiez votre email",
-          description: "Un email de confirmation a été envoyé. Cliquez sur le lien pour activer votre compte.",
+          title: t('auth.verify_email'),
+          description: t('auth.confirmation_email_sent'),
         });
       } else {
         // Connexion immédiate
         toast({
-          title: "Succès !",
-          description: "Votre compte client a été créé avec succès.",
+          title: t('common.success'),
+          description: t('auth.client_account_created'),
         });
       }
       onSuccess();
@@ -255,8 +174,8 @@ const handleSubmit = async (e: React.FormEvent) => {
   } catch (error: any) {
     logger.error('Client registration error', error);
     toast({
-      title: "Erreur",
-      description: error.message || "Une erreur est survenue lors de l'inscription",
+      title: t('common.error'),
+      description: error.message || t('auth.registration_error'),
       variant: "destructive"
     });
   } finally {
@@ -268,16 +187,16 @@ const handleSubmit = async (e: React.FormEvent) => {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle>Inscription Client</CardTitle>
+          <CardTitle>{t('auth.client_registration')}</CardTitle>
           <CardDescription>
-            Créez votre compte client pour réserver des courses et des livraisons
+            {t('auth.client_registration_subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email">{t('auth.email_required')}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -289,7 +208,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               <div className="space-y-2">
                 <Label htmlFor="phoneNumber" className="flex items-center gap-2">
                   <Phone className="w-4 h-4" />
-                  Numéro de téléphone *
+                  {t('auth.phone_required')}
                 </Label>
                 
                 <div className="relative">
@@ -297,7 +216,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     id="phoneNumber"
                     type="tel"
                     inputMode="tel"
-                    placeholder="0991234567"
+                    placeholder={t('auth.phone_placeholder')}
                     value={formData.phoneNumber}
                     onChange={(e) => {
                       const value = e.target.value;
@@ -321,13 +240,13 @@ const handleSubmit = async (e: React.FormEvent) => {
                 
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Info className="w-3 h-3" />
-                  Ce numéro servira pour les transferts d'argent (format: 0XXXXXXXXX)
+                  {t('auth.phone_money_transfer_info')}
                 </p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="displayName">Nom complet *</Label>
+              <Label htmlFor="displayName">{t('auth.full_name_required')}</Label>
               <Input
                 id="displayName"
                 value={formData.displayName}
@@ -338,7 +257,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="password">Mot de passe *</Label>
+                <Label htmlFor="password">{t('auth.password_required')}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -348,7 +267,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmer le mot de passe *</Label>
+                <Label htmlFor="confirmPassword">{t('auth.confirm_password_required')}</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -361,7 +280,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Date de naissance</Label>
+                <Label htmlFor="dateOfBirth">{t('auth.date_of_birth')}</Label>
                 <Input
                   id="dateOfBirth"
                   type="date"
@@ -370,22 +289,22 @@ const handleSubmit = async (e: React.FormEvent) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="gender">Genre</Label>
+                <Label htmlFor="gender">{t('auth.gender')}</Label>
                 <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner" />
+                    <SelectValue placeholder={t('auth.select')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="male">Homme</SelectItem>
-                    <SelectItem value="female">Femme</SelectItem>
-                    <SelectItem value="other">Autre</SelectItem>
+                    <SelectItem value="male">{t('auth.male')}</SelectItem>
+                    <SelectItem value="female">{t('auth.female')}</SelectItem>
+                    <SelectItem value="other">{t('auth.other')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="address">Adresse</Label>
+              <Label htmlFor="address">{t('auth.address')}</Label>
               <Input
                 id="address"
                 value={formData.address}
@@ -395,7 +314,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="emergencyContactName">Contact d'urgence (nom)</Label>
+                <Label htmlFor="emergencyContactName">{t('auth.emergency_contact_name')}</Label>
                 <Input
                   id="emergencyContactName"
                   value={formData.emergencyContactName}
@@ -403,7 +322,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="emergencyContactPhone">Contact d'urgence (téléphone)</Label>
+                <Label htmlFor="emergencyContactPhone">{t('auth.emergency_contact_phone')}</Label>
                 <Input
                   id="emergencyContactPhone"
                   type="tel"
@@ -436,11 +355,11 @@ const handleSubmit = async (e: React.FormEvent) => {
 
             <div className="flex gap-4 pt-4">
               <Button type="button" variant="outline" onClick={onBack} className="flex-1">
-                Retour
+                {t('common.back')}
               </Button>
               <Button type="submit" disabled={loading || !formData.acceptTerms} className="flex-1">
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Créer mon compte
+                {t('auth.create_account')}
               </Button>
             </div>
           </form>

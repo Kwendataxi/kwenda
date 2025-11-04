@@ -10,6 +10,7 @@ import { VehicleOwnershipSelector } from './VehicleOwnershipSelector';
 import { ServiceSpecificFields } from './ServiceSpecificFields';
 import { PartnerRequestForm } from './PartnerRequestForm';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DriverRegistrationFormProps {
   serviceCategory: 'taxi' | 'delivery';
@@ -18,6 +19,7 @@ interface DriverRegistrationFormProps {
 export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
   serviceCategory
 }) => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { registerDriver, isRegistering } = useDriverRegistration();
   
@@ -87,7 +89,7 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
 
   const handleSubmit = async () => {
     if (!validateStep(5)) {
-      toast.error('Veuillez accepter les conditions générales');
+      toast.error(t('auth.accept_terms_required'));
       return;
     }
 
@@ -95,11 +97,11 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
       await registerDriver(formData);
       
       if (vehicleMode === 'partner') {
-        toast.success('Inscription réussie ! Vous pouvez maintenant faire une demande à un partenaire.');
+        toast.success(t('auth.driver_registration_partner_success'));
         // Rediriger vers la page de recherche de partenaires
         navigate('/driver/find-partner');
       } else {
-        toast.success('Inscription réussie ! Votre compte sera activé après vérification.');
+        toast.success(t('auth.driver_registration_success'));
         navigate('/');
       }
     } catch (error) {
@@ -121,47 +123,47 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
       case 2:
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Informations personnelles</h3>
+            <h3 className="text-lg font-semibold">{t('auth.personal_info')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="displayName">Nom complet *</Label>
+                <Label htmlFor="displayName">{t('auth.full_name_required')}</Label>
                 <Input
                   id="displayName"
                   value={formData.displayName}
                   onChange={(e) => handleFieldChange('displayName', e.target.value)}
-                  placeholder="Prénom Nom"
+                  placeholder={t('auth.name_placeholder')}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="phoneNumber">Numéro de téléphone *</Label>
+                <Label htmlFor="phoneNumber">{t('auth.phone_required')}</Label>
                 <Input
                   id="phoneNumber"
                   value={formData.phoneNumber}
                   onChange={(e) => handleFieldChange('phoneNumber', e.target.value)}
-                  placeholder="+243 900 000 000"
+                  placeholder={t('auth.phone_placeholder_intl')}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email">{t('auth.email_required')}</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleFieldChange('email', e.target.value)}
-                  placeholder="email@exemple.com"
+                  placeholder={t('auth.email_placeholder')}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="password">Mot de passe *</Label>
+                <Label htmlFor="password">{t('auth.password_required')}</Label>
                 <Input
                   id="password"
                   type="password"
                   value={formData.password}
                   onChange={(e) => handleFieldChange('password', e.target.value)}
-                  placeholder="Mot de passe sécurisé"
+                  placeholder={t('auth.secure_password_placeholder')}
                   required
                 />
               </div>
@@ -172,20 +174,20 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
       case 3:
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Permis de conduire</h3>
+            <h3 className="text-lg font-semibold">{t('auth.driving_license')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="licenseNumber">Numéro de permis *</Label>
+                <Label htmlFor="licenseNumber">{t('auth.license_number_required')}</Label>
                 <Input
                   id="licenseNumber"
                   value={formData.licenseNumber}
                   onChange={(e) => handleFieldChange('licenseNumber', e.target.value)}
-                  placeholder="Numéro de permis de conduire"
+                  placeholder={t('auth.license_number_placeholder')}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="licenseExpiry">Date d'expiration *</Label>
+                <Label htmlFor="licenseExpiry">{t('auth.expiry_date_required')}</Label>
                 <Input
                   id="licenseExpiry"
                   type="date"
@@ -217,11 +219,10 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
         } else {
           return (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Mode partenaire</h3>
+              <h3 className="text-lg font-semibold">{t('auth.partner_mode')}</h3>
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p className="text-blue-800">
-                  Votre inscription sera complétée une fois qu'un partenaire acceptera votre demande.
-                  Vous pourrez chercher des partenaires disponibles après cette étape.
+                  {t('auth.partner_mode_info')}
                 </p>
               </div>
             </div>
@@ -231,33 +232,33 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
       case 5:
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Informations complémentaires</h3>
+            <h3 className="text-lg font-semibold">{t('auth.additional_info')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="emergencyContactName">Contact d'urgence</Label>
+                <Label htmlFor="emergencyContactName">{t('auth.emergency_contact')}</Label>
                 <Input
                   id="emergencyContactName"
                   value={formData.emergencyContactName}
                   onChange={(e) => handleFieldChange('emergencyContactName', e.target.value)}
-                  placeholder="Nom du contact d'urgence"
+                  placeholder={t('auth.emergency_contact_name_placeholder')}
                 />
               </div>
               <div>
-                <Label htmlFor="emergencyContactPhone">Téléphone d'urgence</Label>
+                <Label htmlFor="emergencyContactPhone">{t('auth.emergency_phone')}</Label>
                 <Input
                   id="emergencyContactPhone"
                   value={formData.emergencyContactPhone}
                   onChange={(e) => handleFieldChange('emergencyContactPhone', e.target.value)}
-                  placeholder="+243 900 000 000"
+                  placeholder={t('auth.phone_placeholder_intl')}
                 />
               </div>
               <div className="md:col-span-2">
-                <Label htmlFor="bankAccountNumber">Numéro de compte bancaire (optionnel)</Label>
+                <Label htmlFor="bankAccountNumber">{t('auth.bank_account_optional')}</Label>
                 <Input
                   id="bankAccountNumber"
                   value={formData.bankAccountNumber}
                   onChange={(e) => handleFieldChange('bankAccountNumber', e.target.value)}
-                  placeholder="Pour les paiements"
+                  placeholder={t('auth.for_payments')}
                 />
               </div>
             </div>
@@ -269,7 +270,7 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                 onCheckedChange={(checked) => handleFieldChange('acceptsTerms', checked)}
               />
               <Label htmlFor="acceptsTerms" className="text-sm">
-                J'accepte les conditions générales d'utilisation et la politique de confidentialité
+                {t('auth.accept_terms_full')}
               </Label>
             </div>
           </div>
@@ -286,7 +287,7 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
         <Card className="shadow-xl border-0">
           <CardHeader className="text-center bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
             <CardTitle className="text-2xl">
-              {serviceCategory === 'taxi' ? 'Devenir Chauffeur' : 'Devenir Livreur'}
+              {serviceCategory === 'taxi' ? t('auth.driver_deliverer') : t('auth.become_deliverer')}
             </CardTitle>
           </CardHeader>
 
@@ -319,7 +320,7 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                 onClick={() => setStep(Math.max(1, step - 1))}
                 disabled={step === 1}
               >
-                Précédent
+                {t('common.previous')}
               </Button>
 
               {step < 5 ? (
@@ -328,7 +329,7 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   onClick={() => setStep(step + 1)}
                   disabled={!validateStep(step)}
                 >
-                  Suivant
+                  {t('common.next')}
                 </Button>
               ) : (
                 <Button
@@ -336,7 +337,7 @@ export const DriverRegistrationForm: React.FC<DriverRegistrationFormProps> = ({
                   onClick={handleSubmit}
                   disabled={!validateStep(5) || isRegistering}
                 >
-                  {isRegistering ? 'Inscription...' : 'Finaliser l\'inscription'}
+                  {isRegistering ? t('auth.registering') : t('auth.finalize_registration')}
                 </Button>
               )}
             </div>
