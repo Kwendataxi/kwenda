@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 export const VendorVerificationRequest = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'pending' | 'verified'>('idle');
   const [phoneVerified, setPhoneVerified] = useState(false);
@@ -68,7 +70,7 @@ export const VendorVerificationRequest = () => {
           description: 'Veuillez soumettre vos documents d\'identité'
         });
         // Rediriger vers upload de documents
-        window.location.href = '/verification/identity';
+        navigate('/verification/identity');
         return;
       }
 
@@ -180,7 +182,7 @@ export const VendorVerificationRequest = () => {
           {verificationStatus !== 'verified' ? (
             <Button 
               variant="outline"
-              onClick={() => window.location.href = '/verification/identity'}
+              onClick={() => navigate('/verification/identity')}
               className="w-full"
             >
               <Upload className="h-4 w-4 mr-2" />

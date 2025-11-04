@@ -114,6 +114,7 @@ const RestaurantVerifyEmail = lazy(() => import("./pages/RestaurantVerifyEmail")
 const ClientReferralPage = lazy(() => import("./pages/ClientReferralPage"));
 const PromosPage = lazy(() => import("./pages/PromosPage"));
 const EscrowPage = lazy(() => import("./pages/EscrowPage").then(m => ({ default: m.EscrowPage })));
+const UserVerification = lazy(() => import("./components/profile/UserVerification").then(m => ({ default: m.UserVerification })));
 
 // Test pages - lazy loaded
 const AuthSystemTest = lazy(() => import("./pages/test/AuthSystemTest"));
@@ -224,6 +225,18 @@ const AppContent = () => {
                 <Route path="/driver/verify-email" element={<EmailVerificationPage type="driver" />} />
                 <Route path="/partner/verify-email" element={<EmailVerificationPage type="partner" />} />
                 <Route path="/restaurant/verify-email" element={<EmailVerificationPage type="restaurant" />} />
+                
+                {/* Route de vérification d'identité */}
+                <Route 
+                  path="/verification/identity" 
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<RouteLoadingFallback />}>
+                        <UserVerification />
+                      </Suspense>
+                    </ProtectedRoute>
+                  } 
+                />
                 
                 {/* Route Splash pour mobile/PWA */}
                 <Route path="/splash" element={<MobileSplash />} />
