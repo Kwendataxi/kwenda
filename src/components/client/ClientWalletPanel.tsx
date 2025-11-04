@@ -116,7 +116,7 @@ export const ClientWalletPanel: React.FC<ClientWalletPanelProps> = ({
       <WalletHero
         balance={wallet?.balance || 0}
         mainBalance={wallet?.balance || 0}
-        bonusBalance={wallet?.ecosystem_credits || 0}
+        bonusBalance={(wallet as any)?.bonus_balance || 0}
         currency={wallet?.currency || 'CDF'}
         status="active"
       />

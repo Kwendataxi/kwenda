@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Phone, CheckCircle2, Info } from 'lucide-react';
+import { Loader2, Phone, CheckCircle2, Info, Gift } from 'lucide-react';
 import { logger } from '@/utils/logger';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -35,6 +35,7 @@ export const ClientRegistrationForm = ({ onSuccess, onBack }: ClientRegistration
     emergencyContactPhone: '',
     address: '',
     city: 'Kinshasa',
+    referralCode: '',
     acceptTerms: false
   });
 
@@ -152,6 +153,35 @@ const handleSubmit = async (e: React.FormEvent) => {
         profileId: result.profile_id
       });
 
+      // ✅ Appliquer code de parrainage si fourni
+      if (formData.referralCode && formData.referralCode.trim() !== '') {
+        const { data: refResult, error: refError } = await supabase.rpc(
+          'apply_referral_code',
+          {
+            p_referee_id: authData.user.id,
+            p_referral_code: formData.referralCode.trim().toUpperCase()
+          }
+        );
+
+        if (refError) {
+          console.error('❌ Erreur application code parrainage:', refError);
+          toast({
+            title: 'Attention',
+            description: 'Code de parrainage invalide. Inscription réussie mais sans bonus.',
+          });
+        } else if ((refResult as any)?.success) {
+          toast({
+            title: '🎉 Bonus de parrainage !',
+            description: 'Vous avez reçu 500 CDF de bonus !',
+          });
+        } else {
+          toast({
+            title: 'Code invalide',
+            description: (refResult as any)?.message || 'Code de parrainage non valide',
+          });
+        }
+      }
+
       // ✅ Sauvegarder l'intention de connexion pour redirection correcte
       localStorage.setItem('kwenda_login_intent', 'client');
       localStorage.setItem('kwenda_selected_role', 'client');
@@ -243,6 +273,26 @@ const handleSubmit = async (e: React.FormEvent) => {
                   {t('auth.phone_money_transfer_info')}
                 </p>
               </div>
+            </div>
+
+            {/* Code de parrainage optionnel */}
+            <div className="space-y-2">
+              <Label htmlFor="referralCode" className="flex items-center gap-2">
+                <Gift className="w-4 h-4" />
+                Code de parrainage (optionnel)
+              </Label>
+              <Input
+                id="referralCode"
+                type="text"
+                placeholder="Ex: KWENDA2024"
+                value={formData.referralCode}
+                onChange={(e) => setFormData({ ...formData, referralCode: e.target.value.toUpperCase() })}
+                className="uppercase"
+              />
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Info className="w-3 h-3" />
+                Entrez le code d'un ami pour recevoir 500 CDF de bonus !
+              </p>
             </div>
 
             <div className="space-y-2">

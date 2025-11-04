@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Check, Briefcase, Car, User as UserIcon, CreditCard, FileCheck } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { SpecificServiceSelector } from './SpecificServiceSelector';
 import { VehicleTypeSelector } from './VehicleTypeSelector';
 import { VehicleOwnershipSelector } from '@/components/auth/VehicleOwnershipSelector';
@@ -27,6 +28,7 @@ interface FormData {
   email: string;
   phoneNumber: string;
   password: string;
+  referralCode?: string;
   
   // Service
   serviceCategory: 'taxi' | 'delivery';
@@ -71,6 +73,7 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
     email: '',
     phoneNumber: '',
     password: '',
+    referralCode: '',
     serviceCategory: 'taxi',
     serviceType: '',
     hasOwnVehicle: false,
@@ -197,6 +200,21 @@ export const StreamlinedDriverRegistration: React.FC<StreamlinedDriverRegistrati
       });
 
       if (result.success) {
+        // Appliquer code de parrainage si fourni
+        if (formData.referralCode && formData.referralCode.trim() !== '') {
+          const { data: refResult, error: refError } = await supabase.rpc(
+            'apply_referral_code',
+            {
+              p_referee_id: result.user?.id,
+              p_referral_code: formData.referralCode.trim().toUpperCase()
+            }
+          );
+
+          if (!refError && (refResult as any)?.success) {
+            toast.success('🎉 Bonus de parrainage reçu : 500 CDF !');
+          }
+        }
+
         toast.success('Inscription réussie ! Bienvenue sur Kwenda 🎉');
         onSuccess();
       }

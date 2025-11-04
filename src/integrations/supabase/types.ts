@@ -11491,6 +11491,7 @@ export type Database = {
       user_wallets: {
         Row: {
           balance: number
+          bonus_balance: number | null
           created_at: string
           currency: string
           ecosystem_credits: number
@@ -11502,6 +11503,7 @@ export type Database = {
         }
         Insert: {
           balance?: number
+          bonus_balance?: number | null
           created_at?: string
           currency?: string
           ecosystem_credits?: number
@@ -11513,6 +11515,7 @@ export type Database = {
         }
         Update: {
           balance?: number
+          bonus_balance?: number | null
           created_at?: string
           currency?: string
           ecosystem_credits?: number
@@ -12978,6 +12981,10 @@ export type Database = {
       anonymize_old_location_data: {
         Args: { days_old?: number }
         Returns: number
+      }
+      apply_referral_code: {
+        Args: { p_referee_id: string; p_referral_code: string }
+        Returns: Json
       }
       approve_client_for_selling: {
         Args: { p_admin_notes?: string; p_user_id: string }

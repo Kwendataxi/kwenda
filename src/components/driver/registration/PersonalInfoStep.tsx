@@ -2,7 +2,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Mail, Phone, Lock, CheckCircle2, XCircle, Info, AlertCircle } from 'lucide-react';
+import { User, Mail, Phone, Lock, CheckCircle2, XCircle, Info, AlertCircle, Gift } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePhoneValidation } from '@/hooks/usePhoneValidation';
 
@@ -12,6 +12,7 @@ interface PersonalInfoStepProps {
     email: string;
     phoneNumber: string;
     password: string;
+    referralCode?: string;
   };
   onFieldChange: (field: string, value: string) => void;
 }
@@ -159,6 +160,26 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
             Minimum 8 caractères
           </p>
         </div>
+      </div>
+
+      {/* Code de parrainage optionnel */}
+      <div className="space-y-2">
+        <Label htmlFor="referralCode" className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+          <Gift className="w-4 h-4" />
+          Code de parrainage (optionnel)
+        </Label>
+        <Input
+          id="referralCode"
+          type="text"
+          placeholder="Ex: KWENDA2024"
+          value={formData.referralCode || ''}
+          onChange={(e) => onFieldChange('referralCode', e.target.value.toUpperCase())}
+          className="h-12 rounded-xl text-base uppercase transition-all duration-200"
+        />
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
+          <Info className="w-3 h-3" />
+          Entrez le code d'un ami pour recevoir 500 CDF de bonus !
+        </p>
       </div>
     </motion.div>
   );
