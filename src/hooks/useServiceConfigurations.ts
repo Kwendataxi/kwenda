@@ -1,8 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useCachedQuery } from './useCachedQuery';
-import { cacheStrategies } from '@/lib/redis';
 
 export type ServiceCategory = 'taxi' | 'delivery' | 'rental' | 'marketplace' | 'lottery' | 'food';
 
@@ -38,10 +36,10 @@ export const useServiceConfigurations = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // ✅ PHASE 2: Migration vers useCachedQuery avec Redis
-  const { data: configurations, isLoading: configurationsLoading } = useCachedQuery(
-    ['service-configurations'],
-    async () => {
+  // ✅ Cache React Query stable (5min staleTime, 10min gcTime)
+  const { data: configurations, isLoading: configurationsLoading } = useQuery({
+    queryKey: ['service-configurations'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('service_configurations')
         .select('*')
@@ -51,13 +49,9 @@ export const useServiceConfigurations = () => {
       if (error) throw error;
       return data as ServiceConfiguration[];
     },
-    {
-      cacheStrategy: cacheStrategies.SERVICE_CONFIG,
-      invalidateOn: [
-        { table: 'service_configurations', event: '*' }
-      ]
-    }
-  );
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000,   // 10 minutes (anciennement cacheTime)
+  });
 
   const { data: pricing, isLoading: pricingLoading } = useQuery({
     queryKey: ['service-pricing'],
