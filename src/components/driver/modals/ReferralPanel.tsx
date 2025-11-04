@@ -52,16 +52,6 @@ export const ReferralPanel: React.FC = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4 p-4">
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-16 w-full" />
-        <Skeleton className="h-32 w-full" />
-      </div>
-    );
-  }
-
   const displayedReferrals = showAll ? referrals : referrals.slice(0, 3);
 
   return (
@@ -69,12 +59,18 @@ export const ReferralPanel: React.FC = () => {
       {/* Code de parrainage compact */}
       <Card className="border-0 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
         <CardContent className="p-4">
-          {referralCode ? (
+          {referralCode || isLoading ? (
             <>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1">
                   <p className="text-xs text-muted-foreground mb-1">Votre code</p>
-                  <p className="text-2xl font-bold tracking-wider">{referralCode}</p>
+                  <p className="text-2xl font-bold tracking-wider">
+                    {isLoading ? (
+                      <span className="text-muted-foreground animate-pulse">•••••</span>
+                    ) : (
+                      referralCode
+                    )}
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   <Button 

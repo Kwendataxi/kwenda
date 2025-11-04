@@ -14,9 +14,17 @@ export const StartupExperience: React.FC = () => {
       return;
     }
 
+    // ✅ Ne pas afficher si l'app est déjà chargée
+    const isAppLoaded = localStorage.getItem('app_loaded');
+    if (isAppLoaded) {
+      setVisible(false);
+      return;
+    }
+
     const ctx = getStartupContext(location.pathname);
     try {
       localStorage.setItem("last_context", ctx);
+      localStorage.setItem("app_loaded", "true");
     } catch {}
 
     const timer = setTimeout(() => setVisible(false), 200); // ⚡ Optimisé pour FCP
