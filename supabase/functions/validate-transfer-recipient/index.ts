@@ -88,18 +88,24 @@ serve(async (req) => {
     }
 
     // Vérifier que le destinataire a un portefeuille actif
-    const { data: wallet } = await supabaseClient
+    const { data: wallet, error: walletError } = await supabaseClient
       .from('user_wallets')
-      .select('id, status')
+      .select('id, is_active')
       .eq('user_id', client.user_id)
-      .eq('status', 'active')
+      .eq('is_active', true)
       .maybeSingle();
+
+    if (walletError) {
+      console.error('❌ Erreur wallet:', walletError);
+    }
+
+    console.log('💰 Wallet trouvé:', wallet ? 'Oui ✅' : 'Non ❌');
 
     if (!wallet) {
       return new Response(
         JSON.stringify({ 
           valid: false, 
-          error: 'Le portefeuille du destinataire est inactif' 
+          error: 'Le destinataire n\'a pas de portefeuille actif' 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
