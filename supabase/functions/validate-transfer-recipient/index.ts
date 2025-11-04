@@ -24,6 +24,12 @@ serve(async (req) => {
       throw new Error('Non autorisé');
     }
 
+    // Créer un client admin pour contourner les RLS lors de la recherche (sécurisé car on ne retourne que des infos publiques)
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
     const { recipient_input } = await req.json();
 
     if (!recipient_input || recipient_input.trim().length === 0) {
@@ -52,14 +58,21 @@ serve(async (req) => {
 
     let client = null;
 
-    // ÉTAPE 1 : Recherche par email dans clients
+    // ÉTAPE 1 : Recherche par email dans clients (via admin pour bypass RLS)
     console.log('🔍 [2/6] Recherche par email dans clients...');
-    const { data: clientByEmail, error: emailError } = await supabaseClient
+    const { data: clientByEmail, error: emailError } = await supabaseAdmin
       .from('clients')
       .select('user_id, display_name, phone_number, email, is_active')
       .eq('email', recipient_input.toLowerCase().trim())
       .eq('is_active', true)
       .maybeSingle();
+
+    console.log('🔎 [2/6] DEBUG - Résultat recherche email:', { 
+      found: !!clientByEmail, 
+      hasError: !!emailError,
+      errorCode: emailError?.code,
+      errorMessage: emailError?.message 
+    });
 
     if (emailError && emailError.code !== 'PGRST116') {
       console.error('❌ Erreur recherche email:', emailError);
@@ -73,14 +86,20 @@ serve(async (req) => {
       console.log('✅ [2/6] Client trouvé par email:', clientByEmail.display_name);
       client = clientByEmail;
     } else {
-      // ÉTAPE 2 : Recherche par téléphone dans clients
+      // ÉTAPE 2 : Recherche par téléphone dans clients (via admin pour bypass RLS)
       console.log('🔍 [3/6] Pas trouvé par email, recherche par téléphone...');
-      const { data: clientByPhone, error: phoneError } = await supabaseClient
+      const { data: clientByPhone, error: phoneError } = await supabaseAdmin
         .from('clients')
         .select('user_id, display_name, phone_number, email, is_active')
         .eq('phone_number', recipient_input.trim())
         .eq('is_active', true)
         .maybeSingle();
+
+      console.log('🔎 [3/6] DEBUG - Résultat recherche téléphone:', { 
+        found: !!clientByPhone,
+        hasError: !!phoneError,
+        errorCode: phoneError?.code 
+      });
 
       if (phoneError && phoneError.code !== 'PGRST116') {
         console.error('❌ Erreur recherche téléphone:', phoneError);
@@ -103,12 +122,6 @@ serve(async (req) => {
     // ÉTAPE 3 : Recherche backup dans auth.users si pas trouvé dans clients
     if (!client) {
       console.log('🔍 [4.5/6] Recherche backup dans auth.users par email...');
-      
-      // Utiliser le service role pour accéder à auth.users
-      const supabaseAdmin = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-      );
 
       const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.listUsers();
       
@@ -157,14 +170,21 @@ serve(async (req) => {
     }
     console.log('✅ [5/6] Pas un auto-transfert');
 
-    // Vérifier que le destinataire a un portefeuille actif
+    // Vérifier que le destinataire a un portefeuille actif (via admin pour bypass RLS)
     console.log('🔍 [6/6] Vérification wallet du destinataire...');
-    const { data: wallet, error: walletError } = await supabaseClient
+    const { data: wallet, error: walletError } = await supabaseAdmin
       .from('user_wallets')
       .select('id, is_active')
       .eq('user_id', client.user_id)
       .eq('is_active', true)
       .maybeSingle();
+
+    console.log('🔎 [6/6] DEBUG - Résultat recherche wallet:', { 
+      found: !!wallet,
+      hasError: !!walletError,
+      errorCode: walletError?.code,
+      userId: client.user_id 
+    });
 
     if (walletError && walletError.code !== 'PGRST116') {
       console.error('❌ [6/6] Erreur wallet:', walletError);
