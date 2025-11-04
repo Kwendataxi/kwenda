@@ -80,28 +80,79 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
     if (user) {
       loadProfile();
       loadUserRating();
-      console.log("===========================================> ",user);
+      
+      // Timeout de sécurité : arrêter le loading après 10 secondes
+      const timeout = setTimeout(() => {
+        if (loading) {
+          console.error('[UserProfile] ⏰ TIMEOUT - Chargement trop long');
+          setLoading(false);
+          toast({
+            title: "Délai d'attente dépassé",
+            description: "Le profil met trop de temps à charger. Vérifiez votre connexion.",
+            variant: "destructive"
+          });
+        }
+      }, 10000);
+
+      return () => clearTimeout(timeout);
     }
   }, [user]);
 
   const loadProfile = async () => {
     try {
+      console.log('[UserProfile] 🔍 Chargement profil pour user:', user?.id);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user?.id)
         .single();
 
-      if (error) throw error;
+      console.log('[UserProfile] ✅ Réponse Supabase:', { data, error });
+
+      if (error) {
+        console.error('[UserProfile] ❌ Erreur Supabase:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.warn('[UserProfile] ⚠️ Profil introuvable, création...');
+        // Créer un profil par défaut si absent
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert([{
+            user_id: user?.id,
+            display_name: user?.email?.split('@')[0] || 'Utilisateur',
+            user_type: 'client'
+          }])
+          .select()
+          .single();
+        
+        if (createError) throw createError;
+        setProfile(newProfile);
+        setFormData({
+          display_name: newProfile.display_name || '',
+          phone_number: newProfile.phone_number || '',
+        });
+        console.log('[UserProfile] ✅ Profil créé avec succès');
+        return;
+      }
 
       setProfile(data);
       setFormData({
         display_name: data.display_name || '',
         phone_number: data.phone_number || '',
       });
-    } catch (error) {
-      console.error('Error loading profile:', error);
+      console.log('[UserProfile] ✅ Profil chargé avec succès');
+    } catch (error: any) {
+      console.error('[UserProfile] 💥 Erreur fatale:', error);
+      toast({
+        title: "Erreur de chargement",
+        description: error.message || "Impossible de charger votre profil",
+        variant: "destructive"
+      });
     } finally {
+      console.log('[UserProfile] ✅ Chargement terminé');
       setLoading(false);
     }
   };
