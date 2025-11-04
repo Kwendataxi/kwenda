@@ -23,9 +23,9 @@ const baseClient = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
       'X-Client-Info': 'kwenda-vtc/1.0.0'
     },
     fetch: (url, options = {}) => {
-      // Timeout de 10 secondes pour éviter les requêtes bloquées
+      // ✅ Timeout réduit à 5 secondes pour meilleure réactivité
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
       return fetch(url, {
         ...options,

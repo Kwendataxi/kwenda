@@ -22,6 +22,7 @@ import { UserStatistics } from './UserStatistics';
 import { ActivityHistory } from './ActivityHistory';
 import { KwendaPayWallet } from '../wallet/KwendaPayWallet';
 import { ReferralPanel } from './ReferralPanel';
+import { useOptimizedProfile } from '@/hooks/useOptimizedProfile';
 import { PromoCodePanel } from './PromoCodePanel';
 import { UserAddressesManager } from './UserAddressesManager';
 import CustomerSupport from './CustomerSupport';
@@ -42,6 +43,13 @@ interface Profile {
   phone_number: string | null;
   avatar_url: string | null;
   user_type: string;
+  bio?: string | null;
+  cover_url?: string | null;
+  created_at?: string;
+  is_public?: boolean;
+  is_verified_seller?: boolean;
+  last_seen?: string | null;
+  updated_at?: string;
 }
 
 interface UserRating {
@@ -60,10 +68,12 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [rating, setRating] = useState<UserRating>({ rating: 0, total_ratings: 0 });
+  
+  // ✅ Utiliser le hook optimisé avec cache
+  const { profile: cachedProfile, rating, loading, refreshProfile } = useOptimizedProfile();
+  const [profile, setProfile] = useState(cachedProfile);
+  
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     display_name: '',
     phone_number: '',
@@ -76,138 +86,16 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
   const [activeOption, setActiveOption] = useState('');
   const { isVendor } = useIsVendor();
 
+  // ✅ Synchroniser le profil du cache avec le state local
   useEffect(() => {
-    if (user) {
-      loadProfile();
-      loadUserRating();
-      
-      // Timeout de sécurité : arrêter le loading après 10 secondes
-      const timeout = setTimeout(() => {
-        if (loading) {
-          console.error('[UserProfile] ⏰ TIMEOUT - Chargement trop long');
-          setLoading(false);
-          toast({
-            title: "Délai d'attente dépassé",
-            description: "Le profil met trop de temps à charger. Vérifiez votre connexion.",
-            variant: "destructive"
-          });
-        }
-      }, 10000);
-
-      return () => clearTimeout(timeout);
-    }
-  }, [user]);
-
-  const loadProfile = async (retryCount = 0) => {
-    try {
-      console.log(`[UserProfile] 🔍 Chargement profil (tentative ${retryCount + 1}/3)`);
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user?.id)
-        .single();
-
-      console.log('[UserProfile] ✅ Réponse Supabase:', { data, error });
-
-      if (error) {
-        console.error('[UserProfile] ❌ Erreur Supabase:', error);
-        
-        // ✅ Retry automatique si erreur temporaire (network, timeout)
-        const isTemporaryError = error.message?.includes('network') || 
-                                 error.message?.includes('timeout') || 
-                                 error.code === 'PGRST301';
-        
-        if (retryCount < 2 && isTemporaryError) {
-          console.warn(`⚠️ Erreur temporaire, retry dans 1s...`);
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          return loadProfile(retryCount + 1);
-        }
-        
-        throw error;
-      }
-
-      if (!data) {
-        console.warn('[UserProfile] ⚠️ Profil introuvable, création...');
-        // Créer un profil par défaut si absent
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert([{
-            user_id: user?.id,
-            display_name: user?.email?.split('@')[0] || 'Utilisateur',
-            user_type: 'client'
-          }])
-          .select()
-          .single();
-        
-        if (createError) throw createError;
-        setProfile(newProfile);
-        setFormData({
-          display_name: newProfile.display_name || '',
-          phone_number: newProfile.phone_number || '',
-        });
-        console.log('[UserProfile] ✅ Profil créé avec succès');
-        return;
-      }
-
-      setProfile(data);
+    if (cachedProfile) {
+      setProfile(cachedProfile);
       setFormData({
-        display_name: data.display_name || '',
-        phone_number: data.phone_number || '',
+        display_name: cachedProfile.display_name || '',
+        phone_number: cachedProfile.phone_number || '',
       });
-      console.log('[UserProfile] ✅ Profil chargé avec succès');
-    } catch (error: any) {
-      console.error('[UserProfile] 💥 Erreur fatale après retries:', error);
-      
-      // ✅ CORRECTION : Distinguer types d'erreurs pour UX contextuelle
-      const isRLSError = error.message?.includes('policy') || 
-                         error.message?.includes('POLICY_RECURSION') ||
-                         error.message?.includes('permission') || 
-                         error.code === '42501' || 
-                         error.code === '42P17';
-      
-      const isNetworkError = error.message?.includes('fetch') || 
-                             error.message?.includes('network');
-      
-      const errorTitle = isRLSError 
-        ? "Problème de permissions" 
-        : "Erreur de chargement";
-      
-      const errorMessage = isRLSError 
-        ? "Accès refusé. Ce problème nécessite une intervention technique. Contactez le support via support@kwenda.app"
-        : isNetworkError 
-          ? "Vérifiez votre connexion internet et réessayez."
-          : "Impossible de charger votre profil.";
-      
-      toast({
-        title: errorTitle,
-        description: errorMessage,
-        variant: "destructive"
-      });
-    } finally {
-      console.log('[UserProfile] ✅ Chargement terminé');
-      setLoading(false);
     }
-  };
-
-  const loadUserRating = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('user_ratings')
-        .select('rating')
-        .eq('rated_user_id', user?.id);
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        const totalRating = data.reduce((sum, item) => sum + item.rating, 0);
-        const avgRating = totalRating / data.length;
-        setRating({ rating: Math.round(avgRating * 10) / 10, total_ratings: data.length });
-      }
-    } catch (error) {
-      console.error('Error loading rating:', error);
-    }
-  };
+  }, [cachedProfile]);
 
   const updateProfile = async () => {
     try {
@@ -224,7 +112,7 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
       });
 
       setIsEditing(false);
-      loadProfile();
+      refreshProfile(); // ✅ Utiliser refreshProfile au lieu de loadProfile
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
@@ -321,10 +209,30 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Chargement du profil...</p>
+      <div className="max-w-md mx-auto bg-background min-h-screen">
+        {/* Header skeleton */}
+        <div className="bg-gradient-to-br from-primary/10 to-accent/10 p-6 rounded-b-3xl shadow-lg">
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 rounded-full bg-muted animate-pulse" />
+            <div className="flex-1 space-y-2">
+              <div className="h-6 bg-muted rounded animate-pulse w-32" />
+              <div className="h-4 bg-muted rounded animate-pulse w-48" />
+            </div>
+          </div>
+        </div>
+        
+        {/* Actions skeleton */}
+        <div className="px-4 py-6 grid grid-cols-3 gap-3">
+          {[1,2,3].map(i => (
+            <div key={i} className="h-24 bg-muted rounded-xl animate-pulse" />
+          ))}
+        </div>
+        
+        {/* Options skeleton */}
+        <div className="px-4 space-y-3">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />
+          ))}
         </div>
       </div>
     );
