@@ -28,11 +28,36 @@ export default function VendorAddProduct() {
     setIsSubmitting(true);
     
     try {
+      // ✅ Validation du nombre d'images
+      if (formData.images.length === 0) {
+        toast({
+          title: "Photos manquantes",
+          description: "Ajoutez au moins 1 photo de votre produit",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      if (formData.images.length > 3) {
+        toast({
+          title: "Trop d'images",
+          description: "Maximum 3 photos autorisées",
+          variant: "destructive"
+        });
+        return false;
+      }
+
       // ✅ Upload images to Supabase Storage avec timeout et validation
       const imageUrls: string[] = [];
       
       for (let i = 0; i < formData.images.length; i++) {
         const image = formData.images[i];
+        
+        // Afficher la progression
+        toast({
+          title: `📤 Upload en cours`,
+          description: `Image ${i + 1}/${formData.images.length} en cours...`,
+        });
         
         // Vérifier la taille du fichier (max 5MB)
         if (image.size > 5 * 1024 * 1024) {
@@ -71,6 +96,12 @@ export default function VendorAddProduct() {
           .getPublicUrl(fileName);
 
         imageUrls.push(urlData.publicUrl);
+        
+        // Toast de succès pour chaque image
+        toast({
+          title: `✅ Image ${i + 1}/${formData.images.length}`,
+          description: `Upload réussi`,
+        });
         
         console.log(`✅ Image ${i+1}/${formData.images.length} uploaded: ${image.name}`);
       }

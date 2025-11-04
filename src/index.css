@@ -299,4 +299,21 @@ All colors MUST be HSL.
   .animate-shimmer {
     animation: shimmer 3s infinite;
   }
+
+  /* Scrollbar personnalisée pour le scroll horizontal des images */
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-muted rounded-full;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-primary rounded-full;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/80;
+  }
 }

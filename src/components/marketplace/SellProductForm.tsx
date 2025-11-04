@@ -55,7 +55,7 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
     removeImage, 
     isDragging, 
     setIsDragging 
-  } = useImageUpload(5, 5);
+  } = useImageUpload(3, 5);
 
   const { errors, completionRate, isValid } = useProductFormValidation({
     ...formData,
@@ -181,7 +181,7 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
                   <p className="font-medium text-lg mb-1">Glissez vos photos ici</p>
                   <p className="text-sm text-muted-foreground">ou cliquez pour parcourir</p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Maximum 5 photos • Max 5MB par photo
+                    Maximum 3 photos • Max 5MB par photo
                   </p>
                   <input
                     id="image-upload"
@@ -193,39 +193,52 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
                   />
                 </motion.div>
 
-                {/* Image Previews - Masonry Grid */}
+                {/* Image Previews - Horizontal Scroll */}
                 {imagePreviews.length > 0 && (
-                  <div className="columns-3 gap-3 mt-6">
-                    <AnimatePresence>
-                      {imagePreviews.map((img, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          className="relative mb-3 break-inside-avoid group"
-                        >
-                          <img 
-                            src={img} 
-                            className="w-full rounded-lg shadow-md" 
-                            alt={`Preview ${i + 1}`}
-                          />
-                          <motion.button
-                            whileHover={{ scale: 1.2, rotate: 90 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => removeImage(i)}
+                  <div className="mt-6">
+                    <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
+                      <AnimatePresence>
+                        {imagePreviews.map((img, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.5 }}
+                            className="relative flex-shrink-0 w-32 h-32 sm:w-40 sm:h-40 group snap-start"
                           >
-                            <X className="h-4 w-4" />
-                          </motion.button>
-                          {i === 0 && (
-                            <Badge className="absolute top-2 left-2 bg-primary">
-                              Photo principale
-                            </Badge>
-                          )}
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
+                            <img 
+                              src={img} 
+                              className="w-full h-full object-cover rounded-xl shadow-md" 
+                              alt={`Preview ${i + 1}`}
+                            />
+                            <motion.button
+                              whileHover={{ scale: 1.2, rotate: 90 }}
+                              whileTap={{ scale: 0.9 }}
+                              className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeImage(i);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </motion.button>
+                            {i === 0 && (
+                              <Badge className="absolute top-2 left-2 bg-primary text-xs">
+                                Principale
+                              </Badge>
+                            )}
+                            <div className="absolute bottom-2 left-2 right-2 flex justify-center">
+                              <Badge variant="secondary" className="text-[10px] bg-black/50 text-white">
+                                {i + 1}/{imagePreviews.length}
+                              </Badge>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                    <p className="text-xs text-center text-muted-foreground mt-2">
+                      Faites glisser pour voir toutes les photos • La première sera l'image principale
+                    </p>
                   </div>
                 )}
               </CardContent>
