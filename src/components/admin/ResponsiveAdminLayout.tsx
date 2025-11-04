@@ -94,13 +94,23 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
 
   return (
     <div className="min-h-screen bg-background">
-      <MobileAdminHeader notificationBell={<NotificationBell />} />
+      {/* Desktop Header avec notifications */}
+      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border/60 shadow-sm">
+        <div className="container h-14 flex items-center justify-between px-4">
+          <h1 className="text-lg font-semibold">Admin Dashboard</h1>
+          <div className="flex items-center gap-2">
+            <AdminRoleNotificationCenter />
+            <NotificationBell />
+          </div>
+        </div>
+      </header>
+
       <div className="container py-4">
         <div className="flex gap-6">
           <aside className={cn(
-            "shrink-0 sticky top-4 self-start",
+            "shrink-0 sticky top-[calc(3.5rem+1rem)] self-start",
             "w-56 lg:w-64 xl:w-72",
-            "h-[calc(100vh-2rem)]",
+            "h-[calc(100vh-5.5rem)]",
             "flex flex-col",
             "overflow-hidden rounded-lg border border-border/40 bg-card/50",
             "shadow-md transition-all duration-300"
