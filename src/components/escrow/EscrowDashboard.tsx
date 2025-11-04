@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Wallet, TrendingUp, Clock, CheckCircle, AlertCircle, ArrowUpRight } from 'lucide-react';
 import { WithdrawalDialog } from './WithdrawalDialog';
 import { DeliveryConfirmationDialog } from './DeliveryConfirmationDialog';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface EscrowTransaction {
   id: string;
@@ -41,6 +42,7 @@ export const EscrowDashboard: React.FC = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [selectedEscrow, setSelectedEscrow] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadEscrowData();
@@ -147,8 +149,8 @@ export const EscrowDashboard: React.FC = () => {
       if (error) throw error;
 
       toast({
-        title: "Livraison confirmée",
-        description: "Les fonds ont été libérés avec succès"
+        title: t('escrow.delivery_confirmed'),
+        description: t('escrow.delivery_confirmed_desc')
       });
 
       loadEscrowData();

@@ -221,11 +221,11 @@ const ClientApp = () => {
 
         if (error) {
           console.error('Erreur lors du chargement des produits:', error);
-          toast({
-            title: "Erreur",
-            description: "Impossible de charger les produits",
-            variant: "destructive",
-          });
+      toast({
+        title: t('common.error'),
+        description: t('client.error_load_products'),
+        variant: "destructive",
+      });
         } else {
           console.log('Produits chargés:', products);
           
@@ -257,11 +257,11 @@ const ClientApp = () => {
         }
       } catch (error) {
         console.error('Erreur de connexion:', error);
-        toast({
-          title: "Erreur de connexion",
-          description: "Vérifiez votre connexion internet",
-          variant: "destructive",
-        });
+      toast({
+        title: t('client.connection_error'),
+        description: t('client.check_connection'),
+        variant: "destructive",
+      });
       } finally {
         setIsLoadingProducts(false);
       }
@@ -372,10 +372,10 @@ const ClientApp = () => {
       
       // Only show success toast if a driver is actually assigned
       if (data.status === 'driver_assigned' && data.driverAssigned) {
-        toast({
-          title: "Réservation confirmée",
-          description: `Votre chauffeur arrive dans ${data.driverAssigned.estimatedArrival || 5} minutes`,
-        });
+      toast({
+        title: t('client.booking_confirmed'),
+        description: t('client.driver_arriving', { minutes: data.driverAssigned.estimatedArrival || 5 }),
+      });
       }
       
       console.log('Transport réservé:', data);
@@ -422,8 +422,8 @@ const ClientApp = () => {
       await lotteryTickets.awardDeliveryTickets(orderId);
       
       toast({
-        title: "Livraison confirmée",
-        description: `Votre colis sera récupéré dans 15 minutes`,
+        title: t('client.delivery_confirmed'),
+        description: t('client.package_pickup_soon'),
       });
       
       console.log('Livraison créée:', { id: orderId, ...data });
@@ -443,10 +443,10 @@ const ClientApp = () => {
     setRentalBooking(booking);
     setRentalStep('confirmation');
     
-    toast({
-      title: "Réservation confirmée",
-      description: `Votre location de ${booking.vehicle.name} a été confirmée`,
-    });
+      toast({
+        title: t('client.booking_confirmed'),
+        description: t('client.rental_confirmed', { vehicle: booking.vehicle.name }),
+      });
   };
 
   const handleRentalComplete = () => {
@@ -464,8 +464,8 @@ const ClientApp = () => {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
-                <h2 className="text-xl font-bold text-foreground">Réservation confirmée</h2>
-                <p className="text-muted-foreground">Votre véhicule est réservé</p>
+              <h2 className="text-xl font-bold text-foreground">{t('client.booking_confirmed')}</h2>
+              <p className="text-muted-foreground">{t('client.vehicle_reserved')}</p>
               </div>
               
               <div className="space-y-4">
@@ -476,11 +476,11 @@ const ClientApp = () => {
                 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-muted-foreground">Date de début</p>
+                    <p className="text-muted-foreground">{t('client.start_date')}</p>
                     <p className="font-medium">{format(rentalBooking.startDate, 'dd/MM/yyyy', { locale: fr })}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Date de fin</p>
+                    <p className="text-muted-foreground">{t('client.end_date')}</p>
                     <p className="font-medium">{format(rentalBooking.endDate, 'dd/MM/yyyy', { locale: fr })}</p>
                   </div>
                 </div>
@@ -718,10 +718,10 @@ const ClientApp = () => {
               return (
                 <FoodOrderInterface
                   onOrderComplete={(orderId) => {
-                    toast({
-                      title: '✅ Commande passée !',
-                      description: 'Votre commande a été confirmée'
-                    });
+      toast({
+        title: t('client.order_placed'),
+        description: t('client.order_confirmed')
+      });
                   }}
                   onBack={() => setCurrentView('home')}
                 />

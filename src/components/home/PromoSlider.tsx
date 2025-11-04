@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { usePromoCodeValidation } from '@/hooks/usePromoCodeValidation';
 import { CompactRentalSlide } from '@/components/rental/CompactRentalSlide';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PromoSliderProps {
   onServiceSelect: (service: string) => void;
@@ -18,6 +19,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   const [current, setCurrent] = useState(0);
   const { user } = useAuth();
   const { checkPromoUsage } = usePromoCodeValidation();
+  const { t } = useLanguage();
   
   const autoplayRef = useRef(
     Autoplay({
@@ -100,7 +102,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
     if (promo.id === '1') {
       // Vérifier si l'utilisateur est connecté
       if (!user) {
-        toast.error('Connectez-vous pour utiliser ce code promo');
+        toast.error(t('promo.login_required'));
         return;
       }
 
@@ -108,7 +110,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
       const result = await checkPromoUsage(user.id, 'BIENVENUE30');
 
       if (!result.canUse) {
-        toast.error(result.reason || 'Code promo déjà utilisé');
+        toast.error(result.reason || t('promo.code_already_used'));
         return;
       }
 
@@ -116,7 +118,7 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
     localStorage.setItem('activePromoCode', 'BIENVENUE30');
     localStorage.setItem('promoDiscount', '30');
     localStorage.setItem('activePromoId', result.promoId || '');
-    toast.success('Code promo BIENVENUE30 appliqué ! Valable une seule fois.');
+    toast.success(t('promo.code_applied'));
     }
 
     // Redirection vers le service

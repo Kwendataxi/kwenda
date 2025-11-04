@@ -36,8 +36,8 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
   // Dynamic greeting based on time
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour >= 18 || hour < 6) return 'Bonsoir'; // 18h-6h = Bonsoir
-    return 'Salut'; // 6h-18h = Salut
+    if (hour >= 18 || hour < 6) return t('client.greeting_evening');
+    return t('client.greeting_day');
   };
 
   // Get current location on component mount and start a short watch to refine accuracy
@@ -117,7 +117,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
                 style={{ animationDelay: '100ms' }}
               >
                 <span className="text-xs text-muted-foreground font-medium">
-                  {geocodingLoading ? 'Localisation...' : 'Ma Position'}
+                  {geocodingLoading ? t('client.locating') : t('client.my_position')}
                 </span>
                 <ChevronDown className="h-3.5 w-3.5 text-primary flex-shrink-0 animate-bounce-subtle" />
               </Button>

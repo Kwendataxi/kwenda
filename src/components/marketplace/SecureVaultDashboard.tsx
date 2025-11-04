@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Shield, Check, Clock, AlertTriangle, Package, CreditCard, Truck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SecureTransaction {
   id: string;
@@ -43,6 +44,7 @@ export const SecureVaultDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [confirmingDelivery, setConfirmingDelivery] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const fetchTransactions = async () => {
     try {
@@ -114,8 +116,8 @@ export const SecureVaultDashboard: React.FC = () => {
       if (error) throw error;
 
       toast({
-        title: "Livraison confirmée",
-        description: "Les fonds ont été libérés avec succès"
+        title: t('escrow.delivery_confirmed'),
+        description: t('escrow.delivery_confirmed_desc')
       });
 
       await fetchTransactions();
