@@ -243,13 +243,32 @@ export const useUnifiedActivityRobust = () => {
       console.error('❌ Erreur chargement activités:', err);
       setRetryCount(prev => prev + 1);
       
-      // Utiliser le cache en cas d'erreur si disponible (silencieusement)
-      if (activityCache && activityCache.data.length > 0) {
-        console.log('📦 Utilisation du cache de secours');
+      // Détecter type d'erreur pour affichage approprié
+      const isRLSError = err.message?.includes('policy') || 
+                         err.message?.includes('permission') ||
+                         err.code === '42501' ||
+                         err.message?.includes('RLS');
+      
+      const isNetworkError = err.message?.includes('Timeout') ||
+                             err.message?.includes('network') ||
+                             err.message?.includes('fetch');
+      
+      // Utiliser le cache en cas d'erreur si disponible
+      if (activityCache && activityCache.data.length > 0 && !isRLSError) {
+        console.warn('📦 Utilisation du cache de secours (données potentiellement obsolètes)');
         setActivities(activityCache.data);
-        setError(null); // Pas d'erreur affichée si on a du cache
+        setError('Données en cache (connexion limitée)'); // ✅ Afficher avertissement
       } else {
-        setError(err.message || 'Erreur de connexion');
+        // Si erreur RLS ou pas de cache, afficher l'erreur
+        if (isRLSError) {
+          console.error('🔒 Erreur RLS détectée - Vérifier les permissions');
+          setError('Problème de permissions. Contactez le support si le problème persiste.');
+        } else if (isNetworkError) {
+          setError('Problème de connexion. Vérifiez votre réseau.');
+        } else {
+          setError(err.message || 'Erreur de connexion');
+        }
+        setActivities([]); // ✅ Vider les données si erreur critique
       }
     } finally {
       setLoading(false);

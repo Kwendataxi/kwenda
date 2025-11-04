@@ -208,29 +208,53 @@ const ClientApp = () => {
     }
   }, [location.state]);
 
-  // Fetch products from Supabase
+  // Fetch products from Supabase - ✅ Inclure tous les produits du vendeur
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoadingProducts(true);
       try {
-        const { data: products, error } = await supabase
+        // ✅ Récupérer les produits publics (approved + active)
+        const { data: publicProducts, error: publicError } = await supabase
           .from('marketplace_products')
           .select('*')
           .eq('status', 'active')
+          .eq('moderation_status', 'approved')
           .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Erreur lors du chargement des produits:', error);
-      toast({
-        title: t('common.error'),
-        description: t('client.error_load_products'),
-        variant: "destructive",
-      });
+        // ✅ Si l'utilisateur est connecté, récupérer aussi ses propres produits (tous statuts)
+        let sellerProducts: any[] = [];
+        if (user) {
+          const { data: myProducts } = await supabase
+            .from('marketplace_products')
+            .select('*')
+            .eq('seller_id', user.id)
+            .order('created_at', { ascending: false });
+          
+          if (myProducts) {
+            sellerProducts = myProducts;
+          }
+        }
+        
+        // ✅ Fusionner sans doublons (priorité aux produits vendeur pour afficher le bon statut)
+        const allProducts = [
+          ...sellerProducts,
+          ...(publicProducts || []).filter(
+            p => !sellerProducts.some(sp => sp.id === p.id)
+          )
+        ];
+
+        if (publicError) {
+          console.error('Erreur lors du chargement des produits:', publicError);
+          toast({
+            title: t('common.error'),
+            description: t('client.error_load_products'),
+            variant: "destructive",
+          });
         } else {
-          console.log('Produits chargés:', products);
+          console.log(`Produits chargés: ${allProducts.length} (${sellerProducts.length} vendeur + ${publicProducts?.length || 0} publics)`);
           
           // Transform products to match our interface
-          const transformedProducts = products?.map(product => ({
+          const transformedProducts = allProducts.map(product => ({
             id: product.id,
             name: product.title,
             price: product.price,
@@ -244,31 +268,35 @@ const ClientApp = () => {
             category: product.category?.toLowerCase() || 'other',
             description: product.description || '',
             specifications: {},
-            inStock: true,
+            inStock: product.status === 'active',
             stockCount: Math.floor(Math.random() * 20) + 1,
             isTrending: product.featured || false,
             trendingScore: product.featured ? Math.floor(Math.random() * 30) + 70 : 0,
             condition: product.condition,
             location: product.location,
-            coordinates: product.coordinates
+            coordinates: product.coordinates,
+            // ✅ Ajouter les statuts pour affichage vendeur
+            moderationStatus: product.moderation_status,
+            productStatus: product.status,
+            isOwnProduct: user?.id === product.seller_id
           })) || [];
           
           setMarketplaceProducts(transformedProducts);
         }
       } catch (error) {
         console.error('Erreur de connexion:', error);
-      toast({
-        title: t('client.connection_error'),
-        description: t('client.check_connection'),
-        variant: "destructive",
-      });
+        toast({
+          title: t('client.connection_error'),
+          description: t('client.check_connection'),
+          variant: "destructive",
+        });
       } finally {
         setIsLoadingProducts(false);
       }
     };
 
     fetchProducts();
-  }, []);
+  }, [user?.id]);
 
   // Use either real products or fallback to empty array
   const mockProducts = marketplaceProducts;
@@ -277,31 +305,65 @@ const ClientApp = () => {
   const homeProducts = marketplaceProducts.slice(0, 4).map(p => ({ ...p, isPopular: Math.random() > 0.5 }));
 
   const handleServiceSelect = (service: string) => {
+    // ✅ Gestion activité/historique
     if (service === 'history' || service === 'activity') {
       setCurrentView('history');
       setActiveTab('activity');
       return;
     }
     
-    if (service === 'rental') {
-      navigate('/rental');
+    // ✅ Gestion wallet
+    if (service === 'wallet') {
+      setCurrentView('wallet');
+      setActiveTab('profil');
       return;
     }
+    
+    // ✅ Gestion settings/paramètres
+    if (service === 'settings' || service === 'parametres') {
+      setCurrentView('profil');
+      setActiveTab('profil');
+      return;
+    }
+    
+    // ✅ Gestion support
+    if (service === 'support' || service === 'help') {
+      toast({
+        title: "Support client",
+        description: "Notre équipe est disponible 24/7 pour vous aider",
+      });
+      // TODO: Ouvrir chat support ou page dédiée
+      return;
+    }
+    
+    // ✅ Gestion rental avec retour
+    if (service === 'rental') {
+      navigate('/rental', { state: { returnTo: '/app/client' } });
+      return;
+    }
+    
+    // ✅ Gestion lottery
     if (service === 'lottery' || service === 'tombola') {
       setCurrentView('lottery');
       return;
     }
+    
+    // ✅ Gestion profil
     if (service === 'profil' || service === 'profile') {
       setCurrentView('profil');
       setActiveTab('profil');
       return;
     }
+    
+    // ✅ Gestion food
     if (service === 'food') {
       setServiceType('food');
       setCurrentView('service');
       setActiveTab('home');
       return;
     }
+    
+    // ✅ Services principaux (transport, delivery, marketplace)
     setServiceType(service as any);
     setCurrentView('service');
     setActiveTab('home');

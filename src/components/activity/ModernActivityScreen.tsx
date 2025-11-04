@@ -161,7 +161,7 @@ export const ModernActivityScreen = ({ onBack }: ModernActivityScreenProps) => {
         </div>
       </div>
 
-      {/* États d'erreur avec design amélioré */}
+      {/* États d'erreur avec design amélioré et distinction des types */}
       <AnimatePresence>
         {error && (
           <motion.div
@@ -170,17 +170,62 @@ export const ModernActivityScreen = ({ onBack }: ModernActivityScreenProps) => {
             exit={{ opacity: 0, y: -20 }}
             className="p-4"
           >
-            <Card className="border-red-200 bg-gradient-to-r from-red-50 to-red-100/50">
+            <Card className={`border ${
+              error.includes('permission') || error.includes('policy') 
+                ? 'border-yellow-200 bg-gradient-to-r from-yellow-50 to-yellow-100/50'
+                : error.includes('cache')
+                  ? 'border-orange-200 bg-gradient-to-r from-orange-50 to-orange-100/50'
+                  : 'border-red-200 bg-gradient-to-r from-red-50 to-red-100/50'
+            }`}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-red-100 rounded-full">
-                    <AlertCircle className="h-4 w-4 text-red-600" />
+                  <div className={`p-2 rounded-full ${
+                    error.includes('permission') || error.includes('policy')
+                      ? 'bg-yellow-100'
+                      : error.includes('cache')
+                        ? 'bg-orange-100'
+                        : 'bg-red-100'
+                  }`}>
+                    <AlertCircle className={`h-4 w-4 ${
+                      error.includes('permission') || error.includes('policy')
+                        ? 'text-yellow-600'
+                        : error.includes('cache')
+                          ? 'text-orange-600'
+                          : 'text-red-600'
+                    }`} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-medium text-red-800">Problème de connexion</h3>
-                    <p className="text-sm text-red-600">{error}</p>
-                    {retryCount > 0 && (
-                      <p className="text-xs text-red-500 mt-1">
+                    <h3 className={`font-medium ${
+                      error.includes('permission') || error.includes('policy')
+                        ? 'text-yellow-800'
+                        : error.includes('cache')
+                          ? 'text-orange-800'
+                          : 'text-red-800'
+                    }`}>
+                      {error.includes('permission') || error.includes('policy')
+                        ? 'Problème de permissions' 
+                        : error.includes('cache')
+                          ? 'Données en cache'
+                          : 'Problème de connexion'}
+                    </h3>
+                    <p className={`text-sm ${
+                      error.includes('permission') || error.includes('policy')
+                        ? 'text-yellow-600'
+                        : error.includes('cache')
+                          ? 'text-orange-600'
+                          : 'text-red-600'
+                    }`}>
+                      {error}
+                    </p>
+                    {(error.includes('permission') || error.includes('policy')) && (
+                      <p className="text-xs text-yellow-500 mt-1">
+                        Contactez le support si le problème persiste
+                      </p>
+                    )}
+                    {retryCount > 0 && !(error.includes('permission') || error.includes('policy')) && (
+                      <p className={`text-xs mt-1 ${
+                        error.includes('cache') ? 'text-orange-500' : 'text-red-500'
+                      }`}>
                         Tentative {retryCount}/3 • Retry automatique...
                       </p>
                     )}
@@ -189,9 +234,16 @@ export const ModernActivityScreen = ({ onBack }: ModernActivityScreenProps) => {
                     variant="outline" 
                     size="sm" 
                     onClick={handleRefresh}
-                    className="border-red-200 text-red-600 hover:bg-red-50"
+                    disabled={error.includes('permission') || error.includes('policy')}
+                    className={`${
+                      error.includes('permission') || error.includes('policy')
+                        ? 'border-yellow-200 text-yellow-600 hover:bg-yellow-50 opacity-50 cursor-not-allowed'
+                        : error.includes('cache')
+                          ? 'border-orange-200 text-orange-600 hover:bg-orange-50'
+                          : 'border-red-200 text-red-600 hover:bg-red-50'
+                    }`}
                   >
-                    Réessayer
+                    {error.includes('permission') || error.includes('policy') ? 'Support' : 'Réessayer'}
                   </Button>
                 </div>
               </CardContent>
