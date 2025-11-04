@@ -135,6 +135,38 @@ export const useUserRoles = (): UseUserRolesReturn => {
     } catch (err) {
       console.error('❌ [UserRoles] Error in fetchUserRoles:', err);
       
+      // ✅ NOUVEAU : Détecter spécifiquement les erreurs de refresh token invalide
+      const errorMessage = (err as any)?.message || '';
+      const isTokenError = errorMessage.includes('refresh_token_not_found') ||
+                           errorMessage.includes('Invalid Refresh Token') ||
+                           errorMessage.includes('Refresh Token Not Found');
+      
+      if (isTokenError) {
+        console.error('🔴 [UserRoles] REFRESH TOKEN INVALIDE - Forcer déconnexion');
+        
+        // Nettoyer tout le localStorage
+        secureStorage.removeItem(CACHE_KEY);
+        localStorage.removeItem('kwenda_login_intent');
+        localStorage.removeItem('kwenda_selected_role');
+        
+        // Forcer déconnexion complète
+        await supabase.auth.signOut();
+        
+        // Rediriger vers auth appropriée
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('/admin') || currentPath.includes('/operatorx')) {
+          window.location.href = '/operatorx/admin/auth';
+        } else if (currentPath.includes('/driver')) {
+          window.location.href = '/driver/auth';
+        } else if (currentPath.includes('/partner')) {
+          window.location.href = '/partner/auth';
+        } else {
+          window.location.href = '/auth';
+        }
+        
+        throw new Error('Session expirée. Reconnexion requise.');
+      }
+      
       // Mode dégradé : utiliser le cache si disponible
       const { data: cachedData } = getCachedRoles();
       if (cachedData) {

@@ -1,4 +1,5 @@
 import { useState, useEffect, Suspense } from 'react';
+import { Navigate } from 'react-router-dom';
 import { ResponsiveAdminLayout } from '@/components/admin/ResponsiveAdminLayout';
 import { AdvancedUserManagement } from '@/components/admin/users/AdvancedUserManagement';
 import { useUserRoles } from '@/hooks/useUserRoles';
@@ -55,11 +56,17 @@ const LoadingFallback = () => (
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('overview');
   
-  const { adminRole, loading: rolesLoading } = useUserRoles();
+  const { isAdmin, adminRole, loading: rolesLoading } = useUserRoles();
   const { stats, loading: statsLoading } = useEnhancedRealTimeStats();
 
   if (rolesLoading) {
     return <LoadingFallback />;
+  }
+
+  // ✅ CORRECTION : Bloquer accès si pas admin
+  if (!isAdmin) {
+    console.error('❌ [AdminApp] Access denied: User is not admin');
+    return <Navigate to="/operatorx/admin/auth" replace />;
   }
 
   const renderContent = () => {

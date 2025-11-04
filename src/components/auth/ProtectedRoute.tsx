@@ -108,6 +108,12 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
       case 'partner':
         return <Navigate to="/app/partenaire" replace />;
       case 'admin':
+        // ✅ CORRECTION : Vérifier explicitement le rôle admin avant redirection
+        const hasAdminRole = userRoles.some(ur => ur.role === 'admin');
+        if (!hasAdminRole) {
+          console.error('❌ [ProtectedRoute] Admin role required but not found');
+          return <Navigate to="/operatorx/admin/auth" replace />;
+        }
         return <Navigate to="/app/admin" replace />;
       case 'client':
         return <Navigate to="/app/client" replace />;

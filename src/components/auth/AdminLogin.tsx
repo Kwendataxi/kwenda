@@ -43,28 +43,46 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
 
       logger.info('✅ Login successful', { userId: data.user?.id });
 
-      // ✅ CORRECTION : Attendre stabilisation session (augmenter à 1000ms)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // ✅ CORRECTION : Augmenter délai de stabilisation à 1.5s pour Afrique
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
       // ✅ CORRECTION : Forcer refresh session + attendre confirmation
-      const { data: { session: refreshedSession }, error: sessionError } = await supabase.auth.getSession();
+      const { data: { session: refreshedSession }, error: sessionError } = 
+        await supabase.auth.refreshSession();
       
       if (sessionError || !refreshedSession) {
         logger.error('❌ Session non établie après connexion', sessionError);
         throw new Error('Session non établie. Veuillez réessayer.');
       }
       
-      logger.info('📦 Session refreshed', { 
+      // ✅ NOUVEAU : Vérifier que le refresh token est VALIDE
+      const { data: { user: verifiedUser }, error: verifyError } = 
+        await supabase.auth.getUser();
+
+      if (verifyError || !verifiedUser) {
+        logger.error('❌ Utilisateur non vérifié après refresh', verifyError);
+        await supabase.auth.signOut();
+        throw new Error('Session invalide. Veuillez vous reconnecter.');
+      }
+      
+      logger.info('📦 Session verified', { 
         hasSession: !!refreshedSession,
         expiresAt: refreshedSession.expires_at,
-        userId: data.user?.id
+        userId: verifiedUser.id,
+        refreshTokenValid: !!refreshedSession.refresh_token
       });
 
-      // Vérifier si l'utilisateur est admin via user_roles
+      // ✅ Vérifier rôle admin AVANT de stocker loginIntent
       const { data: isAdmin, error: roleError } = await supabase
         .rpc('is_current_user_admin');
 
-      if (roleError || !isAdmin) {
+      if (roleError) {
+        logger.error('❌ Erreur vérification rôle admin', roleError);
+        await supabase.auth.signOut();
+        throw new Error('Impossible de vérifier vos permissions. Réessayez.');
+      }
+
+      if (!isAdmin) {
         await supabase.auth.signOut();
         toast.error(t('auth.access_denied'), {
           description: t('auth.not_authorized_admin')
@@ -72,7 +90,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
         return;
       }
 
-      // ✅ CORRECTION : Stocker loginIntent pour redirection correcte
+      // ✅ SEULEMENT ICI : Stocker loginIntent APRÈS vérification réussie
       localStorage.setItem('kwenda_login_intent', 'admin');
       localStorage.setItem('kwenda_selected_role', 'admin');
 
@@ -80,8 +98,8 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
         description: t('auth.welcome_admin')
       });
 
-      // ✅ CORRECTION : Attendre 300ms pour garantir synchronisation
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // ✅ CORRECTION : Attendre 500ms pour garantir sync cache secureStorage
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       if (onSuccess) {
         onSuccess();
