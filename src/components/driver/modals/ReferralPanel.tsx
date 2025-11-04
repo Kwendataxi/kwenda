@@ -1,24 +1,31 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Share2, Copy, Check, Gift } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Users, Share2, Copy, Check, Gift, QrCode, Info } from 'lucide-react';
 import { useReferrals } from '@/hooks/useReferrals';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { QRCodeSVG } from 'qrcode.react';
+import { QRCodeDialog } from './QRCodeDialog';
 
 export const ReferralPanel: React.FC = () => {
   const { referralCode, referrals, totalEarnings, isLoading } = useReferrals();
+  const { triggerHaptic, triggerSuccess } = useHapticFeedback();
   const [copied, setCopied] = React.useState(false);
+  const [qrModalOpen, setQrModalOpen] = React.useState(false);
+  const [showAll, setShowAll] = React.useState(false);
 
   const handleCopy = () => {
     if (referralCode) {
       navigator.clipboard.writeText(referralCode);
       setCopied(true);
+      triggerSuccess();
       toast.success('Code copié !');
       setTimeout(() => setCopied(false), 2000);
     }
@@ -26,10 +33,11 @@ export const ReferralPanel: React.FC = () => {
 
   const handleShare = async () => {
     if (!referralCode) return;
+    triggerHaptic();
 
     const shareData = {
       title: 'Rejoignez Kwenda',
-      text: `Utilisez mon code de parrainage ${referralCode} et gagnez 5000 CDF !`,
+      text: `Utilisez mon code de parrainage ${referralCode} et gagnez 500 CDF !`,
       url: `https://kwenda.app/register?ref=${referralCode}`
     };
 
@@ -46,119 +54,150 @@ export const ReferralPanel: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-40 w-full" />
-        <Skeleton className="h-64 w-full" />
+      <div className="space-y-4 p-4">
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-32 w-full" />
       </div>
     );
   }
 
+  const displayedReferrals = showAll ? referrals : referrals.slice(0, 3);
+
   return (
-    <div className="space-y-6">
-      {/* Code de parrainage */}
-      <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="h-5 w-5" />
-            <span className="text-sm opacity-90">Mon code de parrainage</span>
-          </div>
-          
+    <div className="space-y-4 p-4">
+      {/* Code de parrainage compact */}
+      <Card className="border-0 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10">
+        <CardContent className="p-4">
           {referralCode ? (
             <>
-              <div className="text-3xl font-bold mb-4 tracking-wider text-center py-4 bg-white/10 rounded-lg">
-                {referralCode}
-              </div>
-              
-              <div className="flex gap-2">
-                <Button 
-                  variant="secondary"
-                  className="flex-1 bg-white text-blue-600 hover:bg-white/90"
-                  onClick={handleCopy}
-                >
-                  {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-                  {copied ? 'Copié !' : 'Copier'}
-                </Button>
-                <Button 
-                  variant="secondary"
-                  className="flex-1 bg-white text-blue-600 hover:bg-white/90"
-                  onClick={handleShare}
-                >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Partager
-                </Button>
-              </div>
-
-              {/* QR Code */}
-              <div className="mt-4 flex justify-center bg-white p-4 rounded-lg">
-                <QRCodeSVG 
-                  value={`https://kwenda.app/register?ref=${referralCode}`}
-                  size={150}
-                  level="H"
-                />
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground mb-1">Votre code</p>
+                  <p className="text-2xl font-bold tracking-wider">{referralCode}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={handleCopy}
+                    className="h-9 w-9 p-0"
+                  >
+                    {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={handleShare}
+                    className="h-9 w-9 p-0"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="ghost"
+                    onClick={() => setQrModalOpen(true)}
+                    className="h-9 w-9 p-0"
+                  >
+                    <QrCode className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </>
           ) : (
-            <p className="text-center text-sm opacity-90">Code de parrainage non disponible</p>
+            <p className="text-center text-sm text-muted-foreground">Code non disponible</p>
           )}
         </CardContent>
       </Card>
 
-      {/* Statistiques */}
-      <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Users className="h-6 w-6 mx-auto mb-2 text-blue-600" />
-            <p className="text-2xl font-bold">{referrals.length}</p>
-            <p className="text-xs text-muted-foreground">Filleuls</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Gift className="h-6 w-6 mx-auto mb-2 text-green-600" />
-            <p className="text-2xl font-bold">{totalEarnings.toLocaleString()} CDF</p>
-            <p className="text-xs text-muted-foreground">Gains totaux</p>
-          </CardContent>
-        </Card>
+      {/* Stats inline */}
+      <div className="flex gap-4 text-center">
+        <div className="flex-1 py-3 px-4 rounded-lg bg-muted/50">
+          <p className="text-2xl font-bold">{referrals.length}</p>
+          <p className="text-xs text-muted-foreground">Filleuls</p>
+        </div>
+        <Separator orientation="vertical" className="h-auto" />
+        <div className="flex-1 py-3 px-4 rounded-lg bg-muted/50">
+          <p className="text-2xl font-bold text-green-600">{totalEarnings.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground">CDF gagnés</p>
+        </div>
       </div>
 
-      <Separator />
+      {/* Info reward */}
+      <Alert className="border-green-600/20 bg-green-50 dark:bg-green-950/20">
+        <Gift className="h-4 w-4 text-green-600" />
+        <AlertDescription className="text-sm ml-2">
+          Gagnez <strong>500 CDF</strong> par ami qui s'inscrit avec votre code
+        </AlertDescription>
+      </Alert>
 
-      {/* Liste des filleuls */}
-      <div>
-        <h3 className="font-semibold mb-4">Mes filleuls ({referrals.length})</h3>
-        {referrals.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center text-muted-foreground">
-              <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p>Aucun filleul pour le moment</p>
-              <p className="text-xs mt-1">Partagez votre code pour gagner 5000 CDF par filleul !</p>
-            </CardContent>
-          </Card>
-        ) : (
+      {/* Liste simplifiée */}
+      {referrals.length > 0 ? (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium">Derniers filleuls</h3>
+            {referrals.length > 3 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowAll(!showAll)}
+                className="h-7 text-xs"
+              >
+                {showAll ? 'Voir moins' : `Voir tout (${referrals.length})`}
+              </Button>
+            )}
+          </div>
+          
           <div className="space-y-2">
-            {referrals.map((referral) => (
-              <Card key={referral.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{referral.referee_name || 'Utilisateur'}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Inscrit le {format(new Date(referral.created_at), 'PPP', { locale: fr })}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-green-600">{referral.reward_amount} CDF</p>
-                      <Badge variant={referral.status === 'completed' ? 'default' : 'secondary'}>
-                        {referral.status === 'completed' ? 'Récompensé' : 'En attente'}
-                      </Badge>
-                    </div>
+            {displayedReferrals.map((referral) => (
+              <div 
+                key={referral.id} 
+                className="flex items-center justify-between py-3 px-3 rounded-lg bg-card border hover:border-primary/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback className="text-xs bg-primary/10">
+                      <Users className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium">{referral.referee_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(referral.created_at), 'dd MMM yyyy', { locale: fr })}
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <Badge 
+                  variant={referral.status === 'completed' ? 'default' : 'secondary'}
+                  className="font-semibold"
+                >
+                  {referral.reward_amount} CDF
+                </Badge>
+              </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <Card className="border-dashed">
+          <CardContent className="p-6 text-center">
+            <Users className="h-10 w-10 mx-auto mb-2 text-muted-foreground/50" />
+            <p className="text-sm text-muted-foreground mb-1">Aucun filleul pour le moment</p>
+            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+              <Info className="h-3 w-3" />
+              Partagez votre code pour gagner 500 CDF par filleul !
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* QR Code Modal */}
+      {referralCode && (
+        <QRCodeDialog 
+          open={qrModalOpen}
+          onOpenChange={setQrModalOpen}
+          referralCode={referralCode}
+        />
+      )}
     </div>
   );
 };

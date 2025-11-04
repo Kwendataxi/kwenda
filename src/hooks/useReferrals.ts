@@ -32,32 +32,22 @@ export const useReferrals = () => {
           setReferralCode(codeData);
         }
 
-        // Récupérer les filleuls
+        // Récupérer les filleuls depuis referral_system
         const { data: referralsData } = await supabase
-          .from('referrals')
-          .select('id, created_at, status, referred_id')
+          .from('referral_system')
+          .select('id, created_at, status, referee_id, referrer_reward_amount')
           .eq('referrer_id', user.id)
+          .neq('referee_id', user.id) // Exclure l'enregistrement de création de code
           .order('created_at', { ascending: false });
 
         if (referralsData) {
-          // Enrichir avec les noms des filleuls
-          const enrichedReferrals = await Promise.all(
-            referralsData.map(async (ref) => {
-              const { data: userData } = await supabase
-                .from('clients')
-                .select('display_name')
-                .eq('user_id', ref.referred_id)
-                .single();
-
-              return {
-                id: ref.id,
-                created_at: ref.created_at,
-                status: ref.status,
-                reward_amount: ref.status === 'completed' ? 5000 : 0,
-                referee_name: userData?.display_name || 'Utilisateur'
-              };
-            })
-          );
+          const enrichedReferrals = referralsData.map((ref) => ({
+            id: ref.id,
+            created_at: ref.created_at,
+            status: ref.status,
+            reward_amount: ref.status === 'completed' ? ref.referrer_reward_amount : 0,
+            referee_name: `Filleul ${ref.referee_id.slice(0, 8)}`
+          }));
 
           setReferrals(enrichedReferrals);
 

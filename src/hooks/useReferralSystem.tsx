@@ -130,8 +130,8 @@ export const useReferralSystem = () => {
           referee_id: user.user.id,
           referral_code: referralCode.toUpperCase(),
           status: 'completed',
-          referrer_reward_amount: 5000,
-          referee_reward_amount: 3000,
+          referrer_reward_amount: 500,
+          referee_reward_amount: 500,
           currency: 'CDF',
           completed_at: new Date().toISOString(),
           rewarded_at: new Date().toISOString()
@@ -167,10 +167,10 @@ export const useReferralSystem = () => {
 
       toast({
         title: "Code de parrainage appliqué !",
-        description: "Vous avez reçu 3000 CDF de bonus !",
+        description: "Vous avez reçu 500 CDF de bonus !",
       });
 
-      return { success: true, message: 'Code de parrainage appliqué avec succès ! Vous avez reçu 3000 CDF.' };
+      return { success: true, message: 'Code de parrainage appliqué avec succès ! Vous avez reçu 500 CDF.' };
     } catch (error) {
       console.error('Erreur lors de l\'utilisation du code de parrainage:', error);
       return { success: false, message: 'Erreur inattendue' };
@@ -180,7 +180,7 @@ export const useReferralSystem = () => {
   };
 
   const shareReferralCode = () => {
-    const message = `Rejoignez-moi sur KwendaTaxi avec mon code de parrainage ${userReferralCode} et obtenez 3000 CDF de crédit gratuit ! 🚗`;
+    const message = `Rejoignez-moi sur KwendaTaxi avec mon code de parrainage ${userReferralCode} et obtenez 500 CDF de crédit gratuit ! 🚗`;
     
     if (navigator.share) {
       navigator.share({
