@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface MobilePartnerTabsProps {
-  currentView: 'dashboard' | 'vehicles' | 'drivers' | 'subscription-earnings' | 'subscriptions' | 'analytics' | 'notifications' | 'profile';
+  currentView: 'dashboard' | 'vehicles' | 'drivers' | 'deliveries' | 'subscription-earnings' | 'subscriptions' | 'analytics' | 'notifications' | 'profile';
   onViewChange: (view: string) => void;
   variant?: 'bottom' | 'horizontal' | 'vertical';
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PartnerDriverManager } from '@/components/partner/PartnerDriverManager';
 import PartnerRentalManager from '@/components/partner/rental/PartnerRentalManager';
+import PartnerDeliveryManager from '@/components/partner/delivery/PartnerDeliveryManager';
 import { ResponsivePartnerLayout } from '@/components/partner/ResponsivePartnerLayout';
 import { RentalSubscriptionManager } from '@/components/partner/rental/RentalSubscriptionManager';
 import { usePartnerStats } from '@/hooks/usePartnerStats';
@@ -43,7 +44,7 @@ import { Progress } from "@/components/ui/progress"
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const PartnerApp = () => {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'subscriptions' | 'analytics' | 'notifications' | 'subscription-earnings' | 'profile'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'vehicles' | 'drivers' | 'deliveries' | 'subscriptions' | 'analytics' | 'notifications' | 'subscription-earnings' | 'profile'>('dashboard');
   
   // Use real data hooks
   const { stats, loading: statsLoading } = usePartnerStats();
@@ -59,6 +60,12 @@ const PartnerApp = () => {
   const renderFleetManagement = () => (
     <div className="space-y-6">
       <PartnerRentalManager />
+    </div>
+  );
+
+  const renderDeliveryManagement = () => (
+    <div className="space-y-6">
+      <PartnerDeliveryManager />
     </div>
   );
 
