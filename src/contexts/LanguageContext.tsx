@@ -1759,7 +1759,91 @@ export const translations = {
     // Client Navigation
     'client.nav.home': 'Nzo',
     'client.nav.activity': 'Kisalu',
-    'client.nav.account': 'Kôntu'
+    'client.nav.account': 'Kôntu',
+
+    // Wallet
+    'wallet.available_balance': 'Mbongo oyo ezali',
+    'wallet.bonus_balance': 'Mbongo ya cadeau:',
+    'wallet.convert_points_info': 'Bobongola ba points na yo mpo na kozwa bonus',
+    'wallet.recent_transactions': 'Ba transactions ya sika',
+
+    // Lottery
+    'lottery.title': '✨ Kwenda Tombola',
+    'lottery.subtitle': 'Kata mpe zwa!',
+    'lottery.cards': 'Ba cartes',
+    'lottery.wins': 'Ba gains',
+    'lottery.guide': 'Guide',
+    'lottery.how_to_win': 'Ndenge nini ya kozwa ba cartes?',
+    'lottery.transport': 'Transport',
+    'lottery.one_card': '1 carte',
+    'lottery.delivery': 'Livraison',
+    'lottery.two_cards': '2 ba cartes',
+    'lottery.marketplace': 'Marketplace',
+    'lottery.one_to_three_cards': '1-3 ba cartes',
+    'lottery.referral': 'Parrainage',
+    'lottery.five_cards': '5 ba cartes',
+    'lottery.popular': 'Populaire',
+    'lottery.guarantee_system': 'Système ya Garantie',
+    'lottery.guarantee_desc': 'Soki okataka mingi, ba chances na yo ekómataka mingi! Garantie ya ba gains ya talo nsima ya ba cartes ebele ya commune.',
+    'lottery.coming_soon': 'Ekoya',
+
+    // Home
+    'home.popular_badge': 'Populaire',
+    'home.coming_soon_badge': 'Ekoya',
+
+    // Transport
+    'transport.map_centered': '📍 Carte ecentrami na {city}',
+    'transport.current_position': 'Esika ya lelo ({lat}, {lng})',
+    'transport.position_detected_title': 'Esika edetectami',
+    'transport.position_set_as_pickup': 'Esika na yo ya lelo edefined lokola esika ya kobanda',
+    'transport.enter_pickup_manually': 'Kotá na maboko esika ya kobanda',
+    'transport.select_addresses': 'Pona ba adresses ya kobanda mpe ya kokende',
+    'transport.pickup_location_set': 'Esika ya kobanda edefinié',
+    'transport.destination_set': 'Esika ya kokende edefinié',
+
+    // Promo
+    'promo.code_applied_success': 'Code promo esalemi!',
+    'promo.discount_applied_desc': 'Réduction ya {amount} CDF esalemi na voyage oyo',
+
+    // Delivery
+    'delivery.flash_desc': 'Livraison rapide (1-2h)',
+    'delivery.flex_desc': 'Livraison standard (2-4h)',
+    'delivery.maxicharge_desc': 'Colis munene (4-6h)',
+    'delivery.package_documents': 'Ba documents',
+    'delivery.package_electronics': 'Électronique',
+    'delivery.package_clothes': 'Bilamba',
+    'delivery.package_food': 'Bilei',
+    'delivery.package_medicines': 'Nkisi',
+    'delivery.package_furniture': 'Ba meubles',
+    'delivery.package_equipment': 'Matériel',
+    'delivery.package_other': 'Mosusu',
+    'delivery.name_min_length': 'Nkombo esengeli ezala na moins 2 caractères',
+    'delivery.name_max_length': 'Nkombo ezali molai mingi',
+    'delivery.phone_invalid_format': 'Format invalide. Ndakisa: +243123456789 ou 0123456789',
+    'delivery.invalid_address': '⚠️ Adresse invalide',
+    'delivery.select_valid_address': 'Pona adresse moko na ba coordonnées ya malamu',
+    'delivery.area_not_covered': 'Zone ezalami te',
+    'delivery.outside_service_area': 'Adresse oyo ezali libánda ya {city}. Yeba ete ozali na zone ya service.',
+
+    // Rental
+    'rental.title': 'Kwenda Location',
+    'rental.subtitle': 'Ba véhicules premium',
+    'rental.all_vehicles': 'Nyonso ({count})',
+    'rental.no_vehicles': 'Ba véhicules ezali te',
+    'rental.no_vehicles_desc': 'Ba véhicules ezali te na {city} na catégorie oyo lelo.',
+    'rental.available': 'Ezali',
+    'rental.seats': 'ba places',
+    'rental.insured': 'Assuré',
+    'rental.per_hour': 'Na heure',
+    'rental.per_day': 'Na mokolo',
+    'rental.book_button': 'Réserver',
+
+    // Food
+    'food.added_to_cart': '{product} ebakisami na panier',
+    'food.order_success': 'Commande etyami malamu!',
+    'food.order_number': 'Numéro ya commande: #{number}',
+    'food.order_error': 'Erreur na commande',
+    'food.please_retry': 'Meká lisusu'
   },
   
   lua: {
@@ -1998,7 +2082,91 @@ export const translations = {
     // Client Navigation
     'client.nav.home': 'Muetu',
     'client.nav.activity': 'Bisalu',
-    'client.nav.account': 'Kôntu'
+    'client.nav.account': 'Kôntu',
+
+    // Wallet
+    'wallet.available_balance': 'Mbimba yidiaka',
+    'wallet.bonus_balance': 'Mbimba wa cadeau:',
+    'wallet.convert_points_info': 'Bongola ba points webe mu kubola bonus',
+    'wallet.recent_transactions': 'Ba transactions wa sika',
+
+    // Lottery
+    'lottery.title': '✨ Kwenda Tombola',
+    'lottery.subtitle': 'Kata ne wina!',
+    'lottery.cards': 'Ba cartes',
+    'lottery.wins': 'Ba gains',
+    'lottery.guide': 'Guide',
+    'lottery.how_to_win': 'Malu gani wakukwasha ba cartes?',
+    'lottery.transport': 'Transport',
+    'lottery.one_card': '1 carte',
+    'lottery.delivery': 'Livraison',
+    'lottery.two_cards': '2 ba cartes',
+    'lottery.marketplace': 'Marketplace',
+    'lottery.one_to_three_cards': '1-3 ba cartes',
+    'lottery.referral': 'Parrainage',
+    'lottery.five_cards': '5 ba cartes',
+    'lottery.popular': 'Populaire',
+    'lottery.guarantee_system': 'Système wa Garantie',
+    'lottery.guarantee_desc': 'Mukataka mingi, ba chances webe bidikaba mingi! Garantie wa ba gains wa talo nsima wa ba cartes ebele wa commune.',
+    'lottery.coming_soon': 'Lukafika',
+
+    // Home
+    'home.popular_badge': 'Populaire',
+    'home.coming_soon_badge': 'Lukafika',
+
+    // Transport
+    'transport.map_centered': '📍 Carte lucentrami na {city}',
+    'transport.current_position': 'Busatshi bua lelu ({lat}, {lng})',
+    'transport.position_detected_title': 'Busatshi bua ntonjibue',
+    'transport.position_set_as_pickup': 'Busatshi bua ndi bua lelu bua definishikuishè lokola busatshi bua kutangila',
+    'transport.enter_pickup_manually': 'Kena na maboko busatshi bua kutangila',
+    'transport.select_addresses': 'Somena ba adresses wa kutangila ne wa kukende',
+    'transport.pickup_location_set': 'Busatshi bua kutangila bua definishikuishè',
+    'transport.destination_set': 'Busatshi bua kukende bua definishikuishè',
+
+    // Promo
+    'promo.code_applied_success': 'Code promo lusebensewe!',
+    'promo.discount_applied_desc': 'Réduction wa {amount} CDF lusebensewe na voyage welu',
+
+    // Delivery
+    'delivery.flash_desc': 'Livraison rapide (1-2h)',
+    'delivery.flex_desc': 'Livraison standard (2-4h)',
+    'delivery.maxicharge_desc': 'Colis munene (4-6h)',
+    'delivery.package_documents': 'Ba documents',
+    'delivery.package_electronics': 'Électronique',
+    'delivery.package_clothes': 'Bilamba',
+    'delivery.package_food': 'Dya',
+    'delivery.package_medicines': 'Nkisi',
+    'delivery.package_furniture': 'Ba meubles',
+    'delivery.package_equipment': 'Matériel',
+    'delivery.package_other': 'Dimbue',
+    'delivery.name_min_length': 'Ditshi disengele diba ne moins 2 caractères',
+    'delivery.name_max_length': 'Ditshi dileba molai mingi',
+    'delivery.phone_invalid_format': 'Format invalide. Ndakisa: +243123456789 ou 0123456789',
+    'delivery.invalid_address': '⚠️ Adresse invalide',
+    'delivery.select_valid_address': 'Somena adresse mukwendi ne ba coordonnées wa malamu',
+    'delivery.area_not_covered': 'Zone lusangulukue te',
+    'delivery.outside_service_area': 'Adresse welu udi libánda wa {city}. Manya udi ku zone wa service.',
+
+    // Rental
+    'rental.title': 'Kwenda Location',
+    'rental.subtitle': 'Ba véhicules premium',
+    'rental.all_vehicles': 'Nyonso ({count})',
+    'rental.no_vehicles': 'Ba véhicules bidiaka te',
+    'rental.no_vehicles_desc': 'Ba véhicules bidiaka te ku {city} ku catégorie welu lelu.',
+    'rental.available': 'Udiaka',
+    'rental.seats': 'ba places',
+    'rental.insured': 'Assuré',
+    'rental.per_hour': 'Ku heure',
+    'rental.per_day': 'Ku diba',
+    'rental.book_button': 'Réserver',
+
+    // Food
+    'food.added_to_cart': '{product} lubakishikuishè ku panier',
+    'food.order_success': 'Commande lubikishe malamu!',
+    'food.order_number': 'Numéro wa commande: #{number}',
+    'food.order_error': 'Erreur ku commande',
+    'food.please_retry': 'Meká dimue'
   },
   
   sw: {
@@ -2924,7 +3092,85 @@ export const translations = {
     'city.kinshasa': 'Kinshasa',
     'city.lubumbashi': 'Lubumbashi', 
     'city.kolwezi': 'Kolwezi',
-    'city.abidjan': 'Abidjan'
+    'city.abidjan': 'Abidjan',
+
+    // Wallet - Additional keys
+    'wallet.bonus_balance': 'Salio la Zawadi:',
+    'wallet.convert_points_info': 'Badilisha pointi zako ili kupata zawadi',
+    'wallet.recent_transactions': 'Shughuli za hivi karibuni',
+
+    // Lottery - Additional keys
+    'lottery.cards': 'Kadi',
+    'lottery.wins': 'Ushindi',
+    'lottery.guide': 'Mwongozo',
+    'lottery.how_to_win': 'Jinsi ya kushinda kadi?',
+    'lottery.transport': 'Usafiri',
+    'lottery.one_card': 'Kadi 1',
+    'lottery.two_cards': 'Kadi 2',
+    'lottery.one_to_three_cards': 'Kadi 1-3',
+    'lottery.referral': 'Rufaa',
+    'lottery.five_cards': 'Kadi 5',
+    'lottery.popular': 'Maarufu',
+    'lottery.guarantee_system': 'Mfumo wa Dhamana',
+    'lottery.guarantee_desc': 'Unavyoendelea kwaruza, nafasi zako zinaongezeka! Dhamana ya ushindi nadiri baada ya kadi kadhaa za kawaida.',
+
+    // Home - Additional keys
+    'home.popular_badge': 'Maarufu',
+    'home.coming_soon_badge': 'Inakuja',
+
+    // Transport - Additional keys
+    'transport.map_centered': '📍 Ramani imewekwa katikati ya {city}',
+    'transport.current_position': 'Nafasi ya sasa ({lat}, {lng})',
+    'transport.position_detected_title': 'Nafasi imegunduliwa',
+    'transport.position_set_as_pickup': 'Nafasi yako ya sasa imewekwa kama mahali pa kuchukua',
+    'transport.enter_pickup_manually': 'Tafadhali weka mahali pako pa kuchukua kwa mkono',
+    'transport.select_addresses': 'Tafadhali chagua anwani za kuchukua na malengo',
+    'transport.pickup_location_set': 'Mahali pa kuchukua pamewekwa',
+    'transport.destination_set': 'Malengo yamewekwa',
+
+    // Promo - Additional keys
+    'promo.code_applied_success': 'Msimbo wa promosheni umetumika!',
+    'promo.discount_applied_desc': 'Punguzo la {amount} CDF limetumika kwenye safari hii',
+
+    // Delivery - Additional keys  
+    'delivery.flash_desc': 'Utoaji wa haraka (saa 1-2)',
+    'delivery.flex_desc': 'Utoaji wa kawaida (saa 2-4)',
+    'delivery.maxicharge_desc': 'Kifurushi kikubwa (saa 4-6)',
+    'delivery.package_documents': 'Hati',
+    'delivery.package_electronics': 'Elektroniki',
+    'delivery.package_clothes': 'Nguo',
+    'delivery.package_food': 'Chakula',
+    'delivery.package_medicines': 'Dawa',
+    'delivery.package_furniture': 'Samani',
+    'delivery.package_equipment': 'Vifaa',
+    'delivery.package_other': 'Nyingine',
+    'delivery.name_min_length': 'Jina lazima liwe na herufi angalau 2',
+    'delivery.name_max_length': 'Jina ni refu sana',
+    'delivery.phone_invalid_format': 'Muundo si sahihi. Mfano: +243123456789 au 0123456789',
+    'delivery.invalid_address': '⚠️ Anwani si sahihi',
+    'delivery.select_valid_address': 'Tafadhali chagua anwani yenye kuratibu sahihi',
+    'delivery.area_not_covered': 'Eneo halijafunikwa',
+    'delivery.outside_service_area': 'Anwani hii iko nje ya {city}. Hakikisha uko katika eneo la huduma.',
+
+    // Rental - Additional keys
+    'rental.title': 'Kwenda Ukodishaji',
+    'rental.subtitle': 'Magari ya hali ya juu',
+    'rental.all_vehicles': 'Yote ({count})',
+    'rental.no_vehicles': 'Hakuna magari yanapatikana',
+    'rental.no_vehicles_desc': 'Hakuna magari yanapatikana {city} katika kategoria hii kwa sasa.',
+    'rental.available': 'Inapatikana',
+    'rental.seats': 'viti',
+    'rental.insured': 'Imebeba bima',
+    'rental.per_hour': 'Kwa saa',
+    'rental.per_day': 'Kwa siku',
+    'rental.book_button': 'Hifadhi',
+
+    // Food - Additional keys
+    'food.added_to_cart': '{product} imeongezwa kwenye kikapu',
+    'food.order_success': 'Agizo limewekwa kwa mafanikio!',
+    'food.order_number': 'Nambari ya agizo: #{number}',
+    'food.order_error': 'Hitilafu katika kuweka agizo',
+    'food.please_retry': 'Tafadhali jaribu tena'
   }
 };
 
