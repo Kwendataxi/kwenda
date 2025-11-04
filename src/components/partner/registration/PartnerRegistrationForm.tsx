@@ -116,11 +116,18 @@ export const PartnerRegistrationForm = () => {
       const result = await registerPartner(registrationData);
 
       if (result.success) {
-        toast.success('Inscription réussie !', {
-          description: result.emailConfirmationRequired 
-            ? 'Vérifiez votre email pour activer votre compte'
-            : 'Votre demande est en cours de traitement'
-        });
+        // Message personnalisé selon le cas
+        if ((result as any).existingUser) {
+          toast.success('Profil partenaire créé avec succès !', {
+            description: 'Vous pouvez maintenant accéder à votre espace partenaire'
+          });
+        } else {
+          toast.success('Inscription réussie !', {
+            description: result.emailConfirmationRequired 
+              ? 'Vérifiez votre email pour activer votre compte'
+              : 'Votre demande est en cours de traitement'
+          });
+        }
         
         // Redirection après 2 secondes
         setTimeout(() => {

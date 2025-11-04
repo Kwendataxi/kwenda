@@ -47,13 +47,13 @@ export const usePartnerRegistrationSecure = () => {
           name: error.name
         });
         
-        // ✅ AMÉLIORATION : Afficher message explicite pour utilisateur existant
-        if (error.message?.includes('already registered') || error.status === 422) {
-          console.log('⚠️ User already exists with this email');
-          throw new Error('EXISTING_USER_DETECTED');
-        }
-        
-        throw new Error(error.message || 'Erreur lors de l\'inscription du partenaire');
+      // ✅ AMÉLIORATION : Afficher message explicite pour utilisateur existant
+      if (error.message?.includes('already registered') || error.status === 422) {
+        console.log('⚠️ User already exists with this email');
+        throw new Error('EXISTING_USER_DETECTED');
+      }
+      
+      throw new Error(error.message || 'Erreur lors de l\'inscription du partenaire');
       }
 
       // Check if the registration was successful
@@ -147,14 +147,92 @@ export const usePartnerRegistrationSecure = () => {
       console.error('Partner registration error:', error);
       console.error('Error stack:', error.stack);
       
-      // ✅ Gestion spéciale pour utilisateur existant
+      // ✅ SOLUTION 1 : Gestion utilisateur existant avec création de profil partenaire
       if (error.message === 'EXISTING_USER_DETECTED') {
-        return { 
-          success: false, 
-          error: 'EXISTING_USER', 
-          email: data.contact_email,
-          registrationData: data
-        };
+        console.log('🔄 [PARTNER REG] Existing user detected, attempting sign-in:', data.contact_email);
+        
+        try {
+          // Étape 1 : Connexion avec les credentials fournis
+          const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+            email: data.contact_email,
+            password: data.password
+          });
+
+          if (loginError || !loginData.user) {
+            console.error('❌ Login failed for existing user:', loginError);
+            toast.error('Impossible de se connecter. Vérifiez votre mot de passe.');
+            return { success: false, error: 'AUTH_FAILED' };
+          }
+
+          console.log('✅ [PARTNER REG] Sign-in successful, checking for partner profile...');
+
+          // Étape 2 : Vérifier si un profil partenaire existe déjà
+          const { data: existingPartner, error: checkError } = await supabase
+            .from('partenaires')
+            .select('id')
+            .eq('user_id', loginData.user.id)
+            .maybeSingle();
+
+          if (existingPartner) {
+            console.log('⚠️ Partner profile already exists');
+            toast.error('Vous êtes déjà inscrit comme partenaire.');
+            return { success: false, error: 'PARTNER_ALREADY_EXISTS' };
+          }
+
+          console.log('📝 [PARTNER REG] No partner profile found, creating one...');
+
+          // Étape 3 : Créer le profil partenaire pour l'utilisateur existant
+          const { data: rpcResult, error: rpcError } = await supabase.rpc(
+            'create_partner_profile_secure',
+            {
+              p_user_id: loginData.user.id,
+              p_email: data.contact_email,
+              p_company_name: data.company_name,
+              p_phone_number: data.phone,
+              p_business_type: data.business_type,
+              p_service_areas: data.service_areas
+            }
+          ) as { data: { success: boolean; error?: string; partner_id?: string } | null; error: any };
+
+          if (rpcError || (rpcResult && !rpcResult.success)) {
+            console.error('❌ Partner profile creation failed:', rpcError || rpcResult?.error);
+            toast.error('Erreur lors de la création du profil partenaire');
+            return { success: false, error: 'PROFILE_CREATION_FAILED' };
+          }
+
+          console.log('✅ [PARTNER REG] Partner profile created successfully');
+
+          // Notification admin (non-bloquante)
+          try {
+            await supabase.functions.invoke('smart-notification-dispatcher', {
+              body: {
+                type: 'partner_registration',
+                data: {
+                  partner_name: data.company_name,
+                  business_type: data.business_type,
+                  service_areas: data.service_areas,
+                  email: data.contact_email,
+                  user_id: loginData.user.id
+                }
+              }
+            });
+            console.log('📧 Admin notification sent');
+          } catch (notifError) {
+            console.warn('⚠️ Admin notification failed:', notifError);
+          }
+
+          toast.success('Profil partenaire créé avec succès !');
+          return { 
+            success: true, 
+            user: loginData.user, 
+            existingUser: true 
+          };
+
+        } catch (innerError: any) {
+          console.error('❌ Error handling existing user:', innerError);
+          toast.error('Erreur lors de la création du profil partenaire');
+          return { success: false, error: innerError.message || 'UNKNOWN_ERROR' };
+        }
       }
       
       let errorMessage = 'Erreur lors de l\'inscription';
