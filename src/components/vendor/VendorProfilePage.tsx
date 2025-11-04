@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
-  Store, Settings, FileText, TrendingUp, 
+  Store, Settings, TrendingUp, 
   LogOut, Users, Package, DollarSign, BarChart3,
   ShoppingBag, Bell, Shield, Award
 } from 'lucide-react';
@@ -15,7 +15,6 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { VendorProfileHeader } from './VendorProfileHeader';
 import { VendorStatsCards } from './VendorStatsCards';
 import { VendorShopInfoCard } from './VendorShopInfoCard';
-import { VendorDocuments } from './VendorDocuments';
 import { VendorSettings } from './VendorSettings';
 import { VendorSalesHistory } from './VendorSalesHistory';
 import { VendorEscrowManager } from './VendorEscrowManager';
@@ -34,7 +33,6 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [documentsOpen, setDocumentsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [salesHistoryOpen, setSalesHistoryOpen] = useState(false);
   const [escrowOpen, setEscrowOpen] = useState(false);
@@ -157,12 +155,6 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
           onClick: () => setSettingsOpen(true)
         },
         { 
-          icon: FileText, 
-          label: "Documents légaux",
-          description: "Certificats et licences",
-          onClick: () => setDocumentsOpen(true)
-        },
-        { 
           icon: Bell, 
           label: "Notifications",
           description: "Gérer les alertes",
@@ -270,12 +262,6 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
       </Card>
 
       {/* Dialogs */}
-      <Dialog open={documentsOpen} onOpenChange={setDocumentsOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <VendorDocuments />
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <VendorSettings />
