@@ -439,7 +439,7 @@ const AppContent = () => {
                         <PartnerApp />
                       </ProtectedRoute>
                     } />
-                    <Route path="/partner/register" element={<PublicPartnerRegistration />} />
+                    <Route path="/partner/register" element={<PartnerRegistrationForm />} />
                     <Route path="/partner/dashboard" element={
                       <ProtectedRoute>
                         <PartnerDashboard />
