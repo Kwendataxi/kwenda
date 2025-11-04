@@ -12,6 +12,7 @@ import { useCart } from '@/context/CartContext';
 import { useProductFavorites } from '@/hooks/useProductFavorites';
 import { ShareMetaTags } from '@/components/seo/ShareMetaTags';
 import { getVendorShopUrl } from '@/config/appUrl';
+import { validateVendorIdOrRedirect } from '@/utils/vendorValidation';
 
 interface VendorProfile {
   id: string;
@@ -67,9 +68,13 @@ const VendorShop: React.FC = () => {
 
   useEffect(() => {
     if (vendorId) {
+      // Validation UUID avant chargement
+      if (!validateVendorIdOrRedirect(vendorId, navigate)) {
+        return;
+      }
       loadVendorData();
     }
-  }, [vendorId]);
+  }, [vendorId, navigate]);
 
   const loadVendorData = async () => {
     setLoading(true);
@@ -90,10 +95,11 @@ const VendorShop: React.FC = () => {
           .single();
 
         if (fallbackError) {
+          console.error('[VendorShop] Vendor not found:', { vendorId, error: fallbackError });
           toast({
             variant: 'destructive',
-            title: 'Erreur',
-            description: 'Boutique introuvable.'
+            title: '🏪 Boutique introuvable',
+            description: 'Cette boutique n\'existe pas ou a été supprimée.'
           });
           navigate('/marketplace');
           return;
@@ -476,7 +482,7 @@ const VendorShop: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
           <VendorShopShareButtons
-            vendorId={profile.id}
+            vendorId={profile.user_id}
             vendorName={profile.shop_name}
             productCount={products.length}
             rating={profile.average_rating}

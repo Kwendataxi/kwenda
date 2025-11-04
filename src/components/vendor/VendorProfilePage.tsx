@@ -203,7 +203,7 @@ export const VendorProfilePage = ({ onTabChange }: VendorProfilePageProps) => {
         rating={vendor?.average_rating || 0.0}
         memberSince={vendor?.created_at ? format(new Date(vendor.created_at), 'dd MMMM yyyy', { locale: fr }) : 'Non renseigné'}
         status="active"
-        vendorId={vendor?.id || ''}
+        vendorId={vendor?.user_id || ''}
         onEditClick={() => setShopSettingsOpen(true)}
       />
 
