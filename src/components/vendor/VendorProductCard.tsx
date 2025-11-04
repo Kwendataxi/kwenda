@@ -11,7 +11,7 @@ interface VendorProduct {
   price: number;
   images: string[];
   moderation_status: string;
-  is_active?: boolean;
+  status?: string;
   stock_quantity?: number;
 }
 
@@ -29,7 +29,7 @@ export const VendorProductCard = ({
   onToggleStatus
 }: VendorProductCardProps) => {
   const mainImage = product.images?.[0] || '/placeholder.svg';
-  const isActive = product.is_active ?? true;
+  const isActive = product.status === 'active';
   const stockQuantity = product.stock_quantity || 0;
 
   const formatPrice = (price: number) => {

@@ -154,12 +154,11 @@ export default function VendorAddProduct() {
           category: formData.category,
           condition: formData.condition,
           images: imageUrls,
-          main_image_url: imageUrls[0] || null,
           stock_count: formData.stock_count || 1,
           brand: formData.brand || null,
           specifications: formData.specifications || {},
           moderation_status: 'pending',
-          is_active: false
+          status: 'active'
         })
         .select()
         .single();

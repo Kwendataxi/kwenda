@@ -41,21 +41,17 @@ export const useProductFormValidation = (formData: FormData) => {
     // Validation en temps réel améliorée
     const newErrors: ValidationErrors = {};
     
-    // Titre: 10-150 caractères
+    // Titre: minimum 5 caractères, pas de maximum
     if (formData.title) {
-      if (formData.title.length < 10) {
-        newErrors.title = "Minimum 10 caractères";
-      } else if (formData.title.length > 150) {
-        newErrors.title = "Maximum 150 caractères";
+      if (formData.title.length < 5) {
+        newErrors.title = "Minimum 5 caractères";
       }
     }
     
-    // Description: 50-1000 caractères
+    // Description: minimum 20 caractères, pas de maximum
     if (formData.description) {
-      if (formData.description.length < 50) {
-        newErrors.description = "Minimum 50 caractères pour bien décrire le produit";
-      } else if (formData.description.length > 1000) {
-        newErrors.description = "Maximum 1000 caractères";
+      if (formData.description.length < 20) {
+        newErrors.description = "Minimum 20 caractères pour bien décrire le produit";
       }
     }
     

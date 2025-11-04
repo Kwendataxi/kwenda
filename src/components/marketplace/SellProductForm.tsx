@@ -328,26 +328,27 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({
 
                 {/* Description */}
                 <div>
-                  <Label>Description *</Label>
+                  <Label>
+                    <div className="flex items-center justify-between">
+                      <span>Description *</span>
+                      <span className="text-xs text-muted-foreground font-normal">
+                        {formData.description.length} caractères
+                      </span>
+                    </div>
+                  </Label>
                   <Textarea
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
-                    placeholder="Décrivez votre produit en détail (minimum 50 caractères)..."
-                    rows={5}
-                    maxLength={1000}
+                    placeholder="Décrivez votre produit en détail : caractéristiques, état, défauts éventuels, accessoires inclus..."
+                    rows={10}
                     className={cn(
-                      "border-2 transition-colors",
-                      formData.description.length >= 50 ? "border-green-500" : "border-border"
+                      "min-h-[200px] resize-y border-2 transition-colors",
+                      formData.description.length >= 20 ? "border-green-500" : "border-border"
                     )}
                   />
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formData.description.length}/1000 caractères (min. 50)
-                    </p>
-                    {errors.description && (
-                      <p className="text-xs text-destructive mt-1">{errors.description}</p>
-                    )}
-                  </div>
+                  {errors.description && (
+                    <p className="text-xs text-destructive mt-1">{errors.description}</p>
+                  )}
                 </div>
 
                 {/* Prix */}
