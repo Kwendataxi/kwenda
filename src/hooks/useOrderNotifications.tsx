@@ -19,7 +19,7 @@ export const useOrderNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Fetch notifications
+  // ✅ PHASE 3: Optimisé avec limite 20 au lieu de 50
   const fetchNotifications = async () => {
     if (!user) return;
 
@@ -29,7 +29,7 @@ export const useOrderNotifications = () => {
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(20); // ✅ Réduit de 50 à 20
 
       if (error) throw error;
 

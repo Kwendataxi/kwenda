@@ -4,60 +4,57 @@ import { PreloadManager } from '@/services/PreloadManager';
 import { AppReadySignal } from '@/services/AppReadySignal';
 import { AnimationController } from '@/services/AnimationController';
 import { supabase } from '@/integrations/supabase/client';
+import { usePreloadCriticalData } from '@/hooks/usePreloadCriticalData';
 
 interface PWASplashScreenProps {
   onComplete: (session?: any, userRole?: string | null) => void;
 }
 
 /**
- * 🚀 PWA SPLASH SCREEN OPTIMISÉ + PRÉCHARGEMENT
- * Charge session + rôle pendant le splash
- * Transition fluide sans page blanche
+ * 🚀 PWA SPLASH SCREEN OPTIMISÉ + PRÉCHARGEMENT INTELLIGENT
+ * ✅ PHASE 5: Intégration du préchargement pendant le splash
  */
 export const PWASplashScreen = ({ onComplete }: PWASplashScreenProps) => {
   const [show, setShow] = useState(true);
   const [progress, setProgress] = useState(0);
+  
+  // ✅ PHASE 5: Lancer le préchargement des données critiques
+  const preloadStatus = usePreloadCriticalData();
 
   useEffect(() => {
     let progressInterval: NodeJS.Timeout;
     let completionTimeout: NodeJS.Timeout;
-    const minDuration = 500; // ⚡ Réduit à 500ms
-    const maxDuration = 1500; // ⚡ Réduit à 1.5s
+    const minDuration = 500;
+    const maxDuration = 1500;
     const startTime = Date.now();
 
     const tryComplete = (session?: any, userRole?: string | null) => {
       const elapsed = Date.now() - startTime;
       
-      // Respect minDuration
       if (elapsed < minDuration) {
         setTimeout(() => tryComplete(session, userRole), minDuration - elapsed);
         return;
       }
 
       setShow(false);
-      setTimeout(() => onComplete(session, userRole), 200); // ⚡ Réduit à 200ms
+      setTimeout(() => onComplete(session, userRole), 200);
     };
 
-    // Progression simulée
     progressInterval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 95) return prev;
-        return prev + Math.random() * 20; // Plus rapide
+        return prev + Math.random() * 20;
       });
-    }, 100); // Plus fréquent
+    }, 100);
 
-    // 🚀 PRÉCHARGEMENT PARALLÈLE SESSION + RÔLE
     const preloadAppData = async () => {
       try {
-        // 1. Charger les ressources critiques en parallèle
         const [resourcesResult] = await Promise.allSettled([
           PreloadManager.waitForCriticalResources(),
         ]);
 
-        // 2. Charger la session Supabase
         const { data: { session } } = await supabase.auth.getSession();
         
-        // 3. Si connecté, charger le rôle + précharger la route
         let userRole: string | null = null;
         if (session?.user) {
           const [roleResult] = await Promise.allSettled([
@@ -66,14 +63,12 @@ export const PWASplashScreen = ({ onComplete }: PWASplashScreenProps) => {
           
           if (roleResult.status === 'fulfilled' && roleResult.value.data) {
             userRole = roleResult.value.data;
-            
-            // Précharger la route critique
             PreloadManager.preloadCriticalRoutes(userRole);
           }
         }
 
-        // 4. Vérifier AppReadySignal
-        if (AppReadySignal.getIsReady()) {
+        // ✅ PHASE 5: Attendre que le préchargement soit terminé
+        if (preloadStatus.isReady && AppReadySignal.getIsReady()) {
           setProgress(100);
           tryComplete(session, userRole);
         } else {
@@ -90,7 +85,6 @@ export const PWASplashScreen = ({ onComplete }: PWASplashScreenProps) => {
 
     preloadAppData();
 
-    // Timeout maximum
     completionTimeout = setTimeout(() => {
       setProgress(100);
       tryComplete(null, null);
@@ -100,7 +94,7 @@ export const PWASplashScreen = ({ onComplete }: PWASplashScreenProps) => {
       clearInterval(progressInterval);
       clearTimeout(completionTimeout);
     };
-  }, [onComplete]);
+  }, [onComplete, preloadStatus.isReady]);
 
   const isReduced = AnimationController.isReducedMode();
 

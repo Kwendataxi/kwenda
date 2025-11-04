@@ -1,10 +1,12 @@
+import { useMemo } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Promo } from '@/types/promo';
 
+// ✅ PHASE 5: Optimisé avec useMemo
 export const usePromos = (): Promo[] => {
   const { t } = useLanguage();
   
-  return [
+  return useMemo(() => [
     {
       id: '1',
       title: t('promo.discount_30'),
@@ -59,5 +61,5 @@ export const usePromos = (): Promo[] => {
       cta: t('promo.order'),
       service: 'food'
     }
-  ];
+  ], [t]); // ✅ Dépendance: uniquement t
 };

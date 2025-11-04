@@ -51,19 +51,19 @@ export const useLottery = () => {
   const [loading, setLoading] = useState(false);
   const [myWins, setMyWins] = useState<LotteryWin[]>([]);
 
-  // Charger uniquement les gains (nouveau système scratch cards)
+  // ✅ PHASE 2: Optimisé avec limite 10 au lieu de 50
   const loadLotteryData = async () => {
     if (!user) return;
     
     setLoading(true);
     try {
-      // Charger les gains de l'utilisateur
+      // Charger uniquement les 10 derniers gains
       const { data: winsData, error: winsError } = await supabase
         .from('lottery_wins')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(10); // ✅ Réduit de 50 à 10
 
       if (winsError) throw winsError;
       setMyWins(winsData || []);

@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ModernHeader } from './ModernHeader';
-import { ServiceGrid } from './ServiceGrid';
-import { PromoSlider } from './PromoSlider';
 import { ModernBottomNavigation } from './ModernBottomNavigation';
 import { HomeTrendsSheet } from './HomeTrendsSheet';
 import { HomeRecentPlacesSheet } from './HomeRecentPlacesSheet';
@@ -11,6 +9,11 @@ import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useServiceNotifications } from '@/hooks/useServiceNotifications';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// ✅ PHASE 4: Lazy loading des composants lourds
+const PromoSlider = lazy(() => import('./PromoSliderOptimized').then(m => ({ default: m.PromoSlider })));
+const ServiceGrid = lazy(() => import('./ServiceGrid').then(m => ({ default: m.ServiceGrid })));
 
 interface ModernHomeScreenProps {
   onServiceSelect: (service: string) => void;
@@ -18,7 +21,8 @@ interface ModernHomeScreenProps {
   onNavigateToTestData?: () => void;
 }
 
-export const ModernHomeScreen = ({
+// ✅ PHASE 4: Component optimisé avec React.memo
+export const ModernHomeScreen = memo(({
   onServiceSelect,
   onSearch,
   onNavigateToTestData
@@ -32,7 +36,6 @@ export const ModernHomeScreen = ({
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
-    // Navigation logic based on selected tab
     switch (tab) {
       case 'activity':
         onServiceSelect('history');
@@ -41,12 +44,10 @@ export const ModernHomeScreen = ({
         onServiceSelect('profil');
         break;
       default:
-        // Stay on home
         break;
     }
   };
 
-  // Sécurité : Rediriger les utilisateurs non-clients
   const { user } = useAuth();
   const { primaryRole, loading: roleLoading } = useUserRoles();
   const navigate = useNavigate();
@@ -59,10 +60,8 @@ export const ModernHomeScreen = ({
 
   return (
     <div className="h-full flex flex-col bg-background" style={{ scrollBehavior: 'smooth' }}>
-      {/* Header */}
       <ModernHeader />
       
-      {/* Contenu scrollable */}
       <div 
         className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
         style={{ 
@@ -71,38 +70,50 @@ export const ModernHomeScreen = ({
           scrollBehavior: 'smooth'
         } as React.CSSProperties}
       >
-        {/* Espace pour header fixe + marge visuelle */}
         <div className="pt-20">
-          {/* Subtle Background Elements with parallax */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-20 left-10 w-16 h-16 bg-primary/3 rounded-full blur-3xl animate-float" />
             <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
           </div>
           
           <div className="relative space-y-6 pb-6">
-            {/* Slider publicitaire moderne */}
+            {/* ✅ PHASE 4: Lazy loading PromoSlider avec Suspense */}
             <div className="px-4">
-              <PromoSlider onServiceSelect={onServiceSelect} />
+              <Suspense fallback={
+                <div className="w-full h-[160px] bg-muted/50 rounded-2xl animate-pulse" />
+              }>
+                <PromoSlider onServiceSelect={onServiceSelect} />
+              </Suspense>
             </div>
             
-            {/* Services compacts */}
+            {/* ✅ PHASE 4: Lazy loading ServiceGrid avec Suspense */}
             <div className="px-4">
-              <ServiceGrid 
-                onServiceSelect={(service) => {
-                  if (service === 'more') {
-                    setMoreServicesOpen(true);
-                  } else {
-                    onServiceSelect(service);
-                  }
-                }} 
-                serviceNotifications={serviceNotifications}
-              />
+              <Suspense fallback={
+                <div className="grid grid-cols-3 gap-x-6 gap-y-8">
+                  {[1, 2, 3, 4, 5, 6].map(i => (
+                    <div key={i} className="flex flex-col items-center gap-3">
+                      <Skeleton className="w-20 h-20 rounded-[32px]" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  ))}
+                </div>
+              }>
+                <ServiceGrid 
+                  onServiceSelect={(service) => {
+                    if (service === 'more') {
+                      setMoreServicesOpen(true);
+                    } else {
+                      onServiceSelect(service);
+                    }
+                  }} 
+                  serviceNotifications={serviceNotifications}
+                />
+              </Suspense>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Popup Plus de Services */}
       <MoreServicesSheet
         isOpen={moreServicesOpen}
         onClose={() => setMoreServicesOpen(false)}
@@ -110,4 +121,6 @@ export const ModernHomeScreen = ({
       />
     </div>
   );
-};
+});
+
+ModernHomeScreen.displayName = 'ModernHomeScreen';

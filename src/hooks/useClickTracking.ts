@@ -40,11 +40,24 @@ const getElementText = (element: HTMLElement): string => {
   return text.trim().substring(0, 100);
 };
 
+// ✅ PHASE 1: Filtrer clics invalides avant envoi
 const sendClickBatch = async () => {
   if (clickBuffer.length === 0) return;
 
-  const batch = [...clickBuffer];
-  clickBuffer = []; // Reset buffer
+  const validClicks = clickBuffer.filter(click => 
+    typeof click.x === 'number' && 
+    typeof click.y === 'number' && 
+    !isNaN(click.x) && 
+    !isNaN(click.y)
+  );
+
+  if (validClicks.length === 0) {
+    clickBuffer = [];
+    return;
+  }
+
+  const batch = [...validClicks];
+  clickBuffer = [];
 
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -60,12 +73,8 @@ const sendClickBatch = async () => {
       .insert(records);
 
     if (error) throw error;
-    
-    console.log(`📊 ${batch.length} clics envoyés au heatmap`);
   } catch (error) {
     console.error('Erreur envoi clics heatmap:', error);
-    // Remettre dans le buffer en cas d'erreur
-    clickBuffer = [...batch, ...clickBuffer];
   }
 };
 
@@ -84,6 +93,14 @@ export const useClickTracking = (options: { enabled?: boolean; ignoredSelectors?
     const target = e.target as HTMLElement;
     if (!target || shouldIgnoreElement(target)) return;
 
+    // ✅ PHASE 1: Validation coordonnées
+    const x = e.clientX;
+    const y = e.clientY;
+    
+    if (typeof x !== 'number' || typeof y !== 'number' || isNaN(x) || isNaN(y)) {
+      return;
+    }
+
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
@@ -93,10 +110,10 @@ export const useClickTracking = (options: { enabled?: boolean; ignoredSelectors?
       element_id: target.id || undefined,
       element_class: target.className || undefined,
       element_text: getElementText(target),
-      x: e.clientX,
-      y: e.clientY,
-      relative_x: Math.round((e.clientX / viewportWidth) * 10000) / 100, // 2 décimales
-      relative_y: Math.round((e.clientY / viewportHeight) * 10000) / 100,
+      x,
+      y,
+      relative_x: Math.round((x / viewportWidth) * 10000) / 100,
+      relative_y: Math.round((y / viewportHeight) * 10000) / 100,
       viewport_width: viewportWidth,
       viewport_height: viewportHeight,
       device_type: detectDeviceType()
@@ -104,7 +121,6 @@ export const useClickTracking = (options: { enabled?: boolean; ignoredSelectors?
 
     clickBuffer.push(clickData);
 
-    // Envoyer immédiatement si buffer plein
     if (clickBuffer.length >= BATCH_SIZE) {
       sendClickBatch();
     }
