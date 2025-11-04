@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { getSharedTripUrl } from '@/config/appUrl';
 
 export interface TripShareData {
   tripId: string;
@@ -70,7 +71,7 @@ class TripSharingService {
       if (error) throw error;
 
       // Générer les URLs
-      const shareUrl = `${window.location.origin}/shared-trip/${shareId}`;
+      const shareUrl = getSharedTripUrl(shareId);
       const googleMapsUrl = this.generateGoogleMapsUrl(tripData);
 
       // Logger l'événement de partage

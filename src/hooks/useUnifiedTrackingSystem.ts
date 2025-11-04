@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getTrackingUrl } from '@/config/appUrl';
 
 interface TrackingData {
   id: string;
@@ -231,7 +232,7 @@ export const useUnifiedTrackingSystem = (options: {
       }
     },
     shareLocation: () => {
-      const url = `${window.location.origin}/tracking/${options.trackingType}/${options.trackingId}`;
+      const url = getTrackingUrl(options.trackingType, options.trackingId);
       navigator.share?.({ url }) || navigator.clipboard.writeText(url);
       toast.success('Lien de suivi copié !');
     },

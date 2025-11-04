@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Share2, MessageCircle, Facebook, Copy, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { getProductUrl } from '@/config/appUrl';
 
 interface ProductShareButtonsProps {
   productId: string;
@@ -26,7 +27,7 @@ export const ProductShareButtons: React.FC<ProductShareButtonsProps> = ({
   const { toast } = useToast();
   const [copied, setCopied] = React.useState(false);
 
-  const productUrl = `${window.location.origin}/marketplace/product/${productId}`;
+  const productUrl = getProductUrl(productId);
   
   const shareMessage = `🛍️ Découvre ce produit sur Kwenda Shop !\n\n${productTitle}\n💰 ${productPrice.toLocaleString()} CDF\n📍 Vendeur: ${sellerName}\n\n👉 ${productUrl}`;
 

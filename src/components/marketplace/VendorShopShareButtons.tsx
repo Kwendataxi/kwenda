@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Share2, MessageCircle, Facebook, Copy, Check, Mail, MessageSquare, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getVendorShopUrl } from '@/config/appUrl';
 
 interface VendorShopShareButtonsProps {
   vendorId: string;
@@ -20,7 +21,7 @@ export const VendorShopShareButtons: React.FC<VendorShopShareButtonsProps> = ({
   const [copied, setCopied] = React.useState(false);
   const [messageCopied, setMessageCopied] = React.useState(false);
 
-  const shopUrl = `${window.location.origin}/marketplace/shop/${vendorId}`;
+  const shopUrl = getVendorShopUrl(vendorId);
   
   const shareMessage = `🏪 Découvre ma boutique sur Kwenda Shop !\n\n📍 ${vendorName}\n🛍️ ${productCount} produits disponibles\n⭐ Note ${rating.toFixed(1)}/5\n📍 Kinshasa, RDC\n\nVisite ma boutique : ${shopUrl}`;
   
