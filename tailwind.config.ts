@@ -299,6 +299,16 @@ export default {
 					'100%': { 
 						opacity: '1'
 					}
+				},
+				'pulse-slow': {
+					'0%, 100%': { 
+						opacity: '1',
+						transform: 'scale(1)'
+					},
+					'50%': { 
+						opacity: '0.85',
+						transform: 'scale(1.05)'
+					}
 				}
 			},
 			animation: {
@@ -317,7 +327,8 @@ export default {
 				'ripple': 'ripple 0.6s ease-out',
 				'pulse-soft': 'pulse-soft 2s ease-in-out infinite',
 				'slide-in-up': 'slide-in-up 0.4s ease-out',
-				'fade-in': 'fade-in 0.3s ease-out'
+				'fade-in': 'fade-in 0.3s ease-out',
+				'pulse-slow': 'pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
 			}
 		}
 	},

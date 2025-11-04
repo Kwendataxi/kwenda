@@ -8,6 +8,7 @@ interface NavItem {
   icon: React.ElementType;
   label: string;
   badge?: number;
+  badgeVariant?: 'default' | 'destructive' | 'warning';
 }
 
 interface VendorStats {
@@ -32,8 +33,20 @@ export const VendorBottomNav: React.FC<VendorBottomNavProps> = ({
 }) => {
   const navItems: NavItem[] = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Accueil' },
-    { id: 'shop', icon: Store, label: 'Produits', badge: stats.pendingProducts },
-    { id: 'orders', icon: ShoppingBag, label: 'Commandes', badge: stats.pendingOrders },
+    { 
+      id: 'shop', 
+      icon: Store, 
+      label: 'Produits', 
+      badge: stats.pendingProducts,
+      badgeVariant: 'warning'
+    },
+    { 
+      id: 'orders', 
+      icon: ShoppingBag, 
+      label: 'Commandes', 
+      badge: stats.pendingOrders,
+      badgeVariant: 'destructive'
+    },
     { id: 'subscription', icon: CreditCard, label: 'Abo' },
     { id: 'profile', icon: User, label: 'Profil' },
   ];
@@ -62,18 +75,24 @@ export const VendorBottomNav: React.FC<VendorBottomNavProps> = ({
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-6 w-6" />
                 {item.badge && item.badge > 0 && (
                   <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-2 -right-2"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                    className="absolute -top-1 -right-1"
                   >
                     <Badge 
-                      variant="destructive" 
-                      className="h-4 w-4 p-0 text-[10px] flex items-center justify-center"
+                      variant={item.badgeVariant === 'warning' ? 'default' : 'destructive'}
+                      className={`h-4 w-4 min-w-[16px] p-0 text-[9px] font-bold flex items-center justify-center rounded-full ring-2 ring-background shadow-sm ${
+                        item.badgeVariant === 'warning' ? 'bg-amber-500 hover:bg-amber-600 text-white border-transparent' : ''
+                      } ${
+                        item.badge > 0 ? 'animate-pulse-slow' : ''
+                      }`}
                     >
-                      {item.badge > 9 ? '9+' : item.badge}
+                      {item.badge > 99 ? '99+' : item.badge}
                     </Badge>
                   </motion.div>
                 )}
