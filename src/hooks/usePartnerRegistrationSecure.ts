@@ -27,12 +27,19 @@ export const usePartnerRegistrationSecure = () => {
         address: data.address || 'Adresse non spécifiée'
       });
 
-      // Créer le compte Auth sans métadonnées (pas de trigger)
+      // Créer le compte Auth avec métadonnées (alignement driver/client)
       const { data: authResult, error } = await supabase.auth.signUp({
         email: data.contact_email,
         password: data.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/partner/auth`
+          emailRedirectTo: `${window.location.origin}/partner/auth`,
+          data: {
+            user_type: 'partner',
+            display_name: data.company_name,
+            phone_number: data.phone,
+            business_type: data.business_type,
+            company_name: data.company_name
+          }
         }
       });
 
@@ -101,7 +108,12 @@ export const usePartnerRegistrationSecure = () => {
         console.log('RPC Error:', rpcError);
 
         if (rpcError) {
-          console.error('❌ RPC Error:', rpcError);
+          console.error('❌ RPC Error détaillé:', {
+            message: rpcError.message,
+            code: rpcError.code,
+            details: rpcError.details,
+            hint: rpcError.hint
+          });
           throw new Error(rpcError.message || 'Erreur lors de la création du profil partenaire');
         }
 
@@ -199,7 +211,15 @@ export const usePartnerRegistrationSecure = () => {
           ) as { data: { success: boolean; error?: string; partner_id?: string } | null; error: any };
 
           if (rpcError || (rpcResult && !rpcResult.success)) {
-            console.error('❌ Partner profile creation failed:', rpcError || rpcResult?.error);
+            console.error('❌ Partner profile creation failed détaillé:', {
+              rpcError: rpcError ? {
+                message: rpcError.message,
+                code: rpcError.code,
+                details: rpcError.details,
+                hint: rpcError.hint
+              } : null,
+              rpcResult: rpcResult?.error
+            });
             toast.error('Erreur lors de la création du profil partenaire');
             return { success: false, error: 'PROFILE_CREATION_FAILED' };
           }
