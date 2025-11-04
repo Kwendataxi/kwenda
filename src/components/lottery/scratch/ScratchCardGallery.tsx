@@ -103,48 +103,62 @@ export const ScratchCardGallery: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Stats améliorées avec animations */}
-      <div className="grid grid-cols-3 gap-3">
-        <StatsCard
-          icon={<Ticket className="h-6 w-6" />}
-          value={unscratched.length}
-          label="À gratter"
-          color="from-blue-500 to-cyan-500"
-          trend={unscratched.length > 0 ? 'Nouveau!' : undefined}
+    <div className="space-y-4">
+      {/* Stats compactes optimisées */}
+      <div className="grid grid-cols-3 gap-2">
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="lottery-stats-card h-18 relative overflow-hidden bg-gradient-to-br from-blue-500/10 to-cyan-500/10 dark:from-blue-500/5 dark:to-cyan-500/5 rounded-xl p-3 border border-border/50 dark:border-border/30"
         >
           <motion.div
-            className="absolute inset-0 bg-gradient-to-t from-blue-500/20 to-transparent"
-            animate={{ opacity: [0.3, 0.7, 0.3] }}
+            className="absolute inset-0 bg-gradient-to-t from-blue-500/10 to-transparent"
+            animate={{ opacity: [0.3, 0.5, 0.3] }}
             transition={{ duration: 2, repeat: Infinity }}
           />
-        </StatsCard>
+          <div className="relative flex items-center gap-2">
+            <Ticket className="h-5 w-5 text-blue-500" />
+            <div>
+              <div className="text-xl font-bold">{unscratched.length}</div>
+              <div className="text-xs text-muted-foreground">À gratter</div>
+            </div>
+          </div>
+        </motion.div>
         
-        <StatsCard
-          icon={<Trophy className="h-6 w-6" />}
-          value={revealed.length}
-          label="Révélées"
-          color="from-yellow-500 to-orange-500"
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="lottery-stats-card h-18 relative overflow-hidden bg-gradient-to-br from-yellow-500/10 to-orange-500/10 dark:from-yellow-500/5 dark:to-orange-500/5 rounded-xl p-3 border border-border/50 dark:border-border/30"
         >
           <motion.div
-            className="absolute inset-0 bg-gradient-to-t from-yellow-500/20 to-transparent"
-            animate={{ opacity: [0.3, 0.7, 0.3] }}
+            className="absolute inset-0 bg-gradient-to-t from-yellow-500/10 to-transparent"
+            animate={{ opacity: [0.3, 0.5, 0.3] }}
             transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
           />
-        </StatsCard>
+          <div className="relative flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-yellow-500" />
+            <div>
+              <div className="text-xl font-bold">{revealed.length}</div>
+              <div className="text-xs text-muted-foreground">Révélées</div>
+            </div>
+          </div>
+        </motion.div>
         
-        <StatsCard
-          icon={<Gift className="h-6 w-6" />}
-          value={wins.length}
-          label="Total"
-          color="from-green-500 to-emerald-500"
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="lottery-stats-card h-18 relative overflow-hidden bg-gradient-to-br from-green-500/10 to-emerald-500/10 dark:from-green-500/5 dark:to-emerald-500/5 rounded-xl p-3 border border-border/50 dark:border-border/30"
         >
           <motion.div
-            className="absolute inset-0 bg-gradient-to-t from-green-500/20 to-transparent"
-            animate={{ opacity: [0.3, 0.7, 0.3] }}
+            className="absolute inset-0 bg-gradient-to-t from-green-500/10 to-transparent"
+            animate={{ opacity: [0.3, 0.5, 0.3] }}
             transition={{ duration: 2, repeat: Infinity, delay: 1 }}
           />
-        </StatsCard>
+          <div className="relative flex items-center gap-2">
+            <Gift className="h-5 w-5 text-green-500" />
+            <div>
+              <div className="text-xl font-bold">{wins.length}</div>
+              <div className="text-xs text-muted-foreground">Total</div>
+            </div>
+          </div>
+        </motion.div>
       </div>
 
       {/* Tabs */}
@@ -188,14 +202,17 @@ export const ScratchCardGallery: React.FC = () => {
               </AnimatePresence>
             </motion.div>
           ) : (
-            <Card>
+            <Card className="border-dashed border-2 dark:border-muted/50">
               <CardContent className="pt-12 pb-12 text-center">
-                <Ticket className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-muted-foreground">
-                  Aucune carte à gratter pour le moment
-                </p>
+                <motion.div
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Ticket className="h-16 w-16 mx-auto mb-4 text-primary/50" />
+                </motion.div>
+                <p className="text-base font-medium">Aucune carte à gratter</p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Gagnez des tickets en utilisant l'app !
+                  Effectuez des courses pour gagner des tickets !
                 </p>
               </CardContent>
             </Card>
@@ -230,11 +247,17 @@ export const ScratchCardGallery: React.FC = () => {
               </AnimatePresence>
             </motion.div>
           ) : (
-            <Card>
+            <Card className="border-dashed border-2 dark:border-muted/50">
               <CardContent className="pt-12 pb-12 text-center">
-                <Trophy className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-muted-foreground">
-                  Aucune carte révélée
+                <motion.div
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                >
+                  <Trophy className="h-16 w-16 mx-auto mb-4 text-primary/50" />
+                </motion.div>
+                <p className="text-base font-medium">Aucune carte révélée</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Commencez à gratter vos tickets !
                 </p>
               </CardContent>
             </Card>

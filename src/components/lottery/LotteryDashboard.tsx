@@ -1,13 +1,14 @@
-import { Sparkles, Trophy, Gift } from 'lucide-react';
-import '@/styles/lottery.css'; // Lazy-loaded: only when lottery features are accessed
+import { Sparkles, Trophy, Info, Ticket } from 'lucide-react';
+import '@/styles/lottery.css';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScratchCardGallery } from './scratch/ScratchCardGallery';
 import { WinsHistory } from './history/WinsHistory';
 import { CompactLoyaltyWidget } from '@/components/loyalty/CompactLoyaltyWidget';
 import { useLottery } from '@/hooks/useLottery';
 import { motion } from 'framer-motion';
-import { Car, Package, ShoppingCart, Star, Users, Calendar } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface LotteryDashboardProps {
@@ -30,47 +31,86 @@ export const LotteryDashboard = ({ hideHeader = false }: LotteryDashboardProps) 
 
   return (
     <div className="h-full bg-gradient-to-b from-background to-muted/20 flex flex-col">
-      {/* Header compact - Optionnel */}
+      {/* Header moderne avec gradient subtil */}
       {!hideHeader && (
-        <div className="p-2.5 bg-gradient-to-r from-primary via-purple-600 to-pink-500 rounded-b-2xl shadow-lg">
-          <div className="flex items-center justify-between">
+        <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-secondary/5 to-background rounded-b-2xl p-6 border-b border-border/50">
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5"
+            animate={{ opacity: [0.3, 0.5, 0.3] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          />
+          <div className="relative z-10 flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-black text-white drop-shadow-lg">
-                {t('lottery.title')}
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                🎰 Tombola Kwenda
               </h1>
-              <p className="text-white/90 text-xs">{t('lottery.subtitle')}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Grattez vos tickets et gagnez des récompenses !
+              </p>
             </div>
-            <Sparkles className="h-7 w-7 text-white" />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <Info className="h-5 w-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <div className="space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    Comment jouer ?
+                  </h4>
+                  <ul className="text-sm space-y-2 text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500">✓</span>
+                      <span>Gagnez des tickets en utilisant l'app</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500">🎨</span>
+                      <span>Grattez vos cartes pour révéler vos gains</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-yellow-500">💰</span>
+                      <span>Réclamez vos récompenses instantanément</span>
+                    </li>
+                  </ul>
+                  <div className="pt-2 border-t">
+                    <p className="text-xs text-muted-foreground">
+                      <strong>Garantie :</strong> Plus vous jouez, plus vous gagnez des prix rares !
+                    </p>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       )}
 
-      {/* Widget Points ultra-compact */}
+      {/* Widget Points compact */}
       <div className={hideHeader ? "px-3 pt-3 pb-2" : "px-3 py-2"}>
         <CompactLoyaltyWidget />
       </div>
 
-      {/* Navigation 3 onglets */}
+      {/* Navigation simplifiée 2 onglets */}
       <Tabs defaultValue="scratch" className="flex-1 flex flex-col">
-        <div className="flex-shrink-0 bg-background/60 backdrop-blur-xl border-b px-3 py-2">
-          <TabsList className="w-full h-10 p-0.5 bg-muted/50 grid grid-cols-3 rounded-xl">
+        <div className="flex-shrink-0 bg-background/60 dark:bg-background/40 backdrop-blur-xl border-b border-border/50 px-3 py-2">
+          <TabsList className="w-full h-11 p-1 bg-muted/50 dark:bg-muted/20 grid grid-cols-2 rounded-xl">
             <TabsTrigger 
               value="scratch" 
-              className="text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg"
+              className="text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg rounded-lg transition-all"
             >
-              <Sparkles className="h-4 w-4 mr-1" />
-              {t('lottery.cards')}
+              <Ticket className="h-4 w-4 mr-2" />
+              À gratter
             </TabsTrigger>
-            <TabsTrigger value="wins" className="text-sm data-[state=active]:bg-background rounded-lg">
-              <Trophy className="h-4 w-4 mr-1" />
-              {t('lottery.wins')}
+            <TabsTrigger 
+              value="wins" 
+              className="text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-md rounded-lg transition-all"
+            >
+              <Trophy className="h-4 w-4 mr-2" />
+              Historique
               {myWins.length > 0 && (
-                <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-xs">{myWins.length}</Badge>
+                <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">{myWins.length}</Badge>
               )}
-            </TabsTrigger>
-            <TabsTrigger value="how" className="text-sm data-[state=active]:bg-background rounded-lg">
-              <Gift className="h-4 w-4 mr-1" />
-              {t('lottery.guide')}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -82,57 +122,6 @@ export const LotteryDashboard = ({ hideHeader = false }: LotteryDashboardProps) 
 
           <TabsContent value="wins" className="p-3 m-0">
             <WinsHistory />
-          </TabsContent>
-
-          <TabsContent value="how" className="p-3 space-y-2 m-0">
-            {/* Caroussel horizontal compact */}
-            <div className="space-y-1.5">
-              <h3 className="text-sm font-semibold flex items-center gap-1.5">
-                <Gift className="h-3.5 w-3.5 text-primary" />
-                {t('lottery.how_to_win')}
-              </h3>
-              
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
-                <div className="flex-shrink-0 bg-primary/10 border border-primary/20 rounded-lg p-2 min-w-[100px]">
-                  <Car className="h-4 w-4 text-primary mb-0.5" />
-                  <h4 className="font-semibold text-xs">{t('lottery.transport')}</h4>
-                  <p className="text-xs text-muted-foreground">{t('lottery.one_card')}</p>
-                </div>
-                
-                <div className="flex-shrink-0 bg-secondary/10 border border-secondary/20 rounded-lg p-2 min-w-[100px]">
-                  <Package className="h-4 w-4 text-secondary mb-0.5" />
-                  <h4 className="font-semibold text-xs">{t('lottery.delivery')}</h4>
-                  <p className="text-xs text-muted-foreground">{t('lottery.two_cards')}</p>
-                </div>
-                
-                <div className="flex-shrink-0 bg-accent/10 border border-accent/20 rounded-lg p-2 min-w-[100px]">
-                  <ShoppingCart className="h-4 w-4 text-accent mb-0.5" />
-                  <h4 className="font-semibold text-xs">{t('lottery.marketplace')}</h4>
-                  <p className="text-xs text-muted-foreground">{t('lottery.one_to_three_cards')}</p>
-                </div>
-                
-                <div className="flex-shrink-0 bg-green-500/10 border border-green-500/20 rounded-lg p-2 min-w-[100px]">
-                  <Users className="h-4 w-4 text-green-600 mb-0.5" />
-                  <h4 className="font-semibold text-xs">{t('lottery.referral')}</h4>
-                  <p className="text-xs text-muted-foreground">{t('lottery.five_cards')}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Infos systeme pity - Plus compact */}
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-200 rounded-lg p-2.5"
-            >
-              <h4 className="font-semibold text-xs mb-1 flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-purple-600" />
-                {t('lottery.guarantee_system')}
-              </h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {t('lottery.guarantee_desc')}
-              </p>
-            </motion.div>
           </TabsContent>
         </div>
       </Tabs>

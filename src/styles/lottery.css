@@ -83,3 +83,56 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
+
+/* Dark mode optimizations */
+.dark .lottery-card {
+  background: linear-gradient(180deg, 
+    hsl(240 10% 9%) 0%, 
+    hsl(240 10% 7%) 100%
+  );
+  border-color: hsl(240 10% 15%);
+}
+
+.dark .lottery-stats-card {
+  background: linear-gradient(135deg,
+    hsla(var(--primary) / 0.05) 0%,
+    hsla(var(--secondary) / 0.05) 100%
+  );
+  border-color: hsl(240 10% 12%);
+}
+
+/* Light mode subtle */
+.light .lottery-card {
+  background: hsl(0 0% 100%);
+  border-color: hsl(240 9% 89%);
+}
+
+.light .lottery-stats-card {
+  background: linear-gradient(135deg,
+    hsla(var(--primary) / 0.03) 0%,
+    hsla(var(--secondary) / 0.03) 100%
+  );
+}
+
+/* Improve canvas scratch contrast in dark mode */
+.dark .scratch-canvas {
+  filter: brightness(1.1);
+}
+
+/* Glow ring for scratch cards */
+.lottery-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, 
+    transparent 0%, 
+    hsla(var(--primary) / 0.1) 50%, 
+    transparent 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}

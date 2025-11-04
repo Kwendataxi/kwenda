@@ -185,23 +185,24 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({ win, onReveal }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ 
-          scale: 1.05,
-          rotateY: 5,
-          rotateX: 2,
+          scale: 1.03,
           transition: { type: 'spring', stiffness: 300 }
         }}
         transition={{ duration: 0.3 }}
-        style={{
-          transformStyle: 'preserve-3d',
-          perspective: '1000px'
-        }}
+        className="relative"
       >
+        {/* Badge "Nouveau" pour cartes non grattées */}
+        {!isRevealed && scratchPercentage === 0 && (
+          <Badge className="absolute -top-2 -right-2 z-30 bg-primary text-primary-foreground animate-pulse shadow-lg">
+            Nouveau
+          </Badge>
+        )}
+        
         <Card 
-          className="overflow-hidden border-2 relative shadow-2xl"
+          className="lottery-card overflow-hidden border-2 relative shadow-xl rounded-xl"
           style={{ 
             borderColor: config.color,
-            boxShadow: `0 20px 60px ${config.glowColor}, 0 0 40px ${config.glowColor}`,
-            transform: 'translateZ(20px)'
+            boxShadow: `0 10px 40px ${config.glowColor}`,
           }}
         >
           <CardContent className="p-0 relative aspect-[3/2]">
@@ -258,11 +259,21 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({ win, onReveal }) => {
                   </p>
                 </div>
 
-                {/* Progress indicator */}
+                {/* Progress bar améliorée */}
                 {scratchPercentage > 0 && scratchPercentage < 70 && (
-                  <div className="absolute bottom-4 left-4 right-4 z-20">
-                    <div className="bg-background/80 backdrop-blur-sm rounded-full px-3 py-1 text-xs text-center">
-                      {Math.round(scratchPercentage)}% gratté
+                  <div className="absolute bottom-0 left-0 right-0 bg-background/90 dark:bg-background/80 backdrop-blur-md p-3 z-20 border-t border-border/50">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-gradient-to-r from-primary to-secondary"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${scratchPercentage}%` }}
+                          transition={{ duration: 0.3 }}
+                        />
+                      </div>
+                      <span className="text-xs font-semibold min-w-[3rem] text-right">
+                        {Math.round(scratchPercentage)}%
+                      </span>
                     </div>
                   </div>
                 )}

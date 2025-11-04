@@ -83,13 +83,22 @@ export const useLoyaltyPoints = () => {
     try {
       setLoading(true);
       
-      let { data, error } = await supabase
+      // Timeout de 10 secondes pour éviter le blocage
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout loading loyalty points')), 10000)
+      );
+
+      const dataPromise = supabase
         .from('user_loyalty_points')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
+      const { data, error } = await Promise.race([dataPromise, timeoutPromise]) as any;
+
       if (error && error.code === 'PGRST116') {
+        console.log('✨ Création du compte loyalty pour:', user.id);
+        
         // Créer le compte si n'existe pas
         const { data: newData, error: createError } = await supabase
           .from('user_loyalty_points')
@@ -104,10 +113,23 @@ export const useLoyaltyPoints = () => {
           .single();
 
         if (createError) {
-          console.error('❌ Erreur création compte loyalty:', createError);
+          console.error('❌ Erreur création compte loyalty:', {
+            code: createError.code,
+            message: createError.message,
+            details: createError.details
+          });
+          
+          toast({
+            title: "Impossible de créer votre compte de fidélité",
+            description: "Veuillez réessayer ou contactez le support",
+            variant: "destructive"
+          });
           throw createError;
         }
-        data = newData;
+        
+        console.log('✅ Compte loyalty créé avec succès');
+        setLoyaltyData(newData as any);
+        return;
       } else if (error) {
         throw error;
       }
