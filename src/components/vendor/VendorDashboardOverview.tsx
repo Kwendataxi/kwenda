@@ -1,9 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useNavigate } from 'react-router-dom';
-import { Package, Plus, ShoppingBag, DollarSign, Clock, CheckCircle } from 'lucide-react';
+import { Package, Plus, ShoppingBag, DollarSign, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { useVendorStats } from '@/hooks/useVendorStats';
 import { VendorSetupProgress } from './VendorSetupProgress';
+import { StatsCompactCard } from './modern/StatsCompactCard';
 
 interface VendorDashboardOverviewProps {
   onTabChange?: (tab: string) => void;
@@ -29,142 +30,102 @@ export const VendorDashboardOverview = ({ onTabChange }: VendorDashboardOverview
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        {/* KPI Grid Skeleton */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="overflow-hidden">
-              <CardHeader className="pb-2 px-4 pt-4">
-                <div className="h-4 bg-muted/60 rounded w-20 animate-pulse" />
-              </CardHeader>
-              <CardContent className="px-4 pb-4">
-                <div className="h-12 bg-muted/60 rounded w-24 animate-pulse" />
-              </CardContent>
-            </Card>
+      <div className="space-y-3 p-4">
+        {/* KPIs Skeleton */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-20 bg-muted/60 rounded-lg animate-pulse" />
           ))}
         </div>
-        
-        {/* Quick Actions Skeleton */}
-        <div className="flex flex-wrap gap-4">
-          <div className="h-12 w-48 bg-muted/60 rounded animate-pulse" />
-          <div className="h-12 w-44 bg-muted/60 rounded animate-pulse" />
+        {/* Actions Skeleton */}
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+          <div className="h-12 bg-muted/60 rounded animate-pulse" />
+          <div className="h-12 bg-muted/60 rounded animate-pulse" />
         </div>
-        
-        {/* Welcome Card Skeleton */}
-        <Card>
-          <CardHeader>
-            <div className="h-6 w-64 bg-muted/60 rounded animate-pulse" />
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="h-4 w-full bg-muted/60 rounded animate-pulse" />
-            <div className="h-4 w-3/4 bg-muted/60 rounded animate-pulse" />
-          </CardContent>
-        </Card>
+        {/* Config Skeleton */}
+        <div className="h-16 bg-muted/60 rounded-lg animate-pulse" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Setup Progress */}
+    <div className="space-y-3 p-4">
+      {/* 1. KPI Cards - PRIORITÉ 1 - Toujours visible */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+        <StatsCompactCard
+          icon={CheckCircle}
+          label="Actifs"
+          value={stats.activeProducts}
+          color="green"
+          onClick={() => onTabChange?.('shop')}
+        />
+        <StatsCompactCard
+          icon={Clock}
+          label="En attente"
+          value={stats.pendingProducts}
+          color="orange"
+          onClick={() => onTabChange?.('shop')}
+        />
+        <StatsCompactCard
+          icon={ShoppingBag}
+          label="Commandes"
+          value={stats.totalOrders}
+          color="blue"
+          badge={stats.pendingOrders}
+          onClick={() => onTabChange?.('orders')}
+        />
+        <StatsCompactCard
+          icon={DollarSign}
+          label="Escrow"
+          value={`${stats.pendingEscrow.toLocaleString()} FC`}
+          color="yellow"
+        />
+      </div>
+
+      {/* 2. Quick Actions - PRIORITÉ 2 */}
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+        <Button 
+          onClick={() => navigate('/vendeur/ajouter-produit')} 
+          className="h-12 quick-action-btn"
+          size="lg"
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          Ajouter
+        </Button>
+        <Button 
+          variant="outline" 
+          onClick={() => onTabChange?.('shop')} 
+          className="h-12 quick-action-btn"
+          size="lg"
+        >
+          <Package className="h-5 w-5 mr-2" />
+          Gérer
+        </Button>
+      </div>
+
+      {/* 3. Configuration - PRIORITÉ 3 - Compact par défaut */}
       <VendorSetupProgress onActionClick={handleSetupAction} />
 
-      {/* KPI Cards Grid - Responsive optimisé */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        {/* Actifs */}
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20 hover:shadow-lg transition-all duration-300 hover:scale-105">
-          <CardHeader className="pb-2 px-4 pt-4">
-            <CardTitle className="text-body-sm font-semibold flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              Actifs
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <p className="text-display-lg font-extrabold text-green-500 tracking-tight">{stats.activeProducts}</p>
-          </CardContent>
-        </Card>
+      {/* 4. Alertes contextuelles - PRIORITÉ 4 - Seulement si nécessaire */}
+      {stats.pendingOrders > 0 && (
+        <Alert variant="default" className="border-orange-500/50 bg-orange-500/10">
+          <AlertCircle className="h-4 w-4 text-orange-500" />
+          <AlertTitle className="text-sm font-semibold">Commandes à traiter</AlertTitle>
+          <AlertDescription className="text-xs">
+            Vous avez {stats.pendingOrders} commande{stats.pendingOrders > 1 ? 's' : ''} en attente de validation.
+          </AlertDescription>
+        </Alert>
+      )}
 
-        {/* En attente */}
-        <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20 hover:shadow-lg transition-all duration-300 hover:scale-105">
-          <CardHeader className="pb-2 px-4 pt-4">
-            <CardTitle className="text-body-sm font-semibold flex items-center gap-2">
-              <Clock className="h-4 w-4 text-orange-500" />
-              En attente
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <p className="text-display-lg font-extrabold text-orange-500 tracking-tight">{stats.pendingProducts}</p>
-          </CardContent>
-        </Card>
-
-        {/* Total Commandes */}
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 hover:shadow-lg transition-all duration-300 hover:scale-105">
-          <CardHeader className="pb-2 px-4 pt-4">
-            <CardTitle className="text-body-sm font-semibold flex items-center gap-2">
-              <ShoppingBag className="h-4 w-4 text-primary" />
-              Commandes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <p className="text-display-lg font-extrabold text-primary tracking-tight">{stats.totalOrders}</p>
-            {stats.pendingOrders > 0 && (
-              <p className="text-body-sm text-orange-500 font-medium mt-1">
-                {stats.pendingOrders} à traiter
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Escrow en attente */}
-        <Card className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border-yellow-500/20 hover:shadow-lg transition-all duration-300 hover:scale-105">
-          <CardHeader className="pb-2 px-4 pt-4">
-            <CardTitle className="text-body-sm font-semibold flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-yellow-500" />
-              Escrow
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <p className="text-heading-xl font-extrabold text-yellow-500 tracking-tight">
-              {stats.pendingEscrow.toLocaleString()} FC
-            </p>
-            <p className="text-body-sm text-muted-foreground mt-1">En attente</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="flex flex-wrap gap-4">
-        <Button onClick={() => navigate('/vendeur/ajouter-produit')} size="lg">
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter un produit
-        </Button>
-        <Button variant="outline" onClick={() => onTabChange?.('shop')} size="lg">
-          <Package className="h-4 w-4 mr-2" />
-          Gérer mes produits
-        </Button>
-      </div>
-
-      {/* Welcome Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-heading-lg">Bienvenue sur votre espace vendeur</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-body-md text-muted-foreground">
-            Gérez vos produits, suivez vos commandes et développez votre activité sur Kwenda Shop.
-          </p>
-          {stats.pendingProducts > 0 && (
-            <p className="text-body-md text-orange-500 font-semibold">
-              ⚠️ Vous avez {stats.pendingProducts} produit{stats.pendingProducts > 1 ? 's' : ''} en attente de modération.
-            </p>
-          )}
-          {stats.pendingOrders > 0 && (
-            <p className="text-body-md text-primary font-semibold">
-              📦 Vous avez {stats.pendingOrders} commande{stats.pendingOrders > 1 ? 's' : ''} à traiter.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      {stats.pendingProducts > 0 && (
+        <Alert variant="default" className="border-yellow-500/50 bg-yellow-500/10">
+          <AlertCircle className="h-4 w-4 text-yellow-500" />
+          <AlertTitle className="text-sm font-semibold">Produits en modération</AlertTitle>
+          <AlertDescription className="text-xs">
+            {stats.pendingProducts} produit{stats.pendingProducts > 1 ? 's' : ''} en attente d'approbation.
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 };
