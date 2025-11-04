@@ -112,8 +112,24 @@ export const usePartnerRegistrationSecure = () => {
             message: rpcError.message,
             code: rpcError.code,
             details: rpcError.details,
-            hint: rpcError.hint
+            hint: rpcError.hint,
+            fullError: JSON.stringify(rpcError)
           });
+          
+          // Messages explicites pour l'utilisateur
+          if (rpcError.message?.includes('unknown parameter') || 
+              rpcError.message?.includes('null value')) {
+            toast.error('Erreur système. Veuillez contacter le support.');
+          } else if (rpcError.message?.includes('Format email invalide')) {
+            toast.error('Email invalide. Vérifiez le format.');
+          } else if (rpcError.message?.includes('Format téléphone invalide')) {
+            toast.error('Numéro de téléphone invalide (10-15 chiffres).');
+          } else if (rpcError.message?.includes('Nom entreprise trop court')) {
+            toast.error('Nom de l\'entreprise trop court (minimum 3 caractères).');
+          } else {
+            toast.error(rpcError.message || 'Erreur lors de la création du profil');
+          }
+          
           throw new Error(rpcError.message || 'Erreur lors de la création du profil partenaire');
         }
 
@@ -216,11 +232,26 @@ export const usePartnerRegistrationSecure = () => {
                 message: rpcError.message,
                 code: rpcError.code,
                 details: rpcError.details,
-                hint: rpcError.hint
+                hint: rpcError.hint,
+                fullError: JSON.stringify(rpcError)
               } : null,
               rpcResult: rpcResult?.error
             });
-            toast.error('Erreur lors de la création du profil partenaire');
+            
+            // Messages explicites pour l'utilisateur
+            if (rpcError?.message?.includes('unknown parameter') || 
+                rpcError?.message?.includes('null value')) {
+              toast.error('Erreur système. Veuillez contacter le support.');
+            } else if (rpcError?.message?.includes('Format email invalide')) {
+              toast.error('Email invalide. Vérifiez le format.');
+            } else if (rpcError?.message?.includes('Format téléphone invalide')) {
+              toast.error('Numéro de téléphone invalide (10-15 chiffres).');
+            } else if (rpcError?.message?.includes('Nom entreprise trop court')) {
+              toast.error('Nom de l\'entreprise trop court (minimum 3 caractères).');
+            } else {
+              toast.error(rpcResult?.error || 'Erreur lors de la création du profil partenaire');
+            }
+            
             return { success: false, error: 'PROFILE_CREATION_FAILED' };
           }
 
