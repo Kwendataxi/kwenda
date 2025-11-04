@@ -40,7 +40,7 @@ const SERVICE_TYPES = {
   flash: { 
     name: 'Flash', 
     icon: '⚡', 
-    description: 'Livraison express (1-2h)',
+    description: 'flash_desc',
     basePrice: 5000,
     color: 'text-red-500',
     gradient: 'from-red-500 to-orange-500'
@@ -48,7 +48,7 @@ const SERVICE_TYPES = {
   flex: { 
     name: 'Flex', 
     icon: '📦', 
-    description: 'Livraison standard (2-4h)',
+    description: 'flex_desc',
     basePrice: 3000,
     color: 'text-blue-500',
     gradient: 'from-blue-500 to-cyan-500'
@@ -56,39 +56,47 @@ const SERVICE_TYPES = {
   maxicharge: { 
     name: 'MaxiCharge', 
     icon: '🚚', 
-    description: 'Gros colis (4-6h)',
+    description: 'maxicharge_desc',
     basePrice: 8000,
     color: 'text-purple-500',
     gradient: 'from-purple-500 to-pink-500'
   }
 };
 
-const PACKAGE_TYPES = [
-  'Documents', 'Électronique', 'Vêtements', 'Nourriture', 
-  'Médicaments', 'Mobilier', 'Équipement', 'Autre'
+const getPackageTypes = (t: any) => [
+  t('delivery.package_documents'),
+  t('delivery.package_electronics'),
+  t('delivery.package_clothes'),
+  t('delivery.package_food'),
+  t('delivery.package_medicines'),
+  t('delivery.package_furniture'),
+  t('delivery.package_equipment'),
+  t('delivery.package_other')
 ];
 
 type Step = 'pickup' | 'destination' | 'contacts' | 'service' | 'confirm';
 
 // Schéma de validation Zod pour les contacts
-const contactSchema = z.object({
-  senderName: z.string().trim().min(2, "Le nom doit contenir au moins 2 caractères").max(100, "Le nom est trop long"),
-  senderPhone: z.string().trim().regex(/^\+?243[0-9]{9}$/, "Format invalide. Exemple: +243123456789 ou 0123456789"),
-  recipientName: z.string().trim().min(2, "Le nom doit contenir au moins 2 caractères").max(100, "Le nom est trop long"),
-  recipientPhone: z.string().trim().regex(/^\+?243[0-9]{9}$/, "Format invalide. Exemple: +243123456789 ou 0123456789")
+const getContactSchema = (t: any) => z.object({
+  senderName: z.string().trim().min(2, t('delivery.name_min_length')).max(100, t('delivery.name_max_length')),
+  senderPhone: z.string().trim().regex(/^\+?243[0-9]{9}$/, t('delivery.phone_invalid_format')),
+  recipientName: z.string().trim().min(2, t('delivery.name_min_length')).max(100, t('delivery.name_max_length')),
+  recipientPhone: z.string().trim().regex(/^\+?243[0-9]{9}$/, t('delivery.phone_invalid_format'))
 });
 
 export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeliveryInterfaceProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
   const { user } = useAuth();
+  const contactSchema = getContactSchema(t);
+  const packageTypes = getPackageTypes(t);
   
   const [currentStep, setCurrentStep] = useState<Step>('pickup');
   const [deliveryData, setDeliveryData] = useState<DeliveryData>({
     pickupLocation: null,
     deliveryLocation: null,
     serviceType: 'flex',
-    packageType: 'Documents',
+    packageType: packageTypes[0],
     estimatedPrice: 3000,
     senderName: '',
     senderPhone: '',
@@ -150,8 +158,8 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         !location.address) {
       console.error(`❌ [${type}] Coordonnées invalides:`, location);
       toast({
-        title: "⚠️ Adresse invalide",
-        description: "Veuillez sélectionner une adresse avec des coordonnées valides",
+        title: t('delivery.invalid_address'),
+        description: t('delivery.select_valid_address'),
         variant: "destructive"
       });
       return;
@@ -167,8 +175,8 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     if (!isInServiceArea) {
       console.warn(`⚠️ [${type}] Coordonnées hors zone ${currentCity.name}:`, location);
       toast({
-        title: "Zone non couverte",
-        description: `Cette adresse est en dehors de ${currentCity.name}. Assurez-vous d'être dans la zone de service.`,
+        title: t('delivery.area_not_covered'),
+        description: t('delivery.outside_service_area', { city: currentCity.name }),
         variant: "destructive"
       });
       return;
@@ -516,7 +524,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
                 </div>
                 <div>
                   <div className="font-semibold text-foreground">{service.name}</div>
-                  <div className="text-sm text-muted-foreground">{service.description}</div>
+                  <div className="text-sm text-muted-foreground">{t(`delivery.${service.description}`)}</div>
                 </div>
               </div>
               <div className="text-right">
@@ -536,7 +544,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           onChange={(e) => setDeliveryData(prev => ({ ...prev, packageType: e.target.value }))}
           className="w-full p-3 rounded-lg bg-card border border-primary/30 focus:border-primary text-foreground shadow-lg"
         >
-          {PACKAGE_TYPES.map(type => (
+          {packageTypes.map(type => (
             <option key={type} value={type}>{type}</option>
           ))}
         </select>

@@ -8,6 +8,7 @@ import { FoodCheckout } from './FoodCheckout';
 import { KwendaFoodHeader } from './KwendaFoodHeader';
 import { toast } from 'sonner';
 import type { Restaurant, FoodProduct, FoodCartItem } from '@/types/food';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type Step = 'restaurants' | 'menu' | 'checkout';
 
@@ -18,6 +19,7 @@ interface FoodOrderInterfaceProps {
 
 export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfaceProps) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [selectedCity, setSelectedCity] = useState('Kinshasa');
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [cart, setCart] = useState<FoodCartItem[]>([]);
@@ -48,7 +50,7 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
       return [...prevCart, { ...product, quantity, notes }];
     });
 
-    toast.success(`${product.name} ajouté au panier`);
+    toast.success(t('food.added_to_cart', { product: product.name }));
   };
 
   const handleUpdateCartItem = (productId: string, quantity: number) => {
@@ -90,8 +92,8 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
 
       if (error) throw error;
 
-      toast.success('Commande passée avec succès !', {
-        description: `Numéro de commande: #${data.order_number}`
+      toast.success(t('food.order_success'), {
+        description: t('food.order_number', { number: data.order_number })
       });
 
       setCart([]);
@@ -103,8 +105,8 @@ export const FoodOrderInterface = ({ onOrderComplete, onBack }: FoodOrderInterfa
       }
     } catch (error: any) {
       console.error('Error placing order:', error);
-      toast.error('Erreur lors de la commande', {
-        description: error.message || 'Veuillez réessayer'
+      toast.error(t('food.order_error'), {
+        description: error.message || t('food.please_retry')
       });
     }
   };

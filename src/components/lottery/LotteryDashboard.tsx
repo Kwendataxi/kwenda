@@ -8,12 +8,14 @@ import { CompactLoyaltyWidget } from '@/components/loyalty/CompactLoyaltyWidget'
 import { useLottery } from '@/hooks/useLottery';
 import { motion } from 'framer-motion';
 import { Car, Package, ShoppingCart, Star, Users, Calendar } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface LotteryDashboardProps {
   hideHeader?: boolean;
 }
 
 export const LotteryDashboard = ({ hideHeader = false }: LotteryDashboardProps) => {
+  const { t } = useLanguage();
   const { loading, myWins } = useLottery();
 
   if (loading) {
@@ -34,9 +36,9 @@ export const LotteryDashboard = ({ hideHeader = false }: LotteryDashboardProps) 
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-black text-white drop-shadow-lg">
-                ✨ Kwenda Tombola
+                {t('lottery.title')}
               </h1>
-              <p className="text-white/90 text-xs">Grattez et gagnez !</p>
+              <p className="text-white/90 text-xs">{t('lottery.subtitle')}</p>
             </div>
             <Sparkles className="h-7 w-7 text-white" />
           </div>
@@ -57,18 +59,18 @@ export const LotteryDashboard = ({ hideHeader = false }: LotteryDashboardProps) 
               className="text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg"
             >
               <Sparkles className="h-4 w-4 mr-1" />
-              Cartes
+              {t('lottery.cards')}
             </TabsTrigger>
             <TabsTrigger value="wins" className="text-sm data-[state=active]:bg-background rounded-lg">
               <Trophy className="h-4 w-4 mr-1" />
-              Gains
+              {t('lottery.wins')}
               {myWins.length > 0 && (
                 <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-xs">{myWins.length}</Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="how" className="text-sm data-[state=active]:bg-background rounded-lg">
               <Gift className="h-4 w-4 mr-1" />
-              Guide
+              {t('lottery.guide')}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -87,32 +89,32 @@ export const LotteryDashboard = ({ hideHeader = false }: LotteryDashboardProps) 
             <div className="space-y-1.5">
               <h3 className="text-sm font-semibold flex items-center gap-1.5">
                 <Gift className="h-3.5 w-3.5 text-primary" />
-                Comment gagner des cartes ?
+                {t('lottery.how_to_win')}
               </h3>
               
               <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
                 <div className="flex-shrink-0 bg-primary/10 border border-primary/20 rounded-lg p-2 min-w-[100px]">
                   <Car className="h-4 w-4 text-primary mb-0.5" />
-                  <h4 className="font-semibold text-xs">Transport</h4>
-                  <p className="text-xs text-muted-foreground">1 carte</p>
+                  <h4 className="font-semibold text-xs">{t('lottery.transport')}</h4>
+                  <p className="text-xs text-muted-foreground">{t('lottery.one_card')}</p>
                 </div>
                 
                 <div className="flex-shrink-0 bg-secondary/10 border border-secondary/20 rounded-lg p-2 min-w-[100px]">
                   <Package className="h-4 w-4 text-secondary mb-0.5" />
-                  <h4 className="font-semibold text-xs">Livraison</h4>
-                  <p className="text-xs text-muted-foreground">2 cartes</p>
+                  <h4 className="font-semibold text-xs">{t('lottery.delivery')}</h4>
+                  <p className="text-xs text-muted-foreground">{t('lottery.two_cards')}</p>
                 </div>
                 
                 <div className="flex-shrink-0 bg-accent/10 border border-accent/20 rounded-lg p-2 min-w-[100px]">
                   <ShoppingCart className="h-4 w-4 text-accent mb-0.5" />
-                  <h4 className="font-semibold text-xs">Marketplace</h4>
-                  <p className="text-xs text-muted-foreground">1-3 cartes</p>
+                  <h4 className="font-semibold text-xs">{t('lottery.marketplace')}</h4>
+                  <p className="text-xs text-muted-foreground">{t('lottery.one_to_three_cards')}</p>
                 </div>
                 
                 <div className="flex-shrink-0 bg-green-500/10 border border-green-500/20 rounded-lg p-2 min-w-[100px]">
                   <Users className="h-4 w-4 text-green-600 mb-0.5" />
-                  <h4 className="font-semibold text-xs">Parrainage</h4>
-                  <p className="text-xs text-muted-foreground">5 cartes</p>
+                  <h4 className="font-semibold text-xs">{t('lottery.referral')}</h4>
+                  <p className="text-xs text-muted-foreground">{t('lottery.five_cards')}</p>
                 </div>
               </div>
             </div>
@@ -125,10 +127,10 @@ export const LotteryDashboard = ({ hideHeader = false }: LotteryDashboardProps) 
             >
               <h4 className="font-semibold text-xs mb-1 flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5 text-purple-600" />
-                Système de Garantie
+                {t('lottery.guarantee_system')}
               </h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Plus vous grattez, plus vos chances augmentent ! Garantie de gains rares après plusieurs cartes communes.
+                {t('lottery.guarantee_desc')}
               </p>
             </motion.div>
           </TabsContent>

@@ -145,8 +145,8 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
           setDetectedCity(currentCity.name);
           console.log('📍 Ville détectée:', currentCity.name);
           toast({
-            title: `📍 Carte centrée sur ${currentCity.name}`,
-            description: `Position détectée: ${currentCity.name}`,
+            title: t('transport.map_centered', { city: currentCity.name }),
+            description: t('transport.position_detected', { city: currentCity.name }),
           });
         }
       } catch (error) {
@@ -227,16 +227,16 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
             setStep('details');
             
             toast({
-              title: "Position détectée",
-              description: "Votre position actuelle définie comme point de départ",
+              title: t('transport.position_detected_title'),
+              description: t('transport.position_set_as_pickup'),
             });
           },
           (error) => {
             console.error('Erreur géolocalisation:', error);
             setStep('pickup');
             toast({
-              title: "Géolocalisation échouée",
-              description: "Veuillez saisir manuellement votre point de départ",
+              title: t('transport.geolocation_failed'),
+              description: t('transport.enter_pickup_manually'),
               variant: "destructive",
             });
           }
@@ -246,8 +246,8 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       console.error('Erreur géolocalisation:', error);
       setStep('pickup');
       toast({
-        title: "Géolocalisation échouée",
-        description: "Veuillez saisir manuellement votre point de départ",
+        title: t('transport.geolocation_failed'),
+        description: t('transport.enter_pickup_manually'),
         variant: "destructive",
       });
     }
@@ -304,8 +304,8 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const handleSubmitBooking = async () => {
     if (!bookingData.pickup || !bookingData.destination) {
       toast({
-        title: "Erreur",
-        description: "Veuillez sélectionner les adresses de départ et d'arrivée",
+        title: t('common.error'),
+        description: t('transport.select_addresses'),
         variant: "destructive"
       });
       return;
@@ -390,8 +390,8 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
             console.log('✅ Code promo BIENVENUE30 enregistré avec succès');
             
             toast({
-              title: "Code promo appliqué !",
-              description: `Réduction de ${discountAmount} CDF appliquée sur cette course`,
+              title: t('promo.code_applied_success'),
+              description: t('promo.discount_applied_desc', { amount: discountAmount }),
             });
           } catch (promoError) {
             console.error('❌ Erreur enregistrement promo:', promoError);

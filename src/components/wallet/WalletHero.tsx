@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Gift } from 'lucide-react';
 import { AnimatedBalance } from './AnimatedBalance';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface WalletHeroProps {
   balance: number;
@@ -18,6 +19,8 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
   currency,
   status = 'active'
 }) => {
+  const { t } = useLanguage();
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
@@ -30,7 +33,7 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
       {/* Solde principal GÉANT */}
       <div className="relative text-center mb-6">
         <p className="text-xs text-muted-foreground dark:text-muted-foreground/80 mb-2 uppercase tracking-wide">
-          Solde disponible
+          {t('wallet.available_balance')}
         </p>
         <motion.div
           whileHover={{
@@ -52,7 +55,7 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
           <div className="p-1.5 rounded-lg bg-congo-yellow/10 dark:bg-congo-yellow/20">
             <Gift className="h-4 w-4 text-congo-yellow-vibrant dark:text-congo-yellow-electric" />
           </div>
-          <span className="text-sm text-congo-yellow-vibrant dark:text-congo-yellow-electric font-medium">Solde Bonus:</span>
+          <span className="text-sm text-congo-yellow-vibrant dark:text-congo-yellow-electric font-medium">{t('wallet.bonus_balance')}</span>
         </div>
         <span className="text-base font-bold text-congo-yellow-vibrant dark:text-congo-yellow-electric">
           {bonusBalance.toLocaleString('fr-CD')} {currency}
@@ -62,7 +65,7 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
       {/* Note explicative discrète si bonus = 0 */}
       {bonusBalance === 0 && (
         <p className="text-center text-xs text-muted-foreground mt-2">
-          Convertissez vos points pour obtenir des bonus
+          {t('wallet.convert_points_info')}
         </p>
       )}
     </motion.div>

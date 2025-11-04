@@ -118,7 +118,7 @@ export const MoreServicesSheet = ({
                     <div className="relative bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg overflow-hidden">
                       <span className="relative z-10 flex items-center gap-1">
                         <span>⭐</span>
-                        Populaire
+                        {t('home.popular_badge')}
                       </span>
                       <motion.div
                         className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
@@ -150,7 +150,7 @@ export const MoreServicesSheet = ({
                         >
                           ⏳
                         </motion.span>
-                        Bientôt
+                        {t('home.coming_soon_badge')}
                       </span>
                     </div>
                   </motion.div>

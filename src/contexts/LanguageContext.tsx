@@ -760,7 +760,91 @@ export const translations = {
     'faq.become_driver': 'Devenir chauffeur partenaire',
     'faq.become_driver_answer': 'Pour devenir chauffeur Kwenda, inscrivez-vous via l\'application, soumettez vos documents (permis, assurance, contrôle technique) et passez la validation.',
     'faq.data_security': 'Sécurité des données',
-    'faq.data_security_answer': 'Vos données sont protégées par cryptage SSL et conformes aux normes internationales. Nous ne partageons jamais vos informations personnelles.'
+    'faq.data_security_answer': 'Vos données sont protégées par cryptage SSL et conformes aux normes internationales. Nous ne partageons jamais vos informations personnelles.',
+
+    // Wallet
+    'wallet.available_balance': 'Solde disponible',
+    'wallet.bonus_balance': 'Solde Bonus:',
+    'wallet.convert_points_info': 'Convertissez vos points pour obtenir des bonus',
+    'wallet.recent_transactions': 'Transactions récentes',
+
+    // Lottery
+    'lottery.title': '✨ Kwenda Tombola',
+    'lottery.subtitle': 'Grattez et gagnez !',
+    'lottery.cards': 'Cartes',
+    'lottery.wins': 'Gains',
+    'lottery.guide': 'Guide',
+    'lottery.how_to_win': 'Comment gagner des cartes ?',
+    'lottery.transport': 'Transport',
+    'lottery.one_card': '1 carte',
+    'lottery.delivery': 'Livraison',
+    'lottery.two_cards': '2 cartes',
+    'lottery.marketplace': 'Marketplace',
+    'lottery.one_to_three_cards': '1-3 cartes',
+    'lottery.referral': 'Parrainage',
+    'lottery.five_cards': '5 cartes',
+    'lottery.popular': 'Populaire',
+    'lottery.guarantee_system': 'Système de Garantie',
+    'lottery.guarantee_desc': 'Plus vous grattez, plus vos chances augmentent ! Garantie de gains rares après plusieurs cartes communes.',
+    'lottery.coming_soon': 'Bientôt',
+
+    // Home
+    'home.popular_badge': 'Populaire',
+    'home.coming_soon_badge': 'Bientôt',
+
+    // Transport
+    'transport.map_centered': '📍 Carte centrée sur {city}',
+    'transport.current_position': 'Position actuelle ({lat}, {lng})',
+    'transport.position_detected_title': 'Position détectée',
+    'transport.position_set_as_pickup': 'Votre position actuelle définie comme point de départ',
+    'transport.enter_pickup_manually': 'Veuillez saisir manuellement votre point de départ',
+    'transport.select_addresses': 'Veuillez sélectionner les adresses de départ et d\'arrivée',
+    'transport.pickup_location_set': 'Point de départ défini',
+    'transport.destination_set': 'Destination définie',
+
+    // Promo
+    'promo.code_applied_success': 'Code promo appliqué !',
+    'promo.discount_applied_desc': 'Réduction de {amount} CDF appliquée sur cette course',
+
+    // Delivery
+    'delivery.flash_desc': 'Livraison express (1-2h)',
+    'delivery.flex_desc': 'Livraison standard (2-4h)',
+    'delivery.maxicharge_desc': 'Gros colis (4-6h)',
+    'delivery.package_documents': 'Documents',
+    'delivery.package_electronics': 'Électronique',
+    'delivery.package_clothes': 'Vêtements',
+    'delivery.package_food': 'Nourriture',
+    'delivery.package_medicines': 'Médicaments',
+    'delivery.package_furniture': 'Mobilier',
+    'delivery.package_equipment': 'Équipement',
+    'delivery.package_other': 'Autre',
+    'delivery.name_min_length': 'Le nom doit contenir au moins 2 caractères',
+    'delivery.name_max_length': 'Le nom est trop long',
+    'delivery.phone_invalid_format': 'Format invalide. Exemple: +243123456789 ou 0123456789',
+    'delivery.invalid_address': '⚠️ Adresse invalide',
+    'delivery.select_valid_address': 'Veuillez sélectionner une adresse avec des coordonnées valides',
+    'delivery.area_not_covered': 'Zone non couverte',
+    'delivery.outside_service_area': 'Cette adresse est en dehors de {city}. Assurez-vous d\'être dans la zone de service.',
+
+    // Rental
+    'rental.title': 'Kwenda Location',
+    'rental.subtitle': 'Véhicules premium',
+    'rental.all_vehicles': 'Tous ({count})',
+    'rental.no_vehicles': 'Aucun véhicule disponible',
+    'rental.no_vehicles_desc': 'Aucun véhicule n\'est disponible à {city} dans cette catégorie pour le moment.',
+    'rental.available': 'Disponible',
+    'rental.seats': 'places',
+    'rental.insured': 'Assuré',
+    'rental.per_hour': 'Par heure',
+    'rental.per_day': 'Par jour',
+    'rental.book_button': 'Réserver',
+
+    // Food
+    'food.added_to_cart': '{product} ajouté au panier',
+    'food.order_success': 'Commande passée avec succès !',
+    'food.order_number': 'Numéro de commande: #{number}',
+    'food.order_error': 'Erreur lors de la commande',
+    'food.please_retry': 'Veuillez réessayer'
   },
   
   en: {
@@ -1356,6 +1440,90 @@ export const translations = {
     'faq.delivery_time_answer': 'Standard deliveries take 30-60 minutes. Express deliveries are completed within 30 minutes depending on distance and traffic.',
     'faq.marketplace_return': 'Can I return marketplace items?',
     'faq.marketplace_return_answer': 'Return policies vary by seller. Check the product page for specific return conditions and timeframes.',
+
+    // Wallet
+    'wallet.available_balance': 'Available Balance',
+    'wallet.bonus_balance': 'Bonus Balance:',
+    'wallet.convert_points_info': 'Convert your points to get bonuses',
+    'wallet.recent_transactions': 'Recent Transactions',
+
+    // Lottery
+    'lottery.title': '✨ Kwenda Lottery',
+    'lottery.subtitle': 'Scratch and win!',
+    'lottery.cards': 'Cards',
+    'lottery.wins': 'Wins',
+    'lottery.guide': 'Guide',
+    'lottery.how_to_win': 'How to win cards?',
+    'lottery.transport': 'Transport',
+    'lottery.one_card': '1 card',
+    'lottery.delivery': 'Delivery',
+    'lottery.two_cards': '2 cards',
+    'lottery.marketplace': 'Marketplace',
+    'lottery.one_to_three_cards': '1-3 cards',
+    'lottery.referral': 'Referral',
+    'lottery.five_cards': '5 cards',
+    'lottery.popular': 'Popular',
+    'lottery.guarantee_system': 'Guarantee System',
+    'lottery.guarantee_desc': 'The more you scratch, the higher your chances! Rare wins guaranteed after several common cards.',
+    'lottery.coming_soon': 'Coming Soon',
+
+    // Home
+    'home.popular_badge': 'Popular',
+    'home.coming_soon_badge': 'Coming Soon',
+
+    // Transport
+    'transport.map_centered': '📍 Map centered on {city}',
+    'transport.current_position': 'Current position ({lat}, {lng})',
+    'transport.position_detected_title': 'Position detected',
+    'transport.position_set_as_pickup': 'Your current position set as pickup point',
+    'transport.enter_pickup_manually': 'Please enter your pickup point manually',
+    'transport.select_addresses': 'Please select pickup and destination addresses',
+    'transport.pickup_location_set': 'Pickup location set',
+    'transport.destination_set': 'Destination set',
+
+    // Promo
+    'promo.code_applied_success': 'Promo code applied!',
+    'promo.discount_applied_desc': '{amount} CDF discount applied to this ride',
+
+    // Delivery
+    'delivery.flash_desc': 'Express delivery (1-2h)',
+    'delivery.flex_desc': 'Standard delivery (2-4h)',
+    'delivery.maxicharge_desc': 'Large package (4-6h)',
+    'delivery.package_documents': 'Documents',
+    'delivery.package_electronics': 'Electronics',
+    'delivery.package_clothes': 'Clothes',
+    'delivery.package_food': 'Food',
+    'delivery.package_medicines': 'Medicines',
+    'delivery.package_furniture': 'Furniture',
+    'delivery.package_equipment': 'Equipment',
+    'delivery.package_other': 'Other',
+    'delivery.name_min_length': 'Name must be at least 2 characters',
+    'delivery.name_max_length': 'Name is too long',
+    'delivery.phone_invalid_format': 'Invalid format. Example: +243123456789 or 0123456789',
+    'delivery.invalid_address': '⚠️ Invalid address',
+    'delivery.select_valid_address': 'Please select an address with valid coordinates',
+    'delivery.area_not_covered': 'Area not covered',
+    'delivery.outside_service_area': 'This address is outside {city}. Make sure you are in the service area.',
+
+    // Rental
+    'rental.title': 'Kwenda Rental',
+    'rental.subtitle': 'Premium vehicles',
+    'rental.all_vehicles': 'All ({count})',
+    'rental.no_vehicles': 'No vehicles available',
+    'rental.no_vehicles_desc': 'No vehicles available in {city} for this category at the moment.',
+    'rental.available': 'Available',
+    'rental.seats': 'seats',
+    'rental.insured': 'Insured',
+    'rental.per_hour': 'Per hour',
+    'rental.per_day': 'Per day',
+    'rental.book_button': 'Book',
+
+    // Food
+    'food.added_to_cart': '{product} added to cart',
+    'food.order_success': 'Order placed successfully!',
+    'food.order_number': 'Order number: #{number}',
+    'food.order_error': 'Error placing order',
+    'food.please_retry': 'Please try again',
 
     // Cities - English
     'city.kinshasa': 'Kinshasa',

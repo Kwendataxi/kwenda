@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useWallet } from '@/hooks/useWallet';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useWalletValidation } from '@/hooks/useWalletValidation';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { WalletHero } from '@/components/wallet/WalletHero';
 import { WalletQuickActions } from '@/components/wallet/WalletQuickActions';
 import { QuickAmountSelector } from '@/components/wallet/QuickAmountSelector';
@@ -34,6 +35,7 @@ export const ClientWalletPanel: React.FC<ClientWalletPanelProps> = ({
   initialTopUpOpen = false,
   onTopUpModalChange 
 }) => {
+  const { t } = useLanguage();
   const { wallet, transactions, loading, error, topUpWallet } = useWallet();
   const { triggerSuccess, triggerError } = useHapticFeedback();
   const { validateAmount, validatePhone, amountError, phoneError } = useWalletValidation();
@@ -129,7 +131,7 @@ export const ClientWalletPanel: React.FC<ClientWalletPanelProps> = ({
       {/* Transaction History - Liste propre */}
       <div id="transactions-section" className="px-4 space-y-3">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Transactions récentes
+          {t('wallet.recent_transactions')}
         </h3>
         
         {transactions.length === 0 ? (

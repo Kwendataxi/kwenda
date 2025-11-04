@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useModernRentals } from '@/hooks/useModernRentals';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const getCategoryGradient = (categoryName: string) => {
   const gradients: Record<string, string> = {
@@ -26,6 +27,7 @@ const getCategoryGradient = (categoryName: string) => {
 
 export const ModernRentalScreen = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { 
     userLocation, 
     setUserLocation, 
@@ -114,9 +116,9 @@ export const ModernRentalScreen = () => {
                 </div>
                 <div>
                   <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                    Kwenda Location
+                    {t('rental.title')}
                   </h1>
-                  <p className="text-xs text-muted-foreground">Véhicules premium</p>
+                  <p className="text-xs text-muted-foreground">{t('rental.subtitle')}</p>
                 </div>
               </div>
             </div>
@@ -175,7 +177,7 @@ export const ModernRentalScreen = () => {
                   : 'bg-muted/50 hover:bg-muted'
               }`}
             >
-              Tous ({vehicles.length})
+              {t('rental.all_vehicles', { count: vehicles.length })}
             </motion.button>
             
             {categories.map((category) => {
@@ -210,9 +212,9 @@ export const ModernRentalScreen = () => {
             <div className="p-6 bg-muted/30 rounded-full mb-4">
               <Car className="h-16 w-16 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Aucun véhicule disponible</h3>
+            <h3 className="text-xl font-semibold mb-2">{t('rental.no_vehicles')}</h3>
             <p className="text-muted-foreground text-center max-w-md">
-              Aucun véhicule n'est disponible à {userLocation} dans cette catégorie pour le moment.
+              {t('rental.no_vehicles_desc', { city: userLocation })}
             </p>
           </motion.div>
         ) : (
@@ -255,7 +257,7 @@ export const ModernRentalScreen = () => {
                         {vehicle.is_available && (
                           <Badge className="bg-success/90 backdrop-blur text-white border-0 flex items-center gap-1">
                             <Sparkles className="h-3 w-3" />
-                            Disponible
+                            {t('rental.available')}
                           </Badge>
                         )}
                       </div>
@@ -281,7 +283,7 @@ export const ModernRentalScreen = () => {
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div className="flex items-center gap-1.5 text-muted-foreground">
                           <Users className="h-4 w-4 shrink-0" />
-                          <span>{vehicle.seats} places</span>
+                          <span>{vehicle.seats} {t('rental.seats')}</span>
                         </div>
                         <div className="flex items-center gap-1.5 text-muted-foreground">
                           <Fuel className="h-4 w-4 shrink-0" />
@@ -293,7 +295,7 @@ export const ModernRentalScreen = () => {
                         </div>
                         <div className="flex items-center gap-1.5 text-muted-foreground">
                           <Shield className="h-4 w-4 shrink-0" />
-                          <span className="truncate">Assuré</span>
+                          <span className="truncate">{t('rental.insured')}</span>
                         </div>
                       </div>
 
@@ -316,7 +318,7 @@ export const ModernRentalScreen = () => {
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center gap-1.5 text-muted-foreground">
                             <Clock className="h-4 w-4" />
-                            <span>Par heure</span>
+                            <span>{t('rental.per_hour')}</span>
                           </div>
                           <span className="font-semibold">
                             {calculateCityPrice(vehicle.hourly_rate, vehicle.category_id).toLocaleString()} FC
@@ -325,7 +327,7 @@ export const ModernRentalScreen = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                             <Calendar className="h-4 w-4" />
-                            <span>Par jour</span>
+                            <span>{t('rental.per_day')}</span>
                           </div>
                           <span className="font-bold text-primary text-lg">
                             {calculateCityPrice(vehicle.daily_rate, vehicle.category_id).toLocaleString()} FC
@@ -339,7 +341,7 @@ export const ModernRentalScreen = () => {
                         onClick={() => handleBooking(vehicle.id)}
                       >
                         <Calendar className="h-4 w-4 mr-2" />
-                        Réserver
+                        {t('rental.book_button')}
                       </Button>
                     </CardContent>
                   </Card>
