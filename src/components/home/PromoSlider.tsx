@@ -126,14 +126,15 @@ export const PromoSlider = ({ onServiceSelect }: PromoSliderProps) => {
   };
 
   return (
-    <div className="w-full relative mb-12 mx-auto max-w-7xl">
+    <div className="w-full relative mb-12 mx-auto max-w-7xl z-10">
       <Carousel
         setApi={setApi}
         opts={{ loop: true, align: 'center', skipSnaps: false, duration: 30 }}
         plugins={[autoplayRef.current]}
-        className="w-full min-h-[160px]"
+        className="w-full"
+        style={{ minHeight: '160px', height: '160px' }}
       >
-        <CarouselContent className="h-[160px]">
+        <CarouselContent style={{ height: '160px' }}>
           {promos.map((promo) => (
             <CarouselItem key={promo.id} className="h-[160px]">
               <motion.div
