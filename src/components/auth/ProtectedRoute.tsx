@@ -58,7 +58,13 @@ const ProtectedRoute = ({ children, requireAuth = true, requiredRole }: Protecte
     }
     
     // ✅ Forcer la sélection du rôle requis si pas déjà fait
-    if (!hasSelectedRole() || selectedRole !== requiredRole) {
+    // Si mono-rôle, auto-sélectionner silencieusement
+    if (userRoles.length === 1) {
+      if (!hasSelectedRole()) {
+        setSelectedRole(requiredRole);
+      }
+    } else if (!hasSelectedRole() || selectedRole !== requiredRole) {
+      // Multi-rôles : forcer sélection du rôle requis
       setSelectedRole(requiredRole);
     }
   }

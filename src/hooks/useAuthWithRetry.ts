@@ -36,11 +36,20 @@ export const useAuthWithRetry = () => {
 
       logger.info('✅ Login successful', { userId: data.user?.id });
 
-      // ✅ Attendre stabilisation session
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // ✅ Attendre stabilisation session (augmenté à 1.5s)
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
       // ✅ Forcer refresh session + attendre confirmation
-      const { data: { session: refreshedSession }, error: sessionError } = await supabase.auth.getSession();
+      let { data: { session: refreshedSession }, error: sessionError } = await supabase.auth.getSession();
+      
+      // ✅ Retry si session non établie après 1.5s
+      if (!refreshedSession) {
+        logger.warn('⚠️ Session non établie après 1.5s, retry...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const retryResult = await supabase.auth.getSession();
+        refreshedSession = retryResult.data.session;
+        sessionError = retryResult.error;
+      }
       
       if (sessionError || !refreshedSession) {
         logger.error('❌ Session non établie après connexion', sessionError);

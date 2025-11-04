@@ -191,12 +191,13 @@ export const useUserRoles = (): UseUserRolesReturn => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['user-roles', user?.id],
     queryFn: fetchUserRoles,
-    staleTime: 60 * 1000, // ✅ Augmenter à 60 secondes
-    gcTime: 5 * 60 * 1000, // ✅ Augmenter à 5 minutes
+    staleTime: 5 * 60 * 1000, // ✅ 5 min (était 60 secondes)
+    gcTime: 10 * 60 * 1000, // ✅ 10 minutes (était 5 min)
     enabled: !!user?.id && sessionReady, // ✅ Attendre que la session soit prête
-    retry: 3, // ✅ Augmenter à 3 tentatives
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
-    refetchOnWindowFocus: false, // ✅ DÉSACTIVER pour éviter rechargements intempestifs
+    retry: 5, // ✅ 5 tentatives (était 3)
+    retryDelay: (attemptIndex) => Math.min(500 * 2 ** attemptIndex, 3000),
+    refetchOnWindowFocus: true, // ✅ RÉACTIVER pour rafraîchir si fenêtre inactive
+    refetchInterval: 5 * 60 * 1000, // ✅ AJOUTER polling toutes les 5 minutes
     refetchOnReconnect: true, // ✅ Rafraîchir après reconnexion
   });
 

@@ -55,7 +55,8 @@ import {
   Heart,
   Zap,
   CheckCircle,
-  Sparkles
+  Sparkles,
+  AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -622,19 +623,72 @@ const ClientApp = () => {
 
   // Marketplace now handled by EnhancedMarketplaceInterface
 
+  const [profileError, setProfileError] = useState<string | null>(null);
+
   const renderProfile = () => (
     <div className="min-h-screen bg-background content-with-bottom-nav-scrollable safe-area-inset">
       <div className="flex items-center gap-4 p-4 mb-4">
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setCurrentView('home')}
+          onClick={() => {
+            setCurrentView('home');
+            setProfileError(null);
+          }}
           className="rounded-xl"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-heading-lg text-card-foreground">Mon Profil</h1>
       </div>
+      
+      {/* ✅ Message erreur si échec chargement profil */}
+      {profileError && (
+        <div className="px-4 mb-4">
+          <div className={`p-4 rounded-lg border ${
+            profileError.includes('permission') || profileError.includes('Accès refusé')
+              ? 'bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800'
+              : 'bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800'
+          }`}>
+            <div className="flex items-start gap-3">
+              <div className={`p-2 rounded-full ${
+                profileError.includes('permission') 
+                  ? 'bg-yellow-100 dark:bg-yellow-900' 
+                  : 'bg-red-100 dark:bg-red-900'
+              }`}>
+                <AlertCircle className={`h-4 w-4 ${
+                  profileError.includes('permission') 
+                    ? 'text-yellow-600 dark:text-yellow-400' 
+                    : 'text-red-600 dark:text-red-400'
+                }`} />
+              </div>
+              <div className="flex-1">
+                <p className={`font-medium text-sm ${
+                  profileError.includes('permission') 
+                    ? 'text-yellow-800 dark:text-yellow-200' 
+                    : 'text-red-800 dark:text-red-200'
+                }`}>
+                  {profileError}
+                </p>
+                {!profileError.includes('permission') && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setProfileError(null);
+                      window.location.reload();
+                    }}
+                    className="mt-2"
+                  >
+                    Réessayer
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="px-4 space-y-4">
         <ResponsiveUserProfile 
           userType="client" 

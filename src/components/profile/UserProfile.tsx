@@ -98,9 +98,9 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
     }
   }, [user]);
 
-  const loadProfile = async () => {
+  const loadProfile = async (retryCount = 0) => {
     try {
-      console.log('[UserProfile] 🔍 Chargement profil pour user:', user?.id);
+      console.log(`[UserProfile] 🔍 Chargement profil (tentative ${retryCount + 1}/3)`);
       
       const { data, error } = await supabase
         .from('profiles')
@@ -112,6 +112,18 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
 
       if (error) {
         console.error('[UserProfile] ❌ Erreur Supabase:', error);
+        
+        // ✅ Retry automatique si erreur temporaire (network, timeout)
+        const isTemporaryError = error.message?.includes('network') || 
+                                 error.message?.includes('timeout') || 
+                                 error.code === 'PGRST301';
+        
+        if (retryCount < 2 && isTemporaryError) {
+          console.warn(`⚠️ Erreur temporaire, retry dans 1s...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return loadProfile(retryCount + 1);
+        }
+        
         throw error;
       }
 
@@ -145,10 +157,24 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
       });
       console.log('[UserProfile] ✅ Profil chargé avec succès');
     } catch (error: any) {
-      console.error('[UserProfile] 💥 Erreur fatale:', error);
+      console.error('[UserProfile] 💥 Erreur fatale après retries:', error);
+      
+      // ✅ Distinguer types d'erreurs pour messages appropriés
+      const isRLSError = error.message?.includes('policy') || 
+                         error.message?.includes('permission') || 
+                         error.code === '42501';
+      
+      const errorMessage = isRLSError 
+        ? "Accès refusé. Contactez le support si le problème persiste."
+        : "Impossible de charger votre profil. Vérifiez votre connexion internet.";
+      
+      const errorTitle = isRLSError 
+        ? "Problème de permissions" 
+        : "Erreur de chargement";
+      
       toast({
-        title: "Erreur de chargement",
-        description: error.message || "Impossible de charger votre profil",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
