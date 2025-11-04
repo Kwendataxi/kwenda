@@ -1338,6 +1338,51 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_assignments: {
+        Row: {
+          assigned_at: string | null
+          created_at: string | null
+          delivery_order_id: string
+          id: string
+          marketplace_order_id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          created_at?: string | null
+          delivery_order_id: string
+          id?: string
+          marketplace_order_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          created_at?: string | null
+          delivery_order_id?: string
+          id?: string
+          marketplace_order_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_assignments_delivery_order_id_fkey"
+            columns: ["delivery_order_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_assignments_marketplace_order_id_fkey"
+            columns: ["marketplace_order_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_chat_messages: {
         Row: {
           delivery_order_id: string

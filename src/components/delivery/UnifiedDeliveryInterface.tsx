@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useRealTimeDeliveryTracking } from '@/hooks/useRealTimeDeliveryTracking';
+import { useMarketplaceOrderTracking } from '@/hooks/useMarketplaceOrderTracking';
 import EnhancedDeliveryTracker from '@/components/delivery/EnhancedDeliveryTracker';
 import DriverDeliveryDashboard from '@/components/driver/DriverDeliveryDashboard';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,22 +16,74 @@ interface UnifiedDeliveryInterfaceProps {
 
 export default function UnifiedDeliveryInterface({ orderId, onBack }: UnifiedDeliveryInterfaceProps) {
   const { userRole } = useUserRole();
+  const [orderType, setOrderType] = useState<'delivery' | 'marketplace' | null>(null);
+  const [isDetecting, setIsDetecting] = useState(true);
   
-  // Utiliser le hook temps réel pour le tracking
-  const {
-    trackingData,
-    loading,
-    error,
-    connectionStatus,
-    sendMessage,
-    callDriver,
-    callClient,
-    refreshTracking
-  } = useRealTimeDeliveryTracking({
+  // Détecter le type de commande
+  useEffect(() => {
+    const detectOrderType = async () => {
+      try {
+        console.log('🔍 Détection du type de commande:', orderId);
+        
+        // Vérifier d'abord delivery_orders
+        const { data: deliveryOrder } = await supabase
+          .from('delivery_orders')
+          .select('id')
+          .eq('id', orderId)
+          .maybeSingle();
+          
+        if (deliveryOrder) {
+          console.log('✅ Type détecté: delivery_orders');
+          setOrderType('delivery');
+          setIsDetecting(false);
+          return;
+        }
+        
+        // Sinon, vérifier marketplace_orders
+        const { data: marketplaceOrder } = await supabase
+          .from('marketplace_orders')
+          .select('id')
+          .eq('id', orderId)
+          .maybeSingle();
+          
+        if (marketplaceOrder) {
+          console.log('✅ Type détecté: marketplace_orders');
+          setOrderType('marketplace');
+          setIsDetecting(false);
+          return;
+        }
+        
+        console.error('❌ Commande non trouvée dans aucune table');
+        setOrderType(null);
+        setIsDetecting(false);
+      } catch (error) {
+        console.error('❌ Erreur détection type:', error);
+        setOrderType(null);
+        setIsDetecting(false);
+      }
+    };
+    
+    detectOrderType();
+  }, [orderId]);
+  
+  // Utiliser le hook approprié selon le type
+  const deliveryTracking = useRealTimeDeliveryTracking({
     orderId,
-    enableDriverTracking: true,
-    enableChat: true
+    enableDriverTracking: orderType === 'delivery',
+    enableChat: orderType === 'delivery'
   });
+
+  const marketplaceTracking = useMarketplaceOrderTracking({
+    orderId,
+    enableTracking: orderType === 'marketplace'
+  });
+
+  // Sélectionner les données appropriées
+  const trackingData = orderType === 'delivery' ? deliveryTracking.trackingData : marketplaceTracking.trackingData;
+  const loading = orderType === 'delivery' ? deliveryTracking.loading : marketplaceTracking.loading;
+  const error = orderType === 'delivery' ? deliveryTracking.error : marketplaceTracking.error;
+  const connectionStatus = orderType === 'delivery' ? deliveryTracking.connectionStatus : marketplaceTracking.connectionStatus;
+  const refreshTracking = orderType === 'delivery' ? deliveryTracking.refreshTracking : marketplaceTracking.refreshTracking;
 
   // Interface pour chauffeurs - Dashboard complet
   if (userRole === 'chauffeur') {
@@ -39,6 +93,22 @@ export default function UnifiedDeliveryInterface({ orderId, onBack }: UnifiedDel
           console.log('Livraison sélectionnée:', deliveryId);
         }}
       />
+    );
+  }
+
+  // État de détection du type
+  if (isDetecting || orderType === null) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 p-4">
+        <div className="max-w-md mx-auto space-y-4">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+              <p className="text-muted-foreground">Détection du type de commande...</p>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
