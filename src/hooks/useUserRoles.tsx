@@ -84,6 +84,23 @@ export const useUserRoles = (): UseUserRolesReturn => {
       });
 
       if (rolesError) {
+        // ✅ CORRECTION : Distinguer types d'erreurs pour messages contextuels
+        const isRLSError = rolesError.message?.includes('policy') || 
+                           rolesError.message?.includes('infinite recursion') ||
+                           rolesError.code === '42P17'; // Code erreur récursion Postgres
+        
+        const isNetworkError = rolesError.message?.includes('fetch') || 
+                               rolesError.message?.includes('network');
+        
+        if (isRLSError) {
+          logger.error('[UserRoles] 🔴 ERREUR RLS DÉTECTÉE - Récursion infinie probable');
+          throw new Error('POLICY_RECURSION: Problème de configuration RLS. Contactez le support.');
+        }
+        
+        if (isNetworkError) {
+          logger.warn('[UserRoles] ⚠️ Erreur réseau - Retry automatique');
+        }
+        
         console.error('❌ [UserRoles] RPC Error:', {
           message: rolesError.message,
           code: rolesError.code,
@@ -91,7 +108,7 @@ export const useUserRoles = (): UseUserRolesReturn => {
           hint: rolesError.hint
         });
         
-        // ✅ AJOUTER : Si erreur d'authentification, forcer le rechargement de la session
+        // ✅ Si erreur d'authentification, forcer le rechargement de la session
         if (rolesError.message?.includes('Authentication required') || 
             rolesError.message?.includes('JWT') ||
             rolesError.message?.includes('session not initialized')) {

@@ -159,18 +159,25 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
     } catch (error: any) {
       console.error('[UserProfile] 💥 Erreur fatale après retries:', error);
       
-      // ✅ Distinguer types d'erreurs pour messages appropriés
+      // ✅ CORRECTION : Distinguer types d'erreurs pour UX contextuelle
       const isRLSError = error.message?.includes('policy') || 
+                         error.message?.includes('POLICY_RECURSION') ||
                          error.message?.includes('permission') || 
-                         error.code === '42501';
+                         error.code === '42501' || 
+                         error.code === '42P17';
       
-      const errorMessage = isRLSError 
-        ? "Accès refusé. Contactez le support si le problème persiste."
-        : "Impossible de charger votre profil. Vérifiez votre connexion internet.";
+      const isNetworkError = error.message?.includes('fetch') || 
+                             error.message?.includes('network');
       
       const errorTitle = isRLSError 
         ? "Problème de permissions" 
         : "Erreur de chargement";
+      
+      const errorMessage = isRLSError 
+        ? "Accès refusé. Ce problème nécessite une intervention technique. Contactez le support via support@kwenda.app"
+        : isNetworkError 
+          ? "Vérifiez votre connexion internet et réessayez."
+          : "Impossible de charger votre profil.";
       
       toast({
         title: errorTitle,
