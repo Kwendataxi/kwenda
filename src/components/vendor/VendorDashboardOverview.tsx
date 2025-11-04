@@ -151,7 +151,7 @@ export const VendorDashboardOverview = ({ onTabChange }: VendorDashboardOverview
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-body-md text-muted-foreground">
-            Gérez vos produits, suivez vos commandes et développez votre activité sur Kwenda Marketplace.
+            Gérez vos produits, suivez vos commandes et développez votre activité sur Kwenda Shop.
           </p>
           {stats.pendingProducts > 0 && (
             <p className="text-body-md text-orange-500 font-semibold">

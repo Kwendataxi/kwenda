@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Save, Store, AlertTriangle, Shield } from 'lucide-react';
+import { Loader2, Save, Store, AlertTriangle, Shield, Share2 } from 'lucide-react';
 import { VendorShopShareButtons } from './VendorShopShareButtons';
 
 export const VendorShopSettings: React.FC = () => {
@@ -239,13 +239,17 @@ export const VendorShopSettings: React.FC = () => {
       {vendorId && profile.shop_name && (
         <Card>
           <CardHeader>
-            <CardTitle>Partager ma boutique</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Share2 className="h-5 w-5" />
+              Partager ma boutique
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <VendorShopShareButtons
               vendorId={vendorId}
               vendorName={profile.shop_name}
               productCount={productCount}
+              rating={0}
             />
           </CardContent>
         </Card>

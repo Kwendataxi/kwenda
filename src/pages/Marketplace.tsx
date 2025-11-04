@@ -30,7 +30,7 @@ const MarketplacePage = () => {
                 </div>
                 <div>
                   <h1 className="text-responsive-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                    Kwenda Marketplace
+                    Kwenda Shop
                   </h1>
                   <p className="text-responsive-sm text-muted-foreground hidden sm:block">Achetez et vendez en toute sécurité</p>
                 </div>

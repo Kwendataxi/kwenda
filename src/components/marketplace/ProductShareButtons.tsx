@@ -28,7 +28,7 @@ export const ProductShareButtons: React.FC<ProductShareButtonsProps> = ({
 
   const productUrl = `${window.location.origin}/marketplace/product/${productId}`;
   
-  const shareMessage = `🛍️ Découvre ce produit sur Kwenda Marketplace !\n\n${productTitle}\n💰 ${productPrice.toLocaleString()} CDF\n📍 Vendeur: ${sellerName}\n\n👉 ${productUrl}`;
+  const shareMessage = `🛍️ Découvre ce produit sur Kwenda Shop !\n\n${productTitle}\n💰 ${productPrice.toLocaleString()} CDF\n📍 Vendeur: ${sellerName}\n\n👉 ${productUrl}`;
 
   const trackShare = async (shareType: string) => {
     try {

@@ -31,7 +31,7 @@ const TestimonialsSection = () => {
       name: "Grâce Nzuzi",
       role: "Commerçante",
       location: "Kolwezi, Lualaba",
-      content: "Depuis Kolwezi, je vends maintenant dans toute la province ! Kwenda marketplace m'a connectée à des clients de Lubumbashi et même Kinshasa. Un succès incroyable !",
+      content: "Depuis Kolwezi, je vends maintenant dans toute la province ! Kwenda Shop m'a connectée à des clients de Lubumbashi et même Kinshasa. Un succès incroyable !",
       rating: 5,
       service: "Marketplace",
       avatar: "👩🏿‍💼",

@@ -212,7 +212,7 @@ const MarketplaceContent = () => {
           <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-10"></div>
           <div className="container mx-auto max-w-7xl text-center relative z-10">
             <Badge variant="outline" className="border-white/30 text-white mb-6">
-              🛍️ Kwenda Marketplace
+              🛍️ Kwenda Shop
             </Badge>
             <h1 className="text-display-lg mb-6">
               Marketplace
@@ -409,7 +409,7 @@ const MarketplaceContent = () => {
         {/* CTA */}
         <section className="py-20 px-4 bg-gradient-to-r from-primary via-secondary to-accent text-white">
           <div className="container mx-auto max-w-4xl text-center">
-            <h2 className="text-display-md mb-6">Vendez vos Produits sur Kwenda Marketplace</h2>
+            <h2 className="text-display-md mb-6">Vendez vos Produits sur Kwenda Shop</h2>
             <p className="text-xl mb-8 text-white/90">
               Rejoignez plus de 200 vendeurs qui font confiance à Kwenda pour développer leur business. 
               Commission de seulement 8% avec livraison intégrée !

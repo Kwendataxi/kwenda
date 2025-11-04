@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ArrowLeft, Star, Package, Loader2, Store, Heart, ThumbsUp, Share2, X, Camera, Home } from 'lucide-react';
 import { YangoProductCard } from '@/components/marketplace/YangoProductCard';
 import { VendorShopShareButtons } from '@/components/marketplace/VendorShopShareButtons';
@@ -454,9 +454,14 @@ const VendorShop: React.FC = () => {
 
       {/* Dialog Partage */}
       <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Partager cette boutique</DialogTitle>
+            <DialogTitle className="text-center">
+              Partager la boutique {profile.shop_name}
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Partagez cette boutique avec vos contacts
+            </DialogDescription>
           </DialogHeader>
           <VendorShopShareButtons
             vendorId={profile.id}

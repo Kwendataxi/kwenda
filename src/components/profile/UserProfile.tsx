@@ -581,7 +581,7 @@ export const UserProfile = ({ onWalletAccess, onViewChange, onClose }: UserProfi
                 <div className="flex-1 text-left">
                   <div className="text-lg font-bold text-foreground">Devenir vendeur</div>
                   <div className="text-sm text-muted-foreground">
-                    Vendez vos produits sur Kwenda Marketplace
+                    Vendez vos produits sur Kwenda Shop
                   </div>
                 </div>
                 <ChevronRight className="h-6 w-6 text-primary" />
