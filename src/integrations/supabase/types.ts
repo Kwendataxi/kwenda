@@ -13545,6 +13545,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_admins_with_permissions: {
+        Args: { permission_names: string[] }
+        Returns: string[]
+      }
       get_ai_performance_stats: {
         Args: { days_back?: number }
         Returns: {

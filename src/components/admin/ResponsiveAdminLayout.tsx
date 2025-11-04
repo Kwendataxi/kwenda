@@ -7,6 +7,7 @@ import { AdminPermissionSettings, AdminPermissionProvider, useAdminPermissions }
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { BackToTopButton } from '@/components/navigation/BackToTopButton';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { AdminRoleNotificationCenter } from '@/components/admin/AdminRoleNotificationCenter';
 import { cn } from '@/lib/utils';
 
 interface ResponsiveAdminLayoutProps {
@@ -44,12 +45,20 @@ const ResponsiveAdminLayoutInner: React.FC<ResponsiveAdminLayoutProps> = ({
             )}
           >
             <div className="flex flex-col h-full max-h-screen">
-              {process.env.NODE_ENV === 'development' && (
-                <div className="shrink-0 p-4 border-b border-border/60 bg-card/50">
-                  <h2 className="text-lg font-semibold mb-3">Navigation Admin</h2>
-                  <AdminPermissionSettings />
-                </div>
-              )}
+            {/* Header avec notifications */}
+            <div className="shrink-0 p-4 border-b border-border/60 bg-card/50 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Navigation Admin</h2>
+              <div className="flex items-center gap-2">
+                <AdminRoleNotificationCenter />
+                <NotificationBell />
+              </div>
+            </div>
+            
+            {process.env.NODE_ENV === 'development' && (
+              <div className="shrink-0 p-4 border-b border-border/60 bg-card/50">
+                <AdminPermissionSettings />
+              </div>
+            )}
               
               <div className="flex-1 min-h-0 overflow-hidden">
                 <AdminVerticalNav 
