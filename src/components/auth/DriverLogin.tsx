@@ -12,12 +12,14 @@ import BrandLogo from '@/components/brand/BrandLogo';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
 import { logger } from '@/utils/logger';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DriverLoginProps {
   onSuccess?: () => void;
 }
 
 export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -89,7 +91,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
         }
 
         if (!roles || roles.length === 0) {
-          throw new Error('Aucun rôle trouvé pour ce compte');
+          throw new Error(t('auth.no_roles_found'));
         }
 
         const hasDriverRole = roles.some((r: any) => r.role === 'driver');
@@ -102,14 +104,14 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
           let suggestion = '';
           
           if (otherRole === 'client') {
-            suggestion = ' Connectez-vous via l\'espace client.';
+            suggestion = t('auth.login_via_client');
           } else if (otherRole === 'partner') {
-            suggestion = ' Connectez-vous via l\'espace partenaire.';
+            suggestion = t('auth.login_via_partner');
           } else if (otherRole === 'admin') {
-            suggestion = ' Connectez-vous via l\'espace admin.';
+            suggestion = t('auth.login_via_admin');
           }
           
-          setError('Ce compte n\'est pas un compte chauffeur.' + suggestion);
+          setError(t('auth.not_driver_account') + suggestion);
           setLoading(false);
           return;
         }
@@ -123,19 +125,19 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
 
         if (profileError) {
           logger.error('Error fetching driver profile', profileError);
-          throw new Error('Erreur lors de la vérification du profil');
+          throw new Error(t('auth.profile_verification_error'));
         }
 
         if (!driverProfile) {
           await supabase.auth.signOut();
-          setError('Profil chauffeur introuvable. Veuillez contacter le support.');
+          setError(t('auth.driver_profile_not_found'));
           setLoading(false);
           return;
         }
 
         if (!driverProfile.is_active) {
           await supabase.auth.signOut();
-          setError('⏳ Votre compte est en attente de validation par notre équipe. Vous recevrez un email de confirmation dès l\'activation.');
+          setError(t('auth.driver_pending_validation'));
           setLoading(false);
           return;
         }
@@ -157,8 +159,8 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
         localStorage.setItem('kwenda_selected_role', 'driver');
 
         toast({
-          title: "Connexion réussie !",
-          description: "Bienvenue dans votre espace chauffeur",
+          title: t('auth.login_success'),
+          description: t('auth.welcome_driver'),
         });
 
         // ✅ CORRECTION : Attendre 300ms pour garantir synchronisation
@@ -191,16 +193,16 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
             <Car className="w-4 h-4 text-gray-700 dark:text-gray-300" />
             <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-              Espace Chauffeur
+              {t('auth.driver_space')}
             </span>
           </div>
           
           <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
-            Kwenda Driver
+            {t('auth.driver_title')}
           </h1>
           
           <p className="text-base text-gray-600 dark:text-gray-400">
-            Gérez vos courses et maximisez vos gains
+            {t('auth.driver_subtitle')}
           </p>
         </div>
 
@@ -212,14 +214,14 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
               {/* Champ Email */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-100">
-                  Adresse email
+                  {t('auth.email')}
                 </Label>
                 <div className="relative group">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-orange-600 transition-colors" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="chauffeur@email.com"
+                    placeholder={t('auth.driver_email_placeholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -231,7 +233,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
               {/* Champ Mot de passe */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-100">
-                  Mot de passe
+                  {t('auth.password')}
                 </Label>
                 <div className="relative group">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-orange-600 transition-colors" />
@@ -277,7 +279,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                 disabled={loading}
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {loading ? 'Connexion...' : 'Se connecter'}
+                {loading ? t('auth.logging_in') : t('auth.login_button')}
               </Button>
 
               {/* Lien mot de passe oublié */}
@@ -288,7 +290,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                   className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-medium underline-offset-4 hover:underline"
                   onClick={() => setShowForgotPassword(true)}
                 >
-                  Mot de passe oublié ?
+                  {t('auth.forgot_password')}
                 </Button>
               </div>
             </form>
@@ -301,11 +303,11 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
                 onClick={() => navigate('/driver/register')}
                 className="w-full h-12 text-orange-600 dark:text-orange-400 border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 font-medium"
               >
-                Pas encore chauffeur ? S'inscrire
+                {t('auth.become_driver')}
               </Button>
               
               <p className="text-sm text-muted-foreground">
-                Pas chauffeur ?
+                {t('auth.not_driver')}
               </p>
               <div className="flex flex-wrap justify-center items-center gap-2 text-sm">
                 <Link to="/app/auth" className="text-orange-600 dark:text-orange-400 hover:underline font-medium">
@@ -335,7 +337,7 @@ export const DriverLogin = ({ onSuccess }: DriverLoginProps) => {
             </Button>
             
             <p className="text-xs text-muted-foreground text-center px-4">
-              Découvrez nos services sans vous connecter
+              {t('auth.discover_services')}
             </p>
           </div>
         </div>

@@ -10,12 +10,14 @@ import { toast } from 'sonner';
 import { useNavigate, Link } from 'react-router-dom';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
 import { logger } from '@/utils/logger';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface AdminLoginProps {
   onSuccess?: () => void;
 }
 
 export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +28,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error('Veuillez remplir tous les champs');
+      toast.error(t('auth.fill_all_fields'));
       return;
     }
 
@@ -64,8 +66,8 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
 
       if (roleError || !isAdmin) {
         await supabase.auth.signOut();
-        toast.error('Accès non autorisé', {
-          description: 'Ce compte n\'est pas autorisé à accéder à l\'administration'
+        toast.error(t('auth.access_denied'), {
+          description: t('auth.not_authorized_admin')
         });
         return;
       }
@@ -74,8 +76,8 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
       localStorage.setItem('kwenda_login_intent', 'admin');
       localStorage.setItem('kwenda_selected_role', 'admin');
 
-      toast.success('Connexion réussie', {
-        description: 'Bienvenue dans l\'administration Kwenda'
+      toast.success(t('auth.login_success'), {
+        description: t('auth.welcome_admin')
       });
 
       // ✅ CORRECTION : Attendre 300ms pour garantir synchronisation
@@ -88,8 +90,8 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
       }
     } catch (error: any) {
       logger.error('Erreur de connexion admin', error);
-      toast.error('Erreur de connexion', {
-        description: error.message || 'Vérifiez vos identifiants'
+      toast.error(t('auth.login_error'), {
+        description: error.message || t('auth.check_credentials')
       });
     } finally {
       setLoading(false);
@@ -107,16 +109,16 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
             <Shield className="w-4 h-4 text-gray-700 dark:text-gray-300" />
             <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-              Espace Administrateur
+              {t('auth.admin_space')}
             </span>
           </div>
           
           <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
-            Kwenda Admin
+            {t('auth.admin_title')}
           </h1>
           
           <p className="text-base text-gray-600 dark:text-gray-400">
-            Accès sécurisé pour les administrateurs
+            {t('auth.admin_subtitle')}
           </p>
         </div>
 
@@ -124,13 +126,13 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
           <CardContent className="pt-8 pb-6">
             <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-100">Email</Label>
+                <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-100">{t('auth.email')}</Label>
                 <div className="relative group">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-red-600 transition-colors" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="admin@kwendataxi.com"
+                    placeholder={t('auth.admin_email_placeholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -140,7 +142,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-100">Mot de passe</Label>
+                <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-100">{t('auth.password')}</Label>
                 <div className="relative group">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-red-600 transition-colors" />
                   <Input
@@ -173,7 +175,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
                 className="w-full h-12 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
                 disabled={loading}
               >
-                {loading ? 'Connexion...' : 'Se connecter'}
+                {loading ? t('auth.logging_in') : t('auth.login_button')}
               </Button>
 
               <Button
@@ -182,7 +184,7 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
                 className="w-full text-sm"
                 onClick={() => setShowForgotPassword(true)}
               >
-                Mot de passe oublié ?
+                {t('auth.forgot_password')}
               </Button>
             </form>
           </CardContent>
@@ -190,17 +192,17 @@ export const AdminLogin = ({ onSuccess }: AdminLoginProps) => {
 
         <div className="text-center mt-6 space-y-3">
           <div className="text-center space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-muted-foreground">Pas admin ?</p>
+            <p className="text-sm text-muted-foreground">{t('auth.not_admin')}</p>
             <div className="flex flex-wrap justify-center gap-2 text-sm">
-              <Link to="/app/auth" className="text-primary hover:underline font-medium">Espace Client</Link>
+              <Link to="/app/auth" className="text-primary hover:underline font-medium">{t('auth.client_space')}</Link>
               <span className="text-muted-foreground">•</span>
-              <Link to="/driver/auth" className="text-primary hover:underline font-medium">Espace Chauffeur</Link>
+              <Link to="/driver/auth" className="text-primary hover:underline font-medium">{t('auth.driver_space')}</Link>
               <span className="text-muted-foreground">•</span>
-              <Link to="/partner/auth" className="text-primary hover:underline font-medium">Espace Partenaire</Link>
+              <Link to="/partner/auth" className="text-primary hover:underline font-medium">{t('auth.partner_space')}</Link>
             </div>
           </div>
           <Button variant="ghost" onClick={() => navigate('/')} className="text-muted-foreground hover:text-foreground">
-            ← Retour à l'accueil
+            ← {t('auth.back_home')}
           </Button>
         </div>
 

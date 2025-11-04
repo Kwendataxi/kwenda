@@ -10,12 +10,14 @@ import { toast } from 'sonner';
 import { useNavigate, Link } from 'react-router-dom';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
 import { logger } from '@/utils/logger';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PartnerLoginProps {
   onSuccess?: () => void;
 }
 
 export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +28,7 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error('Veuillez remplir tous les champs');
+      toast.error(t('auth.fill_all_fields'));
       return;
     }
 
@@ -87,7 +89,7 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
         }
 
         if (!roles || roles.length === 0) {
-          throw new Error('Aucun rôle trouvé pour ce compte');
+          throw new Error(t('auth.no_roles_found'));
         }
 
         const hasPartnerRole = roles.some((r: any) => r.role === 'partner');
@@ -99,15 +101,15 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
           let suggestion = '';
           
           if (otherRole === 'client') {
-            suggestion = ' Connectez-vous via l\'espace client.';
+            suggestion = t('auth.login_via_client');
           } else if (otherRole === 'driver') {
-            suggestion = ' Connectez-vous via l\'espace chauffeur.';
+            suggestion = t('auth.login_via_driver');
           } else if (otherRole === 'admin') {
-            suggestion = ' Connectez-vous via l\'espace admin.';
+            suggestion = t('auth.login_via_admin');
           }
           
-          toast.error('Accès refusé', {
-            description: "Ce compte n'est pas un compte partenaire." + suggestion
+          toast.error(t('auth.access_denied'), {
+            description: t('auth.not_partner_account') + suggestion
           });
           return;
         }
@@ -117,8 +119,8 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
       localStorage.setItem('kwenda_login_intent', 'partner');
       localStorage.setItem('kwenda_selected_role', 'partner');
 
-      toast.success('Connexion réussie', {
-        description: 'Bienvenue dans votre espace partenaire Kwenda'
+      toast.success(t('auth.login_success'), {
+        description: t('auth.welcome_partner')
       });
 
       // ✅ CORRECTION : Attendre 300ms pour garantir synchronisation
@@ -131,8 +133,8 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
       }
     } catch (error: any) {
       logger.error('Erreur de connexion partenaire', error);
-      toast.error('Erreur de connexion', {
-        description: error.message || 'Vérifiez vos identifiants'
+      toast.error(t('auth.login_error'), {
+        description: error.message || t('auth.check_credentials')
       });
     } finally {
       setLoading(false);
@@ -150,16 +152,16 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
             <Briefcase className="w-4 h-4 text-gray-700 dark:text-gray-300" />
             <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-              Espace Partenaire
+              {t('auth.partner_space')}
             </span>
           </div>
           
           <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
-            Kwenda Partner
+            {t('auth.partner_title')}
           </h1>
           
           <p className="text-base text-gray-600 dark:text-gray-400">
-            Gérez votre flotte et développez votre activité
+            {t('auth.partner_subtitle')}
           </p>
         </div>
 
@@ -167,13 +169,13 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
           <CardContent className="pt-8 pb-6">
             <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-100">Email</Label>
+                <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-100">{t('auth.email')}</Label>
                 <div className="relative group">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-green-600 transition-colors" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="partenaire@entreprise.com"
+                    placeholder={t('auth.partner_email_placeholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -183,7 +185,7 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-100">Mot de passe</Label>
+                <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-100">{t('auth.password')}</Label>
                 <div className="relative group">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-green-600 transition-colors" />
                   <Input
@@ -216,7 +218,7 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
                 className="w-full h-12 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
                 disabled={loading}
               >
-                {loading ? 'Connexion...' : 'Se connecter'}
+                {loading ? t('auth.logging_in') : t('auth.login_button')}
               </Button>
 
               <div className="flex items-center justify-center pt-2">
@@ -226,7 +228,7 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
                   className="text-sm text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium underline-offset-4 hover:underline"
                   onClick={() => setShowForgotPassword(true)}
                 >
-                  Mot de passe oublié ?
+                  {t('auth.forgot_password')}
                 </Button>
               </div>
             </form>
@@ -238,11 +240,11 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
                 onClick={() => navigate('/partner/register')}
                 className="w-full h-12 text-green-600 dark:text-green-400 border-green-300 dark:border-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 font-medium"
               >
-                Pas encore partenaire ? S'inscrire
+                {t('auth.become_partner')}
               </Button>
               
               <p className="text-sm text-muted-foreground">
-                Pas partenaire ?
+                {t('auth.not_partner')}
               </p>
               <div className="flex flex-wrap justify-center items-center gap-2 text-sm">
                 <Link to="/app/auth" className="text-green-600 dark:text-green-400 hover:underline font-medium">
@@ -277,7 +279,7 @@ export const PartnerLogin = ({ onSuccess }: PartnerLoginProps) => {
             </Button>
             
             <p className="text-xs text-muted-foreground text-center px-4">
-              Découvrez nos services sans vous connecter
+              {t('auth.discover_services')}
             </p>
           </div>
         </div>

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Mail, ArrowLeft } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ForgotPasswordModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface ForgotPasswordModalProps {
 }
 
 export const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProps) => {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -20,7 +22,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      toast.error("Veuillez saisir votre adresse email");
+      toast.error(t('auth.enter_email'));
       return;
     }
 
@@ -34,10 +36,10 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProp
         toast.error(error.message);
       } else {
         setSent(true);
-        toast.success("Email de récupération envoyé !");
+        toast.success(t('auth.recovery_email_sent'));
       }
     } catch (error) {
-      toast.error("Erreur lors de l'envoi de l'email");
+      toast.error(t('auth.email_send_error'));
     } finally {
       setLoading(false);
     }
@@ -55,24 +57,24 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProp
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
-            Récupération de mot de passe
+            {t('auth.password_recovery')}
           </DialogTitle>
         </DialogHeader>
 
         {!sent ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Adresse email</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="votre@email.com"
+                placeholder={t('auth.email_placeholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
               <p className="text-sm text-muted-foreground">
-                Nous vous enverrons un lien pour réinitialiser votre mot de passe
+                {t('auth.reset_link_info')}
               </p>
             </div>
 
@@ -84,10 +86,10 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProp
                 onClick={handleClose}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Retour
+                {t('common.back')}
               </Button>
               <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? "Envoi..." : "Envoyer"}
+                {loading ? t('auth.sending') : t('auth.send')}
               </Button>
             </div>
           </form>
@@ -97,13 +99,13 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProp
               <Mail className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold">Email envoyé !</h3>
+              <h3 className="font-semibold">{t('auth.email_sent')}</h3>
               <p className="text-sm text-muted-foreground mt-2">
-                Vérifiez votre boîte email <strong>{email}</strong> et cliquez sur le lien pour réinitialiser votre mot de passe.
+                {t('auth.check_email_inbox').replace('{email}', email)}
               </p>
             </div>
             <Button onClick={handleClose} className="w-full">
-              Fermer
+              {t('common.close')}
             </Button>
           </div>
         )}
