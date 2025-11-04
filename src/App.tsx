@@ -238,6 +238,14 @@ const AppContent = () => {
                   } 
                 />
                 
+                {/* Route alias /admin/marketplace → /admin?tab=marketplace-management */}
+                <Route 
+                  path="/admin/marketplace" 
+                  element={
+                    <Navigate to="/admin?tab=marketplace-management" replace />
+                  } 
+                />
+                
                 {/* Route Splash pour mobile/PWA */}
                 <Route path="/splash" element={<MobileSplash />} />
                 

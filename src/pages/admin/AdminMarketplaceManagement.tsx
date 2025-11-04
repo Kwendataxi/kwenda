@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { AdminMarketplaceModeration } from '@/components/admin/marketplace/AdminMarketplaceModeration';
 import { AdminVendorSubscriptions } from '@/components/admin/marketplace/AdminVendorSubscriptions';
 import { AdminCommissionConfig } from '@/components/admin/marketplace/AdminCommissionConfig';
+import { AdminMarketplaceStats } from '@/components/admin/marketplace/AdminMarketplaceStats';
 import { useAdminMarketplaceProducts } from '@/hooks/admin/useAdminMarketplaceProducts';
 import { LayoutDashboard, Package, Shield, Users, DollarSign } from 'lucide-react';
 
@@ -51,12 +52,7 @@ export const AdminMarketplaceManagement = () => {
         </TabsList>
 
         <TabsContent value="overview" className="mt-6">
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Statistiques marketplace</h2>
-            <p className="text-muted-foreground">
-              Les statistiques détaillées seront ajoutées prochainement.
-            </p>
-          </Card>
+          <AdminMarketplaceStats />
         </TabsContent>
 
         <TabsContent value="products" className="mt-6">
