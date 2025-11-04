@@ -1,18 +1,29 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { AdminMarketplaceModeration } from '@/components/admin/marketplace/AdminMarketplaceModeration';
 import { AdminVendorSubscriptions } from '@/components/admin/marketplace/AdminVendorSubscriptions';
 import { AdminCommissionConfig } from '@/components/admin/marketplace/AdminCommissionConfig';
+import { useAdminMarketplaceProducts } from '@/hooks/admin/useAdminMarketplaceProducts';
 import { LayoutDashboard, Package, Shield, Users, DollarSign } from 'lucide-react';
 
 export const AdminMarketplaceManagement = () => {
+  const { pendingProducts } = useAdminMarketplaceProducts();
+  
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Gestion Marketplace</h1>
-        <p className="text-muted-foreground">
-          Administration complète : vendeurs, produits, abonnements et commissions
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Gestion Marketplace</h1>
+          <p className="text-muted-foreground">
+            Administration complète : vendeurs, produits, abonnements et commissions
+          </p>
+        </div>
+        {pendingProducts.length > 0 && (
+          <Badge variant="destructive" className="animate-pulse h-7 px-4 text-sm">
+            {pendingProducts.length} produit{pendingProducts.length > 1 ? 's' : ''} en attente
+          </Badge>
+        )}
       </div>
 
       <Tabs defaultValue="overview" className="w-full">

@@ -66,7 +66,7 @@ export const VendorProductManager = ({ onUpdate, onTabChange }: VendorProductMan
       case 'price':
         return b.price - a.price;
       case 'stock':
-        return (b.stock_quantity || 0) - (a.stock_quantity || 0);
+        return (b.stock_count || 0) - (a.stock_count || 0);
       case 'date':
       default:
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();

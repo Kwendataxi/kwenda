@@ -53,7 +53,7 @@ export default function VendorAddProduct() {
       }
 
       // Insert product into database
-      const { error } = await supabase
+      const { data: newProduct, error } = await supabase
         .from('marketplace_products')
         .insert({
           seller_id: user.id,
@@ -68,8 +68,10 @@ export default function VendorAddProduct() {
           brand: formData.brand || null,
           specifications: formData.specifications || {},
           moderation_status: 'pending',
-          status: 'draft' // ✅ PHASE 2.1: Produit en brouillon jusqu'à approbation
-        });
+          is_active: false
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
