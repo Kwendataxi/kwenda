@@ -112,7 +112,7 @@ export const ChatVendorModal: React.FC<ChatVendorModalProps> = ({
             buyer_name: conv.buyer?.display_name || 'Client',
             buyer_avatar: conv.buyer?.profile_photo_url,
             product_title: conv.products?.title || 'Produit',
-            product_image: conv.products?.main_image_url,
+            product_image: conv.products?.images?.[0],
             product_price: conv.products?.price || 0,
             last_message_at: conv.last_message_at,
             unread_count: count || 0,

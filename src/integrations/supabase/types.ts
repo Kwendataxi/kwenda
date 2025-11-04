@@ -12929,6 +12929,19 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_stats_mv: {
+        Row: {
+          active_products: number | null
+          escrow_balance: number | null
+          last_updated: string | null
+          pending_escrow: number | null
+          pending_orders: number | null
+          pending_products: number | null
+          seller_id: string | null
+          total_orders: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_partner_role_to_existing_user: {
@@ -14066,7 +14079,6 @@ export type Database = {
           pending_escrow: number
           pending_orders: number
           pending_products: number
-          seller_id: string
           total_orders: number
         }[]
       }

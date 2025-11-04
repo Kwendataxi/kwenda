@@ -68,7 +68,7 @@ export default function VendorChatConversation() {
           id,
           product_id,
           buyer_id,
-          products:marketplace_products(title, price, main_image_url),
+          products:marketplace_products(title, price, images),
           buyer:profiles!marketplace_chats_buyer_id_fkey(display_name, profile_photo_url)
         `)
         .eq('id', conversationId)
@@ -95,7 +95,7 @@ export default function VendorChatConversation() {
         buyer_avatar: (chat.buyer as any)?.profile_photo_url,
         product_title: (chat.products as any)?.title || 'Produit',
         product_price: (chat.products as any)?.price || 0,
-        product_image: (chat.products as any)?.main_image_url
+        product_image: (chat.products as any)?.images?.[0]
       });
 
       // Charger les messages

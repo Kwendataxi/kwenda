@@ -24,7 +24,7 @@ interface ModernVendorProductCardProps {
     id: string;
     title: string;
     price: number;
-    main_image_url?: string;
+    images?: string[];
     stock_quantity?: number;
     moderation_status: string;
     rejection_reason?: string;
@@ -144,9 +144,9 @@ export const ModernVendorProductCard = ({ product, onDelete }: ModernVendorProdu
     <Card className="relative overflow-hidden bg-card/80 backdrop-blur-xl border-0 shadow-lg hover:shadow-xl transition-all duration-300">
       {/* Image */}
       <div className="relative h-48 bg-muted/50">
-        {product.main_image_url ? (
+        {product.images?.[0] ? (
           <img
-            src={product.main_image_url}
+            src={product.images[0]}
             alt={product.title}
             className="w-full h-full object-cover"
             loading="lazy"
