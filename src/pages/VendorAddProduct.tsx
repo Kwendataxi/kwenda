@@ -10,9 +10,45 @@ export default function VendorAddProduct() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleBack = () => {
     navigate('/vendeur');
+  };
+
+  // ✅ PHASE 3: Fonction de compression d'images
+  const compressImage = async (file: File, maxWidth = 1920): Promise<File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+            } else {
+              resolve(file);
+            }
+          }, 'image/jpeg', 0.85);
+        };
+      };
+    });
   };
 
   const handleSubmit = async (formData: any): Promise<boolean> => {
@@ -26,9 +62,10 @@ export default function VendorAddProduct() {
     }
 
     setIsSubmitting(true);
+    setUploadProgress(0);
     
     try {
-      // ✅ Validation du nombre d'images
+      // ✅ PHASE 1: Validation stricte
       if (formData.images.length === 0) {
         toast({
           title: "Photos manquantes",
@@ -47,21 +84,24 @@ export default function VendorAddProduct() {
         return false;
       }
 
-      // ✅ Upload images to Supabase Storage avec timeout et validation
       const imageUrls: string[] = [];
       
       for (let i = 0; i < formData.images.length; i++) {
-        const image = formData.images[i];
+        let image = formData.images[i];
         
-        // Afficher la progression
-        toast({
-          title: `📤 Upload en cours`,
-          description: `Image ${i + 1}/${formData.images.length} en cours...`,
-        });
+        // ✅ PHASE 3: Compression automatique si > 1MB
+        if (image.size > 1024 * 1024) {
+          console.log(`🗜️ Compressing ${image.name} (${(image.size / 1024 / 1024).toFixed(2)}MB)`);
+          image = await compressImage(image);
+          console.log(`✅ Compressed to ${(image.size / 1024 / 1024).toFixed(2)}MB`);
+        }
+        
+        // ✅ PHASE 3: Mettre à jour la progression
+        setUploadProgress(Math.round((i / formData.images.length) * 100));
         
         // Vérifier la taille du fichier (max 5MB)
         if (image.size > 5 * 1024 * 1024) {
-          throw new Error(`L'image ${image.name} dépasse 5MB`);
+          throw new Error(`L'image ${image.name} dépasse 5MB même après compression`);
         }
 
         const fileExt = image.name.split('.').pop();
@@ -97,14 +137,11 @@ export default function VendorAddProduct() {
 
         imageUrls.push(urlData.publicUrl);
         
-        // Toast de succès pour chaque image
-        toast({
-          title: `✅ Image ${i + 1}/${formData.images.length}`,
-          description: `Upload réussi`,
-        });
-        
         console.log(`✅ Image ${i+1}/${formData.images.length} uploaded: ${image.name}`);
       }
+      
+      // ✅ PHASE 3: Progression finale
+      setUploadProgress(100);
 
       // Insert product into database
       const { data: newProduct, error } = await supabase
@@ -130,8 +167,8 @@ export default function VendorAddProduct() {
       if (error) throw error;
 
       toast({
-        title: "✅ Produit ajouté !",
-        description: "Votre produit a été soumis pour modération. Vous serez notifié une fois approuvé.",
+        title: "✅ Produit publié !",
+        description: "Votre produit sera visible après modération.",
       });
 
       navigate('/vendeur');
@@ -173,12 +210,18 @@ export default function VendorAddProduct() {
       return false;
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(0);
     }
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <SellProductForm onBack={handleBack} onSubmit={handleSubmit} />
+      <SellProductForm 
+        onBack={handleBack} 
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        uploadProgress={uploadProgress}
+      />
     </div>
   );
 }

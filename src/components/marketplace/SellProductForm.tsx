@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -8,13 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
-import { Camera, Upload, X, ArrowLeft, ArrowRight, CheckCircle, Eye, Plus, Minus } from 'lucide-react';
+import { Camera, Upload, X, ArrowLeft, ArrowRight, CheckCircle, Eye, Plus, Minus, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useProductFormValidation } from '@/hooks/useProductFormValidation';
 import { CompactProductCard } from './CompactProductCard';
 import { MARKETPLACE_CATEGORIES, PRODUCT_CONDITIONS } from '@/config/marketplaceCategories';
 import { cn } from '@/lib/utils';
+import { debounce } from '@/utils/performanceUtils';
 
 interface SellProductFormData {
   title: string;
@@ -31,9 +32,16 @@ interface SellProductFormData {
 interface SellProductFormProps {
   onBack: () => void;
   onSubmit: (data: SellProductFormData) => Promise<boolean>;
+  isSubmitting?: boolean;
+  uploadProgress?: number;
 }
 
-export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubmit }) => {
+export const SellProductForm: React.FC<SellProductFormProps> = ({ 
+  onBack, 
+  onSubmit,
+  isSubmitting = false,
+  uploadProgress = 0
+}) => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<SellProductFormData>({
@@ -86,11 +94,29 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
     uploadImages(e.dataTransfer.files);
   };
 
+  // ✅ PHASE 2: Debounced input handler pour meilleure performance
+  const debouncedInputChange = useCallback(
+    debounce((field: keyof SellProductFormData, value: string | number) => {
+      if (field === 'stock_count') {
+        setFormData(prev => ({ ...prev, [field]: Number(value) || 1 }));
+      } else {
+        setFormData(prev => ({ ...prev, [field]: value }));
+      }
+    }, 300),
+    []
+  );
+
   const handleInputChange = (field: keyof SellProductFormData, value: string | number) => {
-    if (field === 'stock_count') {
-      setFormData(prev => ({ ...prev, [field]: Number(value) || 1 }));
+    // Inputs critiques sans debounce
+    if (field === 'category' || field === 'condition' || field === 'stock_count') {
+      if (field === 'stock_count') {
+        setFormData(prev => ({ ...prev, [field]: Number(value) || 1 }));
+      } else {
+        setFormData(prev => ({ ...prev, [field]: value }));
+      }
     } else {
-      setFormData(prev => ({ ...prev, [field]: value }));
+      // Inputs text avec debounce
+      debouncedInputChange(field, value);
     }
   };
 
@@ -133,18 +159,36 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
         ))}
       </div>
 
+      {/* ✅ PHASE 3: Afficher la progression d'upload si en cours */}
+      {isSubmitting && (
+        <Card className="border-primary">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Loader2 className="h-5 w-5 animate-spin text-primary flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">📤 Publication en cours...</p>
+                <Progress value={uploadProgress} className="mt-2 h-2" />
+              </div>
+              <span className="text-sm text-muted-foreground tabular-nums">{uploadProgress}%</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Progress Bar */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Profil du produit</span>
-            <Badge variant={completionRate === 100 ? "default" : "secondary"}>
-              {completionRate}%
-            </Badge>
-          </div>
-          <Progress value={completionRate} className="h-2" />
-        </CardContent>
-      </Card>
+      {!isSubmitting && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Profil du produit</span>
+              <Badge variant={completionRate === 100 ? "default" : "secondary"}>
+                {completionRate}%
+              </Badge>
+            </div>
+            <Progress value={completionRate} className="h-2" />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Step Content */}
       <AnimatePresence mode="wait">
@@ -193,48 +237,41 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
                   />
                 </motion.div>
 
-                {/* Image Previews - Horizontal Scroll */}
+                {/* ✅ PHASE 2: Image Previews - Réduire animations pour performance */}
                 {imagePreviews.length > 0 && (
                   <div className="mt-6">
                     <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
-                      <AnimatePresence>
-                        {imagePreviews.map((img, i) => (
-                          <motion.div
-                            key={i}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.5 }}
-                            className="relative flex-shrink-0 w-32 h-32 sm:w-40 sm:h-40 group snap-start"
+                      {imagePreviews.map((img, i) => (
+                        <div
+                          key={i}
+                          className="relative flex-shrink-0 w-32 h-32 sm:w-40 sm:h-40 group snap-start"
+                        >
+                          <img 
+                            src={img} 
+                            className="w-full h-full object-cover rounded-xl shadow-md" 
+                            alt={`Preview ${i + 1}`}
+                          />
+                          <button
+                            className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:scale-110"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeImage(i);
+                            }}
                           >
-                            <img 
-                              src={img} 
-                              className="w-full h-full object-cover rounded-xl shadow-md" 
-                              alt={`Preview ${i + 1}`}
-                            />
-                            <motion.button
-                              whileHover={{ scale: 1.2, rotate: 90 }}
-                              whileTap={{ scale: 0.9 }}
-                              className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeImage(i);
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </motion.button>
-                            {i === 0 && (
-                              <Badge className="absolute top-2 left-2 bg-primary text-xs">
-                                Principale
-                              </Badge>
-                            )}
-                            <div className="absolute bottom-2 left-2 right-2 flex justify-center">
-                              <Badge variant="secondary" className="text-[10px] bg-black/50 text-white">
-                                {i + 1}/{imagePreviews.length}
-                              </Badge>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
+                            <X className="h-4 w-4" />
+                          </button>
+                          {i === 0 && (
+                            <Badge className="absolute top-2 left-2 bg-primary text-xs">
+                              Principale
+                            </Badge>
+                          )}
+                          <div className="absolute bottom-2 left-2 right-2 flex justify-center">
+                            <Badge variant="secondary" className="text-[10px] bg-black/50 text-white">
+                              {i + 1}/{imagePreviews.length}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                     <p className="text-xs text-center text-muted-foreground mt-2">
                       Faites glisser pour voir toutes les photos • La première sera l'image principale
@@ -566,7 +603,6 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
         ) : (
           <Button
             onClick={async () => {
-              // ✅ CORRECTION 4: Validation avant submit
               if (uploadedFiles.length === 0) {
                 toast({
                   title: "Photos manquantes",
@@ -585,7 +621,6 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
                 return;
               }
               
-              // ✅ CORRECTION 2: Passer les Files objects au lieu des previews
               const success = await onSubmit({ ...formData, images: uploadedFiles });
               if (success) {
                 setCurrentStep(1);
@@ -602,11 +637,20 @@ export const SellProductForm: React.FC<SellProductFormProps> = ({ onBack, onSubm
                 });
               }
             }}
-            disabled={!isValid || uploadedFiles.length === 0}
+            disabled={!isValid || uploadedFiles.length === 0 || isSubmitting}
             className="flex-1 bg-primary hover:bg-primary/90"
           >
-            <CheckCircle className="h-4 w-4 mr-2" />
-            Publier le produit
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Publication...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Publier le produit
+              </>
+            )}
           </Button>
         )}
       </div>
