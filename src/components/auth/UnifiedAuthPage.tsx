@@ -32,7 +32,7 @@ export const UnifiedAuthPage = () => {
                 {t('auth.welcome')}
               </h1>
               <p className="text-lg text-muted-foreground/80 mt-3 font-light">
-                Connectez-vous pour commander vos courses
+                {t('auth.client_subtitle')}
               </p>
             </div>
           </div>
@@ -42,10 +42,10 @@ export const UnifiedAuthPage = () => {
             <div className="p-8 space-y-6">
               <div className="text-center space-y-2">
                 <h2 className="text-xl font-semibold text-foreground">
-                  Connexion Client
+                  {t('auth.client_login_title')}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Accédez à vos services de transport, livraison et marketplace
+                  {t('auth.client_login_subtitle')}
                 </p>
               </div>
               

@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff, AlertCircle, Mail, Lock } from 'lucide-react';
 import { useAuthWithRetry } from '@/hooks/useAuthWithRetry';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const PartnerLoginForm = () => {
   const [email, setEmail] = useState('');
@@ -19,12 +20,13 @@ export const PartnerLoginForm = () => {
 
   const navigate = useNavigate();
   const { loginWithRetry } = useAuthWithRetry();
+  const { t } = useLanguage();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!acceptTerms) {
-      setError('Vous devez accepter les conditions d\'utilisation pour vous connecter');
+      setError(t('auth.must_accept_terms'));
       return;
     }
     
@@ -115,15 +117,15 @@ export const PartnerLoginForm = () => {
           className="mt-0.5"
         />
         <Label htmlFor="terms-partner" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
-          J'accepte les{' '}
+          {t('auth.accept_terms_part1')}{' '}
           <Link to="/terms" className="text-primary hover:underline font-medium">
-            conditions générales d'utilisation
+            {t('auth.terms_of_service')}
           </Link>{' '}
-          et la{' '}
+          {t('auth.accept_terms_part2')}{' '}
           <Link to="/privacy" className="text-primary hover:underline font-medium">
-            politique de confidentialité
+            {t('auth.privacy_policy')}
           </Link>{' '}
-          de Kwenda.
+          {t('auth.accept_terms_part3')}
         </Label>
       </div>
 

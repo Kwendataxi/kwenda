@@ -8,9 +8,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { UtensilsCrossed, Mail, Lock, Phone, CheckCircle2, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const RestaurantLoginForm = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [phoneValid, setPhoneValid] = useState(false);
@@ -32,7 +34,7 @@ export const RestaurantLoginForm = () => {
       setLoading(true);
       
       if (isSignUp && !acceptTerms) {
-        toast.error('Vous devez accepter les conditions d\'utilisation');
+        toast.error(t('auth.must_accept_terms'));
         setLoading(false);
         return;
       }
@@ -192,14 +194,15 @@ export const RestaurantLoginForm = () => {
               className="mt-0.5"
             />
             <Label htmlFor="terms-restaurant" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
-              J'accepte les{' '}
+              {t('auth.accept_terms_part1')}{' '}
               <Link to="/terms" className="text-primary hover:underline font-medium">
-                conditions générales d'utilisation
+                {t('auth.terms_of_service')}
               </Link>{' '}
-              et la{' '}
+              {t('auth.accept_terms_part2')}{' '}
               <Link to="/privacy" className="text-primary hover:underline font-medium">
-                politique de confidentialité
-              </Link>.
+                {t('auth.privacy_policy')}
+              </Link>{' '}
+              {t('auth.accept_terms_part3')}
             </Label>
           </div>
         )}

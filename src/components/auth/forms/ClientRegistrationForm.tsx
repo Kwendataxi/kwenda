@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Phone, CheckCircle2, Info } from 'lucide-react';
 import { logger } from '@/utils/logger';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ClientRegistrationFormProps {
   onSuccess: () => void;
@@ -20,6 +21,7 @@ interface ClientRegistrationFormProps {
 export const ClientRegistrationForm = ({ onSuccess, onBack }: ClientRegistrationFormProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [phoneValid, setPhoneValid] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -158,7 +160,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   if (!formData.acceptTerms) {
     toast({
       title: "Erreur",
-      description: "Vous devez accepter les conditions d'utilisation",
+      description: t('auth.must_accept_terms'),
       variant: "destructive"
     });
     return;
@@ -420,15 +422,15 @@ const handleSubmit = async (e: React.FormEvent) => {
                 className="mt-0.5"
               />
               <Label htmlFor="terms-full-register" className="text-sm text-muted-foreground cursor-pointer">
-                J'accepte les{' '}
+                {t('auth.accept_terms_part1')}{' '}
                 <Link to="/terms" className="text-primary hover:underline font-medium">
-                  conditions générales d'utilisation
+                  {t('auth.terms_of_service')}
                 </Link>{' '}
-                et la{' '}
+                {t('auth.accept_terms_part2')}{' '}
                 <Link to="/privacy" className="text-primary hover:underline font-medium">
-                  politique de confidentialité
+                  {t('auth.privacy_policy')}
                 </Link>{' '}
-                de Kwenda.
+                {t('auth.accept_terms_part3')}
               </Label>
             </div>
 

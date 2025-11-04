@@ -106,6 +106,19 @@ export const translations = {
     'home.services.games_desc': 'Divertissement et jeux interactifs',
     'home.services.lottery_desc': 'Gagnez jusqu\'à 100 000 CDF',
     
+    // Auth - Traductions complètes
+    'auth.client_subtitle': 'Connectez-vous pour commander vos courses',
+    'auth.client_login_title': 'Connexion Client',
+    'auth.client_login_subtitle': 'Accédez à vos services de transport, livraison et marketplace',
+    'auth.must_accept_terms': 'Vous devez accepter les conditions d\'utilisation pour vous connecter',
+    'auth.login_success': 'Connexion réussie !',
+    'auth.redirecting': 'Redirection en cours...',
+    'auth.accept_terms_part1': 'J\'accepte les',
+    'auth.accept_terms_part2': 'et la',
+    'auth.accept_terms_part3': 'de Kwenda.',
+    'auth.terms_of_service': 'conditions générales d\'utilisation',
+    'auth.privacy_policy': 'politique de confidentialité',
+    
     // Toast messages
     'toast.place_removed': 'Lieu supprimé',
     'toast.place_removed_desc': 'Le lieu a été retiré de vos lieux récents',
@@ -642,6 +655,19 @@ export const translations = {
     'home.services.games_desc': 'Entertainment and interactive games',
     'home.services.lottery_desc': 'Win up to 100,000 CDF',
     
+    // Auth - Complete translations
+    'auth.client_subtitle': 'Sign in to order your rides',
+    'auth.client_login_title': 'Client Login',
+    'auth.client_login_subtitle': 'Access your transport, delivery and marketplace services',
+    'auth.must_accept_terms': 'You must accept the terms of service to log in',
+    'auth.login_success': 'Login successful!',
+    'auth.redirecting': 'Redirecting...',
+    'auth.accept_terms_part1': 'I accept the',
+    'auth.accept_terms_part2': 'and the',
+    'auth.accept_terms_part3': 'of Kwenda.',
+    'auth.terms_of_service': 'terms of service',
+    'auth.privacy_policy': 'privacy policy',
+    
     // Toast messages
     'toast.place_removed': 'Place Removed',
     'toast.place_removed_desc': 'The place has been removed from your recent places',
@@ -1164,6 +1190,19 @@ export const translations = {
     'home.services.games_desc': 'Esengo na masano',
     'home.services.lottery_desc': 'Zwa 100 000 CDF',
     
+    // Auth - Traductions complètes Lingala
+    'auth.client_subtitle': 'Kota mpo na kosomba biso',
+    'auth.client_login_title': 'Kota Nkuenda',
+    'auth.client_login_subtitle': 'Fungola misala ya transport, livraison na marketplace',
+    'auth.must_accept_terms': 'Osengeli kondima mibeko ya kosalela',
+    'auth.login_success': 'Kokota elongi!',
+    'auth.redirecting': 'Tokozonga...',
+    'auth.accept_terms_part1': 'Nandimi',
+    'auth.accept_terms_part2': 'na',
+    'auth.accept_terms_part3': 'ya Kwenda.',
+    'auth.terms_of_service': 'mibeko ya kosalela',
+    'auth.privacy_policy': 'politique ya kobatela ba données',
+    
     'escrow.title': 'Coffre ya mbanza',
     'escrow.no_transactions': 'Transaction ya mbanza yafulu ko',
     'system.loading': 'Yina ku kanga...',
@@ -1313,6 +1352,19 @@ export const translations = {
     'home.services.games': 'Mikanda',
     'home.services.games_desc': 'Kusepela ne mikanda',
     'home.services.lottery_desc': 'Zwa 100 000 CDF',
+    
+    // Auth - Traductions complètes Tshiluba
+    'auth.client_subtitle': 'Kena mu kusomba mikenji',
+    'auth.client_login_title': 'Kena Nkuenda',
+    'auth.client_login_subtitle': 'Kwata misala ya transport, livraison ne marketplace',
+    'auth.must_accept_terms': 'Uswanela kudimika mibeko ya kusebesa',
+    'auth.login_success': 'Kena kumalonge!',
+    'auth.redirecting': 'Tukenji...',
+    'auth.accept_terms_part1': 'Ndimika',
+    'auth.accept_terms_part2': 'ne',
+    'auth.accept_terms_part3': 'wa Kwenda.',
+    'auth.terms_of_service': 'mibeko ya kusebesa',
+    'auth.privacy_policy': 'dipolitique dya kukeba ba données',
     
     'escrow.title': 'Coffre ya mbanza ya KwendaPay',
     'escrow.no_transactions': 'Transaction ya mbanza yafulu ko',
@@ -1465,6 +1517,19 @@ export const translations = {
     'home.services.games': 'Michezo',
     'home.services.games_desc': 'Burudani na michezo ya kuburudisha',
     'home.services.lottery_desc': 'Shinda hadi 100,000 CDF',
+    
+    // Auth - Traductions complètes Swahili
+    'auth.client_subtitle': 'Ingia kuagiza safari zako',
+    'auth.client_login_title': 'Kuingia Mteja',
+    'auth.client_login_subtitle': 'Fikia huduma zako za usafirishaji, uwasilishaji na soko',
+    'auth.must_accept_terms': 'Lazima ukubali masharti ya matumizi ili kuingia',
+    'auth.login_success': 'Kuingia kumefanikiwa!',
+    'auth.redirecting': 'Inaelekeza...',
+    'auth.accept_terms_part1': 'Nakubali',
+    'auth.accept_terms_part2': 'na',
+    'auth.accept_terms_part3': 'ya Kwenda.',
+    'auth.terms_of_service': 'masharti ya huduma',
+    'auth.privacy_policy': 'sera ya faragha',
     
     // Toast messages
     'toast.place_removed': 'Mahali pameondolewa',

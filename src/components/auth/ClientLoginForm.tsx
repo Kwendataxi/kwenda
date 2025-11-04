@@ -32,7 +32,7 @@ export const ClientLoginForm = () => {
     e.preventDefault();
     
     if (!acceptTerms) {
-      setError('Vous devez accepter les conditions d\'utilisation pour vous connecter');
+      setError(t('auth.must_accept_terms'));
       return;
     }
     
@@ -51,8 +51,8 @@ export const ClientLoginForm = () => {
     localStorage.setItem('kwenda_login_intent', 'client');
     localStorage.setItem('kwenda_selected_role', 'client');
 
-    toast.success('Connexion réussie !', {
-      description: 'Redirection en cours...'
+    toast.success(t('auth.login_success'), {
+      description: t('auth.redirecting')
     });
 
     // Attendre synchronisation
@@ -134,15 +134,15 @@ export const ClientLoginForm = () => {
           className="mt-0.5"
         />
         <Label htmlFor="terms-login" className="text-xs text-muted-foreground cursor-pointer leading-relaxed">
-          J'accepte les{' '}
+          {t('auth.accept_terms_part1')}{' '}
           <Link to="/terms" className="text-congo-red dark:text-congo-red-electric hover:underline font-medium">
-            conditions générales d'utilisation
+            {t('auth.terms_of_service')}
           </Link>{' '}
-          et la{' '}
+          {t('auth.accept_terms_part2')}{' '}
           <Link to="/privacy" className="text-congo-red dark:text-congo-red-electric hover:underline font-medium">
-            politique de confidentialité
+            {t('auth.privacy_policy')}
           </Link>{' '}
-          de Kwenda.
+          {t('auth.accept_terms_part3')}
         </Label>
       </div>
 
