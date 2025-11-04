@@ -1793,6 +1793,7 @@ export const translations = {
 
     // Transport
     'transport.map_centered': '📍 Carte ecentrami na {city}',
+    'transport.position_detected': 'Esika edetectami: {city}',
     'transport.current_position': 'Esika ya lelo ({lat}, {lng})',
     'transport.position_detected_title': 'Esika edetectami',
     'transport.position_set_as_pickup': 'Esika na yo ya lelo edefined lokola esika ya kobanda',
