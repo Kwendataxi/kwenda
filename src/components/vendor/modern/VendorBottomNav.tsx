@@ -68,35 +68,35 @@ export const VendorBottomNav: React.FC<VendorBottomNavProps> = ({
               aria-label={item.label}
               aria-current={isActive ? 'page' : undefined}
             >
-              <motion.div
-                whileTap={{ scale: 0.85 }}
-                whileHover={{ scale: 1.05 }}
-                className={`relative transition-colors ${
-                  isActive ? 'text-primary' : 'text-muted-foreground'
-                }`}
-              >
-                <Icon className="h-6 w-6" />
-                {item.badge && item.badge > 0 && (
+              <div className="relative inline-flex items-center justify-center">
+                <motion.div
+                  whileTap={{ scale: 0.85 }}
+                  whileHover={{ scale: 1.05 }}
+                  className={`transition-colors ${
+                    isActive ? 'text-primary' : 'text-muted-foreground'
+                  }`}
+                >
+                  <Icon className="h-6 w-6" />
+                </motion.div>
+                {typeof item.badge === 'number' && item.badge > 0 && (
                   <motion.div
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0, opacity: 0 }}
                     transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                    className="absolute -top-1 -right-1"
+                    className="absolute -top-1 -right-1 z-10"
                   >
                     <Badge 
                       variant={item.badgeVariant === 'warning' ? 'default' : 'destructive'}
                       className={`h-4 w-4 min-w-[16px] p-0 text-[9px] font-bold flex items-center justify-center rounded-full ring-2 ring-background shadow-sm ${
                         item.badgeVariant === 'warning' ? 'bg-amber-500 hover:bg-amber-600 text-white border-transparent' : ''
-                      } ${
-                        item.badge > 0 ? 'animate-pulse-slow' : ''
-                      }`}
+                      } animate-pulse-slow`}
                     >
                       {item.badge > 99 ? '99+' : item.badge}
                     </Badge>
                   </motion.div>
                 )}
-              </motion.div>
+              </div>
               <span className={`text-[10px] font-medium transition-colors ${
                 isActive ? 'text-primary' : 'text-muted-foreground'
               }`}>
