@@ -40,41 +40,43 @@ export const VendorShopInfoCard: React.FC<VendorShopInfoCardProps> = ({
         {/* Gradient Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
         
-        <CardHeader className="relative pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg">
-                <Store className="h-6 w-6 text-primary-foreground" />
+        <CardHeader className="relative pb-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="w-14 h-14 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg shrink-0">
+                <Store className="h-7 w-7 text-primary-foreground" />
               </div>
-              <div>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  {shopName}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <CardTitle className="text-lg sm:text-xl truncate">
+                    {shopName}
+                  </CardTitle>
                   {status === 'active' && (
-                    <Badge variant="default" className="gap-1">
+                    <Badge variant="default" className="gap-1 shrink-0">
                       <CheckCircle2 className="h-3 w-3" />
                       Actif
                     </Badge>
                   )}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
+                </div>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
                   {description || "Aucune description"}
                 </p>
               </div>
             </div>
             
-            {/* Actions buttons */}
-            <div className="flex items-center gap-2">
+            {/* Actions buttons - Always visible icons */}
+            <div className="flex items-center gap-1.5 shrink-0">
               {/* Bouton partage avec Popover */}
               {vendorId && (
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      size="sm"
-                      className="gap-2"
+                      size="icon"
+                      className="h-9 w-9"
+                      title="Partager ma boutique"
                     >
                       <Share2 className="h-4 w-4" />
-                      <span className="hidden sm:inline">Partager</span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-80 p-4" align="end">
@@ -88,15 +90,15 @@ export const VendorShopInfoCard: React.FC<VendorShopInfoCardProps> = ({
                 </Popover>
               )}
               
-              {/* Bouton modifier */}
+              {/* Bouton modifier - Always visible */}
               <Button
                 variant="outline"
-                size="sm"
-                className="gap-2"
+                size="icon"
+                className="h-9 w-9"
                 onClick={onEditClick}
+                title="Modifier ma boutique"
               >
                 <Edit className="h-4 w-4" />
-                <span className="hidden sm:inline">Modifier</span>
               </Button>
             </div>
           </div>
