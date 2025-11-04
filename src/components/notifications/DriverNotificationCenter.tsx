@@ -23,7 +23,7 @@ import {
   Info
 } from 'lucide-react';
 import { useUnifiedNotifications } from '@/hooks/useUnifiedNotifications';
-import { useDriverOrderNotifications } from '@/hooks/useDriverOrderNotifications';
+import { useDriverDispatch } from '@/hooks/useDriverDispatch';
 import { CancellationDialog } from '@/components/shared/CancellationDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -48,14 +48,16 @@ export const DriverNotificationCenter: React.FC<DriverNotificationCenterProps> =
     markAllAsRead
   } = useUnifiedNotifications('driver');
 
-  // Alertes de livraison
+  // Alertes de livraison via hook unifié
   const {
-    pendingAlerts: deliveryAlerts,
+    pendingNotifications,
     loading: deliveryLoading,
-    markAlertAsSeen,
     acceptOrder,
-    ignoreOrder
-  } = useDriverOrderNotifications();
+    rejectOrder
+  } = useDriverDispatch();
+  
+  // Filtrer les alertes de livraison uniquement
+  const deliveryAlerts = pendingNotifications.filter(n => n.type === 'delivery' || n.type === 'marketplace');
 
   // Calculer le temps restant pour les alertes
   useEffect(() => {
@@ -240,10 +242,10 @@ export const DriverNotificationCenter: React.FC<DriverNotificationCenterProps> =
                                   </div>
                                   <div>
                                     <h4 className="font-semibold text-slate-900 dark:text-slate-100">
-                                      {isExpired ? 'Course expirée' : `Livraison ${alert.order_details?.delivery_type?.toUpperCase()}`}
+                                      {isExpired ? 'Course expirée' : alert.title}
                                     </h4>
                                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                                      {alert.distance_km.toFixed(1)}km • ~{Math.ceil(alert.distance_km * 3)} min
+                                      {alert.distance?.toFixed(1) || '0.0'}km • ~{alert.distance ? Math.ceil(alert.distance * 3) : 15} min
                                     </p>
                                   </div>
                                 </div>
@@ -258,13 +260,13 @@ export const DriverNotificationCenter: React.FC<DriverNotificationCenterProps> =
                                 <div className="flex items-start gap-2">
                                   <MapPin className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
                                   <span className="text-sm text-slate-600 dark:text-slate-400 line-clamp-1">
-                                    {alert.order_details?.pickup_location}
+                                    {alert.data?.pickup_location || alert.location}
                                   </span>
                                 </div>
                                 <div className="flex items-start gap-2">
                                   <MapPin className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
                                   <span className="text-sm text-slate-600 dark:text-slate-400 line-clamp-1">
-                                    {alert.order_details?.delivery_location}
+                                    {alert.data?.delivery_location || alert.data?.destination || 'Destination'}
                                   </span>
                                 </div>
                               </div>
@@ -272,7 +274,7 @@ export const DriverNotificationCenter: React.FC<DriverNotificationCenterProps> =
                               <div className="flex items-center justify-between p-2 bg-white dark:bg-slate-800 rounded-lg mb-3">
                                 <span className="text-xs text-slate-500 dark:text-slate-400">Prix estimé</span>
                                 <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                                  {alert.order_details?.estimated_price?.toLocaleString()} FC
+                                  {alert.estimatedPrice?.toLocaleString()} FC
                                 </span>
                               </div>
 
@@ -280,7 +282,7 @@ export const DriverNotificationCenter: React.FC<DriverNotificationCenterProps> =
                                 <Button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    acceptOrder(alert.id, alert.order_id);
+                                    acceptOrder(alert);
                                   }}
                                   disabled={deliveryLoading || isExpired}
                                   className="bg-green-600 hover:bg-green-700 text-white"
@@ -291,7 +293,7 @@ export const DriverNotificationCenter: React.FC<DriverNotificationCenterProps> =
                                 <Button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    ignoreOrder(alert.id);
+                                    rejectOrder(alert.id);
                                   }}
                                   variant="outline"
                                   disabled={isExpired}
@@ -427,10 +429,10 @@ export const DriverNotificationCenter: React.FC<DriverNotificationCenterProps> =
                                 </div>
                                 <div>
                                   <h4 className="font-semibold text-slate-900 dark:text-slate-100">
-                                    {isExpired ? 'Course expirée' : `Livraison ${alert.order_details?.delivery_type?.toUpperCase()}`}
+                                    {isExpired ? 'Course expirée' : alert.title}
                                   </h4>
                                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                                    {alert.distance_km.toFixed(1)}km • ~{Math.ceil(alert.distance_km * 3)} min
+                                    {alert.distance?.toFixed(1) || '0.0'}km • ~{alert.distance ? Math.ceil(alert.distance * 3) : 15} min
                                   </p>
                                 </div>
                               </div>
@@ -445,13 +447,13 @@ export const DriverNotificationCenter: React.FC<DriverNotificationCenterProps> =
                               <div className="flex items-start gap-2">
                                 <MapPin className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
                                 <span className="text-sm text-slate-600 dark:text-slate-400 line-clamp-1">
-                                  {alert.order_details?.pickup_location}
+                                  {alert.data?.pickup_location || alert.location}
                                 </span>
                               </div>
                               <div className="flex items-start gap-2">
                                 <MapPin className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
                                 <span className="text-sm text-slate-600 dark:text-slate-400 line-clamp-1">
-                                  {alert.order_details?.delivery_location}
+                                  {alert.data?.delivery_location || alert.data?.destination || 'Destination'}
                                 </span>
                               </div>
                             </div>
@@ -459,7 +461,7 @@ export const DriverNotificationCenter: React.FC<DriverNotificationCenterProps> =
                             <div className="flex items-center justify-between p-2 bg-white dark:bg-slate-800 rounded-lg mb-3">
                               <span className="text-xs text-slate-500 dark:text-slate-400">Prix estimé</span>
                               <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                                {alert.order_details?.estimated_price?.toLocaleString()} FC
+                                {alert.estimatedPrice?.toLocaleString()} FC
                               </span>
                             </div>
 
@@ -467,7 +469,7 @@ export const DriverNotificationCenter: React.FC<DriverNotificationCenterProps> =
                               <Button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  acceptOrder(alert.id, alert.order_id);
+                                  acceptOrder(alert);
                                 }}
                                 disabled={deliveryLoading || isExpired}
                                 className="bg-green-600 hover:bg-green-700 text-white"
@@ -478,7 +480,7 @@ export const DriverNotificationCenter: React.FC<DriverNotificationCenterProps> =
                               <Button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  ignoreOrder(alert.id);
+                                  rejectOrder(alert.id);
                                 }}
                                 variant="outline"
                                 disabled={isExpired}

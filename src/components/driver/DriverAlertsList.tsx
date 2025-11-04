@@ -1,32 +1,37 @@
 /**
  * 📱 Composant d'Alertes de Livraison pour Chauffeurs
- * Affiche et gère les notifications temps réel
+ * PHASE 2: Migré vers useDriverDispatch unifié
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bell, MapPin, Clock, DollarSign, Package, X, AlertCircle } from 'lucide-react';
-import { useDriverOrderNotifications } from '@/hooks/useDriverOrderNotifications';
+import { useDriverDispatch } from '@/hooks/useDriverDispatch';
 
 export default function DriverAlertsList() {
   const {
-    pendingAlerts,
+    pendingNotifications,
     loading,
-    markAlertAsSeen,
     acceptOrder,
-    ignoreOrder
-  } = useDriverOrderNotifications();
+    rejectOrder
+  } = useDriverDispatch();
+  
+  // Filtrer uniquement les alertes de livraison et marketplace
+  const deliveryAlerts = useMemo(() => 
+    pendingNotifications.filter(n => n.type === 'delivery' || n.type === 'marketplace'),
+    [pendingNotifications]
+  );
   
   const [timeRemaining, setTimeRemaining] = useState<Record<string, number>>({});
 
-  // PHASE 5: Calculer le temps restant
+  // Calculer le temps restant
   useEffect(() => {
     const interval = setInterval(() => {
       const newTimeRemaining: Record<string, number> = {};
       
-      pendingAlerts.forEach(alert => {
+      deliveryAlerts.forEach(alert => {
         if (alert.expires_at) {
           const expiresAt = new Date(alert.expires_at).getTime();
           const now = Date.now();
@@ -39,9 +44,9 @@ export default function DriverAlertsList() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [pendingAlerts]);
+  }, [deliveryAlerts]);
 
-  if (pendingAlerts.length === 0) {
+  if (deliveryAlerts.length === 0) {
     return null;
   }
 
@@ -53,7 +58,7 @@ export default function DriverAlertsList() {
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-50 space-y-3 max-w-md mx-auto">
-      {pendingAlerts.map((alert) => {
+      {deliveryAlerts.map((alert) => {
         const remaining = timeRemaining[alert.id] || 0;
         const isExpired = remaining === 0;
         const isExpiringSoon = remaining > 0 && remaining <= 30;
@@ -68,7 +73,6 @@ export default function DriverAlertsList() {
                 ? 'bg-warning/10 border-warning animate-pulse'
                 : 'bg-gradient-to-r from-primary/10 to-secondary/10 border-primary animate-fade-in'
             }`}
-            onClick={() => !isExpired && markAlertAsSeen(alert.id)}
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-base">
@@ -79,13 +83,15 @@ export default function DriverAlertsList() {
                     <Bell className={`h-4 w-4 text-primary ${!isExpiringSoon && 'animate-pulse'}`} />
                   )}
                   <span>
-                    {isExpired ? 'Course expirée' : `Nouvelle course ${alert.order_details?.delivery_type?.toUpperCase()}`}
+                    {isExpired ? 'Course expirée' : alert.title}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="destructive" className="text-xs">
-                    {alert.distance_km.toFixed(1)}km
-                  </Badge>
+                  {alert.distance && (
+                    <Badge variant="destructive" className="text-xs">
+                      {alert.distance.toFixed(1)}km
+                    </Badge>
+                  )}
                   {!isExpired && (
                     <Badge variant={isExpiringSoon ? "destructive" : "default"} className="font-mono text-xs">
                       ⏱️ {formatTimeRemaining(remaining)}
@@ -100,35 +106,35 @@ export default function DriverAlertsList() {
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                 <span className="text-muted-foreground line-clamp-1">
-                  {alert.order_details?.pickup_location}
+                  {alert.data?.pickup_location || alert.location}
                 </span>
               </div>
               
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
                 <span className="text-muted-foreground line-clamp-1">
-                  {alert.order_details?.delivery_location}
+                  {alert.data?.delivery_location || alert.data?.destination || 'Destination'}
                 </span>
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-border/50">
                 <div className="flex items-center gap-1 text-xs">
                   <Clock className="h-3 w-3" />
-                  <span>~{Math.ceil(alert.distance_km * 3)} min</span>
+                  <span>~{alert.distance ? Math.ceil(alert.distance * 3) : 15} min</span>
                 </div>
                 <div className="flex items-center gap-1 text-sm font-bold text-primary">
                   <DollarSign className="h-4 w-4" />
-                  <span>{alert.order_details?.estimated_price?.toLocaleString()} FC</span>
+                  <span>{alert.estimatedPrice?.toLocaleString()} FC</span>
                 </div>
               </div>
             </div>
 
-            {/* PHASE 5: Boutons avec état d'expiration */}
+            {/* Boutons avec état d'expiration */}
             <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
-                  acceptOrder(alert.id, alert.order_id);
+                  acceptOrder(alert);
                 }}
                 disabled={loading || isExpired}
                 className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
@@ -139,7 +145,7 @@ export default function DriverAlertsList() {
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
-                  ignoreOrder(alert.id);
+                  rejectOrder(alert.id);
                 }}
                 variant="outline"
                 disabled={isExpired}
