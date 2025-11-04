@@ -102,8 +102,8 @@ export const translations = {
     'home.services.gift_cards_desc': 'Offrez du crédit KwendaPay',
     'home.services.airtime': 'E-Recharge',
     'home.services.airtime_desc': 'Rechargez vos unités mobile',
-    'home.services.bill_payment': 'Paiement Factures',
-    'home.services.bill_payment_desc': 'Payez vos factures facilement',
+    'home.services.games': 'Jeux',
+    'home.services.games_desc': 'Divertissement et jeux interactifs',
     'home.services.lottery_desc': 'Gagnez jusqu\'à 100 000 CDF',
     
     // Toast messages
@@ -638,8 +638,8 @@ export const translations = {
     'home.services.gift_cards_desc': 'Give KwendaPay credit',
     'home.services.airtime': 'Airtime',
     'home.services.airtime_desc': 'Top up your mobile credit',
-    'home.services.bill_payment': 'Bill Payment',
-    'home.services.bill_payment_desc': 'Pay your bills easily',
+    'home.services.games': 'Games',
+    'home.services.games_desc': 'Entertainment and interactive games',
     'home.services.lottery_desc': 'Win up to 100,000 CDF',
     
     // Toast messages
@@ -1160,8 +1160,8 @@ export const translations = {
     'home.services.gift_cards_desc': 'Pesa crédit KwendaPay',
     'home.services.airtime': 'Recharge',
     'home.services.airtime_desc': 'Recharge crédit mobile',
-    'home.services.bill_payment': 'Kofuta',
-    'home.services.bill_payment_desc': 'Kofuta ba factures',
+    'home.services.games': 'Masano',
+    'home.services.games_desc': 'Esengo na masano',
     'home.services.lottery_desc': 'Zwa 100 000 CDF',
     
     'escrow.title': 'Coffre ya mbanza',
@@ -1310,8 +1310,8 @@ export const translations = {
     'home.services.gift_cards_desc': 'Kupa crédit KwendaPay',
     'home.services.airtime': 'Recharge',
     'home.services.airtime_desc': 'Recharge crédit mobile',
-    'home.services.bill_payment': 'Kufuta',
-    'home.services.bill_payment_desc': 'Kufuta ba factures',
+    'home.services.games': 'Mikanda',
+    'home.services.games_desc': 'Kusepela ne mikanda',
     'home.services.lottery_desc': 'Zwa 100 000 CDF',
     
     'escrow.title': 'Coffre ya mbanza ya KwendaPay',
@@ -1462,8 +1462,8 @@ export const translations = {
     'home.services.gift_cards_desc': 'Toa mkopo wa KwendaPay',
     'home.services.airtime': 'E-Recharge',
     'home.services.airtime_desc': 'Jaza mkopo wako wa simu',
-    'home.services.bill_payment': 'Malipo ya Bill',
-    'home.services.bill_payment_desc': 'Lipa bili zako kwa urahisi',
+    'home.services.games': 'Michezo',
+    'home.services.games_desc': 'Burudani na michezo ya kuburudisha',
     'home.services.lottery_desc': 'Shinda hadi 100,000 CDF',
     
     // Toast messages

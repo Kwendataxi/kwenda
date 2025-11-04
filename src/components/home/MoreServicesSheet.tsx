@@ -5,7 +5,7 @@ import {
   SheetTitle, 
   SheetDescription 
 } from '@/components/ui/sheet';
-import { Gift, Smartphone, CreditCard, Ticket } from 'lucide-react';
+import { Gift, Smartphone, Gamepad2, Ticket } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 
@@ -49,11 +49,11 @@ export const MoreServicesSheet = ({
       comingSoon: true
     },
     {
-      id: 'bill_payment',
-      name: t('home.services.bill_payment'),
-      icon: CreditCard,
-      gradient: 'hsl(158, 64%, 52%), hsl(142, 71%, 45%), hsl(173, 80%, 40%)',
-      iconColor: 'hsl(142, 71%, 45%)',
+      id: 'games',
+      name: t('home.services.games'),
+      icon: Gamepad2,
+      gradient: 'hsl(280, 90%, 58%), hsl(260, 85%, 55%), hsl(240, 80%, 60%)',
+      iconColor: 'hsl(280, 90%, 58%)',
       comingSoon: true
     }
   ];
