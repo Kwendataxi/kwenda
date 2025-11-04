@@ -13410,27 +13410,6 @@ export type Database = {
           }
         | {
             Args: {
-              pickup_lat: number
-              pickup_lng: number
-              radius_km?: number
-              service_type_param?: string
-            }
-            Returns: {
-              distance_km: number
-              driver_id: string
-              is_verified: boolean
-              last_ping: string
-              latitude: number
-              longitude: number
-              rating_average: number
-              rides_remaining: number
-              subscription_status: string
-              total_rides: number
-              vehicle_class: string
-            }[]
-          }
-        | {
-            Args: {
               p_city?: string
               p_latitude: number
               p_limit?: number
@@ -13449,6 +13428,25 @@ export type Database = {
               total_rides: number
               vehicle_class: string
               vehicle_info: Json
+            }[]
+          }
+        | {
+            Args: {
+              pickup_lat: number
+              pickup_lng: number
+              radius_km?: number
+              service_type_param?: string
+              user_city_param?: string
+              vehicle_class_filter?: string
+            }
+            Returns: {
+              distance_km: number
+              driver_id: string
+              is_available: boolean
+              rating_average: number
+              rides_remaining: number
+              total_rides: number
+              vehicle_class: string
             }[]
           }
       find_nearby_drivers_secure: {
