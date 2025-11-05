@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Menu } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import OptimizedMapView from './map/OptimizedMapView';
 import PickupLocationCard from './PickupLocationCard';
@@ -207,16 +206,6 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         driverCount={12}
         onClick={() => console.log('Toggle drivers visibility')}
       />
-      
-      {/* Menu hamburger */}
-      <motion.button 
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        whileTap={{ scale: 0.95 }}
-        className="absolute top-4 left-4 z-10 w-12 h-12 bg-card/95 backdrop-blur-md rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow border border-border/50"
-      >
-        <Menu className="w-6 h-6 text-foreground" />
-      </motion.button>
       
       {/* Card Point de prise en charge */}
       <PickupLocationCard
