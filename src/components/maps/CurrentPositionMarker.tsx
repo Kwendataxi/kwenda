@@ -10,21 +10,30 @@ export default function CurrentPositionMarker({ map, position }: CurrentPosition
 
   const getCurrentPositionSVG = (): string => {
     return `
-      <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-        <!-- Pulse externe -->
-        <circle cx="32" cy="32" r="28" fill="#4285F4" opacity="0.15">
-          <animate attributeName="r" from="28" to="32" dur="1.5s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" from="0.15" to="0" dur="1.5s" repeatCount="indefinite"/>
+      <svg width="68" height="68" viewBox="0 0 68 68" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="shadow-position">
+            <feDropShadow dx="0" dy="2" stdDeviation="5" flood-opacity="0.35"/>
+          </filter>
+        </defs>
+        
+        <!-- Pulse externe ultra-visible -->
+        <circle cx="34" cy="34" r="30" fill="#4285F4" opacity="0.2">
+          <animate attributeName="r" from="30" to="34" dur="1.5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" from="0.2" to="0" dur="1.5s" repeatCount="indefinite"/>
         </circle>
         
         <!-- Cercle principal bleu -->
-        <circle cx="32" cy="32" r="24" fill="#4285F4" opacity="0.3"/>
+        <circle cx="34" cy="34" r="26" fill="#4285F4" opacity="0.35"/>
         
         <!-- Cercle interne -->
-        <circle cx="32" cy="32" r="16" fill="#4285F4"/>
+        <circle cx="34" cy="34" r="18" fill="#4285F4" filter="url(#shadow-position)"/>
+        
+        <!-- Bordure blanche -->
+        <circle cx="34" cy="34" r="18" fill="none" stroke="white" stroke-width="3"/>
         
         <!-- Point central blanc -->
-        <circle cx="32" cy="32" r="6" fill="white"/>
+        <circle cx="34" cy="34" r="7" fill="white"/>
       </svg>
     `;
   };
@@ -39,12 +48,13 @@ export default function CurrentPositionMarker({ map, position }: CurrentPosition
       const marker = new google.maps.Marker({
         position,
         map,
+        title: 'Votre position',
         icon: {
           url: iconUrl,
-          scaledSize: new google.maps.Size(64, 64),
-          anchor: new google.maps.Point(32, 32)
+          scaledSize: new google.maps.Size(68, 68),
+          anchor: new google.maps.Point(34, 34)
         },
-        zIndex: 1002,
+        zIndex: 2000,
         optimized: false
       });
 

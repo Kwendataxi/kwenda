@@ -86,27 +86,39 @@ export function DestinationMarker({ map, position, label }: Omit<MarkerProps, 't
 
   const getDestinationSVG = (): string => {
     return `
-      <svg width="56" height="56" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+      <svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <filter id="shadow-dest">
-            <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.3"/>
+            <feDropShadow dx="0" dy="3" stdDeviation="6" flood-opacity="0.4"/>
           </filter>
+          <style>
+            @keyframes bounce {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-8px); }
+            }
+            .bounce-marker {
+              animation: bounce 1.5s ease-in-out infinite;
+              transform-origin: center bottom;
+            }
+          </style>
         </defs>
         
-        <!-- Cercle externe (le plus grand) -->
-        <circle cx="28" cy="28" r="26" fill="hsl(357 85% 50%)" opacity="0.15" filter="url(#shadow-dest)"/>
-        
-        <!-- Cercle moyen -->
-        <circle cx="28" cy="28" r="18" fill="hsl(357 85% 50%)" opacity="0.35"/>
-        
-        <!-- Cercle interne plein -->
-        <circle cx="28" cy="28" r="10" fill="hsl(357 85% 50%)"/>
-        
-        <!-- Bordure blanche cercle interne -->
-        <circle cx="28" cy="28" r="10" fill="none" stroke="white" stroke-width="3"/>
-        
-        <!-- Point central blanc -->
-        <circle cx="28" cy="28" r="3" fill="white"/>
+        <g class="bounce-marker">
+          <!-- Cercle externe (le plus grand) -->
+          <circle cx="36" cy="36" r="34" fill="hsl(357 85% 50%)" opacity="0.15" filter="url(#shadow-dest)"/>
+          
+          <!-- Cercle moyen -->
+          <circle cx="36" cy="36" r="24" fill="hsl(357 85% 50%)" opacity="0.35"/>
+          
+          <!-- Cercle interne plein -->
+          <circle cx="36" cy="36" r="14" fill="hsl(357 85% 50%)"/>
+          
+          <!-- Bordure blanche cercle interne -->
+          <circle cx="36" cy="36" r="14" fill="none" stroke="white" stroke-width="3"/>
+          
+          <!-- Point central blanc -->
+          <circle cx="36" cy="36" r="4" fill="white"/>
+        </g>
       </svg>
     `;
   };
@@ -124,11 +136,12 @@ export function DestinationMarker({ map, position, label }: Omit<MarkerProps, 't
         title: label || 'Destination',
         icon: {
           url: iconUrl,
-          scaledSize: new google.maps.Size(56, 56),
-          anchor: new google.maps.Point(28, 28)
+          scaledSize: new google.maps.Size(72, 72),
+          anchor: new google.maps.Point(36, 36)
         },
         zIndex: 1001,
-        optimized: false
+        optimized: false,
+        animation: google.maps.Animation.BOUNCE
       });
 
       markerRef.current = marker;

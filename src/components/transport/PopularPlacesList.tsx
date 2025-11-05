@@ -1,5 +1,8 @@
-import { MapPin } from 'lucide-react';
+import { MapPin, Clock, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useUserTripHistory } from '@/hooks/useUserTripHistory';
+import { useSmartGeolocation } from '@/hooks/useSmartGeolocation';
+import { cn } from '@/lib/utils';
 
 interface PopularPlace {
   id: string;
@@ -10,19 +13,36 @@ interface PopularPlace {
 }
 
 interface PopularPlacesListProps {
-  places: PopularPlace[];
-  onSelectPlace: (place: PopularPlace) => void;
+  places?: PopularPlace[];
+  onSelectPlace: (place: any) => void;
 }
 
 export default function PopularPlacesList({ places, onSelectPlace }: PopularPlacesListProps) {
-  if (!places || places.length === 0) {
+  const { destinations, isLoading } = useUserTripHistory();
+  const { getPopularPlaces } = useSmartGeolocation();
+  
+  // Utiliser l'historique utilisateur en priorité, sinon les lieux populaires par défaut
+  const displayPlaces = destinations.length > 0 
+    ? destinations.map(dest => ({
+        id: dest.id,
+        name: dest.destination,
+        address: dest.destination,
+        lat: dest.destination_coordinates.lat,
+        lng: dest.destination_coordinates.lng,
+        frequency: dest.frequency
+      }))
+    : (places || getPopularPlaces() || []).map(p => ({ ...p, frequency: 0 }));
+
+  if (isLoading || displayPlaces.length === 0) {
     return null;
   }
 
   return (
     <div className="space-y-0.5 mt-4">
-      <h3 className="text-sm font-semibold text-foreground mb-3 px-2">Lieux fréquents</h3>
-      {places.slice(0, 5).map((place, index) => (
+      <h3 className="text-sm font-semibold text-foreground mb-3 px-2">
+        {destinations.length > 0 ? 'Destinations récentes' : 'Lieux fréquents'}
+      </h3>
+      {displayPlaces.slice(0, 5).map((place, index) => (
         <motion.button
           key={place.id}
           initial={{ opacity: 0, x: -20 }}
@@ -31,13 +51,29 @@ export default function PopularPlacesList({ places, onSelectPlace }: PopularPlac
           onClick={() => onSelectPlace(place)}
           className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors rounded-xl"
         >
-          <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
-            <MapPin className="w-5 h-5 text-muted-foreground" />
+          <div className={cn(
+            "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
+            place.frequency >= 3 ? "bg-amber-500/10" : "bg-muted"
+          )}>
+            {place.frequency >= 3 ? (
+              <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+            ) : place.frequency > 0 ? (
+              <Clock className="w-5 h-5 text-muted-foreground" />
+            ) : (
+              <MapPin className="w-5 h-5 text-muted-foreground" />
+            )}
           </div>
           <div className="flex-1 text-left">
-            <p className="font-medium text-foreground">{place.name}</p>
+            <div className="flex items-center gap-2">
+              <p className="font-medium text-foreground">{place.name}</p>
+              {place.frequency > 1 && (
+                <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                  {place.frequency}x
+                </span>
+              )}
+            </div>
             {place.address && (
-              <p className="text-xs text-muted-foreground">{place.address}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{place.address}</p>
             )}
           </div>
         </motion.button>

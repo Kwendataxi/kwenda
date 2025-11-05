@@ -4,6 +4,7 @@ import { useMapTheme } from '@/hooks/useMapTheme';
 import { throttle } from '@/utils/performanceUtils';
 import KwendaMapControls from '@/components/maps/KwendaMapControls';
 import CurrentPositionMarker from '@/components/maps/CurrentPositionMarker';
+import { PickupMarker, DestinationMarker } from '@/components/maps/CustomMarkers';
 import { motion } from 'framer-motion';
 
 interface Location {
@@ -30,8 +31,6 @@ const OptimizedMapView = React.memo(({
 }: OptimizedMapViewProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const pickupMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
-  const destinationMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
   const routePolylineRef = useRef<google.maps.Polyline | null>(null);
   
   const { isLoaded } = useGoogleMaps();
@@ -76,55 +75,6 @@ const OptimizedMapView = React.memo(({
     initMap();
   }, [isLoaded, userLocation, pickup, mapStyles, onMapReady]);
 
-  // Gestion des markers avec throttle
-  const updateMarkers = useCallback(
-    throttle(async () => {
-      if (!mapInstanceRef.current || !isMapReady) return;
-
-      const { AdvancedMarkerElement } = await google.maps.importLibrary('marker') as google.maps.MarkerLibrary;
-
-      // Pickup marker
-      if (pickup) {
-        if (pickupMarkerRef.current) {
-          pickupMarkerRef.current.position = pickup;
-        } else {
-          const content = document.createElement('div');
-          content.className = 'w-10 h-10 bg-card border-2 border-primary rounded-full shadow-lg flex items-center justify-center';
-          content.innerHTML = '📍';
-
-          pickupMarkerRef.current = new AdvancedMarkerElement({
-            map: mapInstanceRef.current,
-            position: pickup,
-            content,
-            title: pickup.name || 'Point de départ'
-          });
-        }
-      }
-
-      // Destination marker
-      if (destination) {
-        if (destinationMarkerRef.current) {
-          destinationMarkerRef.current.position = destination;
-        } else {
-          const content = document.createElement('div');
-          content.className = 'w-10 h-10 bg-primary border-2 border-background rounded-full shadow-lg flex items-center justify-center animate-pulse';
-          content.innerHTML = '🎯';
-
-          destinationMarkerRef.current = new AdvancedMarkerElement({
-            map: mapInstanceRef.current,
-            position: destination,
-            content,
-            title: destination.name || 'Destination'
-          });
-        }
-      }
-    }, 300),
-    [pickup, destination, isMapReady]
-  );
-
-  useEffect(() => {
-    updateMarkers();
-  }, [updateMarkers]);
 
   // Gestion de la route
   useEffect(() => {
@@ -194,8 +144,6 @@ const OptimizedMapView = React.memo(({
   // Cleanup
   useEffect(() => {
     return () => {
-      pickupMarkerRef.current?.map && (pickupMarkerRef.current.map = null);
-      destinationMarkerRef.current?.map && (destinationMarkerRef.current.map = null);
       routePolylineRef.current?.setMap(null);
     };
   }, []);
@@ -215,6 +163,10 @@ const OptimizedMapView = React.memo(({
   return (
     <div className={`relative w-full h-full ${className}`}>
       <div ref={mapRef} className="absolute inset-0" />
+      
+      {/* Markers personnalisés */}
+      {pickup && <PickupMarker map={mapInstanceRef.current} position={pickup} label={pickup.name || pickup.address} />}
+      {destination && <DestinationMarker map={mapInstanceRef.current} position={destination} label={destination.name || destination.address} />}
       
       {/* Marker position actuelle */}
       <CurrentPositionMarker map={mapInstanceRef.current} position={userLocation} />

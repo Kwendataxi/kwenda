@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import OptimizedMapView from './map/OptimizedMapView';
 import PickupLocationCard from './PickupLocationCard';
 import YangoBottomSheet from './YangoBottomSheet';
+import DestinationSearchDialog from './DestinationSearchDialog';
 import { useSmartGeolocation } from '@/hooks/useSmartGeolocation';
 import { LocationData } from '@/types/location';
 
@@ -35,11 +36,21 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   }, [currentLocation, pickupLocation, getCurrentPosition]);
 
   const handlePlaceSelect = (place: any) => {
+    const newDestination = {
+      address: place.name || place.destination || place.address,
+      lat: place.destination_coordinates?.lat || place.lat,
+      lng: place.destination_coordinates?.lng || place.lng,
+      type: 'popular' as const,
+      name: place.name || place.destination
+    };
+    setDestinationLocation(newDestination);
+    setShowDestinationSearch(false);
+  };
+
+  const handleDestinationSelect = (destination: { address: string; lat: number; lng: number; name?: string }) => {
     setDestinationLocation({
-      address: place.name || place.address,
-      lat: place.lat,
-      lng: place.lng,
-      type: 'popular'
+      ...destination,
+      type: 'geocoded' as const
     });
   };
 
@@ -76,9 +87,15 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         onVehicleSelect={setSelectedVehicle}
         popularPlaces={popularPlaces || []}
         onPlaceSelect={handlePlaceSelect}
-        onSearchFocus={() => {
-          setShowDestinationSearch(true);
-        }}
+        onSearchFocus={() => setShowDestinationSearch(true)}
+      />
+      
+      {/* Dialog de recherche de destination */}
+      <DestinationSearchDialog
+        open={showDestinationSearch}
+        onOpenChange={setShowDestinationSearch}
+        onSelectDestination={handleDestinationSelect}
+        currentLocation={pickupLocation}
       />
     </div>
   );
