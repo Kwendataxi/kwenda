@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RideProgressTracker } from '../RideProgressTracker';
+import { Badge as ProgressBadge } from '@/components/ui/badge';
 import { QuickActionsBar } from '../QuickActionsBar';
 import { Navigation, Minimize2, Maximize2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -86,8 +86,14 @@ export const ActiveRideFloatingPanel: React.FC<ActiveRideFloatingPanelProps> = (
                 </div>
               </div>
 
-              {/* Progress Tracker */}
-              <RideProgressTracker status={order.status} />
+              {/* Progress Tracker - Simplified */}
+              <div className="flex items-center justify-center gap-2">
+                <ProgressBadge variant="outline" className="text-xs">
+                  {order.status === 'picked_up' ? 'En cours' : 
+                   order.status === 'completed' ? 'Terminé' :
+                   order.status === 'driver_assigned' ? 'En route' : 'En attente'}
+                </ProgressBadge>
+              </div>
 
               {/* Infos client */}
               <div className="p-3 bg-background rounded-lg border">

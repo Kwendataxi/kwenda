@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import DeliveryStatusModal from '@/components/delivery/DeliveryStatusModal';
-import SimpleDeliveryTracker from '@/components/delivery/SimpleDeliveryTracker';
+import UniversalTracker from '@/components/tracking/UniversalTracker';
 import SimpleDeliveryNotificationCenter from '@/components/delivery/SimpleDeliveryNotificationCenter';
 import SimpleDeliveryChat from '@/components/delivery/SimpleDeliveryChat';
 import EnhancedDeliveryTimeline from '@/components/delivery/EnhancedDeliveryTimeline';
@@ -152,10 +152,13 @@ export default function DeliveryTrackingDemo() {
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Tracker Simple */}
-              <SimpleDeliveryTracker 
+              {/* Tracker Universel - Mode Compact */}
+              <UniversalTracker 
                 orderId={demoOrderId}
-                showModal={false}
+                orderType="delivery"
+                compact={true}
+                showMap={false}
+                showChat={false}
               />
               
               {/* Info Commande */}

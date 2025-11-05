@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useRealTimeDeliveryTracking } from '@/hooks/useRealTimeDeliveryTracking';
 import { useMarketplaceOrderTracking } from '@/hooks/useMarketplaceOrderTracking';
-import EnhancedDeliveryTracker from '@/components/delivery/EnhancedDeliveryTracker';
+import UniversalTracker from '@/components/tracking/UniversalTracker';
 import DriverDeliveryDashboard from '@/components/driver/DriverDeliveryDashboard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -156,11 +156,14 @@ export default function UnifiedDeliveryInterface({ orderId, onBack }: UnifiedDel
     );
   }
 
-  // Interface pour clients - Tracker amélioré avec données temps réel
+  // Interface pour clients - Tracker universel avec données temps réel
   return (
-    <EnhancedDeliveryTracker 
+    <UniversalTracker 
       orderId={orderId}
+      orderType={orderType || undefined}
       onBack={onBack}
+      showMap={true}
+      showChat={true}
     />
   );
 }

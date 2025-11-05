@@ -109,10 +109,11 @@ export default function UnifiedTracking() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.1 }}
       >
-        <ModernTracker 
-          trackingId={id}
-          trackingType={type as 'delivery' | 'taxi' | 'marketplace'}
-          enableRealtimeLocation={true}
+        <UniversalTracker 
+          orderId={id}
+          orderType={type as 'delivery' | 'taxi' | 'marketplace'}
+          showMap={true}
+          showChat={true}
         />
       </motion.div>
     </div>
