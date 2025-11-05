@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from 'vite-plugin-pwa';
+import { asyncCSSPlugin } from './plugins/vite-plugin-async-css';
 import fs from 'fs';
 
 // https://vitejs.dev/config/
@@ -32,6 +33,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       mode === 'development' && componentTagger(),
+      asyncCSSPlugin(),
       VitePWA({
         registerType: 'prompt',
         injectRegister: 'script-defer', // Defer SW registration to avoid render blocking
