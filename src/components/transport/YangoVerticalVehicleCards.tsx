@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback, memo } from 'react';
 import { Bike, Car } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { usePricingRules } from '@/hooks/usePricingRules';
@@ -24,14 +24,14 @@ interface YangoVerticalVehicleCardsProps {
   onVehicleSelect: (vehicleId: string) => void;
 }
 
-const YangoVerticalVehicleCards: React.FC<YangoVerticalVehicleCardsProps> = ({
+const YangoVerticalVehicleCards = memo<YangoVerticalVehicleCardsProps>(({
   distance,
   selectedVehicleId,
   onVehicleSelect
 }) => {
   const { rules } = usePricingRules();
 
-  const vehicles: YangoVehicle[] = [
+  const vehicles: YangoVehicle[] = useMemo(() => [
     {
       id: 'taxi_moto',
       name: 'Moto',
@@ -84,9 +84,9 @@ const YangoVerticalVehicleCards: React.FC<YangoVerticalVehicleCardsProps> = ({
       bgColor: 'bg-purple-50',
       iconColor: 'text-purple-600'
     }
-  ];
+  ], []);
 
-  const calculatePrice = (vehicle: YangoVehicle): number => {
+  const calculatePrice = useCallback((vehicle: YangoVehicle): number => {
     const distanceKm = Math.max(distance, 0);
     const rule = rules.find(r => r.service_type === 'transport' && r.vehicle_class === vehicle.id);
     if (rule) {
@@ -94,10 +94,10 @@ const YangoVerticalVehicleCards: React.FC<YangoVerticalVehicleCardsProps> = ({
     }
     const pricePerKm = 150;
     return Math.round(vehicle.basePrice + (distanceKm * pricePerKm * vehicle.multiplier));
-  };
+  }, [distance, rules]);
 
   return (
-    <div className="space-y-3 font-montserrat">
+    <div className="space-y-3 font-montserrat" style={{ willChange: 'transform' }}>
       {vehicles.map((vehicle, index) => {
         const price = calculatePrice(vehicle);
         const isSelected = selectedVehicleId === vehicle.id;
@@ -176,6 +176,8 @@ const YangoVerticalVehicleCards: React.FC<YangoVerticalVehicleCardsProps> = ({
       })}
     </div>
   );
-};
+});
+
+YangoVerticalVehicleCards.displayName = 'YangoVerticalVehicleCards';
 
 export default YangoVerticalVehicleCards;

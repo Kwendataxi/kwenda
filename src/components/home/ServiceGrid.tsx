@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { Car, Truck, ShoppingBag, Utensils, MoreHorizontal } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useServiceConfigurations } from '@/hooks/useServiceConfigurations';
@@ -17,37 +17,37 @@ interface ServiceGridProps {
   };
 }
 
-export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGridProps) => {
+export const ServiceGrid = memo<ServiceGridProps>(({ onServiceSelect, serviceNotifications }) => {
   const { t } = useLanguage();
   const { configurations, loading } = useServiceConfigurations();
   
   // Mapping des icônes et gradients par catégorie
-  const iconMap: Record<string, any> = {
+  const iconMap = useMemo(() => ({
     taxi: Car,
     delivery: Truck,
     rental: Car,
     marketplace: ShoppingBag,
     food: Utensils,
     more: MoreHorizontal
-  };
+  }), []);
   
-  const gradientMap: Record<string, string> = {
+  const gradientMap = useMemo(() => ({
     taxi: 'from-congo-red-electric via-congo-red to-congo-red-vibrant',
     delivery: 'from-congo-yellow-electric via-congo-yellow to-congo-yellow-vibrant',
     rental: 'from-congo-green-electric via-congo-green to-congo-green-vibrant',
     marketplace: 'from-secondary via-accent to-secondary-light',
     food: 'from-orange-500 via-red-500 to-orange-600',
     more: 'from-gray-500 via-gray-600 to-gray-700'
-  };
+  }), []);
 
-  const nameMap: Record<string, string> = {
+  const nameMap = useMemo(() => ({
     taxi: 'Taxi',
     delivery: t('home.services.delivery'),
     rental: t('home.services.rental'),
     marketplace: t('home.services.shopping'),
     food: t('home.services.food'),
     more: t('home.services.more')
-  };
+  }), [t]);
 
   // Charger les services dynamiquement depuis la DB
   const mainServices = useMemo(() => {
@@ -111,18 +111,18 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
   }
 
   // Couleurs plates modernes pour chaque service
-  const serviceColors: Record<string, string> = {
+  const serviceColors = useMemo(() => ({
     transport: '#E31E24',
     delivery: '#F4B223',
     rental: '#00A651',
     marketplace: 'linear-gradient(135deg, #2596be 0%, #5b21b6 100%)',
     food: '#FF6B35',
     more: 'linear-gradient(135deg, #6B7280 0%, #374151 100%)'
-  };
+  }), []);
 
   return (
     <div className="px-4">
-      <div className="grid grid-cols-3 gap-x-6 gap-y-8">
+      <div className="grid grid-cols-3 gap-x-6 gap-y-8" style={{ willChange: 'transform' }}>
         {mainServices.map((service, index) => {
           const Icon = service.icon;
           const notificationCount = serviceNotifications?.[service.id as keyof typeof serviceNotifications] || 0;
@@ -177,4 +177,6 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
       </div>
     </div>
   );
-};
+});
+
+ServiceGrid.displayName = 'ServiceGrid';
