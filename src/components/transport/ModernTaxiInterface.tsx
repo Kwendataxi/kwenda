@@ -28,6 +28,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [distance, setDistance] = useState<number>(0);
   const [routeData, setRouteData] = useState<any>(null);
   const [calculatingRoute, setCalculatingRoute] = useState(false);
+  const [manualPosition, setManualPosition] = useState<{ lat: number; lng: number } | null>(null);
   
   const { currentLocation, getCurrentPosition, getPopularPlaces, currentCity, source } = useSmartGeolocation();
   const popularPlaces = getPopularPlaces();
@@ -187,14 +188,24 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
 
   const handleClickPosition = () => {
     console.log('📍 User clicked position marker');
-    toast.info('Position marquée', {
-      description: 'Votre position actuelle a été enregistrée'
+    // Réinitialiser la position manuelle pour revenir au GPS
+    setManualPosition(null);
+    toast.info('Position GPS restaurée', {
+      description: 'Retour à votre position actuelle'
     });
     
     // Vibration haptique si disponible
     if ('vibrate' in navigator) {
       navigator.vibrate(10);
     }
+  };
+
+  const handleMarkerDrag = (newPosition: { lat: number; lng: number }) => {
+    console.log('📍 Marqueur déplacé à:', newPosition);
+    setManualPosition(newPosition);
+    toast.info('Position ajustée', {
+      description: 'Déplacez le marqueur pour préciser votre position'
+    });
   };
 
   // Calculer le prix estimé
@@ -206,9 +217,10 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       <OptimizedMapView
         pickup={pickupLocation}
         destination={destinationLocation}
-        userLocation={currentLocation}
+        userLocation={manualPosition || currentLocation}
         currentCity={currentCity}
         onClickPosition={handleClickPosition}
+        onDragMarker={handleMarkerDrag}
       />
       
       {/* Indicateur chauffeurs à proximité - vrai compteur temps réel */}

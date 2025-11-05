@@ -21,6 +21,7 @@ interface OptimizedMapViewProps {
   currentCity?: { name: string; coordinates: { lat: number; lng: number } } | null;
   onMapReady?: (map: google.maps.Map) => void;
   onClickPosition?: () => void;
+  onDragMarker?: (newPosition: { lat: number; lng: number }) => void;
   className?: string;
 }
 
@@ -31,6 +32,7 @@ const OptimizedMapView = React.memo(({
   currentCity,
   onMapReady,
   onClickPosition,
+  onDragMarker,
   className = '' 
 }: OptimizedMapViewProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -183,11 +185,13 @@ const OptimizedMapView = React.memo(({
       {pickup && <PickupMarker map={mapInstanceRef.current} position={pickup} label={pickup.name || pickup.address} />}
       {destination && <DestinationMarker map={mapInstanceRef.current} position={destination} label={destination.name || destination.address} />}
       
-      {/* Marker position actuelle */}
+      {/* Marqueur position actuelle - Draggable */}
       <CurrentPositionMarker 
         map={mapInstanceRef.current} 
         position={userLocation} 
         onClickPosition={onClickPosition}
+        onDragEnd={onDragMarker}
+        isDraggable={true}
       />
       
       {/* Contrôles carte */}

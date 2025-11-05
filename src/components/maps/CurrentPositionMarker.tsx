@@ -4,76 +4,140 @@ interface CurrentPositionMarkerProps {
   map: google.maps.Map | null;
   position: { lat: number; lng: number } | null;
   onClickPosition?: () => void;
+  onDragEnd?: (newPosition: { lat: number; lng: number }) => void;
+  isDraggable?: boolean;
 }
 
-export default function CurrentPositionMarker({ map, position, onClickPosition }: CurrentPositionMarkerProps) {
+export default function CurrentPositionMarker({ 
+  map, 
+  position, 
+  onClickPosition, 
+  onDragEnd,
+  isDraggable = false 
+}: CurrentPositionMarkerProps) {
   const markerRef = useRef<google.maps.Marker | null>(null);
+  const manualPositionRef = useRef<{ lat: number; lng: number } | null>(null);
 
-  const getCurrentPositionSVG = (): string => {
+  const getModernPositionSVG = (): string => {
     return `
-      <svg width="80" height="95" viewBox="0 0 80 95" xmlns="http://www.w3.org/2000/svg">
+      <svg width="60" height="80" viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <filter id="shadow-pin">
-            <feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.4"/>
+          <filter id="marker-shadow">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
           </filter>
+          <linearGradient id="stem-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#EF4444;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#DC2626;stop-opacity:0.6" />
+          </linearGradient>
         </defs>
         
-        <!-- Pulse d'arrière-plan rouge -->
-        <circle cx="40" cy="40" r="35" fill="#EF4444" opacity="0.15">
-          <animate attributeName="r" from="30" to="40" dur="1.8s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" from="0.3" to="0" dur="1.8s" repeatCount="indefinite"/>
+        <!-- Ombre portée au sol -->
+        <ellipse cx="30" cy="76" rx="8" ry="2" fill="#000000" opacity="0.15"/>
+        
+        <!-- Pulse d'anneau rouge (animation) -->
+        <circle cx="30" cy="28" r="28" fill="#EF4444" opacity="0.2">
+          <animate attributeName="r" from="25" to="32" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" from="0.4" to="0" dur="2s" repeatCount="indefinite"/>
         </circle>
         
-        <!-- Ombre du pin -->
-        <ellipse cx="40" cy="88" rx="18" ry="4" fill="#000000" opacity="0.2"/>
+        <!-- Anneau extérieur rouge -->
+        <circle cx="30" cy="28" r="22" fill="none" stroke="#EF4444" stroke-width="3" 
+                filter="url(#marker-shadow)"/>
         
-        <!-- Corps du pin (forme de goutte inversée) -->
-        <path d="M40 20 C50 20, 58 28, 58 40 C58 52, 40 70, 40 70 C40 70, 22 52, 22 40 C22 28, 30 20, 40 20 Z" 
-              fill="#EF4444" 
-              filter="url(#shadow-pin)"/>
+        <!-- Anneau intérieur blanc -->
+        <circle cx="30" cy="28" r="16" fill="#FFFFFF" filter="url(#marker-shadow)"/>
         
-        <!-- Cercle intérieur blanc -->
-        <circle cx="40" cy="40" r="8" fill="white"/>
+        <!-- Point central rouge avec pulse -->
+        <circle cx="30" cy="28" r="5" fill="#DC2626">
+          <animate attributeName="r" from="4" to="6" dur="1.5s" repeatCount="indefinite"/>
+        </circle>
         
-        <!-- Point central rouge -->
-        <circle cx="40" cy="40" r="4" fill="#DC2626"/>
+        <!-- Tige verticale élégante -->
+        <line x1="30" y1="50" x2="30" y2="74" stroke="url(#stem-gradient)" 
+              stroke-width="2.5" stroke-linecap="round" filter="url(#marker-shadow)"/>
+        
+        <!-- Point d'ancrage au sol -->
+        <circle cx="30" cy="75" r="3" fill="#DC2626" opacity="0.8"/>
       </svg>
     `;
+  };
+
+  const animateToPosition = (targetPosition: { lat: number; lng: number }) => {
+    if (!markerRef.current) return;
+    
+    // Animation bounce de Google Maps
+    markerRef.current.setAnimation(google.maps.Animation.BOUNCE);
+    
+    // Animer vers la nouvelle position
+    markerRef.current.setPosition(targetPosition);
+    
+    // Arrêter l'animation après 1s
+    setTimeout(() => {
+      if (markerRef.current) {
+        markerRef.current.setAnimation(null);
+      }
+    }, 1000);
   };
 
   useEffect(() => {
     if (!map || !position || !window.google) return;
 
-    const svgContent = getCurrentPositionSVG();
+    const svgContent = getModernPositionSVG();
     const iconUrl = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`;
 
     if (!markerRef.current) {
       const marker = new google.maps.Marker({
         position,
         map,
-        title: 'Cliquez pour pointer votre position exacte',
+        title: isDraggable ? 'Déplacez-moi ou cliquez pour me recentrer' : 'Votre position actuelle',
         icon: {
           url: iconUrl,
-          scaledSize: new google.maps.Size(80, 95),
-          anchor: new google.maps.Point(40, 70)
+          scaledSize: new google.maps.Size(60, 80),
+          anchor: new google.maps.Point(30, 75)
         },
         zIndex: 3000,
         optimized: false,
         clickable: true,
-        cursor: 'pointer'
+        draggable: isDraggable,
+        cursor: isDraggable ? 'move' : 'pointer'
       });
 
-      // Ajouter listener de clic
+      // Listener de clic
       marker.addListener('click', () => {
         console.log('📍 Position marker clicked:', position);
         onClickPosition?.();
       });
 
+      // Listener de drag (si activé)
+      if (isDraggable) {
+        marker.addListener('dragend', (event: google.maps.MapMouseEvent) => {
+          const newPosition = {
+            lat: event.latLng!.lat(),
+            lng: event.latLng!.lng()
+          };
+          console.log('📍 Marqueur déplacé à:', newPosition);
+          manualPositionRef.current = newPosition;
+          onDragEnd?.(newPosition);
+        });
+      }
+
       markerRef.current = marker;
     } else {
-      markerRef.current.setPosition(position);
+      // Détecter si c'est un retour à la position GPS
+      const isDifferent = manualPositionRef.current && 
+        (Math.abs(manualPositionRef.current.lat - position.lat) > 0.0001 ||
+         Math.abs(manualPositionRef.current.lng - position.lng) > 0.0001);
+      
+      if (isDifferent) {
+        // Animation de retour automatique
+        console.log('🎯 Retour automatique à la position GPS');
+        animateToPosition(position);
+        manualPositionRef.current = null;
+      } else {
+        markerRef.current.setPosition(position);
+      }
     }
-  }, [map, position, onClickPosition]);
+  }, [map, position, onClickPosition, onDragEnd, isDraggable]);
 
   useEffect(() => {
     return () => {
