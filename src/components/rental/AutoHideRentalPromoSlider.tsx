@@ -8,11 +8,11 @@ export const AutoHideRentalPromoSlider = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
 
-  // Auto-hide après 6 secondes
+  // Auto-hide après 8 secondes (animation douce)
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
-    }, 6000);
+    }, 8000);
     
     return () => clearTimeout(timer);
   }, []);
@@ -42,8 +42,31 @@ export const AutoHideRentalPromoSlider = () => {
               paddingTop: 0,
               paddingBottom: 0,
               transition: { 
-                duration: 0.5,
-                ease: "easeInOut" 
+                // Animation séquencée ultra-smooth (1.5s total)
+                opacity: { 
+                  duration: 0.6, 
+                  ease: [0.32, 0.72, 0, 1] 
+                },
+                height: { 
+                  duration: 1.2, 
+                  ease: [0.32, 0.72, 0, 1], 
+                  delay: 0.3 
+                },
+                marginBottom: { 
+                  duration: 1.2, 
+                  ease: [0.32, 0.72, 0, 1], 
+                  delay: 0.3 
+                },
+                paddingTop: { 
+                  duration: 1.2, 
+                  ease: [0.32, 0.72, 0, 1], 
+                  delay: 0.3 
+                },
+                paddingBottom: { 
+                  duration: 1.2, 
+                  ease: [0.32, 0.72, 0, 1], 
+                  delay: 0.3 
+                }
               }
             }}
             className="relative"
@@ -67,14 +90,18 @@ export const AutoHideRentalPromoSlider = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ 
+            duration: 0.6,
+            ease: [0.16, 1, 0.3, 1],
+            delay: 0.2
+          }}
           className="mb-4"
         >
           <Button 
             variant="outline" 
             size="sm"
             onClick={handleReshow}
-            className="w-full bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 border-primary/30"
+            className="w-full bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 border-primary/30 transition-all duration-300"
           >
             <Sparkles className="h-4 w-4 mr-2" />
             Voir les promotions
