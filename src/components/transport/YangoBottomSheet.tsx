@@ -1,8 +1,10 @@
-import { motion, PanInfo, useAnimation } from 'framer-motion';
+import { motion, PanInfo } from 'framer-motion';
 import { useState } from 'react';
 import CompactVehicleSelector from './CompactVehicleSelector';
 import DestinationSearchBar from './DestinationSearchBar';
 import PopularPlacesList from './PopularPlacesList';
+import { useWindowSize } from '@/hooks/useWindowSize';
+import { cn } from '@/lib/utils';
 
 interface YangoBottomSheetProps {
   bookingStep: 'vehicle' | 'destination' | 'confirm';
@@ -17,6 +19,8 @@ interface YangoBottomSheetProps {
   hasDestination?: boolean;
 }
 
+type SheetPosition = 'SMALL' | 'MEDIUM' | 'LARGE';
+
 export default function YangoBottomSheet({ 
   bookingStep,
   selectedVehicle,
@@ -27,40 +31,115 @@ export default function YangoBottomSheet({
   onPlaceSelect,
   onSearchFocus
 }: YangoBottomSheetProps) {
-  const [isDragging, setIsDragging] = useState(false);
-  const controls = useAnimation();
+  const { height: windowHeight } = useWindowSize();
+  const [sheetPosition, setSheetPosition] = useState<SheetPosition>('MEDIUM');
+
+  // Positions en pixels depuis le bas de l'écran
+  const SHEET_POSITIONS = {
+    SMALL: 220,
+    MEDIUM: 450,
+    LARGE: Math.min(windowHeight * 0.85, 700)
+  };
 
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    setIsDragging(false);
+    const velocity = info.velocity.y;
+    const currentY = info.point.y;
     
-    // Si on tire vers le bas de plus de 100px, on minimise
-    if (info.offset.y > 100) {
-      controls.start({ y: 200 });
-    } else {
-      controls.start({ y: 0 });
+    // Drag rapide : changement direct de position
+    if (Math.abs(velocity) > 500) {
+      if (velocity < 0) {
+        // Drag rapide vers le haut → Agrandir
+        setSheetPosition(sheetPosition === 'SMALL' ? 'MEDIUM' : 'LARGE');
+      } else {
+        // Drag rapide vers le bas → Réduire
+        setSheetPosition(sheetPosition === 'LARGE' ? 'MEDIUM' : 'SMALL');
+      }
+      return;
     }
+    
+    // Snap vers la position la plus proche
+    const positions = [
+      { name: 'LARGE' as SheetPosition, value: SHEET_POSITIONS.LARGE },
+      { name: 'MEDIUM' as SheetPosition, value: SHEET_POSITIONS.MEDIUM },
+      { name: 'SMALL' as SheetPosition, value: SHEET_POSITIONS.SMALL }
+    ];
+    
+    const closest = positions.reduce((prev, curr) => {
+      const prevDiff = Math.abs(currentY - (windowHeight - prev.value));
+      const currDiff = Math.abs(currentY - (windowHeight - curr.value));
+      return currDiff < prevDiff ? curr : prev;
+    });
+    
+    setSheetPosition(closest.name);
+  };
+
+  // Double tap sur la barre pour changer de position
+  const handleBarDoubleClick = () => {
+    const nextPosition: Record<SheetPosition, SheetPosition> = {
+      SMALL: 'MEDIUM',
+      MEDIUM: 'LARGE',
+      LARGE: 'SMALL'
+    };
+    setSheetPosition(nextPosition[sheetPosition]);
   };
 
   return (
     <motion.div
       initial={{ opacity: 0, x: bookingStep === 'vehicle' ? -100 : 100 }}
-      animate={{ opacity: 1, x: 0 }}
+      animate={{ 
+        opacity: 1, 
+        x: 0,
+        height: SHEET_POSITIONS[sheetPosition],
+        y: 0
+      }}
       exit={{ opacity: 0, x: bookingStep === 'vehicle' ? 100 : -100 }}
-      transition={{ type: 'spring', damping: 30, stiffness: 200, mass: 0.8 }}
+      transition={{ 
+        type: 'spring', 
+        damping: 30, 
+        stiffness: 300, 
+        mass: 0.5,
+        opacity: { duration: 0.2 }
+      }}
       drag="y"
-      dragConstraints={{ top: 0, bottom: 300 }}
-      dragElastic={0.2}
-      onDragStart={() => setIsDragging(true)}
+      dragConstraints={{ top: 0, bottom: 0 }}
+      dragElastic={0.1}
       onDragEnd={handleDragEnd}
-      className="fixed bottom-0 left-0 right-0 z-20 bg-background rounded-t-3xl shadow-2xl max-h-[85vh] sm:max-h-[75vh] overflow-hidden"
+      className="fixed bottom-0 left-0 right-0 z-20 bg-background rounded-t-3xl shadow-2xl overflow-hidden"
     >
-      {/* Glissière */}
-      <div className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing">
+      {/* Glissière avec indicateur de position */}
+      <div 
+        className="flex justify-center items-center pt-3 pb-2 cursor-grab active:cursor-grabbing select-none"
+        onDoubleClick={handleBarDoubleClick}
+      >
         <div className="w-12 h-1.5 bg-border rounded-full"></div>
+        <div className="flex gap-1.5 ml-3">
+          <div className={cn(
+            "w-1.5 h-1.5 rounded-full transition-all duration-300",
+            sheetPosition === 'SMALL' ? 'bg-primary scale-125' : 'bg-muted'
+          )} />
+          <div className={cn(
+            "w-1.5 h-1.5 rounded-full transition-all duration-300",
+            sheetPosition === 'MEDIUM' ? 'bg-primary scale-125' : 'bg-muted'
+          )} />
+          <div className={cn(
+            "w-1.5 h-1.5 rounded-full transition-all duration-300",
+            sheetPosition === 'LARGE' ? 'bg-primary scale-125' : 'bg-muted'
+          )} />
+        </div>
       </div>
       
       {/* Contenu scrollable */}
-      <div className="px-3 sm:px-4 pb-6 space-y-4 sm:space-y-5 overflow-y-auto max-h-[calc(85vh-2rem)] sm:max-h-[calc(75vh-2rem)]">
+      <div 
+        className={cn(
+          "px-3 sm:px-4 pb-6 overflow-y-auto transition-spacing duration-300",
+          sheetPosition === 'SMALL' && "pb-3 space-y-2",
+          sheetPosition === 'MEDIUM' && "space-y-4 sm:space-y-5",
+          sheetPosition === 'LARGE' && "pb-8 space-y-6"
+        )}
+        style={{
+          maxHeight: `${SHEET_POSITIONS[sheetPosition] - 50}px`
+        }}
+      >
         {/* ÉTAPE 1 : Sélection du véhicule */}
         {bookingStep === 'vehicle' && (
           <motion.div
