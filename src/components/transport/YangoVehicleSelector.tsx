@@ -175,12 +175,13 @@ export default function YangoVehicleSelector({
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.85 }}
                         whileHover={{ 
-                          scale: 1.12, 
-                          y: -3,
-                          rotate: [0, -2, 2, 0]
+                          scale: 1.15, 
+                          y: -5,
+                          rotateY: 5,
+                          transition: { duration: 0.4, ease: "easeOut" }
                         }}
                         transition={{ duration: 0.3 }}
-                        className="w-20 h-14 md:w-24 md:h-16 object-contain"
+                        className="w-24 h-16 md:w-28 md:h-20 object-contain"
                         style={{
                           filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.15))'
                         }}

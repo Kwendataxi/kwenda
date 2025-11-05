@@ -1,37 +1,64 @@
-<svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
-  <!-- Ombre portée -->
-  <ellipse cx="60" cy="70" rx="45" ry="6" fill="#000000" opacity="0.15"/>
+<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ombre réaliste 3D -->
+  <ellipse cx="70" cy="85" rx="50" ry="8" fill="#000000" opacity="0.2"/>
   
-  <!-- Roue arrière -->
-  <circle cx="30" cy="55" r="15" fill="#2C2C2C" stroke="#1A1A1A" stroke-width="2"/>
-  <circle cx="30" cy="55" r="10" fill="#404040" stroke="#2C2C2C" stroke-width="1.5"/>
-  <circle cx="30" cy="55" r="5" fill="#5A5A5A"/>
-  
-  <!-- Roue avant -->
-  <circle cx="85" cy="55" r="15" fill="#2C2C2C" stroke="#1A1A1A" stroke-width="2"/>
-  <circle cx="85" cy="55" r="10" fill="#404040" stroke="#2C2C2C" stroke-width="1.5"/>
-  <circle cx="85" cy="55" r="5" fill="#5A5A5A"/>
-  
-  <!-- Cadre et moteur -->
-  <path d="M 30 55 L 40 35 L 55 30 L 70 35 L 85 55" 
-        fill="none" stroke="#FF9800" stroke-width="4" stroke-linejoin="round"/>
-  
-  <!-- Réservoir -->
-  <ellipse cx="55" cy="32" rx="16" ry="10" fill="#FF9800" stroke="#F57C00" stroke-width="2"/>
-  <ellipse cx="55" cy="32" rx="10" ry="6" fill="#FFB74D" opacity="0.6"/>
-  
-  <!-- Selle -->
-  <ellipse cx="40" cy="37" rx="12" ry="6" fill="#2C2C2C" stroke="#1A1A1A" stroke-width="1.5"/>
-  
-  <!-- Guidon -->
-  <path d="M 78 35 L 85 30 L 90 28" 
-        fill="none" stroke="#FF9800" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="90" cy="28" r="2.5" fill="#FFB74D"/>
-  
-  <!-- Phare avant -->
-  <circle cx="85" cy="42" r="4" fill="#FFEB3B" opacity="0.9"/>
-  <circle cx="85" cy="42" r="2" fill="#FFF" opacity="0.7"/>
-  
-  <!-- Feu arrière -->
-  <circle cx="28" cy="42" r="2.5" fill="#F44336" opacity="0.9"/>
+  <!-- Groupe principal avec perspective 3/4 -->
+  <g transform="translate(0, -5)">
+    <!-- Roue arrière 3D avec détails -->
+    <circle cx="40" cy="70" r="16" fill="#2A2A2A" stroke="#1A1A1A" stroke-width="2"/>
+    <circle cx="40" cy="70" r="12" fill="#404040"/>
+    <circle cx="40" cy="70" r="8" fill="#5A5A5A"/>
+    <circle cx="40" cy="70" r="4" fill="#707070"/>
+    <!-- Reflet roue -->
+    <circle cx="38" cy="68" r="3" fill="#FFFFFF" opacity="0.3"/>
+    
+    <!-- Roue avant 3D avec détails -->
+    <circle cx="100" cy="70" r="16" fill="#2A2A2A" stroke="#1A1A1A" stroke-width="2"/>
+    <circle cx="100" cy="70" r="12" fill="#404040"/>
+    <circle cx="100" cy="70" r="8" fill="#5A5A5A"/>
+    <circle cx="100" cy="70" r="4" fill="#707070"/>
+    <!-- Reflet roue -->
+    <circle cx="98" cy="68" r="3" fill="#FFFFFF" opacity="0.3"/>
+    
+    <!-- Gradient orange moderne -->
+    <defs>
+      <linearGradient id="motoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#FF9800"/>
+        <stop offset="50%" stop-color="#FB8C00"/>
+        <stop offset="100%" stop-color="#F57C00"/>
+      </linearGradient>
+      <linearGradient id="motoLight" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#FFB74D"/>
+        <stop offset="100%" stop-color="#FFA726"/>
+      </linearGradient>
+    </defs>
+    
+    <!-- Châssis 3D -->
+    <path d="M 40 70 L 50 45 L 70 40 L 90 45 L 100 70" 
+          fill="url(#motoGrad)" stroke="#E65100" stroke-width="3.5" stroke-linejoin="round"/>
+    
+    <!-- Réservoir 3D avec volume -->
+    <ellipse cx="70" cy="42" rx="20" ry="12" fill="url(#motoGrad)" stroke="#E65100" stroke-width="2"/>
+    <ellipse cx="70" cy="40" rx="16" ry="8" fill="url(#motoLight)" opacity="0.5"/>
+    <!-- Reflet réservoir -->
+    <ellipse cx="68" cy="38" rx="8" ry="4" fill="#FFFFFF" opacity="0.3"/>
+    
+    <!-- Selle avec profondeur -->
+    <ellipse cx="55" cy="48" rx="14" ry="8" fill="#2A2A2A" stroke="#1A1A1A" stroke-width="2"/>
+    <ellipse cx="55" cy="47" rx="11" ry="5" fill="#3A3A3A" opacity="0.6"/>
+    
+    <!-- Guidon 3D -->
+    <path d="M 92 45 L 100 38 L 106 36" 
+          fill="none" stroke="url(#motoGrad)" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="106" cy="36" r="3.5" fill="#FFB74D" stroke="#F57C00" stroke-width="1"/>
+    
+    <!-- Phare avant LED -->
+    <circle cx="100" cy="55" r="5" fill="#FFEB3B" opacity="0.95"/>
+    <circle cx="100" cy="55" r="3" fill="#FFFFFF" opacity="0.8"/>
+    <circle cx="99" cy="54" r="1.5" fill="#FFFFFF"/>
+    
+    <!-- Feu arrière LED -->
+    <circle cx="38" cy="55" r="3" fill="#FF5252" opacity="0.9"/>
+    <circle cx="38" cy="55" r="1.5" fill="#FFFFFF" opacity="0.5"/>
+  </g>
 </svg>

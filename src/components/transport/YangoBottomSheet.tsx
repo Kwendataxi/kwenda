@@ -164,10 +164,9 @@ export default function YangoBottomSheet({
       animate={{ 
         opacity: 1, 
         x: 0,
-        height: SHEET_POSITIONS[sheetPosition],
-        y: 0,
+        y: -(SHEET_POSITIONS[sheetPosition]),
         transition: {
-          height: { 
+          y: { 
             type: "spring",
             damping: 30,
             stiffness: 250,
@@ -185,12 +184,17 @@ export default function YangoBottomSheet({
       }}
       layout={false}
       drag={isDraggable ? "y" : false}
-      dragConstraints={{ top: 0, bottom: 0 }}
-      dragElastic={{ top: 0.25, bottom: 0.15 }}
+      dragConstraints={{ 
+        top: -(SHEET_POSITIONS.LARGE - SHEET_POSITIONS.COLLAPSED), 
+        bottom: 0 
+      }}
+      dragElastic={{ top: 0.1, bottom: 0.05 }}
       onDragEnd={handleDragEnd}
-      className="fixed bottom-0 left-0 right-0 z-20 bg-background rounded-t-3xl shadow-2xl overflow-hidden"
+      className="fixed left-0 right-0 z-20 bg-background rounded-t-3xl shadow-2xl overflow-hidden"
       style={{
-        willChange: 'height, transform',
+        bottom: 0,
+        height: `${SHEET_POSITIONS.LARGE}px`,
+        willChange: 'transform',
         transform: 'translateZ(0)'
       }}
     >
@@ -257,13 +261,13 @@ export default function YangoBottomSheet({
         className={cn(
           "px-3 sm:px-4 pb-6 overflow-y-auto transition-spacing duration-300",
           "scroll-smooth overscroll-contain relative",
-          sheetPosition === 'COLLAPSED' && "hidden",
+          sheetPosition === 'COLLAPSED' && "opacity-0 pointer-events-none",
           sheetPosition === 'SMALL' && "pb-3 space-y-2",
           sheetPosition === 'MEDIUM' && "space-y-4 sm:space-y-5",
           sheetPosition === 'LARGE' && "pb-8 space-y-6"
         )}
         style={{
-          maxHeight: `${SHEET_POSITIONS[sheetPosition] - 60}px`,
+          maxHeight: `${SHEET_POSITIONS[sheetPosition] - 72}px`,
           overscrollBehavior: 'contain'
         }}
         onTouchStart={(e) => {

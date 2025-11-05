@@ -1,39 +1,76 @@
-<svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
-  <!-- Ombre portée -->
-  <ellipse cx="60" cy="70" rx="48" ry="7" fill="#000000" opacity="0.15"/>
+<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ombre portée réaliste -->
+  <ellipse cx="70" cy="85" rx="52" ry="8" fill="#000000" opacity="0.18"/>
   
-  <!-- Roue arrière -->
-  <circle cx="35" cy="58" r="14" fill="#2C2C2C" stroke="#1A1A1A" stroke-width="2.5"/>
-  <circle cx="35" cy="58" r="9" fill="#404040"/>
-  <circle cx="35" cy="58" r="4" fill="#5A5A5A"/>
-  
-  <!-- Roue avant -->
-  <circle cx="85" cy="58" r="14" fill="#2C2C2C" stroke="#1A1A1A" stroke-width="2.5"/>
-  <circle cx="85" cy="58" r="9" fill="#404040"/>
-  <circle cx="85" cy="58" r="4" fill="#5A5A5A"/>
-  
-  <!-- Carrosserie principale -->
-  <path d="M 20 58 L 25 48 Q 30 30 45 28 L 75 28 Q 88 30 93 48 L 100 58 Z" 
-        fill="#10B981" stroke="#059669" stroke-width="2.5"/>
-  
-  <!-- Toit -->
-  <path d="M 40 28 Q 42 20 50 18 L 70 18 Q 78 20 80 28" 
-        fill="#34D399" stroke="#10B981" stroke-width="2"/>
-  
-  <!-- Vitres -->
-  <path d="M 42 27 Q 44 22 50 21 L 58 21 L 58 27 Z" 
-        fill="#5EEAD4" opacity="0.4" stroke="#10B981" stroke-width="1"/>
-  <path d="M 62 21 L 70 21 Q 76 22 78 27 L 62 27 Z" 
-        fill="#5EEAD4" opacity="0.4" stroke="#10B981" stroke-width="1"/>
-  
-  <!-- Phares avant -->
-  <ellipse cx="92" cy="40" rx="6" ry="4" fill="#FFF" opacity="0.9"/>
-  <ellipse cx="92" cy="48" rx="4" ry="3" fill="#FFEB3B" opacity="0.8"/>
-  
-  <!-- Feux arrière -->
-  <ellipse cx="23" cy="48" rx="3" ry="5" fill="#EF4444" opacity="0.9"/>
-  
-  <!-- Badge ECO -->
-  <circle cx="60" cy="42" r="6" fill="#34D399" stroke="#059669" stroke-width="1.5"/>
-  <text x="60" y="45" text-anchor="middle" font-size="7" font-weight="bold" fill="#FFF">E</text>
+  <!-- Groupe principal 3D -->
+  <g transform="translate(0, -3)">
+    <!-- Gradients modernes verts -->
+    <defs>
+      <linearGradient id="ecoBody" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#10B981"/>
+        <stop offset="50%" stop-color="#059669"/>
+        <stop offset="100%" stop-color="#047857"/>
+      </linearGradient>
+      <linearGradient id="ecoRoof" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#34D399"/>
+        <stop offset="100%" stop-color="#10B981"/>
+      </linearGradient>
+      <linearGradient id="ecoWindow" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#5EEAD4" stop-opacity="0.3"/>
+      </linearGradient>
+    </defs>
+    
+    <!-- Roue arrière 3D -->
+    <circle cx="38" cy="70" r="15" fill="#2A2A2A" stroke="#1A1A1A" stroke-width="2.5"/>
+    <circle cx="38" cy="70" r="11" fill="#404040"/>
+    <circle cx="38" cy="70" r="7" fill="#5A5A5A"/>
+    <circle cx="38" cy="70" r="3" fill="#707070"/>
+    <circle cx="36" cy="68" r="3" fill="#FFFFFF" opacity="0.25"/>
+    
+    <!-- Roue avant 3D -->
+    <circle cx="102" cy="70" r="15" fill="#2A2A2A" stroke="#1A1A1A" stroke-width="2.5"/>
+    <circle cx="102" cy="70" r="11" fill="#404040"/>
+    <circle cx="102" cy="70" r="7" fill="#5A5A5A"/>
+    <circle cx="102" cy="70" r="3" fill="#707070"/>
+    <circle cx="100" cy="68" r="3" fill="#FFFFFF" opacity="0.25"/>
+    
+    <!-- Carrosserie compacte 3D -->
+    <path d="M 23 70 L 28 58 Q 35 38 52 36 L 88 36 Q 103 38 108 58 L 117 70 Z" 
+          fill="url(#ecoBody)" stroke="#047857" stroke-width="2.5"/>
+    
+    <!-- Reflet carrosserie -->
+    <path d="M 30 55 Q 40 42 60 40 L 80 40 Q 95 42 105 55" 
+          fill="#FFFFFF" opacity="0.15" stroke="none"/>
+    
+    <!-- Toit 3D -->
+    <path d="M 48 36 Q 50 26 62 24 L 78 24 Q 88 26 90 36" 
+          fill="url(#ecoRoof)" stroke="#10B981" stroke-width="2"/>
+    
+    <!-- Reflet toit -->
+    <path d="M 52 34 Q 54 28 62 27 L 76 27 Q 84 28 86 34" 
+          fill="#FFFFFF" opacity="0.2" stroke="none"/>
+    
+    <!-- Vitre avant avec reflet -->
+    <path d="M 50 35 Q 52 28 62 26 L 68 26 L 68 35 Z" 
+          fill="url(#ecoWindow)" stroke="#10B981" stroke-width="1"/>
+    
+    <!-- Vitre arrière avec reflet -->
+    <path d="M 72 26 L 78 26 Q 86 28 88 35 L 72 35 Z" 
+          fill="url(#ecoWindow)" stroke="#10B981" stroke-width="1"/>
+    
+    <!-- Phares LED avant -->
+    <ellipse cx="110" cy="52" rx="6" ry="4" fill="#FFFFFF" opacity="0.95"/>
+    <ellipse cx="110" cy="60" rx="5" ry="3" fill="#FFEB3B" opacity="0.85"/>
+    <circle cx="110" cy="52" r="2" fill="#FFFFFF"/>
+    
+    <!-- Feux arrière LED -->
+    <ellipse cx="26" cy="58" rx="3" ry="6" fill="#EF4444" opacity="0.9"/>
+    <ellipse cx="26" cy="58" rx="1.5" ry="3" fill="#FFFFFF" opacity="0.4"/>
+    
+    <!-- Badge ECO 3D -->
+    <circle cx="70" cy="52" r="7" fill="#34D399" stroke="#047857" stroke-width="2"/>
+    <circle cx="70" cy="52" r="5.5" fill="#10B981"/>
+    <text x="70" y="56" text-anchor="middle" font-size="8" font-weight="bold" fill="#FFFFFF">E</text>
+  </g>
 </svg>
