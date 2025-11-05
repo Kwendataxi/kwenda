@@ -23,7 +23,7 @@ import { useAddToCartFeedback } from './AddToCartFeedback';
 import { CategoryScrollBar } from './CategoryScrollBar';
 import { QuickFiltersBar } from './QuickFiltersBar';
 import { ResponsiveGrid } from '../ui/responsive-grid';
-import { PromoSlider } from './MarketplacePromoSlider';
+import { AutoHideMarketplacePromoSlider } from './AutoHideMarketplacePromoSlider';
 import { KwendaShopHeader } from './KwendaShopHeader';
 
 // Anciens composants (conservés pour compatibilité)
@@ -565,9 +565,9 @@ const EnhancedMarketplaceContent: React.FC<EnhancedMarketplaceInterfaceProps> = 
 
   const renderShopTab = () => (
     <div className="space-y-4">
-      {/* SLIDER PUBLICITAIRE - Non encombrant */}
+      {/* SLIDER PUBLICITAIRE - Auto-hide après 6s */}
       <section className="px-4 pt-2">
-        <PromoSlider 
+        <AutoHideMarketplacePromoSlider 
           onPromoClick={handlePromoClick}
           autoplayDelay={5000}
         />
