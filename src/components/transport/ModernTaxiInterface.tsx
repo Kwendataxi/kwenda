@@ -9,6 +9,7 @@ import DriverSearchProgressModal from './DriverSearchProgressModal';
 import { NearbyDriversIndicator } from '@/components/maps/NearbyDriversIndicator';
 import { useSmartGeolocation } from '@/hooks/useSmartGeolocation';
 import { useRideDispatch } from '@/hooks/useRideDispatch';
+import { useLiveDrivers } from '@/hooks/useLiveDrivers';
 import { LocationData } from '@/types/location';
 import { secureNavigationService } from '@/services/secureNavigationService';
 import { toast } from 'sonner';
@@ -39,6 +40,14 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     listenForDriverAssignment,
     resetSearch
   } = useRideDispatch();
+  
+  // Hook pour afficher le vrai nombre de chauffeurs disponibles
+  const { driversCount } = useLiveDrivers({
+    userLocation: pickupLocation,
+    maxRadius: 5, // 5km de rayon
+    showOnlyAvailable: true,
+    updateInterval: 30000 // Refresh toutes les 30s
+  });
   
   console.log('🌍 Ville détectée:', currentCity?.name || 'Non détectée');
   console.log('📍 Position actuelle:', currentLocation ? { lat: currentLocation.lat, lng: currentLocation.lng } : 'Aucune');
@@ -201,9 +210,9 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         onClickPosition={handleClickPosition}
       />
       
-      {/* Indicateur chauffeurs à proximité */}
+      {/* Indicateur chauffeurs à proximité - vrai compteur temps réel */}
       <NearbyDriversIndicator 
-        driverCount={12}
+        driverCount={driversCount}
         onClick={() => console.log('Toggle drivers visibility')}
       />
       
