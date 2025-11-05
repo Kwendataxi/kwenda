@@ -26,7 +26,7 @@ interface YangoBottomSheetProps {
   onSelectBeneficiary?: (beneficiary: any) => void;
 }
 
-type SheetPosition = 'SMALL' | 'MEDIUM' | 'LARGE';
+type SheetPosition = 'COLLAPSED' | 'SMALL' | 'MEDIUM' | 'LARGE';
 
 export default function YangoBottomSheet({ 
   bookingStep,
@@ -46,49 +46,67 @@ export default function YangoBottomSheet({
   onSelectBeneficiary
 }: YangoBottomSheetProps) {
   const { height: windowHeight } = useWindowSize();
-  const [sheetPosition, setSheetPosition] = useState<SheetPosition>('MEDIUM');
+  
+  // Position initiale adaptative selon l'étape
+  const getInitialPosition = (): SheetPosition => {
+    if (bookingStep === 'vehicle') return 'MEDIUM';
+    if (bookingStep === 'destination') return 'LARGE';
+    return 'COLLAPSED';
+  };
+  
+  const [sheetPosition, setSheetPosition] = useState<SheetPosition>(getInitialPosition());
+  const [isDraggable, setIsDraggable] = useState(true);
 
-  // Positions en pixels depuis le bas de l'écran
+  // Positions en pixels depuis le bas de l'écran (améliorées pour plus de visibilité)
   const SHEET_POSITIONS = {
-    SMALL: 160,
-    MEDIUM: 350,
-    LARGE: Math.min(windowHeight * 0.75, 600)
+    COLLAPSED: 120,
+    SMALL: 280,
+    MEDIUM: 480,
+    LARGE: Math.min(windowHeight * 0.85, 720)
   };
 
-  // Feedback haptique subtil
-  const triggerHaptic = (type: 'light' | 'medium' | 'heavy' = 'light') => {
+  // Feedback haptique amélioré
+  const triggerHaptic = (type: 'snap' | 'expand' | 'collapse' | 'light' = 'light') => {
     if ('vibrate' in navigator) {
       const patterns = {
-        light: 10,
-        medium: 20,
-        heavy: 30
+        snap: [5, 10, 5],
+        expand: [15],
+        collapse: [10],
+        light: 10
       };
       navigator.vibrate(patterns[type]);
     }
   };
 
-  // ⚡ PHASE 2: Throttle drag events pour performance
+  // Drag ultra-fluide avec seuil réduit
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const velocity = info.velocity.y;
     const currentY = info.point.y;
     
     let newPosition: SheetPosition;
     
-    // Drag rapide : changement direct de position
-    if (Math.abs(velocity) > 350) {
+    // Drag rapide : changement direct de position (seuil réduit à 200)
+    if (Math.abs(velocity) > 200) {
       if (velocity < 0) {
         // Drag rapide vers le haut → Agrandir
-        newPosition = sheetPosition === 'SMALL' ? 'MEDIUM' : 'LARGE';
+        if (sheetPosition === 'COLLAPSED') newPosition = 'SMALL';
+        else if (sheetPosition === 'SMALL') newPosition = 'MEDIUM';
+        else newPosition = 'LARGE';
+        triggerHaptic('expand');
       } else {
         // Drag rapide vers le bas → Réduire
-        newPosition = sheetPosition === 'LARGE' ? 'MEDIUM' : 'SMALL';
+        if (sheetPosition === 'LARGE') newPosition = 'MEDIUM';
+        else if (sheetPosition === 'MEDIUM') newPosition = 'SMALL';
+        else newPosition = 'COLLAPSED';
+        triggerHaptic('collapse');
       }
     } else {
       // Snap vers la position la plus proche
       const positions = [
         { name: 'LARGE' as SheetPosition, value: SHEET_POSITIONS.LARGE },
         { name: 'MEDIUM' as SheetPosition, value: SHEET_POSITIONS.MEDIUM },
-        { name: 'SMALL' as SheetPosition, value: SHEET_POSITIONS.SMALL }
+        { name: 'SMALL' as SheetPosition, value: SHEET_POSITIONS.SMALL },
+        { name: 'COLLAPSED' as SheetPosition, value: SHEET_POSITIONS.COLLAPSED }
       ];
       
       const closest = positions.reduce((prev, curr) => {
@@ -98,10 +116,11 @@ export default function YangoBottomSheet({
       });
       
       newPosition = closest.name;
+      triggerHaptic('snap');
     }
     
     setSheetPosition(newPosition);
-    triggerHaptic('light');
+    setIsDraggable(true);
     onSheetPositionChange?.(SHEET_POSITIONS[newPosition]);
   };
 
@@ -110,22 +129,37 @@ export default function YangoBottomSheet({
     onSheetPositionChange?.(SHEET_POSITIONS[sheetPosition]);
   }, [sheetPosition, onSheetPositionChange]);
 
+  // Auto-expand selon l'étape (avec animation)
+  useEffect(() => {
+    if (bookingStep === 'destination' && sheetPosition !== 'LARGE') {
+      setSheetPosition('LARGE');
+      triggerHaptic('expand');
+    } else if (bookingStep === 'vehicle' && sheetPosition === 'COLLAPSED') {
+      setSheetPosition('MEDIUM');
+      triggerHaptic('expand');
+    }
+  }, [bookingStep]);
+
   // Double tap sur la barre pour changer de position
   const handleBarDoubleClick = () => {
     const nextPosition: Record<SheetPosition, SheetPosition> = {
+      COLLAPSED: 'SMALL',
       SMALL: 'MEDIUM',
       MEDIUM: 'LARGE',
-      LARGE: 'SMALL'
+      LARGE: 'COLLAPSED'
     };
     const newPosition = nextPosition[sheetPosition];
     setSheetPosition(newPosition);
-    triggerHaptic('light');
+    triggerHaptic(newPosition === 'COLLAPSED' ? 'collapse' : 'expand');
     onSheetPositionChange?.(SHEET_POSITIONS[newPosition]);
   };
 
-  // ⚡ PHASE 2: Optimisation animations - désactiver layout
+  // Animations ultra-fluides avec spring adouci
   return (
     <motion.div
+      role="dialog"
+      aria-label="Options de réservation"
+      aria-expanded={sheetPosition !== 'COLLAPSED'}
       initial={{ opacity: 0, x: bookingStep === 'vehicle' ? -50 : 50 }}
       animate={{ 
         opacity: 1, 
@@ -135,9 +169,9 @@ export default function YangoBottomSheet({
         transition: {
           height: { 
             type: "spring",
-            damping: 25,
-            stiffness: 280,
-            mass: 0.5
+            damping: 30,
+            stiffness: 250,
+            mass: 0.6
           }
         }
       }}
@@ -150,7 +184,7 @@ export default function YangoBottomSheet({
         opacity: { duration: 0.3, ease: "easeOut" }
       }}
       layout={false}
-      drag="y"
+      drag={isDraggable ? "y" : false}
       dragConstraints={{ top: 0, bottom: 0 }}
       dragElastic={{ top: 0.25, bottom: 0.15 }}
       onDragEnd={handleDragEnd}
@@ -160,27 +194,90 @@ export default function YangoBottomSheet({
         transform: 'translateZ(0)'
       }}
     >
-      {/* Glissière optimisée */}
+      {/* Zone de grip agrandie avec indicateur de position */}
       <div 
-        className="flex justify-center items-center pt-4 pb-3 cursor-grab active:cursor-grabbing select-none"
+        className="flex justify-center items-center pt-5 pb-4 cursor-grab active:cursor-grabbing select-none relative"
         onDoubleClick={handleBarDoubleClick}
+        style={{ minHeight: '48px' }}
       >
-        <div className="w-14 h-1 bg-muted-foreground/30 rounded-full"></div>
+        <div className="w-16 h-1.5 bg-muted-foreground/40 rounded-full"></div>
+        
+        {/* Indicateur visuel de position (4 points) */}
+        <div className="absolute right-4 top-5 flex gap-1">
+          {(['COLLAPSED', 'SMALL', 'MEDIUM', 'LARGE'] as SheetPosition[]).map((pos) => (
+            <div 
+              key={pos}
+              className={cn(
+                "w-1.5 h-1.5 rounded-full transition-colors duration-200",
+                sheetPosition === pos ? "bg-primary" : "bg-muted-foreground/20"
+              )}
+            />
+          ))}
+        </div>
       </div>
+
+      {/* Mode COLLAPSED : Résumé avec bouton expand */}
+      {sheetPosition === 'COLLAPSED' && selectedVehicle && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="px-4 pb-3 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-lg">
+              🚗
+            </div>
+            <div>
+              <p className="text-sm font-semibold">
+                {selectedVehicle === 'moto' ? 'Moto-taxi' : 
+                 selectedVehicle === 'eco' ? 'Taxi Eco' :
+                 selectedVehicle === 'comfort' ? 'Taxi Confort' :
+                 selectedVehicle === 'premium' ? 'Taxi Premium' : 'Taxi'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {distance > 0 ? `${distance.toFixed(1)} km` : 'En attente...'}
+              </p>
+            </div>
+          </div>
+          
+          <button 
+            onClick={() => {
+              setSheetPosition('MEDIUM');
+              triggerHaptic('expand');
+            }}
+            className="text-primary text-sm font-medium px-3 py-1.5 hover:bg-primary/10 rounded-lg transition-colors"
+          >
+            Modifier
+          </button>
+        </motion.div>
+      )}
       
-      {/* Contenu scrollable */}
+      {/* Contenu scrollable avec gestion drag/scroll séparée */}
       <div 
         className={cn(
           "px-3 sm:px-4 pb-6 overflow-y-auto transition-spacing duration-300",
-          "scroll-smooth overscroll-contain",
+          "scroll-smooth overscroll-contain relative",
+          sheetPosition === 'COLLAPSED' && "hidden",
           sheetPosition === 'SMALL' && "pb-3 space-y-2",
           sheetPosition === 'MEDIUM' && "space-y-4 sm:space-y-5",
           sheetPosition === 'LARGE' && "pb-8 space-y-6"
         )}
         style={{
-          maxHeight: `${SHEET_POSITIONS[sheetPosition] - 50}px`
+          maxHeight: `${SHEET_POSITIONS[sheetPosition] - 60}px`,
+          overscrollBehavior: 'contain'
         }}
+        onTouchStart={(e) => {
+          const target = e.currentTarget;
+          if (target.scrollHeight > target.clientHeight) {
+            setIsDraggable(false);
+          }
+        }}
+        onTouchEnd={() => setIsDraggable(true)}
       >
+        {/* Gradient fade si contenu dépasse (sauf en LARGE) */}
+        {sheetPosition !== 'LARGE' && (
+          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
+        )}
         {/* ÉTAPE 1 : Sélection du véhicule */}
         {bookingStep === 'vehicle' && (
           <motion.div
