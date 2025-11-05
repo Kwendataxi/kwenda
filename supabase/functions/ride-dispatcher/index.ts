@@ -64,13 +64,26 @@ serve(async (req) => {
     // Radius dynamique selon la priorité
     const searchRadius = priority === 'urgent' ? 20 : priority === 'high' ? 15 : 10;
 
-    // Trouver les chauffeurs à proximité avec la fonction RPC corrigée
+    // ✅ PHASE 1: Correction du mapping RPC avec les BONS paramètres
     const { data: drivers, error: driversError } = await supabase.rpc('find_nearby_drivers', {
-      pickup_lat: pickupLat,
-      pickup_lng: pickupLng,
-      radius_km: searchRadius,
-      service_type_param: serviceType || 'taxi'
+      p_lat: pickupLat,
+      p_lng: pickupLng,
+      p_max_distance_km: searchRadius,
+      p_vehicle_class: vehicleClass || null,
+      p_service_type: serviceType || 'taxi'
     });
+
+    // 📊 PHASE 5: Logs détaillés pour monitoring
+    console.log(`🔍 RPC params: lat=${pickupLat}, lng=${pickupLng}, radius=${searchRadius}km, vehicle=${vehicleClass || 'any'}, service=${serviceType}`);
+    console.log(`📊 Found ${drivers?.length || 0} drivers`);
+    if (drivers && drivers.length > 0) {
+      console.log(`🚗 Sample driver:`, {
+        id: drivers[0].driver_id,
+        distance: drivers[0].distance_km,
+        rides_remaining: drivers[0].rides_remaining,
+        service_type: drivers[0].service_type
+      });
+    }
 
     if (driversError) {
       console.error('❌ Erreur lors de la recherche des chauffeurs:', driversError);
@@ -185,7 +198,7 @@ serve(async (req) => {
 
     await supabase.from('push_notifications').insert([notificationData]);
 
-    // Logger l'assignation réussie
+    // 📈 PHASE 5: Logger l'assignation avec métriques complètes
     await supabase.from('activity_logs').insert([{
       activity_type: 'ride_dispatch_success',
       description: `Chauffeur ${selectedDriver.driver_id} assigné au booking ${bookingId}`,
@@ -197,7 +210,22 @@ serve(async (req) => {
         priority,
         serviceType,
         driversConsidered: drivers.length,
-        rides_remaining: selectedDriver.rides_remaining || 0
+        rides_remaining: selectedDriver.rides_remaining || 0,
+        searchParams: {
+          lat: pickupLat,
+          lng: pickupLng,
+          serviceType,
+          vehicleClass,
+          priority,
+          searchRadius
+        },
+        rpcParams: {
+          p_lat: pickupLat,
+          p_lng: pickupLng,
+          p_max_distance_km: searchRadius,
+          p_vehicle_class: vehicleClass,
+          p_service_type: serviceType
+        }
       }
     }]);
 

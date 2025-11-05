@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { TrendingUp } from 'lucide-react';
 import { useDriverDispatch } from '@/hooks/useDriverDispatch';
 import { useDriverEarnings } from '@/hooks/useDriverEarnings';
+import { useDriverHeartbeat } from '@/hooks/useDriverHeartbeat';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -33,6 +34,10 @@ export const SimplifiedDriverDashboard: React.FC<SimplifiedDriverDashboardProps>
   } = useDriverDispatch();
 
   const { stats, loading: statsLoading } = useDriverEarnings();
+  
+  // ✅ PHASE 3: Activer le heartbeat automatique toutes les 2 minutes
+  useDriverHeartbeat();
+  
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showStatsPage, setShowStatsPage] = useState(false);
