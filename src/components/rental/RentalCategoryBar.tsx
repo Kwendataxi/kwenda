@@ -42,20 +42,6 @@ export const RentalCategoryBar: React.FC<RentalCategoryBarProps> = ({
 
   const handleCategoryClick = (categoryId: string | null) => {
     onCategoryChange(categoryId);
-    
-    // Scroll vers la section correspondante
-    if (categoryId) {
-      setTimeout(() => {
-        const element = document.getElementById(`category-${categoryId}`);
-        element?.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start',
-          inline: 'nearest'
-        });
-      }, 100);
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
   };
 
   return (
