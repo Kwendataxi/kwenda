@@ -28,6 +28,7 @@ export default function YangoBottomSheet({
   onVehicleSelect,
   distance,
   city,
+  calculatingRoute,
   popularPlaces,
   onPlaceSelect,
   onSearchFocus,
@@ -196,6 +197,7 @@ export default function YangoBottomSheet({
               onVehicleSelect={(vehicle) => onVehicleSelect(vehicle.id)}
               distance={distance}
               city={city}
+              calculatingRoute={calculatingRoute}
             />
           </motion.div>
         )}

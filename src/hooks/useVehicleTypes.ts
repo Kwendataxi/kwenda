@@ -17,6 +17,8 @@ export const useVehicleTypes = ({ distance = 0, city = 'Kinshasa' }: UseVehicleT
   const { data: vehicles, isLoading, error } = useQuery({
     queryKey: ['vehicle-types', city, Math.round(distance)],
     queryFn: async () => {
+      console.log('🔍 [useVehicleTypes] Fetching vehicles for:', { city, distance });
+      
       // 1. Fetch service configurations for taxi services
       const { data: configs, error: configError } = await supabase
         .from('service_configurations')
@@ -24,8 +26,16 @@ export const useVehicleTypes = ({ distance = 0, city = 'Kinshasa' }: UseVehicleT
         .eq('service_category', 'taxi')
         .eq('is_active', true);
 
-      if (configError) throw configError;
-      if (!configs) return [];
+      if (configError) {
+        console.error('❌ [useVehicleTypes] Config error:', configError);
+        throw configError;
+      }
+      if (!configs || configs.length === 0) {
+        console.warn('⚠️ [useVehicleTypes] Aucune configuration de service trouvée');
+        return [];
+      }
+      
+      console.log('✅ [useVehicleTypes] Configs trouvées:', configs.length);
 
       // 2. Fetch pricing rules (source unique de vérité depuis l'admin)
       const { data: pricingRules, error: pricingError } = await supabase
@@ -35,7 +45,12 @@ export const useVehicleTypes = ({ distance = 0, city = 'Kinshasa' }: UseVehicleT
         .ilike('city', city) // Case-insensitive city matching
         .eq('is_active', true);
 
-      if (pricingError) throw pricingError;
+      if (pricingError) {
+        console.error('❌ [useVehicleTypes] Pricing error:', pricingError);
+        throw pricingError;
+      }
+      
+      console.log('💰 [useVehicleTypes] Pricing rules trouvées:', pricingRules?.length || 0);
 
       // 3. Map configs with pricing_rules
       const mappedVehicles: VehicleType[] = configs.map(config => {
@@ -70,7 +85,14 @@ export const useVehicleTypes = ({ distance = 0, city = 'Kinshasa' }: UseVehicleT
       });
 
       // Sort by price (cheapest first)
-      return mappedVehicles.sort((a, b) => a.calculatedPrice - b.calculatedPrice);
+      const sortedVehicles = mappedVehicles.sort((a, b) => a.calculatedPrice - b.calculatedPrice);
+      
+      console.log('🚗 [useVehicleTypes] Véhicules mappés:', {
+        count: sortedVehicles.length,
+        vehicles: sortedVehicles.map(v => ({ id: v.id, name: v.name, price: v.calculatedPrice }))
+      });
+      
+      return sortedVehicles;
     },
     enabled: true,
     staleTime: 5 * 60 * 1000, // 5 minutes

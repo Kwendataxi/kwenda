@@ -23,6 +23,16 @@ export default function YangoVehicleSelector({
   calculatingRoute = false
 }: YangoVehicleSelectorProps) {
   const { vehicles, isLoading } = useVehicleTypes({ distance, city });
+
+  // 🔍 Logs de debug
+  console.log('🚗 [YangoVehicleSelector] Rendu:', {
+    distance,
+    city,
+    vehiclesCount: vehicles.length,
+    isLoading,
+    calculatingRoute,
+    selectedVehicleId
+  });
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'center',
     containScroll: 'trimSnaps',
