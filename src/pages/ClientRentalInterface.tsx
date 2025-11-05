@@ -37,6 +37,15 @@ export const ClientRentalInterface = () => {
     categories.forEach(cat => {
       counts[cat.id] = vehicles.filter(v => v.category_id === cat.id).length;
     });
+    
+    // ✅ DEBUG LOG
+    console.log("📊 [CLIENT_RENTAL] Vehicle counts:", {
+      totalCategories: categories.length,
+      totalVehicles: vehicles.length,
+      counts,
+      categories: categories.map(c => ({ id: c.id, name: c.name }))
+    });
+    
     return counts;
   }, [vehicles, categories]);
 

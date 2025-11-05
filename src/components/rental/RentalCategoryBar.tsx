@@ -25,6 +25,14 @@ export const RentalCategoryBar: React.FC<RentalCategoryBarProps> = ({
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // ✅ DEBUG LOGS
+  console.log("🏷️ [CATEGORY_BAR] Props:", {
+    categories: categories.length,
+    vehicleCounts,
+    totalVehicles,
+    selectedCategory
+  });
+
   // Auto-scroll to selected category
   useEffect(() => {
     if (selectedCategory && scrollRef.current) {

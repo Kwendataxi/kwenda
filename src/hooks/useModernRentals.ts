@@ -134,14 +134,18 @@ export function useModernRentals(selectedCity?: string) {
   const vehiclesQuery = useQuery<ModernRentalVehicle[]>({
     queryKey: ["modern-rental-vehicles", userLocation],
     queryFn: async () => {
+      console.log("🚗 [RENTAL] Fetching vehicles for city:", userLocation);
+      
       const { data, error } = await supabase
         .from("rental_vehicles")
         .select("*")
         .eq("is_available", true)
         .eq("is_active", true)
         .eq("moderation_status", "approved")
-        .filter("available_cities", "cs", `{${userLocation}}`)
+        .contains("available_cities", [userLocation])
         .order("created_at", { ascending: false });
+      
+      console.log("🚗 [RENTAL] Vehicles fetched:", { count: data?.length || 0, error, city: userLocation });
       
       if (error) throw error;
       return (data || []).map((v: any) => ({
