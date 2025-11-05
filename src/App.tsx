@@ -17,6 +17,12 @@ import DynamicTheme from "@/components/theme/DynamicTheme";
 import ParticleBackground from "@/components/theme/ParticleBackground";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { SafetyNet } from "@/components/SafetyNet";
+import { HealthStatusBar } from "@/components/HealthStatusBar";
+import { RecoveryDialog } from "@/components/RecoveryDialog";
+import { DegradedModeProvider } from "@/contexts/DegradedModeContext";
+import { healthOrchestrator } from "@/services/HealthOrchestrator";
+import { sessionRecovery } from "@/services/SessionRecovery";
 import { APP_CONFIG, isClientApp, isDriverApp, isPartnerApp, isSpecificBuild } from "@/config/appConfig";
 import { isMobileApp, isPWA } from "@/services/platformDetection";
 import { PWASplashScreen } from "@/components/PWASplashScreen";
@@ -165,6 +171,16 @@ const AppContent = () => {
   // Initialiser le système de mise à jour temps réel des services
   useServiceRealtime();
   
+  // Démarrer le système anti-crash
+  useEffect(() => {
+    healthOrchestrator.start();
+    sessionRecovery.restoreSession();
+    
+    return () => {
+      healthOrchestrator.stop();
+    };
+  }, []);
+  
   // Diagnostic de debug en développement
   useEffect(() => {
     if (import.meta.env.DEV) {
@@ -197,10 +213,14 @@ const AppContent = () => {
         loadingComponent={<div />}
       >
         <HelmetProvider>
-          <AppReadyProvider initialSession={preloadedSession}>
-            <UpdateNotification />
-            <UpdateProgress />
-            <DynamicTheme>
+          <SafetyNet>
+            <DegradedModeProvider>
+              <AppReadyProvider initialSession={preloadedSession}>
+                <HealthStatusBar />
+                <RecoveryDialog />
+                <UpdateNotification />
+                <UpdateProgress />
+                <DynamicTheme>
               <ParticleBackground />
               <ThemeNotification />
               <PerformanceOptimizer>
