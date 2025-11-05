@@ -286,7 +286,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   }, []);
 
   return (
-    <div className="relative h-screen overflow-hidden bg-background">
+    <div className="relative h-screen bg-background">
       {/* Carte plein écran optimisée */}
       <OptimizedMapView
         pickup={pickupLocation}
