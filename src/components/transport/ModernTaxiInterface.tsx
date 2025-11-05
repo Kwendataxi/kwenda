@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import OptimizedMapView from './map/OptimizedMapView';
 import PickupLocationCard from './PickupLocationCard';
+import PickupLocationDialog from './PickupLocationDialog';
 import YangoBottomSheet from './YangoBottomSheet';
 import DestinationSearchDialog from './DestinationSearchDialog';
 import PriceConfirmationModal from './PriceConfirmationModal';
@@ -30,6 +31,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [pickupLocation, setPickupLocation] = useState<LocationData | null>(null);
   const [destinationLocation, setDestinationLocation] = useState<LocationData | null>(null);
   const [showDestinationSearch, setShowDestinationSearch] = useState(false);
+  const [showPickupDialog, setShowPickupDialog] = useState(false);
   const [distance, setDistance] = useState<number>(0);
   const [routeData, setRouteData] = useState<any>(null);
   const [calculatingRoute, setCalculatingRoute] = useState(false);
@@ -211,6 +213,33 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     setBookingStep('confirm');
   };
 
+  const handlePickupSelect = (location: LocationData) => {
+    setPickupLocation(location);
+    setManualPosition({ lat: location.lat, lng: location.lng });
+    toast.success('Point de prise en charge modifié', {
+      description: location.name || location.address
+    });
+    
+    if ('vibrate' in navigator) {
+      navigator.vibrate(15);
+    }
+  };
+
+  const handleUseCurrentPosition = async () => {
+    try {
+      const pos = await getCurrentPosition({
+        timeout: 5000,
+        enableHighAccuracy: true,
+        fallbackToIP: true
+      });
+      setPickupLocation(pos);
+      setManualPosition(null);
+      toast.success('Position GPS activée');
+    } catch (error) {
+      toast.error('Impossible d\'obtenir votre position');
+    }
+  };
+
   const handleSearchDriver = async () => {
     if (!pickupLocation || !destinationLocation || !selectedVehicle) {
       toast.error('Veuillez compléter tous les champs');
@@ -307,9 +336,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       {/* Card Point de prise en charge */}
       <PickupLocationCard
         pickupAddress={pickupLocation?.address || null}
-        onEdit={() => {
-          console.log('Edit pickup location');
-        }}
+        onEdit={() => setShowPickupDialog(true)}
       />
       
       
@@ -355,6 +382,15 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
           } : null}
         />
       )}
+      
+      {/* Dialog de modification du pickup */}
+      <PickupLocationDialog
+        open={showPickupDialog}
+        onOpenChange={setShowPickupDialog}
+        currentLocation={pickupLocation}
+        onSelectLocation={handlePickupSelect}
+        onUseCurrentPosition={handleUseCurrentPosition}
+      />
       
       {/* Dialog de recherche de destination */}
       <DestinationSearchDialog

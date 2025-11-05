@@ -5,18 +5,23 @@ import { useState, useEffect } from 'react';
 
 // Fonction pour formater les adresses (enlever les Plus Codes)
 const formatAddress = (address: string): string => {
-  // Détecter les Plus Codes (format XXXX+XXX)
-  if (address.match(/[A-Z0-9]{4,}\+[A-Z0-9]{2,}/)) {
-    // Extraire uniquement la partie après le Plus Code
+  // Détecter les Plus Codes étendus (format 01BP6913ABIDJAN01 ou XXXX+XXX)
+  const plusCodeRegex = /[A-Z0-9]{4,}[A-Z]{2,}[0-9]{2,}|[A-Z0-9]{4,}\+[A-Z0-9]{2,}/;
+  
+  if (address.match(plusCodeRegex)) {
+    // Extraire uniquement la partie lisible après le Plus Code
     const parts = address.split(',').map(p => p.trim());
-    const filtered = parts.filter(p => !p.match(/[A-Z0-9]{4,}\+[A-Z0-9]{2,}/));
-    return filtered.join(', ') || address;
+    const filtered = parts.filter(p => !p.match(plusCodeRegex));
+    
+    // Si on a des parties valides, les retourner
+    if (filtered.length > 0) {
+      return filtered.slice(-2).join(', '); // Les 2 dernières parties (quartier, ville)
+    }
   }
   
-  // Raccourcir les adresses trop longues
+  // Raccourcir les adresses trop longues (> 50 caractères)
   if (address.length > 50) {
     const parts = address.split(',').map(p => p.trim());
-    // Prendre les 2 dernières parties (commune, ville)
     return parts.slice(-2).join(', ');
   }
   
