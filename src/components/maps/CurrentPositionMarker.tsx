@@ -17,6 +17,7 @@ export default function CurrentPositionMarker({
 }: CurrentPositionMarkerProps) {
   const markerRef = useRef<google.maps.Marker | null>(null);
   const manualPositionRef = useRef<{ lat: number; lng: number } | null>(null);
+  const lastValidPositionRef = useRef<{ lat: number; lng: number } | null>(null);
 
   const getModernPositionSVG = (): string => {
     return `
@@ -155,10 +156,19 @@ export default function CurrentPositionMarker({
       markerExists: !!markerRef.current
     });
 
-    if (!map || !position || !window.google) {
+    // ✅ Persister la dernière position valide
+    if (position) {
+      lastValidPositionRef.current = position;
+    }
+
+    // ✅ Utiliser la dernière position si position actuelle est null
+    const effectivePosition = position || lastValidPositionRef.current;
+
+    if (!map || !effectivePosition || !window.google) {
       console.warn('⚠️ [CurrentPositionMarker] Marqueur non créé - conditions manquantes:', {
         map: !!map,
         position: !!position,
+        lastValidPosition: !!lastValidPositionRef.current,
         google: !!window.google
       });
       return;
@@ -170,9 +180,9 @@ export default function CurrentPositionMarker({
       const iconUrl = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`;
 
       if (!markerRef.current) {
-        console.log('🎨 [CurrentPositionMarker] Création du marqueur à:', position);
+        console.log('🎨 [CurrentPositionMarker] Création du marqueur à:', effectivePosition);
         const marker = new google.maps.Marker({
-        position,
+        position: effectivePosition,
         map,
         title: isDraggable ? 'Déplacez-moi ou cliquez pour me recentrer' : 'Votre position actuelle',
         icon: {
@@ -189,7 +199,7 @@ export default function CurrentPositionMarker({
 
       // Listener de clic
       marker.addListener('click', () => {
-        console.log('📍 Position marker clicked:', position);
+        console.log('📍 Position marker clicked:', effectivePosition);
         onClickPosition?.();
       });
 
@@ -211,16 +221,16 @@ export default function CurrentPositionMarker({
       } else {
         // Détecter si c'est un retour à la position GPS
         const isDifferent = manualPositionRef.current && 
-          (Math.abs(manualPositionRef.current.lat - position.lat) > 0.0001 ||
-           Math.abs(manualPositionRef.current.lng - position.lng) > 0.0001);
+          (Math.abs(manualPositionRef.current.lat - effectivePosition.lat) > 0.0001 ||
+           Math.abs(manualPositionRef.current.lng - effectivePosition.lng) > 0.0001);
         
         if (isDifferent) {
           // Animation de retour automatique
           console.log('🎯 Retour automatique à la position GPS');
-          animateToPosition(position);
+          animateToPosition(effectivePosition);
           manualPositionRef.current = null;
         } else {
-          markerRef.current.setPosition(position);
+          markerRef.current.setPosition(effectivePosition);
         }
       }
     } catch (error) {

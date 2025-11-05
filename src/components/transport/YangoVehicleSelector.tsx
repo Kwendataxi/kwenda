@@ -192,18 +192,31 @@ export default function YangoVehicleSelector({
                     
                     {/* Price */}
                     {distance > 0 && vehicle.calculatedPrice > 0 && (
-                      <AnimatePresence mode="wait">
-                        <motion.p
-                          key={vehicle.calculatedPrice}
-                          initial={{ opacity: 0, y: -8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 8 }}
-                          transition={{ duration: 0.3 }}
-                          className={`text-sm font-extrabold mt-1 ${isSelected ? 'text-foreground' : 'text-muted-foreground/70'}`}
+                      <>
+                        <AnimatePresence mode="wait">
+                          <motion.p
+                            key={vehicle.calculatedPrice}
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 8 }}
+                            transition={{ duration: 0.3 }}
+                            className={`text-sm font-extrabold mt-1 ${isSelected ? 'text-foreground' : 'text-muted-foreground/70'}`}
+                          >
+                            {vehicle.calculatedPrice.toLocaleString()} CDF
+                          </motion.p>
+                        </AnimatePresence>
+                        
+                        {/* Détails tarifaires - Base + Prix/km */}
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 0.65, height: 'auto' }}
+                          className="text-[10px] text-muted-foreground/60 mt-0.5 font-medium flex items-center justify-center gap-0.5"
                         >
-                          {vehicle.calculatedPrice.toLocaleString()} CDF
-                        </motion.p>
-                      </AnimatePresence>
+                          <span>{vehicle.basePrice.toLocaleString()}</span>
+                          <span className="opacity-50">+</span>
+                          <span>{vehicle.pricePerKm.toLocaleString()}/km</span>
+                        </motion.div>
+                      </>
                     )}
                   </div>
                 </motion.div>

@@ -32,6 +32,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [routeData, setRouteData] = useState<any>(null);
   const [calculatingRoute, setCalculatingRoute] = useState(false);
   const [manualPosition, setManualPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [persistedUserLocation, setPersistedUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [bottomSheetHeight, setBottomSheetHeight] = useState(450);
   
   const { currentLocation, getCurrentPosition, getPopularPlaces, currentCity, source } = useSmartGeolocation();
@@ -72,6 +73,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
           fallbackToIP: true
         });
         setPickupLocation(pos);
+        setPersistedUserLocation({ lat: pos.lat, lng: pos.lng });
         setLocationReady(true);
         console.log('✅ [ModernTaxiInterface] Position initiale obtenue:', pos);
         
@@ -293,7 +295,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       <OptimizedMapView
         pickup={pickupLocation}
         destination={destinationLocation}
-        userLocation={manualPosition || currentLocation}
+        userLocation={manualPosition || currentLocation || persistedUserLocation}
         currentCity={currentCity}
         onClickPosition={handleClickPosition}
         onDragMarker={handleMarkerDrag}

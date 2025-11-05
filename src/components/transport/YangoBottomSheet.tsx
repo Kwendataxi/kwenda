@@ -41,9 +41,9 @@ export default function YangoBottomSheet({
 
   // Positions en pixels depuis le bas de l'écran
   const SHEET_POSITIONS = {
-    SMALL: 180,
-    MEDIUM: 380,
-    LARGE: Math.min(windowHeight * 0.80, 650)
+    SMALL: 160,
+    MEDIUM: 350,
+    LARGE: Math.min(windowHeight * 0.75, 600)
   };
 
   // Feedback haptique subtil
@@ -66,7 +66,7 @@ export default function YangoBottomSheet({
     let newPosition: SheetPosition;
     
     // Drag rapide : changement direct de position
-    if (Math.abs(velocity) > 500) {
+    if (Math.abs(velocity) > 350) {
       if (velocity < 0) {
         // Drag rapide vers le haut → Agrandir
         newPosition = sheetPosition === 'SMALL' ? 'MEDIUM' : 'LARGE';
@@ -126,9 +126,9 @@ export default function YangoBottomSheet({
         transition: {
           height: { 
             type: "spring",
-            damping: 30,
-            stiffness: 250,
-            mass: 0.6
+            damping: 25,
+            stiffness: 280,
+            mass: 0.5
           }
         }
       }}
@@ -153,7 +153,7 @@ export default function YangoBottomSheet({
     >
       {/* Glissière optimisée */}
       <div 
-        className="flex justify-center items-center pt-3 pb-2 cursor-grab active:cursor-grabbing select-none"
+        className="flex justify-center items-center pt-4 pb-3 cursor-grab active:cursor-grabbing select-none"
         onDoubleClick={handleBarDoubleClick}
       >
         <div className="w-14 h-1 bg-muted-foreground/30 rounded-full"></div>

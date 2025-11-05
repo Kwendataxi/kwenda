@@ -217,10 +217,10 @@ const OptimizedMapView = React.memo(({
       ) && <PickupMarker map={mapInstanceRef.current} position={pickup} label={pickup.name || pickup.address} />}
       {destination && <DestinationMarker map={mapInstanceRef.current} position={destination} label={destination.name || destination.address} />}
       
-      {/* Marqueur position actuelle - Draggable */}
+      {/* Marqueur position actuelle - Draggable avec fallback */}
       <CurrentPositionMarker 
         map={mapInstanceRef.current} 
-        position={userLocation} 
+        position={userLocation || pickup} 
         onClickPosition={onClickPosition}
         onDragEnd={onDragMarker}
         isDraggable={true}
