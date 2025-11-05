@@ -18,6 +18,7 @@ interface OptimizedMapViewProps {
   pickup?: Location | null;
   destination?: Location | null;
   userLocation?: { lat: number; lng: number } | null;
+  currentCity?: { name: string; coordinates: { lat: number; lng: number } } | null;
   onMapReady?: (map: google.maps.Map) => void;
   onClickPosition?: () => void;
   className?: string;
@@ -27,6 +28,7 @@ const OptimizedMapView = React.memo(({
   pickup, 
   destination, 
   userLocation,
+  currentCity,
   onMapReady,
   onClickPosition,
   className = '' 
@@ -51,7 +53,7 @@ const OptimizedMapView = React.memo(({
         const { googleMapsLoader } = await import('@/services/googleMapsLoader');
         const mapId = googleMapsLoader.getMapId();
 
-        const defaultCenter = userLocation || pickup || { lat: -4.3217, lng: 15.3069 };
+        const defaultCenter = userLocation || pickup || currentCity?.coordinates || { lat: -4.3217, lng: 15.3069 };
 
         const map = new google.maps.Map(mapRef.current!, {
           mapId,
@@ -77,6 +79,14 @@ const OptimizedMapView = React.memo(({
     initMap();
   }, [isLoaded, userLocation, pickup, mapStyles, onMapReady]);
 
+  // Auto-centrage dynamique sur la position utilisateur
+  useEffect(() => {
+    if (!mapInstanceRef.current || !userLocation || !isMapReady) return;
+    
+    // Animer vers la nouvelle position
+    mapInstanceRef.current.panTo(userLocation);
+    mapInstanceRef.current.setZoom(15);
+  }, [userLocation, isMapReady]);
 
   // Gestion de la route
   useEffect(() => {

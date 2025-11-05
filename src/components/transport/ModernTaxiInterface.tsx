@@ -206,7 +206,8 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       <OptimizedMapView
         pickup={pickupLocation}
         destination={destinationLocation}
-        userLocation={pickupLocation}
+        userLocation={currentLocation}
+        currentCity={currentCity}
         onClickPosition={handleClickPosition}
       />
       

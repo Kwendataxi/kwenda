@@ -71,7 +71,7 @@ export const useSmartGeolocation = () => {
   const getCurrentPosition = useCallback(async (options: GeolocationOptions = {}): Promise<LocationData> => {
     const {
       enableHighAccuracy = true,
-      timeout = 20000, // ✅ CORRECTION: 20 secondes pour GPS fiable en Afrique (optimisé de 5s)
+      timeout = 30000, // 30 secondes pour GPS fiable en Afrique
       maximumAge = 30000, // Cache 30 secondes accepté
       fallbackToIP = true, // Activer IP par défaut (optimisé)
       fallbackToDatabase = true,
@@ -92,8 +92,8 @@ export const useSmartGeolocation = () => {
           maximumAge 
         });
         
-        // Accepter précision raisonnable (200m au lieu de 100m)
-        if (gpsPosition.accuracy && gpsPosition.accuracy > 200) {
+        // Accepter précision raisonnable jusqu'à 500m
+        if (gpsPosition.accuracy && gpsPosition.accuracy > 500) {
           console.warn('⚠️ Précision GPS insuffisante:', gpsPosition.accuracy, 'm - Fallback IP');
           throw new Error(`Précision GPS insuffisante: ${Math.round(gpsPosition.accuracy)}m`);
         }
@@ -195,14 +195,20 @@ export const useSmartGeolocation = () => {
         }
       }
 
-      // 6. Position par défaut de la ville détectée
+      // 6. Position par défaut basée sur la ville détectée (pas toujours Kinshasa)
       if (fallbackToDefault) {
-        const defaultPosition = getDefaultPosition();
+        const defaultPosition = {
+          address: detectedCity.name,
+          lat: detectedCity.coordinates.lat,
+          lng: detectedCity.coordinates.lng,
+          type: 'default' as const,
+          name: detectedCity.name
+        };
         setState(prev => ({
           ...prev,
           currentLocation: defaultPosition,
           loading: false,
-          source: 'Default',
+          source: `Default (${detectedCity.name})`,
           lastUpdate: Date.now(),
           currentCity: detectedCity,
           cityDetectionLoading: false
