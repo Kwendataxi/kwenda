@@ -1,114 +1,99 @@
 import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 
-// Styles de carte modernes pour mode clair
+// Styles de carte Yango-like épurés pour mode clair
 const lightMapStyles: google.maps.MapTypeStyle[] = [
-  {
-    featureType: 'poi',
-    stylers: [{ visibility: 'off' }]
+  // Masquer TOUS les POI pour carte épurée
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'poi.business', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit.station', stylers: [{ visibility: 'off' }] },
+  
+  // Background très clair et soft
+  { 
+    elementType: 'geometry', 
+    stylers: [{ color: '#f8f9fa' }, { lightness: 30 }] 
   },
-  {
-    featureType: 'poi.business',
-    stylers: [{ visibility: 'off' }]
+  
+  // Routes claires et bien visibles
+  { 
+    featureType: 'road', 
+    elementType: 'geometry', 
+    stylers: [{ color: '#ffffff' }, { lightness: 25 }] 
   },
-  {
-    featureType: 'transit',
-    elementType: 'labels.icon',
-    stylers: [{ visibility: 'off' }]
+  { 
+    featureType: 'road', 
+    elementType: 'labels', 
+    stylers: [{ visibility: 'simplified' }] 
   },
-  {
-    featureType: 'all',
+  { 
+    featureType: 'road.highway', 
+    elementType: 'geometry', 
+    stylers: [{ color: '#ffffff' }, { lightness: 20 }] 
+  },
+  
+  // Eau bleu très soft
+  { 
+    featureType: 'water', 
     elementType: 'geometry',
-    stylers: [{ saturation: 10 }, { lightness: 5 }]
+    stylers: [{ color: '#e0f2fe' }] 
+  },
+  
+  // Labels minimaux
+  {
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#9ca3af' }]
   },
   {
-    featureType: 'road',
-    elementType: 'geometry',
-    stylers: [{ lightness: 15 }]
+    elementType: 'labels.text.stroke',
+    stylers: [{ visibility: 'off' }]
   }
 ];
 
-// Styles de carte modernes pour mode sombre
+// Styles de carte Yango-like épurés pour mode sombre
 const darkMapStyles: google.maps.MapTypeStyle[] = [
-  {
+  // Masquer TOUS les POI
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  
+  // Background gris anthracite soft (pas trop noir)
+  { 
+    elementType: 'geometry', 
+    stylers: [{ color: '#1e293b' }] 
+  },
+  
+  // Routes gris clair pour contraste
+  { 
+    featureType: 'road', 
+    elementType: 'geometry', 
+    stylers: [{ color: '#334155' }] 
+  },
+  { 
+    featureType: 'road', 
+    elementType: 'labels', 
+    stylers: [{ visibility: 'simplified' }] 
+  },
+  { 
+    featureType: 'road.highway', 
+    elementType: 'geometry', 
+    stylers: [{ color: '#475569' }] 
+  },
+  
+  // Eau bleu nuit
+  { 
+    featureType: 'water', 
     elementType: 'geometry',
-    stylers: [{ color: '#212121' }]
+    stylers: [{ color: '#0f172a' }] 
+  },
+  
+  // Labels soft
+  {
+    elementType: 'labels.text.fill',
+    stylers: [{ color: '#94a3b8' }]
   },
   {
     elementType: 'labels.text.stroke',
-    stylers: [{ color: '#212121' }]
-  },
-  {
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#746855' }]
-  },
-  {
-    featureType: 'administrative.locality',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#d59563' }]
-  },
-  {
-    featureType: 'poi',
     stylers: [{ visibility: 'off' }]
-  },
-  {
-    featureType: 'poi.park',
-    elementType: 'geometry',
-    stylers: [{ color: '#263c3f' }]
-  },
-  {
-    featureType: 'poi.park',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#6b9a76' }]
-  },
-  {
-    featureType: 'road',
-    elementType: 'geometry',
-    stylers: [{ color: '#38414e' }]
-  },
-  {
-    featureType: 'road',
-    elementType: 'geometry.stroke',
-    stylers: [{ color: '#212a37' }]
-  },
-  {
-    featureType: 'road',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#9ca5b3' }]
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'geometry',
-    stylers: [{ color: '#746855' }]
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'geometry.stroke',
-    stylers: [{ color: '#1f2835' }]
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#f3d19c' }]
-  },
-  {
-    featureType: 'transit',
-    stylers: [{ visibility: 'off' }]
-  },
-  {
-    featureType: 'water',
-    elementType: 'geometry',
-    stylers: [{ color: '#17263c' }]
-  },
-  {
-    featureType: 'water',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#515c6d' }]
-  },
-  {
-    featureType: 'water',
-    elementType: 'labels.text.stroke',
-    stylers: [{ color: '#17263c' }]
   }
 ];
 
