@@ -1,4 +1,4 @@
-import { Car, Bike, Crown, Zap } from 'lucide-react';
+import { Car, CarFront, Bike, Crown, Zap } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 
 export interface YangoVehicleTheme {
@@ -7,43 +7,49 @@ export interface YangoVehicleTheme {
   bgColor: string;
   icon: LucideIcon;
   labelColor: string;
+  glowColor: string;
 }
 
 export const YANGO_VEHICLE_THEMES: Record<string, YangoVehicleTheme> = {
   'taxi_moto': {
-    gradient: 'linear-gradient(135deg, #FFA726 0%, #FF6F00 100%)',
-    solidColor: '#FF8F00',
-    bgColor: 'bg-gradient-to-br from-orange-500 to-orange-600',
+    gradient: 'linear-gradient(135deg, #FFA726 0%, #FFB74D 50%, #FF9800 100%)',
+    solidColor: '#FF9800',
+    bgColor: 'bg-gradient-to-br from-orange-400 to-orange-500',
     icon: Bike,
-    labelColor: 'text-orange-600'
+    labelColor: 'text-orange-600',
+    glowColor: 'rgba(255, 152, 0, 0.25)'
   },
   'taxi_eco': {
-    gradient: 'linear-gradient(135deg, #66BB6A 0%, #388E3C 100%)',
-    solidColor: '#4CAF50',
-    bgColor: 'bg-gradient-to-br from-green-500 to-green-600',
+    gradient: 'linear-gradient(135deg, #10B981 0%, #34D399 50%, #059669 100%)',
+    solidColor: '#10B981',
+    bgColor: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
     icon: Car,
-    labelColor: 'text-green-600'
+    labelColor: 'text-emerald-600',
+    glowColor: 'rgba(16, 185, 129, 0.25)'
   },
   'taxi_confort': {
-    gradient: 'linear-gradient(135deg, #42A5F5 0%, #1565C0 100%)',
-    solidColor: '#1976D2',
+    gradient: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 50%, #2563EB 100%)',
+    solidColor: '#3B82F6',
     bgColor: 'bg-gradient-to-br from-blue-500 to-blue-600',
-    icon: Car,
-    labelColor: 'text-blue-600'
+    icon: CarFront,
+    labelColor: 'text-blue-600',
+    glowColor: 'rgba(59, 130, 246, 0.25)'
   },
   'taxi_premium': {
-    gradient: 'linear-gradient(135deg, #7E57C2 0%, #4527A0 100%)',
-    solidColor: '#5E35B1',
-    bgColor: 'bg-gradient-to-br from-purple-500 to-purple-600',
+    gradient: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 50%, #7C3AED 100%)',
+    solidColor: '#8B5CF6',
+    bgColor: 'bg-gradient-to-br from-violet-500 to-violet-600',
     icon: Crown,
-    labelColor: 'text-purple-600'
+    labelColor: 'text-violet-600',
+    glowColor: 'rgba(139, 92, 246, 0.3)'
   },
   'taxi_flash': {
-    gradient: 'linear-gradient(135deg, #FF5722 0%, #D32F2F 100%)',
-    solidColor: '#F44336',
-    bgColor: 'bg-gradient-to-br from-red-500 to-red-600',
+    gradient: 'linear-gradient(135deg, #F43F5E 0%, #FB7185 50%, #E11D48 100%)',
+    solidColor: '#F43F5E',
+    bgColor: 'bg-gradient-to-br from-rose-500 to-rose-600',
     icon: Zap,
-    labelColor: 'text-red-600'
+    labelColor: 'text-rose-600',
+    glowColor: 'rgba(244, 63, 94, 0.25)'
   }
 };
 

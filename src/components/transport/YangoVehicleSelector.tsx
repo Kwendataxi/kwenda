@@ -23,16 +23,6 @@ export default function YangoVehicleSelector({
   calculatingRoute = false
 }: YangoVehicleSelectorProps) {
   const { vehicles, isLoading } = useVehicleTypes({ distance, city });
-
-  // 🔍 Logs de debug
-  console.log('🚗 [YangoVehicleSelector] Rendu:', {
-    distance,
-    city,
-    vehiclesCount: vehicles.length,
-    isLoading,
-    calculatingRoute,
-    selectedVehicleId
-  });
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'center',
     containScroll: 'trimSnaps',
@@ -78,15 +68,15 @@ export default function YangoVehicleSelector({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [emblaApi]);
 
-  if (isLoading || calculatingRoute) {
+  if (isLoading) {
     return (
       <div className="py-8 px-4">
         <div className="flex items-center justify-center gap-6 overflow-hidden">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="flex flex-col items-center gap-3">
-              <Skeleton className="w-32 h-32 rounded-full" />
-              <Skeleton className="w-20 h-4 rounded" />
-              <Skeleton className="w-16 h-3 rounded" />
+            <div key={i} className="flex flex-col items-center gap-3 animate-pulse">
+              <div className="w-36 h-36 rounded-full bg-gradient-to-br from-muted to-muted-foreground/20" />
+              <div className="w-24 h-4 bg-muted rounded-full" />
+              <div className="w-16 h-3 bg-muted/50 rounded-full" />
             </div>
           ))}
         </div>
@@ -96,8 +86,9 @@ export default function YangoVehicleSelector({
 
   if (vehicles.length === 0) {
     return (
-      <div className="py-12 text-center">
-        <p className="text-muted-foreground">Aucun véhicule disponible</p>
+      <div className="py-12 text-center space-y-3">
+        <p className="text-muted-foreground text-sm">Aucun véhicule disponible pour le moment</p>
+        <p className="text-xs text-muted-foreground/70">Vérifiez votre connexion ou réessayez</p>
       </div>
     );
   }
@@ -121,32 +112,62 @@ export default function YangoVehicleSelector({
               >
                 <motion.div
                   animate={{
-                    scale: isSelected ? 1 : 0.85,
-                    opacity: isSelected ? 1 : 0.5
+                    scale: isSelected ? 1 : 0.88,
+                    opacity: isSelected ? 1 : 0.6
                   }}
-                  transition={{ duration: 0.3, ease: 'easeOut' }}
-                  className="flex flex-col items-center gap-3"
+                  transition={{ 
+                    duration: 0.4, 
+                    ease: [0.4, 0, 0.2, 1]
+                  }}
+                  className="flex flex-col items-center gap-3 relative"
                 >
+                  {/* Badge Populaire */}
+                  {vehicle.isPopular && (
+                    <motion.div
+                      initial={{ scale: 0, rotate: -15 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      className="absolute -top-2 -right-2 z-10 bg-gradient-to-r from-amber-400 to-yellow-500 text-yellow-900 text-[10px] px-2 py-0.5 rounded-full font-bold shadow-lg"
+                    >
+                      ⭐ Populaire
+                    </motion.div>
+                  )}
+
                   {/* Circle with Icon */}
                   <motion.div
-                    className={`relative w-32 h-32 md:w-36 md:h-36 rounded-full flex items-center justify-center ${theme.bgColor} shadow-lg`}
-                    whileTap={{ scale: 0.95 }}
+                    className="relative w-36 h-36 md:w-40 md:h-40 rounded-full flex items-center justify-center"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.96 }}
                     style={{
-                      background: theme.gradient
+                      background: theme.gradient,
+                      boxShadow: isSelected 
+                        ? `0 20px 60px ${theme.glowColor}, 0 0 0 3px rgba(255, 255, 255, 0.15), inset 0 2px 20px rgba(255, 255, 255, 0.1)`
+                        : `0 8px 24px rgba(0, 0, 0, 0.08)`,
+                      backdropFilter: isSelected ? 'blur(8px)' : 'none'
                     }}
                   >
-                    <Icon className="w-14 h-14 md:w-16 md:h-16 text-white" strokeWidth={1.5} />
+                    {/* Disponibilité indicator */}
+                    <motion.div 
+                      className="absolute top-3 right-3 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-lg"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+
+                    <Icon 
+                      className="w-16 h-16 md:w-18 md:h-18 text-white drop-shadow-2xl" 
+                      strokeWidth={1.25} 
+                    />
                     
                     {/* ETA Badge */}
                     {vehicle.eta && (
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: isSelected ? 1 : 0.9 }}
-                        className="absolute -bottom-2 px-3 py-1 bg-background rounded-full shadow-md border border-border"
+                        transition={{ delay: 0.2 }}
+                        className="absolute -bottom-2 px-3 py-1.5 bg-background/95 backdrop-blur-sm rounded-full shadow-xl border border-border"
                       >
                         <div className="flex items-center gap-1.5">
-                          <Clock className="w-3 h-3 text-muted-foreground" />
-                          <span className="text-xs font-medium">{vehicle.eta} min</span>
+                          <Clock className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={2} />
+                          <span className="text-xs font-semibold">{vehicle.eta} min</span>
                         </div>
                       </motion.div>
                     )}
@@ -154,23 +175,31 @@ export default function YangoVehicleSelector({
 
                   {/* Vehicle Name */}
                   <div className="text-center">
-                    <h3 className={`font-semibold text-base ${isSelected ? theme.labelColor : 'text-muted-foreground'}`}>
+                    <motion.h3 
+                      className={`font-bold text-base transition-colors duration-300 ${isSelected ? theme.labelColor : 'text-muted-foreground'}`}
+                      animate={{ scale: isSelected ? 1.05 : 1 }}
+                    >
                       {vehicle.name}
-                    </h3>
+                    </motion.h3>
                     
                     {/* Price */}
-                    {distance > 0 && vehicle.calculatedPrice > 0 && (
+                    {distance > 0 && vehicle.calculatedPrice > 0 ? (
                       <AnimatePresence mode="wait">
                         <motion.p
                           key={vehicle.calculatedPrice}
-                          initial={{ opacity: 0, y: -5 }}
+                          initial={{ opacity: 0, y: -8 }}
                           animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 5 }}
-                          className={`text-sm font-bold mt-1 ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}
+                          exit={{ opacity: 0, y: 8 }}
+                          transition={{ duration: 0.3 }}
+                          className={`text-sm font-extrabold mt-1 ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}
                         >
                           {vehicle.calculatedPrice.toLocaleString()} CDF
                         </motion.p>
                       </AnimatePresence>
+                    ) : (
+                      <p className="text-xs text-muted-foreground/60 mt-1 italic">
+                        Sélectionnez une destination
+                      </p>
                     )}
                   </div>
                 </motion.div>
@@ -180,20 +209,25 @@ export default function YangoVehicleSelector({
         </div>
       </div>
 
-      {/* Pagination Dots */}
-      <div className="flex justify-center gap-1.5 mt-6">
-        {vehicles.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => emblaApi?.scrollTo(index)}
-            className={`h-1.5 rounded-full transition-all ${
-              index === selectedIndex
-                ? 'w-6 bg-primary'
-                : 'w-1.5 bg-muted-foreground/30'
-            }`}
-            aria-label={`Go to vehicle ${index + 1}`}
-          />
-        ))}
+      {/* Pagination Dots - Style Yango Pro */}
+      <div className="flex justify-center gap-2 mt-8">
+        {vehicles.map((vehicle, index) => {
+          const theme = getYangoTheme(vehicle.id);
+          return (
+            <motion.button
+              key={index}
+              onClick={() => emblaApi?.scrollTo(index)}
+              whileTap={{ scale: 0.9 }}
+              className={`rounded-full transition-all duration-400`}
+              style={{
+                width: index === selectedIndex ? '24px' : '8px',
+                height: '8px',
+                background: index === selectedIndex ? theme.solidColor : 'hsl(var(--muted-foreground) / 0.25)'
+              }}
+              aria-label={`Sélectionner ${vehicle.name}`}
+            />
+          );
+        })}
       </div>
 
       {/* Selected Vehicle Info */}
