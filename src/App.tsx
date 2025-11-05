@@ -584,7 +584,9 @@ const AppContent = () => {
         <OfflineIndicator />
         <ClickTracker />
       </DynamicTheme>
-        </AppReadyProvider>
+          </AppReadyProvider>
+        </DegradedModeProvider>
+      </SafetyNet>
         </HelmetProvider>
       </SmoothTransitionWrapper>
     </>

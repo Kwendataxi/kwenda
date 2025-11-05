@@ -62,7 +62,7 @@ export class HealthOrchestrator {
     // Multiples crashes récents → Reload d'urgence
     const recentCrashes = metrics.crashes.lastCrashTime > Date.now() - 60000;
     if (metrics.crashes.total >= 3 && recentCrashes) {
-      console.error('💥 3+ crashes récents, reload d'urgence');
+      console.error('💥 3+ crashes récents, reload urgence');
       smartReloader.scheduleReload({
         type: 'crash',
         severity: 'critical',
