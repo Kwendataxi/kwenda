@@ -9,8 +9,8 @@ export default function Food() {
     if (window.history.length > 1) {
       navigate(-1);
     } else {
-      // Sinon, retour à la page d'accueil
-      navigate('/home');
+      // Sinon, retour à la page d'accueil CLIENT
+      navigate('/app/client');
     }
   };
 
