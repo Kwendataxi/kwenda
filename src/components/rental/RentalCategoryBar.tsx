@@ -25,13 +25,6 @@ export const RentalCategoryBar: React.FC<RentalCategoryBarProps> = ({
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // ✅ DEBUG LOGS
-  console.log("🏷️ [CATEGORY_BAR] Props:", {
-    categories: categories.length,
-    vehicleCounts,
-    totalVehicles,
-    selectedCategory
-  });
 
   // Auto-scroll to selected category
   useEffect(() => {
@@ -66,46 +59,37 @@ export const RentalCategoryBar: React.FC<RentalCategoryBarProps> = ({
   };
 
   return (
-    <div className="sticky top-[155px] z-40 bg-background/98 backdrop-blur-xl border-b shadow-sm">
+    <div className="sticky top-[155px] z-40 bg-background/95 backdrop-blur-md border-b border-border/50">
       <div className="max-w-7xl mx-auto px-3 py-3">
         <ScrollArea className="w-full" ref={scrollRef}>
           <div className="flex gap-2 pb-2">
             {/* Badge TOUS */}
             <motion.button
               onClick={() => handleCategoryClick(null)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               className={`
-                relative flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm whitespace-nowrap
-                transition-all duration-300 shadow-md hover:shadow-xl shrink-0
+                flex items-center gap-2 px-3.5 py-2 rounded-full font-medium text-sm whitespace-nowrap
+                transition-all duration-200 shrink-0
                 ${selectedCategory === null
-                  ? 'bg-gradient-to-r from-primary via-primary/90 to-primary text-primary-foreground border-2 border-primary/50 shadow-lg'
-                  : 'bg-card border-2 border-border hover:border-primary/50 hover:bg-card/80'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-transparent text-primary border border-primary/20 hover:bg-primary/10'
                 }
               `}
               aria-label="Voir tous les véhicules"
               aria-pressed={selectedCategory === null}
             >
-              <span className="text-lg">🌐</span>
+              <span className="text-base">🌐</span>
               <span>Tous</span>
               <span className={`
-                px-2 py-0.5 rounded-full text-xs font-bold
+                px-1.5 py-0.5 rounded-full text-xs font-semibold
                 ${selectedCategory === null 
-                  ? 'bg-white/20 text-white' 
-                  : 'bg-muted text-muted-foreground'
+                  ? 'bg-white/25 text-white' 
+                  : 'bg-primary/10 text-primary'
                 }
               `}>
                 {totalVehicles}
               </span>
-              
-              {selectedCategory === null && (
-                <motion.div
-                  layoutId="activeCategory"
-                  className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary rounded-xl -z-10"
-                  initial={false}
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                />
-              )}
             </motion.button>
 
             {/* Catégories scrollables */}
@@ -121,39 +105,30 @@ export const RentalCategoryBar: React.FC<RentalCategoryBarProps> = ({
                   key={category.id}
                   data-category-id={category.id}
                   onClick={() => handleCategoryClick(category.id)}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   className={`
-                    relative flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm whitespace-nowrap
-                    transition-all duration-300 shadow-md hover:shadow-xl shrink-0
+                    flex items-center gap-2 px-3.5 py-2 rounded-full font-medium text-sm whitespace-nowrap
+                    transition-all duration-200 shrink-0
                     ${isActive
-                      ? `bg-gradient-to-r ${theme.gradient} text-white border-2 border-white/30 shadow-lg`
-                      : 'bg-card border-2 border-border hover:border-primary/50 hover:bg-card/80'
+                      ? `bg-gradient-to-r ${theme.gradient} text-white shadow-sm`
+                      : 'bg-transparent text-primary border border-primary/20 hover:bg-primary/10'
                     }
                   `}
                   aria-label={`Filtrer par ${category.name}`}
                   aria-pressed={isActive}
                 >
-                  <span className="text-lg">{theme.icon}</span>
+                  <span className="text-base">{theme.icon}</span>
                   <span>{category.name.trim()}</span>
                   <span className={`
-                    px-2 py-0.5 rounded-full text-xs font-bold
+                    px-1.5 py-0.5 rounded-full text-xs font-semibold
                     ${isActive 
-                      ? 'bg-white/20 text-white' 
-                      : 'bg-muted text-muted-foreground'
+                      ? 'bg-white/25 text-white' 
+                      : 'bg-primary/10 text-primary'
                     }
                   `}>
                     {count}
                   </span>
-                  
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeCategory"
-                      className={`absolute inset-0 bg-gradient-to-r ${theme.gradient} rounded-xl -z-10`}
-                      initial={false}
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
                 </motion.button>
               );
             })}
