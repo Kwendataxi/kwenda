@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import OptimizedMapView from './map/OptimizedMapView';
 import PickupLocationCard from './PickupLocationCard';
 import YangoBottomSheet from './YangoBottomSheet';
 import DestinationSearchDialog from './DestinationSearchDialog';
+import PriceConfirmationModal from './PriceConfirmationModal';
 import { useSmartGeolocation } from '@/hooks/useSmartGeolocation';
 import { LocationData } from '@/types/location';
 import { secureNavigationService } from '@/services/secureNavigationService';
@@ -16,6 +17,7 @@ interface ModernTaxiInterfaceProps {
 }
 
 export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiInterfaceProps) {
+  const [bookingStep, setBookingStep] = useState<'vehicle' | 'destination' | 'confirm'>('vehicle');
   const [selectedVehicle, setSelectedVehicle] = useState('taxi_eco');
   const [pickupLocation, setPickupLocation] = useState<LocationData | null>(null);
   const [destinationLocation, setDestinationLocation] = useState<LocationData | null>(null);
@@ -86,6 +88,11 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     calculateRouteAndPrice();
   }, [pickupLocation, destinationLocation]);
 
+  const handleVehicleSelect = (vehicleId: string) => {
+    setSelectedVehicle(vehicleId);
+    setBookingStep('destination');
+  };
+
   const handlePlaceSelect = (place: any) => {
     const newDestination = {
       address: place.name || place.destination || place.address,
@@ -96,6 +103,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     };
     setDestinationLocation(newDestination);
     setShowDestinationSearch(false);
+    setBookingStep('confirm');
   };
 
   const handleDestinationSelect = (destination: { address: string; lat: number; lng: number; name?: string }) => {
@@ -103,19 +111,27 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       ...destination,
       type: 'geocoded' as const
     });
+    setShowDestinationSearch(false);
+    setBookingStep('confirm');
   };
 
-  const handleConfirmBooking = () => {
+  const handleSearchDriver = () => {
     if (!pickupLocation || !destinationLocation || !selectedVehicle) {
       toast.error('Veuillez compléter tous les champs');
       return;
     }
 
-    console.log('✅ Confirmation booking:', {
+    console.log('🚗 Recherche chauffeur:', {
       pickup: pickupLocation,
       destination: destinationLocation,
       vehicleType: selectedVehicle,
-      distance: `${distance.toFixed(2)} km`
+      distance: `${distance.toFixed(2)} km`,
+      price: calculatedPrice
+    });
+
+    toast.success('Recherche de chauffeur en cours...', {
+      description: 'Nous cherchons le meilleur chauffeur pour vous',
+      duration: 3000
     });
 
     onSubmit?.({
@@ -127,6 +143,13 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       bookingId: `booking-${Date.now()}`
     });
   };
+
+  const handleBackToDestination = () => {
+    setBookingStep('destination');
+  };
+
+  // Calculer le prix estimé
+  const calculatedPrice = distance > 0 ? Math.round(2500 + (distance * 500)) : 0;
 
   return (
     <div className="relative h-screen overflow-hidden bg-background">
@@ -169,19 +192,38 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         }}
       />
       
-      {/* Bottom Sheet */}
-      <YangoBottomSheet
-        selectedVehicle={selectedVehicle}
-        onVehicleSelect={setSelectedVehicle}
-        distance={distance}
-        city={currentCity?.name || 'Kinshasa'}
-        calculatingRoute={calculatingRoute}
-        popularPlaces={popularPlaces || []}
-        onPlaceSelect={handlePlaceSelect}
-        onSearchFocus={() => setShowDestinationSearch(true)}
-        onConfirmBooking={handleConfirmBooking}
-        hasDestination={!!destinationLocation}
-      />
+      {/* Bottom Sheet avec flux par étapes */}
+      <AnimatePresence mode="wait">
+        <YangoBottomSheet
+          key={bookingStep}
+          bookingStep={bookingStep}
+          selectedVehicle={selectedVehicle}
+          onVehicleSelect={handleVehicleSelect}
+          distance={distance}
+          city={currentCity?.name || 'Kinshasa'}
+          calculatingRoute={calculatingRoute}
+          popularPlaces={popularPlaces || []}
+          onPlaceSelect={handlePlaceSelect}
+          onSearchFocus={() => setShowDestinationSearch(true)}
+          hasDestination={!!destinationLocation}
+        />
+      </AnimatePresence>
+
+      {/* Modal de confirmation avec prix */}
+      {pickupLocation && destinationLocation && (
+        <PriceConfirmationModal
+          open={bookingStep === 'confirm'}
+          onOpenChange={(open) => !open && setBookingStep('destination')}
+          vehicleType={selectedVehicle}
+          pickup={pickupLocation}
+          destination={destinationLocation}
+          distance={distance}
+          duration={routeData?.duration || distance * 120}
+          calculatedPrice={calculatedPrice}
+          onConfirm={handleSearchDriver}
+          onBack={handleBackToDestination}
+        />
+      )}
       
       {/* Dialog de recherche de destination */}
       <DestinationSearchDialog
