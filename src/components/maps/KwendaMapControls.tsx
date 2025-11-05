@@ -16,22 +16,28 @@ const KwendaMapControls = React.memo(({
   className
 }: KwendaMapControlsProps) => {
   return (
-    <div className={cn("absolute bottom-28 right-4 z-10", className)}>
-      {/* Location Button uniquement */}
-      <motion.div whileTap={{ scale: 0.95 }}>
+    <div className={cn("absolute bottom-36 right-4 z-[100]", className)}>
+      {/* Location Button - Toujours visible */}
+      <motion.div 
+        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.05 }}
+      >
         <Button
           size="lg"
           variant="ghost"
           onClick={onLocate}
           disabled={isLocating}
           className={cn(
-            "h-14 w-14 bg-primary/95 backdrop-blur-md rounded-2xl shadow-xl border border-primary/50 hover:bg-primary transition-all",
+            "h-16 w-16 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700",
+            "backdrop-blur-md rounded-full shadow-2xl",
+            "border-2 border-white dark:border-gray-900",
+            "transition-all duration-300",
             isLocating && "animate-pulse"
           )}
           aria-label="Ma position"
         >
           <Navigation className={cn(
-            "h-6 w-6 text-primary-foreground",
+            "h-7 w-7 text-white",
             isLocating && "animate-spin"
           )} />
         </Button>

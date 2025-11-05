@@ -40,6 +40,7 @@ const OptimizedMapView = React.memo(({
   const { isLoaded } = useGoogleMaps();
   const { mapStyles } = useMapTheme();
   const [isMapReady, setIsMapReady] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
 
   // Initialisation carte optimisée
   useEffect(() => {
@@ -148,8 +149,10 @@ const OptimizedMapView = React.memo(({
 
   const handleLocate = useCallback(() => {
     if (mapInstanceRef.current && userLocation) {
+      setIsLocating(true);
       mapInstanceRef.current.panTo(userLocation);
       mapInstanceRef.current.setZoom(16);
+      setTimeout(() => setIsLocating(false), 1000);
     }
   }, [userLocation]);
 
@@ -190,6 +193,7 @@ const OptimizedMapView = React.memo(({
       {/* Contrôles carte */}
       <KwendaMapControls
         onLocate={handleLocate}
+        isLocating={isLocating}
       />
     </div>
   );
