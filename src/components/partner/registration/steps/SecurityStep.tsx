@@ -12,9 +12,10 @@ interface SecurityStepProps {
   data: SecurityFormData;
   onNext: (data: SecurityFormData) => void;
   onPrevious: () => void;
+  showPasswordResetLink?: boolean;
 }
 
-export const SecurityStep = ({ data, onNext, onPrevious }: SecurityStepProps) => {
+export const SecurityStep = ({ data, onNext, onPrevious, showPasswordResetLink }: SecurityStepProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -168,6 +169,21 @@ export const SecurityStep = ({ data, onNext, onPrevious }: SecurityStepProps) =>
           <ChevronRight className="w-4 h-4 ml-2" />
         </Button>
       </div>
+
+      {/* ✅ Lien mot de passe oublié (affiché si erreur auth) */}
+      {showPasswordResetLink && (
+        <div className="text-center mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+          <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
+            🔑 Vous avez oublié votre mot de passe ?
+          </p>
+          <a
+            href="/auth/reset-password"
+            className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+          >
+            Réinitialisez-le ici
+          </a>
+        </div>
+      )}
     </form>
   );
 };

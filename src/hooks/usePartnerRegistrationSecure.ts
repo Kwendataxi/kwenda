@@ -27,6 +27,19 @@ export const usePartnerRegistrationSecure = () => {
         address: data.address || 'Adresse non spécifiée'
       });
 
+      // ✅ ÉTAPE 0 : Vérifier si l'email existe déjà
+      const { data: existingUser, error: checkError } = await supabase.rpc(
+        'check_user_exists_by_email',
+        { p_email: data.contact_email }
+      );
+
+      if (existingUser) {
+        console.log('⚠️ Email already exists, user must sign in first');
+        throw new Error('EMAIL_EXISTS_USE_LOGIN');
+      }
+
+      console.log('✅ Email available, proceeding with signup...');
+
       // Créer le compte Auth avec métadonnées (alignement driver/client)
       const { data: authResult, error } = await supabase.auth.signUp({
         email: data.contact_email,
@@ -190,8 +203,30 @@ export const usePartnerRegistrationSecure = () => {
 
           if (loginError || !loginData.user) {
             console.error('❌ Login failed for existing user:', loginError);
-            toast.error('Impossible de se connecter. Vérifiez votre mot de passe.');
-            return { success: false, error: 'AUTH_FAILED' };
+            
+            // ✅ Messages explicites selon le type d'erreur
+            if (loginError?.message.includes('Invalid login credentials')) {
+              toast.error('Mot de passe incorrect', {
+                description: 'Cet email est déjà utilisé. Utilisez le mot de passe de votre compte existant ou réinitialisez-le.',
+                duration: 6000
+              });
+            } else if (loginError?.message.includes('Email not confirmed')) {
+              toast.error('Email non confirmé', {
+                description: 'Veuillez confirmer votre email avant de vous connecter.',
+                duration: 6000
+              });
+            } else {
+              toast.error('Erreur de connexion', {
+                description: loginError?.message || 'Vérifiez vos identifiants',
+                duration: 6000
+              });
+            }
+            
+            return { 
+              success: false, 
+              error: 'AUTH_FAILED',
+              suggestion: 'reset_password'
+            };
           }
 
           console.log('✅ [PARTNER REG] Sign-in successful, checking for partner profile...');

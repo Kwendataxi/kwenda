@@ -52,6 +52,7 @@ export const PartnerRegistrationForm = () => {
   const navigate = useNavigate();
   const { registerPartner, loading } = usePartnerRegistrationSecure();
   const [currentStep, setCurrentStep] = useState(1);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
   
   // État du formulaire (initialisé avec valeurs par défaut sécurisées)
   const [formData, setFormData] = useState<Partial<PartnerFormData>>({
@@ -133,9 +134,30 @@ export const PartnerRegistrationForm = () => {
         setTimeout(() => {
           navigate('/partner/auth');
         }, 2000);
+      } else {
+        // ✅ Cas d'échec retourné par le hook
+        if (result.error === 'AUTH_FAILED') {
+          setCurrentStep(4);
+          setShowPasswordReset(true);
+          return;
+        }
       }
     } catch (error: any) {
       console.error('Partner registration error:', error);
+      
+      // ✅ Cas 1 : Email déjà utilisé
+      if (error.message === 'EMAIL_EXISTS_USE_LOGIN') {
+        toast.error('Email déjà utilisé', {
+          description: 'Cet email est déjà lié à un compte Kwenda. Connectez-vous d\'abord pour ajouter le rôle partenaire.',
+          duration: 8000,
+          action: {
+            label: 'Se connecter',
+            onClick: () => navigate('/partner/auth')
+          }
+        });
+        return;
+      }
+      
       toast.error('Erreur lors de l\'inscription', {
         description: error.message || 'Veuillez réessayer plus tard'
       });
@@ -190,6 +212,7 @@ export const PartnerRegistrationForm = () => {
             }}
             onNext={handleNextStep}
             onPrevious={handlePreviousStep}
+            showPasswordResetLink={showPasswordReset}
           />
         );
       
@@ -212,14 +235,29 @@ export const PartnerRegistrationForm = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-background dark:to-background py-12 px-4">
       <div className="max-w-3xl mx-auto">
-        {/* Message informatif multi-rôles */}
+        {/* Messages informatifs multi-rôles */}
         {currentStep === 1 && (
-          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg animate-fade-in">
-            <p className="text-sm text-blue-800 dark:text-blue-200">
-              💡 <strong>Vous avez déjà un compte Kwenda ?</strong> Pas de problème ! 
-              Vous pouvez utiliser le même email pour devenir partenaire. 
-              Utilisez le même mot de passe que votre compte existant.
-            </p>
+          <div className="mb-6 space-y-3 animate-fade-in">
+            <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                💡 <strong>Vous avez déjà un compte Kwenda ?</strong> Pas de problème ! 
+                Vous pouvez utiliser le même email pour devenir partenaire. 
+                Utilisez le même mot de passe que votre compte existant.
+              </p>
+            </div>
+            
+            <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                ⚠️ <strong>Email déjà enregistré ?</strong> Si cet email est déjà utilisé, vous devez d'abord vous{' '}
+                <button 
+                  onClick={() => navigate('/partner/auth')}
+                  className="underline font-semibold hover:text-amber-900 dark:hover:text-amber-300"
+                >
+                  connecter ici
+                </button>
+                , puis accéder à "Devenir partenaire" depuis votre profil.
+              </p>
+            </div>
           </div>
         )}
         

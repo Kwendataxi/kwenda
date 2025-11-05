@@ -13230,6 +13230,10 @@ export type Database = {
         Args: { check_user_id?: string }
         Returns: boolean
       }
+      check_user_exists_by_email: {
+        Args: { p_email: string }
+        Returns: boolean
+      }
       check_user_role_secure: {
         Args: { p_role: string; p_user_id: string }
         Returns: boolean
