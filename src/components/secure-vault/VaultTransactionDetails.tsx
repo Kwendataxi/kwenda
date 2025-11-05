@@ -18,6 +18,7 @@ import {
   Calendar,
   DollarSign
 } from 'lucide-react';
+import UniversalTracker from '@/components/tracking/UniversalTracker';
 
 interface VaultTransactionDetailsProps {
   open: boolean;
@@ -315,6 +316,26 @@ export const VaultTransactionDetails: React.FC<VaultTransactionDetailsProps> = (
                 <div className="p-3 bg-muted rounded-lg font-mono text-center text-lg font-bold">
                   {transaction.confirmation_code}
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Tracking compact si livraison associée */}
+          {transaction.order_id && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Package className="h-5 w-5" />
+                  Suivi de livraison
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <UniversalTracker 
+                  orderId={transaction.order_id}
+                  compact={true}
+                  showMap={false}
+                  showChat={false}
+                />
               </CardContent>
             </Card>
           )}

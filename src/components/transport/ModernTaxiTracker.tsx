@@ -1,5 +1,5 @@
 import React from 'react';
-import UniversalTaxiTracker from './UniversalTaxiTracker';
+import UniversalTracker from '@/components/tracking/UniversalTracker';
 
 interface ModernTaxiTrackerProps {
   bookingId: string;
@@ -8,9 +8,12 @@ interface ModernTaxiTrackerProps {
 
 export default function ModernTaxiTracker({ bookingId, onBack }: ModernTaxiTrackerProps) {
   return (
-    <UniversalTaxiTracker 
-      bookingId={bookingId}
+    <UniversalTracker 
+      orderId={bookingId}
+      orderType="taxi"
       onBack={onBack}
+      showMap={true}
+      showChat={true}
     />
   );
 }

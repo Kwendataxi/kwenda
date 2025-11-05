@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ModernTracker from '@/components/tracking/ModernTracker';
+import UniversalTracker from '@/components/tracking/UniversalTracker';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, AlertCircle, Package, Navigation, ShoppingBag } from 'lucide-react';
