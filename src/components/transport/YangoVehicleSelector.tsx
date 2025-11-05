@@ -168,7 +168,7 @@ export default function YangoVehicleSelector({
                     {/* Badge Tarification Ultra-Compact */}
                     {vehicle.basePrice && vehicle.pricePerKm && (
                       <motion.div
-                        initial={{ scale: 0, y: 5 }}
+                        initial={{ scale: 0, y: -5 }}
                         animate={{ scale: 1, y: 0 }}
                         transition={{ 
                           delay: 0.1, 
@@ -176,7 +176,7 @@ export default function YangoVehicleSelector({
                           stiffness: 300,
                           damping: 20
                         }}
-                        className="absolute -bottom-0.5 px-1.5 py-0.5 bg-background/80 backdrop-blur-md rounded-md shadow-sm"
+                        className="absolute -top-0.5 px-1.5 py-0.5 bg-background/80 backdrop-blur-md rounded-md shadow-sm"
                       >
                         <span className="text-[8px] font-semibold text-muted-foreground/80 tracking-tight leading-none">
                           {(vehicle.basePrice / 1000).toFixed(0)}k
