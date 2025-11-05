@@ -1,11 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Loader2, MapPin } from 'lucide-react';
+import { Loader2, MapPin, Plus, Minus, Navigation as NavigationIcon, Layers } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import CustomMarkers from './CustomMarkers';
 import AnimatedPolyline from './AnimatedPolyline';
+import LiveDriversLayer from '../LiveDriversLayer';
 import { useGoogleMaps } from '@/hooks/useGoogleMaps';
 import { useMapTheme } from '@/hooks/useMapTheme';
 import { throttle } from '@/utils/performanceUtils';
 import { useToast } from '@/hooks/use-toast';
+import { motion } from 'framer-motion';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -24,6 +27,7 @@ interface ModernMapViewProps {
   currentDriverLocation?: { lat: number; lng: number };
   userLocation?: { lat: number; lng: number } | null;
   className?: string;
+  showLiveDrivers?: boolean;
 }
 
 export default function ModernMapView({
@@ -33,7 +37,8 @@ export default function ModernMapView({
   visualizationMode = 'selection',
   currentDriverLocation,
   userLocation,
-  className = ''
+  className = '',
+  showLiveDrivers = true
 }: ModernMapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
@@ -42,6 +47,7 @@ export default function ModernMapView({
   const { mapStyles } = useMapTheme();
   const [isMapReady, setIsMapReady] = useState(false);
   const [useMapboxFallback, setUseMapboxFallback] = useState(false);
+  const [showDriversLayer, setShowDriversLayer] = useState(showLiveDrivers);
   const { toast } = useToast();
 
   // 🔍 Phase 5: Logs détaillés
@@ -601,10 +607,68 @@ export default function ModernMapView({
     );
   }
 
+  // Contrôles de la carte
+  const handleZoomIn = () => {
+    if (mapInstanceRef.current) {
+      const currentZoom = mapInstanceRef.current.getZoom() || 13;
+      mapInstanceRef.current.setZoom(currentZoom + 1);
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (mapInstanceRef.current) {
+      const currentZoom = mapInstanceRef.current.getZoom() || 13;
+      mapInstanceRef.current.setZoom(currentZoom - 1);
+    }
+  };
+
+  const handleLocateUser = () => {
+    if (userLocation && mapInstanceRef.current) {
+      animateCameraTransition({
+        center: { lat: userLocation.lat, lng: userLocation.lng },
+        zoom: 15
+      }, 1000);
+    }
+  };
+
+  const toggleLiveDrivers = () => {
+    setShowDriversLayer(prev => !prev);
+    toast({
+      title: showDriversLayer ? "Chauffeurs masqués" : "Chauffeurs affichés",
+      description: showDriversLayer ? "Les véhicules ne sont plus visibles" : "Affichage des véhicules en temps réel"
+    });
+  };
+
   return (
     <div className={`relative ${className}`}>
       {/* Carte Google Maps */}
       <div ref={mapRef} className="w-full h-full rounded-lg shadow-lg" />
+
+      {/* Contrôles de carte modernes */}
+      {isMapReady && mapInstanceRef.current && !useMapboxFallback && (
+        <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+          {[
+            { icon: Plus, action: handleZoomIn, label: "Zoom +" },
+            { icon: Minus, action: handleZoomOut, label: "Zoom -" },
+            { icon: NavigationIcon, action: handleLocateUser, label: "Ma position" },
+            { icon: Layers, action: toggleLiveDrivers, label: "Chauffeurs", active: showDriversLayer }
+          ].map(({ icon: Icon, action, label, active }) => (
+            <motion.div key={label} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={action}
+                className={`bg-white/80 dark:bg-gray-900/80 backdrop-blur-md 
+                  border-white/30 shadow-lg hover:shadow-glow
+                  rounded-2xl w-12 h-12 ${active ? 'bg-primary/20 border-primary' : ''}`}
+                title={label}
+              >
+                <Icon className="h-5 w-5" />
+              </Button>
+            </motion.div>
+          ))}
+        </div>
+      )}
 
       {/* Markers personnalisés */}
       {isMapReady && mapInstanceRef.current && !useMapboxFallback && (
@@ -615,6 +679,16 @@ export default function ModernMapView({
             destination={destination}
             userLocation={userLocation}
           />
+
+          {/* Couche chauffeurs en temps réel */}
+          {showDriversLayer && (
+            <LiveDriversLayer
+              map={mapInstanceRef.current}
+              userLocation={userLocation}
+              maxRadius={10}
+              showOnlyAvailable={true}
+            />
+          )}
 
           {/* Route animée */}
           {pickup && destination && visualizationMode === 'route' && (

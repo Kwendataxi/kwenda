@@ -30,6 +30,7 @@ import { usePromoCodeValidation } from '@/hooks/usePromoCodeValidation';
 import DriverSearchDialog from './DriverSearchDialog';
 import ModernMapView from './map/ModernMapView';
 import { useSmartGeolocation } from '@/hooks/useSmartGeolocation';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface TaxiBookingData {
   pickup: LocationData | null;
@@ -510,43 +511,65 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
 
       case 'details':
         return (
-          <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-6"
+          >
             <div className="text-center mb-6">
-              <h3 className="text-lg font-semibold mb-2">Type de véhicule</h3>
+              <h3 className="text-lg font-semibold mb-2 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
+                Type de véhicule
+              </h3>
               <p className="text-sm text-muted-foreground">Choisissez votre mode de transport</p>
             </div>
 
             <div className="grid gap-3">
-              {getVehicleTypes(t).map((vehicle) => {
+              {getVehicleTypes(t).map((vehicle, index) => {
                 const Icon = vehicle.icon;
                 const isSelected = bookingData.vehicleType === vehicle.id;
                 
                 return (
-                  <Card 
+                  <motion.div
                     key={vehicle.id}
-                    className={`cursor-pointer transition-all hover:scale-[1.02] ${
-                      isSelected 
-                        ? 'ring-2 ring-primary glassmorphism-active' 
-                        : 'glassmorphism hover:bg-muted/20'
-                    }`}
-                    onClick={() => setBookingData(prev => ({ ...prev, vehicleType: vehicle.id as any }))}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.1, duration: 0.4 }}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-full ${isSelected ? 'bg-primary' : 'bg-muted/20'}`}>
-                          <Icon className={`h-5 w-5 ${isSelected ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                    <Card 
+                      className={`cursor-pointer backdrop-blur-md rounded-2xl transition-all ${
+                        isSelected 
+                          ? 'bg-gradient-to-br from-primary/15 via-primary/10 to-transparent border-primary/40 shadow-glow ring-2 ring-primary/30' 
+                          : 'bg-white/40 dark:bg-gray-900/40 border-white/20 hover:border-primary/30 hover:shadow-soft'
+                      }`}
+                      onClick={() => setBookingData(prev => ({ ...prev, vehicleType: vehicle.id as any }))}
+                    >
+                      <CardContent className="p-5">
+                        <div className="flex items-center gap-4">
+                          <motion.div 
+                            className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
+                              isSelected ? 'bg-gradient-to-br from-primary to-primary/80 shadow-lg' : 'bg-muted/30'
+                            }`}
+                            animate={{ rotate: isSelected ? [0, -5, 5, 0] : 0 }}
+                            transition={{ duration: 0.5 }}
+                          >
+                            <Icon className={`h-6 w-6 ${isSelected ? 'text-white' : 'text-muted-foreground'}`} />
+                          </motion.div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold">{vehicle.name}</h4>
+                            <p className="text-sm text-muted-foreground">{vehicle.description}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">{vehicle.basePrice} CDF</p>
+                            <p className="text-xs text-muted-foreground">+ {vehicle.pricePerKm}/km</p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold">{vehicle.name}</h4>
-                          <p className="text-sm text-muted-foreground">{vehicle.description}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold">{vehicle.basePrice} CDF</p>
-                          <p className="text-xs text-muted-foreground">+ {vehicle.pricePerKm}/km</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 );
               })}
             </div>
@@ -579,7 +602,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
                 onChange={(e) => setBookingData(prev => ({ ...prev, notes: e.target.value }))}
               />
             </div>
-          </div>
+          </motion.div>
         );
 
       case 'confirm':
@@ -703,13 +726,17 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         <div className="flex items-center justify-between">
           <div className="flex justify-center space-x-2 flex-1">
             {['pickup', 'destination', 'details', 'confirm'].map((stepName, index) => (
-              <div
+              <motion.div
                 key={stepName}
-                className={`h-2 w-8 rounded-full transition-all duration-300 ${
-                  ['pickup', 'destination', 'details', 'confirm'].indexOf(step) >= index
-                    ? 'bg-primary scale-110'
-                    : 'bg-muted'
-                }`}
+                initial={{ scale: 0 }}
+                animate={{ 
+                  scale: ['pickup', 'destination', 'details', 'confirm'].indexOf(step) >= index ? 1.1 : 1,
+                  backgroundColor: ['pickup', 'destination', 'details', 'confirm'].indexOf(step) >= index 
+                    ? 'hsl(var(--primary))' 
+                    : 'hsl(var(--muted))'
+                }}
+                transition={{ delay: index * 0.1, type: "spring", stiffness: 200 }}
+                className="h-2 w-8 rounded-full shadow-sm"
               />
             ))}
           </div>
@@ -727,10 +754,18 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         </div>
 
         {/* Step content */}
-        <Card className="glassmorphism animate-fade-in">
-          <CardContent className="p-6">
-            {renderStepContent()}
-          </CardContent>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <Card className="bg-gradient-to-br from-white/60 via-white/40 to-transparent dark:from-gray-900/60 dark:via-gray-900/40 dark:to-transparent backdrop-blur-lg border border-white/30 shadow-2xl rounded-3xl">
+              <CardContent className="p-6">
+                {renderStepContent()}
+              </CardContent>
         
           {/* Action buttons - now inside the card after content */}
           <CardContent className="p-6 pt-0 mt-8">
@@ -801,6 +836,8 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
             </div>
           </CardContent>
         </Card>
+          </motion.div>
+        </AnimatePresence>
 
         {/* Indicateurs de statut */}
         {bookingError && (

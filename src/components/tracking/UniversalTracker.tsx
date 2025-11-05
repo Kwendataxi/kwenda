@@ -240,7 +240,14 @@ export default function UniversalTracker({
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
       {/* Header */}
-      <div className="sticky top-0 bg-background/80 backdrop-blur-xl border-b border-border/50 p-4 z-50">
+      <motion.div
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 100 }}
+        className="sticky top-0 bg-gradient-to-br from-white/95 via-white/90 to-transparent 
+          dark:from-gray-950/95 dark:via-gray-950/90 dark:to-transparent 
+          backdrop-blur-2xl border-b border-white/20 p-4 z-50 shadow-lg"
+      >
         <div className="flex items-center justify-between max-w-md mx-auto">
           {onBack && (
             <Button variant="ghost" size="icon" onClick={onBack} className="touch-manipulation">
@@ -265,7 +272,7 @@ export default function UniversalTracker({
             </Button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       <div className="p-4 space-y-4 max-w-md mx-auto pb-20">
         {/* Status Card */}
@@ -305,11 +312,13 @@ export default function UniversalTracker({
         {/* Driver Card */}
         {trackingData.driver && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.02, y: -2 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-xl bg-gradient-to-br from-white/60 to-white/40 
+              dark:from-gray-900/60 dark:to-gray-900/40 backdrop-blur-lg rounded-2xl">
               <CardContent className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">

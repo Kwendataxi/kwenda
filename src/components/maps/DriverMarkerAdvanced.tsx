@@ -63,7 +63,7 @@ export default function DriverMarkerAdvanced({
   };
 
   // SVG du véhicule avec rotation
-  const getVehicleSVG = (rotation: number, isMoving: boolean): string => {
+  const getVehicleSVG = (rotation: number, isMoving: boolean, isAvailable: boolean = true): string => {
     return `
       <svg width="64" height="80" viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -91,6 +91,13 @@ export default function DriverMarkerAdvanced({
         <g transform="translate(32, 60)" filter="url(#shadow-vehicle)">
           <!-- Ombre sous le véhicule -->
           <ellipse cx="0" cy="12" rx="20" ry="8" fill="black" opacity="0.2"/>
+          
+          ${isAvailable ? `
+            <circle cx="0" cy="0" r="28" fill="none" stroke="#22c55e" stroke-width="2" opacity="0.6">
+              <animate attributeName="r" from="28" to="36" dur="1.5s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" from="0.6" to="0" dur="1.5s" repeatCount="indefinite"/>
+            </circle>
+          ` : ''}
           
           <!-- Groupe rotatif du véhicule -->
           <g transform="rotate(${rotation})">
@@ -126,18 +133,17 @@ export default function DriverMarkerAdvanced({
         
         <!-- Badge chauffeur -->
         <g transform="translate(32, 8)">
-          <rect x="-22" y="-8" width="44" height="16" rx="8" 
-                fill="white" 
-                stroke="#e5e7eb" 
-                stroke-width="1"
-                filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))"/>
+          <rect x="-28" y="-10" width="56" height="20" rx="10" 
+                fill="${isAvailable ? '#22c55e' : '#6b7280'}" 
+                opacity="0.9"
+                filter="drop-shadow(0 2px 6px rgba(0,0,0,0.2))"/>
           <text x="0" y="2" 
                 text-anchor="middle" 
                 font-family="system-ui, -apple-system" 
                 font-size="9" 
-                font-weight="600"
-                fill="#1f2937">
-            ${driverName.split(' ')[0].substring(0, 10)}
+                font-weight="700"
+                fill="white">
+            ${isAvailable ? '✓ Disponible' : driverName.split(' ')[0].substring(0, 12)}
           </text>
         </g>
       </svg>
@@ -148,7 +154,8 @@ export default function DriverMarkerAdvanced({
     if (!map || !window.google) return;
 
     const isMoving = speed > 0.5; // Considéré en mouvement si > 0.5 km/h
-    const svgContent = getVehicleSVG(currentHeading, isMoving);
+    const isAvailable = true; // Toujours disponible pour l'instant
+    const svgContent = getVehicleSVG(currentHeading, isMoving, isAvailable);
     const iconUrl = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`;
 
     if (!markerRef.current) {
