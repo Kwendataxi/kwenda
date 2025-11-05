@@ -211,10 +211,43 @@ serve(async (req) => {
       }
 
       // ============================================
-      // SCORING ET SÉLECTION
+      // VÉRIFICATION CRÉDIT ET SCORING
       // ============================================
 
-      const scoredDrivers = drivers.map(driver => ({
+      // Filtrer les chauffeurs sans crédit
+      const eligibleDrivers = drivers.filter(driver => {
+        if (!driver.rides_remaining || driver.rides_remaining <= 0) {
+          console.log(`⚠️ Driver ${driver.driver_id} has no rides remaining (${driver.rides_remaining})`);
+          return false;
+        }
+        return true;
+      });
+
+      if (eligibleDrivers.length === 0) {
+        console.log('❌ No drivers with remaining credits');
+        
+        // Créer une alerte admin
+        await supabase.from('admin_alerts').insert([{
+          alert_type: 'no_driver_with_credits',
+          severity: 'high',
+          title: 'Aucun chauffeur avec crédit disponible',
+          message: `No driver with credits found for ${orderType} order ${orderId} in ${city}`,
+          metadata: { orderId, orderType, city, pickupLat, pickupLng, driversFound: drivers.length },
+          is_resolved: false
+        }]);
+
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: 'Tous les chauffeurs disponibles ont épuisé leurs crédits',
+            drivers_searched: drivers.length,
+            retry_suggested: true
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const scoredDrivers = eligibleDrivers.map(driver => ({
         ...driver,
         score: calculateDriverScore(driver, priority, orderType)
       })).sort((a: DriverMatch, b: DriverMatch) => b.score - a.score);
@@ -256,16 +289,37 @@ serve(async (req) => {
         // via driver-arrival-confirmation edge function (distance < 100m)
         console.log(`🔒 Credit consumption deferred until driver arrival confirmation`);
 
-        // Notification
+        // Notification avec info crédit
         await supabase.from('driver_ride_notifications').insert([{
           driver_id: selectedDriver.driver_id,
           booking_id: orderId,
           notification_type: 'ride_request',
           title: `Nouvelle course ${serviceType.toUpperCase()}`,
           message: `Distance: ${selectedDriver.distance_km.toFixed(1)}km`,
-          metadata: { score: selectedDriver.score, priority },
+          metadata: { 
+            score: selectedDriver.score, 
+            priority,
+            rides_remaining: selectedDriver.rides_remaining,
+            pickupLocation: { lat: pickupLat, lng: pickupLng },
+            deliveryLocation: deliveryLat && deliveryLng ? { lat: deliveryLat, lng: deliveryLng } : null,
+            estimatedPrice: request.estimatedPrice
+          },
           status: 'pending',
           expires_at: new Date(Date.now() + 2 * 60 * 1000).toISOString()
+        }]);
+
+        // Log l'assignation
+        await supabase.from('activity_logs').insert([{
+          activity_type: 'driver_assigned',
+          description: `Driver ${selectedDriver.driver_id} assigned to ${orderType} ${orderId}`,
+          metadata: {
+            orderId,
+            orderType,
+            driverId: selectedDriver.driver_id,
+            distance: selectedDriver.distance_km,
+            score: selectedDriver.score,
+            ridesRemaining: selectedDriver.rides_remaining
+          }
         }]);
 
         return new Response(

@@ -6,7 +6,9 @@ import PickupLocationCard from './PickupLocationCard';
 import YangoBottomSheet from './YangoBottomSheet';
 import DestinationSearchDialog from './DestinationSearchDialog';
 import PriceConfirmationModal from './PriceConfirmationModal';
+import DriverSearchProgressModal from './DriverSearchProgressModal';
 import { useSmartGeolocation } from '@/hooks/useSmartGeolocation';
+import { useRideDispatch } from '@/hooks/useRideDispatch';
 import { LocationData } from '@/types/location';
 import { secureNavigationService } from '@/services/secureNavigationService';
 import { toast } from 'sonner';
@@ -28,6 +30,15 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   
   const { currentLocation, getCurrentPosition, getPopularPlaces, currentCity, source } = useSmartGeolocation();
   const popularPlaces = getPopularPlaces();
+  const { 
+    isSearching, 
+    assignedDriver, 
+    searchProgress, 
+    activeBookingId,
+    createAndDispatchRide, 
+    listenForDriverAssignment,
+    resetSearch
+  } = useRideDispatch();
   
   console.log('🌍 Ville détectée:', currentCity?.name || 'Non détectée');
   console.log('📍 Position actuelle:', currentLocation ? { lat: currentLocation.lat, lng: currentLocation.lng } : 'Aucune');
@@ -115,33 +126,50 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     setBookingStep('confirm');
   };
 
-  const handleSearchDriver = () => {
+  const handleSearchDriver = async () => {
     if (!pickupLocation || !destinationLocation || !selectedVehicle) {
       toast.error('Veuillez compléter tous les champs');
       return;
     }
 
-    console.log('🚗 Recherche chauffeur:', {
-      pickup: pickupLocation,
-      destination: destinationLocation,
-      vehicleType: selectedVehicle,
-      distance: `${distance.toFixed(2)} km`,
-      price: calculatedPrice
-    });
+    try {
+      const bookingData = {
+        pickupLocation: pickupLocation.address,
+        destination: destinationLocation.address,
+        pickupCoordinates: { lat: pickupLocation.lat, lng: pickupLocation.lng },
+        destinationCoordinates: { lat: destinationLocation.lat, lng: destinationLocation.lng },
+        vehicleType: selectedVehicle,
+        estimatedPrice: calculatedPrice,
+        city: currentCity?.name || 'Kinshasa'
+      };
 
-    toast.success('Recherche de chauffeur en cours...', {
-      description: 'Nous cherchons le meilleur chauffeur pour vous',
-      duration: 3000
-    });
+      console.log('🚗 [ModernTaxiInterface] Starting ride dispatch...', bookingData);
 
-    onSubmit?.({
-      pickup: pickupLocation,
-      destination: destinationLocation,
-      vehicleType: selectedVehicle,
-      distance,
-      route: routeData,
-      bookingId: `booking-${Date.now()}`
-    });
+      const result = await createAndDispatchRide(bookingData);
+
+      if (result.success && result.driver) {
+        console.log('✅ [ModernTaxiInterface] Driver assigned successfully');
+        
+        // Commencer à écouter les mises à jour en temps réel
+        if (result.booking?.id) {
+          listenForDriverAssignment(result.booking.id);
+        }
+
+        onSubmit?.({
+          ...result,
+          bookingId: result.booking.id
+        });
+      } else {
+        toast.error('Aucun chauffeur disponible', {
+          description: result.message || 'Tous les chauffeurs sont occupés. Réessayez dans quelques instants.'
+        });
+      }
+    } catch (error) {
+      console.error('❌ [ModernTaxiInterface] Error dispatching ride:', error);
+      toast.error('Erreur lors de la recherche', {
+        description: 'Une erreur est survenue. Veuillez réessayer.'
+      });
+    }
   };
 
   const handleBackToDestination = () => {
@@ -231,6 +259,15 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         onOpenChange={setShowDestinationSearch}
         onSelectDestination={handleDestinationSelect}
         currentLocation={pickupLocation}
+      />
+
+      {/* Modal de progression de recherche */}
+      <DriverSearchProgressModal
+        isSearching={isSearching}
+        searchProgress={searchProgress}
+        assignedDriver={assignedDriver}
+        bookingId={activeBookingId}
+        onClose={resetSearch}
       />
     </div>
   );
