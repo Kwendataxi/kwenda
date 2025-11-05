@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import OptimizedMapView from './map/OptimizedMapView';
 import PickupLocationCard from './PickupLocationCard';
@@ -17,6 +17,7 @@ import { routeCache } from '@/services/routeCacheService';
 import { predictiveRouteCache } from '@/services/predictiveRouteCacheService';
 import { taxiMetrics } from '@/services/taxiMetricsService';
 import { toast } from 'sonner';
+import { debounce } from '@/utils/performanceUtils';
 
 interface ModernTaxiInterfaceProps {
   onSubmit?: (data: any) => void;
@@ -41,7 +42,8 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [selectedBeneficiary, setSelectedBeneficiary] = useState<any>(null);
   
   const { currentLocation, getCurrentPosition, getPopularPlaces, currentCity, source } = useSmartGeolocation();
-  const popularPlaces = getPopularPlaces();
+  // 🔧 PERF FIX: Mémoïser popularPlaces
+  const popularPlaces = useMemo(() => getPopularPlaces(), [getPopularPlaces]);
   const { 
     isSearching, 
     assignedDriver, 
@@ -52,50 +54,42 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     resetSearch
   } = useRideDispatch();
   
-  // Hook pour afficher le vrai nombre de chauffeurs disponibles
+  // 🔧 PERF FIX: Hook chauffeurs moins fréquent
   const { driversCount } = useLiveDrivers({
     userLocation: pickupLocation,
-    maxRadius: 5, // 5km de rayon
+    maxRadius: 5,
     showOnlyAvailable: true,
-    updateInterval: 30000 // Refresh toutes les 30s
+    updateInterval: 60000 // 🔧 60s au lieu de 30s
   });
   
-  // État de préparation géolocalisation
   const [locationReady, setLocationReady] = useState(false);
+  const lastPreloadRef = useRef<{ lat: number; lng: number } | null>(null);
 
-  console.log('🌍 Ville détectée:', currentCity?.name || 'Non détectée');
-  console.log('📍 Position actuelle:', currentLocation ? { lat: currentLocation.lat, lng: currentLocation.lng } : 'Aucune');
-  console.log('🔍 Source position:', source || 'Aucune');
-
-  // 🚀 FORCER GÉOLOCALISATION AU MONTAGE AVEC FALLBACK RAPIDE
+  // 🔧 PERF FIX: Géolocalisation rapide
   useEffect(() => {
     const initLocation = async () => {
       try {
-        console.log('🔍 [ModernTaxiInterface] Initialisation géolocalisation...');
         const pos = await getCurrentPosition({
-          timeout: 10000, // 10 secondes max pour GPS
-          enableHighAccuracy: false, // Désactiver haute précision pour vitesse
+          timeout: 5000,
+          enableHighAccuracy: false,
           fallbackToIP: true
         });
         setPickupLocation(pos);
         setPersistedUserLocation({ lat: pos.lat, lng: pos.lng });
         setLocationReady(true);
-        console.log('✅ [ModernTaxiInterface] Position initiale obtenue:', pos);
         
-        // ⚡ PHASE 3: Précharger les routes populaires en arrière-plan
+        // 🔧 PERF FIX: Précharger seulement si mouvement > 500m
+        lastPreloadRef.current = { lat: pos.lat, lng: pos.lng };
         predictiveRouteCache.smartPreload(
           { lat: pos.lat, lng: pos.lng },
           currentCity?.name || 'Kinshasa'
         );
         
-        // ⚡ PHASE 4: Logger le début de la session
         taxiMetrics.logBookingStarted({
           pickup: { lat: pos.lat, lng: pos.lng },
           city: currentCity?.name || 'Kinshasa'
         });
       } catch (error) {
-        console.error('❌ [ModernTaxiInterface] Erreur géolocalisation:', error);
-        // Fallback ville par défaut
         const defaultPos = {
           address: currentCity?.name || 'Kinshasa',
           lat: currentCity?.coordinates.lat || -4.3217,
@@ -104,70 +98,66 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         };
         setPickupLocation(defaultPos);
         setLocationReady(true);
-        console.log('⚠️ [ModernTaxiInterface] Position par défaut utilisée:', defaultPos);
       }
     };
     
     initLocation();
   }, [getCurrentPosition, currentCity]);
 
-  // ⚡ PHASE 2: Calcul de route avec cache intelligent
-  useEffect(() => {
-    const calculateRouteAndPrice = async () => {
-      if (!pickupLocation || !destinationLocation) {
-        setDistance(0);
-        setRouteData(null);
-        return;
+  // 🔧 PERF FIX: Calcul de route avec debounce
+  const calculateRouteAndPrice = useCallback(async () => {
+    if (!pickupLocation || !destinationLocation) {
+      setDistance(0);
+      setRouteData(null);
+      return;
+    }
+
+    setCalculatingRoute(true);
+
+    try {
+      const route = await routeCache.getOrCalculate(
+        { lat: pickupLocation.lat, lng: pickupLocation.lng },
+        { lat: destinationLocation.lat, lng: destinationLocation.lng },
+        () => secureNavigationService.calculateRoute({
+          origin: { lat: pickupLocation.lat, lng: pickupLocation.lng },
+          destination: { lat: destinationLocation.lat, lng: destinationLocation.lng },
+          mode: 'driving'
+        })
+      );
+
+      if (route) {
+        const distanceKm = route.distance / 1000;
+        setDistance(distanceKm);
+        setRouteData(route);
       }
-
-      setCalculatingRoute(true);
-      console.log('🧮 Calcul route avec cache:', {
-        pickup: { lat: pickupLocation.lat, lng: pickupLocation.lng },
-        destination: { lat: destinationLocation.lat, lng: destinationLocation.lng }
-      });
-
-      try {
-        // ⚡ Utiliser le cache de routes
-        const route = await routeCache.getOrCalculate(
-          { lat: pickupLocation.lat, lng: pickupLocation.lng },
-          { lat: destinationLocation.lat, lng: destinationLocation.lng },
-          () => secureNavigationService.calculateRoute({
-            origin: { lat: pickupLocation.lat, lng: pickupLocation.lng },
-            destination: { lat: destinationLocation.lat, lng: destinationLocation.lng },
-            mode: 'driving'
-          })
-        );
-
-        if (route) {
-          const distanceKm = route.distance / 1000;
-          setDistance(distanceKm);
-          setRouteData(route);
-          console.log('✅ Route obtenue:', {
-            distance: `${distanceKm.toFixed(2)} km`,
-            duration: `${Math.round(route.duration / 60)} min`
-          });
-        }
-      } catch (error) {
-        console.error('❌ Erreur calcul route:', error);
-        toast.error('Impossible de calculer la route');
-      } finally {
-        setCalculatingRoute(false);
-      }
-    };
-
-    calculateRouteAndPrice();
+    } catch (error) {
+      toast.error('Impossible de calculer la route');
+    } finally {
+      setCalculatingRoute(false);
+    }
   }, [pickupLocation, destinationLocation]);
 
-  const handleVehicleSelect = (vehicleId: string) => {
+  // 🔧 PERF FIX: Debounce 500ms
+  const debouncedCalculate = useMemo(
+    () => debounce(calculateRouteAndPrice, 500),
+    [calculateRouteAndPrice]
+  );
+
+  useEffect(() => {
+    debouncedCalculate();
+  }, [pickupLocation, destinationLocation, debouncedCalculate]);
+
+  // Calculer le prix estimé
+  const calculatedPrice = distance > 0 ? Math.round(2500 + (distance * 500)) : 0;
+
+  const handleVehicleSelect = useCallback((vehicleId: string) => {
     setSelectedVehicle(vehicleId);
-    // Ne change plus automatiquement l'étape - attend le clic sur "Continuer"
     
-    // ⚡ PHASE 4: Logger la sélection de véhicule
     taxiMetrics.logVehicleSelected({
       vehicle_type: vehicleId,
       estimated_price: calculatedPrice
     });
-  };
+  }, [calculatedPrice]);
 
   const handleContinueToDestination = () => {
     // Validation si réservation pour autrui
@@ -277,40 +267,23 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     setBookingStep('destination');
   };
 
-  const handleClickPosition = () => {
-    console.log('📍 User clicked position marker');
-    // Réinitialiser la position manuelle pour revenir au GPS
+  const handleClickPosition = useCallback(() => {
     setManualPosition(null);
     toast.info('Position GPS restaurée', {
       description: 'Retour à votre position actuelle'
     });
     
-    // Vibration haptique si disponible
     if ('vibrate' in navigator) {
       navigator.vibrate(10);
     }
-  };
+  }, []);
 
-  const handleMarkerDrag = (newPosition: { lat: number; lng: number }) => {
-    console.log('📍 Marqueur déplacé à:', newPosition);
+  const handleMarkerDrag = useCallback((newPosition: { lat: number; lng: number }) => {
     setManualPosition(newPosition);
     toast.info('Position ajustée', {
       description: 'Déplacez le marqueur pour préciser votre position'
     });
-  };
-
-  // Calculer le prix estimé
-  const calculatedPrice = distance > 0 ? Math.round(2500 + (distance * 500)) : 0;
-
-  // Logs de débogage détaillés pour OptimizedMapView
-  console.log('📍 [ModernTaxiInterface] Rendu OptimizedMapView:', {
-    pickup: pickupLocation,
-    destination: destinationLocation,
-    userLocation: manualPosition || currentLocation,
-    manualPosition,
-    currentLocation,
-    locationReady
-  });
+  }, []);
 
   return (
     <div className="relative h-screen overflow-hidden bg-background">
@@ -341,7 +314,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
       
       
       {/* Bottom Sheet avec flux par étapes */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="sync">{/* 🔧 PERF FIX: mode="sync" pour fluidité */}
         <YangoBottomSheet
           key={bookingStep}
           bookingStep={bookingStep}

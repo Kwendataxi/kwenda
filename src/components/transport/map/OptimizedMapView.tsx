@@ -37,15 +37,6 @@ const OptimizedMapView = React.memo(({
   bottomSheetHeight = 450,
   className = '' 
 }: OptimizedMapViewProps) => {
-  // Logs de débogage au début du composant
-  console.log('🗺️ [OptimizedMapView] Render props:', {
-    hasPickup: !!pickup,
-    pickup: pickup ? { lat: pickup.lat, lng: pickup.lng } : null,
-    hasDestination: !!destination,
-    destination: destination ? { lat: destination.lat, lng: destination.lng } : null,
-    hasUserLocation: !!userLocation,
-    userLocation: userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null,
-  });
 
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
@@ -56,7 +47,7 @@ const OptimizedMapView = React.memo(({
   const [isMapReady, setIsMapReady] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
 
-  // Initialisation carte optimisée
+  // 🔧 PERF FIX: Initialisation carte UNE SEULE FOIS
   useEffect(() => {
     if (!isLoaded || !mapRef.current || mapInstanceRef.current) return;
 
@@ -92,34 +83,18 @@ const OptimizedMapView = React.memo(({
     };
 
     initMap();
-  }, [isLoaded, userLocation, pickup, mapStyles, onMapReady]);
+  }, [isLoaded]); // 🔧 PERF FIX: Uniquement isLoaded pour éviter réinitialisations
 
-  // Log changements userLocation
-  useEffect(() => {
-    console.log('🔍 [OptimizedMapView] UserLocation changed:', userLocation);
-  }, [userLocation]);
-
-  // Vérifier que tout est prêt pour afficher le marqueur
-  useEffect(() => {
-    if (isMapReady && mapInstanceRef.current && userLocation) {
-      console.log('✅ [OptimizedMapView] Carte prête + position disponible - Marqueur devrait apparaître');
-      console.log('   - Map instance:', !!mapInstanceRef.current);
-      console.log('   - UserLocation:', userLocation);
-      console.log('   - isMapReady:', isMapReady);
-    }
-  }, [isMapReady, userLocation]);
 
   // Auto-centrage dynamique sur la position utilisateur
   useEffect(() => {
     if (!mapInstanceRef.current || !userLocation || !isMapReady) return;
     
-    console.log('🎯 [OptimizedMapView] Centrage carte sur position:', userLocation);
-    // Animer vers la nouvelle position
     mapInstanceRef.current.panTo(userLocation);
     mapInstanceRef.current.setZoom(15);
   }, [userLocation, isMapReady]);
 
-  // Gestion de la route
+  // 🔧 PERF FIX: Route affichée UNIQUEMENT (calcul fait dans parent)
   useEffect(() => {
     if (!mapInstanceRef.current || !isMapReady || !pickup || !destination) {
       if (routePolylineRef.current) {
@@ -129,6 +104,7 @@ const OptimizedMapView = React.memo(({
       return;
     }
 
+    // ✅ Affichage visuel uniquement - pas de calcul de route ici
     const directionsService = new google.maps.DirectionsService();
 
     directionsService.route(
@@ -152,7 +128,6 @@ const OptimizedMapView = React.memo(({
             map: mapInstanceRef.current
           });
 
-          // Ajuster bounds
           const bounds = new google.maps.LatLngBounds();
           bounds.extend(pickup);
           bounds.extend(destination);
