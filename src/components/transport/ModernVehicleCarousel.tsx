@@ -97,20 +97,20 @@ export default function ModernVehicleCarousel({
   }
 
   return (
-    <div className="fixed inset-0 bg-black overflow-hidden">
+    <div className="fixed inset-0 bg-gradient-to-b from-gray-900 via-black to-black overflow-hidden">
       {/* Titre en haut */}
-      <div className="absolute top-8 sm:top-10 left-0 right-0 text-center z-10 px-4">
+      <div className="absolute top-6 sm:top-8 left-0 right-0 text-center z-10 px-4">
         <motion.h1 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-base sm:text-lg font-bold text-white tracking-tight"
+          className="text-sm sm:text-base font-bold text-white tracking-tight"
         >
           Choisissez votre type de véhicule
         </motion.h1>
       </div>
 
       {/* Carrousel centré */}
-      <div className="absolute inset-0 flex items-start justify-center pt-32 sm:pt-40">
+      <div className="absolute inset-0 flex items-start justify-center pt-24 sm:pt-32">
         <div ref={emblaRef} className="overflow-hidden w-full max-w-md">
           <div className="flex">
             {vehicles.map((vehicle, index) => {
@@ -127,7 +127,7 @@ export default function ModernVehicleCarousel({
                   <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ 
-                      opacity: isCentered ? 1 : 0.4,
+                      opacity: isCentered ? 1 : 0.5,
                       scale: isCentered ? 1 : 0.8,
                     }}
                     transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -135,7 +135,7 @@ export default function ModernVehicleCarousel({
                   >
                     <motion.div
                       animate={isSelected && isCentered ? {
-                        scale: [1, 1.03, 1],
+                        scale: [1, 1.02, 1],
                       } : {}}
                       transition={{
                         duration: 2,
@@ -143,18 +143,18 @@ export default function ModernVehicleCarousel({
                         ease: 'easeInOut'
                       }}
                       className={`
-                        relative w-[100px] h-[100px] sm:w-[120px] sm:h-[120px] rounded-full 
+                        relative w-20 h-20 sm:w-24 sm:h-24 rounded-full 
                         flex items-center justify-center
                         transition-all duration-300
                       `}
                       style={{
                         background: `linear-gradient(135deg, ${vehicle.gradient.split(' ')[0].replace('from-', '')}, ${vehicle.gradient.split(' ')[2].replace('to-', '')})`,
                         boxShadow: isSelected && isCentered
-                          ? '0 0 0 4px #EF4444, 0 15px 40px rgba(239, 68, 68, 0.3)'
+                          ? '0 0 0 3px #EF4444, 0 10px 25px rgba(239, 68, 68, 0.25)'
                           : '0 8px 30px rgba(0,0,0,0.4)'
                       }}
                     >
-                      <IconComponent className="w-12 h-12 sm:w-14 sm:h-14 text-white" />
+                      <IconComponent className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
                     </motion.div>
                   </motion.div>
 
@@ -166,14 +166,14 @@ export default function ModernVehicleCarousel({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ delay: 0.1 }}
-                        className="text-center mt-6 sm:mt-8 space-y-1 sm:space-y-2"
+                        className="text-center mt-4 sm:mt-6 space-y-1"
                       >
-                        <p className="text-lg sm:text-xl font-semibold text-white">
+                        <p className="text-base sm:text-lg font-semibold text-white">
                           {vehicle.name}
                         </p>
                         
                         {vehicle.calculatedPrice > 0 && (
-                          <p className="text-sm sm:text-base text-gray-400 font-medium">
+                          <p className="text-xs sm:text-sm text-gray-400 font-medium">
                             {formatCurrency(vehicle.calculatedPrice)}
                           </p>
                         )}
@@ -193,37 +193,6 @@ export default function ModernVehicleCarousel({
         </div>
       </div>
 
-      {/* Flèche de navigation circulaire */}
-      {canScrollNext && (
-        <motion.button
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          onClick={scrollNext}
-          className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/80 rounded-full flex items-center justify-center border border-white/20 hover:bg-black hover:border-white/40 transition-all z-20"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <ChevronRight className="w-6 h-6 text-white" />
-        </motion.button>
-      )}
-
-      {/* Points indicateurs animés */}
-      {vehicles.length > 1 && (
-        <div className="absolute bottom-12 sm:bottom-16 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-          {vehicles.map((_, index) => (
-            <motion.div
-              key={index}
-              initial={false}
-              animate={{
-                width: index === selectedIndex ? 32 : 8,
-                backgroundColor: index === selectedIndex ? '#EF4444' : '#6B7280'
-              }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="h-2 rounded-full"
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
