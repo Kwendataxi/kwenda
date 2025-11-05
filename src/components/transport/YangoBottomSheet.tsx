@@ -44,6 +44,18 @@ export default function YangoBottomSheet({
     LARGE: Math.min(windowHeight * 0.85, 700)
   };
 
+  // Feedback haptique subtil
+  const triggerHaptic = (type: 'light' | 'medium' | 'heavy' = 'light') => {
+    if ('vibrate' in navigator) {
+      const patterns = {
+        light: 10,
+        medium: 20,
+        heavy: 30
+      };
+      navigator.vibrate(patterns[type]);
+    }
+  };
+
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const velocity = info.velocity.y;
     const currentY = info.point.y;
@@ -51,7 +63,7 @@ export default function YangoBottomSheet({
     let newPosition: SheetPosition;
     
     // Drag rapide : changement direct de position
-    if (Math.abs(velocity) > 500) {
+    if (Math.abs(velocity) > 700) {
       if (velocity < 0) {
         // Drag rapide vers le haut → Agrandir
         newPosition = sheetPosition === 'SMALL' ? 'MEDIUM' : 'LARGE';
@@ -77,6 +89,7 @@ export default function YangoBottomSheet({
     }
     
     setSheetPosition(newPosition);
+    triggerHaptic('light');
     onSheetPositionChange?.(SHEET_POSITIONS[newPosition]);
   };
 
@@ -94,29 +107,38 @@ export default function YangoBottomSheet({
     };
     const newPosition = nextPosition[sheetPosition];
     setSheetPosition(newPosition);
+    triggerHaptic('light');
     onSheetPositionChange?.(SHEET_POSITIONS[newPosition]);
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: bookingStep === 'vehicle' ? -100 : 100 }}
+      initial={{ opacity: 0, x: bookingStep === 'vehicle' ? -50 : 50 }}
       animate={{ 
         opacity: 1, 
         x: 0,
         height: SHEET_POSITIONS[sheetPosition],
-        y: 0
+        y: 0,
+        transition: {
+          height: { 
+            type: "spring",
+            damping: 40,
+            stiffness: 220,
+            mass: 0.8
+          }
+        }
       }}
       exit={{ opacity: 0, x: bookingStep === 'vehicle' ? 100 : -100 }}
       transition={{ 
         type: 'spring', 
-        damping: 30, 
-        stiffness: 300, 
-        mass: 0.5,
-        opacity: { duration: 0.2 }
+        damping: 40,
+        stiffness: 220,
+        mass: 0.8,
+        opacity: { duration: 0.3, ease: "easeOut" }
       }}
       drag="y"
       dragConstraints={{ top: 0, bottom: 0 }}
-      dragElastic={0.1}
+      dragElastic={{ top: 0.25, bottom: 0.15 }}
       onDragEnd={handleDragEnd}
       className="fixed bottom-0 left-0 right-0 z-20 bg-background rounded-t-3xl shadow-2xl overflow-hidden"
     >
@@ -128,15 +150,15 @@ export default function YangoBottomSheet({
         <div className="w-12 h-1.5 bg-border rounded-full"></div>
         <div className="flex gap-1.5 ml-3">
           <div className={cn(
-            "w-1.5 h-1.5 rounded-full transition-all duration-300",
+            "w-1.5 h-1.5 rounded-full transition-all duration-500 ease-out",
             sheetPosition === 'SMALL' ? 'bg-primary scale-125' : 'bg-muted'
           )} />
           <div className={cn(
-            "w-1.5 h-1.5 rounded-full transition-all duration-300",
+            "w-1.5 h-1.5 rounded-full transition-all duration-500 ease-out",
             sheetPosition === 'MEDIUM' ? 'bg-primary scale-125' : 'bg-muted'
           )} />
           <div className={cn(
-            "w-1.5 h-1.5 rounded-full transition-all duration-300",
+            "w-1.5 h-1.5 rounded-full transition-all duration-500 ease-out",
             sheetPosition === 'LARGE' ? 'bg-primary scale-125' : 'bg-muted'
           )} />
         </div>
@@ -146,6 +168,7 @@ export default function YangoBottomSheet({
       <div 
         className={cn(
           "px-3 sm:px-4 pb-6 overflow-y-auto transition-spacing duration-300",
+          "scroll-smooth overscroll-contain",
           sheetPosition === 'SMALL' && "pb-3 space-y-2",
           sheetPosition === 'MEDIUM' && "space-y-4 sm:space-y-5",
           sheetPosition === 'LARGE' && "pb-8 space-y-6"
