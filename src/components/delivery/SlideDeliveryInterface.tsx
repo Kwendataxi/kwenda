@@ -18,6 +18,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { z } from 'zod';
 import ContactsStep from './ContactsStep';
 import { universalGeolocation } from '@/services/universalGeolocation';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SlideDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
@@ -42,24 +43,24 @@ const SERVICE_TYPES = {
     icon: '⚡', 
     description: 'flash_desc',
     basePrice: 5000,
-    color: 'text-red-500',
-    gradient: 'from-red-500 to-orange-500'
+    color: 'text-red-400',
+    gradient: 'from-red-400/80 to-orange-400/80'
   },
   flex: { 
     name: 'Flex', 
     icon: '📦', 
     description: 'flex_desc',
     basePrice: 3000,
-    color: 'text-blue-500',
-    gradient: 'from-blue-500 to-cyan-500'
+    color: 'text-blue-400',
+    gradient: 'from-blue-400/80 to-cyan-400/80'
   },
   maxicharge: { 
     name: 'MaxiCharge', 
     icon: '🚚', 
     description: 'maxicharge_desc',
     basePrice: 8000,
-    color: 'text-purple-500',
-    gradient: 'from-purple-500 to-pink-500'
+    color: 'text-purple-400',
+    gradient: 'from-purple-400/80 to-pink-400/80'
   }
 };
 
@@ -442,84 +443,150 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
 
 
   const renderPickupStep = () => (
-    <div className="space-y-6 animate-fade-in">
-      <div className="text-center space-y-2">
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+      className="space-y-6"
+    >
+      <motion.div 
+        className="text-center space-y-2"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1, duration: 0.5 }}
+      >
+        <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto backdrop-blur-sm border border-primary/20 shadow-soft">
           <MapPin className="w-8 h-8 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground">{t('delivery.pickup_location')}</h2>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
+          {t('delivery.pickup_location')}
+        </h2>
         <p className="text-muted-foreground">{t('delivery.where_pickup')}</p>
-      </div>
+      </motion.div>
       
-      <AutocompleteLocationInput
-        placeholder={t('delivery.pickup_address')}
-        onChange={(location) => location && handleLocationSelect({
-          address: location.address,
-          lat: location.coordinates.lat,
-          lng: location.coordinates.lng,
-          type: 'google',
-          placeId: location.placeId,
-          name: location.name
-        }, 'pickup')}
-        className="h-12 text-lg bg-card border border-primary/30 focus:border-primary shadow-lg"
-        locationContext="pickup"
-        showRecentSearches={true}
-      />
-    </div>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.2, duration: 0.4 }}
+      >
+        <AutocompleteLocationInput
+          placeholder={t('delivery.pickup_address')}
+          onChange={(location) => location && handleLocationSelect({
+            address: location.address,
+            lat: location.coordinates.lat,
+            lng: location.coordinates.lng,
+            type: 'google',
+            placeId: location.placeId,
+            name: location.name
+          }, 'pickup')}
+          className="h-14 text-lg bg-white/50 dark:bg-gray-900/50 backdrop-blur-md 
+            border border-primary/20 focus:border-primary/60 
+            rounded-2xl shadow-soft hover:shadow-glow
+            transition-all duration-300 ease-out
+            placeholder:text-muted-foreground/60"
+          locationContext="pickup"
+          showRecentSearches={true}
+        />
+      </motion.div>
+    </motion.div>
   );
 
   const renderDestinationStep = () => (
-    <div className="space-y-6 animate-fade-in">
-      <div className="text-center space-y-2">
-        <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+      className="space-y-6"
+    >
+      <motion.div 
+        className="text-center space-y-2"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1, duration: 0.5 }}
+      >
+        <div className="w-16 h-16 bg-gradient-to-br from-secondary/20 to-secondary/10 rounded-2xl flex items-center justify-center mx-auto backdrop-blur-sm border border-secondary/20 shadow-soft">
           <Package className="w-8 h-8 text-secondary" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground">Point de livraison</h2>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground via-secondary to-foreground bg-clip-text text-transparent">
+          Point de livraison
+        </h2>
         <p className="text-muted-foreground">Où devons-nous livrer votre colis ?</p>
-      </div>
+      </motion.div>
       
-      <AutocompleteLocationInput
-        key={`delivery-${currentStep}`} // Force re-render pour réinitialiser
-        placeholder="Adresse de livraison"
-        onChange={(location) => location && handleLocationSelect({
-          address: location.address,
-          lat: location.coordinates.lat,
-          lng: location.coordinates.lng,
-          type: 'google',
-          placeId: location.placeId,
-          name: location.name
-        }, 'delivery')}
-        className="h-12 text-lg bg-card border border-primary/30 focus:border-primary shadow-lg"
-        locationContext="delivery"
-        showRecentSearches={false} // Pas de recherches récentes pour éviter la confusion
-      />
-    </div>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.2, duration: 0.4 }}
+      >
+        <AutocompleteLocationInput
+          key={`delivery-${currentStep}`}
+          placeholder="Adresse de livraison"
+          onChange={(location) => location && handleLocationSelect({
+            address: location.address,
+            lat: location.coordinates.lat,
+            lng: location.coordinates.lng,
+            type: 'google',
+            placeId: location.placeId,
+            name: location.name
+          }, 'delivery')}
+          className="h-14 text-lg bg-white/50 dark:bg-gray-900/50 backdrop-blur-md 
+            border border-primary/20 focus:border-primary/60 
+            rounded-2xl shadow-soft hover:shadow-glow
+            transition-all duration-300 ease-out
+            placeholder:text-muted-foreground/60"
+          locationContext="delivery"
+          showRecentSearches={false}
+        />
+      </motion.div>
+    </motion.div>
   );
 
   const renderServiceStep = () => (
-    <div className="space-y-6 animate-fade-in">
-      <div className="text-center space-y-2">
-        <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+      className="space-y-6"
+    >
+      <motion.div 
+        className="text-center space-y-2"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1, duration: 0.5 }}
+      >
+        <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/10 rounded-2xl flex items-center justify-center mx-auto backdrop-blur-sm border border-accent/20 shadow-soft">
           <Truck className="w-8 h-8 text-accent" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground">Type de service</h2>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground via-accent to-foreground bg-clip-text text-transparent">
+          Type de service
+        </h2>
         <p className="text-muted-foreground">Choisissez le service adapté à vos besoins</p>
-      </div>
+      </motion.div>
       
-      <div className="space-y-4">
-        {Object.entries(SERVICE_TYPES).map(([key, service]) => (
-          <div
+      <div className="space-y-3">
+        {Object.entries(SERVICE_TYPES).map(([key, service], index) => (
+          <motion.div
             key={key}
-            className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:scale-[1.02] animate-fadeIn ${
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 + index * 0.1, duration: 0.4 }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            className={`p-5 rounded-2xl cursor-pointer backdrop-blur-md transition-all duration-300 ${
               deliveryData.serviceType === key
-                ? 'border-primary bg-primary/5 shadow-glow'
-                : 'border-primary/20 bg-card hover:border-primary/50 hover:shadow-soft shadow-lg'
+                ? 'bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30 shadow-xl'
+                : 'bg-white/40 dark:bg-gray-900/40 border border-white/20 hover:border-primary/40 hover:shadow-glow shadow-soft'
             }`}
             onClick={() => setDeliveryData(prev => ({ ...prev, serviceType: key as any }))}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${service.gradient} flex items-center justify-center text-white text-xl`}>
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${service.gradient} 
+                  flex items-center justify-center text-white text-xl
+                  shadow-lg backdrop-blur-sm border border-white/20`}>
                   {service.icon}
                 </div>
                 <div>
@@ -532,42 +599,76 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
                 <div className="text-xs text-muted-foreground">+ distance</div>
               </div>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      <div className="space-y-3">
-        <Label htmlFor="packageType" className="text-sm font-medium">Type de colis</Label>
+      <motion.div 
+        className="space-y-3"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.4 }}
+      >
+        <Label htmlFor="packageType" className="text-sm font-medium bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+          Type de colis
+        </Label>
         <select
           id="packageType"
           value={deliveryData.packageType}
           onChange={(e) => setDeliveryData(prev => ({ ...prev, packageType: e.target.value }))}
-          className="w-full p-3 rounded-lg bg-card border border-primary/30 focus:border-primary text-foreground shadow-lg"
+          className="w-full p-3 rounded-2xl bg-white/50 dark:bg-gray-900/50 backdrop-blur-md 
+            border border-primary/20 focus:border-primary/60 text-foreground 
+            shadow-soft hover:shadow-glow transition-all duration-300"
         >
           {packageTypes.map(type => (
             <option key={type} value={type}>{type}</option>
           ))}
         </select>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 
   const renderConfirmStep = () => (
-    <div className="space-y-4 animate-fade-in">
-      <div className="text-center space-y-2">
-        <div className="w-12 h-12 bg-congo-green/10 rounded-full flex items-center justify-center mx-auto">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+      className="space-y-4"
+    >
+      <motion.div 
+        className="text-center space-y-2"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1, duration: 0.5 }}
+      >
+        <div className="w-12 h-12 bg-gradient-to-br from-green-400/20 to-green-600/10 rounded-2xl flex items-center justify-center mx-auto backdrop-blur-sm border border-green-400/20 shadow-soft">
           <Check className="w-6 h-6 text-congo-green" />
         </div>
-        <h2 className="text-xl font-bold text-foreground">Confirmation</h2>
+        <h2 className="text-xl font-bold bg-gradient-to-r from-foreground via-congo-green to-foreground bg-clip-text text-transparent">
+          Confirmation
+        </h2>
         <p className="text-sm text-muted-foreground">Vérifiez et validez votre commande</p>
-      </div>
+      </motion.div>
       
-      <div className="bg-card border border-primary/20 p-4 rounded-xl shadow-soft">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="bg-gradient-to-br from-white/60 via-white/40 to-transparent 
+          dark:from-gray-900/60 dark:via-gray-900/40 dark:to-transparent
+          backdrop-blur-lg border border-white/30 p-6 rounded-3xl shadow-xl"
+      >
         <div className="space-y-3">
-          {/* Itinéraire compact */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-congo-green rounded-full flex-shrink-0" />
+              <motion.div 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="w-3 h-3 bg-gradient-to-br from-green-400 to-green-600 
+                  rounded-full shadow-lg ring-2 ring-green-400/30 flex-shrink-0"
+              />
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-muted-foreground">Collecte</p>
                 <p className="text-sm font-medium truncate">{deliveryData.pickupLocation?.address}</p>
@@ -584,10 +685,16 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
               </div>
             </div>
             
-            <div className="ml-1 border-l border-dashed border-border h-3" />
+            <div className="ml-1.5 border-l-2 border-dashed border-border h-4" />
             
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-congo-red rounded-full flex-shrink-0" />
+              <motion.div 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+                className="w-3 h-3 bg-gradient-to-br from-red-400 to-red-600 
+                  rounded-full shadow-lg ring-2 ring-red-400/30 flex-shrink-0"
+              />
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-muted-foreground">Livraison</p>
                 <p className="text-sm font-medium truncate">{deliveryData.deliveryLocation?.address}</p>
@@ -605,8 +712,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             </div>
           </div>
           
-          {/* Détails en grille */}
-          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border text-sm">
+          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50 text-sm">
             <div>
               <p className="text-xs text-muted-foreground">Service</p>
               <p className="font-medium">{SERVICE_TYPES[deliveryData.serviceType].name}</p>
@@ -630,8 +736,8 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 
   const renderContactsStep = () => (
@@ -649,14 +755,30 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
   );
 
   const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 'pickup': return renderPickupStep();
-      case 'destination': return renderDestinationStep();
-      case 'contacts': return renderContactsStep();
-      case 'service': return renderServiceStep();
-      case 'confirm': return renderConfirmStep();
-      default: return renderPickupStep();
-    }
+    const content = (() => {
+      switch (currentStep) {
+        case 'pickup': return renderPickupStep();
+        case 'destination': return renderDestinationStep();
+        case 'contacts': return renderContactsStep();
+        case 'service': return renderServiceStep();
+        case 'confirm': return renderConfirmStep();
+        default: return renderPickupStep();
+      }
+    })();
+
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentStep}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        >
+          {content}
+        </motion.div>
+      </AnimatePresence>
+    );
   };
 
   return (
@@ -669,13 +791,17 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
             <div className="flex justify-between items-center mb-2">
               {['pickup', 'destination', 'contacts', 'service', 'confirm'].map((step, index) => (
                 <div key={step} className="flex items-center">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
-                      getStepNumber(currentStep) > index + 1 || isStepCompleted(step as Step)
-                        ? 'bg-primary text-primary-foreground'
-                        : getStepNumber(currentStep) === index + 1
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: index * 0.1, type: "spring", stiffness: 200 }}
+                    className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-semibold 
+                      transition-all duration-300 shadow-md ${
+                        getStepNumber(currentStep) > index + 1 || isStepCompleted(step as Step)
+                          ? 'bg-gradient-to-br from-primary to-primary/80 text-white scale-110 shadow-glow'
+                          : getStepNumber(currentStep) === index + 1
+                          ? 'bg-gradient-to-br from-primary to-primary/70 text-white shadow-xl ring-4 ring-primary/20'
+                          : 'bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm text-muted-foreground'
                     }`}
                   >
                     {getStepNumber(currentStep) > index + 1 || isStepCompleted(step as Step) ? (
@@ -683,12 +809,13 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
                     ) : (
                       index + 1
                     )}
-                  </div>
+                  </motion.div>
                   {index < 4 && (
-                    <div
-                      className={`w-12 h-0.5 transition-colors ${
-                        getStepNumber(currentStep) > index + 1 ? 'bg-primary' : 'bg-muted'
-                      }`}
+                    <motion.div
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: getStepNumber(currentStep) > index + 1 ? 1 : 0.3 }}
+                      transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+                      className="w-12 h-1 origin-left rounded-full bg-gradient-to-r from-primary to-primary/40"
                     />
                   )}
                 </div>
@@ -700,7 +827,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           </div>
 
           {/* Step Content optimisé pour mobile */}
-          <Card className="shadow-lg mb-6">
+          <Card className="shadow-xl bg-white/40 dark:bg-gray-900/40 backdrop-blur-md border-white/20 mb-6">
             <div className="p-6">
               {renderCurrentStep()}
             </div>
@@ -709,56 +836,92 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
       </div>
 
       {/* Navigation Footer SÉCURISÉ - toujours visible avec boutons centrés */}
-      <div className="sticky bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border/50 p-4 z-[60] shadow-2xl safe-area-padding">
+      <motion.div 
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="sticky bottom-0 left-0 right-0 
+          bg-gradient-to-t from-white/95 via-white/90 to-transparent 
+          dark:from-gray-950/95 dark:via-gray-950/90 dark:to-transparent
+          backdrop-blur-2xl border-t border-white/20 
+          p-5 z-[60] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] 
+          safe-area-padding"
+      >
         <div className="max-w-md mx-auto">
           <div className="flex items-center justify-center space-x-4 w-full">
             {/* Bouton gauche - Retour ou Annuler */}
             {currentStep === 'pickup' ? (
-              <Button
-                variant="outline"
-                onClick={onCancel}
-                className="flex-1 max-w-40 min-touch-target bg-muted/50 hover:bg-muted border-border"
-                disabled={isSubmitting}
-              >
-                Annuler
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1 max-w-40">
+                <Button
+                  variant="outline"
+                  onClick={onCancel}
+                  className="w-full h-12 min-touch-target 
+                    bg-white/60 dark:bg-gray-900/60 backdrop-blur-md 
+                    border border-primary/20 hover:border-primary/40 
+                    rounded-2xl shadow-soft hover:shadow-glow
+                    transition-all duration-300"
+                  disabled={isSubmitting}
+                >
+                  Annuler
+                </Button>
+              </motion.div>
             ) : (
-              <Button
-                variant="ghost"
-                onClick={handleBack}
-                className="flex-1 max-w-40 min-touch-target bg-muted/50 hover:bg-muted text-foreground"
-                disabled={isSubmitting}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Retour
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1 max-w-40">
+                <Button
+                  variant="ghost"
+                  onClick={handleBack}
+                  className="w-full h-12 min-touch-target 
+                    bg-white/60 dark:bg-gray-900/60 backdrop-blur-md 
+                    border border-primary/20 hover:border-primary/40 
+                    rounded-2xl shadow-soft hover:shadow-glow
+                    transition-all duration-300"
+                  disabled={isSubmitting}
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Retour
+                </Button>
+              </motion.div>
             )}
             
             {/* Bouton droite - Suivant ou Confirmer */}
             {currentStep !== 'confirm' ? (
-              <Button
-                onClick={handleNext}
-                className="flex-1 max-w-40 bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow hover:shadow-congo min-touch-target"
-                disabled={
-                  (currentStep === 'pickup' && !deliveryData.pickupLocation) || 
-                  (currentStep === 'destination' && !deliveryData.deliveryLocation)
-                }
-              >
-                <span>Suivant</span>
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1 max-w-40">
+                <Button
+                  onClick={handleNext}
+                  className="w-full h-12 min-touch-target 
+                    bg-gradient-to-r from-primary via-primary to-primary/90 
+                    hover:from-primary/90 hover:to-primary 
+                    rounded-2xl shadow-glow hover:shadow-xl
+                    transition-all duration-300 ring-2 ring-primary/20"
+                  disabled={
+                    (currentStep === 'pickup' && !deliveryData.pickupLocation) || 
+                    (currentStep === 'destination' && !deliveryData.deliveryLocation)
+                  }
+                >
+                  <span className="flex items-center gap-2">
+                    Suivant
+                    <ArrowRight className="w-4 h-4" />
+                  </span>
+                </Button>
+              </motion.div>
             ) : (
-              <Button
-                onClick={handleSubmit}
-                className="flex-1 max-w-40 bg-congo-green hover:bg-congo-green/90 text-white shadow-glow hover:shadow-congo min-touch-target"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Création...' : 'Confirmer'}
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1 max-w-40">
+                <Button
+                  onClick={handleSubmit}
+                  className="w-full h-12 min-touch-target 
+                    bg-gradient-to-r from-congo-green via-congo-green to-green-500 
+                    hover:from-green-500 hover:to-congo-green 
+                    rounded-2xl shadow-glow hover:shadow-xl
+                    transition-all duration-300 ring-2 ring-green-400/20"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Création...' : 'Confirmer'}
+                </Button>
+              </motion.div>
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

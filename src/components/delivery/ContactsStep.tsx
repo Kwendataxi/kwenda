@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { User, Phone, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface ContactsStepProps {
   senderName: string;
@@ -136,18 +137,35 @@ const ContactsStep: React.FC<ContactsStepProps> = ({
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="text-center space-y-2">
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+      className="space-y-6"
+    >
+      <motion.div 
+        className="text-center space-y-2"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1, duration: 0.5 }}
+      >
+        <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto backdrop-blur-sm border border-primary/20 shadow-soft">
           <User className="w-8 h-8 text-primary" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground">Informations de contact</h2>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
+          Informations de contact
+        </h2>
         <p className="text-muted-foreground">Qui envoie et reçoit ce colis ?</p>
-      </div>
+      </motion.div>
 
       {/* Expéditeur */}
-      <Card className="p-6 space-y-4 bg-card/50 border-primary/20">
-        <div className="flex items-center justify-between mb-4">
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
+        <Card className="p-6 space-y-4 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md border-primary/20 shadow-lg">
+          <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
             <User className="h-5 w-5 text-primary" />
             <span>Informations de l'expéditeur</span>
@@ -201,7 +219,7 @@ const ContactsStep: React.FC<ContactsStepProps> = ({
             value={senderName}
             onChange={(e) => onSenderNameChange(e.target.value)}
             className={cn(
-              "bg-background/50",
+              "bg-white/50 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl transition-all duration-300",
               senderName && !validateName(senderName) && "border-destructive"
             )}
             required
@@ -229,7 +247,7 @@ const ContactsStep: React.FC<ContactsStepProps> = ({
             value={senderPhone}
             onChange={handlePhoneChange(onSenderPhoneChange)}
             className={cn(
-              "bg-background/50",
+              "bg-white/50 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl transition-all duration-300",
               senderPhone && !validatePhone(senderPhone) && "border-destructive"
             )}
             required
@@ -239,13 +257,19 @@ const ContactsStep: React.FC<ContactsStepProps> = ({
               <X className="h-3 w-3" />
               Format invalide (ex: +243123456789)
             </p>
-          )}
-        </div>
-      </Card>
+            )}
+          </div>
+        </Card>
+      </motion.div>
 
       {/* Destinataire */}
-      <Card className="p-6 space-y-4 bg-card/50 border-secondary/20">
-        <div className="flex items-center gap-2 text-lg font-semibold text-foreground mb-4">
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
+        <Card className="p-6 space-y-4 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md border-secondary/20 shadow-lg">
+          <div className="flex items-center gap-2 text-lg font-semibold text-foreground mb-4">
           <User className="h-5 w-5 text-secondary" />
           <span>Informations du destinataire</span>
         </div>
@@ -286,7 +310,7 @@ const ContactsStep: React.FC<ContactsStepProps> = ({
             value={recipientName}
             onChange={(e) => onRecipientNameChange(e.target.value)}
             className={cn(
-              "bg-background/50",
+              "bg-white/50 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl transition-all duration-300",
               recipientName && !validateName(recipientName) && "border-destructive"
             )}
             required
@@ -314,7 +338,7 @@ const ContactsStep: React.FC<ContactsStepProps> = ({
             value={recipientPhone}
             onChange={handlePhoneChange(onRecipientPhoneChange)}
             className={cn(
-              "bg-background/50",
+              "bg-white/50 dark:bg-gray-900/50 backdrop-blur-md rounded-2xl transition-all duration-300",
               recipientPhone && !validatePhone(recipientPhone) && "border-destructive"
             )}
             required
@@ -324,14 +348,20 @@ const ContactsStep: React.FC<ContactsStepProps> = ({
               <X className="h-3 w-3" />
               Format invalide (ex: +243123456789)
             </p>
-          )}
-        </div>
-      </Card>
+            )}
+          </div>
+        </Card>
+      </motion.div>
 
-      <div className="text-center text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg">
+      <motion.div
+        className="text-center text-xs text-muted-foreground bg-gradient-to-r from-muted/40 via-muted/60 to-muted/40 backdrop-blur-sm p-3 rounded-2xl border border-border/20"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+      >
         💡 Le livreur pourra appeler ces numéros pour coordonner la collecte et la livraison
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
