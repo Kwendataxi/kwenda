@@ -166,7 +166,7 @@ export default function YangoVehicleSelector({
                     </AnimatePresence>
                     
                     {/* Badge Tarification - Base + Prix/km */}
-                    {distance > 0 && vehicle.basePrice && vehicle.pricePerKm && (
+                    {vehicle.basePrice && vehicle.pricePerKm && (
                       <motion.div
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: isSelected ? 1 : 0.92, opacity: 1 }}
