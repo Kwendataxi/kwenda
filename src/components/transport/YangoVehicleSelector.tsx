@@ -189,16 +189,6 @@ export default function YangoVehicleSelector({
                     >
                       {vehicle.name}
                     </motion.h3>
-                    
-                    {/* ETA uniquement */}
-                    {vehicle.eta > 0 && (
-                      <motion.p
-                        className={`text-xs mt-1 flex items-center gap-1 justify-center ${isSelected ? 'text-foreground/80' : 'text-muted-foreground/60'}`}
-                      >
-                        <Clock className="w-3 h-3" />
-                        {vehicle.eta} min
-                      </motion.p>
-                    )}
                   </div>
                 </motion.button>
               </div>

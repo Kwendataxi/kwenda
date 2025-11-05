@@ -9,6 +9,7 @@ import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useServiceNotifications } from '@/hooks/useServiceNotifications';
+import { useServiceTransition } from '@/hooks/useServiceTransition';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // ✅ PHASE 4: Lazy loading des composants lourds
@@ -33,6 +34,7 @@ export const ModernHomeScreen = memo(({
   const [moreServicesOpen, setMoreServicesOpen] = useState(false);
   const { unreadCount } = useRealtimeNotifications();
   const serviceNotifications = useServiceNotifications();
+  const { transitionToService } = useServiceTransition();
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -59,7 +61,7 @@ export const ModernHomeScreen = memo(({
   }, [primaryRole, roleLoading, navigate]);
 
   return (
-    <div className="h-full flex flex-col bg-background" style={{ scrollBehavior: 'smooth' }}>
+    <div className="h-full flex flex-col bg-background" data-page="home" style={{ scrollBehavior: 'smooth' }}>
       <ModernHeader />
       
       <div 
@@ -103,7 +105,7 @@ export const ModernHomeScreen = memo(({
                     if (service === 'more') {
                       setMoreServicesOpen(true);
                     } else {
-                      onServiceSelect(service);
+                      transitionToService(service);
                     }
                   }} 
                   serviceNotifications={serviceNotifications}

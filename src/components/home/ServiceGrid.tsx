@@ -4,6 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useServiceConfigurations } from '@/hooks/useServiceConfigurations';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface ServiceGridProps {
   onServiceSelect: (service: string) => void;
@@ -127,22 +128,36 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
           const notificationCount = serviceNotifications?.[service.id as keyof typeof serviceNotifications] || 0;
 
           return (
-            <button
+            <motion.button
               key={service.id}
               onClick={() => onServiceSelect(service.id)}
-              className="relative flex flex-col items-center gap-3 group transition-all duration-400 ease-out hover:scale-[1.06] active:scale-95 animate-fade-up"
-              style={{
-                animationDelay: `${index * 80}ms`,
+              className="relative flex flex-col items-center gap-3 group"
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ 
+                delay: index * 0.08,
+                type: "spring",
+                stiffness: 260,
+                damping: 20
               }}
+              whileHover={{ scale: 1.08, y: -4 }}
+              whileTap={{ scale: 0.95 }}
             >
               {/* Icon container - design doux amélioré */}
               <div
-                className="relative flex items-center justify-center w-20 h-20 rounded-[32px] shadow-[0_2px_8px_rgba(0,0,0,0.04),0_4px_16px_rgba(0,0,0,0.06)] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] transition-all duration-400 ease-out group-hover:-translate-y-1 group-hover:rotate-3 group-active:translate-y-0 group-active:rotate-0 will-change-transform"
+                className="relative flex items-center justify-center w-24 h-24 rounded-[32px] shadow-[0_4px_12px_rgba(0,0,0,0.08),0_8px_24px_rgba(0,0,0,0.12)] group-hover:shadow-[0_6px_20px_rgba(0,0,0,0.12),0_12px_32px_rgba(0,0,0,0.16)] transition-all duration-400 ease-out will-change-transform"
                 style={{
-                  background: serviceColors[service.id] || serviceColors.transport
+                  background: serviceColors[service.id] || serviceColors.transport,
+                  boxShadow: 'inset 0 2px 8px rgba(255,255,255,0.15)'
                 }}
               >
-                <Icon className="w-11 h-11 text-white transition-all duration-400 ease-out group-hover:rotate-6 group-hover:scale-110" strokeWidth={2.5} />
+                <Icon 
+                  className="w-14 h-14 text-white transition-all duration-400 ease-out group-hover:rotate-6 group-hover:scale-110" 
+                  strokeWidth={1.8}
+                  style={{
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                  }}
+                />
                 
                 {/* Notification badge */}
                 {notificationCount > 0 && (
@@ -156,7 +171,7 @@ export const ServiceGrid = ({ onServiceSelect, serviceNotifications }: ServiceGr
               <span className="text-[15px] font-extrabold text-center leading-tight text-foreground tracking-[-0.01em] transition-all duration-300 group-hover:text-primary group-hover:scale-105">
                 {service.name}
               </span>
-            </button>
+            </motion.button>
           );
         })}
       </div>
