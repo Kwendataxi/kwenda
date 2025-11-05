@@ -11,6 +11,13 @@ interface PerformanceOptimizerProps {
 }
 
 export const PerformanceOptimizer: React.FC<PerformanceOptimizerProps> = ({ children }) => {
+  // ✅ PHASE 3B: Ne rien faire en production (pas d'overhead)
+  const IS_PRODUCTION = import.meta.env.PROD;
+  
+  if (IS_PRODUCTION) {
+    return <>{children}</>;
+  }
+  
   const { 
     optimizations, 
     metrics,

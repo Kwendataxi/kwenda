@@ -18,6 +18,39 @@ interface PerformanceOptimizations {
 }
 
 export const usePerformanceMonitor = () => {
+  // ✅ PHASE 3A: Désactiver complètement en production
+  const IS_PRODUCTION = import.meta.env.PROD;
+  
+  if (IS_PRODUCTION) {
+    return {
+      metrics: {
+        loadTime: 0,
+        renderTime: 0,
+        memoryUsage: 0,
+        connectionSpeed: 'fast' as const,
+        batteryLevel: 100,
+        isLowPowerMode: false
+      },
+      optimizations: {
+        reducedAnimations: false,
+        compressedImages: false,
+        lazyLoading: true,
+        cacheEnabled: true,
+        offlineMode: false
+      },
+      performanceScore: 100,
+      enableOptimization: () => {},
+      disableOptimization: () => {},
+      autoOptimize: () => {},
+      measureLoadTime: () => {},
+      measureRenderTime: () => () => {},
+      isSlowConnection: false,
+      isOffline: false,
+      isLowMemory: false,
+      isLowBattery: false
+    };
+  }
+  
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
     loadTime: 0,
     renderTime: 0,

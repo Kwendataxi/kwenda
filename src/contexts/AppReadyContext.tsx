@@ -37,21 +37,19 @@ export const AppReadyProvider = ({ children, initialSession }: AppReadyProviderP
   const [user, setUser] = useState<User | null>(initialSession?.user ?? null);
   const [session, setSession] = useState<Session | null>(initialSession ?? null);
 
-  // ✅ Timeout de sécurité pour éviter les blocages infinis
+  // ✅ PHASE 2A: Timeout optimiste réduit à 1 seconde (au lieu de 5s)
   useEffect(() => {
-    const safetyTimeout = setTimeout(() => {
-      if (!sessionReady || !contentReady) {
-        console.warn('⚠️ [AppReady] Safety timeout triggered - forcing ready state');
+    const quickCheck = setTimeout(() => {
+      // Si pas de session après 1 seconde, considérer comme "non connecté"
+      if (!sessionReady && !session) {
+        console.log('✅ [AppReady] Pas de session détectée, mode anonyme');
         setSessionReady(true);
         setContentReady(true);
-        if (!userRole && user) {
-          setUserRole('client'); // Fallback par défaut
-        }
       }
-    }, 5000); // 5 secondes max
+    }, 1000); // 1 seconde seulement (au lieu de 5s)
 
-    return () => clearTimeout(safetyTimeout);
-  }, [sessionReady, contentReady, userRole, user]);
+    return () => clearTimeout(quickCheck);
+  }, [sessionReady, session]);
 
   // Charger la session et le rôle en parallèle
   useEffect(() => {
@@ -65,21 +63,20 @@ export const AppReadyProvider = ({ children, initialSession }: AppReadyProviderP
 
           if (initialSession.user) {
             try {
-              const { data: roleData, error: roleError } = await supabase.rpc('get_current_user_role');
+              // ✅ PHASE 2B: Utiliser Promise.race pour timeout 2 secondes max
+              const rolePromise = supabase.rpc('get_current_user_role');
+              const timeoutPromise = new Promise<{ data: string }>((resolve) => 
+                setTimeout(() => resolve({ data: 'client' }), 2000)
+              );
+              
+              const { data: roleData, error: roleError } = await Promise.race([
+                rolePromise,
+                timeoutPromise
+              ]) as any;
               
               if (roleError) {
                 console.error('❌ [AppReady] RPC Error:', roleError);
-                // Fallback sur user_roles
-                const { data: fallbackRoles } = await supabase
-                  .from('user_roles')
-                  .select('role')
-                  .eq('user_id', initialSession.user.id)
-                  .eq('is_active', true)
-                  .order('created_at', { ascending: false })
-                  .limit(1)
-                  .single();
-                
-                setUserRole(fallbackRoles?.role || 'client');
+                setUserRole('client'); // Fallback direct
               } else {
                 setUserRole(roleData || 'client');
               }
@@ -98,23 +95,23 @@ export const AppReadyProvider = ({ children, initialSession }: AppReadyProviderP
         setUser(currentSession?.user ?? null);
         setSessionReady(true);
 
-        // Charger le rôle si connecté
+        // Charger le rôle si connecté avec timeout
         if (currentSession?.user) {
           try {
-            const { data: roleData, error: roleError } = await supabase.rpc('get_current_user_role');
+            // ✅ PHASE 2B: Promise.race avec timeout 2s
+            const rolePromise = supabase.rpc('get_current_user_role');
+            const timeoutPromise = new Promise<{ data: string }>((resolve) => 
+              setTimeout(() => resolve({ data: 'client' }), 2000)
+            );
+            
+            const { data: roleData, error: roleError } = await Promise.race([
+              rolePromise,
+              timeoutPromise
+            ]) as any;
             
             if (roleError) {
               console.error('❌ [AppReady] RPC Error:', roleError);
-              const { data: fallbackRoles } = await supabase
-                .from('user_roles')
-                .select('role')
-                .eq('user_id', currentSession.user.id)
-                .eq('is_active', true)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single();
-              
-              setUserRole(fallbackRoles?.role || 'client');
+              setUserRole('client'); // Fallback direct
             } else {
               setUserRole(roleData || 'client');
             }
@@ -142,20 +139,20 @@ export const AppReadyProvider = ({ children, initialSession }: AppReadyProviderP
 
       if (currentSession?.user) {
         try {
-          const { data: roleData, error: roleError } = await supabase.rpc('get_current_user_role');
+          // ✅ PHASE 2B: Promise.race avec timeout 2s
+          const rolePromise = supabase.rpc('get_current_user_role');
+          const timeoutPromise = new Promise<{ data: string }>((resolve) => 
+            setTimeout(() => resolve({ data: 'client' }), 2000)
+          );
+          
+          const { data: roleData, error: roleError } = await Promise.race([
+            rolePromise,
+            timeoutPromise
+          ]) as any;
           
           if (roleError) {
             console.error('❌ [AppReady] RPC Error:', roleError);
-            const { data: fallbackRoles } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', currentSession.user.id)
-              .eq('is_active', true)
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .single();
-            
-            setUserRole(fallbackRoles?.role || 'client');
+            setUserRole('client'); // Fallback direct
           } else {
             setUserRole(roleData || 'client');
           }

@@ -600,7 +600,7 @@ const buildReadableAddress = (addressComponents: any[]): string => {
   return parts.join(', ') || 'Position non identifiée';
 };
 
-// Géocodage inverse amélioré avec détection de Plus Codes
+  // Géocodage inverse amélioré avec détection de Plus Codes
 const reverseGeocodeEnhanced = async (lat: number, lng: number, region?: string): Promise<string> => {
   try {
     const cacheKey = `reverse-${lat.toFixed(6)}-${lng.toFixed(6)}-${region || 'default'}`;
@@ -612,61 +612,73 @@ const reverseGeocodeEnhanced = async (lat: number, lng: number, region?: string)
 
     console.log('🔍 Géocodage inverse pour:', { lat, lng, region });
 
-    // Forcer l'utilisation de Google Maps avec language=fr
-    const { data, error } = await supabase.functions.invoke('geocode-proxy', {
-      body: { 
-        query: `${lat},${lng}`,
-        region: region || getCurrentCity()?.region || 'CD',
-        language: 'fr'
+    // ✅ PHASE 1A: Timeout strict de 3 secondes max
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), 3000);
+
+    try {
+      // Forcer l'utilisation de Google Maps avec language=fr
+      const { data, error } = await supabase.functions.invoke('geocode-proxy', {
+        body: { 
+          query: `${lat},${lng}`,
+          region: region || getCurrentCity()?.region || 'CD',
+          language: 'fr'
+        }
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (error) {
+        console.error('❌ Erreur geocode-proxy:', error);
+        throw error;
       }
-    });
 
-    if (error) {
-      console.error('❌ Erreur geocode-proxy:', error);
-      throw error;
-    }
-
-    // Extraire et valider l'adresse Google Maps
-    if (data?.results && data.results.length > 0) {
-      const result = data.results[0];
-      let address = result.formatted_address || '';
-      
-      console.log('📍 Adresse Google reçue:', address);
-      
-      // Vérifier si c'est une vraie adresse (pas un Plus Code)
-      if (!isValidRealAddress(address)) {
-        console.log('⚠️ Adresse invalide, construction manuelle...');
+      // Extraire et valider l'adresse Google Maps
+      if (data?.results && data.results.length > 0) {
+        const result = data.results[0];
+        let address = result.formatted_address || '';
         
-        // Construire manuellement l'adresse avec address_components
-        if (result.address_components && result.address_components.length > 0) {
-          address = buildReadableAddress(result.address_components);
-          console.log('✅ Adresse construite:', address);
+        console.log('📍 Adresse Google reçue:', address);
+        
+        // Vérifier si c'est une vraie adresse (pas un Plus Code)
+        if (!isValidRealAddress(address)) {
+          console.log('⚠️ Adresse invalide, construction manuelle...');
+          
+          // Construire manuellement l'adresse avec address_components
+          if (result.address_components && result.address_components.length > 0) {
+            address = buildReadableAddress(result.address_components);
+            console.log('✅ Adresse construite:', address);
+          }
+        }
+        
+        // Vérifier une dernière fois
+        if (isValidRealAddress(address)) {
+          cache.set(cacheKey, {
+            data: address,
+            timestamp: Date.now()
+          });
+          console.log('✅ Adresse valide retournée:', address);
+          return address;
         }
       }
+
+      // Fallback intelligent basé sur la région
+      const city = getCurrentCity();
+      const fallbackAddress = city ? 
+        `Proche de ${city.name}, ${city.region}` : 
+        `Position géographique (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
       
-      // Vérifier une dernière fois
-      if (isValidRealAddress(address)) {
-        cache.set(cacheKey, {
-          data: address,
-          timestamp: Date.now()
-        });
-        console.log('✅ Adresse valide retournée:', address);
-        return address;
-      }
+      cache.set(cacheKey, {
+        data: fallbackAddress,
+        timestamp: Date.now()
+      });
+
+      return fallbackAddress;
+    } catch (timeoutError) {
+      clearTimeout(timeoutId);
+      console.log('⏱️ Géocodage timeout 3s, fallback immédiat');
+      throw new Error('Geocoding timeout');
     }
-
-    // Fallback intelligent basé sur la région
-    const city = getCurrentCity();
-    const fallbackAddress = city ? 
-      `Proche de ${city.name}, ${city.region}` : 
-      `Position géographique (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
-    
-    cache.set(cacheKey, {
-      data: fallbackAddress,
-      timestamp: Date.now()
-    });
-
-    return fallbackAddress;
   } catch (error: any) {
     console.error('❌ Erreur géocodage inverse:', error);
     
@@ -682,14 +694,13 @@ const reverseGeocodeEnhanced = async (lat: number, lng: number, region?: string)
 
 // 🎯 GPS ULTRA-RAPIDE avec retry intelligent (optimisé)
 async function getGPSPositionWithRetry(options: PositionOptions): Promise<LocationData> {
-  const maxAttempts = 3; // Réduit de 5 à 3 tentatives
+  const maxAttempts = 2; // ✅ PHASE 1B: Réduit à 2 tentatives (au lieu de 3)
   let lastError: Error | null = null;
   
-  // Configurations de retry progressives RAPIDES
+  // ✅ PHASE 1B: Configurations de retry ULTRA-RAPIDES avec cache 1min
   const retryConfigs = [
-    { enableHighAccuracy: true, timeout: 5000, maximumAge: 30000 }, // Tentative 1: 5s, cache 30s
-    { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 }, // Tentative 2: 8s, cache 30s
-    { enableHighAccuracy: false, timeout: 12000, maximumAge: 30000 }, // Tentative 3: 12s max, précision normale
+    { enableHighAccuracy: true, timeout: 3000, maximumAge: 60000 }, // Tentative 1: 3s, cache 1min
+    { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }, // Tentative 2: 5s fallback rapide
   ];
   
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -704,38 +715,32 @@ async function getGPSPositionWithRetry(options: PositionOptions): Promise<Locati
       const accuracy = position.accuracy || 999;
       console.log(`✅ GPS obtenu avec précision: ${Math.round(accuracy)}m`);
       
-      // Accepter si précision < 100m
-      if (accuracy < 100) {
-        console.log(`✅ Précision excellente (${Math.round(accuracy)}m), position acceptée`);
+        // ✅ PHASE 1C: Accepter précision raisonnable jusqu'à 500m (pas de géocodage si > 500m)
+      if (accuracy < 500) {
+        console.log(`✅ Précision acceptable (${Math.round(accuracy)}m), position acceptée`);
         return position;
       }
       
-      // Accepter si précision < 200m après 3 tentatives
-      if (attempt >= 2 && accuracy < 200) {
-        console.log(`⚠️ Précision acceptable (${Math.round(accuracy)}m) après ${attempt + 1} tentatives`);
-        return position;
-      }
+      // Si précision > 500m, rejeter pour éviter géocodage lent
+      console.log(`⚠️ Précision GPS insuffisante (${Math.round(accuracy)}m) - fallback IP direct`);
+      lastError = new Error(`GPS précision insuffisante: ${Math.round(accuracy)}m`);
       
-      // Continuer le retry si pas assez précis
-      console.log(`⚠️ Précision insuffisante (${Math.round(accuracy)}m), retry...`);
-      lastError = new Error(`Précision insuffisante: ${Math.round(accuracy)}m`);
-      
-      // Attendre un peu avant retry
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Attendre moins avant retry (500ms au lieu de 2s)
+      await new Promise(resolve => setTimeout(resolve, 500));
       
     } catch (error) {
       lastError = error instanceof Error ? error : new Error('Erreur GPS inconnue');
       console.log(`❌ Tentative ${attempt + 1} échouée:`, lastError.message);
       
-      // Attendre avant retry
+      // Attendre moins avant retry (500ms au lieu de 1s)
       if (attempt < maxAttempts - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
   }
   
   // Toutes les tentatives ont échoué
-  throw lastError || new Error('GPS indisponible après 5 tentatives');
+  throw lastError || new Error('GPS indisponible après 2 tentatives');
 }
 
 async function getGPSPosition(options: PositionOptions): Promise<LocationData> {
