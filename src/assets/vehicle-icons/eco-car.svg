@@ -71,6 +71,6 @@
     <!-- Badge ECO 3D -->
     <circle cx="70" cy="52" r="7" fill="#34D399" stroke="#047857" stroke-width="2"/>
     <circle cx="70" cy="52" r="5.5" fill="#10B981"/>
-    <text x="70" y="56" text-anchor="middle" font-size="8" font-weight="bold" fill="#FFFFFF">E</text>
+    <circle cx="70" cy="54" r="2.5" fill="#FFFFFF"/>
   </g>
 </svg>

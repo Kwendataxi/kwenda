@@ -164,7 +164,7 @@ export default function YangoBottomSheet({
       animate={{ 
         opacity: 1, 
         x: 0,
-        y: SHEET_POSITIONS.LARGE - SHEET_POSITIONS[sheetPosition],
+        y: SHEET_POSITIONS[sheetPosition] - SHEET_POSITIONS.LARGE,
         transition: {
           y: { 
             type: "spring",
@@ -185,8 +185,8 @@ export default function YangoBottomSheet({
       layout={false}
       drag={isDraggable ? "y" : false}
       dragConstraints={{ 
-        top: 0,
-        bottom: SHEET_POSITIONS.LARGE - SHEET_POSITIONS.COLLAPSED
+        top: -(SHEET_POSITIONS.LARGE - SHEET_POSITIONS.COLLAPSED),
+        bottom: 0
       }}
       dragElastic={{ top: 0.1, bottom: 0.05 }}
       onDragEnd={handleDragEnd}
