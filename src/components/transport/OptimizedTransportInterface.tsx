@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Car, Clock, MapPin, Star, Users, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ModernVehicleSelector } from './ModernVehicleSelector';
+import YangoVehicleSelector from './YangoVehicleSelector';
 
 interface OptimizedTransportInterfaceProps {
   onNavigate: (path: string) => void;
@@ -180,8 +180,8 @@ const OptimizedTransportInterface: React.FC<OptimizedTransportInterfaceProps> = 
         </TabsList>
 
         <TabsContent value="book" className="space-y-4 md:space-y-6 mt-4">
-          {/* Modern Vehicle Selector */}
-          <ModernVehicleSelector
+          {/* Yango Vehicle Selector */}
+          <YangoVehicleSelector
             distance={5}
             onVehicleSelect={(vehicle) => {
               setSelectedVehicle(vehicle.id);

@@ -1,7 +1,6 @@
 import { motion, PanInfo } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import CompactVehicleSelector from './CompactVehicleSelector';
-import ModernVehicleCarousel from './ModernVehicleCarousel';
+import YangoVehicleSelector from './YangoVehicleSelector';
 import DestinationSearchBar from './DestinationSearchBar';
 import PopularPlacesList from './PopularPlacesList';
 import { useWindowSize } from '@/hooks/useWindowSize';
@@ -192,11 +191,11 @@ export default function YangoBottomSheet({
             transition={{ delay: 0.1 }}
             className="space-y-5"
           >
-            <CompactVehicleSelector
-              selected={selectedVehicle}
-              onSelect={onVehicleSelect}
-              city={city}
+            <YangoVehicleSelector
+              selectedVehicleId={selectedVehicle}
+              onVehicleSelect={(vehicle) => onVehicleSelect(vehicle.id)}
               distance={distance}
+              city={city}
             />
           </motion.div>
         )}
