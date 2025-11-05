@@ -146,7 +146,7 @@ export const usePriceEstimator = (service_type: ServiceCategory, vehicle_class: 
       standard: { base: 3200, perKm: 1800 },
       premium: { base: 4300, perKm: 2300 },
       first_class: { base: 4300, perKm: 2300 },
-      flash: { base: 7000, perKm: 500 },
+      flash: { base: 5000, perKm: 1000 }, // ✅ Corrigé : 5000 au lieu de 7000
       flex: { base: 55000, perKm: 2500 },
       maxicharge: { base: 100000, perKm: 5000 }
     };

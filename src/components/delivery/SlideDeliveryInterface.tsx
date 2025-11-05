@@ -20,6 +20,7 @@ import ContactsStep from './ContactsStep';
 import { universalGeolocation } from '@/services/universalGeolocation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logger } from '@/utils/logger';
+import { useDeliveryPricing } from '@/hooks/useDeliveryPricing';
 
 interface SlideDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
@@ -38,12 +39,12 @@ interface DeliveryData {
   recipientPhone: string;
 }
 
+// ✅ Prix retirés - désormais récupérés depuis pricing_rules via useDeliveryPricing
 const SERVICE_TYPES = {
   flash: { 
     name: 'Flash', 
     icon: '⚡', 
     description: 'flash_desc',
-    basePrice: 5000,
     color: 'text-red-400',
     gradient: 'from-red-400/80 to-orange-400/80'
   },
@@ -51,7 +52,6 @@ const SERVICE_TYPES = {
     name: 'Flex', 
     icon: '📦', 
     description: 'flex_desc',
-    basePrice: 3000,
     color: 'text-blue-400',
     gradient: 'from-blue-400/80 to-cyan-400/80'
   },
@@ -59,7 +59,6 @@ const SERVICE_TYPES = {
     name: 'MaxiCharge', 
     icon: '🚚', 
     description: 'maxicharge_desc',
-    basePrice: 8000,
     color: 'text-purple-400',
     gradient: 'from-purple-400/80 to-pink-400/80'
   }
@@ -92,6 +91,9 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
   const { user } = useAuth();
   const contactSchema = getContactSchema(t);
   const packageTypes = getPackageTypes(t);
+  
+  // ✅ Hook unifié pour tarification avec realtime
+  const { calculateDeliveryPrice, getServicePricing, isLoading: isPricingLoading } = useDeliveryPricing();
   
   const [currentStep, setCurrentStep] = useState<Step>('pickup');
   const [deliveryData, setDeliveryData] = useState<DeliveryData>({
@@ -132,21 +134,30 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     return `${(meters / 1000).toFixed(1)}km`;
   };
 
-  // Calculer le prix quand les locations changent
+  // ✅ Calculer le prix avec les vrais tarifs de l'admin
   useEffect(() => {
     if (deliveryData.pickupLocation && deliveryData.deliveryLocation) {
-      const distance = calculateDistance(
+      const distanceMeters = calculateDistance(
         deliveryData.pickupLocation,
         deliveryData.deliveryLocation
       );
+      const distanceKm = distanceMeters / 1000;
       
-      const basePrice = SERVICE_TYPES[deliveryData.serviceType].basePrice;
-      const distancePrice = Math.max(0, (distance / 1000 - 1)) * 500; // 500 CDF par km après le premier
-      const estimatedPrice = Math.round(basePrice + distancePrice);
+      // Utiliser le hook de tarification unifié
+      const priceCalculation = calculateDeliveryPrice(deliveryData.serviceType, distanceKm);
       
-      setDeliveryData(prev => ({ ...prev, estimatedPrice }));
+      logger.info('💰 Prix de livraison calculé', {
+        serviceType: deliveryData.serviceType,
+        distance: `${distanceKm.toFixed(2)} km`,
+        basePrice: priceCalculation.basePrice,
+        pricePerKm: priceCalculation.pricePerKm,
+        totalPrice: priceCalculation.totalPrice,
+        source: priceCalculation.source
+      });
+      
+      setDeliveryData(prev => ({ ...prev, estimatedPrice: priceCalculation.totalPrice }));
     }
-  }, [deliveryData.pickupLocation, deliveryData.deliveryLocation, deliveryData.serviceType]);
+  }, [deliveryData.pickupLocation, deliveryData.deliveryLocation, deliveryData.serviceType, calculateDeliveryPrice]);
 
   const handleLocationSelect = async (location: LocationData, type: 'pickup' | 'delivery') => {
     logger.debug(`Location sélectionnée [${type}]`, location);
@@ -522,40 +533,45 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
       </motion.div>
       
       <div className="space-y-3">
-        {Object.entries(SERVICE_TYPES).map(([key, service], index) => (
-          <motion.div
-            key={key}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 + index * 0.1, duration: 0.4 }}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            className={`p-5 rounded-2xl cursor-pointer backdrop-blur-md transition-all duration-300 ${
-              deliveryData.serviceType === key
-                ? 'bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30 shadow-xl'
-                : 'bg-white/40 dark:bg-gray-900/40 border border-white/20 hover:border-primary/40 hover:shadow-glow shadow-soft'
-            }`}
-            onClick={() => setDeliveryData(prev => ({ ...prev, serviceType: key as any }))}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${service.gradient} 
-                  flex items-center justify-center text-white text-xl
-                  shadow-lg backdrop-blur-sm border border-white/20`}>
-                  {service.icon}
+        {Object.entries(SERVICE_TYPES).map(([key, service], index) => {
+          // ✅ Récupérer le vrai tarif depuis l'admin
+          const servicePricing = getServicePricing(key as 'flash' | 'flex' | 'maxicharge');
+          
+          return (
+            <motion.div
+              key={key}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 + index * 0.1, duration: 0.4 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              className={`p-5 rounded-2xl cursor-pointer backdrop-blur-md transition-all duration-300 ${
+                deliveryData.serviceType === key
+                  ? 'bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30 shadow-xl'
+                  : 'bg-white/40 dark:bg-gray-900/40 border border-white/20 hover:border-primary/40 hover:shadow-glow shadow-soft'
+              }`}
+              onClick={() => setDeliveryData(prev => ({ ...prev, serviceType: key as any }))}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${service.gradient} 
+                    flex items-center justify-center text-white text-xl
+                    shadow-lg backdrop-blur-sm border border-white/20`}>
+                    {service.icon}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground">{service.name}</div>
+                    <div className="text-sm text-muted-foreground">{t(`delivery.${service.description}`)}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="font-semibold text-foreground">{service.name}</div>
-                  <div className="text-sm text-muted-foreground">{t(`delivery.${service.description}`)}</div>
+                <div className="text-right">
+                  <div className="font-bold text-foreground">{servicePricing.basePrice.toLocaleString()} CDF</div>
+                  <div className="text-xs text-muted-foreground">+ {servicePricing.pricePerKm} CDF/km</div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="font-bold text-foreground">{service.basePrice.toLocaleString()} CDF</div>
-                <div className="text-xs text-muted-foreground">+ distance</div>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          );
+        })}
       </div>
 
       <motion.div 
