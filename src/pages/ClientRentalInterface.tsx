@@ -10,7 +10,7 @@ import {
   Search, Car, User, Users, Settings, MapPin, 
   Calendar as CalendarIcon
 } from 'lucide-react';
-import { RentalPromoSlider } from '@/components/rental/RentalPromoSlider';
+import { AutoHideRentalPromoSlider } from '@/components/rental/AutoHideRentalPromoSlider';
 import { RentalCategoryBar } from '@/components/rental/RentalCategoryBar';
 import { getVehicleImage, getVehicleGradient } from '@/utils/vehicleFallbackImages';
 import { getCategoryTheme } from '@/utils/categoryThemes';
@@ -129,9 +129,9 @@ export const ClientRentalInterface = () => {
         </div>
       </div>
 
-      {/* Slider publicitaire */}
+      {/* Slider publicitaire auto-hide */}
       <div className="max-w-7xl mx-auto px-3 pt-4">
-        <RentalPromoSlider />
+        <AutoHideRentalPromoSlider />
       </div>
 
       {/* Barre de catégories moderne */}
@@ -166,7 +166,7 @@ export const ClientRentalInterface = () => {
       </div>
 
       {/* Liste des véhicules */}
-      <div className="max-w-7xl mx-auto px-3 pb-6">
+      <div className="max-w-7xl mx-auto px-3 pb-6 pt-2">
         {filteredVehicles.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
             <div className="mb-4 p-6 bg-muted rounded-full">
