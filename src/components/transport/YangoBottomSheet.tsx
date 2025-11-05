@@ -1,5 +1,5 @@
 import { motion, PanInfo } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CompactVehicleSelector from './CompactVehicleSelector';
 import DestinationSearchBar from './DestinationSearchBar';
 import PopularPlacesList from './PopularPlacesList';
@@ -17,6 +17,7 @@ interface YangoBottomSheetProps {
   onPlaceSelect: (place: any) => void;
   onSearchFocus: () => void;
   hasDestination?: boolean;
+  onSheetPositionChange?: (height: number) => void;
 }
 
 type SheetPosition = 'SMALL' | 'MEDIUM' | 'LARGE';
@@ -29,7 +30,8 @@ export default function YangoBottomSheet({
   city,
   popularPlaces,
   onPlaceSelect,
-  onSearchFocus
+  onSearchFocus,
+  onSheetPositionChange
 }: YangoBottomSheetProps) {
   const { height: windowHeight } = useWindowSize();
   const [sheetPosition, setSheetPosition] = useState<SheetPosition>('MEDIUM');
@@ -45,33 +47,42 @@ export default function YangoBottomSheet({
     const velocity = info.velocity.y;
     const currentY = info.point.y;
     
+    let newPosition: SheetPosition;
+    
     // Drag rapide : changement direct de position
     if (Math.abs(velocity) > 500) {
       if (velocity < 0) {
         // Drag rapide vers le haut → Agrandir
-        setSheetPosition(sheetPosition === 'SMALL' ? 'MEDIUM' : 'LARGE');
+        newPosition = sheetPosition === 'SMALL' ? 'MEDIUM' : 'LARGE';
       } else {
         // Drag rapide vers le bas → Réduire
-        setSheetPosition(sheetPosition === 'LARGE' ? 'MEDIUM' : 'SMALL');
+        newPosition = sheetPosition === 'LARGE' ? 'MEDIUM' : 'SMALL';
       }
-      return;
+    } else {
+      // Snap vers la position la plus proche
+      const positions = [
+        { name: 'LARGE' as SheetPosition, value: SHEET_POSITIONS.LARGE },
+        { name: 'MEDIUM' as SheetPosition, value: SHEET_POSITIONS.MEDIUM },
+        { name: 'SMALL' as SheetPosition, value: SHEET_POSITIONS.SMALL }
+      ];
+      
+      const closest = positions.reduce((prev, curr) => {
+        const prevDiff = Math.abs(currentY - (windowHeight - prev.value));
+        const currDiff = Math.abs(currentY - (windowHeight - curr.value));
+        return currDiff < prevDiff ? curr : prev;
+      });
+      
+      newPosition = closest.name;
     }
     
-    // Snap vers la position la plus proche
-    const positions = [
-      { name: 'LARGE' as SheetPosition, value: SHEET_POSITIONS.LARGE },
-      { name: 'MEDIUM' as SheetPosition, value: SHEET_POSITIONS.MEDIUM },
-      { name: 'SMALL' as SheetPosition, value: SHEET_POSITIONS.SMALL }
-    ];
-    
-    const closest = positions.reduce((prev, curr) => {
-      const prevDiff = Math.abs(currentY - (windowHeight - prev.value));
-      const currDiff = Math.abs(currentY - (windowHeight - curr.value));
-      return currDiff < prevDiff ? curr : prev;
-    });
-    
-    setSheetPosition(closest.name);
+    setSheetPosition(newPosition);
+    onSheetPositionChange?.(SHEET_POSITIONS[newPosition]);
   };
+
+  // Notifier la hauteur initiale au montage
+  useEffect(() => {
+    onSheetPositionChange?.(SHEET_POSITIONS[sheetPosition]);
+  }, [sheetPosition, onSheetPositionChange]);
 
   // Double tap sur la barre pour changer de position
   const handleBarDoubleClick = () => {
@@ -80,7 +91,9 @@ export default function YangoBottomSheet({
       MEDIUM: 'LARGE',
       LARGE: 'SMALL'
     };
-    setSheetPosition(nextPosition[sheetPosition]);
+    const newPosition = nextPosition[sheetPosition];
+    setSheetPosition(newPosition);
+    onSheetPositionChange?.(SHEET_POSITIONS[newPosition]);
   };
 
   return (

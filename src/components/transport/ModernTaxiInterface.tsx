@@ -29,6 +29,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [routeData, setRouteData] = useState<any>(null);
   const [calculatingRoute, setCalculatingRoute] = useState(false);
   const [manualPosition, setManualPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [bottomSheetHeight, setBottomSheetHeight] = useState(450);
   
   const { currentLocation, getCurrentPosition, getPopularPlaces, currentCity, source } = useSmartGeolocation();
   const popularPlaces = getPopularPlaces();
@@ -252,6 +253,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         currentCity={currentCity}
         onClickPosition={handleClickPosition}
         onDragMarker={handleMarkerDrag}
+        bottomSheetHeight={bottomSheetHeight}
       />
       
       {/* Indicateur chauffeurs à proximité - vrai compteur temps réel */}
@@ -282,6 +284,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
           onPlaceSelect={handlePlaceSelect}
           onSearchFocus={() => setShowDestinationSearch(true)}
           hasDestination={!!destinationLocation}
+          onSheetPositionChange={setBottomSheetHeight}
         />
       </AnimatePresence>
 

@@ -7,16 +7,24 @@ import { motion } from 'framer-motion';
 interface KwendaMapControlsProps {
   onLocate: () => void;
   isLocating?: boolean;
+  bottomSheetHeight?: number;
   className?: string;
 }
 
 const KwendaMapControls = React.memo(({
   onLocate,
   isLocating = false,
+  bottomSheetHeight = 450,
   className
 }: KwendaMapControlsProps) => {
+  // Position dynamique : hauteur du sheet + 16px de marge
+  const buttonBottom = bottomSheetHeight + 16;
+
   return (
-    <div className={cn("absolute bottom-48 right-4 z-[100]", className)}>
+    <div 
+      className={cn("absolute right-4 z-[100]", className)}
+      style={{ bottom: `${buttonBottom}px` }}
+    >
       {/* Location Button - Toujours visible */}
       <motion.div 
         whileTap={{ scale: 0.95 }}

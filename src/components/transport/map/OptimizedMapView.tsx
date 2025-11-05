@@ -22,6 +22,7 @@ interface OptimizedMapViewProps {
   onMapReady?: (map: google.maps.Map) => void;
   onClickPosition?: () => void;
   onDragMarker?: (newPosition: { lat: number; lng: number }) => void;
+  bottomSheetHeight?: number;
   className?: string;
 }
 
@@ -33,6 +34,7 @@ const OptimizedMapView = React.memo(({
   onMapReady,
   onClickPosition,
   onDragMarker,
+  bottomSheetHeight = 450,
   className = '' 
 }: OptimizedMapViewProps) => {
   // Logs de débogage au début du composant
@@ -228,6 +230,7 @@ const OptimizedMapView = React.memo(({
       <KwendaMapControls
         onLocate={handleLocate}
         isLocating={isLocating}
+        bottomSheetHeight={bottomSheetHeight}
       />
     </div>
   );
