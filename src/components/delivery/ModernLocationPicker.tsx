@@ -94,8 +94,14 @@ export const ModernLocationPicker: React.FC<ModernLocationPickerProps> = ({
       )}
       
       <div className="relative">
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <div className="relative flex-1">
+            {/* Icône de recherche */}
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
+              <Search className="h-5 w-5 text-muted-foreground/50" />
+            </div>
+            
+            {/* Champ de saisie ultra-moderne */}
             <Input
               value={displayValue}
               onChange={(e) => handleSearch(e.target.value)}
@@ -106,43 +112,57 @@ export const ModernLocationPicker: React.FC<ModernLocationPickerProps> = ({
                   setShowSuggestions(true);
                 }
               }}
-              className="pl-10"
+              className="h-14 pl-12 pr-4 text-base bg-background border-2 border-border/30 
+                rounded-full shadow-sm hover:shadow-md
+                hover:border-primary/40 focus:border-primary focus:ring-4 focus:ring-primary/10
+                transition-all duration-300 placeholder:text-muted-foreground/50"
               disabled={loading && query === 'Détection de votre position...'}
             />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </div>
           
-          <Button
+          {/* Bouton de géolocalisation - Cercle moderne et dynamique */}
+          <button
             type="button"
-            variant="outline"
-            size="icon"
             onClick={handleGetCurrentLocation}
             disabled={loading}
+            className="flex-shrink-0 w-14 h-14 
+              bg-primary/10 backdrop-blur-sm border-2 border-primary/30
+              rounded-full hover:bg-primary/20 hover:border-primary/50 hover:scale-110
+              active:scale-95 transition-all duration-300 
+              disabled:opacity-50 disabled:hover:scale-100
+              shadow-lg hover:shadow-xl hover:shadow-primary/20
+              flex items-center justify-center group"
+            aria-label="Utiliser ma position actuelle"
           >
             {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
             ) : (
-              <Navigation className="h-4 w-4" />
+              <Navigation className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
             )}
-          </Button>
+          </button>
         </div>
 
-        {/* Suggestions */}
+        {/* Suggestions - Design moderne */}
         {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-2 bg-background/95 backdrop-blur-md 
+            border border-border/40 rounded-[24px] shadow-xl max-h-60 overflow-y-auto
+            transition-all duration-300">
             {suggestions.map((suggestion, index) => (
               <button
                 key={suggestion.id || index}
                 type="button"
-                className="w-full px-4 py-3 text-left hover:bg-accent/50 transition-colors border-b border-border/30 last:border-b-0 flex items-start gap-3"
+                className="w-full px-4 py-3 text-left hover:bg-accent/50 transition-colors 
+                  border-b border-border/20 last:border-b-0 flex items-start gap-3 group
+                  first:rounded-t-[24px] last:rounded-b-[24px]"
                 onClick={() => handleLocationSelect(suggestion)}
               >
-                <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                <MapPin className="h-4 w-4 text-primary mt-0.5 flex-shrink-0 
+                  group-hover:scale-110 transition-transform" />
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-foreground truncate">
+                  <div className="font-medium text-foreground truncate text-sm">
                     {(suggestion as any).title || suggestion.address}
                   </div>
-                  <div className="text-sm text-muted-foreground truncate">
+                  <div className="text-xs text-muted-foreground truncate">
                     {(suggestion as any).subtitle || 'Kinshasa'}
                   </div>
                 </div>

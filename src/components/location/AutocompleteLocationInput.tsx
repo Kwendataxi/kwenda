@@ -263,8 +263,13 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
 
   return (
     <div className={cn("relative", className)}>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="relative flex items-center gap-2">
+        {/* Icône de recherche */}
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
+          <Search className="h-5 w-5 text-muted-foreground/50" />
+        </div>
+        
+        {/* Champ de saisie ultra-moderne */}
         <Input
           ref={inputRef}
           value={query}
@@ -272,35 +277,42 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
           onFocus={handleFocus}
           placeholder={placeholder}
           className={cn(
-            "pl-10 py-3 text-base bg-background/50 border-border/20 focus:border-primary/50 transition-colors",
-            "placeholder:text-muted-foreground/60",
-            showCurrentLocationButton ? (query ? "pr-16" : "pr-12") : (query ? "pr-10" : "pr-4")
+            "h-14 pl-12 text-base bg-background border-2 border-border/30",
+            "rounded-full shadow-sm hover:shadow-md",
+            "hover:border-primary/40 focus:border-primary focus:ring-4 focus:ring-primary/10",
+            "transition-all duration-300",
+            "placeholder:text-muted-foreground/50",
+            showCurrentLocationButton ? (query ? "pr-20" : "pr-16") : (query ? "pr-12" : "pr-4")
           )}
         />
         
-        {/* Bouton d'effacement - positionné selon la présence du bouton GPS */}
+        {/* Bouton d'effacement - dans le champ */}
         {query && (
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             onClick={handleClear}
             className={cn(
-              "absolute top-1/2 transform -translate-y-1/2 p-1 h-6 w-6 rounded-full hover:bg-muted/50 transition-all",
-              showCurrentLocationButton ? "right-10" : "right-2"
+              "absolute top-1/2 -translate-y-1/2 p-2",
+              "hover:bg-accent rounded-full transition-all duration-200",
+              "hover:scale-110 active:scale-95 z-10",
+              showCurrentLocationButton ? "right-14" : "right-2"
             )}
+            aria-label="Effacer"
           >
-            <X className="h-3 w-3" />
-          </Button>
+            <X className="h-4 w-4 text-muted-foreground" />
+          </button>
         )}
 
-        {/* Bouton de géolocalisation - tout à droite */}
+        {/* Bouton de géolocalisation - Cercle moderne et dynamique */}
         {showCurrentLocationButton && (
-          <div className="absolute right-1 top-1/2 transform -translate-y-1/2">
+          <div className="absolute right-1 top-1/2 -translate-y-1/2">
             <CurrentLocationButton
               onLocationSelect={handleCurrentLocationSelect}
               context={locationContext}
               variant="icon-only"
-              className="h-8 w-8 border-0 bg-primary/10 hover:bg-primary/20 text-primary shadow-sm"
+              className="h-12 w-12 border-2 border-primary/30 bg-primary/10 hover:bg-primary/20 
+                hover:border-primary/50 hover:scale-110 active:scale-95
+                text-primary shadow-lg hover:shadow-xl hover:shadow-primary/20 
+                transition-all duration-300 rounded-full"
               showAccuracy={false}
             />
           </div>
@@ -323,11 +335,13 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
         </div>
       )}
 
-      {/* Suggestions dropdown */}
+      {/* Suggestions dropdown - Design moderne */}
       {showSuggestions && (
         <div
           ref={suggestionsRef}
-          className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-50 max-h-80 overflow-y-auto"
+          className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-md 
+            border border-border/40 rounded-[24px] shadow-xl z-50 max-h-80 overflow-y-auto
+            transition-all duration-300"
         >
           {/* Recent searches */}
           {query.length === 0 && recentSearches.length > 0 && (
