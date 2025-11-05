@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Search, MapPin, Clock, Star, Loader2 } from 'lucide-react';
+import { ArrowLeft, Search, MapPin, Clock, Star, Loader2, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete';
@@ -248,134 +248,68 @@ export default function DestinationSearchDialog({
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ type: 'spring', damping: 20, stiffness: 200 }}
-                  className="p-6 space-y-8"
+                  className="p-4 space-y-4"
                 >
-                  {/* Animation de localisation avec pin et ondes radar */}
-                  <div className="relative w-full max-w-sm mx-auto">
-                    <div className="relative h-32 flex items-center justify-center">
-                      {/* Pin central moderne avec animation */}
-                      <motion.div
-                        animate={{ 
-                          y: [0, -10, 0],
-                          rotate: [0, 3, -3, 0]
-                        }}
-                        transition={{
-                          duration: 2.5,
-                          repeat: Infinity,
-                          ease: 'easeInOut'
-                        }}
-                        className="relative z-10"
-                      >
-                        <div className="w-12 h-12 bg-gradient-to-br from-primary via-primary/80 to-primary/60 rounded-full flex items-center justify-center shadow-2xl shadow-primary/30">
-                          <MapPin className="w-6 h-6 text-white" />
-                        </div>
-                      </motion.div>
-                      
-                      {/* Ondes radar autour du pin */}
-                      {[0, 1].map((i) => (
-                        <motion.div
-                          key={i}
-                          className="absolute inset-0 border-2 border-primary/20 rounded-full"
-                          initial={{ scale: 0.8, opacity: 0 }}
-                          animate={{ 
-                            scale: [0.8, 1.5, 2],
-                            opacity: [0.5, 0.2, 0]
-                          }}
-                          transition={{
-                            duration: 2.5,
-                            repeat: Infinity,
-                            delay: i * 1.2,
-                            ease: 'easeOut'
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Message principal engageant contextualisé */}
-                  <div className="text-center space-y-2">
-                    <motion.h3 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="text-lg font-bold text-foreground"
-                    >
-                      Découvrez {currentCity} 🌍
-                    </motion.h3>
-                    
-                    <motion.p 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 }}
-                      className="hidden sm:block text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed"
-                    >
-                      {currentCity === 'Kinshasa' && "Recherchez parmi des milliers de destinations dans la capitale"}
-                      {currentCity === 'Lubumbashi' && "Explorez la capitale du cuivre avec Kwenda"}
-                      {currentCity === 'Kolwezi' && "Découvrez les destinations de la ville minière"}
-                      {currentCity === 'Abidjan' && "Naviguez facilement dans la perle des lagunes"}
-                      {!['Kinshasa', 'Lubumbashi', 'Kolwezi', 'Abidjan'].includes(currentCity || '') && 
-                        "Recherchez une destination ou sélectionnez un lieu populaire ci-dessous"}
-                    </motion.p>
-                  </div>
-
-                  {/* Lieux populaires avec icônes contextuelles */}
+                  {/* Animation minimaliste */}
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="space-y-3"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center gap-3 py-6"
                   >
-                    <div className="flex items-center justify-between px-1">
-                      <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    <div className="w-14 h-14 rounded-full bg-muted/50 flex items-center justify-center">
+                      <MapPin className="w-7 h-7 text-primary" />
+                    </div>
+                    
+                    <div className="text-center">
+                      <h3 className="text-base font-semibold text-foreground">
+                        Découvrez {currentCity} 🌍
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Recherchez un lieu ou choisissez ci-dessous
+                      </p>
+                    </div>
+                  </motion.div>
+
+                  {/* Liste compacte moderne */}
+                  <div className="space-y-1">
+                    <div className="px-3 py-1.5 flex items-center justify-between">
+                      <h4 className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
                         Lieux populaires
                       </h4>
-                      <span className="text-[10px] text-primary font-medium">
-                        {currentCity} 📍
-                      </span>
+                      <span className="text-[9px] text-primary">{currentCity}</span>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-2.5">
+                    <div className="space-y-0.5">
                       {popularPlaces.map((place, index) => (
                         <motion.button
                           key={place.name}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.5 + index * 0.08 }}
-                          whileHover={{ scale: 1.03, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.03 }}
                           onClick={() => handleSelectPopularPlace(place)}
-                          className="group relative overflow-hidden p-3 rounded-xl bg-gradient-to-br from-muted/90 to-muted/40 hover:from-primary/15 hover:to-primary/5 border border-border/50 hover:border-primary/40 transition-all duration-300 shadow-sm hover:shadow-md"
+                          className="w-full flex items-center gap-3 p-3 hover:bg-muted/70 rounded-lg transition-colors text-left group"
                         >
-                          <div className="flex items-start gap-2.5">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent group-hover:from-primary/30 group-hover:via-primary/20 flex items-center justify-center transition-all duration-300 shadow-inner">
-                              <MapPin className="w-4.5 h-4.5 text-primary" />
-                            </div>
-                            
-                            <div className="text-left flex-1 min-w-0 space-y-0.5">
-                              <p className="text-xs font-semibold text-foreground truncate leading-tight">
-                                {place.name}
-                              </p>
-                              <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
-                                <span className="w-1 h-1 rounded-full bg-primary/60" />
-                                {place.district}
-                              </p>
-                            </div>
+                          {/* Icône minimaliste */}
+                          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                            <MapPin className="w-4 h-4 text-muted-foreground" />
                           </div>
                           
-                          {/* Shimmer effect ultra-subtil */}
-                          <motion.div 
-                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
-                            initial={{ x: '-100%' }}
-                            whileHover={{ x: '100%' }}
-                            transition={{ duration: 0.8, ease: 'easeInOut' }}
-                          />
+                          {/* Texte compact */}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">
+                              {place.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {place.district}
+                            </p>
+                          </div>
                           
-                          {/* Border glow au hover */}
-                          <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-primary/10 via-transparent to-primary/5 pointer-events-none" />
+                          {/* Chevron subtil */}
+                          <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
                         </motion.button>
                       ))}
                     </div>
-                  </motion.div>
+                  </div>
                 </motion.div>
               )}
 
@@ -391,120 +325,53 @@ export default function DestinationSearchDialog({
                   <h3 className="text-xs font-semibold text-muted-foreground mb-2.5 px-1">
                     Suggestions
                   </h3>
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     {predictions.map((prediction, index) => (
                       <motion.button
                         key={prediction.placeId}
-                        initial={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
+                        transition={{ delay: index * 0.03 }}
                         onClick={() => handleSelectPrediction(prediction.placeId, prediction.description)}
-                        className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 rounded-xl transition-all text-left group"
+                        className="w-full flex items-center gap-3 p-3 hover:bg-muted/70 rounded-lg transition-colors text-left"
                       >
-                        <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                          <MapPin className="w-4.5 h-4.5 text-primary" />
+                        <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                          <Search className="w-4 h-4 text-muted-foreground" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                          <p className="text-sm font-medium text-foreground truncate">
                             {prediction.structuredFormatting.mainText}
                           </p>
                           {prediction.structuredFormatting.secondaryText && (
-                            <p className="text-[10px] text-muted-foreground truncate">
+                            <p className="text-xs text-muted-foreground truncate">
                               {prediction.structuredFormatting.secondaryText}
                             </p>
                           )}
                         </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
                       </motion.button>
                     ))}
                   </div>
                 </motion.div>
               )}
 
-              {/* État vide - Animation de recherche moderne */}
+              {/* État vide - Message simple */}
               {!showHistory && !showPredictions && !autocompleteLoading && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex flex-col items-center justify-center h-64 text-center px-6 space-y-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col items-center justify-center h-48 px-6 text-center"
                 >
-                  {/* Animation de recherche avec loupe */}
-                  <div className="relative">
-                    <motion.div
-                      animate={{
-                        rotate: [0, 5, -5, 0],
-                        scale: [1, 1.05, 1]
-                      }}
-                      transition={{
-                        duration: 2.5,
-                        repeat: Infinity,
-                        ease: 'easeInOut'
-                      }}
-                      className="w-20 h-20 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent rounded-full flex items-center justify-center"
-                    >
-                      <Search className="w-10 h-10 text-primary" />
-                    </motion.div>
-                    
-                    {/* Points animés autour */}
-                    <motion.div
-                      animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full"
-                    />
-                    <motion.div
-                      animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
-                      transition={{ duration: 2, repeat: Infinity, delay: 0.7 }}
-                      className="absolute -bottom-2 -left-2 w-3 h-3 bg-primary rounded-full"
-                    />
-                  </div>
-
-                  {/* Message avec typing effect */}
-                  <div className="space-y-2">
-                    <motion.p 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                      className="text-base font-semibold text-foreground"
-                    >
-                      {searchQuery ? 'Aucun résultat trouvé 🤔' : 'Où souhaitez-vous aller ?'}
-                    </motion.p>
-                    
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.3 }}
-                      className="text-sm text-muted-foreground max-w-xs mx-auto"
-                    >
-                      {searchQuery 
-                        ? 'Essayez de rechercher un autre lieu ou quartier' 
-                        : 'Tapez une adresse, un lieu ou un quartier'
-                      }
-                    </motion.p>
-                  </div>
-
-                  {/* Suggestions de recherche rapide */}
-                  {!searchQuery && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4 }}
-                      className="flex flex-wrap gap-2 justify-center max-w-md"
-                    >
-                      {['Gombe', 'Njili', 'Lemba', 'Bandalungwa'].map((quarter, index) => (
-                        <motion.button
-                          key={quarter}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.5 + index * 0.1 }}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => setSearchQuery(quarter)}
-                          className="px-4 py-2 rounded-full bg-muted hover:bg-muted/80 border border-border/50 hover:border-primary/30 text-sm font-medium text-foreground transition-all"
-                        >
-                          {quarter}
-                        </motion.button>
-                      ))}
-                    </motion.div>
-                  )}
+                  <Search className="w-12 h-12 text-muted-foreground/40 mb-4" />
+                  <p className="text-sm font-medium text-foreground mb-1">
+                    {searchQuery ? 'Aucun résultat' : 'Recherchez un lieu'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {searchQuery 
+                      ? 'Essayez un autre terme' 
+                      : 'Tapez une adresse ou un quartier'
+                    }
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
