@@ -15,35 +15,43 @@ export const NearbyDriversIndicator = ({
 }: NearbyDriversIndicatorProps) => {
   if (driverCount === 0) return null;
 
+  const displayCount = driverCount > 99 ? '99+' : driverCount.toString();
+
   return (
     <motion.button
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileTap={{ scale: 0.95 }}
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileTap={{ scale: 0.9 }}
       onClick={onClick}
-      className={`absolute top-4 right-4 z-10 bg-card/95 backdrop-blur-md px-4 py-2.5 rounded-full shadow-lg border border-border/50 hover:shadow-xl transition-all ${className}`}
+      className={`absolute top-4 right-4 z-10 bg-white dark:bg-gray-900 p-3 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 hover:shadow-2xl transition-all ${className}`}
     >
-      <div className="flex items-center gap-2">
+      <div className="relative">
+        {/* Pulse animation subtil en arrière-plan */}
         <motion.div
           animate={{ 
-            scale: [1, 1.2, 1],
-            rotate: [0, 5, -5, 0]
+            scale: [1, 1.3, 1],
+            opacity: [0.5, 0, 0.5]
           }}
           transition={{ 
             repeat: Infinity, 
             duration: 2,
             ease: "easeInOut"
           }}
-          className="relative"
-        >
-          <Car className="w-5 h-5 text-primary" />
-          <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-        </motion.div>
+          className="absolute inset-0 bg-primary rounded-full -z-10"
+        />
         
-        <div className="flex flex-col items-start">
-          <span className="text-xs text-muted-foreground leading-none">Chauffeurs</span>
-          <span className="text-lg font-bold text-foreground leading-none">{driverCount}</span>
-        </div>
+        {/* Icône de voiture */}
+        <Car className="w-6 h-6 text-primary" strokeWidth={2.5} />
+        
+        {/* Badge de notification style iOS/Android */}
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center shadow-lg border-2 border-white dark:border-gray-900"
+        >
+          {displayCount}
+        </motion.div>
       </div>
     </motion.button>
   );
