@@ -31,7 +31,7 @@ export default function VehicleTypeSelector({ selected, onSelect, city = 'Kinsha
   }
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide px-1">
+    <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide px-1 scroll-smooth snap-x snap-proximity">
       {vehicles.map((vehicle) => {
         const IconComponent = iconMap[vehicle.icon as keyof typeof iconMap] || Car;
         const isSelected = selected === vehicle.id;
@@ -42,7 +42,7 @@ export default function VehicleTypeSelector({ selected, onSelect, city = 'Kinsha
             whileTap={{ scale: 0.95 }}
             onClick={() => onSelect(vehicle.id)}
             className={`
-              relative flex-shrink-0 w-24 p-3 rounded-2xl border-2 transition-all
+              relative flex-shrink-0 w-24 p-3 rounded-2xl border-2 transition-all snap-center
               ${isSelected 
                 ? 'bg-primary/10 border-primary shadow-md' 
                 : 'bg-card border-border'

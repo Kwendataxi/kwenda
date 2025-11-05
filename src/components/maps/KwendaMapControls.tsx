@@ -16,7 +16,7 @@ const KwendaMapControls = React.memo(({
   className
 }: KwendaMapControlsProps) => {
   return (
-    <div className={cn("absolute bottom-36 right-4 z-[100]", className)}>
+    <div className={cn("absolute bottom-48 right-4 z-[100]", className)}>
       {/* Location Button - Toujours visible */}
       <motion.div 
         whileTap={{ scale: 0.95 }}
