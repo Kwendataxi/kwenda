@@ -17,23 +17,23 @@ interface Promo {
 const promos: Promo[] = [
   {
     id: '1',
-    title: '🎉 -30% sur l\'électronique',
+    title: '🎉 -30% Électronique',
     subtitle: 'Code: TECH30',
     gradient: 'from-blue-600 via-purple-600 to-pink-600',
-    cta: 'Découvrir',
+    cta: 'Voir',
     action: 'electronics'
   },
   {
     id: '2',
-    title: '🚀 Livraison gratuite',
-    subtitle: 'Commandes +50 000 CDF',
+    title: '🚀 Livraison offerte',
+    subtitle: 'Dès 50 000 CDF',
     gradient: 'from-green-500 via-emerald-500 to-teal-600',
     cta: 'Commander',
     action: 'free_delivery'
   },
   {
     id: '3',
-    title: '💎 Nouveaux vendeurs',
+    title: '💎 Nouveautés',
     subtitle: 'Produits exclusifs',
     gradient: 'from-orange-500 via-red-500 to-pink-600',
     cta: 'Explorer',
@@ -41,10 +41,10 @@ const promos: Promo[] = [
   },
   {
     id: '4',
-    title: '🏪 Devenez vendeur',
-    subtitle: 'Commencez à vendre dès aujourd\'hui',
+    title: '🏪 Vendez avec nous',
+    subtitle: 'Rejoignez la marketplace',
     gradient: 'from-violet-600 via-purple-600 to-fuchsia-600',
-    cta: 'Commencer →',
+    cta: 'Démarrer →',
     action: 'become_vendor',
     icon: Store
   }
@@ -97,7 +97,7 @@ export const PromoSlider = ({
           exit={{ opacity: 0, x: -100 }}
           transition={{ duration: 0.4, ease: "easeInOut" }}
           className={cn(
-            "relative h-36 md:h-44 rounded-2xl overflow-hidden",
+            "relative h-40 md:h-48 rounded-2xl overflow-hidden",
             "bg-gradient-to-r",
             currentPromo.gradient
           )}
@@ -107,20 +107,28 @@ export const PromoSlider = ({
           
           {/* Content */}
           <div className="relative h-full flex items-center justify-between px-4 md:px-6">
-            <div className="flex-1 space-y-1 md:space-y-2">
+            <div className="flex-1 space-y-2 md:space-y-3 max-w-[60%] md:max-w-[65%]">
               <motion.h3 
-                className="text-lg md:text-2xl font-bold text-white drop-shadow-lg"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
+                className="text-xl md:text-3xl font-extrabold text-white drop-shadow-2xl tracking-tight line-clamp-1"
+                initial={{ y: 30, opacity: 0, scale: 0.9 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                transition={{ 
+                  delay: 0.15,
+                  type: "spring",
+                  stiffness: 150
+                }}
               >
                 {currentPromo.title}
               </motion.h3>
               <motion.p 
-                className="text-xs md:text-sm text-white/90 drop-shadow-md"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
+                className="text-sm md:text-base font-medium text-white/95 drop-shadow-lg line-clamp-2"
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ 
+                  delay: 0.25,
+                  type: "spring",
+                  stiffness: 100
+                }}
               >
                 {currentPromo.subtitle}
               </motion.p>
@@ -142,10 +150,10 @@ export const PromoSlider = ({
                   onPromoClick?.(currentPromo.action);
                   onServiceSelect?.(currentPromo.action === 'become_vendor' ? 'marketplace' : 'marketplace');
                 }}
-                className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border-white/30 shadow-xl"
+                className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border-white/30 shadow-xl hover:scale-110 transition-all duration-300"
                 size="sm"
               >
-                <Sparkles className="h-4 w-4 mr-2" />
+                <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
                 {currentPromo.cta}
               </Button>
             </motion.div>
