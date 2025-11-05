@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ResponsiveImage } from '@/components/common/ResponsiveImage';
 
 // Images des campagnes publicitaires
 import campaignClient from '@/assets/campaign-client.png';
@@ -83,15 +84,19 @@ export const HeroCampaignSlider = () => {
               <div className="relative w-full aspect-[16/9] overflow-hidden rounded-3xl">
                 {/* Bordure soft */}
                 <div className="relative h-full w-full overflow-hidden rounded-3xl border border-border/30 bg-gradient-to-br from-card/20 to-card/10 backdrop-blur-sm shadow-[0_4px_24px_rgba(0,0,0,0.08)]">
-                  <img
+                  <ResponsiveImage
                     src={slide.image}
                     alt={slide.alt}
                     className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out hover:scale-[1.02]"
                     loading={index === 0 ? "eager" : "lazy"}
+                    // @ts-ignore - fetchPriority is valid HTML attribute
                     fetchPriority={index === 0 ? "high" : "low"}
                     decoding={index === 0 ? "sync" : "async"}
                     width={1280}
                     height={720}
+                    widths={[640, 800, 1024, 1280]}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 800px"
+                    useWebP={true}
                   />
                 </div>
               </div>

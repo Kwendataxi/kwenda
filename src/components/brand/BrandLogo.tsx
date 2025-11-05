@@ -1,6 +1,7 @@
 import React from "react";
 import clsx from "clsx";
 import { motion } from "framer-motion";
+import { ResponsiveImage } from "@/components/common/ResponsiveImage";
 import brandLogo from "@/assets/kwenda-logo.png";
 
 interface BrandLogoProps {
@@ -28,16 +29,42 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   
   const pixelSize = typeof size === 'number' ? size : sizeMap[size];
   
-  const LogoImage = animated ? motion.img : 'img';
+  // Pour le logo, on utilise des tailles responsive appropriées
+  const logoWidths = [48, 64, 80, 96, 128];
+  const logoSizes = `${pixelSize}px`;
   
-  const animationProps = animated ? {
-    whileHover: { scale: 1.1, rotate: 3 },
-    whileTap: { scale: 0.95 },
-    transition: { type: "spring" as const, stiffness: 300, damping: 20 }
-  } : {};
+  // On ne peut pas wrapper ResponsiveImage avec motion directement
+  // donc on gère l'animation via une div wrapper
+  if (animated) {
+    return (
+      <motion.div
+        whileHover={{ scale: 1.1, rotate: 3 }}
+        whileTap={{ scale: 0.95 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className={clsx("inline-block", className)}
+      >
+        <ResponsiveImage
+          src={brandLogo}
+          width={pixelSize}
+          height={pixelSize}
+          alt={alt || "Kwenda Taxi Congo — logo"}
+          className={clsx(
+            "rounded-lg object-contain transition-all duration-300",
+            withGlow && "drop-shadow-[0_0_15px_rgba(220,38,38,0.4)]"
+          )}
+          loading="eager"
+          // @ts-ignore - fetchPriority is valid
+          fetchPriority="high"
+          widths={logoWidths}
+          sizes={logoSizes}
+          useWebP={true}
+        />
+      </motion.div>
+    );
+  }
   
   return (
-    <LogoImage
+    <ResponsiveImage
       src={brandLogo}
       width={pixelSize}
       height={pixelSize}
@@ -48,8 +75,11 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         className
       )}
       loading="eager"
+      // @ts-ignore - fetchPriority is valid
       fetchPriority="high"
-      {...animationProps}
+      widths={logoWidths}
+      sizes={logoSizes}
+      useWebP={true}
     />
   );
 };
