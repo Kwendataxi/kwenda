@@ -310,6 +310,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         onOpenChange={setShowDestinationSearch}
         onSelectDestination={handleDestinationSelect}
         currentLocation={pickupLocation}
+        currentCity={currentCity?.name}
       />
 
       {/* Modal de progression de recherche */}

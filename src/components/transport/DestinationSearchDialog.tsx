@@ -7,12 +7,46 @@ import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete
 import { useUserTripHistory } from '@/hooks/useUserTripHistory';
 import { cn } from '@/lib/utils';
 
-const POPULAR_PLACES_KINSHASA = [
-  { name: 'Aéroport N\'Djili', district: 'Njili', lat: -4.3858, lng: 15.4446 },
-  { name: 'Centre-ville', district: 'Gombe', lat: -4.3276, lng: 15.3136 },
-  { name: 'Hôtel Memling', district: 'Gombe', lat: -4.3201, lng: 15.3078 },
-  { name: 'Marché Central', district: 'Kinshasa', lat: -4.3190, lng: 15.3092 }
-];
+// Structure complète des lieux populaires par ville
+const POPULAR_PLACES_BY_CITY = {
+  Kinshasa: [
+    { name: 'Aéroport N\'Djili', district: 'Njili', lat: -4.3858, lng: 15.4446, icon: '✈️', category: 'transport' },
+    { name: 'Centre-ville', district: 'Gombe', lat: -4.3276, lng: 15.3136, icon: '🏙️', category: 'business' },
+    { name: 'Hôtel Memling', district: 'Gombe', lat: -4.3201, lng: 15.3078, icon: '🏨', category: 'hotel' },
+    { name: 'Marché Central', district: 'Kinshasa', lat: -4.3190, lng: 15.3092, icon: '🛒', category: 'shopping' },
+    { name: 'Matonge', district: 'Kalamu', lat: -4.3310, lng: 15.3210, icon: '🎭', category: 'culture' },
+    { name: 'Stade des Martyrs', district: 'Lingwala', lat: -4.3290, lng: 15.2980, icon: '⚽', category: 'sport' }
+  ],
+  Lubumbashi: [
+    { name: 'Aéroport La Luano', district: 'Luano', lat: -11.5913, lng: 27.5309, icon: '✈️', category: 'transport' },
+    { name: 'Centre-ville', district: 'Lubumbashi', lat: -11.6792, lng: 27.4716, icon: '🏙️', category: 'business' },
+    { name: 'Galerie Uganda', district: 'Lubumbashi', lat: -11.6750, lng: 27.4800, icon: '🛍️', category: 'shopping' },
+    { name: 'Stade TP Mazembe', district: 'Kamalondo', lat: -11.6400, lng: 27.4500, icon: '⚽', category: 'sport' },
+    { name: 'Hôtel Karavia', district: 'Lubumbashi', lat: -11.6700, lng: 27.4650, icon: '🏨', category: 'hotel' },
+    { name: 'Marché Kenya', district: 'Kenya', lat: -11.6500, lng: 27.4400, icon: '🛒', category: 'shopping' }
+  ],
+  Kolwezi: [
+    { name: 'Aéroport de Kolwezi', district: 'Centre', lat: -10.7658, lng: 25.5056, icon: '✈️', category: 'transport' },
+    { name: 'Centre-ville', district: 'Kolwezi', lat: -10.7147, lng: 25.4665, icon: '🏙️', category: 'business' },
+    { name: 'Marché Central', district: 'Dilala', lat: -10.7100, lng: 25.4700, icon: '🛒', category: 'shopping' },
+    { name: 'Hôtel Kolwezi', district: 'Centre', lat: -10.7200, lng: 25.4600, icon: '🏨', category: 'hotel' }
+  ],
+  Abidjan: [
+    { name: 'Aéroport Félix Houphouët-Boigny', district: 'Port-Bouët', lat: 5.2539, lng: -3.9263, icon: '✈️', category: 'transport' },
+    { name: 'Plateau (Centre d\'affaires)', district: 'Plateau', lat: 5.3200, lng: -4.0100, icon: '🏙️', category: 'business' },
+    { name: 'Cocody', district: 'Cocody', lat: 5.3599, lng: -3.9810, icon: '🏘️', category: 'residential' },
+    { name: 'Marché de Treichville', district: 'Treichville', lat: 5.2900, lng: -4.0050, icon: '🛒', category: 'shopping' },
+    { name: 'Yopougon', district: 'Yopougon', lat: 5.3400, lng: -4.0850, icon: '🏘️', category: 'residential' },
+    { name: 'Hotel Ivoire', district: 'Cocody', lat: 5.3450, lng: -3.9900, icon: '🏨', category: 'hotel' }
+  ]
+};
+
+// Helper pour obtenir les lieux de la ville actuelle
+const getPopularPlacesForCity = (cityName?: string): typeof POPULAR_PLACES_BY_CITY['Kinshasa'] => {
+  if (!cityName) return POPULAR_PLACES_BY_CITY.Kinshasa;
+  const city = cityName as keyof typeof POPULAR_PLACES_BY_CITY;
+  return POPULAR_PLACES_BY_CITY[city] || POPULAR_PLACES_BY_CITY.Kinshasa;
+};
 
 interface DestinationSearchDialogProps {
   open: boolean;
@@ -24,14 +58,17 @@ interface DestinationSearchDialogProps {
     name?: string;
   }) => void;
   currentLocation?: { lat: number; lng: number } | null;
+  currentCity?: string;
 }
 
 export default function DestinationSearchDialog({
   open,
   onOpenChange,
   onSelectDestination,
-  currentLocation
+  currentLocation,
+  currentCity = 'Kinshasa'
 }: DestinationSearchDialogProps) {
+  const popularPlaces = getPopularPlacesForCity(currentCity);
   const [searchQuery, setSearchQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -85,7 +122,7 @@ export default function DestinationSearchDialog({
     }
   };
 
-  const handleSelectPopularPlace = (place: typeof POPULAR_PLACES_KINSHASA[0]) => {
+  const handleSelectPopularPlace = (place: typeof POPULAR_PLACES_BY_CITY['Kinshasa'][0]) => {
     onSelectDestination({
       address: place.name,
       lat: place.lat,
@@ -113,18 +150,25 @@ export default function DestinationSearchDialog({
             </motion.button>
             
             <div className="flex-1 relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
               <Input
                 ref={inputRef}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Où allez-vous ?"
-                className="pl-12 h-12 text-sm sm:text-base bg-muted/50 border-border rounded-xl focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                placeholder={`Rechercher à ${currentCity}...`}
+                className="pl-12 pr-24 h-12 text-sm sm:text-base bg-muted/50 border-border rounded-xl focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
               />
+              
+              {/* Badge ville actuelle */}
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                {currentCity}
+              </div>
+              
               {autocompleteLoading && (
-                <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary animate-spin" />
+                <Loader2 className="absolute right-20 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin" />
               )}
-              {searchQuery && (
+              {searchQuery && !autocompleteLoading && (
                 <motion.div 
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -248,7 +292,7 @@ export default function DestinationSearchDialog({
                     </div>
                   </div>
 
-                  {/* Message principal engageant */}
+                  {/* Message principal engageant contextualisé */}
                   <div className="text-center space-y-3">
                     <motion.h3 
                       initial={{ opacity: 0, y: 10 }}
@@ -256,7 +300,7 @@ export default function DestinationSearchDialog({
                       transition={{ delay: 0.2 }}
                       className="text-xl font-bold text-foreground"
                     >
-                      Découvrez Kinshasa 🌍
+                      Découvrez {currentCity} 🌍
                     </motion.h3>
                     
                     <motion.p 
@@ -265,49 +309,74 @@ export default function DestinationSearchDialog({
                       transition={{ delay: 0.3 }}
                       className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed"
                     >
-                      Recherchez une destination ou sélectionnez un lieu populaire ci-dessous
+                      {currentCity === 'Kinshasa' && "Recherchez parmi des milliers de destinations dans la capitale"}
+                      {currentCity === 'Lubumbashi' && "Explorez la capitale du cuivre avec Kwenda"}
+                      {currentCity === 'Kolwezi' && "Découvrez les destinations de la ville minière"}
+                      {currentCity === 'Abidjan' && "Naviguez facilement dans la perle des lagunes"}
+                      {!['Kinshasa', 'Lubumbashi', 'Kolwezi', 'Abidjan'].includes(currentCity || '') && 
+                        "Recherchez une destination ou sélectionnez un lieu populaire ci-dessous"}
                     </motion.p>
                   </div>
 
-                  {/* Lieux populaires cliquables */}
+                  {/* Lieux populaires avec icônes contextuelles */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="space-y-3"
+                    className="space-y-4"
                   >
-                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
-                      Lieux populaires
-                    </h4>
+                    <div className="flex items-center justify-between px-2">
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Lieux populaires
+                      </h4>
+                      <span className="text-xs text-primary font-medium">
+                        {currentCity} 📍
+                      </span>
+                    </div>
                     
-                    <div className="grid grid-cols-2 gap-2">
-                      {POPULAR_PLACES_KINSHASA.map((place, index) => (
+                    <div className="grid grid-cols-2 gap-3">
+                      {popularPlaces.map((place, index) => (
                         <motion.button
                           key={place.name}
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.5 + index * 0.1 }}
-                          whileHover={{ scale: 1.03 }}
+                          transition={{ delay: 0.5 + index * 0.08 }}
+                          whileHover={{ scale: 1.03, y: -2 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => handleSelectPopularPlace(place)}
-                          className="group relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 hover:from-primary/10 hover:to-primary/5 border border-border/50 hover:border-primary/30 transition-all duration-300"
+                          className="group relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-muted/90 to-muted/40 hover:from-primary/15 hover:to-primary/5 border border-border/50 hover:border-primary/40 transition-all duration-300 shadow-sm hover:shadow-md"
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
+                          {/* Badge catégorie */}
+                          <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center text-sm">
+                            {place.icon}
+                          </div>
+                          
+                          <div className="flex items-start gap-3">
+                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent group-hover:from-primary/30 group-hover:via-primary/20 flex items-center justify-center transition-all duration-300 shadow-inner">
                               <MapPin className="w-5 h-5 text-primary" />
                             </div>
-                            <div className="text-left flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-foreground truncate">
+                            
+                            <div className="text-left flex-1 min-w-0 space-y-0.5">
+                              <p className="text-sm font-bold text-foreground truncate leading-tight">
                                 {place.name}
                               </p>
-                              <p className="text-xs text-muted-foreground truncate">
+                              <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                                <span className="w-1 h-1 rounded-full bg-primary/60" />
                                 {place.district}
                               </p>
                             </div>
                           </div>
                           
-                          {/* Shimmer effect au survol */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                          {/* Shimmer effect ultra-subtil */}
+                          <motion.div 
+                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                            initial={{ x: '-100%' }}
+                            whileHover={{ x: '100%' }}
+                            transition={{ duration: 0.8, ease: 'easeInOut' }}
+                          />
+                          
+                          {/* Border glow au hover */}
+                          <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-primary/10 via-transparent to-primary/5 pointer-events-none" />
                         </motion.button>
                       ))}
                     </div>
