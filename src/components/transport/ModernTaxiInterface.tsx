@@ -19,8 +19,12 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   const [destinationLocation, setDestinationLocation] = useState<LocationData | null>(null);
   const [showDestinationSearch, setShowDestinationSearch] = useState(false);
   
-  const { currentLocation, getCurrentPosition, getPopularPlaces } = useSmartGeolocation();
+  const { currentLocation, getCurrentPosition, getPopularPlaces, currentCity, source } = useSmartGeolocation();
   const popularPlaces = getPopularPlaces();
+  
+  console.log('🌍 Ville détectée:', currentCity?.name || 'Non détectée');
+  console.log('📍 Position actuelle:', currentLocation ? { lat: currentLocation.lat, lng: currentLocation.lng } : 'Aucune');
+  console.log('🔍 Source position:', source || 'Aucune');
 
   // Détecter position actuelle au montage
   useEffect(() => {
@@ -62,6 +66,20 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         destination={destinationLocation}
         userLocation={pickupLocation}
       />
+      
+      {/* Badge ville détectée */}
+      {currentCity && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute top-4 right-4 z-10 bg-card/95 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-border/50"
+        >
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-sm font-medium text-foreground">{currentCity.name}</span>
+          </div>
+        </motion.div>
+      )}
       
       {/* Menu hamburger */}
       <motion.button 

@@ -85,12 +85,12 @@ export default function DestinationSearchDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="p-0 max-w-full h-screen sm:h-screen sm:max-w-full border-0 rounded-none">
         <div className="flex flex-col h-full bg-background">
-          {/* Header avec recherche */}
-          <div className="flex items-center gap-3 p-4 border-b border-border bg-card/50 backdrop-blur-sm">
+          {/* Header avec recherche - Design moderne Kwenda */}
+          <div className="flex items-center gap-3 p-4 border-b border-border bg-gradient-to-br from-primary/5 via-background to-background backdrop-blur-sm">
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => onOpenChange(false)}
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted/80 transition-all shadow-sm"
             >
               <ArrowLeft className="w-5 h-5 text-foreground" />
             </motion.button>
@@ -119,6 +119,7 @@ export default function DestinationSearchDialog({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                   className="p-4"
                 >
                   <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-2">
@@ -132,30 +133,54 @@ export default function DestinationSearchDialog({
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
                         onClick={() => handleSelectHistory(dest)}
-                        className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 rounded-xl transition-colors text-left"
+                        className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 rounded-xl transition-all text-left group"
                       >
-                        <div className={cn(
-                          "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
-                          dest.frequency >= 3 ? "bg-amber-500/10" : "bg-muted"
-                        )}>
+                        <motion.div 
+                          className={cn(
+                            "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
+                            dest.frequency >= 3 ? "bg-amber-500/10" : "bg-blue-500/10"
+                          )}
+                          animate={dest.frequency >= 3 ? { scale: [1, 1.05, 1] } : {}}
+                          transition={dest.frequency >= 3 ? { repeat: Infinity, duration: 2 } : {}}
+                        >
                           {dest.frequency >= 3 ? (
                             <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
                           ) : (
-                            <Clock className="w-5 h-5 text-muted-foreground" />
+                            <Clock className="w-5 h-5 text-blue-500" />
                           )}
-                        </div>
+                        </motion.div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground truncate">
-                            {dest.destination}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                              {dest.destination}
+                            </p>
+                            {dest.frequency === 1 && (
+                              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                                Nouveau
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground">
-                            {dest.frequency > 1 ? `${dest.frequency}x` : 'Récent'}
+                            {dest.frequency > 1 ? `${dest.frequency} trajets` : 'Récent'}
                           </p>
                         </div>
-                        <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
                       </motion.button>
                     ))}
                   </div>
+                </motion.div>
+              )}
+
+              {/* Message aucun historique */}
+              {!showHistory && !searchQuery.trim() && !historyLoading && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex flex-col items-center justify-center h-64 text-center px-4"
+                >
+                  <MapPin className="w-12 h-12 mx-auto mb-3 opacity-30 text-muted-foreground" />
+                  <p className="text-sm font-medium text-foreground">Aucune destination récente</p>
+                  <p className="text-xs mt-1 text-muted-foreground">Vos prochaines courses apparaîtront ici</p>
                 </motion.div>
               )}
 
@@ -165,6 +190,7 @@ export default function DestinationSearchDialog({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                   className="p-4"
                 >
                   <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-2">
@@ -178,13 +204,13 @@ export default function DestinationSearchDialog({
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
                         onClick={() => handleSelectPrediction(prediction.placeId, prediction.description)}
-                        className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 rounded-xl transition-colors text-left"
+                        className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 rounded-xl transition-all text-left group"
                       >
-                        <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
-                          <MapPin className="w-5 h-5 text-muted-foreground" />
+                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                          <MapPin className="w-5 h-5 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground truncate">
+                          <p className="font-medium text-foreground truncate group-hover:text-primary transition-colors">
                             {prediction.structuredFormatting.mainText}
                           </p>
                           {prediction.structuredFormatting.secondaryText && (

@@ -21,6 +21,8 @@ export default function PopularPlacesList({ places, onSelectPlace }: PopularPlac
   const { destinations, isLoading } = useUserTripHistory();
   const { getPopularPlaces } = useSmartGeolocation();
   
+  console.log('📊 Historique utilisateur:', destinations.length, 'courses');
+  
   // Utiliser l'historique utilisateur en priorité, sinon les lieux populaires par défaut
   const displayPlaces = destinations.length > 0 
     ? destinations.map(dest => ({
@@ -33,8 +35,19 @@ export default function PopularPlacesList({ places, onSelectPlace }: PopularPlac
       }))
     : (places || getPopularPlaces() || []).map(p => ({ ...p, frequency: 0 }));
 
-  if (isLoading || displayPlaces.length === 0) {
+  if (isLoading) {
     return null;
+  }
+  
+  // Afficher message si aucun historique ni lieu populaire
+  if (displayPlaces.length === 0) {
+    return (
+      <div className="mt-4 text-center py-8 text-muted-foreground">
+        <MapPin className="w-12 h-12 mx-auto mb-3 opacity-30" />
+        <p className="text-sm">Aucune destination récente</p>
+        <p className="text-xs mt-1">Vos prochaines courses apparaîtront ici</p>
+      </div>
+    );
   }
 
   return (

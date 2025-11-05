@@ -3,6 +3,26 @@ import { Card } from '@/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
+// Fonction pour formater les adresses (enlever les Plus Codes)
+const formatAddress = (address: string): string => {
+  // Détecter les Plus Codes (format XXXX+XXX)
+  if (address.match(/[A-Z0-9]{4,}\+[A-Z0-9]{2,}/)) {
+    // Extraire uniquement la partie après le Plus Code
+    const parts = address.split(',').map(p => p.trim());
+    const filtered = parts.filter(p => !p.match(/[A-Z0-9]{4,}\+[A-Z0-9]{2,}/));
+    return filtered.join(', ') || address;
+  }
+  
+  // Raccourcir les adresses trop longues
+  if (address.length > 50) {
+    const parts = address.split(',').map(p => p.trim());
+    // Prendre les 2 dernières parties (commune, ville)
+    return parts.slice(-2).join(', ');
+  }
+  
+  return address;
+};
+
 interface PickupLocationCardProps {
   pickupAddress: string | null;
   onEdit: () => void;
@@ -110,7 +130,7 @@ export default function PickupLocationCard({ pickupAddress, onEdit }: PickupLoca
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-muted-foreground">Point de prise en charge</p>
                     <p className="font-semibold text-foreground truncate">
-                      {pickupAddress || 'Votre emplacement'}
+                      {pickupAddress ? formatAddress(pickupAddress) : 'Votre emplacement'}
                     </p>
                   </div>
                 </div>

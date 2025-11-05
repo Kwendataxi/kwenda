@@ -276,19 +276,25 @@ export const useSmartGeolocation = () => {
     });
   }, [state.currentCity, state.currentLocation]);
 
-  // 🗺️ LIEUX POPULAIRES UNIVERSELS
+  // 🗺️ LIEUX POPULAIRES UNIVERSELS - VILLE ACTUELLE DÉTECTÉE
   const getPopularPlacesForCurrentCity = useCallback(async (): Promise<LocationSearchResult[]> => {
     try {
+      // Forcer détection de la ville AVANT de charger les lieux
+      const detectedCity = await universalGeolocation.detectUserCity();
+      console.log('🗺️ Lieux populaires pour:', detectedCity.name);
+      
       const results = await universalGeolocation.getPopularPlacesForCurrentCity();
+      console.log('🗺️ Lieux populaires chargés:', results.length, results.map((p: any) => p.name));
+      
       return results.map((place: any, index: number) => ({
         id: `pop-${index}`,
         name: place.name,
-        address: `${place.commune || ''}, ${place.city || ''}`.replace(/^,\s*/, '').trim() || place.name,
+        address: `${place.commune || ''}, ${place.city || detectedCity.name}`.replace(/^,\s*/, '').trim() || place.name,
         lat: place.latitude || place.lat,
         lng: place.longitude || place.lng,
         type: 'popular' as const,
         title: place.name,
-        subtitle: `${place.commune || ''}, ${place.city || ''}`.replace(/^,\s*/, '').trim() || place.name,
+        subtitle: `${place.commune || ''}, ${place.city || detectedCity.name}`.replace(/^,\s*/, '').trim() || place.name,
         isPopular: true,
         relevanceScore: 100 - index * 5
       }));
@@ -299,68 +305,119 @@ export const useSmartGeolocation = () => {
   }, []);
 
   const getPopularPlacesFallback = useCallback((): LocationSearchResult[] => {
-    return [
-      {
-        id: 'pop-1',
-        name: 'Aéroport International de N\'djili',
-        address: 'Aéroport N\'djili, Kinshasa, RDC',
-        lat: -4.3857,
-        lng: 15.4444,
-        type: 'popular',
-        title: 'Aéroport N\'djili',
-        subtitle: 'Transport international',
-        isPopular: true,
-        relevanceScore: 100
-      },
-      {
-        id: 'pop-2',
-        name: 'Centre-ville de Kinshasa',
-        address: 'Gombe, Kinshasa, RDC',
-        lat: -4.3217,
-        lng: 15.3069,
-        type: 'popular',
-        title: 'Centre-ville',
-        subtitle: 'Gombe, quartier des affaires',
-        isPopular: true,
-        relevanceScore: 95
-      },
-      {
-        id: 'pop-3',
-        name: 'Université de Kinshasa',
-        address: 'Mont-Amba, Kinshasa, RDC',
-        lat: -4.4324,
-        lng: 15.2973,
-        type: 'popular',
-        title: 'UNIKIN',
-        subtitle: 'Campus universitaire principal',
-        isPopular: true,
-        relevanceScore: 90
-      },
-      {
-        id: 'pop-4',
-        name: 'Marché Central',
-        address: 'Kinshasa, RDC',
-        lat: -4.3150,
-        lng: 15.3100,
-        type: 'popular',
-        title: 'Marché Central',
-        subtitle: 'Commerce et shopping',
-        isPopular: true,
-        relevanceScore: 85
-      },
-      {
-        id: 'pop-5',
-        name: 'Stade des Martyrs',
-        address: 'Kalamu, Kinshasa, RDC',
-        lat: -4.3500,
-        lng: 15.3200,
-        type: 'popular',
-        title: 'Stade des Martyrs',
-        subtitle: 'Complexe sportif national',
-        isPopular: true,
-        relevanceScore: 80
-      }
-    ];
+    // Utiliser la ville détectée dynamiquement au lieu de Kinshasa codé en dur
+    const detectedCity = universalGeolocation.getCurrentCity();
+    console.log('🗺️ Fallback lieux pour ville:', detectedCity.name);
+    
+    // Lieux par ville
+    const placesByCity: Record<string, LocationSearchResult[]> = {
+      'Kinshasa': [
+        {
+          id: 'pop-1',
+          name: 'Aéroport International de N\'djili',
+          address: 'Aéroport N\'djili, Kinshasa, RDC',
+          lat: -4.3857,
+          lng: 15.4444,
+          type: 'popular',
+          title: 'Aéroport N\'djili',
+          subtitle: 'Transport international',
+          isPopular: true,
+          relevanceScore: 100
+        },
+        {
+          id: 'pop-2',
+          name: 'Centre-ville de Kinshasa',
+          address: 'Gombe, Kinshasa, RDC',
+          lat: -4.3217,
+          lng: 15.3069,
+          type: 'popular',
+          title: 'Centre-ville',
+          subtitle: 'Gombe, quartier des affaires',
+          isPopular: true,
+          relevanceScore: 95
+        },
+        {
+          id: 'pop-3',
+          name: 'Université de Kinshasa',
+          address: 'Mont-Amba, Kinshasa, RDC',
+          lat: -4.4324,
+          lng: 15.2973,
+          type: 'popular',
+          title: 'UNIKIN',
+          subtitle: 'Campus universitaire principal',
+          isPopular: true,
+          relevanceScore: 90
+        }
+      ],
+      'Abidjan': [
+        {
+          id: 'pop-1',
+          name: 'Plateau',
+          address: 'Plateau, Abidjan, Côte d\'Ivoire',
+          lat: 5.3197,
+          lng: -4.0267,
+          type: 'popular',
+          title: 'Plateau',
+          subtitle: 'Centre des affaires',
+          isPopular: true,
+          relevanceScore: 100
+        },
+        {
+          id: 'pop-2',
+          name: 'Cocody',
+          address: 'Cocody, Abidjan, Côte d\'Ivoire',
+          lat: 5.3478,
+          lng: -3.9871,
+          type: 'popular',
+          title: 'Cocody',
+          subtitle: 'Quartier résidentiel',
+          isPopular: true,
+          relevanceScore: 95
+        },
+        {
+          id: 'pop-3',
+          name: 'Aéroport Félix Houphouët-Boigny',
+          address: 'Port-Bouët, Abidjan, Côte d\'Ivoire',
+          lat: 5.2539,
+          lng: -3.9263,
+          type: 'popular',
+          title: 'Aéroport',
+          subtitle: 'Transport international',
+          isPopular: true,
+          relevanceScore: 90
+        }
+      ],
+      'Lubumbashi': [
+        {
+          id: 'pop-1',
+          name: 'Centre-ville',
+          address: 'Lubumbashi, RDC',
+          lat: -11.6792,
+          lng: 27.4748,
+          type: 'popular',
+          title: 'Centre-ville',
+          subtitle: 'Quartier des affaires',
+          isPopular: true,
+          relevanceScore: 100
+        }
+      ],
+      'Kolwezi': [
+        {
+          id: 'pop-1',
+          name: 'Centre-ville',
+          address: 'Kolwezi, RDC',
+          lat: -10.7147,
+          lng: 25.4764,
+          type: 'popular',
+          title: 'Centre-ville',
+          subtitle: 'Quartier central',
+          isPopular: true,
+          relevanceScore: 100
+        }
+      ]
+    };
+    
+    return placesByCity[detectedCity.name] || placesByCity['Kinshasa'];
   }, []);
 
   // 🧹 NETTOYER LES ERREURS
