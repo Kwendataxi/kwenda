@@ -112,7 +112,7 @@ const PromoSliderOptimized = memo(({ onServiceSelect }: PromoSliderProps) => {
   }, [user, checkPromoUsage, t, onServiceSelect]);
 
   return (
-    <div className="w-full relative mb-12 mx-auto max-w-7xl z-10">
+    <div className="w-full relative mb-12 mx-auto max-w-7xl z-10 pt-2">
       <Carousel
         setApi={setApi}
         opts={{ loop: true, align: 'center', skipSnaps: false, duration: 30 }}

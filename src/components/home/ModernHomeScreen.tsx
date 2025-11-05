@@ -78,7 +78,7 @@ export const ModernHomeScreen = memo(({
             <div className="absolute bottom-20 right-10 w-20 h-20 bg-secondary/2 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
           </div>
           
-          <div className="relative space-y-6 pb-6">
+          <div className="relative space-y-6 pb-6 pt-4">
             {/* ✅ PHASE 4: Lazy loading PromoSlider avec Suspense */}
             <div className="px-4">
               <Suspense fallback={
