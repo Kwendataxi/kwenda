@@ -83,7 +83,7 @@ export default function DestinationSearchDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-0 max-w-full h-screen sm:h-screen sm:max-w-full border-0 rounded-none">
+      <DialogContent className="p-0 max-w-[95vw] sm:max-w-full h-screen border-0 rounded-none sm:rounded-lg">
         <div className="flex flex-col h-full bg-background">
           {/* Header avec recherche - Design moderne Kwenda */}
           <div className="flex items-center gap-3 p-4 border-b border-border bg-gradient-to-br from-primary/5 via-background to-background backdrop-blur-sm">
@@ -102,7 +102,7 @@ export default function DestinationSearchDialog({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Où allez-vous ?"
-                className="pl-12 h-12 text-base bg-muted/50 border-border rounded-xl focus:bg-background"
+                className="pl-12 h-12 text-sm sm:text-base bg-muted/50 border-border rounded-xl focus:bg-background"
               />
               {autocompleteLoading && (
                 <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground animate-spin" />

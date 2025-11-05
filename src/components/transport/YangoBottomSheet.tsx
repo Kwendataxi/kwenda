@@ -50,7 +50,7 @@ export default function YangoBottomSheet({
       dragElastic={0.2}
       onDragStart={() => setIsDragging(true)}
       onDragEnd={handleDragEnd}
-      className="fixed bottom-0 left-0 right-0 z-20 bg-background rounded-t-3xl shadow-2xl max-h-[75vh] overflow-hidden"
+      className="fixed bottom-0 left-0 right-0 z-20 bg-background rounded-t-3xl shadow-2xl max-h-[85vh] sm:max-h-[75vh] overflow-hidden"
     >
       {/* Glissière */}
       <div className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing">
@@ -58,7 +58,7 @@ export default function YangoBottomSheet({
       </div>
       
       {/* Contenu scrollable */}
-      <div className="px-4 pb-6 space-y-5 overflow-y-auto max-h-[calc(75vh-2rem)]">
+      <div className="px-3 sm:px-4 pb-6 space-y-4 sm:space-y-5 overflow-y-auto max-h-[calc(85vh-2rem)] sm:max-h-[calc(75vh-2rem)]">
         {/* ÉTAPE 1 : Sélection du véhicule */}
         {bookingStep === 'vehicle' && (
           <motion.div

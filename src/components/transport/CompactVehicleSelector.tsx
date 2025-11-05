@@ -46,7 +46,7 @@ export default function CompactVehicleSelector({ selected, onSelect }: CompactVe
         Choisissez votre type de véhicule
       </h3>
       
-      <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide -mx-1 px-1">
+      <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide -mx-1 px-1 pr-4">
         {VEHICLES.map((vehicle, index) => {
           const IconComponent = vehicle.icon;
           const isSelected = selected === vehicle.id;
@@ -70,7 +70,7 @@ export default function CompactVehicleSelector({ selected, onSelect }: CompactVe
               whileTap={{ scale: 0.95 }}
               onClick={() => onSelect(vehicle.id)}
               className={`
-                relative flex-shrink-0 w-24 snap-center
+                relative flex-shrink-0 w-20 sm:w-24 snap-center
                 ${isSelected ? 'z-10' : 'z-0'}
               `}
             >
@@ -89,7 +89,7 @@ export default function CompactVehicleSelector({ selected, onSelect }: CompactVe
                 } : {}}
                 transition={{ duration: 0.4 }}
                 className={`
-                  w-20 h-20 mx-auto rounded-full 
+                  w-16 sm:w-20 h-16 sm:h-20 mx-auto rounded-full 
                   bg-gradient-to-br ${vehicle.gradient}
                   flex items-center justify-center
                   shadow-lg
@@ -100,12 +100,12 @@ export default function CompactVehicleSelector({ selected, onSelect }: CompactVe
                   transition-all duration-300
                 `}
               >
-                <IconComponent className="w-9 h-9 text-white" />
+                <IconComponent className="w-7 sm:w-9 h-7 sm:h-9 text-white" />
               </motion.div>
               
               {/* Nom */}
               <p className={`
-                text-sm font-semibold mt-2 text-center
+                text-xs sm:text-sm font-semibold mt-1.5 sm:mt-2 text-center
                 ${isSelected ? 'text-primary' : 'text-foreground'}
                 transition-colors
               `}>

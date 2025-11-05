@@ -165,11 +165,11 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="absolute top-4 right-4 z-10 bg-card/95 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-border/50"
+          className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10 bg-card/95 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-lg border border-border/50"
         >
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-sm font-medium text-foreground">{currentCity.name}</span>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-xs sm:text-sm font-medium text-foreground">{currentCity.name}</span>
           </div>
         </motion.div>
       )}
