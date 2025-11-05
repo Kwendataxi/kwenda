@@ -18,6 +18,7 @@ interface YangoBottomSheetProps {
   onSearchFocus: () => void;
   hasDestination?: boolean;
   onSheetPositionChange?: (height: number) => void;
+  onContinue?: () => void;
 }
 
 type SheetPosition = 'SMALL' | 'MEDIUM' | 'LARGE';
@@ -32,7 +33,8 @@ export default function YangoBottomSheet({
   popularPlaces,
   onPlaceSelect,
   onSearchFocus,
-  onSheetPositionChange
+  onSheetPositionChange,
+  onContinue
 }: YangoBottomSheetProps) {
   const { height: windowHeight } = useWindowSize();
   const [sheetPosition, setSheetPosition] = useState<SheetPosition>('MEDIUM');
@@ -198,6 +200,7 @@ export default function YangoBottomSheet({
               distance={distance}
               city={city}
               calculatingRoute={calculatingRoute}
+              onContinue={onContinue}
             />
           </motion.div>
         )}

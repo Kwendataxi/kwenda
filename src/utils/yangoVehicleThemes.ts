@@ -6,6 +6,7 @@ export interface YangoVehicleTheme {
   solidColor: string;
   bgColor: string;
   icon: LucideIcon;
+  svgIcon: string;
   labelColor: string;
   glowColor: string;
 }
@@ -16,6 +17,7 @@ export const YANGO_VEHICLE_THEMES: Record<string, YangoVehicleTheme> = {
     solidColor: '#FF9800',
     bgColor: 'bg-gradient-to-br from-orange-400 to-orange-500',
     icon: Bike,
+    svgIcon: '/src/assets/vehicle-icons/moto.svg',
     labelColor: 'text-orange-600',
     glowColor: 'rgba(255, 152, 0, 0.25)'
   },
@@ -24,6 +26,7 @@ export const YANGO_VEHICLE_THEMES: Record<string, YangoVehicleTheme> = {
     solidColor: '#10B981',
     bgColor: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
     icon: Car,
+    svgIcon: '/src/assets/vehicle-icons/eco-car.svg',
     labelColor: 'text-emerald-600',
     glowColor: 'rgba(16, 185, 129, 0.25)'
   },
@@ -32,6 +35,7 @@ export const YANGO_VEHICLE_THEMES: Record<string, YangoVehicleTheme> = {
     solidColor: '#3B82F6',
     bgColor: 'bg-gradient-to-br from-blue-500 to-blue-600',
     icon: CarFront,
+    svgIcon: '/src/assets/vehicle-icons/comfort-car.svg',
     labelColor: 'text-blue-600',
     glowColor: 'rgba(59, 130, 246, 0.25)'
   },
@@ -40,6 +44,7 @@ export const YANGO_VEHICLE_THEMES: Record<string, YangoVehicleTheme> = {
     solidColor: '#8B5CF6',
     bgColor: 'bg-gradient-to-br from-violet-500 to-violet-600',
     icon: Crown,
+    svgIcon: '/src/assets/vehicle-icons/premium-car.svg',
     labelColor: 'text-violet-600',
     glowColor: 'rgba(139, 92, 246, 0.3)'
   },
@@ -48,6 +53,7 @@ export const YANGO_VEHICLE_THEMES: Record<string, YangoVehicleTheme> = {
     solidColor: '#F43F5E',
     bgColor: 'bg-gradient-to-br from-rose-500 to-rose-600',
     icon: Zap,
+    svgIcon: '/src/assets/vehicle-icons/flash-car.svg',
     labelColor: 'text-rose-600',
     glowColor: 'rgba(244, 63, 94, 0.25)'
   }

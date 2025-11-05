@@ -153,13 +153,22 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
 
   const handleVehicleSelect = (vehicleId: string) => {
     setSelectedVehicle(vehicleId);
-    setBookingStep('destination');
+    // Ne change plus automatiquement l'étape - attend le clic sur "Continuer"
     
     // ⚡ PHASE 4: Logger la sélection de véhicule
     taxiMetrics.logVehicleSelected({
       vehicle_type: vehicleId,
       estimated_price: calculatedPrice
     });
+  };
+
+  const handleContinueToDestination = () => {
+    setBookingStep('destination');
+    
+    // Haptic feedback
+    if ('vibrate' in navigator) {
+      navigator.vibrate(10);
+    }
   };
 
   const handlePlaceSelect = (place: any) => {
@@ -320,6 +329,7 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
           onSearchFocus={() => setShowDestinationSearch(true)}
           hasDestination={!!destinationLocation}
           onSheetPositionChange={setBottomSheetHeight}
+          onContinue={handleContinueToDestination}
         />
       </AnimatePresence>
 

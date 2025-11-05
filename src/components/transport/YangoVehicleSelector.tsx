@@ -4,7 +4,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { useVehicleTypes } from '@/hooks/useVehicleTypes';
 import { VehicleType } from '@/types/vehicle';
 import { getYangoTheme } from '@/utils/yangoVehicleThemes';
-import { Clock } from 'lucide-react';
+import { Clock, ArrowRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface YangoVehicleSelectorProps {
@@ -13,6 +13,7 @@ interface YangoVehicleSelectorProps {
   onVehicleSelect: (vehicle: VehicleType) => void;
   city?: string;
   calculatingRoute?: boolean;
+  onContinue?: () => void;
 }
 
 export default function YangoVehicleSelector({
@@ -20,7 +21,8 @@ export default function YangoVehicleSelector({
   selectedVehicleId,
   onVehicleSelect,
   city = 'Kinshasa',
-  calculatingRoute = false
+  calculatingRoute = false,
+  onContinue
 }: YangoVehicleSelectorProps) {
   const { vehicles, isLoading } = useVehicleTypes({ distance, city });
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -68,7 +70,7 @@ export default function YangoVehicleSelector({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [emblaApi]);
 
-  if (isLoading) {
+  if (isLoading && vehicles.length === 0) {
     return (
       <div className="py-8 px-4">
         <div className="flex items-center justify-center gap-6 overflow-hidden">
@@ -152,10 +154,28 @@ export default function YangoVehicleSelector({
                       transition={{ duration: 2, repeat: Infinity }}
                     />
 
-                    <Icon 
-                      className="w-16 h-16 md:w-18 md:h-18 text-white drop-shadow-2xl" 
-                      strokeWidth={1.25} 
-                    />
+                    {/* Illustration SVG 2D/3D */}
+                    <motion.div
+                      className="flex items-center justify-center"
+                      whileHover={{ scale: 1.08, y: -2 }}
+                      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                    >
+                      <AnimatePresence mode="wait">
+                        <motion.img
+                          key={vehicle.id}
+                          src={theme.svgIcon}
+                          alt={vehicle.name}
+                          initial={{ opacity: 0, scale: 0.85 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.85 }}
+                          transition={{ duration: 0.3 }}
+                          className="w-20 h-12 md:w-24 md:h-14 object-contain"
+                          style={{
+                            filter: 'drop-shadow(0 6px 18px rgba(0,0,0,0.18))'
+                          }}
+                        />
+                      </AnimatePresence>
+                    </motion.div>
                     
                     {/* ETA Badge */}
                     {vehicle.eta && (
@@ -259,6 +279,54 @@ export default function YangoVehicleSelector({
               )}
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Bouton "Continuer" - Apparaît uniquement quand un véhicule est sélectionné */}
+      <AnimatePresence>
+        {selectedVehicleId && onContinue && (
+          <motion.button
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ 
+              type: "spring",
+              damping: 25,
+              stiffness: 200
+            }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              // Haptic feedback
+              if ('vibrate' in navigator) {
+                navigator.vibrate(15);
+              }
+              onContinue();
+            }}
+            className="w-full mt-6 py-4 rounded-2xl text-white font-semibold text-lg shadow-2xl relative overflow-hidden"
+            style={{
+              background: getYangoTheme(selectedVehicleId).gradient,
+              boxShadow: `0 10px 40px ${getYangoTheme(selectedVehicleId).glowColor}, 0 4px 12px rgba(0,0,0,0.15)`
+            }}
+          >
+            {/* Effet de brillance animé */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30"
+              initial={{ x: '-100%' }}
+              animate={{ x: '100%' }}
+              transition={{ 
+                duration: 2,
+                repeat: Infinity,
+                repeatDelay: 1,
+                ease: "easeInOut"
+              }}
+            />
+            
+            <span className="relative z-10 flex items-center justify-center gap-2">
+              Continuer
+              <ArrowRight className="w-5 h-5" />
+            </span>
+          </motion.button>
         )}
       </AnimatePresence>
     </div>
