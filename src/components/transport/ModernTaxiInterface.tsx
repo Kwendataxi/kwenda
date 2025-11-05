@@ -170,17 +170,23 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
   };
 
   const handleContinueToDestination = () => {
-    // Validation si pour quelqu'un d'autre
+    // Validation si réservation pour autrui
     if (isForSomeoneElse && !selectedBeneficiary) {
-      toast.error('Veuillez sélectionner un bénéficiaire');
+      toast.error('Veuillez sélectionner un bénéficiaire', {
+        description: 'Choisissez un contact ou ajoutez-en un nouveau'
+      });
+      // Vibration d'erreur
+      if ('vibrate' in navigator) {
+        navigator.vibrate([100, 50, 100]);
+      }
       return;
     }
     
     setBookingStep('destination');
     
-    // Haptic feedback
+    // Vibration de succès
     if ('vibrate' in navigator) {
-      navigator.vibrate(10);
+      navigator.vibrate(15);
     }
   };
 
@@ -333,17 +339,6 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         }}
       />
       
-      {/* Sélecteur de bénéficiaire - affiché quand un véhicule est sélectionné */}
-      {bookingStep === 'vehicle' && selectedVehicle && (
-        <div className="absolute bottom-[420px] left-0 right-0 z-20 px-4">
-          <BeneficiarySelector
-            isForSomeoneElse={isForSomeoneElse}
-            onToggle={setIsForSomeoneElse}
-            selectedBeneficiary={selectedBeneficiary}
-            onSelectBeneficiary={setSelectedBeneficiary}
-          />
-        </div>
-      )}
       
       {/* Bottom Sheet avec flux par étapes */}
       <AnimatePresence mode="wait">
@@ -361,6 +356,10 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
           hasDestination={!!destinationLocation}
           onSheetPositionChange={setBottomSheetHeight}
           onContinue={handleContinueToDestination}
+          isForSomeoneElse={isForSomeoneElse}
+          onToggleBeneficiary={setIsForSomeoneElse}
+          selectedBeneficiary={selectedBeneficiary}
+          onSelectBeneficiary={setSelectedBeneficiary}
         />
       </AnimatePresence>
 

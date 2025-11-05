@@ -1,6 +1,7 @@
 import { motion, PanInfo } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import YangoVehicleSelector from './YangoVehicleSelector';
+import BeneficiarySelector from './BeneficiarySelector';
 import DestinationSearchBar from './DestinationSearchBar';
 import PopularPlacesList from './PopularPlacesList';
 import { useWindowSize } from '@/hooks/useWindowSize';
@@ -19,6 +20,10 @@ interface YangoBottomSheetProps {
   hasDestination?: boolean;
   onSheetPositionChange?: (height: number) => void;
   onContinue?: () => void;
+  isForSomeoneElse?: boolean;
+  onToggleBeneficiary?: (value: boolean) => void;
+  selectedBeneficiary?: any;
+  onSelectBeneficiary?: (beneficiary: any) => void;
 }
 
 type SheetPosition = 'SMALL' | 'MEDIUM' | 'LARGE';
@@ -34,7 +39,11 @@ export default function YangoBottomSheet({
   onPlaceSelect,
   onSearchFocus,
   onSheetPositionChange,
-  onContinue
+  onContinue,
+  isForSomeoneElse,
+  onToggleBeneficiary,
+  selectedBeneficiary,
+  onSelectBeneficiary
 }: YangoBottomSheetProps) {
   const { height: windowHeight } = useWindowSize();
   const [sheetPosition, setSheetPosition] = useState<SheetPosition>('MEDIUM');
@@ -188,6 +197,18 @@ export default function YangoBottomSheet({
               calculatingRoute={calculatingRoute}
               onContinue={onContinue}
             />
+            
+            {/* Sélecteur de bénéficiaire intégré après sélection véhicule */}
+            {selectedVehicle && isForSomeoneElse !== undefined && onToggleBeneficiary && (
+              <div className="mt-4">
+                <BeneficiarySelector
+                  isForSomeoneElse={isForSomeoneElse}
+                  onToggle={onToggleBeneficiary}
+                  selectedBeneficiary={selectedBeneficiary || null}
+                  onSelectBeneficiary={onSelectBeneficiary || (() => {})}
+                />
+              </div>
+            )}
           </motion.div>
         )}
 
