@@ -29,7 +29,9 @@ export default function YangoVehicleSelector({
     align: 'center',
     containScroll: 'trimSnaps',
     skipSnaps: false,
-    startIndex: 1
+    startIndex: 1,
+    dragFree: false,
+    inViewThreshold: 0.7
   });
   const [selectedIndex, setSelectedIndex] = useState(1);
 
@@ -98,19 +100,18 @@ export default function YangoVehicleSelector({
   const selectedVehicle = vehicles[selectedIndex];
 
   return (
-    <div className="py-6">
+    <div className="py-3">
       {/* Carousel */}
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex touch-pan-y">
           {vehicles.map((vehicle, index) => {
             const theme = getYangoTheme(vehicle.id);
-            const Icon = theme.icon;
             const isSelected = index === selectedIndex;
 
             return (
               <div
                 key={vehicle.id}
-                className="flex-[0_0_40%] min-w-0 px-3"
+                className="flex-[0_0_35%] min-w-0 px-2"
               >
                 <motion.div
                   animate={{
@@ -128,54 +129,41 @@ export default function YangoVehicleSelector({
                     <motion.div
                       initial={{ scale: 0, rotate: -15 }}
                       animate={{ scale: 1, rotate: 0 }}
-                      className="absolute -top-2 -right-2 z-10 bg-gradient-to-r from-amber-400 to-yellow-500 text-yellow-900 text-[10px] px-2 py-0.5 rounded-full font-bold shadow-lg"
+                      className="absolute -top-1 -right-1 z-10 bg-gradient-to-r from-amber-400 to-yellow-500 text-yellow-900 text-[8px] px-1.5 py-0.5 rounded-full font-bold shadow-md"
                     >
-                      ⭐ Populaire
+                      Populaire
                     </motion.div>
                   )}
 
                   {/* Circle with Icon */}
                   <motion.div
-                    className="relative w-36 h-36 md:w-40 md:h-40 rounded-full flex items-center justify-center"
+                    className="relative w-24 h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.96 }}
                     style={{
                       background: theme.gradient,
                       boxShadow: isSelected 
-                        ? `0 20px 60px ${theme.glowColor}, 0 0 0 3px rgba(255, 255, 255, 0.15), inset 0 2px 20px rgba(255, 255, 255, 0.1)`
-                        : `0 8px 24px rgba(0, 0, 0, 0.08)`,
-                      backdropFilter: isSelected ? 'blur(8px)' : 'none'
+                        ? `0 0 35px ${theme.glowColor}, 0 15px 45px rgba(0, 0, 0, 0.12), inset 0 1px 15px rgba(255, 255, 255, 0.15)`
+                        : `0 6px 18px rgba(0, 0, 0, 0.06)`
                     }}
                   >
-                    {/* Disponibilité indicator */}
-                    <motion.div 
-                      className="absolute top-3 right-3 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-lg"
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-
-                    {/* Illustration SVG 2D/3D */}
-                    <motion.div
-                      className="flex items-center justify-center"
-                      whileHover={{ scale: 1.08, y: -2 }}
-                      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-                    >
-                      <AnimatePresence mode="wait">
-                        <motion.img
-                          key={vehicle.id}
-                          src={theme.svgIcon}
-                          alt={vehicle.name}
-                          initial={{ opacity: 0, scale: 0.85 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.85 }}
-                          transition={{ duration: 0.3 }}
-                          className="w-20 h-12 md:w-24 md:h-14 object-contain"
-                          style={{
-                            filter: 'drop-shadow(0 6px 18px rgba(0,0,0,0.18))'
-                          }}
-                        />
-                      </AnimatePresence>
-                    </motion.div>
+                    {/* Illustration SVG 2.5D */}
+                    <AnimatePresence mode="wait">
+                      <motion.img
+                        key={vehicle.id}
+                        src={theme.svgIcon}
+                        alt={vehicle.name}
+                        initial={{ opacity: 0, scale: 0.85 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.85 }}
+                        whileHover={{ scale: 1.08, y: -2 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-14 h-8 md:w-16 md:h-10 object-contain"
+                        style={{
+                          filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.15))'
+                        }}
+                      />
+                    </AnimatePresence>
                     
                     {/* ETA Badge */}
                     {vehicle.eta && (
@@ -183,11 +171,11 @@ export default function YangoVehicleSelector({
                         initial={{ scale: 0 }}
                         animate={{ scale: isSelected ? 1 : 0.9 }}
                         transition={{ delay: 0.2 }}
-                        className="absolute -bottom-2 px-3 py-1.5 bg-background/95 backdrop-blur-sm rounded-full shadow-xl border border-border"
+                        className="absolute -bottom-1 px-2 py-0.5 bg-background/90 backdrop-blur-sm rounded-full shadow-lg border border-border"
                       >
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={2} />
-                          <span className="text-xs font-semibold">{vehicle.eta} min</span>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-muted-foreground" strokeWidth={2} />
+                          <span className="text-[10px] font-semibold">{vehicle.eta} min</span>
                         </div>
                       </motion.div>
                     )}
@@ -203,7 +191,7 @@ export default function YangoVehicleSelector({
                     </motion.h3>
                     
                     {/* Price */}
-                    {distance > 0 && vehicle.calculatedPrice > 0 ? (
+                    {distance > 0 && vehicle.calculatedPrice > 0 && (
                       <AnimatePresence mode="wait">
                         <motion.p
                           key={vehicle.calculatedPrice}
@@ -211,15 +199,11 @@ export default function YangoVehicleSelector({
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 8 }}
                           transition={{ duration: 0.3 }}
-                          className={`text-sm font-extrabold mt-1 ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}
+                          className={`text-sm font-extrabold mt-1 ${isSelected ? 'text-foreground' : 'text-muted-foreground/70'}`}
                         >
                           {vehicle.calculatedPrice.toLocaleString()} CDF
                         </motion.p>
                       </AnimatePresence>
-                    ) : (
-                      <p className="text-xs text-muted-foreground/60 mt-1 italic">
-                        Sélectionnez une destination
-                      </p>
                     )}
                   </div>
                 </motion.div>
@@ -230,7 +214,7 @@ export default function YangoVehicleSelector({
       </div>
 
       {/* Pagination Dots - Style Yango Pro */}
-      <div className="flex justify-center gap-2 mt-8">
+      <div className="flex justify-center gap-2 mt-6">
         {vehicles.map((vehicle, index) => {
           const theme = getYangoTheme(vehicle.id);
           return (
@@ -240,8 +224,8 @@ export default function YangoVehicleSelector({
               whileTap={{ scale: 0.9 }}
               className={`rounded-full transition-all duration-400`}
               style={{
-                width: index === selectedIndex ? '24px' : '8px',
-                height: '8px',
+                width: index === selectedIndex ? '20px' : '6px',
+                height: '6px',
                 background: index === selectedIndex ? theme.solidColor : 'hsl(var(--muted-foreground) / 0.25)'
               }}
               aria-label={`Sélectionner ${vehicle.name}`}
@@ -249,38 +233,6 @@ export default function YangoVehicleSelector({
           );
         })}
       </div>
-
-      {/* Selected Vehicle Info */}
-      <AnimatePresence mode="wait">
-        {selectedVehicle && distance > 0 && (
-          <motion.div
-            key={selectedVehicle.id}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mt-6 px-4"
-          >
-            <div className="bg-muted/30 rounded-2xl p-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Prix de base</p>
-                  <p className="font-semibold">{selectedVehicle.basePrice.toLocaleString()} CDF</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Prix/km</p>
-                  <p className="font-semibold">{selectedVehicle.pricePerKm.toLocaleString()} CDF</p>
-                </div>
-              </div>
-              
-              {selectedVehicle.description && (
-                <p className="text-xs text-muted-foreground mt-3 text-center">
-                  {selectedVehicle.description}
-                </p>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Bouton "Continuer" - Apparaît uniquement quand un véhicule est sélectionné */}
       <AnimatePresence>
@@ -303,7 +255,7 @@ export default function YangoVehicleSelector({
               }
               onContinue();
             }}
-            className="w-full mt-6 py-4 rounded-2xl text-white font-semibold text-lg shadow-2xl relative overflow-hidden"
+            className="w-full mt-4 py-3.5 rounded-xl text-white font-semibold text-lg shadow-2xl relative overflow-hidden"
             style={{
               background: getYangoTheme(selectedVehicleId).gradient,
               boxShadow: `0 10px 40px ${getYangoTheme(selectedVehicleId).glowColor}, 0 4px 12px rgba(0,0,0,0.15)`

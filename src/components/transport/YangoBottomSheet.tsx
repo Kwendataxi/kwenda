@@ -41,9 +41,9 @@ export default function YangoBottomSheet({
 
   // Positions en pixels depuis le bas de l'écran
   const SHEET_POSITIONS = {
-    SMALL: 220,
-    MEDIUM: 450,
-    LARGE: Math.min(windowHeight * 0.85, 700)
+    SMALL: 180,
+    MEDIUM: 380,
+    LARGE: Math.min(windowHeight * 0.80, 650)
   };
 
   // Feedback haptique subtil
@@ -66,7 +66,7 @@ export default function YangoBottomSheet({
     let newPosition: SheetPosition;
     
     // Drag rapide : changement direct de position
-    if (Math.abs(velocity) > 700) {
+    if (Math.abs(velocity) > 500) {
       if (velocity < 0) {
         // Drag rapide vers le haut → Agrandir
         newPosition = sheetPosition === 'SMALL' ? 'MEDIUM' : 'LARGE';
@@ -126,9 +126,9 @@ export default function YangoBottomSheet({
         transition: {
           height: { 
             type: "spring",
-            damping: 40,
-            stiffness: 220,
-            mass: 0.8
+            damping: 30,
+            stiffness: 250,
+            mass: 0.6
           }
         }
       }}
@@ -151,26 +151,12 @@ export default function YangoBottomSheet({
         transform: 'translateZ(0)'
       }}
     >
-      {/* Glissière avec indicateur de position */}
+      {/* Glissière optimisée */}
       <div 
         className="flex justify-center items-center pt-3 pb-2 cursor-grab active:cursor-grabbing select-none"
         onDoubleClick={handleBarDoubleClick}
       >
-        <div className="w-12 h-1.5 bg-border rounded-full"></div>
-        <div className="flex gap-1.5 ml-3">
-          <div className={cn(
-            "w-1.5 h-1.5 rounded-full transition-all duration-500 ease-out",
-            sheetPosition === 'SMALL' ? 'bg-primary scale-125' : 'bg-muted'
-          )} />
-          <div className={cn(
-            "w-1.5 h-1.5 rounded-full transition-all duration-500 ease-out",
-            sheetPosition === 'MEDIUM' ? 'bg-primary scale-125' : 'bg-muted'
-          )} />
-          <div className={cn(
-            "w-1.5 h-1.5 rounded-full transition-all duration-500 ease-out",
-            sheetPosition === 'LARGE' ? 'bg-primary scale-125' : 'bg-muted'
-          )} />
-        </div>
+        <div className="w-14 h-1 bg-muted-foreground/30 rounded-full"></div>
       </div>
       
       {/* Contenu scrollable */}
