@@ -1,85 +1,52 @@
-<svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
-  <!-- Ombre portée dynamique -->
-  <ellipse cx="60" cy="65" rx="50" ry="7" fill="#000" opacity="0.12"/>
+<svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ombre portée sportive -->
+  <ellipse cx="60" cy="72" rx="50" ry="7" fill="#000000" opacity="0.2"/>
   
-  <!-- Carrosserie sportive -->
-  <path d="M 18,40 L 30,26 L 46,18 L 82,18 L 98,28 L 102,40 L 102,47 L 18,47 Z" 
-        fill="#F43F5E" opacity="0.95"/>
+  <!-- Roue arrière sportive -->
+  <circle cx="33" cy="60" r="15" fill="#2C2C2C" stroke="#1A1A1A" stroke-width="3"/>
+  <circle cx="33" cy="60" r="10" fill="#404040" stroke="#F43F5E" stroke-width="1.5"/>
+  <circle cx="33" cy="60" r="5" fill="#E11D48"/>
+  <circle cx="33" cy="60" r="2" fill="#FB7185"/>
   
-  <!-- Toit profilé -->
-  <path d="M 44,18 L 50,10 L 72,10 L 78,18 Z" 
-        fill="#E11D48" opacity="0.9"/>
+  <!-- Roue avant sportive -->
+  <circle cx="87" cy="60" r="15" fill="#2C2C2C" stroke="#1A1A1A" stroke-width="3"/>
+  <circle cx="87" cy="60" r="10" fill="#404040" stroke="#F43F5E" stroke-width="1.5"/>
+  <circle cx="87" cy="60" r="5" fill="#E11D48"/>
+  <circle cx="87" cy="60" r="2" fill="#FB7185"/>
+  
+  <!-- Carrosserie sportive/coupé -->
+  <path d="M 18 60 L 23 50 Q 30 26 52 24 L 70 24 Q 90 26 95 50 L 102 60 Z" 
+        fill="#F43F5E" stroke="#E11D48" stroke-width="3"/>
+  
+  <!-- Toit coupé aérodynamique -->
+  <path d="M 42 24 Q 45 14 56 12 L 68 12 Q 78 14 80 24" 
+        fill="#FB7185" stroke="#F43F5E" stroke-width="2"/>
   
   <!-- Vitres teintées sport -->
-  <path d="M 46,16 L 52,12 L 62,12 L 62,17 L 46,17 Z" 
-        fill="#450A0A" opacity="0.6"/>
-  <path d="M 64,12 L 74,12 L 80,16 L 80,17 L 64,17 Z" 
-        fill="#450A0A" opacity="0.6"/>
+  <path d="M 44 23 Q 46 17 56 15 L 60 15 L 60 23 Z" 
+        fill="#FECDD3" opacity="0.3" stroke="#E11D48" stroke-width="1"/>
+  <path d="M 62 15 L 68 15 Q 76 17 78 23 L 62 23 Z" 
+        fill="#FECDD3" opacity="0.3" stroke="#E11D48" stroke-width="1"/>
   
-  <!-- Pare-brise avant aérodynamique -->
-  <path d="M 82,20 L 96,28 L 96,38 L 82,38 Z" 
-        fill="#FED7E2" opacity="0.35"/>
+  <!-- Spoiler arrière -->
+  <path d="M 20 50 L 18 46 L 24 46 Z" fill="#E11D48"/>
   
-  <!-- Logo Flash sur portière -->
-  <g transform="translate(54, 32) scale(0.7)">
-    <path d="M 2,0 L 8,0 L 4,6 L 6,6 L 2,12 L 3.5,7 L 1,7 Z" 
-          fill="#FFF9C4" opacity="0.95"/>
-  </g>
+  <!-- Prise d'air -->
+  <rect x="96" y="42" width="4" height="8" rx="1" fill="#1A1A1A" opacity="0.8"/>
   
-  <!-- Calandre sport -->
-  <rect x="98" y="33" width="4" height="8" rx="0.5" fill="#1F2937" opacity="0.9"/>
-  <line x1="99" y1="34" x2="99" y2="40" stroke="#F43F5E" stroke-width="0.5"/>
+  <!-- Phares agressifs LED -->
+  <path d="M 94 36 L 100 38 L 96 42 Z" fill="#FFF" opacity="0.95"/>
+  <path d="M 94 52 L 100 50 L 96 48 Z" fill="#FFEB3B" opacity="0.9"/>
   
-  <!-- Phares LED agressifs -->
-  <ellipse cx="98" cy="30" rx="5" ry="2.5" fill="#FFF9C4" opacity="0.95"/>
-  <ellipse cx="98" cy="43" rx="5" ry="2.5" fill="#FFF9C4" opacity="0.95"/>
-  <ellipse cx="97" cy="30" rx="2.5" ry="1.5" fill="#FFEB3B"/>
+  <!-- Feux arrière racing -->
+  <rect x="19" y="46" width="5" height="9" rx="1" fill="#FFF" opacity="0.2"/>
+  <rect x="20" y="47" width="3" height="7" rx="0.5" fill="#EF4444" opacity="0.95"/>
   
-  <!-- Feux arrière LED sport -->
-  <rect x="19" y="36" width="3" height="6" rx="1.5" fill="#DC2626" opacity="0.95"/>
-  <rect x="20" y="37" width="1" height="4" fill="#FCA5A5" opacity="0.8"/>
+  <!-- Badge éclair Flash -->
+  <circle cx="60" cy="42" r="7" fill="#FFF" opacity="0.95" stroke="#E11D48" stroke-width="1.5"/>
+  <path d="M 63 35 L 56 43 L 60 43 L 57 49 L 64 41 L 60 41 Z" fill="#F43F5E"/>
   
-  <!-- Jantes sport -->
-  <g>
-    <!-- Roue avant -->
-    <circle cx="84" cy="47" r="11" fill="#1F2937"/>
-    <circle cx="84" cy="47" r="8" fill="#E11D48"/>
-    <circle cx="84" cy="47" r="5" fill="#1F2937"/>
-    <circle cx="84" cy="47" r="2.5" fill="#F43F5E"/>
-    <line x1="84" y1="41" x2="84" y2="53" stroke="#FCA5A5" stroke-width="0.8"/>
-    <line x1="78" y1="47" x2="90" y2="47" stroke="#FCA5A5" stroke-width="0.8"/>
-    
-    <!-- Roue arrière -->
-    <circle cx="36" cy="47" r="11" fill="#1F2937"/>
-    <circle cx="36" cy="47" r="8" fill="#E11D48"/>
-    <circle cx="36" cy="47" r="5" fill="#1F2937"/>
-    <circle cx="36" cy="47" r="2.5" fill="#F43F5E"/>
-    <line x1="36" y1="41" x2="36" y2="53" stroke="#FCA5A5" stroke-width="0.8"/>
-    <line x1="30" y1="47" x2="42" y2="47" stroke="#FCA5A5" stroke-width="0.8"/>
-  </g>
-  
-  <!-- Lignes de design sport -->
-  <path d="M 46,28 L 88,28" stroke="#E11D48" stroke-width="2" opacity="0.7"/>
-  <path d="M 38,36 L 94,36" stroke="#DC2626" stroke-width="1.5" opacity="0.6"/>
-  
-  <!-- Aérations latérales -->
-  <rect x="70" y="34" width="8" height="1" fill="#1F2937" opacity="0.6"/>
-  <rect x="70" y="36" width="8" height="1" fill="#1F2937" opacity="0.6"/>
-  <rect x="70" y="38" width="8" height="1" fill="#1F2937" opacity="0.6"/>
-  
-  <!-- Reflets lumineux sport -->
-  <ellipse cx="60" cy="20" rx="22" ry="3" fill="#fff" opacity="0.4"/>
-  <ellipse cx="72" cy="34" rx="16" ry="2.5" fill="#fff" opacity="0.35"/>
-  
-  <!-- Rétroviseurs sport -->
-  <rect x="82" y="22" width="2" height="4" fill="#1F2937" opacity="0.9"/>
-  <ellipse cx="83" cy="24" rx="3" ry="2.5" fill="#374151" opacity="0.85"/>
-  
-  <!-- Aileron arrière -->
-  <rect x="24" y="16" width="8" height="2" fill="#E11D48" opacity="0.9"/>
-  <rect x="25" y="18" width="6" height="0.5" fill="#F43F5E" opacity="0.7"/>
-  
-  <!-- Bas de caisse sport -->
-  <rect x="32" y="46" width="58" height="1.5" fill="#1F2937" opacity="0.8"/>
-  <rect x="34" y="46.5" width="54" height="0.5" fill="#F43F5E" opacity="0.6"/>
+  <!-- Bandes racing -->
+  <path d="M 40 40 L 80 40" stroke="#FFF" stroke-width="1.5" opacity="0.5"/>
+  <path d="M 40 44 L 80 44" stroke="#FFF" stroke-width="1" opacity="0.3"/>
 </svg>

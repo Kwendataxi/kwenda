@@ -1,51 +1,39 @@
-<svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
   <!-- Ombre portée -->
-  <ellipse cx="60" cy="65" rx="48" ry="8" fill="#000" opacity="0.1"/>
-  
-  <!-- Carrosserie principale -->
-  <path d="M 24,40 L 33,27 L 45,20 L 75,20 L 87,27 L 96,40 L 96,47 L 24,47 Z" 
-        fill="#10B981" opacity="0.95"/>
-  
-  <!-- Toit -->
-  <path d="M 39,20 L 48,13 L 72,13 L 81,20 Z" 
-        fill="#059669" opacity="0.9"/>
-  
-  <!-- Vitres -->
-  <path d="M 41,18 L 49,15 L 57,15 L 57,19 L 41,19 Z" 
-        fill="#E0F2FE" opacity="0.4"/>
-  <path d="M 63,15 L 71,15 L 79,18 L 79,19 L 63,19 Z" 
-        fill="#E0F2FE" opacity="0.4"/>
-  
-  <!-- Pare-brise avant -->
-  <path d="M 83,21 L 89,28 L 89,38 L 83,38 Z" 
-        fill="#BFDBFE" opacity="0.35"/>
-  
-  <!-- Phares avant -->
-  <circle cx="91" cy="32" r="3" fill="#FFF9C4" opacity="0.9"/>
-  <circle cx="91" cy="39" r="3" fill="#FFF9C4" opacity="0.9"/>
-  
-  <!-- Phares arrière -->
-  <rect x="25" y="35" width="2.5" height="5" rx="1.5" fill="#EF4444" opacity="0.85"/>
-  
-  <!-- Roue avant -->
-  <circle cx="78" cy="47" r="11" fill="#1F2937"/>
-  <circle cx="78" cy="47" r="7" fill="#374151"/>
-  <circle cx="78" cy="47" r="4.5" fill="#4B5563"/>
+  <ellipse cx="60" cy="70" rx="48" ry="7" fill="#000000" opacity="0.15"/>
   
   <!-- Roue arrière -->
-  <circle cx="36" cy="47" r="11" fill="#1F2937"/>
-  <circle cx="36" cy="47" r="7" fill="#374151"/>
-  <circle cx="36" cy="47" r="4.5" fill="#4B5563"/>
+  <circle cx="35" cy="58" r="14" fill="#2C2C2C" stroke="#1A1A1A" stroke-width="2.5"/>
+  <circle cx="35" cy="58" r="9" fill="#404040"/>
+  <circle cx="35" cy="58" r="4" fill="#5A5A5A"/>
   
-  <!-- Détails carrosserie -->
-  <path d="M 48,27 L 72,27" stroke="#059669" stroke-width="1.5" opacity="0.6"/>
-  <path d="M 42,33 L 84,33" stroke="#059669" stroke-width="1.5" opacity="0.6"/>
+  <!-- Roue avant -->
+  <circle cx="85" cy="58" r="14" fill="#2C2C2C" stroke="#1A1A1A" stroke-width="2.5"/>
+  <circle cx="85" cy="58" r="9" fill="#404040"/>
+  <circle cx="85" cy="58" r="4" fill="#5A5A5A"/>
   
-  <!-- Reflets lumineux -->
-  <ellipse cx="60" cy="23" rx="18" ry="2.5" fill="#fff" opacity="0.3"/>
-  <ellipse cx="66" cy="35" rx="12" ry="2" fill="#fff" opacity="0.25"/>
+  <!-- Carrosserie principale -->
+  <path d="M 20 58 L 25 48 Q 30 30 45 28 L 75 28 Q 88 30 93 48 L 100 58 Z" 
+        fill="#10B981" stroke="#059669" stroke-width="2.5"/>
   
-  <!-- Rétroviseur -->
-  <rect x="81" y="32" width="2" height="4" fill="#374151" opacity="0.8"/>
-  <ellipse cx="82" cy="34" rx="2.5" ry="2" fill="#64748B" opacity="0.7"/>
+  <!-- Toit -->
+  <path d="M 40 28 Q 42 20 50 18 L 70 18 Q 78 20 80 28" 
+        fill="#34D399" stroke="#10B981" stroke-width="2"/>
+  
+  <!-- Vitres -->
+  <path d="M 42 27 Q 44 22 50 21 L 58 21 L 58 27 Z" 
+        fill="#5EEAD4" opacity="0.4" stroke="#10B981" stroke-width="1"/>
+  <path d="M 62 21 L 70 21 Q 76 22 78 27 L 62 27 Z" 
+        fill="#5EEAD4" opacity="0.4" stroke="#10B981" stroke-width="1"/>
+  
+  <!-- Phares avant -->
+  <ellipse cx="92" cy="40" rx="6" ry="4" fill="#FFF" opacity="0.9"/>
+  <ellipse cx="92" cy="48" rx="4" ry="3" fill="#FFEB3B" opacity="0.8"/>
+  
+  <!-- Feux arrière -->
+  <ellipse cx="23" cy="48" rx="3" ry="5" fill="#EF4444" opacity="0.9"/>
+  
+  <!-- Badge ECO -->
+  <circle cx="60" cy="42" r="6" fill="#34D399" stroke="#059669" stroke-width="1.5"/>
+  <text x="60" y="45" text-anchor="middle" font-size="7" font-weight="bold" fill="#FFF">E</text>
 </svg>

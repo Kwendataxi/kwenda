@@ -1,69 +1,43 @@
-<svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
   <!-- Ombre portée -->
-  <ellipse cx="60" cy="65" rx="50" ry="8" fill="#000" opacity="0.12"/>
-  
-  <!-- Carrosserie principale -->
-  <path d="M 21,40 L 31,27 L 43,20 L 77,20 L 89,27 L 99,40 L 99,47 L 21,47 Z" 
-        fill="#3B82F6" opacity="0.95"/>
-  
-  <!-- Toit -->
-  <path d="M 42,20 L 49,13 L 71,13 L 78,20 Z" 
-        fill="#2563EB" opacity="0.92"/>
-  
-  <!-- Vitres teintées -->
-  <path d="M 44,18 L 50,15 L 59,15 L 59,19 L 44,19 Z" 
-        fill="#1E3A8A" opacity="0.5"/>
-  <path d="M 61,15 L 70,15 L 76,18 L 76,19 L 61,19 Z" 
-        fill="#1E3A8A" opacity="0.5"/>
-  
-  <!-- Pare-brise avant large -->
-  <path d="M 79,21 L 90,28 L 90,38 L 79,38 Z" 
-        fill="#BFDBFE" opacity="0.4"/>
-  
-  <!-- Pare-brise arrière -->
-  <path d="M 41,21 L 30,28 L 30,36 L 41,36 Z" 
-        fill="#BFDBFE" opacity="0.35"/>
-  
-  <!-- Calandre chromée -->
-  <rect x="95" y="33" width="4" height="9" rx="0.5" fill="#CBD5E1" opacity="0.9"/>
-  <rect x="96" y="34" width="0.5" height="7" fill="#94A3B8"/>
-  <rect x="97.5" y="34" width="0.5" height="7" fill="#94A3B8"/>
-  
-  <!-- Phares LED avant -->
-  <ellipse cx="95" cy="31" rx="4" ry="2.5" fill="#FFF9C4" opacity="0.95"/>
-  <ellipse cx="95" cy="43" rx="4" ry="2.5" fill="#FFF9C4" opacity="0.95"/>
-  <ellipse cx="94" cy="31" rx="2" ry="1.5" fill="#FFEB3B"/>
-  
-  <!-- Feux arrière LED -->
-  <rect x="22" y="35" width="3" height="7" rx="1.5" fill="#EF4444" opacity="0.9"/>
-  <rect x="23.5" y="36" width="0.5" height="5" fill="#FCA5A5" opacity="0.7"/>
-  
-  <!-- Roue avant -->
-  <circle cx="81" cy="47" r="11" fill="#1F2937"/>
-  <circle cx="81" cy="47" r="8" fill="#374151"/>
-  <circle cx="81" cy="47" r="5" fill="#4B5563"/>
-  <circle cx="81" cy="47" r="2.5" fill="#6B7280"/>
+  <ellipse cx="60" cy="72" rx="52" ry="7" fill="#000000" opacity="0.15"/>
   
   <!-- Roue arrière -->
-  <circle cx="39" cy="47" r="11" fill="#1F2937"/>
-  <circle cx="39" cy="47" r="8" fill="#374151"/>
-  <circle cx="39" cy="47" r="5" fill="#4B5563"/>
-  <circle cx="39" cy="47" r="2.5" fill="#6B7280"/>
+  <circle cx="32" cy="60" r="15" fill="#2C2C2C" stroke="#1A1A1A" stroke-width="2.5"/>
+  <circle cx="32" cy="60" r="10" fill="#404040" stroke="#2C2C2C" stroke-width="1.5"/>
+  <circle cx="32" cy="60" r="5" fill="#5A5A5A"/>
   
-  <!-- Lignes de design -->
-  <path d="M 45,28 L 84,28" stroke="#2563EB" stroke-width="1.5" opacity="0.6"/>
-  <path d="M 39,35 L 90,35" stroke="#1D4ED8" stroke-width="1.5" opacity="0.5"/>
+  <!-- Roue avant -->
+  <circle cx="88" cy="60" r="15" fill="#2C2C2C" stroke="#1A1A1A" stroke-width="2.5"/>
+  <circle cx="88" cy="60" r="10" fill="#404040" stroke="#2C2C2C" stroke-width="1.5"/>
+  <circle cx="88" cy="60" r="5" fill="#5A5A5A"/>
   
-  <!-- Reflets lumineux premium -->
-  <ellipse cx="60" cy="23" rx="21" ry="3" fill="#fff" opacity="0.35"/>
-  <ellipse cx="72" cy="36" rx="15" ry="2.5" fill="#fff" opacity="0.3"/>
+  <!-- Carrosserie berline -->
+  <path d="M 18 60 L 22 50 Q 28 28 48 26 L 72 26 Q 90 28 96 50 L 102 60 Z" 
+        fill="#3B82F6" stroke="#2563EB" stroke-width="2.5"/>
   
-  <!-- Rétroviseurs -->
-  <rect x="79" y="23" width="2" height="4.5" fill="#374151" opacity="0.85"/>
-  <ellipse cx="80" cy="25" rx="3" ry="2.5" fill="#64748B" opacity="0.8"/>
-  <rect x="39" y="23" width="2" height="4.5" fill="#374151" opacity="0.85"/>
-  <ellipse cx="38" cy="25" rx="3" ry="2.5" fill="#64748B" opacity="0.8"/>
+  <!-- Toit berline -->
+  <path d="M 38 26 Q 40 16 52 14 L 68 14 Q 80 16 82 26" 
+        fill="#60A5FA" stroke="#3B82F6" stroke-width="2"/>
   
-  <!-- Bas de caisse chromé -->
-  <rect x="33" y="46" width="54" height="1.5" fill="#94A3B8" opacity="0.7"/>
+  <!-- Vitres avant -->
+  <path d="M 40 25 Q 42 19 52 17 L 58 17 L 58 25 Z" 
+        fill="#DBEAFE" opacity="0.5" stroke="#3B82F6" stroke-width="1"/>
+  
+  <!-- Vitres arrière -->
+  <path d="M 62 17 L 68 17 Q 78 19 80 25 L 62 25 Z" 
+        fill="#DBEAFE" opacity="0.5" stroke="#3B82F6" stroke-width="1"/>
+  
+  <!-- Phares LED modernes -->
+  <path d="M 94 38 L 100 38 L 98 42 Z" fill="#FFF" opacity="0.95"/>
+  <path d="M 94 48 L 100 48 L 98 52 Z" fill="#FFF" opacity="0.95"/>
+  
+  <!-- Feux arrière LED -->
+  <rect x="18" y="46" width="4" height="8" rx="1" fill="#EF4444" opacity="0.9"/>
+  
+  <!-- Ligne de chrome -->
+  <path d="M 30 46 L 90 46" stroke="#E0E7FF" stroke-width="1.5" opacity="0.6"/>
+  
+  <!-- Rétroviseur -->
+  <ellipse cx="85" cy="30" rx="3" ry="2" fill="#2563EB"/>
 </svg>

@@ -1,82 +1,49 @@
-<svg width="120" height="80" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
-  <!-- Ombre portée -->
-  <ellipse cx="60" cy="65" rx="52" ry="8" fill="#000" opacity="0.15"/>
+<svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ombre portée élégante -->
+  <ellipse cx="60" cy="72" rx="54" ry="8" fill="#000000" opacity="0.2"/>
   
-  <!-- Carrosserie principale SUV -->
-  <path d="M 20,38 L 28,22 L 42,16 L 78,16 L 92,22 L 100,38 L 100,47 L 20,47 Z" 
-        fill="#8B5CF6" opacity="0.95"/>
+  <!-- Roue arrière premium -->
+  <circle cx="30" cy="60" r="16" fill="#2C2C2C" stroke="#1A1A1A" stroke-width="3"/>
+  <circle cx="30" cy="60" r="11" fill="#404040" stroke="#8B5CF6" stroke-width="1.5"/>
+  <circle cx="30" cy="60" r="6" fill="#5A5A5A"/>
+  <circle cx="30" cy="60" r="3" fill="#A78BFA"/>
+  
+  <!-- Roue avant premium -->
+  <circle cx="90" cy="60" r="16" fill="#2C2C2C" stroke="#1A1A1A" stroke-width="3"/>
+  <circle cx="90" cy="60" r="11" fill="#404040" stroke="#8B5CF6" stroke-width="1.5"/>
+  <circle cx="90" cy="60" r="6" fill="#5A5A5A"/>
+  <circle cx="90" cy="60" r="3" fill="#A78BFA"/>
+  
+  <!-- Carrosserie SUV/Luxe -->
+  <path d="M 16 60 L 20 48 Q 26 24 50 22 L 70 22 Q 92 24 98 48 L 104 60 Z" 
+        fill="#8B5CF6" stroke="#7C3AED" stroke-width="3"/>
   
   <!-- Toit panoramique -->
-  <path d="M 40,16 L 46,8 L 74,8 L 80,16 Z" 
-        fill="#7C3AED" opacity="0.9"/>
+  <path d="M 36 22 Q 38 12 54 10 L 66 10 Q 82 12 84 22" 
+        fill="#A78BFA" stroke="#8B5CF6" stroke-width="2"/>
   
-  <!-- Vitres teintées noires -->
-  <path d="M 42,14 L 48,10 L 60,10 L 60,16 L 42,16 Z" 
-        fill="#1E1B4B" opacity="0.6"/>
-  <path d="M 60,10 L 72,10 L 78,14 L 78,16 L 60,16 Z" 
-        fill="#1E1B4B" opacity="0.6"/>
+  <!-- Vitres teintées -->
+  <path d="M 38 21 Q 40 15 54 13 L 58 13 L 58 21 Z" 
+        fill="#C4B5FD" opacity="0.4" stroke="#7C3AED" stroke-width="1"/>
+  <path d="M 62 13 L 66 13 Q 80 15 82 21 L 62 21 Z" 
+        fill="#C4B5FD" opacity="0.4" stroke="#7C3AED" stroke-width="1"/>
   
-  <!-- Pare-brise avant -->
-  <path d="M 82,18 L 94,26 L 94,36 L 82,36 Z" 
-        fill="#C4B5FD" opacity="0.4"/>
+  <!-- Calandre chromée -->
+  <rect x="96" y="36" width="6" height="16" rx="1" fill="#DDD6FE" stroke="#8B5CF6" stroke-width="1.5"/>
+  <line x1="97" y1="38" x2="97" y2="50" stroke="#A78BFA" stroke-width="0.5"/>
+  <line x1="99" y1="38" x2="99" y2="50" stroke="#A78BFA" stroke-width="0.5"/>
+  <line x1="101" y1="38" x2="101" y2="50" stroke="#A78BFA" stroke-width="0.5"/>
   
-  <!-- Pare-brise arrière -->
-  <path d="M 38,18 L 26,26 L 26,34 L 38,34 Z" 
-        fill="#C4B5FD" opacity="0.35"/>
+  <!-- Phares premium LED -->
+  <ellipse cx="97" cy="32" rx="5" ry="3" fill="#FFF" opacity="0.95"/>
+  <ellipse cx="97" cy="56" rx="4" ry="2.5" fill="#FFEB3B" opacity="0.9"/>
   
-  <!-- Calandre chromée premium -->
-  <rect x="96" y="32" width="4" height="10" rx="0.5" fill="#E2E8F0" opacity="0.95"/>
-  <line x1="97" y1="34" x2="97" y2="40" stroke="#94A3B8" stroke-width="0.5"/>
-  <line x1="98.5" y1="34" x2="98.5" y2="40" stroke="#94A3B8" stroke-width="0.5"/>
+  <!-- Feux arrière signature -->
+  <rect x="16" y="44" width="5" height="10" rx="1.5" fill="#A78BFA" opacity="0.3"/>
+  <rect x="17" y="45" width="3" height="8" rx="1" fill="#EF4444" opacity="0.95"/>
   
-  <!-- Phares Matrix LED -->
-  <g>
-    <ellipse cx="96" cy="29" rx="5" ry="3" fill="#FFF9C4" opacity="0.95"/>
-    <ellipse cx="96" cy="44" rx="5" ry="3" fill="#FFF9C4" opacity="0.95"/>
-    <circle cx="95" cy="29" r="1.5" fill="#FFEB3B"/>
-    <circle cx="95" cy="44" r="1.5" fill="#FFEB3B"/>
-  </g>
-  
-  <!-- Feux arrière OLED -->
-  <rect x="20" y="34" width="3.5" height="8" rx="1.5" fill="#DC2626" opacity="0.95"/>
-  <rect x="21" y="35" width="1.5" height="6" fill="#FCA5A5" opacity="0.8"/>
-  
-  <!-- Jantes premium -->
-  <g>
-    <!-- Roue avant -->
-    <circle cx="83" cy="47" r="11" fill="#1F2937"/>
-    <circle cx="83" cy="47" r="9" fill="#374151"/>
-    <circle cx="83" cy="47" r="6" fill="#4B5563"/>
-    <circle cx="83" cy="47" r="3" fill="#CBD5E1"/>
-    <line x1="83" y1="41" x2="83" y2="53" stroke="#94A3B8" stroke-width="1"/>
-    <line x1="77" y1="47" x2="89" y2="47" stroke="#94A3B8" stroke-width="1"/>
-    
-    <!-- Roue arrière -->
-    <circle cx="37" cy="47" r="11" fill="#1F2937"/>
-    <circle cx="37" cy="47" r="9" fill="#374151"/>
-    <circle cx="37" cy="47" r="6" fill="#4B5563"/>
-    <circle cx="37" cy="47" r="3" fill="#CBD5E1"/>
-    <line x1="37" y1="41" x2="37" y2="53" stroke="#94A3B8" stroke-width="1"/>
-    <line x1="31" y1="47" x2="43" y2="47" stroke="#94A3B8" stroke-width="1"/>
-  </g>
-  
-  <!-- Lignes de design premium -->
-  <path d="M 44,26 L 86,26" stroke="#7C3AED" stroke-width="2" opacity="0.6"/>
-  <path d="M 36,36 L 92,36" stroke="#6D28D9" stroke-width="1.5" opacity="0.5"/>
-  
-  <!-- Reflets lumineux luxe -->
-  <ellipse cx="60" cy="20" rx="24" ry="3.5" fill="#fff" opacity="0.4"/>
-  <ellipse cx="70" cy="34" rx="18" ry="3" fill="#fff" opacity="0.35"/>
-  
-  <!-- Rétroviseurs chromés -->
-  <rect x="82" y="21" width="2" height="5" fill="#374151" opacity="0.9"/>
-  <ellipse cx="83" cy="23" rx="3.5" ry="3" fill="#CBD5E1" opacity="0.85"/>
-  <rect x="36" y="21" width="2" height="5" fill="#374151" opacity="0.9"/>
-  <ellipse cx="35" cy="23" rx="3.5" ry="3" fill="#CBD5E1" opacity="0.85"/>
-  
-  <!-- Bas de caisse chromé -->
-  <rect x="30" y="46" width="60" height="2" fill="#CBD5E1" opacity="0.8"/>
-  
-  <!-- Badge premium -->
-  <circle cx="60" cy="44" r="2.5" fill="#E2E8F0" opacity="0.9"/>
+  <!-- Badge Premium -->
+  <circle cx="60" cy="42" r="7" fill="#DDD6FE" stroke="#7C3AED" stroke-width="1.5"/>
+  <path d="M 60 37 L 62 41 L 66 41 L 63 44 L 64 48 L 60 45 L 56 48 L 57 44 L 54 41 L 58 41 Z" 
+        fill="#FFD700" stroke="#F59E0B" stroke-width="0.5"/>
 </svg>
