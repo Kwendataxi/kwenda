@@ -19,6 +19,7 @@ interface OptimizedMapViewProps {
   destination?: Location | null;
   userLocation?: { lat: number; lng: number } | null;
   onMapReady?: (map: google.maps.Map) => void;
+  onClickPosition?: () => void;
   className?: string;
 }
 
@@ -27,6 +28,7 @@ const OptimizedMapView = React.memo(({
   destination, 
   userLocation,
   onMapReady,
+  onClickPosition,
   className = '' 
 }: OptimizedMapViewProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -169,12 +171,14 @@ const OptimizedMapView = React.memo(({
       {destination && <DestinationMarker map={mapInstanceRef.current} position={destination} label={destination.name || destination.address} />}
       
       {/* Marker position actuelle */}
-      <CurrentPositionMarker map={mapInstanceRef.current} position={userLocation} />
+      <CurrentPositionMarker 
+        map={mapInstanceRef.current} 
+        position={userLocation} 
+        onClickPosition={onClickPosition}
+      />
       
       {/* Contrôles carte */}
       <KwendaMapControls
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
         onLocate={handleLocate}
       />
     </div>

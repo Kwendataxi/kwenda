@@ -7,6 +7,7 @@ import YangoBottomSheet from './YangoBottomSheet';
 import DestinationSearchDialog from './DestinationSearchDialog';
 import PriceConfirmationModal from './PriceConfirmationModal';
 import DriverSearchProgressModal from './DriverSearchProgressModal';
+import { NearbyDriversIndicator } from '@/components/maps/NearbyDriversIndicator';
 import { useSmartGeolocation } from '@/hooks/useSmartGeolocation';
 import { useRideDispatch } from '@/hooks/useRideDispatch';
 import { LocationData } from '@/types/location';
@@ -176,6 +177,18 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
     setBookingStep('destination');
   };
 
+  const handleClickPosition = () => {
+    console.log('📍 User clicked position marker');
+    toast.info('Position marquée', {
+      description: 'Votre position actuelle a été enregistrée'
+    });
+    
+    // Vibration haptique si disponible
+    if ('vibrate' in navigator) {
+      navigator.vibrate(10);
+    }
+  };
+
   // Calculer le prix estimé
   const calculatedPrice = distance > 0 ? Math.round(2500 + (distance * 500)) : 0;
 
@@ -186,21 +199,14 @@ export default function ModernTaxiInterface({ onSubmit, onCancel }: ModernTaxiIn
         pickup={pickupLocation}
         destination={destinationLocation}
         userLocation={pickupLocation}
+        onClickPosition={handleClickPosition}
       />
       
-      {/* Badge ville détectée */}
-      {currentCity && (
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10 bg-card/95 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-lg border border-border/50"
-        >
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-xs sm:text-sm font-medium text-foreground">{currentCity.name}</span>
-          </div>
-        </motion.div>
-      )}
+      {/* Indicateur chauffeurs à proximité */}
+      <NearbyDriversIndicator 
+        driverCount={12}
+        onClick={() => console.log('Toggle drivers visibility')}
+      />
       
       {/* Menu hamburger */}
       <motion.button 

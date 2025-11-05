@@ -356,12 +356,8 @@ export default function KwendaMap({
       
       {enableControls && isMapReady && (
         <KwendaMapControls
-          onZoomIn={handleZoomIn}
-          onZoomOut={handleZoomOut}
           onLocate={handleLocate}
-          onToggleMapType={handleToggleMapType}
           isLocating={isLocating}
-          mapType={mapType}
         />
       )}
 
