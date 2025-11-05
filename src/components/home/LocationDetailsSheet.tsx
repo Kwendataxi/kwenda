@@ -6,6 +6,29 @@ import { Bookmark, Edit3, Share2, MapPin, ExternalLink, Check, Navigation, X } f
 import { toast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import { useRealtimeGeolocation } from '@/hooks/useRealtimeGeolocation';
+
+// 🎨 Couleurs Kwenda pour marqueurs
+const KWENDA_MARKER_COLORS = {
+  normal: '#EF4444',      // Rouge Kwenda
+  editing: '#F59E0B',     // Orange pour édition
+  success: '#10B981',     // Vert pour confirmation
+  white: '#FFFFFF'
+};
+
+// 🔍 Validation des coordonnées
+const isValidCoordinates = (coords: { lat: number; lng: number } | undefined): boolean => {
+  if (!coords) return false;
+  const { lat, lng } = coords;
+  return (
+    typeof lat === 'number' &&
+    typeof lng === 'number' &&
+    !isNaN(lat) &&
+    !isNaN(lng) &&
+    lat >= -90 && lat <= 90 &&
+    lng >= -180 && lng <= 180
+  );
+};
 
 interface LocationDetailsSheetProps {
   open: boolean;
@@ -20,6 +43,7 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
   address,
   coordinates
 }) => {
+  const geolocation = useRealtimeGeolocation();
   const mapRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<google.maps.Marker | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -31,6 +55,17 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
   const [savedPositions, setSavedPositions] = useState<Array<{ name: string; address: string; coordinates: { lat: number; lng: number } }>>([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [positionName, setPositionName] = useState('');
+
+  // Debug log
+  useEffect(() => {
+    if (open && coordinates) {
+      console.log('🗺️ LocationDetailsSheet ouvert:', {
+        address,
+        coordinates,
+        isValid: isValidCoordinates(coordinates)
+      });
+    }
+  }, [open, coordinates, address]);
 
   // Update current coords when props change
   useEffect(() => {
@@ -187,18 +222,29 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
           icon: {
             path: google.maps.SymbolPath.CIRCLE,
             scale: isEditing ? 14 : 12,
-            fillColor: isEditing ? '#3B82F6' : '#3B82F6',
+            fillColor: isEditing ? KWENDA_MARKER_COLORS.editing : KWENDA_MARKER_COLORS.normal,
             fillOpacity: 1,
-            strokeColor: '#ffffff',
+            strokeColor: KWENDA_MARKER_COLORS.white,
             strokeWeight: isEditing ? 5 : 4
           }
         });
 
-        // Handle marker drag with haptic feedback
+        // Handle marker drag with haptic feedback and animation
         marker.addListener('dragstart', () => {
           if (navigator.vibrate) {
             navigator.vibrate(12);
           }
+          
+          // Animate marker during drag
+          marker.setIcon({
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 16,
+            fillColor: KWENDA_MARKER_COLORS.editing,
+            fillOpacity: 0.7,
+            strokeColor: KWENDA_MARKER_COLORS.white,
+            strokeWeight: 6
+          });
+          
           toast({
             title: "📍 Repositionnement en cours",
             description: "Relâchez pour confirmer la nouvelle position",
@@ -216,7 +262,41 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
           const newLat = event.latLng.lat();
           const newLng = event.latLng.lng();
           
+          // Validate new position
+          const isValidLocation = newLat !== 0 || newLng !== 0;
+          if (!isValidLocation) {
+            toast({
+              title: "⚠️ Position incorrecte",
+              description: "Veuillez choisir une position valide sur la carte",
+              variant: "destructive"
+            });
+            marker.setPosition(currentCoords);
+            return;
+          }
+          
           setCurrentCoords({ lat: newLat, lng: newLng });
+
+          // Show success with green marker temporarily
+          marker.setIcon({
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 12,
+            fillColor: KWENDA_MARKER_COLORS.success,
+            fillOpacity: 1,
+            strokeColor: KWENDA_MARKER_COLORS.white,
+            strokeWeight: 4
+          });
+
+          // Revert to normal red after 1 second
+          setTimeout(() => {
+            marker.setIcon({
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 12,
+              fillColor: KWENDA_MARKER_COLORS.normal,
+              fillOpacity: 1,
+              strokeColor: KWENDA_MARKER_COLORS.white,
+              strokeWeight: 4
+            });
+          }, 1000);
 
           // Reverse geocode
           try {
@@ -267,7 +347,14 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
   };
 
   const confirmSaveLocation = () => {
-    if (!currentCoords) return;
+    if (!currentCoords || !isValidCoordinates(currentCoords)) {
+      toast({
+        title: "❌ Position invalide",
+        description: "Impossible d'enregistrer une position non valide",
+        variant: "destructive"
+      });
+      return;
+    }
     
     const name = positionName.trim() || `Position ${savedPositions.length + 1}`;
     const newPosition = {
@@ -307,9 +394,9 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
         markerRef.current.setIcon({
           path: google.maps.SymbolPath.CIRCLE,
           scale: 14,
-          fillColor: '#3B82F6',
+          fillColor: KWENDA_MARKER_COLORS.editing,
           fillOpacity: 1,
-          strokeColor: '#ffffff',
+          strokeColor: KWENDA_MARKER_COLORS.white,
           strokeWeight: 5
         });
       }
@@ -319,9 +406,9 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
         markerRef.current.setIcon({
           path: google.maps.SymbolPath.CIRCLE,
           scale: 12,
-          fillColor: '#3B82F6',
+          fillColor: KWENDA_MARKER_COLORS.normal,
           fillOpacity: 1,
-          strokeColor: '#ffffff',
+          strokeColor: KWENDA_MARKER_COLORS.white,
           strokeWeight: 4
         });
       }
@@ -345,33 +432,46 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
   };
 
   const handleShareLocation = async () => {
-    if (currentCoords) {
-      const shareUrl = `https://www.google.com/maps?q=${currentCoords.lat},${currentCoords.lng}`;
-      const shareText = `📍 Ma position: ${currentAddress}`;
-      
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: 'Ma position Kwenda',
-            text: shareText,
-            url: shareUrl
-          });
-          
-          toast({
-            title: "📤 Partagé avec succès",
-            description: "Votre position a été partagée"
-          });
-        } catch (err) {
-          // User cancelled share
-        }
-      } else {
-        // Fallback: copy to clipboard
-        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-        toast({
-          title: "📋 Lien copié",
-          description: "Le lien de votre position a été copié dans le presse-papier"
+    if (!currentCoords || !isValidCoordinates(currentCoords)) {
+      toast({
+        title: "❌ Partage impossible",
+        description: "Aucune position valide à partager",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const shareUrl = `https://www.google.com/maps?q=${currentCoords.lat},${currentCoords.lng}`;
+    const shareText = `📍 Ma position Kwenda\n${currentAddress}\n\n${shareUrl}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Ma position Kwenda',
+          text: shareText
         });
+        
+        toast({
+          title: "📤 Partagé avec succès",
+          description: "Votre position a été partagée"
+        });
+      } catch (err) {
+        // User cancelled or fallback to clipboard
+        if (err instanceof Error && err.name !== 'AbortError') {
+          navigator.clipboard?.writeText(shareText);
+          toast({
+            title: "📋 Copié !",
+            description: "Position copiée dans le presse-papiers"
+          });
+        }
       }
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard?.writeText(shareText);
+      toast({
+        title: "📋 Copié !",
+        description: "Position copiée dans le presse-papiers"
+      });
     }
   };
 
@@ -407,6 +507,19 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
             </p>
           </SheetHeader>
 
+          {/* Warning if no valid GPS */}
+          {open && (!coordinates || !isValidCoordinates(coordinates)) && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl"
+            >
+              <p className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">
+                ⚠️ Position GPS non disponible. Activez la géolocalisation dans votre navigateur.
+              </p>
+            </motion.div>
+          )}
+
           <div className="space-y-5">
             {/* Mini Map with Enhanced Design */}
             <motion.div
@@ -423,11 +536,20 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="absolute inset-0 space-y-3 p-4"
+                      className="absolute inset-0 bg-gradient-to-br from-muted/40 via-muted/20 to-muted/40 flex items-center justify-center"
                     >
-                      <div className="h-1/3 bg-muted/40 rounded-2xl animate-pulse" />
-                      <div className="h-1/3 bg-muted/30 rounded-2xl w-2/3 animate-pulse" />
-                      <div className="h-1/3 bg-muted/20 rounded-2xl w-1/2 animate-pulse" />
+                      <div className="space-y-3 text-center">
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          className="w-12 h-12 mx-auto"
+                        >
+                          <MapPin className="w-full h-full text-primary" />
+                        </motion.div>
+                        <p className="text-xs text-muted-foreground font-medium">
+                          Chargement de la carte...
+                        </p>
+                      </div>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -440,6 +562,18 @@ export const LocationDetailsSheet: React.FC<LocationDetailsSheetProps> = ({
                     />
                   )}
                 </AnimatePresence>
+
+                {/* GPS Status Badge */}
+                {geolocation?.isRealGPS && geolocation?.accuracy && mapLoaded && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute top-3 left-3 bg-green-600/90 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-[10px] font-semibold flex items-center gap-1.5 shadow-lg z-10"
+                  >
+                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                    GPS précis ({Math.round(geolocation.accuracy)}m)
+                  </motion.div>
+                )}
 
                 {/* Open in Google Maps Button */}
                 {mapLoaded && (

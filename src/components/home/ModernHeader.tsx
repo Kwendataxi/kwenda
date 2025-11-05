@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { useGeolocation } from '@/hooks/useGeolocation';
+import { useRealtimeGeolocation } from '@/hooks/useRealtimeGeolocation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useProfile } from '@/hooks/useProfile';
 import { GooglePlacesService } from '@/services/googlePlacesService';
@@ -26,7 +26,7 @@ export const ModernHeader = ({}: ModernHeaderProps) => {
     language = 'fr';
   }
   
-  const geolocation = useGeolocation();
+  const geolocation = useRealtimeGeolocation();
   const [currentAddress, setCurrentAddress] = useState(t('city.kinshasa') + ', RD Congo');
   const [geocodingLoading, setGeocodingLoading] = useState(false);
   const [locationSheetOpen, setLocationSheetOpen] = useState(false);
