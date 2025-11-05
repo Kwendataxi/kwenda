@@ -1,0 +1,26 @@
+import { useNavigate } from 'react-router-dom';
+import { FoodOrderInterface } from '@/components/food/FoodOrderInterface';
+
+export default function Food() {
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    // Si l'utilisateur peut revenir en arrière dans l'historique
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      // Sinon, retour à la page d'accueil
+      navigate('/home');
+    }
+  };
+
+  return (
+    <FoodOrderInterface 
+      onBack={handleBack}
+      onOrderComplete={(orderId) => {
+        // Optionnel: naviguer vers le suivi de commande
+        console.log('Order completed:', orderId);
+      }}
+    />
+  );
+}
