@@ -1,6 +1,7 @@
 import { motion, PanInfo } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import CompactVehicleSelector from './CompactVehicleSelector';
+import ModernVehicleCarousel from './ModernVehicleCarousel';
 import DestinationSearchBar from './DestinationSearchBar';
 import PopularPlacesList from './PopularPlacesList';
 import { useWindowSize } from '@/hooks/useWindowSize';
