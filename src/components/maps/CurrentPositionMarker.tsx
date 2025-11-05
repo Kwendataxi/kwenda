@@ -20,44 +20,106 @@ export default function CurrentPositionMarker({
 
   const getModernPositionSVG = (): string => {
     return `
-      <svg width="60" height="80" viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg">
+      <svg width="50" height="70" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <filter id="marker-shadow">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+          <!-- Ombre portée moderne -->
+          <filter id="pin-shadow">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+            <feOffset dx="0" dy="4" result="offsetblur"/>
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.3"/>
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
           </filter>
-          <linearGradient id="stem-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          
+          <!-- Gradient rouge moderne -->
+          <linearGradient id="pin-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" style="stop-color:#EF4444;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#DC2626;stop-opacity:0.6" />
+            <stop offset="100%" style="stop-color:#DC2626;stop-opacity:1" />
           </linearGradient>
+          
+          <!-- Gradient pour le cercle blanc (effet 3D) -->
+          <radialGradient id="white-gradient">
+            <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+            <stop offset="90%" style="stop-color:#F8F8F8;stop-opacity:1" />
+          </radialGradient>
         </defs>
         
-        <!-- Ombre portée au sol -->
-        <ellipse cx="30" cy="76" rx="8" ry="2" fill="#000000" opacity="0.15"/>
+        <!-- Ombre au sol (ellipse animée) -->
+        <ellipse cx="25" cy="66" rx="10" ry="3" fill="#000000" opacity="0.2">
+          <animate attributeName="rx" values="8;12;8" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.15;0.25;0.15" dur="2s" repeatCount="indefinite"/>
+        </ellipse>
         
-        <!-- Pulse d'anneau rouge (animation) -->
-        <circle cx="30" cy="28" r="28" fill="#EF4444" opacity="0.2">
-          <animate attributeName="r" from="25" to="32" dur="2s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" from="0.4" to="0" dur="2s" repeatCount="indefinite"/>
+        <!-- Pulse d'ondes concentriques (effet radar) -->
+        <circle cx="25" cy="22" r="20" fill="none" stroke="#EF4444" stroke-width="2" opacity="0">
+          <animate attributeName="r" from="15" to="28" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" from="0.6" to="0" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="stroke-width" from="3" to="0.5" dur="2s" repeatCount="indefinite"/>
         </circle>
         
-        <!-- Anneau extérieur rouge -->
-        <circle cx="30" cy="28" r="22" fill="none" stroke="#EF4444" stroke-width="3" 
-                filter="url(#marker-shadow)"/>
+        <!-- Corps du pin en forme de goutte (path moderne) -->
+        <path 
+          d="M 25 5 
+             C 15 5, 8 12, 8 22 
+             C 8 32, 25 55, 25 55 
+             C 25 55, 42 32, 42 22 
+             C 42 12, 35 5, 25 5 Z"
+          fill="url(#pin-gradient)"
+          filter="url(#pin-shadow)"
+          stroke="#B91C1C"
+          stroke-width="0.5"
+        >
+          <!-- Animation de pulsation subtile -->
+          <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="scale"
+            values="1 1; 1.05 1.05; 1 1"
+            dur="1.5s"
+            repeatCount="indefinite"
+            additive="sum"
+          />
+        </path>
         
-        <!-- Anneau intérieur blanc -->
-        <circle cx="30" cy="28" r="16" fill="#FFFFFF" filter="url(#marker-shadow)"/>
-        
-        <!-- Point central rouge avec pulse -->
-        <circle cx="30" cy="28" r="5" fill="#DC2626">
-          <animate attributeName="r" from="4" to="6" dur="1.5s" repeatCount="indefinite"/>
+        <!-- Cercle blanc central (grande zone blanche) -->
+        <circle 
+          cx="25" 
+          cy="22" 
+          r="11" 
+          fill="url(#white-gradient)"
+          stroke="#FFFFFF"
+          stroke-width="1"
+          filter="url(#pin-shadow)"
+        >
+          <!-- Pulse doux du cercle -->
+          <animate attributeName="r" values="11;11.5;11" dur="2s" repeatCount="indefinite"/>
         </circle>
         
-        <!-- Tige verticale élégante -->
-        <line x1="30" y1="50" x2="30" y2="74" stroke="url(#stem-gradient)" 
-              stroke-width="2.5" stroke-linecap="round" filter="url(#marker-shadow)"/>
+        <!-- Point central rouge (petit point indicateur) -->
+        <circle cx="25" cy="22" r="3.5" fill="#DC2626">
+          <animate attributeName="r" values="3;4;3" dur="1.5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="1;0.8;1" dur="1.5s" repeatCount="indefinite"/>
+        </circle>
         
-        <!-- Point d'ancrage au sol -->
-        <circle cx="30" cy="75" r="3" fill="#DC2626" opacity="0.8"/>
+        <!-- Point d'ancrage au sol (effet drop) -->
+        <circle cx="25" cy="56" r="2.5" fill="#DC2626" opacity="0.7">
+          <animate attributeName="r" values="2.5;3;2.5" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        
+        <!-- Highlight blanc pour effet 3D sur le pin -->
+        <ellipse 
+          cx="20" 
+          cy="12" 
+          rx="6" 
+          ry="8" 
+          fill="#FFFFFF" 
+          opacity="0.25"
+          transform="rotate(-25 20 12)"
+        />
       </svg>
     `;
   };
@@ -65,18 +127,21 @@ export default function CurrentPositionMarker({
   const animateToPosition = (targetPosition: { lat: number; lng: number }) => {
     if (!markerRef.current) return;
     
-    // Animation bounce de Google Maps
-    markerRef.current.setAnimation(google.maps.Animation.BOUNCE);
-    
-    // Animer vers la nouvelle position
+    // Animation DROP (tombe du ciel)
+    markerRef.current.setAnimation(google.maps.Animation.DROP);
     markerRef.current.setPosition(targetPosition);
     
-    // Arrêter l'animation après 1s
+    // Après la chute, pulse bounce
     setTimeout(() => {
       if (markerRef.current) {
-        markerRef.current.setAnimation(null);
+        markerRef.current.setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(() => {
+          if (markerRef.current) {
+            markerRef.current.setAnimation(null);
+          }
+        }, 700); // Bounce plus court (700ms)
       }
-    }, 1000);
+    }, 300);
   };
 
   useEffect(() => {
@@ -112,8 +177,8 @@ export default function CurrentPositionMarker({
         title: isDraggable ? 'Déplacez-moi ou cliquez pour me recentrer' : 'Votre position actuelle',
         icon: {
           url: iconUrl,
-          scaledSize: new google.maps.Size(60, 80),
-          anchor: new google.maps.Point(30, 75)
+          scaledSize: new google.maps.Size(50, 70),
+          anchor: new google.maps.Point(25, 56)
         },
         zIndex: 3000,
         optimized: false,
