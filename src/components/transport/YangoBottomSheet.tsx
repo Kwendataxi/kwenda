@@ -1,10 +1,11 @@
-import { motion, PanInfo } from 'framer-motion';
-import { useState, useEffect } from 'react';
-import YangoStyleVehicleSelection from './YangoStyleVehicleSelection';
+import { motion } from 'framer-motion';
+import { useEffect } from 'react';
+import { ArrowRight } from 'lucide-react';
+import YangoVerticalVehicleCards from './YangoVerticalVehicleCards';
 import BeneficiarySelector from './BeneficiarySelector';
 import DestinationSearchBar from './DestinationSearchBar';
 import PopularPlacesList from './PopularPlacesList';
-import { useWindowSize } from '@/hooks/useWindowSize';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
 interface YangoBottomSheetProps {
@@ -26,14 +27,11 @@ interface YangoBottomSheetProps {
   onSelectBeneficiary?: (beneficiary: any) => void;
 }
 
-type SheetPosition = 'COLLAPSED' | 'SMALL' | 'MEDIUM' | 'LARGE';
-
 export default function YangoBottomSheet({ 
   bookingStep,
   selectedVehicle,
   onVehicleSelect,
   distance,
-  city,
   calculatingRoute,
   popularPlaces,
   onPlaceSelect,
@@ -45,270 +43,119 @@ export default function YangoBottomSheet({
   selectedBeneficiary,
   onSelectBeneficiary
 }: YangoBottomSheetProps) {
-  const { height: windowHeight } = useWindowSize();
   
-  // Position initiale adaptative selon l'étape
-  const getInitialPosition = (): SheetPosition => {
-    if (bookingStep === 'vehicle') return 'MEDIUM';
-    if (bookingStep === 'destination') return 'LARGE';
-    return 'COLLAPSED';
-  };
-  
-  const [sheetPosition, setSheetPosition] = useState<SheetPosition>(getInitialPosition());
-  const [isDraggable, setIsDraggable] = useState(true);
-
-  // Positions en pixels depuis le bas de l'écran (optimisées pour interface compacte)
-  const SHEET_POSITIONS = {
-    COLLAPSED: 100,
-    SMALL: 240,
-    MEDIUM: 380,
-    LARGE: Math.min(windowHeight * 0.85, 680)
-  };
-
-  // Feedback haptique amélioré
-  const triggerHaptic = (type: 'snap' | 'expand' | 'collapse' | 'light' = 'light') => {
+  // Feedback haptique simple
+  const triggerHaptic = (intensity: 'light' | 'medium' = 'light') => {
     if ('vibrate' in navigator) {
-      const patterns = {
-        snap: [5, 10, 5],
-        expand: [15],
-        collapse: [10],
-        light: 10
-      };
-      navigator.vibrate(patterns[type]);
+      navigator.vibrate(intensity === 'medium' ? 15 : 10);
     }
   };
 
-  // Drag ultra-fluide avec seuil réduit
-  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    const velocity = info.velocity.y;
-    const currentY = info.point.y;
-    
-    let newPosition: SheetPosition;
-    
-    // Drag rapide : changement direct de position (seuil réduit à 200)
-    if (Math.abs(velocity) > 200) {
-      if (velocity < 0) {
-        // Drag rapide vers le haut → Agrandir
-        if (sheetPosition === 'COLLAPSED') newPosition = 'SMALL';
-        else if (sheetPosition === 'SMALL') newPosition = 'MEDIUM';
-        else newPosition = 'LARGE';
-        triggerHaptic('expand');
-      } else {
-        // Drag rapide vers le bas → Réduire
-        if (sheetPosition === 'LARGE') newPosition = 'MEDIUM';
-        else if (sheetPosition === 'MEDIUM') newPosition = 'SMALL';
-        else newPosition = 'COLLAPSED';
-        triggerHaptic('collapse');
-      }
-    } else {
-      // Snap vers la position la plus proche
-      const positions = [
-        { name: 'LARGE' as SheetPosition, value: SHEET_POSITIONS.LARGE },
-        { name: 'MEDIUM' as SheetPosition, value: SHEET_POSITIONS.MEDIUM },
-        { name: 'SMALL' as SheetPosition, value: SHEET_POSITIONS.SMALL },
-        { name: 'COLLAPSED' as SheetPosition, value: SHEET_POSITIONS.COLLAPSED }
-      ];
-      
-      const closest = positions.reduce((prev, curr) => {
-        const prevDiff = Math.abs(currentY - (windowHeight - prev.value));
-        const currDiff = Math.abs(currentY - (windowHeight - curr.value));
-        return currDiff < prevDiff ? curr : prev;
-      });
-      
-      newPosition = closest.name;
-      triggerHaptic('snap');
-    }
-    
-    setSheetPosition(newPosition);
-    setIsDraggable(true);
-    onSheetPositionChange?.(SHEET_POSITIONS[newPosition]);
-  };
-
-  // Notifier la hauteur initiale au montage
+  // Notifier hauteur au montage
   useEffect(() => {
-    onSheetPositionChange?.(SHEET_POSITIONS[sheetPosition]);
-  }, [sheetPosition, onSheetPositionChange]);
+    onSheetPositionChange?.(500);
+  }, [onSheetPositionChange]);
 
-  // Auto-expand selon l'étape (avec animation)
-  useEffect(() => {
-    if (bookingStep === 'destination' && sheetPosition !== 'LARGE') {
-      setSheetPosition('LARGE');
-      triggerHaptic('expand');
-    } else if (bookingStep === 'vehicle' && sheetPosition === 'COLLAPSED') {
-      setSheetPosition('MEDIUM');
-      triggerHaptic('expand');
-    }
-  }, [bookingStep]);
-
-  // Double tap sur la barre pour changer de position
-  const handleBarDoubleClick = () => {
-    const nextPosition: Record<SheetPosition, SheetPosition> = {
-      COLLAPSED: 'SMALL',
-      SMALL: 'MEDIUM',
-      MEDIUM: 'LARGE',
-      LARGE: 'COLLAPSED'
-    };
-    const newPosition = nextPosition[sheetPosition];
-    setSheetPosition(newPosition);
-    triggerHaptic(newPosition === 'COLLAPSED' ? 'collapse' : 'expand');
-    onSheetPositionChange?.(SHEET_POSITIONS[newPosition]);
-  };
-
-  // Animations ultra-fluides avec spring adouci
   return (
     <motion.div
       role="dialog"
       aria-label="Options de réservation"
-      aria-expanded={sheetPosition !== 'COLLAPSED'}
-      initial={{ opacity: 0, x: bookingStep === 'vehicle' ? -50 : 50 }}
-      animate={{ 
-        opacity: 1, 
-        x: 0,
-        y: SHEET_POSITIONS.LARGE - SHEET_POSITIONS[sheetPosition],
-        transition: {
-          y: { 
-            type: "spring",
-            damping: 30,
-            stiffness: 250,
-            mass: 0.6
-          }
-        }
-      }}
-      exit={{ opacity: 0, x: bookingStep === 'vehicle' ? 100 : -100 }}
-      transition={{ 
-        type: 'spring', 
-        damping: 40,
-        stiffness: 220,
-        mass: 0.8,
-        opacity: { duration: 0.3, ease: "easeOut" }
-      }}
-      layout={false}
-      drag={isDraggable ? "y" : false}
-      dragConstraints={{ 
-        top: 0,
-        bottom: SHEET_POSITIONS.LARGE - SHEET_POSITIONS.COLLAPSED
-      }}
-      dragElastic={{ top: 0.1, bottom: 0.05 }}
-      onDragEnd={handleDragEnd}
-      className="fixed left-0 right-0 z-20 bg-background rounded-t-3xl shadow-2xl overflow-hidden"
-      style={{
-        bottom: 0,
-        height: `${SHEET_POSITIONS.LARGE}px`,
-        willChange: 'transform',
-        transform: 'translateZ(0)'
-      }}
+      initial={{ y: '100%' }}
+      animate={{ y: 0 }}
+      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+      className="fixed bottom-0 left-0 right-0 z-20 bg-background rounded-t-[2rem] shadow-2xl"
+      style={{ maxHeight: '70vh' }}
     >
-      {/* Zone de grip agrandie avec indicateur de position */}
-      <div 
-        className="flex justify-center items-center pt-5 pb-4 cursor-grab active:cursor-grabbing select-none relative"
-        onDoubleClick={handleBarDoubleClick}
-        style={{ minHeight: '48px' }}
-      >
-        <div className="w-16 h-1.5 bg-muted-foreground/40 rounded-full"></div>
-        
-        {/* Indicateur visuel de position (4 points) */}
-        <div className="absolute right-4 top-5 flex gap-1">
-          {(['COLLAPSED', 'SMALL', 'MEDIUM', 'LARGE'] as SheetPosition[]).map((pos) => (
-            <div 
-              key={pos}
-              className={cn(
-                "w-1.5 h-1.5 rounded-full transition-colors duration-200",
-                sheetPosition === pos ? "bg-primary" : "bg-muted-foreground/20"
-              )}
-            />
-          ))}
-        </div>
-      </div>
+      {/* Handle bar */}
+      <div className="w-16 h-1.5 bg-grey-300 rounded-full mx-auto mt-3 mb-4" />
 
-      {/* Mode COLLAPSED : Résumé avec bouton expand */}
-      {sheetPosition === 'COLLAPSED' && selectedVehicle && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="px-3 sm:px-4 pb-2 sm:pb-3 flex items-center justify-between"
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center text-base sm:text-lg">
-              🚗
-            </div>
-            <div>
-              <p className="text-xs sm:text-sm font-semibold">
-                {selectedVehicle === 'moto' ? 'Moto-taxi' : 
-                 selectedVehicle === 'eco' ? 'Taxi Eco' :
-                 selectedVehicle === 'comfort' ? 'Taxi Confort' :
-                 selectedVehicle === 'premium' ? 'Taxi Premium' : 'Taxi'}
-              </p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">
-                {distance > 0 ? `${distance.toFixed(1)} km` : 'En attente...'}
-              </p>
-            </div>
-          </div>
-          
-          <button 
-            onClick={() => {
-              setSheetPosition('MEDIUM');
-              triggerHaptic('expand');
-            }}
-            className="text-primary text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 sm:py-1.5 hover:bg-primary/10 rounded-lg transition-colors"
-          >
-            Modifier
-          </button>
-        </motion.div>
-      )}
-      
-      {/* Contenu scrollable avec gestion drag/scroll séparée */}
-      <div 
-        className={cn(
-          "px-2.5 sm:px-4 pb-4 sm:pb-6 overflow-y-auto transition-spacing duration-300",
-          "scroll-smooth overscroll-contain relative",
-          sheetPosition === 'COLLAPSED' && "opacity-0 pointer-events-none",
-          sheetPosition === 'SMALL' && "pb-2 space-y-2",
-          sheetPosition === 'MEDIUM' && "space-y-3 sm:space-y-4",
-          sheetPosition === 'LARGE' && "pb-6 space-y-4 sm:space-y-6"
-        )}
-        style={{
-          maxHeight: `${SHEET_POSITIONS[sheetPosition] - 64}px`,
-          overscrollBehavior: 'contain'
-        }}
-        onTouchStart={(e) => {
-          const target = e.currentTarget;
-          if (target.scrollHeight > target.clientHeight) {
-            setIsDraggable(false);
-          }
-        }}
-        onTouchEnd={() => setIsDraggable(true)}
-      >
-        {/* Gradient fade si contenu dépasse (sauf en LARGE) */}
-        {sheetPosition !== 'LARGE' && (
-          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
-        )}
+      {/* Contenu scrollable */}
+      <div className="px-5 pb-6 overflow-y-auto font-montserrat" style={{ maxHeight: 'calc(70vh - 32px)' }}>
         {/* ÉTAPE 1 : Sélection du véhicule */}
         {bookingStep === 'vehicle' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="space-y-5"
-          >
-            <YangoStyleVehicleSelection
+          <div className="space-y-5">
+            {/* Cartes véhicules verticales style Yango */}
+            <YangoVerticalVehicleCards
               distance={distance}
-              onVehicleSelect={(vehicle) => onVehicleSelect(vehicle.id)}
               selectedVehicleId={selectedVehicle}
-              onContinue={onContinue}
+              onVehicleSelect={onVehicleSelect}
             />
-            
-            {/* Sélecteur de bénéficiaire intégré après sélection véhicule */}
-            {selectedVehicle && isForSomeoneElse !== undefined && onToggleBeneficiary && (
-              <div className="mt-4">
-                <BeneficiarySelector
-                  isForSomeoneElse={isForSomeoneElse}
-                  onToggle={onToggleBeneficiary}
-                  selectedBeneficiary={selectedBeneficiary || null}
-                  onSelectBeneficiary={onSelectBeneficiary || (() => {})}
+
+            {/* Barre de progression */}
+            <div className="flex items-center justify-center py-3">
+              <div className="w-24 h-1 bg-grey-200 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-primary to-primary/60"
+                  initial={{ width: '0%' }}
+                  animate={{ width: '100%' }}
+                  transition={{ duration: 1.5, ease: 'easeInOut' }}
                 />
               </div>
+            </div>
+
+            {/* Bouton Continuer rouge style Yango */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                onContinue?.();
+                triggerHaptic('medium');
+              }}
+              disabled={!selectedVehicle}
+              className={cn(
+                "w-full py-4 rounded-2xl font-montserrat font-bold text-base",
+                "bg-gradient-to-r from-congo-red to-congo-red-electric shadow-lg",
+                "hover:shadow-xl transition-all duration-300",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+                "flex items-center justify-center gap-2 text-white"
+              )}
+            >
+              Continuer
+              <ArrowRight className="w-5 h-5" strokeWidth={2.5} />
+            </motion.button>
+
+            {/* Carte Réserver pour quelqu'un d'autre */}
+            {isForSomeoneElse !== undefined && onToggleBeneficiary && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-card rounded-2xl p-4 shadow-sm border border-border"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-congo-red/10 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-congo-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-foreground">Réserver pour quelqu'un d'autre</h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">Offrez un trajet à un proche</p>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={isForSomeoneElse} 
+                    onCheckedChange={(checked) => {
+                      onToggleBeneficiary(checked);
+                      triggerHaptic('light');
+                    }}
+                  />
+                </div>
+                
+                {/* Sélecteur de bénéficiaire si activé */}
+                {isForSomeoneElse && (
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <BeneficiarySelector
+                      isForSomeoneElse={isForSomeoneElse}
+                      onToggle={onToggleBeneficiary}
+                      selectedBeneficiary={selectedBeneficiary || null}
+                      onSelectBeneficiary={onSelectBeneficiary || (() => {})}
+                    />
+                  </div>
+                )}
+              </motion.div>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* ÉTAPE 2 : Sélection de la destination */}
