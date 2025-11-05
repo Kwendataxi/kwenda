@@ -150,23 +150,23 @@ export default function DestinationSearchDialog({
             </motion.button>
             
             <div className="flex-1 relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
               <Input
                 ref={inputRef}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={`Rechercher à ${currentCity}...`}
-                className="pl-12 pr-24 h-12 text-sm sm:text-base bg-muted/50 border-border rounded-xl focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                className="pl-11 pr-20 h-11 text-sm sm:text-base bg-muted/50 border-border rounded-xl focus:bg-background focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
               />
               
               {/* Badge ville actuelle */}
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-medium text-primary flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                 {currentCity}
               </div>
               
               {autocompleteLoading && (
-                <Loader2 className="absolute right-20 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin" />
+                <Loader2 className="absolute right-20 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary animate-spin" />
               )}
               {searchQuery && !autocompleteLoading && (
                 <motion.div 
@@ -193,7 +193,7 @@ export default function DestinationSearchDialog({
                   transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                   className="p-4"
                 >
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-2">
+                  <h3 className="text-xs font-semibold text-muted-foreground mb-2.5 px-1">
                     Destinations récentes
                   </h3>
                   <div className="space-y-1">
@@ -204,34 +204,34 @@ export default function DestinationSearchDialog({
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
                         onClick={() => handleSelectHistory(dest)}
-                        className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 rounded-xl transition-all text-left group"
+                        className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 rounded-xl transition-all text-left group"
                       >
                         <motion.div 
                           className={cn(
-                            "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
+                            "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0",
                             dest.frequency >= 3 ? "bg-amber-500/10" : "bg-blue-500/10"
                           )}
                           animate={dest.frequency >= 3 ? { scale: [1, 1.05, 1] } : {}}
                           transition={dest.frequency >= 3 ? { repeat: Infinity, duration: 2 } : {}}
                         >
                           {dest.frequency >= 3 ? (
-                            <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+                            <Star className="w-4.5 h-4.5 text-amber-500 fill-amber-500" />
                           ) : (
-                            <Clock className="w-5 h-5 text-blue-500" />
+                            <Clock className="w-4.5 h-4.5 text-blue-500" />
                           )}
                         </motion.div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                            <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
                               {dest.destination}
                             </p>
                             {dest.frequency === 1 && (
-                              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                              <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
                                 Nouveau
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-[10px] text-muted-foreground">
                             {dest.frequency > 1 ? `${dest.frequency} trajets` : 'Récent'}
                           </p>
                         </div>
@@ -252,27 +252,27 @@ export default function DestinationSearchDialog({
                 >
                   {/* Animation de localisation avec pin et ondes radar */}
                   <div className="relative w-full max-w-sm mx-auto">
-                    <div className="relative h-48 flex items-center justify-center">
+                    <div className="relative h-32 flex items-center justify-center">
                       {/* Pin central moderne avec animation */}
                       <motion.div
                         animate={{ 
-                          y: [0, -12, 0],
+                          y: [0, -10, 0],
                           rotate: [0, 3, -3, 0]
                         }}
                         transition={{
-                          duration: 3,
+                          duration: 2.5,
                           repeat: Infinity,
                           ease: 'easeInOut'
                         }}
                         className="relative z-10"
                       >
-                        <div className="w-16 h-16 bg-gradient-to-br from-primary via-primary/80 to-primary/60 rounded-full flex items-center justify-center shadow-2xl shadow-primary/30">
-                          <MapPin className="w-8 h-8 text-white" />
+                        <div className="w-12 h-12 bg-gradient-to-br from-primary via-primary/80 to-primary/60 rounded-full flex items-center justify-center shadow-2xl shadow-primary/30">
+                          <MapPin className="w-6 h-6 text-white" />
                         </div>
                       </motion.div>
                       
                       {/* Ondes radar autour du pin */}
-                      {[0, 1, 2].map((i) => (
+                      {[0, 1].map((i) => (
                         <motion.div
                           key={i}
                           className="absolute inset-0 border-2 border-primary/20 rounded-full"
@@ -284,7 +284,7 @@ export default function DestinationSearchDialog({
                           transition={{
                             duration: 2.5,
                             repeat: Infinity,
-                            delay: i * 0.8,
+                            delay: i * 1.2,
                             ease: 'easeOut'
                           }}
                         />
@@ -293,12 +293,12 @@ export default function DestinationSearchDialog({
                   </div>
 
                   {/* Message principal engageant contextualisé */}
-                  <div className="text-center space-y-3">
+                  <div className="text-center space-y-2">
                     <motion.h3 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="text-xl font-bold text-foreground"
+                      className="text-lg font-bold text-foreground"
                     >
                       Découvrez {currentCity} 🌍
                     </motion.h3>
@@ -307,7 +307,7 @@ export default function DestinationSearchDialog({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed"
+                      className="hidden sm:block text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed"
                     >
                       {currentCity === 'Kinshasa' && "Recherchez parmi des milliers de destinations dans la capitale"}
                       {currentCity === 'Lubumbashi' && "Explorez la capitale du cuivre avec Kwenda"}
@@ -323,18 +323,18 @@ export default function DestinationSearchDialog({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="space-y-4"
+                    className="space-y-3"
                   >
-                    <div className="flex items-center justify-between px-2">
-                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <div className="flex items-center justify-between px-1">
+                      <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                         Lieux populaires
                       </h4>
-                      <span className="text-xs text-primary font-medium">
+                      <span className="text-[10px] text-primary font-medium">
                         {currentCity} 📍
                       </span>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2.5">
                       {popularPlaces.map((place, index) => (
                         <motion.button
                           key={place.name}
@@ -344,23 +344,18 @@ export default function DestinationSearchDialog({
                           whileHover={{ scale: 1.03, y: -2 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => handleSelectPopularPlace(place)}
-                          className="group relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-muted/90 to-muted/40 hover:from-primary/15 hover:to-primary/5 border border-border/50 hover:border-primary/40 transition-all duration-300 shadow-sm hover:shadow-md"
+                          className="group relative overflow-hidden p-3 rounded-xl bg-gradient-to-br from-muted/90 to-muted/40 hover:from-primary/15 hover:to-primary/5 border border-border/50 hover:border-primary/40 transition-all duration-300 shadow-sm hover:shadow-md"
                         >
-                          {/* Badge catégorie */}
-                          <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center text-sm">
-                            {place.icon}
-                          </div>
-                          
-                          <div className="flex items-start gap-3">
-                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent group-hover:from-primary/30 group-hover:via-primary/20 flex items-center justify-center transition-all duration-300 shadow-inner">
-                              <MapPin className="w-5 h-5 text-primary" />
+                          <div className="flex items-start gap-2.5">
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent group-hover:from-primary/30 group-hover:via-primary/20 flex items-center justify-center transition-all duration-300 shadow-inner">
+                              <MapPin className="w-4.5 h-4.5 text-primary" />
                             </div>
                             
                             <div className="text-left flex-1 min-w-0 space-y-0.5">
-                              <p className="text-sm font-bold text-foreground truncate leading-tight">
+                              <p className="text-xs font-semibold text-foreground truncate leading-tight">
                                 {place.name}
                               </p>
-                              <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                              <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
                                 <span className="w-1 h-1 rounded-full bg-primary/60" />
                                 {place.district}
                               </p>
@@ -393,7 +388,7 @@ export default function DestinationSearchDialog({
                   transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                   className="p-4"
                 >
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-2">
+                  <h3 className="text-xs font-semibold text-muted-foreground mb-2.5 px-1">
                     Suggestions
                   </h3>
                   <div className="space-y-1">
@@ -404,17 +399,17 @@ export default function DestinationSearchDialog({
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
                         onClick={() => handleSelectPrediction(prediction.placeId, prediction.description)}
-                        className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 rounded-xl transition-all text-left group"
+                        className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 rounded-xl transition-all text-left group"
                       >
-                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                          <MapPin className="w-5 h-5 text-primary" />
+                        <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                          <MapPin className="w-4.5 h-4.5 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                          <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
                             {prediction.structuredFormatting.mainText}
                           </p>
                           {prediction.structuredFormatting.secondaryText && (
-                            <p className="text-xs text-muted-foreground truncate">
+                            <p className="text-[10px] text-muted-foreground truncate">
                               {prediction.structuredFormatting.secondaryText}
                             </p>
                           )}
