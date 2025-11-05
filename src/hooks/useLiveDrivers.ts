@@ -68,15 +68,7 @@ export const useLiveDrivers = ({
       
       let query = supabase
         .from('driver_locations')
-        .select(`
-          *,
-          driver_profiles!inner(
-            user_id,
-            display_name,
-            vehicle_model,
-            vehicle_plate
-          )
-        `)
+        .select('*')
         .eq('is_online', true)
         .gte('last_ping', fiveMinutesAgo);
 
@@ -93,7 +85,7 @@ export const useLiveDrivers = ({
         return;
       }
 
-      // Filtrer par distance si position utilisateur fournie
+      // Mapper directement sans JOIN - infos chauffeur optionnelles
       const driversWithInfo: LiveDriver[] = data.map((location: any) => ({
         id: location.id,
         driver_id: location.driver_id,
@@ -104,9 +96,9 @@ export const useLiveDrivers = ({
         is_online: location.is_online,
         is_available: location.is_available,
         last_ping: location.last_ping,
-        driver_name: location.driver_profiles?.display_name,
-        vehicle_model: location.driver_profiles?.vehicle_model,
-        vehicle_plate: location.driver_profiles?.vehicle_plate
+        driver_name: `Chauffeur ${location.driver_id.substring(0, 8)}`,
+        vehicle_model: location.vehicle_class || 'Standard',
+        vehicle_plate: null
       }));
 
       let filteredDrivers = driversWithInfo;

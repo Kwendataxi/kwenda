@@ -19,6 +19,7 @@ import { z } from 'zod';
 import ContactsStep from './ContactsStep';
 import { universalGeolocation } from '@/services/universalGeolocation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { logger } from '@/utils/logger';
 
 interface SlideDeliveryInterfaceProps {
   onSubmit: (data: any) => void;
@@ -148,7 +149,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
   }, [deliveryData.pickupLocation, deliveryData.deliveryLocation, deliveryData.serviceType, calculateDistance]);
 
   const handleLocationSelect = async (location: LocationData, type: 'pickup' | 'delivery') => {
-    console.log(`📍 [${type}] Location sélectionnée:`, location);
+    logger.debug(`Location sélectionnée [${type}]`, location);
 
     // Validation stricte des coordonnées
     if (!location || 
@@ -157,7 +158,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         isNaN(location.lat) || 
         isNaN(location.lng) ||
         !location.address) {
-      console.error(`❌ [${type}] Coordonnées invalides:`, location);
+      logger.error(`Coordonnées invalides [${type}]`, location);
       toast({
         title: t('delivery.invalid_address'),
         description: t('delivery.select_valid_address'),
@@ -174,7 +175,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     );
 
     if (!isInServiceArea) {
-      console.warn(`⚠️ [${type}] Coordonnées hors zone ${currentCity.name}:`, location);
+      logger.warn(`Coordonnées hors zone ${currentCity.name} [${type}]`, location);
       toast({
         title: t('delivery.area_not_covered'),
         description: t('delivery.outside_service_area', { city: currentCity.name }),
@@ -183,7 +184,7 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
       return;
     }
 
-    console.log(`✅ [${type}] Coordonnées validées pour ${currentCity.name}:`, { lat: location.lat, lng: location.lng });
+    logger.info(`Coordonnées validées pour ${currentCity.name} [${type}]`, { lat: location.lat, lng: location.lng });
 
     if (type === 'pickup') {
       setDeliveryData(prev => ({ ...prev, pickupLocation: location }));
@@ -240,7 +241,6 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         setCurrentStep('contacts');
         break;
       case 'contacts':
-        // ✅ ACTION 2: VALIDATION STRICTE RENFORCÉE avec logs détaillés
         const trimmedData = {
           senderName: deliveryData.senderName?.trim() || '',
           senderPhone: deliveryData.senderPhone?.trim() || '',
@@ -248,34 +248,9 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           recipientPhone: deliveryData.recipientPhone?.trim() || ''
         };
 
-        console.log('🔍 [CONTACTS] Données avant validation:', trimmedData);
-
-        // Validation préalable des champs vides
-        if (!trimmedData.senderPhone || trimmedData.senderPhone.length === 0) {
-          console.error('❌ [CONTACTS] Téléphone expéditeur vide');
-          toast({
-            title: "⚠️ Contact expéditeur requis",
-            description: "Veuillez renseigner le numéro de téléphone de l'expéditeur",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        if (!trimmedData.recipientPhone || trimmedData.recipientPhone.length === 0) {
-          console.error('❌ [CONTACTS] Téléphone destinataire vide');
-          toast({
-            title: "⚠️ Contact destinataire requis",
-            description: "Veuillez renseigner le numéro de téléphone du destinataire",
-            variant: "destructive"
-          });
-          return;
-        }
-
         try {
           contactSchema.parse(trimmedData);
-          console.log('✅ [CONTACTS] Validation réussie:', trimmedData);
           
-          // Mettre à jour avec les données nettoyées
           setDeliveryData(prev => ({
             ...prev,
             senderName: trimmedData.senderName,
@@ -287,9 +262,9 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
           setCurrentStep('service');
         } catch (error: any) {
           const firstError = error.errors?.[0];
-          console.error('❌ [CONTACTS] Erreur de validation Zod:', error.errors);
+          logger.error('Validation contacts échouée', error.errors);
           toast({
-            title: "❌ Validation échouée",
+            title: "Validation échouée",
             description: firstError?.message || "Veuillez vérifier les informations saisies",
             variant: "destructive"
           });
@@ -303,37 +278,23 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
 
 
   const handleSubmit = async () => {
-    // ✅ ACTION 2: VALIDATION FINALE STRICTE avant soumission
-    console.log('🚀 [SUBMIT] Début de la soumission');
-    console.log('📦 [SUBMIT] État actuel deliveryData:', {
-      pickup: deliveryData.pickupLocation?.address,
-      delivery: deliveryData.deliveryLocation?.address,
-      senderName: deliveryData.senderName,
-      senderPhone: deliveryData.senderPhone,
-      recipientName: deliveryData.recipientName,
-      recipientPhone: deliveryData.recipientPhone
-    });
-
-    // Validation des adresses
     if (!deliveryData.pickupLocation || !deliveryData.deliveryLocation) {
-      console.error('❌ [SUBMIT] Adresses manquantes');
       toast({
-        title: "⚠️ Informations manquantes",
+        title: "Informations manquantes",
         description: "Veuillez sélectionner les adresses de collecte et de livraison",
         variant: "destructive"
       });
       return;
     }
 
-    // Validation STRICTE des contacts - BLOQUER si vides
     const senderPhoneTrimmed = deliveryData.senderPhone?.trim();
     const recipientPhoneTrimmed = deliveryData.recipientPhone?.trim();
 
     if (!senderPhoneTrimmed || senderPhoneTrimmed.length === 0) {
-      console.error('❌ [SUBMIT] BLOQUÉ - Téléphone expéditeur vide:', deliveryData.senderPhone);
+      logger.error('Téléphone expéditeur manquant');
       toast({
-        title: "❌ Contact expéditeur manquant",
-        description: "Le numéro de téléphone de l'expéditeur est requis. Retournez à l'étape Contacts.",
+        title: "Contact expéditeur manquant",
+        description: "Le numéro de téléphone de l'expéditeur est requis",
         variant: "destructive"
       });
       setCurrentStep('contacts');
@@ -341,10 +302,10 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
     }
 
     if (!recipientPhoneTrimmed || recipientPhoneTrimmed.length === 0) {
-      console.error('❌ [SUBMIT] BLOQUÉ - Téléphone destinataire vide:', deliveryData.recipientPhone);
+      logger.error('Téléphone destinataire manquant');
       toast({
-        title: "❌ Contact destinataire manquant",
-        description: "Le numéro de téléphone du destinataire est requis. Retournez à l'étape Contacts.",
+        title: "Contact destinataire manquant",
+        description: "Le numéro de téléphone du destinataire est requis",
         variant: "destructive"
       });
       setCurrentStep('contacts');
@@ -397,19 +358,13 @@ export default function SlideDeliveryInterface({ onSubmit, onCancel }: SlideDeli
         }
       };
 
-      console.log('✅ [SUBMIT] Données formatées pour OrderConfirmationStep:', adaptedOrderData);
-      console.log('✅ [SUBMIT] Contacts validés:', {
-        senderPhone: adaptedOrderData.pickup.contact.phone,
-        recipientPhone: adaptedOrderData.destination.contact.phone
-      });
-
-      // Passer les données au parent qui utilisera OrderConfirmationStep
+      logger.info('Commande de livraison préparée', adaptedOrderData);
       onSubmit(adaptedOrderData);
       
     } catch (error) {
-      console.error('❌ [SUBMIT] Erreur lors de la préparation:', error);
+      logger.error('Erreur préparation commande', error);
       toast({
-        title: "❌ Erreur",
+        title: "Erreur",
         description: "Impossible de préparer la commande. Veuillez réessayer.",
         variant: "destructive"
       });

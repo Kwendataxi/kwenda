@@ -9,39 +9,64 @@ export function useDriverSimulation() {
   
   const createTestDrivers = async () => {
     try {
-      console.log('🚗 Création de chauffeurs de test...');
+      console.log('🚗 Création de 5 chauffeurs de test avec GPS Abidjan...');
 
-      // Créer quelques chauffeurs de test dans différentes zones de Kinshasa
+      // 5 chauffeurs de test dans différentes zones d'Abidjan
       const testDrivers = [
         {
-          driver_id: '550e8400-e29b-41d4-a716-446655440001', // UUID de test
-          latitude: -4.3217,  // Centre de Kinshasa
-          longitude: 15.3069,
+          driver_id: '550e8400-e29b-41d4-a716-446655440001',
+          latitude: 5.3544,  // Centre Abidjan
+          longitude: -4.0017,
+          heading: 45,
           is_online: true,
           is_available: true,
-          vehicle_class: 'standard',
+          vehicle_class: 'taxi_standard',
           last_ping: new Date().toISOString(),
           is_verified: true
         },
         {
           driver_id: '550e8400-e29b-41d4-a716-446655440002',
-          latitude: -4.3140,  // Gombe
-          longitude: 15.3120,
+          latitude: 5.3600,  // Plateau
+          longitude: -4.0100,
+          heading: 90,
           is_online: true,
           is_available: true,
-          vehicle_class: 'premium',
+          vehicle_class: 'taxi_premium',
           last_ping: new Date().toISOString(),
           is_verified: true
         },
         {
           driver_id: '550e8400-e29b-41d4-a716-446655440003',
-          latitude: -4.3350,  // Bandalungwa  
-          longitude: 15.2950,
+          latitude: 5.3490,  // Yopougon (proche position utilisateur)
+          longitude: -4.0768,
+          heading: 180,
           is_online: true,
           is_available: true,
-          vehicle_class: 'standard',
+          vehicle_class: 'moto_transport',
           last_ping: new Date().toISOString(),
-          is_verified: false
+          is_verified: true
+        },
+        {
+          driver_id: '550e8400-e29b-41d4-a716-446655440004',
+          latitude: 5.3400,  // Treichville
+          longitude: -3.9900,
+          heading: 270,
+          is_online: true,
+          is_available: true,
+          vehicle_class: 'taxi_standard',
+          last_ping: new Date().toISOString(),
+          is_verified: true
+        },
+        {
+          driver_id: '550e8400-e29b-41d4-a716-446655440005',
+          latitude: 5.3700,  // Cocody
+          longitude: -4.0200,
+          heading: 135,
+          is_online: true,
+          is_available: true,
+          vehicle_class: 'taxi_premium',
+          last_ping: new Date().toISOString(),
+          is_verified: true
         }
       ];
 
@@ -60,7 +85,7 @@ export function useDriverSimulation() {
         return false;
       }
 
-      console.log('✅ Chauffeurs de test créés:', testDrivers.length);
+      console.log('✅ 5 chauffeurs de test créés avec positions GPS à Abidjan');
       return true;
 
     } catch (error) {
@@ -72,7 +97,7 @@ export function useDriverSimulation() {
   const startDriverSimulation = async () => {
     const success = await createTestDrivers();
     if (success) {
-      toast.success('Chauffeurs de test créés pour les démonstrations');
+      toast.success('🚗 5 chauffeurs créés avec positions GPS à Abidjan');
     } else {
       toast.error('Erreur lors de la création des chauffeurs de test');
     }
