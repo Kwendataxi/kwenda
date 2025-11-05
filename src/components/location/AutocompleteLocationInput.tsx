@@ -157,17 +157,26 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
         console.log('✅ [Autocomplete] Coordonnées:', placeDetails.coordinates);
         
         // Validation des coordonnées
-      // 🆕 PHASE 2.3: Gestion améliorée des coordonnées invalides avec action
       if (placeDetails.coordinates.lat === 0 && placeDetails.coordinates.lng === 0) {
-        console.error('❌ [Autocomplete] Coordonnées invalides (0,0) - Proposition fallback');
+        console.error('❌ Coordonnées invalides (0,0)');
         
         toast({
-          title: "⚠️ Adresse incomplète",
-          description: "Nous n'avons pas pu localiser précisément cette adresse. Essayez un lieu populaire ci-dessous.",
-          variant: "destructive"
+          title: "⚠️ Impossible de localiser cette adresse",
+          description: (
+            <div className="space-y-2">
+              <p>Google Maps n'a pas pu trouver les coordonnées précises.</p>
+              <p className="text-xs font-medium mt-2">💡 Solutions :</p>
+              <ul className="text-xs list-disc list-inside space-y-1">
+                <li>Utilisez le bouton GPS (icône cible)</li>
+                <li>Choisissez un lieu populaire ci-dessous</li>
+                <li>Tapez un nom de rue ou bâtiment connu</li>
+              </ul>
+            </div>
+          ),
+          variant: "destructive",
+          duration: 8000
         });
         
-        // Afficher automatiquement les lieux populaires
         setShowSuggestions(true);
         clearPredictions();
         
@@ -298,11 +307,12 @@ export const AutocompleteLocationInput: React.FC<AutocompleteLocationInputProps>
         )}
       </div>
 
-        {/* 🆕 PHASE 3.1: Loading indicator amélioré */}
         {isLoading && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Recherche...</span>
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full backdrop-blur-sm">
+              <span className="text-xs font-medium text-primary">Recherche...</span>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+            </div>
           </div>
         )}
 

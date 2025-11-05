@@ -12,7 +12,6 @@ interface PlaceDetailsRequest {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -20,9 +19,9 @@ serve(async (req) => {
   try {
     const apiKey = Deno.env.get('GOOGLE_MAPS_API_KEY');
     if (!apiKey) {
-      console.error('GOOGLE_MAPS_API_KEY not found in environment');
+      console.error('❌ GOOGLE_MAPS_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: 'Google Maps API key not configured' }),
+        JSON.stringify({ error: 'API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -31,12 +30,11 @@ serve(async (req) => {
 
     if (!placeId) {
       return new Response(
-        JSON.stringify({ error: 'Place ID is required' }),
+        JSON.stringify({ error: 'placeId required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Build Google Place Details URL
     const url = new URL('https://maps.googleapis.com/maps/api/place/details/json');
     url.searchParams.set('place_id', placeId);
     url.searchParams.set('key', apiKey);
@@ -47,18 +45,15 @@ serve(async (req) => {
       url.searchParams.set('sessiontoken', sessionToken);
     }
 
-    console.log(`Google Place Details request: ${placeId}`, {
-      fields,
-      sessionToken: sessionToken ? 'provided' : 'none'
-    });
+    console.log(`📍 Place details request: ${placeId} | Session: ${sessionToken ? 'yes' : 'no'}`);
 
     const response = await fetch(url.toString());
     const data = await response.json();
 
     if (data.status !== 'OK') {
-      console.error('Google Place Details API error:', data);
+      console.error('❌ Google Place Details error:', data.status, data.error_message);
       return new Response(
-        JSON.stringify({ error: `Google Place Details API error: ${data.status}` }),
+        JSON.stringify({ error: `Google API: ${data.status}` }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -66,11 +61,10 @@ serve(async (req) => {
     const place = data.result;
     const geometry = place.geometry;
     
-    // Transform to our unified format
     const result = {
       id: place.place_id,
       placeId: place.place_id,
-      name: place.name || '',
+      name: place.name || place.formatted_address || '',
       address: place.formatted_address || '',
       coordinates: {
         lat: geometry?.location?.lat || 0,
@@ -84,7 +78,7 @@ serve(async (req) => {
       requestId: crypto.randomUUID()
     };
 
-    console.log(`Place details retrieved for: ${result.name} at ${result.coordinates.lat}, ${result.coordinates.lng}`);
+    console.log(`✅ Place details: ${result.name} at (${result.coordinates.lat}, ${result.coordinates.lng})`);
 
     return new Response(
       JSON.stringify({ 
@@ -95,7 +89,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Place details function error:', error);
+    console.error('❌ Place details error:', error);
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

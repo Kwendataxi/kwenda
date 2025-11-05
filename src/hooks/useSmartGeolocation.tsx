@@ -122,11 +122,16 @@ export const useSmartGeolocation = (options: GeolocationOptions = {}) => {
         lng: position.coords.longitude
       };
 
-      // Géocodage inverse via Edge Function
+      // Détecter le pays correct via les coordonnées
+      const detectedCity = await universalGeolocation.detectUserCity(coords);
+      console.log(`🌍 Ville détectée: ${detectedCity.name} (${detectedCity.countryCode})`);
+
+      // Géocodage inverse via Edge Function avec code pays correct
       const { data: geocodeData, error: geocodeError } = await supabase.functions.invoke('geocode-proxy', {
         body: {
           query: `${coords.lat},${coords.lng}`,
-          language: 'fr'
+          language: 'fr',
+          region: detectedCity.countryCode // CI pour Abidjan, CD pour RDC
         }
       });
 

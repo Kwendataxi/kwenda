@@ -15,13 +15,7 @@ interface AutocompleteRequest {
   sessionToken?: string;
 }
 
-interface PlaceDetailsRequest {
-  placeId: string;
-  sessionToken?: string;
-}
-
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -29,9 +23,9 @@ serve(async (req) => {
   try {
     const apiKey = Deno.env.get('GOOGLE_MAPS_API_KEY');
     if (!apiKey) {
-      console.error('GOOGLE_MAPS_API_KEY not found in environment');
+      console.error('❌ GOOGLE_MAPS_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: 'Google Maps API key not configured' }),
+        JSON.stringify({ error: 'API key not configured', predictions: [] }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -40,12 +34,11 @@ serve(async (req) => {
 
     if (!input || input.trim().length < 2) {
       return new Response(
-        JSON.stringify({ predictions: [] }),
+        JSON.stringify({ predictions: [], status: 'ZERO_RESULTS' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Build Google Places Autocomplete URL
     const url = new URL('https://maps.googleapis.com/maps/api/place/autocomplete/json');
     url.searchParams.set('input', input.trim());
     url.searchParams.set('key', apiKey);
@@ -55,52 +48,46 @@ serve(async (req) => {
       url.searchParams.set('sessiontoken', sessionToken);
     }
 
-    // Location bias for contextual results
+    // Location bias pour résultats contextuels
     if (lat && lng) {
       url.searchParams.set('location', `${lat},${lng}`);
       url.searchParams.set('radius', radius.toString());
     }
 
-    // Types filter for specific place types
+    // Filtres de types
     if (types.length > 0) {
       url.searchParams.set('types', types.join('|'));
     }
 
-    // Components to restrict to specific countries (RDC, Côte d'Ivoire)
+    // Restriction pays (RDC + Côte d'Ivoire)
     url.searchParams.set('components', 'country:cd|country:ci');
 
-    console.log(`Google Places Autocomplete request: ${input}`, {
-      location: lat && lng ? `${lat},${lng}` : 'none',
-      radius,
-      types,
-      sessionToken: sessionToken ? 'provided' : 'none'
-    });
+    console.log(`🔍 Google Autocomplete: "${input}" | Location: ${lat},${lng} | Session: ${sessionToken ? 'yes' : 'no'}`);
 
     const response = await fetch(url.toString());
     const data = await response.json();
 
     if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-      console.error('Google Places API error:', data);
+      console.error('❌ Google API error:', data.status, data.error_message);
       return new Response(
-        JSON.stringify({ error: `Google Places API error: ${data.status}`, predictions: [] }),
+        JSON.stringify({ error: `Google API: ${data.status}`, predictions: [] }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Transform predictions to our format
-    const predictions = (data.predictions || []).map((prediction: any) => ({
-      placeId: prediction.place_id,
-      description: prediction.description,
+    const predictions = (data.predictions || []).map((pred: any) => ({
+      placeId: pred.place_id,
+      description: pred.description,
       structuredFormatting: {
-        mainText: prediction.structured_formatting?.main_text || '',
-        secondaryText: prediction.structured_formatting?.secondary_text || ''
+        mainText: pred.structured_formatting?.main_text || '',
+        secondaryText: pred.structured_formatting?.secondary_text || ''
       },
-      types: prediction.types || [],
-      matchedSubstrings: prediction.matched_substrings || [],
-      terms: prediction.terms || []
+      types: pred.types || [],
+      matchedSubstrings: pred.matched_substrings || [],
+      terms: pred.terms || []
     }));
 
-    console.log(`Autocomplete results: ${predictions.length} predictions for "${input}"`);
+    console.log(`✅ Found ${predictions.length} predictions for "${input}"`);
 
     return new Response(
       JSON.stringify({ 
@@ -112,7 +99,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Autocomplete function error:', error);
+    console.error('❌ Autocomplete error:', error);
     return new Response(
       JSON.stringify({ error: 'Internal server error', predictions: [] }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
